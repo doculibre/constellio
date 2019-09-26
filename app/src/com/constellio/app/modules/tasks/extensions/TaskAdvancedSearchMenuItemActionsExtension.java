@@ -1,10 +1,7 @@
-package com.constellio.app.modules.rm.extensions.app;
+package com.constellio.app.modules.tasks.extensions;
 
 import com.constellio.app.extensions.menu.AdvancedSearchMenuItemActionExtension;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
@@ -14,10 +11,9 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class RMAdvancedSearchMenuItemActionsExtension extends AdvancedSearchMenuItemActionExtension {
+public class TaskAdvancedSearchMenuItemActionsExtension extends AdvancedSearchMenuItemActionExtension {
 
-
-	public RMAdvancedSearchMenuItemActionsExtension(String collection, AppLayerFactory appLayerFactory) {
+	public TaskAdvancedSearchMenuItemActionsExtension(String collection, AppLayerFactory appLayerFactory) {
 		super(collection, appLayerFactory);
 	}
 
@@ -30,8 +26,7 @@ public class RMAdvancedSearchMenuItemActionsExtension extends AdvancedSearchMenu
 		String schemaType = getSchemaType(query);
 		if (schemaType == null) {
 			return new MenuItemActionState(MenuItemActionStateStatus.HIDDEN);
-		} else if (!schemaType.equals(Document.SCHEMA_TYPE) && !schemaType.equals(Folder.SCHEMA_TYPE) &&
-				   !schemaType.equals(ContainerRecord.SCHEMA_TYPE) && !schemaType.equals(StorageSpace.SCHEMA_TYPE)) {
+		} else if (!schemaType.equals(Task.SCHEMA_TYPE)) {
 			return new MenuItemActionState(MenuItemActionStateStatus.HIDDEN);
 		}
 
@@ -42,8 +37,7 @@ public class RMAdvancedSearchMenuItemActionsExtension extends AdvancedSearchMenu
 		String schemaType = getSchemaType(query);
 		if (schemaType == null) {
 			return new MenuItemActionState(MenuItemActionStateStatus.HIDDEN);
-		} else if (!schemaType.equals(Document.SCHEMA_TYPE) && !schemaType.equals(Folder.SCHEMA_TYPE) &&
-				   !schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
+		} else if (!schemaType.equals(Task.SCHEMA_TYPE)) {
 			return new MenuItemActionState(MenuItemActionStateStatus.HIDDEN);
 		}
 
@@ -52,6 +46,6 @@ public class RMAdvancedSearchMenuItemActionsExtension extends AdvancedSearchMenu
 
 	@Override
 	protected boolean noPDFButton(String schemaType) {
-		return !(Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType));
+		return !(Task.SCHEMA_TYPE.equals(schemaType));
 	}
 }

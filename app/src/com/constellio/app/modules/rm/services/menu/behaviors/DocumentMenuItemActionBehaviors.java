@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
+import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
@@ -38,6 +39,7 @@ import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresente
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -68,6 +70,7 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.FilenameUtils;
@@ -81,6 +84,7 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
+import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
@@ -112,6 +116,12 @@ public class DocumentMenuItemActionBehaviors {
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+	}
+
+	public void getConsultationLink(Document document, MenuItemActionBehaviorParams params) {
+		String constellioURL = getConstellioUrl(modelLayerFactory);
+		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(constellioURL + RMUrlUtil.getPathToConsultLinkForDocument(document.getId())));
+		UI.getCurrent().addWindow(consultLinkWindow);
 	}
 
 	public void display(Document document, MenuItemActionBehaviorParams params) {
@@ -171,6 +181,7 @@ public class DocumentMenuItemActionBehaviors {
 		deleteDocumentButton.click();
 
 	}
+
 
 	private void deleteConfirmationDocumentButtonClicked(Document document, MenuItemActionBehaviorParams params) {
 		if (validateDeleteDocumentPossibleExtensively(document.getWrappedRecord(), params.getUser()).isEmpty()) {

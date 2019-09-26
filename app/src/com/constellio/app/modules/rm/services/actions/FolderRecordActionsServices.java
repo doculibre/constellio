@@ -139,6 +139,10 @@ public class FolderRecordActionsServices {
 		return true;
 	}
 
+	public boolean isConsultLinkActionPossible(Record record, User user) {
+		return hasUserReadAccess(record, user) && rmModuleExtensions.isConsultLinkActionPossibleOnFolder(rm.wrapFolder(record), user);
+	}
+
 	public boolean isCopyActionPossible(Record record, User user) {
 		Folder folder = rm.wrapFolder(record);
 		if (!hasUserReadAccess(record, user) ||

@@ -11,6 +11,7 @@ import com.constellio.app.extensions.core.LockedRecordsExtension;
 import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
 import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
+import com.constellio.app.modules.tasks.extensions.TaskAdvancedSearchMenuItemActionsExtension;
 import com.constellio.app.modules.tasks.extensions.TaskMenuItemActionsExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordExtension;
@@ -42,10 +43,10 @@ import com.constellio.app.modules.tasks.migrations.TasksMigrationTo7_7_4;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo7_7_4_1;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_2;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_4;
-import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_3_1;
-import com.constellio.app.modules.tasks.migrations.records.TaskVisibilityInTreesMigrationTo8_3_1;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_5;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_2_42;
+import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_3_1;
+import com.constellio.app.modules.tasks.migrations.records.TaskVisibilityInTreesMigrationTo8_3_1;
 import com.constellio.app.modules.tasks.model.TaskRecordsCachesHook;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
@@ -142,6 +143,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 
 		// after register because it need it in the extension constructor.
 		extensions.menuItemActionsExtensions.add(new TaskMenuItemActionsExtension(collection, appLayerFactory));
+		extensions.menuItemActionsExtensions.add(new TaskAdvancedSearchMenuItemActionsExtension(collection, appLayerFactory));
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {

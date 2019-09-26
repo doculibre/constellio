@@ -2,6 +2,7 @@ package com.constellio.app.modules.tasks.services.menu.behaviors;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -16,6 +17,7 @@ import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.wrappers.User;
@@ -24,11 +26,13 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.vaadin.ui.UI;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 import static java.util.Arrays.asList;
 
 public class TaskMenuItemActionBehaviors {
@@ -54,6 +58,12 @@ public class TaskMenuItemActionBehaviors {
 		this.tasksSearchServices = new TasksSearchServices(tasksSchemas);
 		this.taskPresenterServices = new TaskPresenterServices(tasksSchemas, recordServices, tasksSearchServices, loggingServices);
 
+	}
+
+	public void getConsultationLink(Task task, MenuItemActionBehaviorParams params) {
+		String constellioURL = getConstellioUrl(modelLayerFactory);
+		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(constellioURL + RMUrlUtil.getPathToConsultLinkForFolder(task.getId())));
+		UI.getCurrent().addWindow(consultLinkWindow);
 	}
 
 	public void display(Task task, MenuItemActionBehaviorParams params) {

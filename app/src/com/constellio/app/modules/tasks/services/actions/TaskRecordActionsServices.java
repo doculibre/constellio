@@ -17,7 +17,7 @@ import com.constellio.model.services.records.RecordUtils;
 
 import java.util.List;
 
-public class TaskActionsServices {
+public class TaskRecordActionsServices {
 
 	private RMSchemasRecordsServices rm;
 	private TaskModuleExtensions taskModuleExtensions;
@@ -30,7 +30,7 @@ public class TaskActionsServices {
 	private TasksSchemasRecordsServices tasksSchemas;
 	private TasksSearchServices tasksSearchServices;
 
-	public TaskActionsServices(String collection, AppLayerFactory appLayerFactory) {
+	public TaskRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
@@ -109,5 +109,10 @@ public class TaskActionsServices {
 	public boolean isGenerateReportActionPossible(Record record, User user) {
 		return isNotLogicallyDeleted(record) &&
 			   taskModuleExtensions.isGenerateReportActionPossibleOnTask(rm.wrapRMTask(record), user);
+	}
+
+	public boolean isConsultLinkActionPossible(Record record, User user) {
+		return user.hasReadAccess().on(record)
+			   && taskModuleExtensions.isConsultLinkActionPossibleOnTask(rm.wrapRMTask(record), user);
 	}
 }

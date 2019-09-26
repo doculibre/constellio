@@ -292,6 +292,10 @@ public class DocumentRecordActionsServices {
 			   rmModuleExtensions.isManageAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
+	public boolean isConsultLinkActionPossible(Record record, User user) {
+		return user.hasReadAccess().on(record)
+			   && rmModuleExtensions.isConsultLinkActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
 
 	public boolean isFinalizeActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);

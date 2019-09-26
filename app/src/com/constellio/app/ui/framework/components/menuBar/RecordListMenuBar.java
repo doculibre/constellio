@@ -35,8 +35,15 @@ public class RecordListMenuBar extends BaseMenuBar {
 	protected String rootItemCaption;
 	private List<String> excludedActionTypes;
 
+	private BaseView baseView;
+
 	public RecordListMenuBar(MenuItemRecordProvider recordProvider, String rootItemCaption,
 							 List<String> excludedActionTypes) {
+		this(recordProvider, rootItemCaption, excludedActionTypes, null);
+	}
+
+	public RecordListMenuBar(MenuItemRecordProvider recordProvider, String rootItemCaption,
+							 List<String> excludedActionTypes, BaseView baseView) {
 		super(true, false);
 		this.recordProvider = recordProvider;
 		this.rootItemCaption = rootItemCaption;
@@ -49,6 +56,7 @@ public class RecordListMenuBar extends BaseMenuBar {
 		userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		menuItemServices = new MenuItemServices(collection, appLayerFactory);
 		menuItemFactory = new MenuItemFactory();
+		this.baseView = baseView;
 
 		if (recordProvider != null) {
 			buildMenuItems();
@@ -70,7 +78,7 @@ public class RecordListMenuBar extends BaseMenuBar {
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
-						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+						return RecordListMenuBar.this.getView();
 					}
 
 					@Override
@@ -88,7 +96,7 @@ public class RecordListMenuBar extends BaseMenuBar {
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
-						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+						return RecordListMenuBar.this.getView();
 					}
 
 					@Override
@@ -119,6 +127,14 @@ public class RecordListMenuBar extends BaseMenuBar {
 			}
 
 		});
+	}
+
+	private BaseView getView() {
+		if (baseView == null) {
+			return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+		} else {
+			return baseView;
+		}
 	}
 
 }

@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_ADD_TO_CART;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CONSULT;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_DELETE;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_EDIT;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_EMPTY_THE_BOX;
@@ -97,6 +98,15 @@ public class ContainerMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
+
+		if (!filteredActionTypes.contains(CONTAINER_CONSULT_LINK.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_CONSULT_LINK.name(),
+					isMenuItemActionPossible(CONTAINER_CONSULT_LINK.name(), container, user, params),
+					$("consultationLink"), FontAwesome.LINK, -1, 510,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).getConsultationLink(container, params));
+			menuItemActions.add(menuItemAction);
+		}
+
 		if (!filteredActionTypes.contains(CONTAINER_EMPTY_THE_BOX.name())) {
 			// confirm message
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EMPTY_THE_BOX.name(),
@@ -121,6 +131,8 @@ public class ContainerMenuItemServices {
 				return containerRecordActionsServices.isDisplayActionPossible(record, user);
 			case CONTAINER_EDIT:
 				return containerRecordActionsServices.isEditActionPossible(record, user);
+			case CONTAINER_CONSULT_LINK:
+				return containerRecordActionsServices.isConsultLinkActionPossible(record, user);
 			case CONTAINER_SLIP:
 				return containerRecordActionsServices.isSlipActionPossible(record, user);
 			case CONTAINER_LABELS:
@@ -153,6 +165,7 @@ public class ContainerMenuItemServices {
 	public enum ContainerRecordMenuItemActionType {
 		CONTAINER_CONSULT,
 		CONTAINER_EDIT,
+		CONTAINER_CONSULT_LINK,
 		CONTAINER_SLIP,
 		CONTAINER_LABELS,
 		CONTAINER_ADD_TO_CART,

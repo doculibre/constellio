@@ -36,6 +36,7 @@ import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable.RecordVOSelectionManager;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.schemaRecords.DisplaySchemaRecordWindow;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
@@ -289,7 +290,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	public void setSelectionActionButtons() {
 		if (isSelectColumn()) {
 			if (initialSelectionActionsMenuBar == null) {
-				selectionActionsMenuBar = new RecordListMenuBar(getMenuItemProvider(), $("ViewableRecordVOTablePanel.selectionActions"), excludedMenuItemInDefaultSelectionActionButtons());
+				selectionActionsMenuBar = new RecordListMenuBar(getMenuItemProvider(), $("ViewableRecordVOTablePanel.selectionActions"), excludedMenuItemInDefaultSelectionActionButtons(), getMainView());
 			} else {
 				selectionActionsMenuBar = initialSelectionActionsMenuBar;
 				selectionActionsMenuBar.setRecordProvider(getMenuItemProvider());
@@ -1185,4 +1186,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		// TODO Auto-generated method stub
 	}
 
+
+	public BaseView getMainView() {
+		return null;
+	}
 }
