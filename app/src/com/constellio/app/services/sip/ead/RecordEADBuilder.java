@@ -218,11 +218,12 @@ public class RecordEADBuilder {
 			}
 
 			if (modifiableStructure instanceof Comment) {
-				mappedStructure = new TreeMap<>();
-				mappedStructure.put("message", ((Comment) modifiableStructure).getMessage());
-				mappedStructure.put("username", ((Comment) modifiableStructure).getUsername());
-				mappedStructure.put("userId", ((Comment) modifiableStructure).getUserId());
-				mappedStructure.put("dateTime", ((Comment) modifiableStructure).getDateTime());
+				Comment comment = (Comment) modifiableStructure;
+				mappedStructure = new TreeMap<String, Object>();
+				mappedStructure.put("userId", comment.getUserId());
+				mappedStructure.put("username", comment.getUsername());
+				mappedStructure.put("dateTime", comment.getDateTime());
+				mappedStructure.put("message", comment.getMessage());
 			}
 
 		}

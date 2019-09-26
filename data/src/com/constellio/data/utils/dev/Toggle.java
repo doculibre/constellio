@@ -93,6 +93,8 @@ public class Toggle {
 
 	public static AvailableToggle PERFORMANCE_TESTING = newToggle(false);
 
+	public static AvailableToggle OLD_DELETE_UNUSED_CONTENT_METHOD = newToggle(false);
+
 
 	public static AvailableToggle DEACTIVATE_WORKFLOW_ACTIONS = newToggle(true);
 

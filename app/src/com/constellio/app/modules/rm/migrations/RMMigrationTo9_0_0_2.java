@@ -7,30 +7,32 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
 
-public class RMMigrationTo9_0_3 extends MigrationHelper implements MigrationScript {
+public class RMMigrationTo9_0_0_2 extends MigrationHelper implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.0.2";
+		return "9.0.0.2";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory)
 			throws Exception {
-		new RMMigrationTo9_0_3.SchemaAlterationFor9_0_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor9_0_0_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	class SchemaAlterationFor9_0_2 extends MetadataSchemasAlterationHelper {
+	class SchemaAlterationFor9_0_0_2 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor9_0_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-										   AppLayerFactory appLayerFactory) {
+		protected SchemaAlterationFor9_0_0_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
+											 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -48,6 +50,9 @@ public class RMMigrationTo9_0_3 extends MigrationHelper implements MigrationScri
 			typesBuilder.getDefaultSchema(DecommissioningList.SCHEMA_TYPE).get(DecommissioningList.FOLDERS).setCacheIndex(true);
 			typesBuilder.getDefaultSchema(DecommissioningList.SCHEMA_TYPE).get(DecommissioningList.DOCUMENTS).setCacheIndex(true);
 			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Document.FOLDER_CATEGORY).setCacheIndex(true);
+
+			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).get(RMTask.LINKED_FOLDERS).setCacheIndex(true);
+			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).get(RMTask.LINKED_DOCUMENTS).setCacheIndex(true);
 		}
 	}
 }

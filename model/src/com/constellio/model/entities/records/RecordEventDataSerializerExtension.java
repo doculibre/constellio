@@ -53,7 +53,6 @@ public class RecordEventDataSerializerExtension implements EventDataSerializerEx
 			if (recordDTO instanceof ByteArrayRecordDTOWithIntegerId) {
 				byte[] serializedBytes = serializerService.serialize((ByteArrayRecordDTOWithIntegerId) recordDTO);
 				String serializedBytesInBase64 = encodingService.encodeToBase64(serializedBytes);
-				System.out.println("Sending &" + serializedBytesInBase64);
 				return "&" + serializedBytesInBase64;
 			} else {
 				return "&&" + record.getId();
@@ -72,7 +71,6 @@ public class RecordEventDataSerializerExtension implements EventDataSerializerEx
 			return recordServices.realtimeGetRecordSummaryById(data.substring(2));
 
 		} else if (data.startsWith("&")) {
-			System.out.println("Receiving " + data);
 			String serializedBytesInBase64 = data.substring(1);
 			byte[] serializedBytes = encodingService.decodeStringToBase64Bytes(serializedBytesInBase64);
 

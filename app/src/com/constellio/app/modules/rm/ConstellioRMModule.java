@@ -236,11 +236,12 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_3());
 		scripts.add(new RMMigrationTo8_3_1());
 		scripts.add(new RMMigrationTo8_3_1_1());
+		scripts.add(new RMMigrationTo8_3_2_1());
 		scripts.add(new RMMigrationTo8_3_2());
 		scripts.add(new RMMigrationTo9_0());
-		scripts.add(new RMMigrationTo9_0_1());
+		scripts.add(new RMMigrationTo9_0_0_1());
 		scripts.add(new RMMigrationTo8_2_1_5());
-		scripts.add(new RMMigrationTo9_0_3());
+		scripts.add(new RMMigrationTo9_0_0_2());
 
 		return scripts;
 	}
@@ -379,6 +380,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordFieldFactoryExtensions.add(new RMAdministrativeUnitRecordFieldFactoryExtension());
 		extensions.xmlGeneratorExtensions.add(new RMXmlGeneratorExtension(collection, appLayerFactory));
 		extensions.pagesComponentsExtensions.add(new RMManageAuthorizationsPageExtension(collection, appLayerFactory));
+		extensions.sipExtensions.add(new RMSIPExtension(collection, appLayerFactory));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);

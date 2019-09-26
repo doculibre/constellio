@@ -10,24 +10,24 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class RMMigrationTo9_0_1 extends MigrationHelper implements MigrationScript {
+public class RMMigrationTo9_0_0_1 extends MigrationHelper implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.0.1";
+		return "9.0.0.1";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory)
 			throws Exception {
-		new RMMigrationTo9_0_1.SchemaAlterationFor9_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor9_0_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	class SchemaAlterationFor9_0_1 extends MetadataSchemasAlterationHelper {
+	class SchemaAlterationFor9_0_0_1 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor9_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-										   AppLayerFactory appLayerFactory) {
+		protected SchemaAlterationFor9_0_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
+											 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
