@@ -249,8 +249,7 @@ public class ContentImpl implements Content {
 		if (emptyVersion) {
 			currentVersion = currentCheckedOutVersion;
 			emptyVersion = false;
-
-		} else if (!currentCheckedOutVersion.getVersion().equals(currentVersion.getVersion())) {
+		} else if (!currentCheckedOutVersion.getHash().equals(currentVersion.getHash())) {
 			setNewCurrentVersion(currentCheckedOutVersion);
 		}
 		this.currentCheckedOutVersion = null;
@@ -430,9 +429,8 @@ public class ContentImpl implements Content {
 		return updateContentWithVersionAndName(user, newVersion, version, name, false);
 	}
 
-	@Override
-	public Content updateContentWithVersionAndName(User user, ContentVersionDataSummary newVersion, String version,
-												   String name, boolean overwrite) {
+	private Content updateContentWithVersionAndName(User user, ContentVersionDataSummary newVersion, String version,
+													String name, boolean overwrite) {
 		ensureNotCheckedOut();
 		version = validateVersion(version, currentVersion.getVersion(), isEmptyVersion(), overwrite);
 		validateUserArgument(user);
@@ -443,8 +441,6 @@ public class ContentImpl implements Content {
 		if (emptyVersion) {
 			emptyVersion = false;
 			currentVersion = new ContentVersion(newVersion, correctedFilename, version, user.getId(), now, null);
-		} else if (overwrite) {
-			overwriteCurrentVersion(new ContentVersion(newVersion, correctedFilename, version, user.getId(), now, null));
 		} else {
 			setNewCurrentVersion(new ContentVersion(newVersion, correctedFilename, version, user.getId(), now, null));
 		}
@@ -455,7 +451,7 @@ public class ContentImpl implements Content {
 	@Override
 	public Content replaceCurrentVersionContent(User user, ContentVersionDataSummary newVersion) {
 		return updateContentWithVersionAndName(user, newVersion, currentVersion.getVersion(),
-				getCurrentVersion().getFilename(), true);
+				currentVersion.getFilename(), true);
 	}
 
 	public Content updateContent(User user, ContentVersionDataSummary newVersion, boolean finalize) {
@@ -483,13 +479,19 @@ public class ContentImpl implements Content {
 		return dirty;
 	}
 
+	@Override
 	public ContentImpl updateCheckedOutContentWithName(ContentVersionDataSummary newVersion, String name) {
+		return updateCheckedOutContentWithName(newVersion, name, false);
+	}
+
+	private ContentImpl updateCheckedOutContentWithName(ContentVersionDataSummary newVersion, String name,
+														boolean overwrite) {
 		ensureCheckedOut();
 		valdiateNewVersionArgument(newVersion);
 		String correctedFilename = correctFilename(name);
 		String version = currentCheckedOutVersion.getVersion();
 
-		if (!emptyVersion && version.equals(getCurrentVersion().getVersion())) {
+		if (!emptyVersion && !overwrite && version.equals(getCurrentVersion().getVersion())) {
 			version = getNextVersion(false);
 		}
 
@@ -502,6 +504,11 @@ public class ContentImpl implements Content {
 
 	public ContentImpl updateCheckedOutContent(ContentVersionDataSummary newVersion) {
 		return updateCheckedOutContentWithName(newVersion, getCurrentCheckedOutVersion().getFilename());
+	}
+
+	@Override
+	public Content replaceCheckedOutContent(ContentVersionDataSummary newVersion) {
+		return updateCheckedOutContentWithName(newVersion, getCurrentCheckedOutVersion().getFilename(), true);
 	}
 
 	public ContentImpl finalizeVersion() {
@@ -616,22 +623,25 @@ public class ContentImpl implements Content {
 		return emptyVersion;
 	}
 
-	private void overwriteCurrentVersion(ContentVersion version) {
-		ensureHistoryIsLoaded();
-		if (currentVersion != null) {
-			if (history.size() == 0) {
-				history.add(currentVersion);
-			} else {
-				history.set(history.size() - 1, currentVersion);
-			}
-		}
-		currentVersion = version;
+	@Override
+	public boolean isCheckedOut() {
+		return checkoutUserId != null;
 	}
 
 	private void setNewCurrentVersion(ContentVersion version) {
 		ensureHistoryIsLoaded();
 		if (currentVersion != null) {
-			history.add(currentVersion);
+			boolean exists = false;
+			for (int i = 0; i < history.size(); i++) {
+				if (history.get(i).getVersion().equals(currentVersion.getVersion())) {
+					history.set(i, currentVersion);
+					exists = true;
+					break;
+				}
+			}
+			if (!exists) {
+				history.add(currentVersion);
+			}
 		}
 		currentVersion = version;
 	}
