@@ -259,6 +259,7 @@ $popup-view-z-index: 3;
 
 			.task-table-controls {
 				font-size: 14px;
+				height: 30px;
 			}
 
 			.task-table-filter {
@@ -274,16 +275,25 @@ $popup-view-z-index: 3;
 				position: relative;
 				top: -1px;
 				display: inline-block;
-				line-height: 39px;
+				line-height: initial;
 			}
 
 			.task-table-sort {
 				position: relative;
 				top: 1px;
+				
+				.v-filterselect, .v-filterselect-suggestmenu {
+					line-height: initial;
+				}
 
 				.v-filterselect-button:before {
 					content: "\f078";
+					line-height: 0px;
 				}
+			}
+			
+			.task-table-sort-asc-button, .task-table-sort-desc-button {
+				height: initial;
 			}
 
 			.task-table-sort-asc-button {
@@ -387,10 +397,19 @@ $popup-view-z-index: 3;
 				    top: -10px;
 				    margin-top: -23px;
 				    z-index: 2;
+				    
+				    .task-details-comment-workflow-checkbox-layout {
+				    	margin-top: 30px;
+				    }
 
 				    .v-checkbox {
 				    	top: 9px;
 				    	font-size: 14px;
+				    	padding-right: 6px;
+				    	
+				    	label {
+				    		white-space: initial;
+				    	}
 				    }
 
 					.v-slot-task-details-add-comment-button {
@@ -2313,6 +2332,11 @@ $popup-view-z-index: 3;
   		.table-buttons-layout {
   			//margin-bottom: -36px;
 			color: #197de1;
+			
+			.v-button-icon-only {
+				width: inherit;
+				text-align: center;
+			}
 
   			.select-deselect-all-button {
   				left: 16px;
@@ -2321,7 +2345,7 @@ $popup-view-z-index: 3;
   			.count-label {
 			    position: relative;
 			    top: 6px;
-			    left: 20px;
+			    left: 10px;
 			    color: #4396ea;
 			    //color: #197de1;
 			    font-weight: 500;
@@ -2330,6 +2354,10 @@ $popup-view-z-index: 3;
   			.previous-button {
   				margin-left: 12px;
   				margin-right: -12px;
+  			}
+  			
+  			.list-mode-button, .table-mode-button {
+  				width: 24px;
   			}
   		}
 
@@ -2343,6 +2371,7 @@ $popup-view-z-index: 3;
 
 			.v-menubar-menuitem {
 				direction: rtl;
+				padding-left: 6px;
 
 				.v-icon {
 					margin: 0 -6px 0 6px;
@@ -3162,6 +3191,16 @@ $popup-view-z-index: 3;
 	    }
 
     }
+		
+	.search-view {
+		.viewable-record-table-panel .viewable-record-table {
+			.search-result-with-elevation-buttons {
+				.search-result-title {
+					padding-right: 60px;
+				}
+			}
+		}
+	}
 
     .v-ui[width-range~="1101px-"] {
 		.v-menubar-user-menu {
@@ -3310,7 +3349,7 @@ $popup-view-z-index: 3;
 	    }
 	    
 	    .not-nested-action-menu-bar-layout {
-	    	top: -30px;
+	    	margin-top: -30px;
 	    }
 
   		.viewable-record-table-panel {
@@ -3455,7 +3494,7 @@ $popup-view-z-index: 3;
 	    }
 	    
 	    .not-nested-action-menu-bar-layout {
-	    	top: -30px;
+	    	margin-top: -30px;
 	    }
 
   		.viewable-record-table-panel {
@@ -3585,16 +3624,6 @@ $popup-view-z-index: 3;
 				top: 0px;
 			}
 		}	
-		
-		.search-view {
-			.viewable-record-table-panel .viewable-record-table {
-				.search-result-with-elevation-buttons {
-					.search-result-title {
-						padding-right: 60px;
-					}
-				}
-			}
-		}
 		
 		.viewable-record-table-panel .viewable-record-table .metadata-caption, .viewable-record-table-panel .viewable-record-table .metadata-value {
 			display: none;

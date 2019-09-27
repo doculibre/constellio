@@ -224,7 +224,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 		actionAndModeButtonsLayout = new I18NHorizontalLayout();
 		actionAndModeButtonsLayout.addStyleName("action-mode-buttons-layout");
-		actionAndModeButtonsLayout.setSpacing(true);
 
 		if (isSelectColumn()) {
 			selectionButtonsLayout.addComponent(selectDeselectAllToggleButton);
@@ -810,7 +809,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		};
 		previousButton.addStyleName("chevron");
 		previousButton.addStyleName("previous-button");
-		previousButton.setWidth("24px");
+		previousButton.setWidth("16px");
 		previousButton.addExtension(new NiceTitle(caption, false));
 		previousButton.setVisible(false);
 		return previousButton;
@@ -828,7 +827,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		};
 		nextButton.addStyleName("chevron");
 		nextButton.addStyleName("next-button");
-		nextButton.setWidth("24px");
+		nextButton.setWidth("16px");
 		nextButton.addExtension(new NiceTitle(caption, false));
 		nextButton.setVisible(false);
 		return nextButton;
