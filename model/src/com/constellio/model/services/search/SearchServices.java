@@ -274,7 +274,11 @@ public class SearchServices {
 
 		Number maxRecordSize = (Number) queryResponseDTO.getResults().get(0).getFields().get(ESTIMATED_SIZE.getDataStoreCode());
 		int batchSize = (maxRecordSize == null || maxRecordSize.intValue() == 0) ? 1000 : (100_000_1000 / maxRecordSize.intValue());
-		LOGGER.info("Streaming schema type '" + schemaType.getCode() + "' with batches of " + batchSize + ". Max record size is " + maxRecordSize);
+		if (queryResponseDTO.getNumFound() < batchSize) {
+			LOGGER.info("Loading schema type '" + schemaType.getCode());
+		} else {
+			LOGGER.info("Loading schema type '" + schemaType.getCode() + "' with batches of " + batchSize + ". Max record size is " + maxRecordSize);
+		}
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(schemaType).returnAll());
