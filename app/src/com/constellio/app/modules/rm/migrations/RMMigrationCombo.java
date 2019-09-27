@@ -42,6 +42,7 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
@@ -155,9 +156,21 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		scripts.add(new RMMigrationTo8_1_2());
 		scripts.add(new RMMigrationTo8_1_4());
 		scripts.add(new RMMigrationTo8_2());
+		scripts.add(new RMMigrationTo8_2_42());
 		scripts.add(new RMMigrationTo8_2_1_4());
+		scripts.add(new RMMigrationTo8_2_1_5());
 		scripts.add(new RMMigrationTo8_2_2_4());
 		scripts.add(new RMMigrationTo8_2_2_5());
+		scripts.add(new RMMigrationTo8_2_3());
+		scripts.add(new RMMigrationTo8_3());
+		scripts.add(new RMMigrationTo8_3_1());
+		scripts.add(new RMMigrationTo8_3_1_1());
+		scripts.add(new RMMigrationTo8_3_2_1());
+		scripts.add(new RMMigrationTo8_3_2());
+		scripts.add(new RMMigrationTo9_0());
+		scripts.add(new RMMigrationTo9_0_0_1());
+		scripts.add(new RMMigrationTo8_2_1_5());
+		scripts.add(new RMMigrationTo9_0_0_2());
 
 		return scripts;
 	}
@@ -181,6 +194,9 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		generatedComboMigration.applyGeneratedRoles();
 		generatedComboMigration.applySchemasDisplay(appLayerFactory.getMetadataSchemasDisplayManager());
 		applySchemasDisplay2(collection, appLayerFactory.getMetadataSchemasDisplayManager());
+
+		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
+		rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withTitle("Administrateur / Administrator"));
 
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		MetadataSchemaTypes types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);

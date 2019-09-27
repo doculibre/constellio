@@ -1,14 +1,28 @@
 package com.constellio.app.modules.tasks.migrations;
 
-import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.model.entities.schemas.RecordCacheType;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import com.constellio.model.services.security.roles.RolesManager;
+import java.util.ArrayList;
+import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
+import static java.util.Arrays.asList;
+
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.modules.tasks.model.calculators.DecisionsTasksCalculator;
 import com.constellio.app.modules.tasks.model.calculators.TaskFollowersCalculator;
+import com.constellio.app.modules.tasks.model.calculators.TaskHiddenStatusCalculator;
+import com.constellio.app.modules.tasks.model.calculators.TaskIsLateCalculator;
 import com.constellio.app.modules.tasks.model.calculators.TaskNextReminderOnCalculator;
 import com.constellio.app.modules.tasks.model.calculators.TaskTokensCalculator;
-import com.constellio.app.modules.tasks.model.calculators.WorkflowTaskSortCalculator;
+import com.constellio.app.modules.tasks.model.calculators.TaskVisibleInTreesCalculator;
 import com.constellio.app.modules.tasks.model.validators.TaskStatusValidator;
 import com.constellio.app.modules.tasks.model.validators.TaskValidator;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -16,9 +30,7 @@ import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollowerFactory;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminderFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.entities.structures.MapStringStringStructureFactory;
 import com.constellio.model.services.contents.ContentFactory;
@@ -37,9 +49,7 @@ import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator
 import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.schemas.validators.PercentageValidator;
-import com.constellio.model.services.security.roles.RolesManager;
-
-import static java.util.Arrays.asList;
+import java.lang.String;
 
 public final class GeneratedTasksMigrationCombo {
   String collection;
@@ -156,6 +166,8 @@ public final class GeneratedTasksMigrationCombo {
     userTaskSchema.get("allRemovedAuths").defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
     userTaskSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
     userTaskSchema.get("autocomplete").defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+    userTaskSchema.get("hidden").defineDataEntry().asCalculated(TaskHiddenStatusCalculator.class);
+    userTaskSchema.get("isLate").defineDataEntry().asCalculated(TaskIsLateCalculator.class);
     userTaskSchema.get("nextReminderOn").defineDataEntry().asCalculated(TaskNextReminderOnCalculator.class);
     userTaskSchema.get("nextTasks").defineDataEntry().asCalculated(DecisionsTasksCalculator.class);
     userTaskSchema.get("parentTaskDueDate").defineDataEntry().asCopied(userTaskSchema.get("parentTask"), typesBuilder.getMetadata("userTask_default_dueDate"));
@@ -166,7 +178,7 @@ public final class GeneratedTasksMigrationCombo {
     userTaskSchema.get("taskFollowersIds").defineDataEntry().asCalculated(TaskFollowersCalculator.class);
     userTaskSchema.get("tokens").defineDataEntry().asCalculated(TaskTokensCalculator.class);
     userTaskSchema.get("tokensHierarchy").defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
-    userTaskSchema.get("workflowTaskSort").defineDataEntry().asCalculated(WorkflowTaskSortCalculator.class);
+    userTaskSchema.get("visibleInTrees").defineDataEntry().asCalculated(TaskVisibleInTreesCalculator.class);
     workflowSchema.get("allReferences").defineDataEntry().asCalculated(AllReferencesCalculator.class);
     workflowSchema.get("allRemovedAuths").defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
     workflowSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
@@ -244,13 +256,16 @@ public final class GeneratedTasksMigrationCombo {
     workflowInstance_errorOnPhysicalDeletion.setSystemReserved(true);
     workflowInstance_errorOnPhysicalDeletion.setUndeletable(true);
     workflowInstance_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder workflowInstance_estimatedSize = workflowInstanceSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
-	  workflowInstance_estimatedSize.setSystemReserved(true);
-	  workflowInstance_estimatedSize.setUndeletable(true);
-	  workflowInstance_estimatedSize.setMultiLingual(false);
+    MetadataBuilder workflowInstance_estimatedSize = workflowInstanceSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    workflowInstance_estimatedSize.setSystemReserved(true);
+    workflowInstance_estimatedSize.setUndeletable(true);
+    workflowInstance_estimatedSize.setMultiLingual(false);
     MetadataBuilder workflowInstance_extraFields = workflowInstanceSchema.create("extraFields").setType(MetadataValueType.STRUCTURE);
     workflowInstance_extraFields.defineStructureFactory(MapStringListStringStructureFactory.class);
+    MetadataBuilder workflowInstance_hidden = workflowInstanceSchema.create("hidden").setType(MetadataValueType.BOOLEAN);
+    workflowInstance_hidden.setSystemReserved(true);
+    workflowInstance_hidden.setUndeletable(true);
+    workflowInstance_hidden.setMultiLingual(false);
     MetadataBuilder workflowInstance_id = workflowInstanceSchema.create("id").setType(MetadataValueType.STRING);
     workflowInstance_id.setDefaultRequirement(true);
     workflowInstance_id.setSystemReserved(true);
@@ -431,10 +446,14 @@ public final class GeneratedTasksMigrationCombo {
     workflow_errorOnPhysicalDeletion.setSystemReserved(true);
     workflow_errorOnPhysicalDeletion.setUndeletable(true);
     workflow_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder workflow_estimatedSize = workflowSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-	  workflow_estimatedSize.setSystemReserved(true);
-	  workflow_estimatedSize.setUndeletable(true);
-	  workflow_estimatedSize.setMultiLingual(false);
+    MetadataBuilder workflow_estimatedSize = workflowSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    workflow_estimatedSize.setSystemReserved(true);
+    workflow_estimatedSize.setUndeletable(true);
+    workflow_estimatedSize.setMultiLingual(false);
+    MetadataBuilder workflow_hidden = workflowSchema.create("hidden").setType(MetadataValueType.BOOLEAN);
+    workflow_hidden.setSystemReserved(true);
+    workflow_hidden.setUndeletable(true);
+    workflow_hidden.setMultiLingual(false);
     MetadataBuilder workflow_id = workflowSchema.create("id").setType(MetadataValueType.STRING);
     workflow_id.setDefaultRequirement(true);
     workflow_id.setSystemReserved(true);
@@ -619,10 +638,14 @@ public final class GeneratedTasksMigrationCombo {
     ddvTaskType_errorOnPhysicalDeletion.setSystemReserved(true);
     ddvTaskType_errorOnPhysicalDeletion.setUndeletable(true);
     ddvTaskType_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder ddvTaskType_estimatedSize = ddvTaskTypeSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-	  ddvTaskType_estimatedSize.setSystemReserved(true);
-	  ddvTaskType_estimatedSize.setUndeletable(true);
-	  ddvTaskType_estimatedSize.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_estimatedSize = ddvTaskTypeSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    ddvTaskType_estimatedSize.setSystemReserved(true);
+    ddvTaskType_estimatedSize.setUndeletable(true);
+    ddvTaskType_estimatedSize.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_hidden = ddvTaskTypeSchema.create("hidden").setType(MetadataValueType.BOOLEAN);
+    ddvTaskType_hidden.setSystemReserved(true);
+    ddvTaskType_hidden.setUndeletable(true);
+    ddvTaskType_hidden.setMultiLingual(false);
     MetadataBuilder ddvTaskType_id = ddvTaskTypeSchema.create("id").setType(MetadataValueType.STRING);
     ddvTaskType_id.setDefaultRequirement(true);
     ddvTaskType_id.setSystemReserved(true);
@@ -837,10 +860,16 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder userTask_escalationAssignee = userTaskSchema.create("escalationAssignee").setType(MetadataValueType.REFERENCE);
     userTask_escalationAssignee.setUndeletable(true);
     userTask_escalationAssignee.defineReferencesTo(types.getSchemaType("user"));
-	  MetadataBuilder userTask_estimatedSize = userTaskSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-	  userTask_estimatedSize.setSystemReserved(true);
-	  userTask_estimatedSize.setUndeletable(true);
-	  userTask_estimatedSize.setMultiLingual(false);
+    MetadataBuilder userTask_estimatedHours = userTaskSchema.create("estimatedHours").setType(MetadataValueType.NUMBER);
+    userTask_estimatedHours.setUndeletable(true);
+    MetadataBuilder userTask_estimatedSize = userTaskSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    userTask_estimatedSize.setSystemReserved(true);
+    userTask_estimatedSize.setUndeletable(true);
+    userTask_estimatedSize.setMultiLingual(false);
+    MetadataBuilder userTask_hidden = userTaskSchema.create("hidden").setType(MetadataValueType.BOOLEAN);
+    userTask_hidden.setSystemReserved(true);
+    userTask_hidden.setUndeletable(true);
+    userTask_hidden.setMultiLingual(false);
     MetadataBuilder userTask_id = userTaskSchema.create("id").setType(MetadataValueType.STRING);
     userTask_id.setDefaultRequirement(true);
     userTask_id.setSystemReserved(true);
@@ -850,6 +879,8 @@ public final class GeneratedTasksMigrationCombo {
     userTask_id.setSortable(true);
     userTask_id.setUniqueValue(true);
     userTask_id.setUnmodifiable(true);
+    MetadataBuilder userTask_isLate = userTaskSchema.create("isLate").setType(MetadataValueType.BOOLEAN);
+    userTask_isLate.setUndeletable(true);
     MetadataBuilder userTask_isModel = userTaskSchema.create("isModel").setType(MetadataValueType.BOOLEAN);
     MetadataBuilder userTask_lastReminder = userTaskSchema.create("lastReminder").setType(MetadataValueType.DATE_TIME);
     userTask_lastReminder.setSystemReserved(true);
@@ -914,6 +945,7 @@ public final class GeneratedTasksMigrationCombo {
     userTask_numberOfReminders.setUndeletable(true);
     userTask_numberOfReminders.setDefaultValue(0);
     MetadataBuilder userTask_parentTask = userTaskSchema.create("parentTask").setType(MetadataValueType.REFERENCE);
+    userTask_parentTask.setCacheIndex(true);
     userTask_parentTask.setUndeletable(true);
     userTask_parentTask.defineChildOfRelationshipToType(types.getSchemaType("userTask"));
     MetadataBuilder userTask_parentTaskDueDate = userTaskSchema.create("parentTaskDueDate").setType(MetadataValueType.DATE);
@@ -1016,11 +1048,13 @@ public final class GeneratedTasksMigrationCombo {
     userTask_visibleInTrees.setSystemReserved(true);
     userTask_visibleInTrees.setUndeletable(true);
     userTask_visibleInTrees.setMultiLingual(false);
+    userTask_visibleInTrees.setDefaultValue(false);
+    MetadataBuilder userTask_workHours = userTaskSchema.create("workHours").setType(MetadataValueType.NUMBER);
+    userTask_workHours.setUndeletable(true);
     MetadataBuilder userTask_workflow = userTaskSchema.create("workflow").setType(MetadataValueType.REFERENCE);
     userTask_workflow.defineReferencesTo(types.getSchemaType("workflow"));
     MetadataBuilder userTask_workflowInstance = userTaskSchema.create("workflowInstance").setType(MetadataValueType.REFERENCE);
     userTask_workflowInstance.defineReferencesTo(types.getSchemaType("workflowInstance"));
-    MetadataBuilder userTask_workflowTaskSort = userTaskSchema.create("workflowTaskSort").setType(MetadataValueType.NUMBER);
   }
 
   private void createSavedSearchSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder savedSearchSchemaType, MetadataSchemaBuilder savedSearchSchema) {
@@ -1048,9 +1082,10 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder task_approval_detachedauthorizations = task_approvalSchema.get("detachedauthorizations");
     MetadataBuilder task_approval_dueDate = task_approvalSchema.get("dueDate");
     MetadataBuilder task_approval_errorOnPhysicalDeletion = task_approvalSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder task_approval_estimatedSize = task_approvalSchema.get("estimatedSize");
+    MetadataBuilder task_approval_estimatedSize = task_approvalSchema.get("estimatedSize");
     MetadataBuilder task_approval_finishedBy = task_approvalSchema.get("finishedBy");
     MetadataBuilder task_approval_finishedOn = task_approvalSchema.get("finishedOn");
+    MetadataBuilder task_approval_hidden = task_approvalSchema.get("hidden");
     MetadataBuilder task_approval_id = task_approvalSchema.get("id");
     MetadataBuilder task_approval_legacyIdentifier = task_approvalSchema.get("legacyIdentifier");
     MetadataBuilder task_approval_logicallyDeletedOn = task_approvalSchema.get("logicallyDeletedOn");
@@ -1147,11 +1182,14 @@ public final class GeneratedTasksMigrationCombo {
     ddvTaskStatus_errorOnPhysicalDeletion.setSystemReserved(true);
     ddvTaskStatus_errorOnPhysicalDeletion.setUndeletable(true);
     ddvTaskStatus_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder ddvTaskStatus_estimatedSize = ddvTaskStatusSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
-	  ddvTaskStatus_estimatedSize.setSystemReserved(true);
-	  ddvTaskStatus_estimatedSize.setUndeletable(true);
-	  ddvTaskStatus_estimatedSize.setMultiLingual(false);
+    MetadataBuilder ddvTaskStatus_estimatedSize = ddvTaskStatusSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    ddvTaskStatus_estimatedSize.setSystemReserved(true);
+    ddvTaskStatus_estimatedSize.setUndeletable(true);
+    ddvTaskStatus_estimatedSize.setMultiLingual(false);
+    MetadataBuilder ddvTaskStatus_hidden = ddvTaskStatusSchema.create("hidden").setType(MetadataValueType.BOOLEAN);
+    ddvTaskStatus_hidden.setSystemReserved(true);
+    ddvTaskStatus_hidden.setUndeletable(true);
+    ddvTaskStatus_hidden.setMultiLingual(false);
     MetadataBuilder ddvTaskStatus_id = ddvTaskStatusSchema.create("id").setType(MetadataValueType.STRING);
     ddvTaskStatus_id.setDefaultRequirement(true);
     ddvTaskStatus_id.setSystemReserved(true);
@@ -1302,8 +1340,8 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_destructionDate = temporaryRecord_batchProcessReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_batchProcessReport_detachedauthorizations = temporaryRecord_batchProcessReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_errorOnPhysicalDeletion = temporaryRecord_batchProcessReportSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema
-			  .get("estimatedSize");
+    MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_batchProcessReport_hidden = temporaryRecord_batchProcessReportSchema.get("hidden");
     MetadataBuilder temporaryRecord_batchProcessReport_id = temporaryRecord_batchProcessReportSchema.get("id");
     MetadataBuilder temporaryRecord_batchProcessReport_legacyIdentifier = temporaryRecord_batchProcessReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_batchProcessReport_logicallyDeletedOn = temporaryRecord_batchProcessReportSchema.get("logicallyDeletedOn");
@@ -1339,7 +1377,8 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_destructionDate = temporaryRecord_exportAuditSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_exportAudit_detachedauthorizations = temporaryRecord_exportAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_exportAudit_errorOnPhysicalDeletion = temporaryRecord_exportAuditSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_exportAudit_hidden = temporaryRecord_exportAuditSchema.get("hidden");
     MetadataBuilder temporaryRecord_exportAudit_id = temporaryRecord_exportAuditSchema.get("id");
     MetadataBuilder temporaryRecord_exportAudit_legacyIdentifier = temporaryRecord_exportAuditSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_exportAudit_logicallyDeletedOn = temporaryRecord_exportAuditSchema.get("logicallyDeletedOn");
@@ -1375,7 +1414,8 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_destructionDate = temporaryRecord_importAuditSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_importAudit_detachedauthorizations = temporaryRecord_importAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_importAudit_errorOnPhysicalDeletion = temporaryRecord_importAuditSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_importAudit_hidden = temporaryRecord_importAuditSchema.get("hidden");
     MetadataBuilder temporaryRecord_importAudit_id = temporaryRecord_importAuditSchema.get("id");
     MetadataBuilder temporaryRecord_importAudit_legacyIdentifier = temporaryRecord_importAuditSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_importAudit_logicallyDeletedOn = temporaryRecord_importAuditSchema.get("logicallyDeletedOn");
@@ -1411,7 +1451,8 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_destructionDate = temporaryRecord_scriptReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_scriptReport_detachedauthorizations = temporaryRecord_scriptReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_scriptReport_errorOnPhysicalDeletion = temporaryRecord_scriptReportSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_scriptReport_hidden = temporaryRecord_scriptReportSchema.get("hidden");
     MetadataBuilder temporaryRecord_scriptReport_id = temporaryRecord_scriptReportSchema.get("id");
     MetadataBuilder temporaryRecord_scriptReport_legacyIdentifier = temporaryRecord_scriptReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_scriptReport_logicallyDeletedOn = temporaryRecord_scriptReportSchema.get("logicallyDeletedOn");
@@ -1447,7 +1488,8 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_destructionDate = temporaryRecord_vaultScanReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_vaultScanReport_detachedauthorizations = temporaryRecord_vaultScanReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_errorOnPhysicalDeletion = temporaryRecord_vaultScanReportSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder temporaryRecord_vaultScanReport_estimatedSize = temporaryRecord_vaultScanReportSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_vaultScanReport_estimatedSize = temporaryRecord_vaultScanReportSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_vaultScanReport_hidden = temporaryRecord_vaultScanReportSchema.get("hidden");
     MetadataBuilder temporaryRecord_vaultScanReport_id = temporaryRecord_vaultScanReportSchema.get("id");
     MetadataBuilder temporaryRecord_vaultScanReport_legacyIdentifier = temporaryRecord_vaultScanReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_vaultScanReport_logicallyDeletedOn = temporaryRecord_vaultScanReportSchema.get("logicallyDeletedOn");
@@ -1474,6 +1516,9 @@ public final class GeneratedTasksMigrationCombo {
   private void createUserSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder userSchemaType, MetadataSchemaBuilder userSchema) {
     MetadataBuilder user_assignTaskAutomatically = userSchema.create("assignTaskAutomatically").setType(MetadataValueType.BOOLEAN);
     user_assignTaskAutomatically.setUndeletable(true);
+    MetadataBuilder user_assignationEmailReceptionDisabled = userSchema.create("assignationEmailReceptionDisabled").setType(MetadataValueType.BOOLEAN);
+    user_assignationEmailReceptionDisabled.setSystemReserved(true);
+    user_assignationEmailReceptionDisabled.setUndeletable(true);
     MetadataBuilder user_defaultFollowerWhenCreatingTask = userSchema.create("defaultFollowerWhenCreatingTask").setType(MetadataValueType.STRUCTURE);
     user_defaultFollowerWhenCreatingTask.setUndeletable(true);
     user_defaultFollowerWhenCreatingTask.defineStructureFactory(TaskFollowerFactory.class);
@@ -1493,9 +1538,10 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder facet_field_detachedauthorizations = facet_fieldSchema.get("detachedauthorizations");
     MetadataBuilder facet_field_elementPerPage = facet_fieldSchema.get("elementPerPage");
     MetadataBuilder facet_field_errorOnPhysicalDeletion = facet_fieldSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder facet_field_estimatedSize = facet_fieldSchema.get("estimatedSize");
+    MetadataBuilder facet_field_estimatedSize = facet_fieldSchema.get("estimatedSize");
     MetadataBuilder facet_field_facetType = facet_fieldSchema.get("facetType");
     MetadataBuilder facet_field_fieldDatastoreCode = facet_fieldSchema.get("fieldDatastoreCode");
+    MetadataBuilder facet_field_hidden = facet_fieldSchema.get("hidden");
     MetadataBuilder facet_field_id = facet_fieldSchema.get("id");
     MetadataBuilder facet_field_legacyIdentifier = facet_fieldSchema.get("legacyIdentifier");
     MetadataBuilder facet_field_logicallyDeletedOn = facet_fieldSchema.get("logicallyDeletedOn");
@@ -1535,9 +1581,10 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder facet_query_detachedauthorizations = facet_querySchema.get("detachedauthorizations");
     MetadataBuilder facet_query_elementPerPage = facet_querySchema.get("elementPerPage");
     MetadataBuilder facet_query_errorOnPhysicalDeletion = facet_querySchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder facet_query_estimatedSize = facet_querySchema.get("estimatedSize");
+    MetadataBuilder facet_query_estimatedSize = facet_querySchema.get("estimatedSize");
     MetadataBuilder facet_query_facetType = facet_querySchema.get("facetType");
     MetadataBuilder facet_query_fieldDatastoreCode = facet_querySchema.get("fieldDatastoreCode");
+    MetadataBuilder facet_query_hidden = facet_querySchema.get("hidden");
     MetadataBuilder facet_query_id = facet_querySchema.get("id");
     MetadataBuilder facet_query_legacyIdentifier = facet_querySchema.get("legacyIdentifier");
     MetadataBuilder facet_query_logicallyDeletedOn = facet_querySchema.get("logicallyDeletedOn");
@@ -1572,8 +1619,8 @@ public final class GeneratedTasksMigrationCombo {
   public void applySchemasDisplay(SchemasDisplayManager manager) {
     SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
     SchemaTypesDisplayConfig typesConfig = manager.getTypes(collection);
-    transaction.add(manager.getType(collection, "userTask").withSimpleSearchStatus(true).withAdvancedSearchStatus(true).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("default:init.userTask.definition", "init.userTask.remindersTab", "init.userTask.assignment", "init.userTask.details", "init.userTask.followersTab"))));
-    transaction.add(manager.getSchema(collection, "userTask_default").withFormMetadataCodes(asList("userTask_default_title", "userTask_default_type", "userTask_default_assignee", "userTask_default_assigneeGroupsCandidates", "userTask_default_assigneeUsersCandidates", "userTask_default_assigner", "userTask_default_parentTask", "userTask_default_progressPercentage", "userTask_default_status", "userTask_default_assignedOn", "userTask_default_dueDate", "userTask_default_endDate", "userTask_default_startDate", "userTask_default_contents", "userTask_default_description", "userTask_default_reminders", "userTask_default_taskFollowers", "userTask_default_question", "userTask_default_decision", "userTask_default_relativeDueDate", "userTask_default_reminderFrequency", "userTask_default_escalationAssignee", "userTask_default_readByUser")).withDisplayMetadataCodes(asList("userTask_default_title", "userTask_default_type", "userTask_default_createdOn", "userTask_default_modifiedOn", "userTask_default_assignedOn", "userTask_default_assignee", "userTask_default_assigneeGroupsCandidates", "userTask_default_assigneeUsersCandidates", "userTask_default_assigner", "userTask_default_dueDate", "userTask_default_endDate", "userTask_default_nextReminderOn", "userTask_default_parentTask", "userTask_default_parentTaskDueDate", "userTask_default_progressPercentage", "userTask_default_startDate", "userTask_default_status", "userTask_default_taskFollowersIds", "userTask_default_contents", "userTask_default_description", "userTask_default_comments", "userTask_default_question", "userTask_default_decision", "userTask_default_workflow", "userTask_default_workflowInstance", "userTask_default_relativeDueDate", "userTask_default_reminderFrequency", "userTask_default_escalationAssignee", "userTask_default_readByUser")).withSearchResultsMetadataCodes(asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate", "userTask_default_assignee")).withTableMetadataCodes(asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate", "userTask_default_assignee", "userTask_default_starredByUsers")));
+    transaction.add(manager.getType(collection, "userTask").withSimpleSearchStatus(true).withAdvancedSearchStatus(true).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("default:init.userTask.definition", "init.userTask.assignment", "init.userTask.details", "init.userTask.followersTab", "init.userTask.remindersTab"))));
+    transaction.add(manager.getSchema(collection, "userTask_default").withFormMetadataCodes(asList("userTask_default_title", "userTask_default_type", "userTask_default_assignee", "userTask_default_assigneeGroupsCandidates", "userTask_default_assigneeUsersCandidates", "userTask_default_assigner", "userTask_default_parentTask", "userTask_default_progressPercentage", "userTask_default_status", "userTask_default_assignedOn", "userTask_default_dueDate", "userTask_default_endDate", "userTask_default_startDate", "userTask_default_contents", "userTask_default_description", "userTask_default_reminders", "userTask_default_taskFollowers", "userTask_default_question", "userTask_default_decision", "userTask_default_relativeDueDate", "userTask_default_reminderFrequency", "userTask_default_escalationAssignee")).withDisplayMetadataCodes(asList("userTask_default_title", "userTask_default_type", "userTask_default_createdOn", "userTask_default_modifiedOn", "userTask_default_assignedOn", "userTask_default_assignee", "userTask_default_assigneeGroupsCandidates", "userTask_default_assigneeUsersCandidates", "userTask_default_assigner", "userTask_default_dueDate", "userTask_default_endDate", "userTask_default_nextReminderOn", "userTask_default_parentTask", "userTask_default_parentTaskDueDate", "userTask_default_progressPercentage", "userTask_default_startDate", "userTask_default_status", "userTask_default_taskFollowersIds", "userTask_default_contents", "userTask_default_description", "userTask_default_comments", "userTask_default_question", "userTask_default_decision", "userTask_default_workflow", "userTask_default_workflowInstance", "userTask_default_relativeDueDate", "userTask_default_reminderFrequency", "userTask_default_escalationAssignee", "userTask_default_isLate")).withSearchResultsMetadataCodes(asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate", "userTask_default_assignee")).withTableMetadataCodes(asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate", "userTask_default_assignee", "userTask_default_starredByUsers")));
     transaction.add(manager.getMetadata(collection, "userTask_default_assignedOn").withMetadataGroup("").withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "userTask_default_assignee").withMetadataGroup("init.userTask.assignment").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "userTask_default_assigneeGroupsCandidates").withMetadataGroup("init.userTask.assignment").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
@@ -1601,6 +1648,6 @@ public final class GeneratedTasksMigrationCombo {
 
   public void applyGeneratedRoles() {
     RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();;
-    rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.useExternalAPIS", "core.viewEvents", "core.viewSystemBatchProcesses", "tasks.manageWorkflows", "tasks.startWorkflows")));
+    rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.useExternalAPIS", "core.viewEvents", "core.viewLoginNotificationAlert", "core.viewSystemBatchProcesses", "core.viewSystemState", "tasks.manageWorkflows", "tasks.startWorkflows")));
   }
 }
