@@ -102,6 +102,7 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 					@Override
 					public void doActionOnBatch(List<Record> records) throws Exception {
 						Transaction tx = new Transaction();
+						tx.getRecordUpdateOptions().setMarkIdsForReindexing(false);
 						for (Authorization detail : schemas.wrapSolrAuthorizationDetailss(records)) {
 							if (!detail.getRoles().isEmpty()) {
 								tx.add(detail.setPrincipals(authsPrincipals.get(detail.getId())));
@@ -120,6 +121,7 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 					public void doActionOnBatch(List<Record> records) throws Exception {
 						Transaction tx = new Transaction();
 						tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+						tx.getRecordUpdateOptions().setMarkIdsForReindexing(false);
 
 						for (User user : schemas.wrapUsers(records)) {
 							tx.add((User) user.set(userAllAuthsMetadata, new ArrayList<>()).set(userAuthsMetadata, new ArrayList<>()));
@@ -135,6 +137,7 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 					public void doActionOnBatch(List<Record> records) throws Exception {
 						Transaction tx = new Transaction();
 						tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+						tx.getRecordUpdateOptions().setMarkIdsForReindexing(false);
 
 						for (Group group : schemas.wrapGroups(records)) {
 							tx.add((Group) group.set(groupAuthsMetadata, new ArrayList<>()));

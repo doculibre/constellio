@@ -1019,7 +1019,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 			throws RecordServicesException {
 
 		List<Record> modifiedOrUnsavedRecords = transaction.getModifiedRecords();
-		if (!modifiedOrUnsavedRecords.isEmpty() || !transaction.getIdsToReindex().isEmpty()) {
+		Set<String> idsMarkedForReindexing = transaction.getRecordUpdateOptions().isMarkIdsForReindexing()
+											 ? transaction.getIdsToReindex() : Collections.<String>emptySet();
+		if (!modifiedOrUnsavedRecords.isEmpty() || !idsMarkedForReindexing.isEmpty()) {
 			Map<String, TransactionDTO> transactionDTOs = createTransactionDTOs(transaction, modifiedOrUnsavedRecords);
 			for (Map.Entry<String, TransactionDTO> transactionDTOEntry : transactionDTOs.entrySet()) {
 				try {
@@ -1042,8 +1044,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 						throw new ImpossibleRuntimeException("Unsupported datastore : " + transactionDTOEntry.getKey());
 					}
 
-					refreshRecordsAndCaches(transaction.getCollection(), modifiedOrUnsavedRecords,
-							transaction.getIdsToReindex(), transaction.getAggregatedMetadataIncrementations(),
+					refreshRecordsAndCaches(transaction.getCollection(), modifiedOrUnsavedRecords, idsMarkedForReindexing,
+							transaction.getAggregatedMetadataIncrementations(),
 							transactionResponseDTO, metadataSchemaTypes, newRecordProvider(null, transaction));
 
 					if (modificationImpactHandler != null) {
@@ -1152,11 +1154,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 			List<String> ids = transaction.getRecordIds();
 			Set<String> markedForReindexing = new HashSet<>();
-			for (String id : transaction.getIdsToReindex()) {
-				if (!ids.contains(id)) {
-					markedForReindexing.add(id);
-				} else {
-					transaction.getRecord(id).set(Schemas.MARKED_FOR_REINDEXING, true);
+			if (transaction.getRecordUpdateOptions().isMarkIdsForReindexing()) {
+				for (String id : transaction.getIdsToReindex()) {
+					if (!ids.contains(id)) {
+						markedForReindexing.add(id);
+					} else {
+						transaction.getRecord(id).set(Schemas.MARKED_FOR_REINDEXING, true);
+					}
 				}
 			}
 
