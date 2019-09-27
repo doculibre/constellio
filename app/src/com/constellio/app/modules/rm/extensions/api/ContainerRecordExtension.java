@@ -35,6 +35,11 @@ public class ContainerRecordExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+	public ExtensionBooleanResult isConsultLinkActionPossible(
+			ContainerRecordExtensionActionPossibleParams containerRecordExtensionActionPossibleParams) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public static class ContainerRecordExtensionActionPossibleParams {
 		private ContainerRecord containerRecord;
 		private User user;

@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.search.SearchPresenter;
 import com.constellio.app.ui.pages.search.SearchView;
 import com.vaadin.ui.Component;
@@ -183,4 +184,9 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 		return lastCallQTime;
 	}
 
+
+	@Override
+	public BaseView getMainView() {
+		return presenter.getView();
+	}
 }

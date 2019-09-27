@@ -31,6 +31,7 @@ import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.util.CapsuleUtils;
@@ -1116,5 +1117,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public RecordVO getReturnRecordVO() {
 		return returnRecordVO;
+	}
+
+	public BaseView getView() {
+		return view;
 	}
 }

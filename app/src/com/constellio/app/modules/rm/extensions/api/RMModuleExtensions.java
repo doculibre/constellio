@@ -308,6 +308,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 				(behavior) -> behavior.isGenerateReportActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
+	public boolean isConsultLinkActionPossibleOnFolder(Folder folder, User user) {
+		return folderExtensions.getBooleanValue(true, (behavior -> behavior.isConsultLinkActionPossible(new FolderExtensionActionPossibleParams(folder, user))));
+	}
+
 	public boolean isDisplayActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isDisplayActionPossible(
@@ -485,6 +489,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 		});
 	}
 
+	public boolean isConsultLinkActionPossibleOnDocument(Document document, User user) {
+		return documentExtensions.getBooleanValue(true, (behavior -> behavior.isConsultLinkActionPossible(document, user)));
+	}
+
 	public boolean isConsultActionPossibleOnContainerRecord(final ContainerRecord containerRecord, final User user) {
 		return containerRecordExtensions.getBooleanValue(true, (behavior ->
 				behavior.isConsultActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
@@ -519,6 +527,12 @@ public class RMModuleExtensions implements ModuleExtensions {
 																final User user) {
 		return containerRecordExtensions.getBooleanValue(true,
 				(behavior -> behavior.isEmptyTheBoxActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
+	}
+
+
+	public boolean isConsultLinkActionPossibleOnContainerRecord(ContainerRecord containerRecord, User user) {
+		return containerRecordExtensions.getBooleanValue(true,
+				(behavior -> behavior.isConsultLinkActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
 	}
 
 	public BaseBreadcrumbTrail getBreadCrumbtrail(DocumentFolderBreadCrumbParams documentBreadcrumParams) {

@@ -85,4 +85,9 @@ public class TaskModuleExtensions implements ModuleExtensions {
 		return taskExtensions.getBooleanValue(true,
 				(behavior -> behavior.isConsultActionPossible(new TaskExtensionActionPossibleParams(task, user))));
 	}
+
+	public boolean isConsultLinkActionPossibleOnTask(final Task task, final User user) {
+		return taskExtensions.getBooleanValue(true,
+				behavior -> behavior.isConsultLinkActionPossible(new TaskExtensionActionPossibleParams(task, user)));
+	}
 }

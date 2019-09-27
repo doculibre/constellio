@@ -468,7 +468,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
                     actionMenuLayout = null;
                 }
                 result = actionMenuLayout;
-				result.addStyleName("action-menu");
+				if (result != null) {
+					result.addStyleName("action-menu");
+				}
 			}
 		}
 		//        if (result != null) {

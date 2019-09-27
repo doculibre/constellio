@@ -173,6 +173,11 @@ public class ContainerRecordActionsServices {
 		return approveDecommissioningListPermission && searchServices.hasResults(getFoldersQuery(user, record.getId()));
 	}
 
+	public boolean isConsultLinkActionPossible(Record record, User user) {
+		return user.hasReadAccess().on(record)
+			   && rmModuleExtensions.isConsultLinkActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user);
+	}
+
 	private LogicalSearchQuery getFoldersQuery(User user, String containerId) {
 		LogicalSearchCondition condition = from(rm.folder.schemaType())
 				.where(rm.folder.container()).isEqualTo(containerId)

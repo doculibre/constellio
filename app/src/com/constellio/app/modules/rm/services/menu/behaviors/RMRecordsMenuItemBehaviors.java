@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.services.actions.FolderRecordActionsService
 import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
@@ -19,6 +20,8 @@ import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.services.menu.behaviors.util.TaskUrlUtil;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -36,6 +39,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -69,6 +73,7 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
@@ -88,6 +93,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
@@ -196,6 +202,7 @@ public class RMRecordsMenuItemBehaviors {
 		};
 		duplicateButton.click();
 	}
+
 
 	public void createSipArchive(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		SIPButtonImpl sipButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"),
@@ -330,6 +337,29 @@ public class RMRecordsMenuItemBehaviors {
 		}
 
 		return counter;
+	}
+
+	public void showConsultLink(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		String constellioURL = getConstellioUrl(appLayerFactory.getModelLayerFactory());
+
+		List<String> linkList = new ArrayList<>();
+
+		List<Record> recordList = recordServices.getRecordsById(collection, recordIds);
+
+		for (Record currentRecord : recordList) {
+			if (currentRecord.getSchemaCode().startsWith(Document.SCHEMA_TYPE)) {
+				linkList.add(constellioURL + RMUrlUtil.getPathToConsultLinkForDocument(currentRecord.getId()));
+			} else if (currentRecord.getSchemaCode().startsWith(Folder.SCHEMA_TYPE)) {
+				linkList.add(constellioURL + RMUrlUtil.getPathToConsultLinkForFolder(currentRecord.getId()));
+			} else if (currentRecord.getSchemaCode().startsWith(ContainerRecord.SCHEMA_TYPE)) {
+				linkList.add(constellioURL + RMUrlUtil.getPathToConsultLinkForContainerRecord(currentRecord.getId()));
+			} else if (currentRecord.getSchemaCode().startsWith(RMTask.SCHEMA_TYPE)) {
+				linkList.add(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(currentRecord.getId()));
+			}
+		}
+
+		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(linkList);
+		UI.getCurrent().addWindow(consultLinkWindow);
 	}
 
 	public void batchDelete(List<String> recordIds, MenuItemActionBehaviorParams params) {

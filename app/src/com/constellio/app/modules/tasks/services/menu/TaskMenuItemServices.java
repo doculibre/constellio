@@ -1,7 +1,7 @@
 package com.constellio.app.modules.tasks.services.menu;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.services.actions.TaskActionsServices;
+import com.constellio.app.modules.tasks.services.actions.TaskRecordActionsServices;
 import com.constellio.app.modules.tasks.services.menu.behaviors.TaskMenuItemActionBehaviors;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemAction;
@@ -20,6 +20,7 @@ import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemService
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_CLOSE;
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_COMPLETE;
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_CONSULT;
+import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_CONSULT_LINK;
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_CREATE_SUB_TASK;
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_DELETE;
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_EDIT;
@@ -30,7 +31,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaskMenuItemServices {
 
-	private TaskActionsServices taskActionsServices;
+	private TaskRecordActionsServices taskRecordActionsServices;
 	private String collection;
 	private AppLayerFactory appLayerFactory;
 
@@ -38,7 +39,7 @@ public class TaskMenuItemServices {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 
-		taskActionsServices = new TaskActionsServices(collection, appLayerFactory);
+		taskRecordActionsServices = new TaskRecordActionsServices(collection, appLayerFactory);
 	}
 
 	public List<MenuItemAction> getActionsForRecord(Task task, User user,
@@ -61,6 +62,15 @@ public class TaskMenuItemServices {
 					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).edit(task, params));
 			menuItemActions.add(menuItemAction);
 		}
+
+		if (!filteredActionTypes.contains(TASK_CONSULT_LINK.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(TASK_CONSULT_LINK.name(),
+					isMenuItemActionPossible(TASK_CONSULT_LINK.name(), task, user, params),
+					$("consultationLink"), FontAwesome.LINK, -1, 160,
+					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).getConsultationLink(task, params));
+			menuItemActions.add(menuItemAction);
+		}
+
 		if (!filteredActionTypes.contains(TASK_AUTO_ASSIGN.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(TASK_AUTO_ASSIGN.name(),
 					isMenuItemActionPossible(TASK_AUTO_ASSIGN.name(), task, user, params),
@@ -113,21 +123,23 @@ public class TaskMenuItemServices {
 
 		switch (TaskItemActionType.valueOf(menuItemActionType)) {
 			case TASK_CONSULT:
-				return taskActionsServices.isConsultActionPossible(record, user);
+				return taskRecordActionsServices.isConsultActionPossible(record, user);
 			case TASK_EDIT:
-				return taskActionsServices.isEditActionPossible(record, user);
+				return taskRecordActionsServices.isEditActionPossible(record, user);
+			case TASK_CONSULT_LINK:
+				return taskRecordActionsServices.isConsultLinkActionPossible(record, user);
 			case TASK_AUTO_ASSIGN:
-				return taskActionsServices.isAutoAssignActionPossible(record, user);
+				return taskRecordActionsServices.isAutoAssignActionPossible(record, user);
 			case TASK_COMPLETE:
-				return taskActionsServices.isCompleteTaskActionPossible(record, user);
+				return taskRecordActionsServices.isCompleteTaskActionPossible(record, user);
 			case TASK_CLOSE:
-				return taskActionsServices.isCloseTaskActionPossible(record, user);
+				return taskRecordActionsServices.isCloseTaskActionPossible(record, user);
 			case TASK_CREATE_SUB_TASK:
-				return taskActionsServices.isCreateSubTaskActionPossible(record, user);
+				return taskRecordActionsServices.isCreateSubTaskActionPossible(record, user);
 			case TASK_DELETE:
-				return taskActionsServices.isDeleteActionPossible(record, user);
+				return taskRecordActionsServices.isDeleteActionPossible(record, user);
 			case TASK_GENERATE_REPORT:
-				return taskActionsServices.isGenerateReportActionPossible(record, user);
+				return taskRecordActionsServices.isGenerateReportActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -150,6 +162,7 @@ public class TaskMenuItemServices {
 	public enum TaskItemActionType {
 		TASK_CONSULT,
 		TASK_EDIT,
+		TASK_CONSULT_LINK,
 		TASK_AUTO_ASSIGN,
 		TASK_COMPLETE,
 		TASK_CLOSE,

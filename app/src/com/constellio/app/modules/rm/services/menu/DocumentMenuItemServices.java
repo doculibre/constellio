@@ -25,6 +25,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_AVAILABLE_ALERT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CHECK_IN;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CHECK_OUT;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_COPY;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CREATE_PDF;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_DELETE;
@@ -106,6 +107,14 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
+		if (!filteredActionTypes.contains(DOCUMENT_CONSULT_LINK.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_CONSULT_LINK.name(),
+					isMenuItemActionPossible(DOCUMENT_CONSULT_LINK.name(), document, user, params),
+					$("consultationLink"), FontAwesome.LINK, -1, 510,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).getConsultationLink(document, params));
+			menuItemActions.add(menuItemAction);
+		}
+
 		if (!filteredActionTypes.contains(DOCUMENT_COPY.name())) {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_COPY.name(),
 					isMenuItemActionPossible(DOCUMENT_COPY.name(), document, user, params),
@@ -135,7 +144,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_GET_PUBLIC_LINK.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_GET_PUBLIC_LINK.name(),
 					isMenuItemActionPossible(DOCUMENT_GET_PUBLIC_LINK.name(), document, user, params),
-					$("DocumentActionsComponent.linkToDocument"), FontAwesome.LINK, -1, 900,
+					$("DocumentActionsComponent.linkToDocument"), FontAwesome.LAPTOP, -1, 900,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).linkToDocument(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -183,7 +192,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_ADD_TO_CART.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_TO_CART.name(),
 					isMenuItemActionPossible(DOCUMENT_ADD_TO_CART.name(), document, user, params),
-					$("DisplayFolderView.addToCart"), FontAwesome.LIST_ALT, -1, 1400,
+					$("DisplayFolderView.addToCart"), FontAwesome.STAR, -1, 1400,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToCart(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -274,6 +283,8 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.isEditActionPossible(record, user);
 			case DOCUMENT_DISPLAY:
 				return documentRecordActionsServices.isDisplayActionPossible(record, user);
+			case DOCUMENT_CONSULT_LINK:
+				return documentRecordActionsServices.isConsultLinkActionPossible(record, user);
 			case DOCUMENT_OPEN:
 				return documentRecordActionsServices.isOpenActionPossible(record, user);
 			case DOCUMENT_DOWNLOAD:
@@ -341,6 +352,7 @@ public class DocumentMenuItemServices {
 		DOCUMENT_DISPLAY,
 		DOCUMENT_OPEN,
 		DOCUMENT_EDIT,
+		DOCUMENT_CONSULT_LINK,
 		DOCUMENT_DOWNLOAD,
 		DOCUMENT_DELETE,
 		DOCUMENT_COPY,
