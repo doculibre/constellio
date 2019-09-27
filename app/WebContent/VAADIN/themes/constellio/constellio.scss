@@ -2487,16 +2487,6 @@ $popup-view-z-index: 3;
 				}
 			}
 
-			.search-result-metadata-layout {
-				font-size: 14px;
-				padding-top: 10px;
-
-				.metadata-caption {
-					font-weight: 700;
-				}
-
-			}
-
 			.v-slot-search-result-elevation-buttons {
 				position: relative;
 				margin-bottom: -35px;
@@ -3474,6 +3464,10 @@ $popup-view-z-index: 3;
 	  			right: 50px;
 	  		}
   		}
+		
+		.viewable-record-table-panel .viewable-record-table .metadata-caption, .viewable-record-table-panel .viewable-record-table .metadata-value {
+			display: none;
+		}
 
 	    .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
 			top: inherit;
@@ -3544,18 +3538,6 @@ $popup-view-z-index: 3;
 			}
     	}
 
-		.base-display {
-		    .v-slot-display-caption {
-		    	float: left;
-		    	clear: both;
-			}
-
-		    .v-slot-display-value {
-		    	float: left;
-		    	clear: both;
-		    }
-	    }
-
 	    .main-component-wrapper {
 	    	min-height: 500px;
 	    }
@@ -3612,6 +3594,10 @@ $popup-view-z-index: 3;
 					}
 				}
 			}
+		}
+		
+		.viewable-record-table-panel .viewable-record-table .metadata-caption, .viewable-record-table-panel .viewable-record-table .metadata-value {
+			display: none;
 		}
 
 		.xbreadcrumbs {

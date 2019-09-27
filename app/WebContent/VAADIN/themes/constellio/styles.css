@@ -15271,15 +15271,6 @@ div.v-layout.v-horizontal.v-widget {
 	margin-right: -2px;
 }
 
-.constellio .viewable-record-table-panel .viewable-record-table .search-result-metadata-layout {
-	font-size: 14px;
-	padding-top: 10px;
-}
-
-.constellio .viewable-record-table-panel .viewable-record-table .search-result-metadata-layout .metadata-caption {
-	font-weight: 700;
-}
-
 .constellio .viewable-record-table-panel .viewable-record-table .v-slot-search-result-elevation-buttons {
 	position: relative;
 	margin-bottom: -35px;
@@ -16107,6 +16098,10 @@ div.v-layout.v-horizontal.v-widget {
 	right: 50px;
 }
 
+.constellio .v-ui[width-range~="801-1100px"] .viewable-record-table-panel .viewable-record-table .metadata-caption, .constellio .v-ui[width-range~="801-1100px"] .viewable-record-table-panel .viewable-record-table .metadata-value {
+	display: none;
+}
+
 .constellio .v-ui[width-range~="801-1100px"] .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
 	top: inherit;
 	right: -22px;
@@ -16158,16 +16153,6 @@ div.v-layout.v-horizontal.v-widget {
 	margin: 0;
 }
 
-.constellio .v-ui[width-range~="0-800px"] .base-display .v-slot-display-caption {
-	float: left;
-	clear: both;
-}
-
-.constellio .v-ui[width-range~="0-800px"] .base-display .v-slot-display-value {
-	float: left;
-	clear: both;
-}
-
 .constellio .v-ui[width-range~="0-800px"] .main-component-wrapper {
 	min-height: 500px;
 }
@@ -16215,6 +16200,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="0-800px"] .search-view .viewable-record-table-panel .viewable-record-table .search-result-with-elevation-buttons .search-result-title {
 	padding-right: 60px;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .viewable-record-table-panel .viewable-record-table .metadata-caption, .constellio .v-ui[width-range~="0-800px"] .viewable-record-table-panel .viewable-record-table .metadata-value {
+	display: none;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .xbreadcrumbs {

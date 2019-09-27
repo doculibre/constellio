@@ -1,7 +1,5 @@
 var isScrolling;
 
-var lastScrollTop;
-
 var lastKnownActiveElement;
 
 function constellio_registerScrollListener() {
@@ -16,24 +14,46 @@ function constellio_registerScrollListener() {
 			isScrolling = setTimeout(function() {
 				// Run the callback
 				//console.log("Scrolling has stopped.");
-				//var closeViewerButton = document.getElementById("close-viewer-button");
 				var closableViewerLayout = document.getElementById("close-button-viewer-metadata-layout");
 				var newScrollTop = contentFooterWrapper.scrollTop;
-				console.log("Scroll top: " + newScrollTop);
-				var scrollingUp = lastScrollTop > newScrollTop;
-				if (closableViewerLayout && (scrollingUp || !constellio_isVisible(closableViewerLayout))) {
-					var mainComponent = document.getElementById("main-component");
+				var closableViewerLayoutVisible = constellio_isVisible(closableViewerLayout);
+				
+				//console.info("closableViewerLayoutVisible : " + closableViewerLayoutVisible);
+
+				if (closableViewerLayout && !closableViewerLayoutVisible) {
+					var viewerContainer = document.getElementsByClassName("main-component-wrapper")[0];
+					var constellioHeader = document.getElementsByClassName("header")[0];
 					
-					var mainComponentHeight = constellio_getHeight(mainComponent);
-					var closableViewerLayoutHeight = constellio_getHeight(closableViewerLayout);
-					if ((newScrollTop + closableViewerLayoutHeight) > mainComponentHeight) {
-						newScrollTop = mainComponentHeight - closableViewerLayoutHeight - 30;
-					} else if (newScrollTop > 80) {
-						newScrollTop -= 70; // Remove white space where table mode buttons are
+					var headerHeight = constellio_getHeight(constellioHeader);
+					var viewerHeight = constellio_getHeight(closableViewerLayout);
+					var viewerContainerHeight = constellio_getHeight(viewerContainer);
+					var maxViewerScrollTop = viewerContainerHeight - viewerHeight;
+					if (maxViewerScrollTop < 0) {
+						maxViewerScrollTop = 0;
 					}
-					closableViewerLayout.style.top = newScrollTop + "px";
+					
+					var newViewerScrollTop;
+					if (newScrollTop == 0) {
+						newViewerScrollTop = newScrollTop;
+					} else if (newScrollTop <= headerHeight) {
+						newViewerScrollTop = newScrollTop;
+					} else {
+						newViewerScrollTop = newScrollTop - headerHeight;
+					}
+
+					//var viewerInfo = "newScrollTop : " + newScrollTop;
+					//viewerInfo += "\n headerHeight : " + headerHeight;
+					//viewerInfo += "\n viewerHeight : " + viewerHeight;
+					//viewerInfo += "\n viewerContainerHeight : " + viewerContainerHeight;
+					//viewerInfo += "\n newViewerScrollTop : " + newViewerScrollTop;
+					//viewerInfo += "\n maxViewerScrollTop : " + maxViewerScrollTop;
+					//console.log(viewerInfo);
+					
+					if (newViewerScrollTop > maxViewerScrollTop) {
+						newViewerScrollTop = maxViewerScrollTop;
+					}
+					closableViewerLayout.style.top = newViewerScrollTop + "px";
 				}
-				lastScrollTop = contentFooterWrapper.scrollTop;
 			}, 66);
 
 		}, false);

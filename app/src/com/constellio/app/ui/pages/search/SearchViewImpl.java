@@ -161,7 +161,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
-		layout.addStyleName("search-view");
+		layout.setId("search-view");
+		layout.addStyleName(getId());
 		layout.addStyleName("search-main-container");
 		Component searchUIComponent = buildSearchUI();
 		if (searchUIComponent != null) {

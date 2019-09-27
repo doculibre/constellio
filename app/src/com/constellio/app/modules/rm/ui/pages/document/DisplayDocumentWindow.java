@@ -12,4 +12,13 @@ public class DisplayDocumentWindow extends DocumentViewWindow {
 		super(view);
 	}
 
+	@Override
+	protected String getViewHeight() {
+		DisplayDocumentViewImpl view = (DisplayDocumentViewImpl) getView();
+		RecordVO recordVO = view.getRecordVO();
+		int metadataCount = recordVO.getMetadatas().size();
+		int viewHeight = 230 + (20 * metadataCount);
+		return viewHeight + "px";
+	}
+
 }

@@ -4,7 +4,10 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.server.Page;
+import com.vaadin.server.Page.BrowserWindowResizeEvent;
+import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
@@ -26,7 +29,7 @@ import java.util.Set;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
-public class BaseDisplay extends CustomComponent {
+public class BaseDisplay extends CustomComponent implements BrowserWindowResizeListener {
 
 	public static final String STYLE_NAME = "base-display";
 	public static final String STYLE_CAPTION = "display-caption";
@@ -39,6 +42,10 @@ public class BaseDisplay extends CustomComponent {
 	protected TabSheet tabSheet;
 
 	private Map<String, Panel> tabs = new LinkedHashMap<>();
+
+	private List<CaptionAndComponent> captionsAndDisplayComponents;
+
+	private Boolean lastModeDesktop;
 
 	public BaseDisplay(List<CaptionAndComponent> captionsAndDisplayComponents) {
 		this(captionsAndDisplayComponents, false);
@@ -79,7 +86,40 @@ public class BaseDisplay extends CustomComponent {
 		setCaptionsAndComponents(captionsAndDisplayComponents);
 	}
 
+	@Override
+	public void attach() {
+		super.attach();
+		Page.getCurrent().addBrowserWindowResizeListener(this);
+		computeResponsive();
+	}
+
+	@Override
+	public void detach() {
+		Page.getCurrent().removeBrowserWindowResizeListener(this);
+		super.detach();
+	}
+
+	@Override
+	public void browserWindowResized(BrowserWindowResizeEvent event) {
+		computeResponsive();
+	}
+
+	private void computeResponsive() {
+		if (lastModeDesktop == null) {
+			lastModeDesktop = ResponsiveUtils.isDesktop();
+		}
+		if ((lastModeDesktop && !ResponsiveUtils.isDesktop()) || (!lastModeDesktop && ResponsiveUtils.isDesktop())) {
+			refresh();
+		}
+		lastModeDesktop = ResponsiveUtils.isDesktop();
+	}
+
 	protected void setCaptionsAndComponents(List<CaptionAndComponent> captionsAndDisplayComponents) {
+		this.captionsAndDisplayComponents = captionsAndDisplayComponents;
+		refresh();
+	}
+
+	private void refresh() {
 		if (mainLayout.iterator().hasNext()) {
 			mainLayout.removeAllComponents();
 		}
@@ -158,16 +198,19 @@ public class BaseDisplay extends CustomComponent {
 	
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent, VerticalLayout layout) {
 		if (displayComponent.isVisible()) {
-			I18NHorizontalLayout captionAndComponentLayout = new I18NHorizontalLayout();
-			if (isCaptionAndDisplayComponentWidthUndefined()) {
-				captionAndComponentLayout.setWidthUndefined();
-			} else {
-				captionAndComponentLayout.setSizeFull();
-			}
+			if (ResponsiveUtils.isDesktop()) {
+				I18NHorizontalLayout captionAndComponentLayout = new I18NHorizontalLayout();
+				if (isCaptionAndDisplayComponentWidthUndefined()) {
+					captionAndComponentLayout.setWidthUndefined();
+				} else {
+					captionAndComponentLayout.setSizeFull();
+				}
 
-			layout.addComponent(captionAndComponentLayout);
-			captionAndComponentLayout.addComponent(captionLabel);
-			captionAndComponentLayout.addComponent(displayComponent);
+				layout.addComponent(captionAndComponentLayout);
+				captionAndComponentLayout.addComponents(captionLabel, displayComponent);
+			} else {
+				layout.addComponents(captionLabel, displayComponent);
+			}
 		}
 	}
 
