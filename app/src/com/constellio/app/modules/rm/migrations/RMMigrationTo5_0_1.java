@@ -602,10 +602,13 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		managerPermissions.add(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
 		managerPermissions.add(RMPermissionsTo.MANAGE_CONTAINERS);
 		managerPermissions.add(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST);
+		managerPermissions.add(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST);
 
 		List<String> rgdPermissions = new ArrayList<>();
 		rgdPermissions.addAll(RMPermissionsTo.PERMISSIONS.getAll());
 		rgdPermissions.addAll(CorePermissions.PERMISSIONS.getAll());
+		rgdPermissions.add(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST);
+		rgdPermissions.add(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
 
 		rolesManager.addRole(new Role(collection, RMRoles.USER,
 				migrationResourcesProvider.getValuesOfAllLanguagesWithSeparator("init.roles.U", " / "), userPermissions));
