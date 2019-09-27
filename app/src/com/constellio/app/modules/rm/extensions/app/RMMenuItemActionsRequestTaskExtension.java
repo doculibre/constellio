@@ -459,7 +459,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 
 					@Override
 					public boolean isVisible() {
-						return isFolderBorrowable(folder, container, currentUser, params.getBehaviorParams().getView().getCollection());
+						return isFolderBorrowable(folder, container, currentUser, collection);
 					}
 				};
 				borrowFolderButton.setStyleName(ValoTheme.BUTTON_PRIMARY);
