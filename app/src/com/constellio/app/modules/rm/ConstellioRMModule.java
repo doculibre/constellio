@@ -252,6 +252,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_3_1_1());
 		scripts.add(new RMMigrationTo8_3_2());
 		scripts.add(new RMMigrationTo8_3_2_1());
+		scripts.add(new RMMigrationTo8_3_2_2());
 
 		return scripts;
 	}
