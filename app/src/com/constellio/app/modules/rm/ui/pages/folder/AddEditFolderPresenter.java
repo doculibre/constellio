@@ -96,6 +96,7 @@ import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTER
 import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
 import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static org.apache.ignite.internal.util.lang.GridFunc.asList;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
 
@@ -463,6 +464,29 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		reloadForm();
 	}
 
+	void reloadFormAndPopulateCurrentMetadatasExcept(List<String> ignoredMetadataCodes) {
+		// Populate new record with previous record's metadata values
+
+		commitForm();
+
+		for (MetadataVO metadataVO : folderVO.getMetadatas()) {
+			String metadataCode = metadataVO.getCode();
+			String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
+			if (!ignoredMetadataCodes.contains(metadataCodeWithoutPrefix)) {
+				try {
+					MetadataVO matchingMetadata = folderVO.getMetadata(metadataCodeWithoutPrefix);
+					Object metadataValue = folderVO.get(metadataVO);
+					folderVO.set(matchingMetadata, metadataValue);
+				} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+					// Ignore
+				}
+			}
+		}
+
+		view.setRecord(folderVO);
+		reloadForm();
+	}
+
 	void reloadFormAfterParentFolderChanged() {
 		commitForm();
 		reloadForm();
@@ -566,7 +590,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		adjustAdministrativeUnitField();
 		adjustCategoryField(parentRemoved);
 		adjustUniformSubdivisionField(parentRemoved);
-		adjustRetentionRuleField();
+		adjustRetentionRuleField(customField);
 		adjustStatusCopyEnteredField(firstDraw);
 		adjustCopyRetentionRuleField();
 		adjustLinearSizeField();
@@ -696,7 +720,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 	}
 
-	void adjustRetentionRuleField() {
+	void adjustRetentionRuleField(CustomFolderField<?> changedCustomField) {
 		FolderRetentionRuleField retentionRuleField = (FolderRetentionRuleField) view.getForm().getCustomField(
 				Folder.RETENTION_RULE_ENTERED);
 		FolderCategoryField categoryField = (FolderCategoryField) view.getForm().getCustomField(Folder.CATEGORY_ENTERED);
@@ -752,6 +776,19 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 					uniformSubdivisionField.setRequired(false);
 				}
 			}
+		}
+
+		if (changedCustomField instanceof FolderRetentionRuleField) {
+			String ruleId = (String) view.getForm().getCustomField(RETENTION_RULE_ENTERED).getFieldValue();
+			folderVO.setRetentionRule(ruleId);
+			if (areDocumentRetentionRulesEnabled()) {
+				Folder record = rmSchemas().wrapFolder(toRecord(folderVO));
+				recordServices().recalculate(record);
+				folderVO.set(Folder.APPLICABLE_COPY_RULES, record.getApplicableCopyRules());
+			}
+			List<String> ignoredMetadataCodes = asList(RETENTION_RULE_ENTERED);
+			reloadFormAndPopulateCurrentMetadatasExcept(ignoredMetadataCodes);
+			view.getForm().getCustomField(RETENTION_RULE_ENTERED).focus();
 		}
 	}
 

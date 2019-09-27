@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDep
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDestructionDateFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualTransferDateFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderAdministrativeUnitFieldImpl;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderAllowedDocumentTypeFieldLookupImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderBorrpwingTypeFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerFieldImpl;
@@ -35,6 +36,7 @@ import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_DEPOSIT_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_DESTRUCTION_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_TRANSFER_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.ALLOWED_DOCUMENT_TYPES;
 import static com.constellio.app.modules.rm.wrappers.Folder.BORROWING_TYPE;
 import static com.constellio.app.modules.rm.wrappers.Folder.BORROW_PREVIEW_RETURN_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.BORROW_RETURN_DATE;
@@ -53,10 +55,14 @@ import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_
 public class FolderFieldFactory extends RMRecordFieldFactory {
 	private final String collection;
 	private final List<CopyRetentionRule> rules;
+	private final String retentionRule;
+	private final List<String> currentTypes;
 
-	public FolderFieldFactory(String collection, List<CopyRetentionRule> rules) {
+	public FolderFieldFactory(String collection, List<CopyRetentionRule> rules, String retentionRule, List<String> currentTypes) {
 		this.collection = collection;
 		this.rules = rules;
+		this.retentionRule = retentionRule;
+		this.currentTypes = currentTypes;
 	}
 
 	@Override
@@ -125,6 +131,9 @@ public class FolderFieldFactory extends RMRecordFieldFactory {
 				break;
 			case MANUAL_DISPOSAL_TYPE:
 				field = new FolderDisposalTypeFieldImpl();
+				break;
+			case ALLOWED_DOCUMENT_TYPES:
+				field = new FolderAllowedDocumentTypeFieldLookupImpl(retentionRule, currentTypes);
 				break;
 			default:
 				field = super.build(recordVO, metadataVO, locale);

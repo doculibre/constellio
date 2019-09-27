@@ -8,9 +8,12 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.HashMap;
 
 public class RMMigrationTo9_0_0_1 extends MigrationHelper implements MigrationScript {
 
@@ -46,7 +49,11 @@ public class RMMigrationTo9_0_0_1 extends MigrationHelper implements MigrationSc
 
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
 			MetadataSchemaBuilder documentTypeSchema = typesBuilder.getSchemaType(DocumentType.SCHEMA_TYPE).getDefaultSchema();
+			HashMap<Language, String> labels = new HashMap<>();
+			labels.put(Language.French, "Types de document autorisés");
+			labels.put(Language.English, "Allowed document types");
 			folderSchema.createUndeletable(Folder.ALLOWED_DOCUMENT_TYPES)
+					.setLabels(labels)
 					.setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(documentTypeSchema)
 					.setMultivalue(true);

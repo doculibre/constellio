@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.components.folder;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -19,8 +20,10 @@ public abstract class FolderFormImpl extends RecordForm implements FolderForm {
 
 	public FolderFormImpl(RecordVO record) {
 		super(record, new FolderFieldFactory(
-				record.getSchema().getCollection(),
-				record.<CopyRetentionRule>getList(Folder.APPLICABLE_COPY_RULES)));
+					record.getSchema().getCollection(),
+					record.<CopyRetentionRule>getList(Folder.APPLICABLE_COPY_RULES),
+					record.getMetadataValue(record.getMetadata(Folder.RETENTION_RULE_ENTERED)).<String>getValue(),
+					record.getMetadataValue(record.getMetadata(Folder.ALLOWED_DOCUMENT_TYPES)).<List<String>>getValue()));
 
 		extraField = new HashMap<>();
 	}

@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.ui.components.document.fields;
+package com.constellio.app.modules.rm.ui.components.folder.fields;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
@@ -24,18 +24,19 @@ import java.util.List;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
 
-public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvider {
+public class FolderAllowedDocumentTypeTextInputDataProvider extends RecordTextInputDataProvider {
 
-	private String folderId;
-	private String currentType;
+	private String retentionRule;
+	private List<String> currentTypes;
 	private transient RMConfigs rmConfigs;
 	private transient RMSchemasRecordsServices rm;
 
-	public DocumentTypeTextInputDataProvider(ConstellioFactories constellioFactories,
-											 SessionContext sessionContext, String folderId, String currentType) {
+	public FolderAllowedDocumentTypeTextInputDataProvider(ConstellioFactories constellioFactories,
+														  SessionContext sessionContext, String retentionRule,
+														  List<String> currentTypes) {
 		super(constellioFactories, sessionContext, DocumentType.SCHEMA_TYPE, false);
-		this.folderId = folderId;
-		this.currentType = currentType;
+		this.retentionRule = retentionRule;
+		this.currentTypes = currentTypes;
 		init();
 	}
 
@@ -63,11 +64,8 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 			condition = from(type).returnAll();
 		}
 
-		if (folderId != null) {
-			List<String> newDocumentTypes = rm.getFolder(folderId).getAllowedDocumentTypes();
-			if (newDocumentTypes.isEmpty()){
-				newDocumentTypes = getDocumentTypesFilteredByRetentionRule();
-			}
+		if (retentionRule != null) {
+			List<String> newDocumentTypes = getDocumentTypesFilteredByRetentionRule();
 
 			if (!newDocumentTypes.isEmpty()){
 				condition = condition.andWhere(Schemas.IDENTIFIER).isIn(newDocumentTypes);
@@ -98,10 +96,12 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 				|| rmConfigs.getDocumentsTypesChoice()
 					== DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES)
 		{
-			RetentionRule retentionRule = rm.getRetentionRule(rm.getFolder(folderId).getRetentionRule());
-			List<String> documentTypes = retentionRule.getDocumentTypes();
-			if (currentType != null && !documentTypes.contains(currentType)) {
-				newDocumentTypes.add(currentType);
+			RetentionRule rule = rm.getRetentionRule(retentionRule);
+			List<String> documentTypes = rule.getDocumentTypes();
+			for (String currentType : currentTypes ) {
+				if (currentType != null && !documentTypes.contains(currentType)) {
+					newDocumentTypes.add(currentType);
+				}
 			}
 			newDocumentTypes.addAll(documentTypes);
 		}

@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components.fields.list;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -15,15 +16,22 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 	protected boolean ignoreLinkability;
 	private boolean itemInformation;
 	protected List<ValueChangeListener> lookupFieldListenerList;
+	protected RecordTextInputDataProvider recordTextInputDataProvider;
 
 	public ListAddRemoveRecordLookupField(String schemaTypeCode) {
 		this(schemaTypeCode, null);
 	}
 
 	public ListAddRemoveRecordLookupField(String schemaTypeCode, String schemaCode) {
+		this(schemaTypeCode, schemaCode, null);
+	}
+
+	public ListAddRemoveRecordLookupField(String schemaTypeCode, String schemaCode,
+										  RecordTextInputDataProvider recordTextInputDataProvider) {
 		super();
 		this.schemaTypeCode = schemaTypeCode;
 		this.schemaCode = schemaCode;
+		this.recordTextInputDataProvider = recordTextInputDataProvider;
 		setItemConverter(new RecordIdToCaptionConverter());
 		ignoreLinkability = false;
 		lookupFieldListenerList = new ArrayList<>();
@@ -63,7 +71,7 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 
 	@Override
 	protected LookupRecordField newAddEditField() {
-		final LookupRecordField field = new LookupRecordField(schemaTypeCode, schemaCode) {
+		final LookupRecordField field = new LookupRecordField(schemaTypeCode, schemaCode, false, recordTextInputDataProvider) {
 			@Override
 			protected String getReadOnlyMessage() {
 				String readOnlyMessage = ListAddRemoveRecordLookupField.this.getReadOnlyMessage();
