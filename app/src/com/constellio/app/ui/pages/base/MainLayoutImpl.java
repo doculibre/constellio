@@ -178,7 +178,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 			appLayerFactory.getExtensions().forCollection(collection).decorateView(params);
 		}
 
-		footerLayout.setVisible(false);
+		//		footerLayout.setVisible(false);
 
 		buildInitJavascript();
 	}
