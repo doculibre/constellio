@@ -12294,6 +12294,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-controls {
 	font-size: 14px;
+	height: 30px;
 }
 
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-filter {
@@ -12309,7 +12310,7 @@ div.v-layout.v-horizontal.v-widget {
 	position: relative;
 	top: -1px;
 	display: inline-block;
-	line-height: 39px;
+	line-height: initial;
 }
 
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort {
@@ -12317,8 +12318,17 @@ div.v-layout.v-horizontal.v-widget {
 	top: 1px;
 }
 
+.constellio .task-table-layout .v-slot-task-table-controls .task-table-sort .v-filterselect, .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort .v-filterselect-suggestmenu {
+	line-height: initial;
+}
+
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort .v-filterselect-button:before {
 	content: "\f078";
+	line-height: 0px;
+}
+
+.constellio .task-table-layout .v-slot-task-table-controls .task-table-sort-asc-button, .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort-desc-button {
+	height: initial;
 }
 
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort-asc-button {
@@ -12421,9 +12431,18 @@ div.v-layout.v-horizontal.v-widget {
 	z-index: 2;
 }
 
+.constellio .task-table-layout .task-table .task-details .v-slot-task-details-comment-workflow-layout .task-details-comment-workflow-checkbox-layout {
+	margin-top: 30px;
+}
+
 .constellio .task-table-layout .task-table .task-details .v-slot-task-details-comment-workflow-layout .v-checkbox {
 	top: 9px;
 	font-size: 14px;
+	padding-right: 6px;
+}
+
+.constellio .task-table-layout .task-table .task-details .v-slot-task-details-comment-workflow-layout .v-checkbox label {
+	white-space: initial;
 }
 
 .constellio .task-table-layout .task-table .task-details .v-slot-task-details-comment-workflow-layout .v-slot-task-details-add-comment-button {
@@ -15115,6 +15134,11 @@ div.v-layout.v-horizontal.v-widget {
 	color: #197de1;
 }
 
+.constellio .viewable-record-table-panel .table-buttons-layout .v-button-icon-only {
+	width: inherit;
+	text-align: center;
+}
+
 .constellio .viewable-record-table-panel .table-buttons-layout .select-deselect-all-button {
 	left: 16px;
 }
@@ -15122,7 +15146,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .viewable-record-table-panel .table-buttons-layout .count-label {
 	position: relative;
 	top: 6px;
-	left: 20px;
+	left: 10px;
 	color: #4396ea;
 	font-weight: 500;
 }
@@ -15130,6 +15154,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .viewable-record-table-panel .table-buttons-layout .previous-button {
 	margin-left: 12px;
 	margin-right: -12px;
+}
+
+.constellio .viewable-record-table-panel .table-buttons-layout .list-mode-button, .constellio .viewable-record-table-panel .table-buttons-layout .table-mode-button {
+	width: 24px;
 }
 
 .constellio .viewable-record-table-panel .selection-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
@@ -15141,6 +15169,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .viewable-record-table-panel .selection-action-menu-bar .v-menubar-menuitem {
 	direction: rtl;
+	padding-left: 6px;
 }
 
 .constellio .viewable-record-table-panel .selection-action-menu-bar .v-menubar-menuitem .v-icon {
@@ -15269,15 +15298,6 @@ div.v-layout.v-horizontal.v-widget {
 	position: relative;
 	left: -2px;
 	margin-right: -2px;
-}
-
-.constellio .viewable-record-table-panel .viewable-record-table .search-result-metadata-layout {
-	font-size: 14px;
-	padding-top: 10px;
-}
-
-.constellio .viewable-record-table-panel .viewable-record-table .search-result-metadata-layout .metadata-caption {
-	font-weight: 700;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .v-slot-search-result-elevation-buttons {
@@ -15884,6 +15904,10 @@ div.v-layout.v-horizontal.v-widget {
 	position: relative;
 }
 
+.constellio .search-view .viewable-record-table-panel .viewable-record-table .search-result-with-elevation-buttons .search-result-title {
+	padding-right: 60px;
+}
+
 .constellio .v-ui[width-range~="1101px-"] .v-menubar-user-menu {
 	background: #3a434d;
 	padding-top: 6px;
@@ -15994,7 +16018,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-ui[width-range~="1101px-"] .not-nested-action-menu-bar-layout {
-	top: -30px;
+	margin-top: -30px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .viewable-record-table-panel .action-menu-bar-layout {
@@ -16099,12 +16123,16 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .not-nested-action-menu-bar-layout {
-	top: -30px;
+	margin-top: -30px;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .viewable-record-table-panel .action-menu-bar-layout {
 	top: -60px;
 	right: 50px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"] .viewable-record-table-panel .viewable-record-table .metadata-caption, .constellio .v-ui[width-range~="801-1100px"] .viewable-record-table-panel .viewable-record-table .metadata-value {
+	display: none;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
@@ -16158,16 +16186,6 @@ div.v-layout.v-horizontal.v-widget {
 	margin: 0;
 }
 
-.constellio .v-ui[width-range~="0-800px"] .base-display .v-slot-display-caption {
-	float: left;
-	clear: both;
-}
-
-.constellio .v-ui[width-range~="0-800px"] .base-display .v-slot-display-value {
-	float: left;
-	clear: both;
-}
-
 .constellio .v-ui[width-range~="0-800px"] .main-component-wrapper {
 	min-height: 500px;
 }
@@ -16213,8 +16231,8 @@ div.v-layout.v-horizontal.v-widget {
 	top: 0px;
 }
 
-.constellio .v-ui[width-range~="0-800px"] .search-view .viewable-record-table-panel .viewable-record-table .search-result-with-elevation-buttons .search-result-title {
-	padding-right: 60px;
+.constellio .v-ui[width-range~="0-800px"] .viewable-record-table-panel .viewable-record-table .metadata-caption, .constellio .v-ui[width-range~="0-800px"] .viewable-record-table-panel .viewable-record-table .metadata-value {
+	display: none;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .xbreadcrumbs {

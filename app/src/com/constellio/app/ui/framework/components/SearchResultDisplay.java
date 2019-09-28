@@ -77,6 +77,8 @@ public class SearchResultDisplay extends CssLayout {
 
 	private Component titleLink;
 
+	private Boolean lastModeDesktop;
+
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 							   AppLayerFactory appLayerFactory, String query, boolean noLinks) {
 		this(searchResultVO, componentFactory, appLayerFactory, query, null, noLinks);
@@ -108,7 +110,6 @@ public class SearchResultDisplay extends CssLayout {
 	protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
 		addStyleName(RECORD_STYLE);
 		setWidth("100%");
-		//		setSpacing(true);
 
 		addTitleComponents(searchResultVO);
 

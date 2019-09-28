@@ -399,6 +399,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		if (tasksSchemas.isRequestTask(task)) {
 			reasonField = fieldFactory.build(recordVO.getMetadata(RequestTask.REASON));
+			reasonField.setWidth("100%");
 			fieldLayout.addComponent(reasonField);
 		}
 		return reasonField;

@@ -30,6 +30,8 @@ import com.vaadin.server.StreamVariable;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.Label;
@@ -348,6 +350,16 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	@Override
 	public boolean isInAWindow() {
 		return inWindow;
+	}
+
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.backButtonClicked();
+			}
+		};
 	}
 
 	private void refreshAvailableSpace() {

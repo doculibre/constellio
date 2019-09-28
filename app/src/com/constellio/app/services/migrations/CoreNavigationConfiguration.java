@@ -14,6 +14,7 @@ import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.app.ui.pages.viewGroups.TrashViewGroup;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
@@ -594,7 +595,7 @@ public class CoreNavigationConfiguration implements Serializable {
 						UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 						boolean canManageSystem = userServices.has(user.getUsername())
 								.anyGlobalPermissionInAnyCollection(CorePermissions.SYSTEM_MANAGEMENT_PERMISSIONS);
-						return visibleIf(canManageCollection || canManageSystem);
+						return visibleIf((canManageCollection || canManageSystem) && !ResponsiveUtils.isPhone());
 					}
 				});
 
@@ -612,7 +613,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 					@Override
 					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-						return visibleIf(user.has(CorePermissions.MANAGE_TRASH).globally());
+						return visibleIf(user.has(CorePermissions.MANAGE_TRASH).globally() && !ResponsiveUtils.isPhone());
 					}
 				});
 	}

@@ -129,6 +129,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	private List<NavigationItem> actionMenuItems;
 
+	private Boolean lastPhoneMode;
+
 	public ConstellioHeaderImpl() {
 		presenter = new ConstellioHeaderPresenter(this);
 
@@ -316,7 +318,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	}
 
 	private void adjustSearchFieldContent() {
-		if (popupView.isPopupVisible()) {
+		if (popupView.isPopupVisible() || ResponsiveUtils.isPhone()) {
 			searchField.setInputPrompt("");
 		} else if (presenter.isValidAdvancedSearchCriterionPresent()) {
 			searchField.setInputPrompt($("AdvancedSearchView.advancedCriteriaPrompt"));
@@ -456,6 +458,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		sessionContext.addSelectedRecordIdsChangeListener(this);
 		Page.getCurrent().addBrowserWindowResizeListener(this);
+		computeResponsive();
 		super.attach();
 	}
 
@@ -917,6 +920,25 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	@Override
 	public void browserWindowResized(BrowserWindowResizeEvent event) {
-		setCollectionSubMenuCaption();
+		computeResponsive();
+	}
+
+	private void computeResponsive() {
+		if (lastPhoneMode == null) {
+			lastPhoneMode = ResponsiveUtils.isPhone();
+			if (ResponsiveUtils.isPhone()) {
+				showAdvancedSearchButton.setVisible(false);
+			}
+		}
+		if (lastPhoneMode && !ResponsiveUtils.isPhone()) {
+			adjustSearchFieldContent();
+			setCollectionSubMenuCaption();
+			showAdvancedSearchButton.setVisible(true);
+		} else if (!lastPhoneMode && ResponsiveUtils.isPhone()) {
+			adjustSearchFieldContent();
+			setCollectionSubMenuCaption();
+			showAdvancedSearchButton.setVisible(false);
+		}
+		lastPhoneMode = ResponsiveUtils.isPhone();
 	}
 }
