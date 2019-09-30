@@ -15927,7 +15927,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .v-menubar-user-menu .v-menubar-menuitem .v-icon {
 	float: left;
-	padding-left: 5px;
+	margin-left: 5px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .valo-menu .valo-menu-part {
