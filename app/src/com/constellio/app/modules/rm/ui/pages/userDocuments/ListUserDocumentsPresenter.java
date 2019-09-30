@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -434,5 +435,9 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 	public boolean isSpaceLimitReached(long length) {
 		return new UserDocumentsServices(modelLayerFactory)
 				.isSpaceLimitReached(getCurrentUser().getUsername(), collection, length);
+	}
+
+	public void backButtonClicked() {
+		view.navigate().to(RMViews.class).personnalSpace();
 	}
 }
