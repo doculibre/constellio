@@ -14468,6 +14468,10 @@ div.v-layout.v-horizontal.v-widget {
 	margin-bottom: -50px;
 }
 
+.constellio .v-window[width-range~="0-800px"] .v-slot-borrowed-document-message, .constellio .v-window[width-range~="801-1100px"] .v-slot-borrowed-document-message {
+	padding-bottom: 10px;
+}
+
 .constellio .v-window .popupContent {
 	z-index: 20001;
 }
@@ -14631,6 +14635,14 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 0px;
 }
 
+.constellio .v-window .v-scrollable .base-window-content.consultation-link-window-layout {
+	padding-top: 0px;
+}
+
+.constellio .v-window .v-scrollable .base-window-content.consultation-link-window-layout .consultation-link-window-link {
+	padding-bottom: 10px;
+}
+
 .constellio .base-window .v-scrollable .base-window-content {
 	padding-left: 5px;
 	padding-right: 5px;
@@ -14788,47 +14800,15 @@ div.v-layout.v-horizontal.v-widget {
 	width: 100%;
 }
 
-.constellio .header-selection-panel .header-selection-panel-layout {
-	width: 100%;
+.constellio .header-selection-panel {
+	margin-top: -25px;
 }
 
-.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions {
-	width: 225px;
-	border: 1px solid #3a434d;
-	border-radius: 4px;
-}
-
-.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button, .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .link, .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions v-link {
-	padding-left: 8px;
-	color: white;
-	font-weight: normal;
-	text-decoration: none;
-	font-size: 14px;
-	width: 100%;
-	border-radius: 0;
-	text-align: left;
-	border: none;
-	background-color: #414B56;
-	background-image: linear, to left, #38414a 0%, #414B56 9px;
-}
-
-.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button a, .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .link a, .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions v-link a {
-	color: white;
-}
-
-.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button:hover {
-	color: #197de1;
-	background-color: #3a434d;
-}
-
-.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button:after {
-	box-shadow: none;
-	border: none;
-}
-
-.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-disabled:hover {
-	color: white;
-	background-color: #414B56;
+.constellio .header-selection-panel .selection-panel-top-layout .v-menubar .v-icon {
+	float: right;
+	margin-right: -4px;
+	margin-left: 4px;
+	margin-top: 2px;
 }
 
 .constellio .v-listbuilder-buttons .v-button-wrap {
@@ -15227,6 +15207,10 @@ div.v-layout.v-horizontal.v-widget {
 	height: 5px;
 }
 
+.constellio .viewable-record-table-panel .viewable-record-table .v-table-table .v-table-cell-content .v-menubar {
+	margin-left: -16px;
+}
+
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-record {
 	padding-top: 4px;
 }
@@ -15258,6 +15242,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: left;
 	color: #197de1;
 	font-weight: bold;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-title:hover {
+	background-color: transparent;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .document-search-result-title {
@@ -15309,7 +15297,7 @@ div.v-layout.v-horizontal.v-widget {
 	width: auto;
 	position: relative;
 	float: right;
-	top: -24px;
+	top: -4px;
 	margin-bottom: -35px;
 }
 
@@ -15318,11 +15306,11 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation {
-	right: 6px;
+	right: 12px;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion {
-	right: -30px;
+	right: -24px;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation:hover, .constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion:hover {

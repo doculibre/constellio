@@ -530,7 +530,11 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 			sessionContext.setCurrentCollection(newCollection);
 			sessionContext.setCurrentUser(newUserVO);
 
-			header.navigateTo().home();
+			if (StringUtils.isNotBlank(header.getSearchExpression()) && header.getAdvancedSearchCriteria().isEmpty()) {
+				header.navigateTo().simpleSearch(header.getSearchExpression());
+			} else {
+				header.navigateTo().home();
+			}
 			header.updateUIContent();
 		}
 	}

@@ -1543,6 +1543,10 @@ $popup-view-z-index: 3;
 		    top: -50px;
 		    margin-bottom: -50px;
 		}
+		
+		.v-slot-borrowed-document-message {
+			padding-bottom: 10px;
+		} 
 	}
 	
 	.v-window {
@@ -1736,6 +1740,14 @@ $popup-view-z-index: 3;
 	        
 		}
 		
+		.v-scrollable .base-window-content.consultation-link-window-layout {
+			padding-top: 0px;
+			
+			.consultation-link-window-link {
+				padding-bottom: 10px;
+			}
+		}
+		
 	}
 
 	.base-window {
@@ -1922,51 +1934,14 @@ $popup-view-z-index: 3;
 	}
 				
 	.header-selection-panel {
-				
-		.header-selection-panel-layout {
-			width: 100%;
-			
-		    .header-selection-panel-actions {
-			    width: 225px;
-			    border: 1px solid #3a434d;
-			    border-radius: 4px;
-	
-				.v-button, .link, v-link {
-					padding-left: 8px;
-			    	color: white;
-			    	font-weight: normal;
-					text-decoration: none;
-					font-size: 14px;
-					width: 100%;
-					border-radius: 0;
-					text-align: left;
-					border: none;
-	
-				    background-color: #414B56;
-					//background-image: -webkit-linear-gradient(right, #38414a 0%, #414B56 9px);
-					background-image: linear-gradient(to left,#38414a 0%, #414B56 9px);
-
-					a {
-						color: white;
-					}
-				}
-	
-			    .v-button:hover {
-			    	color: #197de1;
-				    background-color: #3a434d;
-			    }
-	
-			    .v-button:after {
-					box-shadow: none;
-					border: none;
-			    }
-	
-			    .v-disabled:hover {
-			    	color: white;
-				    background-color: #414B56;
-			    }
-		    }
-	    }
+		margin-top: -25px;
+		
+		.selection-panel-top-layout .v-menubar .v-icon {
+		    float: right;
+		    margin-right: -4px;
+		    margin-left: 4px;
+		    margin-top: 2px;
+		}
 	}
 
 	.v-listbuilder-buttons .v-button-wrap {
@@ -2435,6 +2410,10 @@ $popup-view-z-index: 3;
 					.v-spacing {
 						height: 5px;
 					}
+					
+					.v-menubar {
+						margin-left: -16px;
+					}
 				}
   			
 			}
@@ -2472,6 +2451,10 @@ $popup-view-z-index: 3;
 				text-align: left;
 				color: #197de1;
 				font-weight: bold;
+			}
+			
+			.search-result-title:hover {
+				background-color: transparent;
 			}
 			
 			.document-search-result-title {
@@ -2525,7 +2508,7 @@ $popup-view-z-index: 3;
 				width: auto;
 				position: relative;
 				float: right;
-				top: -24px;
+				top: -4px;
 				margin-bottom: -35px;
 
 				.v-button-caption {
@@ -2534,11 +2517,11 @@ $popup-view-z-index: 3;
 			}
 			
 			.search-result-elevation {
-				right: 6px;
+				right: 12px;
 			}
 
 			.search-result-exclusion {
-				right: -30px;
+				right: -24px;
 			}
 			
 			.search-result-elevation:hover, .search-result-exclusion:hover {

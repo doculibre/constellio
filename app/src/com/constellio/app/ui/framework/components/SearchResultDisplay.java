@@ -128,15 +128,14 @@ public class SearchResultDisplay extends CssLayout {
 		titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
 
-		titleLink.setWidth("100%");
-		addComponent(titleLink);
-
 		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
 		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
 				.has(currentSessionContext.getCurrentUser().getUsername());
 
 		if (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
 			&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
+			titleLink.setWidth("90%");
+			
 			addStyleName("search-result-with-elevation-buttons");
 			
 			boolean isElevated = searchConfigurationsManager.isElevated(currentSessionContext.getCurrentCollection(), query, record.getId());
@@ -150,7 +149,10 @@ public class SearchResultDisplay extends CssLayout {
 
 			addComponent(elevateButton);
 			addComponent(excludeButton);
+		} else {
+			titleLink.setWidth("100%");
 		}
+		addComponent(titleLink);
 	}
 
 	protected void addVisitedStyleNameIfNecessary(Component titleLink, String id) {
