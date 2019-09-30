@@ -4,6 +4,8 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.model.validators.DocumentValidator;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
@@ -57,6 +59,9 @@ public class RMMigrationTo9_0_0_1 extends MigrationHelper implements MigrationSc
 					.setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(documentTypeSchema)
 					.setMultivalue(true);
+
+			MetadataSchemaBuilder documentSchema = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
+			documentSchema.defineValidators().add(DocumentValidator.class);
 		}
 	}
 }

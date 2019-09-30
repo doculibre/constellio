@@ -2,18 +2,24 @@ package com.constellio.app.modules.rm.model.validators;
 
 import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
 import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.records.RecordValidatorParams;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 
 public class FolderValidator implements RecordValidator {
 
@@ -23,6 +29,8 @@ public class FolderValidator implements RecordValidator {
 	public static final String FOLDER_INVALID_COPY_RETENTION_RULE = "folderInvalidCopyRetentionRule";
 	public static final String COPY_RETENTION_RULE_COPY_TYPE_MUST_BE_PRINCIPAL = "copyRetentionRuleCopyTypeMustBePrincipal";
 	public static final String COPY_RETENTION_RULE_COPY_TYPE_MUST_BE_SECONDARY = "copyRetentionRuleCopyTypeMustBeSecondary";
+	public static final String ALLOWED_DOCUMENT_TYPE_MUST_BE_RELATED_TO_ITS_RULE = "allowedDocumentTypeMustBeRelatedToItsRule";
+	public static final String DOCUMENT_INSIDE_FOLDER_MUST_RESPECT_ALLOWED_DOCUMENT_TYPE = "documentInsideFolderMustRespectAllowedDocumentType";
 
 	public static final String RULE_CODE = "ruleCode";
 	public static final String CATEGORY_CODE = "categoryCode";
@@ -107,6 +115,30 @@ public class FolderValidator implements RecordValidator {
 				} else {
 					params.getValidationErrors().add(FolderValidator.class, FOLDER_INVALID_COPY_RETENTION_RULE, parameters);
 				}
+			}
+		}
+
+		if (retentionRule != null) {
+			DocumentsTypeChoice choice = params.getConfigProvider().get(RMConfigs.DOCUMENTS_TYPES_CHOICE);
+			if (choice == DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
+					|| choice == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
+				if (!retentionRule.getDocumentTypes().containsAll(folder.getAllowedDocumentTypes())) {
+					params.getValidationErrors().add(FolderValidator.class, ALLOWED_DOCUMENT_TYPE_MUST_BE_RELATED_TO_ITS_RULE);
+				}
+			}
+		}
+
+		if (!folder.getAllowedDocumentTypes().isEmpty()
+				&& params.getValidatedRecord().isSaved()
+				&& params.getValidatedRecord().getModifiedMetadatas(params.getTypes()).containsMetadataWithLocalCode(Folder.ALLOWED_DOCUMENT_TYPES)){
+
+			LogicalSearchQuery query = new LogicalSearchQuery().setQueryExecutionMethod(QueryExecutionMethod.ENSURE_INDEXED_METADATA_USED);
+			MetadataSchemaType documentSchemaType = params.getTypes().getSchemaType(Document.SCHEMA_TYPE);
+			query.setCondition(from(documentSchemaType)
+					.where(documentSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER)).isEqualTo(folder.getId())
+					.andWhere(documentSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.TYPE)).isNotIn(folder.getAllowedDocumentTypes()));
+			if (params.getSearchServices().hasResults(query)){
+				params.getValidationErrors().add(FolderValidator.class, DOCUMENT_INSIDE_FOLDER_MUST_RESPECT_ALLOWED_DOCUMENT_TYPE);
 			}
 		}
 	}
