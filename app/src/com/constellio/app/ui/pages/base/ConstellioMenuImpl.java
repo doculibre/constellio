@@ -1,5 +1,16 @@
 package com.constellio.app.ui.pages.base;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.entities.system.SystemInfo;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -37,23 +48,13 @@ import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 /**
  * A responsive menu component providing user information and the controls for
  * primary navigation between the views.
  */
 @SuppressWarnings({"serial"})
-public class ConstellioMenuImpl extends CustomComponent implements ConstellioMenu {
+public class ConstellioMenuImpl extends CustomComponent implements ConstellioMenu, ViewChangeListener {
 
 	public static final String ID = "dashboard-menu";
 	private static final String STYLE_VISIBLE = "valo-menu-visible";
@@ -83,6 +84,18 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		//				hideMenu();
 		//			}
 		//		});
+	}
+
+	@Override
+	public void attach() {
+		super.attach();
+		ConstellioUI.getCurrent().getNavigator().addViewChangeListener(this);
+	}
+
+	@Override
+	public void detach() {
+		ConstellioUI.getCurrent().getNavigator().removeViewChangeListener(this);
+		super.detach();
 	}
 
 	protected void hideMenu() {
@@ -197,16 +210,12 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				}
 				return mainLayout;
 			}
-
-			@Override
-			public boolean isVisible() {
-				return presenter.hasUserRightToViewSystemState();
-			}
 		};
 		systemStateButton.setPrimaryStyleName(ValoTheme.MENU_ITEM);
 //		systemStateButton.addStyleName(ValoTheme.BUTTON_TINY);
 //		systemStateButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		systemStateButton.addStyleName("constellio-menu-system-state-button");
+		systemStateButton.setVisible(presenter.hasUserRightToViewSystemState());
 		refreshSystemStateButton();
 		return systemStateButton;
 	}
@@ -244,44 +253,42 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		
 		systemStateButton = buildSystemStateButton();
 		menuItemsLayout.addComponent(systemStateButton);
-
-		UI.getCurrent().getNavigator().addViewChangeListener(new ViewChangeListener() {
-			@Override
-			public boolean beforeViewChange(ViewChangeEvent event) {
-				View newView = event.getNewView();
-				final String selectedStyleName = "selected";
-
-				boolean newSelection = false;
-				Button lastSelectedButton = null;
-				for (ConstellioMenuButton mainMenuButton : mainMenuButtons) {
-					Button menuButton = mainMenuButton.getButton();
-					Class<? extends MenuViewGroup> menuViewGroupClass = mainMenuButton.getMenuViewGroup();
-					if (menuButton.getStyleName().contains(selectedStyleName)) {
-						lastSelectedButton = menuButton;
-					}
-					if (menuViewGroupClass.isAssignableFrom(newView.getClass())) {
-						menuButton.addStyleName(selectedStyleName);
-						newSelection = true;
-					} else {
-						menuButton.removeStyleName(selectedStyleName);
-					}
-
-					refreshBadge(mainMenuButton);
-
-				}
-				if (!newSelection && lastSelectedButton != null) {
-					lastSelectedButton.addStyleName(selectedStyleName);
-				}
-				refreshSystemStateButton();
-				return true;
-			}
-
-			@Override
-			public void afterViewChange(ViewChangeEvent event) {
-			}
-		});
 		
 		return menuItemsLayout;
+	}
+	
+	@Override
+	public boolean beforeViewChange(ViewChangeEvent event) {
+		View newView = event.getNewView();
+		final String selectedStyleName = "selected";
+
+		boolean newSelection = false;
+		Button lastSelectedButton = null;
+		for (ConstellioMenuButton mainMenuButton : mainMenuButtons) {
+			Button menuButton = mainMenuButton.getButton();
+			Class<? extends MenuViewGroup> menuViewGroupClass = mainMenuButton.getMenuViewGroup();
+			if (menuButton.getStyleName().contains(selectedStyleName)) {
+				lastSelectedButton = menuButton;
+			}
+			if (menuViewGroupClass.isAssignableFrom(newView.getClass())) {
+				menuButton.addStyleName(selectedStyleName);
+				newSelection = true;
+			} else {
+				menuButton.removeStyleName(selectedStyleName);
+			}
+
+			refreshBadge(mainMenuButton);
+
+		}
+		if (!newSelection && lastSelectedButton != null) {
+			lastSelectedButton.addStyleName(selectedStyleName);
+		}
+		refreshSystemStateButton();
+		return true;
+	}
+
+	@Override
+	public void afterViewChange(ViewChangeEvent event) {
 	}
 
 	private void refreshBadge(ConstellioMenuButton mainMenuButton) {
@@ -305,7 +312,6 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			} else {
 				systemStateButton.setIcon(new ThemeResource("images/commun/greenCircle.png"));
 			}
-
 		} else {
 			systemStateButton.setIcon(new ThemeResource("images/commun/greenCircle.png"));
 		}
