@@ -63,8 +63,6 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.SearchServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
@@ -99,22 +97,18 @@ public class DocumentMenuItemActionBehaviors {
 	private RMSchemasRecordsServices rm;
 	private LoggingServices loggingServices;
 	private DecommissioningLoggingService decommissioningLoggingService;
-	private SearchServices searchServices;
-	private MetadataSchemasManager metadataSchemasManager;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 
 	public DocumentMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		recordServices = modelLayerFactory.newRecordServices();
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		loggingServices = modelLayerFactory.newLoggingServices();
 		decommissioningLoggingService = new DecommissioningLoggingService(appLayerFactory.getModelLayerFactory());
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
-		metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 	}
 
@@ -171,10 +165,22 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void delete(Document document, MenuItemActionBehaviorParams params) {
+
+		final boolean isDocumentCheckout = documentRecordActionsServices.isContentCheckedOut(document.getContent());
+
 		Button deleteDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				deleteConfirmationDocumentButtonClicked(document, params);
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				if (isDocumentCheckout) {
+					return $("DocumentMenuItemActionBehaviors.documentIsCheckoutDeleteConfirmationMessage");
+				} else {
+					return super.getConfirmDialogMessage();
+				}
 			}
 		};
 
