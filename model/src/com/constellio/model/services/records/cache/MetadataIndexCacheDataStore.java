@@ -47,18 +47,19 @@ public class MetadataIndexCacheDataStore {
 			this.map = new HashMap<>();
 		}
 
-		void add(String value, String id) {
-			SortedIdsList list = map.get(value.hashCode());
+		void add(Object value, String id) {
+			int hashcode = value.hashCode();
+			SortedIdsList list = map.get(hashcode);
 			if (list == null) {
 				list = new SortedIntIdsList();
-				map.put(value.hashCode(), list);
+				map.put(hashcode, list);
 			}
 
 			int intId = RecordUtils.toIntKey(id);
 			if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 				if (list instanceof SortedIntIdsList) {
 					list = new SortedStringIdsList((SortedIntIdsList) list);
-					map.put(value.hashCode(), list);
+					map.put(hashcode, list);
 				}
 				list.add(id);
 			} else {
@@ -66,9 +67,9 @@ public class MetadataIndexCacheDataStore {
 			}
 		}
 
-		void add(List<String> values, String id) {
+		void add(List<Object> values, String id) {
 			if (values != null) {
-				for (String value : values) {
+				for (Object value : values) {
 					if (value != null) {
 						add(value, id);
 					}
@@ -76,16 +77,16 @@ public class MetadataIndexCacheDataStore {
 			}
 		}
 
-		void remove(String value, String id) {
+		void remove(Object value, String id) {
 			SortedIdsList list = map.get(value.hashCode());
 			if (list != null) {
 				list.remove(id);
 			}
 		}
 
-		void remove(List<String> values, String id) {
+		void remove(List<Object> values, String id) {
 			if (values != null) {
-				for (String value : values) {
+				for (Object value : values) {
 					if (value != null) {
 						remove(value, id);
 					}
@@ -97,14 +98,14 @@ public class MetadataIndexCacheDataStore {
 			return map.isEmpty();
 		}
 
-		public List<String> getIds(String value) {
+		public List<String> getIds(Object value) {
 
 			int valueHashCode = value.hashCode();
 			SortedIdsList list = map.get(valueHashCode);
 			return list == null ? Collections.emptyList() : list.getValues();
 		}
 
-		public int getIdsCount(String value) {
+		public int getIdsCount(Object value) {
 			SortedIdsList list = map.get(value.hashCode());
 			return list == null ? 0 : list.size();
 		}
@@ -112,7 +113,7 @@ public class MetadataIndexCacheDataStore {
 
 	private Map<Short, MetadataIndex>[][] cacheIndexMaps = new Map[256][];
 
-	public List<String> search(MetadataSchemaType schemaType, Metadata metadata, String value) {
+	public List<String> search(MetadataSchemaType schemaType, Metadata metadata, Object value) {
 
 		if (metadata != null && metadata.getSchemaTypeCode().equals("global")) {
 			metadata = schemaType.getDefaultSchema().get(metadata.getLocalCode());
@@ -120,7 +121,7 @@ public class MetadataIndexCacheDataStore {
 
 		ensureSearchable(metadata);
 
-		if (Strings.isBlank(value)) {
+		if (value == null || ((value instanceof String) && Strings.isBlank((String) value))) {
 			return Collections.emptyList();
 		}
 
@@ -142,10 +143,10 @@ public class MetadataIndexCacheDataStore {
 
 
 	public int estimateMaxResultSizeUsingIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata,
-														 String value) {
+														 Object value) {
 		ensureSearchable(metadata);
 
-		if (Strings.isBlank(value)) {
+		if (value == null || ((value instanceof String) && Strings.isBlank((String) value))) {
 			return -1;
 		}
 
@@ -354,13 +355,13 @@ public class MetadataIndexCacheDataStore {
 		}
 
 		if (metadata.isUniqueValue()) {
-			metadataIndex.remove((String) value, recordId);
+			metadataIndex.remove(value, recordId);
 
 		} else if (!metadata.isMultivalue()) {
-			metadataIndex.remove((String) value, recordId);
+			metadataIndex.remove(value, recordId);
 
 		} else if (metadata.isMultivalue()) {
-			metadataIndex.remove((List<String>) value, recordId);
+			metadataIndex.remove((List<Object>) value, recordId);
 		}
 	}
 
@@ -372,11 +373,11 @@ public class MetadataIndexCacheDataStore {
 		}
 
 		if (metadata.isUniqueValue()) {
-			metadataIndex.add((String) value, recordId);
+			metadataIndex.add(value, recordId);
 		} else if (!metadata.isMultivalue()) {
-			metadataIndex.add((String) value, recordId);
+			metadataIndex.add( value, recordId);
 		} else if (metadata.isMultivalue()) {
-			List<String> valueList = (List<String>) value;
+			List<Object> valueList = (List<Object>) value;
 			metadataIndex.add(valueList, recordId);
 		}
 	}
