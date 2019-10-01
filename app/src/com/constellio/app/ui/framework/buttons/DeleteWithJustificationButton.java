@@ -1,6 +1,5 @@
 package com.constellio.app.ui.framework.buttons;
 
-import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
@@ -10,7 +9,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextArea;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
@@ -23,8 +21,12 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 	public static final String DELETION_REASON = "deletion-reason";
 
 	public DeleteWithJustificationButton(String caption, boolean iconOnly) {
+		this(caption, iconOnly, WindowConfiguration.modalDialog("35%", "350px"));
+	}
+
+	public DeleteWithJustificationButton(String caption, boolean iconOnly, WindowConfiguration windowConfiguration) {
 		super((iconOnly ? DeleteButton.ICON_RESOURCE : null),
-				DeleteButton.computeCaption(caption, iconOnly), iconOnly, WindowConfiguration.modalDialog("35%", "350px"));
+				DeleteButton.computeCaption(caption, iconOnly), iconOnly, windowConfiguration);
 	}
 
 	public DeleteWithJustificationButton(boolean iconOnly) {
@@ -38,13 +40,12 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 	@Override
 	protected Component buildWindowContent() {
 		VerticalLayout messageLayout = new VerticalLayout();
-		Label message = new Label(getConfirmDialogMessage());
-		messageLayout.addComponent(message);
+
+		messageLayout.addComponent(getMessageComponent());
 
 		final TextArea reason = new BaseTextArea();
 		reason.setId(DELETION_REASON);
 		reason.setWidth("90%");
-		reason.setHeight("60%");
 
 		final Button confirm = new Button($(DeleteButton.CAPTION));
 		confirm.addStyleName(CONFIRM_DELETION);
@@ -92,6 +93,18 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 
 	protected void deletionCancelled() {
 		// Do nothing by default
+	}
+
+	public Component getMessageComponent() {
+		HorizontalLayout messageLayout = new HorizontalLayout();
+		Label message = new Label(getConfirmDialogMessage());
+		Label required = new Label(" *");
+		required.addStyleName("red-star");
+
+		messageLayout.addComponent(message);
+		messageLayout.addComponent(required);
+
+		return messageLayout;
 	}
 
 	public Component getRecordCaption() {
