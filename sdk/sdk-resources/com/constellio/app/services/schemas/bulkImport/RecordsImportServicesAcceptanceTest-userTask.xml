@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<records datePattern="yyyy-MM-dd" datetimePattern="yyyy-MM-dd HH:mm:ss">
+    <record id="001">
+        <title>An unexpected Journey task</title>
+        <status>code:ENC</status>
+        <contents multivalue="true" type="content">
+            <item>
+                <contentVersion
+                        url="https://files.slack.com/files-pri/T027CK5P0-F4WQY394M/download/pg338?pub_secret=a76e89b2ab"
+                        filename="An unexpected Journey" major="true"/>
+            </item>
+        </contents>
+    </record>
+</records>
