@@ -94,7 +94,8 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	public MetadataSchema credentialSchema() {
-		return getTypes().getSchema(UserCredential.DEFAULT_SCHEMA);
+		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION)
+				.getSchema(UserCredential.DEFAULT_SCHEMA);
 	}
 
 	public Metadata credentialUsername() {

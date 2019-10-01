@@ -63,6 +63,34 @@ public class IncompleteTasksUserCacheInvalidationAcceptanceTest extends Constell
 	}
 
 	@Test
+	public void whenCreatingNewTaskThenInvalidateAssigneeUserCandidates()
+			throws RecordServicesException {
+		String adminId = users.adminIn(zeCollection).getId();
+		String aliceId = users.aliceIn(zeCollection).getId();
+		String edouardId = users.edouardIn(zeCollection).getId();
+
+		task = schemas.newTask();
+		task.setTitle("task").setAssigner(adminId).setAssigneeUsersCandidates(asList(aliceId, edouardId))
+				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
+		save(task);
+
+		assertThatInvalidatedUsers().containsOnly(alice, edouard);
+	}
+
+	@Test
+	public void whenCreatingNewTaskThenInvalidateAssigneeGroupCandidates()
+			throws RecordServicesException {
+		String adminId = users.adminIn(zeCollection).getId();
+
+		task = schemas.newTask();
+		task.setTitle("task").setAssigner(adminId).setAssigneeGroupsCandidates(asList(users.heroesIn(zeCollection).getId()))
+				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
+		save(task);
+
+		assertThatInvalidatedUsers().containsOnly(charles, dakota, gandalf, robin);
+	}
+
+	@Test
 	public void whenCreatingNewTaskWithNoAssigneeThenInvalidatedUsersIsEmpty()
 			throws RecordServicesException {
 		task = schemas.newTask();
@@ -86,6 +114,41 @@ public class IncompleteTasksUserCacheInvalidationAcceptanceTest extends Constell
 		recordServices.logicallyDelete(task.getWrappedRecord(), User.GOD);
 
 		assertThatInvalidatedUsers().containsOnly(alice);
+	}
+
+	@Test
+	public void whenLogicallyDeleteIncompleteAndNonClosedTaskWithAssigneeThenInvalidateAssigneeCandidates()
+			throws RecordServicesException {
+		String aliceId = users.aliceIn(zeCollection).getId();
+		String adminId = users.adminIn(zeCollection).getId();
+		String bobId = users.bobIn(zeCollection).getId();
+
+		task = schemas.newTask();
+		task.setTitle("task").setAssigneeUsersCandidates(asList(aliceId, bobId)).setAssigner(adminId)
+				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
+		save(task);
+		loadCache();
+
+		recordServices.logicallyDelete(task.getWrappedRecord(), User.GOD);
+
+		assertThatInvalidatedUsers().containsOnly(alice, bob);
+	}
+
+	@Test
+	public void whenLogicallyDeleteIncompleteAndNonClosedTaskWithAssigneeThenInvalidateAssigneeGroupCandidates()
+			throws RecordServicesException {
+		String adminId = users.adminIn(zeCollection).getId();
+
+
+		task = schemas.newTask();
+		task.setTitle("task").setAssigneeGroupsCandidates(asList(users.legendsIn(zeCollection).getId())).setAssigner(adminId)
+				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
+		save(task);
+		loadCache();
+
+		recordServices.logicallyDelete(task.getWrappedRecord(), User.GOD);
+
+		assertThatInvalidatedUsers().containsOnly(alice, edouard, gandalf, sasquatch);
 	}
 
 	@Test
@@ -259,6 +322,43 @@ public class IncompleteTasksUserCacheInvalidationAcceptanceTest extends Constell
 		assertThatInvalidatedUsers().containsOnly(alice);
 	}
 
+	@Test
+	public void whenModifyingTaskStatusThenInvalidateAssigneeUserCandidates()
+			throws RecordServicesException {
+		String aliceId = users.aliceIn(zeCollection).getId();
+		String adminId = users.adminIn(zeCollection).getId();
+		String edouardId = users.edouardIn(zeCollection).getId();
+
+		task = schemas.newTask();
+		task.setTitle("task").setAssigneeUsersCandidates(asList(aliceId, edouardId)).setAssigner(adminId)
+				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
+		save(task);
+
+		loadCache();
+
+		task.setStatus(getClosedStatus());
+		recordServices.update(task.getWrappedRecord());
+
+		assertThatInvalidatedUsers().containsOnly(alice, edouard);
+	}
+
+	@Test
+	public void whenModifyingTaskStatusThenInvalidateAssigneeGroupCandidates()
+			throws RecordServicesException {
+		String adminId = users.adminIn(zeCollection).getId();
+
+		task = schemas.newTask();
+		task.setTitle("task").setAssigneeGroupsCandidates(asList(users.legendsIn(zeCollection).getId())).setAssigner(adminId)
+				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
+		save(task);
+
+		loadCache();
+
+		task.setStatus(getClosedStatus());
+		recordServices.update(task.getWrappedRecord());
+
+		assertThatInvalidatedUsers().containsOnly(edouard, alice, gandalf, sasquatch);
+	}
 
 	@Test
 	public void whenRestoringDeletedUnreadTaskWithAssigneesThenInvalidateAllAssignees()
