@@ -9,8 +9,6 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
-import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -18,6 +16,9 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
+import com.vaadin.data.util.BeanItem;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -98,7 +99,9 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 				return layout;
 			}
 		};
-		Table table = buildTable();
+		addButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+		Table table = buildDefaultFavoritesTable();
 		tabLayout.addComponents(addButton, table);
 		tabLayout.setExpandRatio(table, 1);
 		tabLayout.setSpacing(true);
@@ -106,7 +109,7 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 		return tabLayout;
 	}
 
-	private DefaultFavoritesTable buildTable() {
+	private DefaultFavoritesTable buildDefaultFavoritesTable() {
 		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
 		if (presenter.isMyCartVisible()) {
 			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
@@ -118,23 +121,6 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 		DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
 
 		final ButtonsContainer<DefaultFavoritesTable.FavoritesContainer> buttonsContainer = new ButtonsContainer(container, DefaultFavoritesTable.CartItem.DISPLAY_BUTTON);
-		buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object item, ButtonsContainer<?> container) {
-				return new DisplayButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						Cart cart = buttonsContainer.getNestedContainer().getCart((DefaultFavoritesTable.CartItem) item);
-						if (cart != null) {
-							presenter.displayButtonClicked(cart);
-						} else {
-							presenter.displayDefaultFavorites();
-						}
-					}
-				};
-			}
-		});
-
 		buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object item, ButtonsContainer<?> container) {
@@ -176,7 +162,26 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 			}
 		});
 
-		return new DefaultFavoritesTable("favoritesTable", buttonsContainer, presenter.getSchema());
+		DefaultFavoritesTable table = new DefaultFavoritesTable("favoritesTable", buttonsContainer, presenter.getSchema());
+		table.addItemClickListener(new ItemClickListener() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				BeanItem<DefaultFavoritesTable.CartItem> beanItem = (BeanItem<DefaultFavoritesTable.CartItem>) event.getItem();
+				Cart cart = buttonsContainer.getNestedContainer().getCart(beanItem.getBean());
+				displayButtonClicked(cart);
+			}
+		});
+		table.addStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
+		return table;
+	}
+
+	private void displayButtonClicked(Cart cart) {
+		if (cart != null) {
+			presenter.displayButtonClicked(cart);
+		} else {
+			presenter.displayDefaultFavorites();
+		}
 	}
 
 	private Layout buildSharedCartsTab() {
@@ -211,7 +216,8 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 			}
 		});
 
-		RecordVOTable table = new RecordVOTable("", buttonsContainer);
+		RecordVOTable table = new RecordVOTable("", buttonsContainer) {
+		};
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 90);
 		table.setPageLength(Math.min(15, container.size()));
@@ -220,4 +226,10 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 		tabLayout.setExpandRatio(table, 1);
 		return tabLayout;
 	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+	
 }

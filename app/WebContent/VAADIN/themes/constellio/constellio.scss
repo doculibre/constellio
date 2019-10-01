@@ -1200,6 +1200,58 @@ $popup-view-z-index: 3;
     	word-break: break-word;
     	padding-left: 10px;
     }
+		
+	.v-caption-record-comments {    
+		border-bottom: 1px dotted rgb(223, 223, 223);
+	    font-weight: bold;
+	    width: 300px;
+	    padding-left: 0px;
+	}
+	
+	.record-comments {
+		width: 100%;
+		
+		.v-slot-record-comments {
+			position: relative;
+			top: -30px;
+		}
+		
+		.record-comments-layout {
+			.v-slot-record-add-comment-button {
+			    margin-bottom: -10px;
+			    z-index: 2;
+			    padding-right: 10px;
+			}
+	
+			.record-add-comment-button {
+			    font-weight: 100;
+			    font-size: 14px;
+			}
+			
+			.user-display-icon {
+				position: relative;
+				top: 4px;
+			}
+	
+			.record-comment-date-time {
+				font-size: 12px;
+				padding-top: 8px;
+				color: rgb(156, 165, 175);
+			}
+	
+			.record-comment-message {
+				font-size: 14px;
+			    position: relative;
+			    top: -8px;
+			    padding-left: 32px;
+			}
+			
+			.delete-record-comment-button {
+				position: relative;
+				top: -2px;
+			}
+		}
+	}
 
 	.error-label {
 		color: red;
@@ -1835,6 +1887,12 @@ $popup-view-z-index: 3;
 
    	.system-state-component-logs {
 		border: 2px solid yellowgreen;
+   	}
+   	
+   	.system-state-component-important-message {
+   	    font-weight: bold;
+	    color: red;
+	    font-size: 20px;
    	}
 
 	.user-documents-window {
@@ -3069,8 +3127,28 @@ $popup-view-z-index: 3;
 					    .action-menu-bar {
 					    	z-index: 2000;
 					    	position: absolute;
-					    	top: -40px;
+					    	//top: -40px;
 					    	right: 30px;
+					    	
+				  			.v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
+								content: "";
+							    position: relative;
+							    top: 5px;
+							    margin-left: -2px;
+							    opacity: 1;
+							}
+				
+							.v-menubar-menuitem {
+								direction: rtl;
+								padding-left: 6px;
+				
+								.v-icon {
+									margin: 0 0px 0 6px;
+									position: relative;
+									//top: 2px;
+									padding-left: 6px;
+								}
+							}
 						}
 
 						.v-slot-main-action-menu-buttons-layout {

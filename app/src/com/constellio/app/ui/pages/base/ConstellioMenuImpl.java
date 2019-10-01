@@ -1,16 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.entities.system.SystemInfo;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -48,6 +37,16 @@ import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 /**
  * A responsive menu component providing user information and the controls for
@@ -194,6 +193,10 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				if (!validationErrors.getValidationLogs().isEmpty()) {
 					mainLayout.addComponent(buildStatesComponent("logs", validationErrors.getValidationLogs()));
 				}
+
+				Component systemStateWarningMessage = buildSystemsStateImportantMessage();
+				mainLayout.addComponent(systemStateWarningMessage);
+				mainLayout.setComponentAlignment(systemStateWarningMessage, Alignment.BOTTOM_CENTER);
 				return mainLayout;
 			}
 
@@ -305,16 +308,26 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	private void refreshSystemStateButton() {
 		if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
 			ValidationErrors validationErrors = SystemInfo.getInstance().getValidationErrors();
-			if (!validationErrors.isEmpty()) {
+			if (!validationErrors.isEmpty() || buildSystemsStateImportantMessage().isVisible()) {
 				systemStateButton.setIcon(new ThemeResource("images/commun/error.gif"));
 			} else if (!validationErrors.isEmptyErrorAndWarnings()) {
 				systemStateButton.setIcon(new ThemeResource("images/commun/warning.png"));
 			} else {
 				systemStateButton.setIcon(new ThemeResource("images/commun/greenCircle.png"));
 			}
+		} else if (buildSystemsStateImportantMessage().isVisible()) {
+			systemStateButton.setIcon(new ThemeResource("images/commun/error.gif"));
 		} else {
 			systemStateButton.setIcon(new ThemeResource("images/commun/greenCircle.png"));
 		}
+	}
+
+	private Component buildSystemsStateImportantMessage() {
+		String messageText = presenter.getSystemStateImportantMessage();
+		Label message = new Label(messageText);
+		message.addStyleName("system-state-component-important-message");
+		message.setVisible(StringUtils.isNotEmpty(messageText));
+		return message;
 	}
 
 	@Override

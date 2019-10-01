@@ -14171,6 +14171,56 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 10px;
 }
 
+.constellio .v-caption-record-comments {
+	border-bottom: 1px dotted #dfdfdf;
+	font-weight: bold;
+	width: 300px;
+	padding-left: 0px;
+}
+
+.constellio .record-comments {
+	width: 100%;
+}
+
+.constellio .record-comments .v-slot-record-comments {
+	position: relative;
+	top: -30px;
+}
+
+.constellio .record-comments .record-comments-layout .v-slot-record-add-comment-button {
+	margin-bottom: -10px;
+	z-index: 2;
+	padding-right: 10px;
+}
+
+.constellio .record-comments .record-comments-layout .record-add-comment-button {
+	font-weight: 100;
+	font-size: 14px;
+}
+
+.constellio .record-comments .record-comments-layout .user-display-icon {
+	position: relative;
+	top: 4px;
+}
+
+.constellio .record-comments .record-comments-layout .record-comment-date-time {
+	font-size: 12px;
+	padding-top: 8px;
+	color: #9ca5af;
+}
+
+.constellio .record-comments .record-comments-layout .record-comment-message {
+	font-size: 14px;
+	position: relative;
+	top: -8px;
+	padding-left: 32px;
+}
+
+.constellio .record-comments .record-comments-layout .delete-record-comment-button {
+	position: relative;
+	top: -2px;
+}
+
 .constellio .error-label {
 	color: red;
 	border: 1px solid red;
@@ -14711,6 +14761,12 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .system-state-component-logs {
 	border: 2px solid yellowgreen;
+}
+
+.constellio .system-state-component-important-message {
+	font-weight: bold;
+	color: red;
+	font-size: 20px;
 }
 
 .constellio .user-documents-window {
@@ -15799,8 +15855,26 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar {
 	z-index: 2000;
 	position: absolute;
-	top: -40px;
 	right: 30px;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
+	content: "";
+	position: relative;
+	top: 5px;
+	margin-left: -2px;
+	opacity: 1;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar .v-menubar-menuitem {
+	direction: rtl;
+	padding-left: 6px;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar .v-menubar-menuitem .v-icon {
+	margin: 0 0px 0 6px;
+	position: relative;
+	padding-left: 6px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .v-slot-main-action-menu-buttons-layout {

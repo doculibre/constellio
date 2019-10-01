@@ -891,7 +891,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 						replaceComponent(searchResultsTable, lookupTreeComponent);
 						setExpandRatio(lookupTreeComponent, 1);
 					}
-					selectButton.setVisible(true);
+					selectButton.setVisible(multiValue);
 				}
 			} else {
 				Container searchResultsContainer = new LookupSearchResultContainer(geSuggestInputDataProvider(), searchField);

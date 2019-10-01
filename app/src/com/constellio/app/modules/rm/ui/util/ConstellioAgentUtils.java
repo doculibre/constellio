@@ -57,7 +57,7 @@ public class ConstellioAgentUtils {
 		if (request == null) {
 			request = VaadinServletService.getCurrentServletRequest();
 		}
-		return request != null && (isWindows(request) || isMacOsX(request) || isLocalhost(request));
+		return request == null || (isWindows(request) || isMacOsX(request) || isLocalhost(request));
 	}
 
 	public static String getAgentBaseURL() {

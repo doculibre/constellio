@@ -23,7 +23,6 @@ import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionCo
 import com.constellio.app.ui.framework.components.display.EnumWithSmallCodeDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
-import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.EnumWithSmallCode;
@@ -90,13 +89,8 @@ public class MetadataDisplayFactory implements Serializable {
 		if (!metadataVO.isEnabled()) {
 			displayComponent = null;
 		} else if (metadataVO.isMultivalue() && structureFactory != null && structureFactory instanceof CommentFactory) {
-			if (Boolean.TRUE.equals(recordVO.getMetadataValue(recordVO.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode())).getValue())) {
-				displayComponent = new RecordCommentsDisplayImpl(recordVO, metadataCode);
-			} else {
-				displayComponent = new RecordCommentsEditorImpl(recordVO, metadataCode);
-			}
-
-			displayComponent.setWidthUndefined();
+			displayComponent = new RecordCommentsDisplayImpl(recordVO, metadataCode);
+			//			displayComponent.setWidthUndefined();
 		} else if (displayValue == null) {
 			displayComponent = null;
 		} else if (displayValue instanceof Collection<?>) {
