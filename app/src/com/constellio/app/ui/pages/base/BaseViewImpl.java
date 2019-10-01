@@ -394,6 +394,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 					updateActionMenuItems();
 				}
 			});
+			actionMenuItem.setEnabled(actionMenuButton.isEnabled());
+			actionMenuItem.setVisible(actionMenuButton.isVisible());
 			actionMenuButtonsAndItems.put(actionMenuButton, actionMenuItem);
 		}
 		return menuBar;
