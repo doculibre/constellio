@@ -36,7 +36,7 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implements RecordCommentsDisplay {
-	
+
 	private RecordVO recordVO;
 
 	private String recordId;
@@ -217,7 +217,7 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 	@SuppressWarnings("unchecked")
 	@Override
 	public Class<? extends List<Comment>> getType() {
-		return (Class<? extends List<Comment>>) List.class;
+		return (Class) List.class;
 	}
 
 	@Override

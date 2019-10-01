@@ -318,7 +318,7 @@ public class DocumentRecordActionsServices {
 			   !user.getId().equals(content.getCheckoutUserId());
 	}
 
-	private boolean isContentCheckedOut(Content content) {
+	public boolean isContentCheckedOut(Content content) {
 		return content != null && content.getCheckoutUserId() != null;
 	}
 
