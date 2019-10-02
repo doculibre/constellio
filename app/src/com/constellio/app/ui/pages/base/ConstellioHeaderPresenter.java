@@ -100,6 +100,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private final ConstellioHeader header;
 	private String schemaTypeCode;
 	private String schemaCode;
+	private boolean showDeactivatedMetadatas = false;
 	private transient AppLayerFactory appLayerFactory;
 	private transient ModelLayerFactory modelLayerFactory;
 	private transient SchemasDisplayManager schemasDisplayManager;
@@ -322,6 +323,15 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 	}
 
+	public void toggleDeactivatedMetadatas(){
+		showDeactivatedMetadatas = !showDeactivatedMetadatas;
+		header.setShowDeactivatedMetadatas(showDeactivatedMetadatas);
+	}
+
+	public boolean isDeactivatedMetadatasShown(){
+		return showDeactivatedMetadatas;
+	}
+
 	private boolean isVisibleForUser(MetadataSchemaType type, User currentUser) {
 		if (ContainerRecord.SCHEMA_TYPE.equals(type.getCode()) && !currentUser
 				.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS)
@@ -351,10 +361,11 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		MetadataSchemaType schemaType = types().getSchemaType(schemaTypeCode);
 
-		Map<String, Set<String>> metadataCodesBySchema = metadataAllowedInCriteria.get(schemaTypeCode);
+		String key = schemaTypeCode + "_" + showDeactivatedMetadatas;
+		Map<String, Set<String>> metadataCodesBySchema = metadataAllowedInCriteria.get(key);
 		if (metadataCodesBySchema == null){
 			metadataCodesBySchema = new HashMap<>();
-			metadataAllowedInCriteria.put(schemaTypeCode, metadataCodesBySchema);
+			metadataAllowedInCriteria.put(key, metadataCodesBySchema);
 		}
 
 		Set<String> metadataCodes = metadataCodesBySchema.get(schemaCode);
@@ -382,7 +393,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 							String schema = facetValue.getValue();
 							for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
 								if (!metadata.getLocalCode().equals(SCHEMA.getLocalCode())) {
-									if (metadata.isEnabled()) {
+									if (showDeactivatedMetadatas || metadata.isEnabled()) {
 										metadataCodes.add(metadata.getCode());
 									}
 								}

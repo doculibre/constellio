@@ -108,6 +108,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	private BasePopupView popupView;
 
+	private Button showDeactivatedMetadatasButton;
 	private Button showAdvancedSearchButton;
 	private ComboBox advancedSearchSchemaTypeField;
 	private ComboBox advancedSearchSchemaField;
@@ -348,6 +349,23 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		top.setComponentAlignment(addCriterion, Alignment.BOTTOM_RIGHT);
 		top.setWidth("100%");
 
+		String caption = presenter.isDeactivatedMetadatasShown()
+				? $("ConstellioHeader.hideDeactivatedMetadatas")
+				: $("ConstellioHeader.showDeactivatedMetadatas");
+		showDeactivatedMetadatasButton = new Button(caption);
+		showDeactivatedMetadatasButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.toggleDeactivatedMetadatas();
+
+				String caption = presenter.isDeactivatedMetadatasShown()
+						? $("ConstellioHeader.hideDeactivatedMetadatas")
+						: $("ConstellioHeader.showDeactivatedMetadatas");
+				showDeactivatedMetadatasButton.setCaption(caption);
+			}
+		});
+		showDeactivatedMetadatasButton.addStyleName(ValoTheme.BUTTON_LINK);
+
 		criteria = new AdvancedSearchCriteriaComponent(presenter);
 		criteria.addEmptyCriterion();
 		criteria.addEmptyCriterion();
@@ -393,7 +411,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		bottom.addStyleName("header-popup-clear-and-search-buttons");
 		bottom.setSpacing(true);
 
-		VerticalLayout searchUI = new VerticalLayout(top, criteria, bottom);
+		VerticalLayout paramsUI = new VerticalLayout(top, showDeactivatedMetadatasButton, criteria);
+		VerticalLayout searchUI = new VerticalLayout(paramsUI, bottom);
 		searchUI.setSpacing(true);
 		return searchUI;
 	}
@@ -456,7 +475,12 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			String itemCaption = schema.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
 			advancedSearchSchemaField.setItemCaption(schema.getCode(), itemCaption);
 		}
-		advancedSearchSchemaField.setEnabled(true);
+
+		if (advancedSearchSchemaField.getItemIds().size() > 2) {
+			advancedSearchSchemaField.setEnabled(true);
+		}else{
+			advancedSearchSchemaField.setEnabled(false);
+		}
 
 		if (selectedSchema == null || advancedSearchSchemaField.getItem(selectedSchema) == null) {
 			advancedSearchSchemaField.select("");
@@ -722,7 +746,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	@Override
 	public void selectAdvancedSearchSchema(String schemaCode) {
-		if (schemaCode == null || !schemaCode.equals(advancedSearchSchemaField.getValue())) {
+		if (schemaCode != null && !schemaCode.equals(advancedSearchSchemaField.getValue())) {
 			advancedSearchSchemaField.setValue(schemaCode);
 		}
 		presenter.schemaSelected(schemaCode);
@@ -731,6 +755,11 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	@Override
 	public void setAdvancedSearchSchema(String schemaCode) {
 		criteria.setSchemaSelected(schemaCode);
+	}
+
+	@Override
+	public void setShowDeactivatedMetadatas(boolean isShown) {
+		criteria.setShowDeactivatedMetadatas(isShown);
 	}
 
 	@Override
