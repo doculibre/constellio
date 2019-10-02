@@ -278,11 +278,13 @@ $popup-view-z-index: 3;
 			.v-caption-task-table-sort {
 				position: relative;
 				top: -1px;
+				padding-top: 2px;
 				display: inline-block;
 				line-height: initial;
 			}
 
 			.task-table-sort {
+			    padding-bottom: 20px;
 				position: relative;
 				top: 1px;
 				
