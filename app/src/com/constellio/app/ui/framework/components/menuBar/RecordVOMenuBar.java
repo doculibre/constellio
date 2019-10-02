@@ -113,12 +113,7 @@ public class RecordVOMenuBar extends BaseMenuBar {
 		}, new CommandCallback() {
 			@Override
 			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
-				View currentView = ConstellioUI.getCurrent().getCurrentView();
-				// No point in refreshing menu if we left the original page
-				if (currentView == originalView) {
-					// Recursive call
-					buildMenuItems();
-				}
+				buildMenuItems();
 			}
 		});
 	}
