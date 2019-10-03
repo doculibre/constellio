@@ -357,18 +357,29 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.ASYNC_PARSING_FOR_ALL_CONTENTS);
 
 		Content content = contentManager.createMinor(alice, "ZePdf1.pdf", uploadPdf1InputStream());
-
 		Record record = givenRecord().withSingleValueContent(content).isSaved();
 		assertThat(contentManager.isParsed(pdf1Hash)).isFalse();
 		assertThat(record.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isTrue();
-		assertThat(contentMetadataParsedContentOf("zeRecord")).isNull();
+		assertThat(contentMetadataParsedContentOf(record.getId())).isNull();
 
+		Content contentThatWillBeDeleted = contentManager.createMinor(alice, "ZePdf2.pdf", uploadPdf2InputStream());
+		Record record2 = givenAnotherRecord().withSingleValueContent(contentThatWillBeDeleted).isSaved();
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
+		assertThat(record2.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isTrue();
+		assertThat(contentMetadataParsedContentOf(record2.getId())).isNull();
+
+		contentManager.getContentDao().delete(asList(pdf2Hash));
 		contentManager.handleRecordsMarkedForParsing();
+
 		recordServices.refresh(record);
+		recordServices.refresh(record2);
 
 		assertThat(contentManager.isParsed(pdf1Hash)).isTrue();
 		assertThat(record.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isNull();
 		assertThat(contentMetadataParsedContentOf("zeRecord")).contains("Forage de texte");
+
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
+		assertThat(record2.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isNull();
 
 	}
 

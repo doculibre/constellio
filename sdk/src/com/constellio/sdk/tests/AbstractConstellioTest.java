@@ -45,6 +45,7 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleRuntimeException;
@@ -64,6 +65,7 @@ import com.constellio.sdk.tests.concurrent.OngoingConcurrentExecution;
 import com.constellio.sdk.tests.schemas.SchemaTestFeatures;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import com.constellio.sdk.tests.setups.TestsSpeedStats;
 import com.constellio.sdk.tests.setups.Users;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -1042,6 +1044,16 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected Record record(String id) {
 		ensureNotUnitTest();
 		return getModelLayerFactory().newRecordServices().getDocumentById(id);
+	}
+
+	protected Record newRecord(MetadataSchema schema) {
+		ensureNotUnitTest();
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schema);
+	}
+
+	protected Record newRecord(SchemaShortcuts schema) {
+		ensureNotUnitTest();
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schema.instance());
 	}
 
 	protected Record withId(String id) {

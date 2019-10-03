@@ -27,7 +27,7 @@ public class BaseMenuBar extends MenuBar implements BrowserWindowResizeListener 
 
 	private Map<MenuItem, String> rootItemNonResponsiveCaptions = new HashMap<>();
 
-	private boolean desktopMode;
+	private Boolean desktopMode;
 
 	public BaseMenuBar() {
 		this(false, false);
@@ -45,7 +45,6 @@ public class BaseMenuBar extends MenuBar implements BrowserWindowResizeListener 
 			addStyleName("compact-menubar");
 			addStyleName(ValoTheme.MENUBAR_BORDERLESS);
 		}
-		desktopMode = ResponsiveUtils.isDesktop();
 	}
 
 	@Override
@@ -117,15 +116,26 @@ public class BaseMenuBar extends MenuBar implements BrowserWindowResizeListener 
 	private void computeResponsive() {
 		boolean switchToMobile;
 		boolean switchToDesktop;
-		if (desktopMode && !ResponsiveUtils.isDesktop()) {
-			switchToMobile = true;
-			switchToDesktop = false;
-		} else if (!desktopMode && ResponsiveUtils.isDesktop()) {
-			switchToMobile = false;
-			switchToDesktop = true;
+		if (desktopMode == null) {
+			desktopMode = ResponsiveUtils.isDesktop();
+			if (!desktopMode) {
+				switchToMobile = true;
+				switchToDesktop = false;
+			} else {
+				switchToMobile = false;
+				switchToDesktop = false;
+			}
 		} else {
-			switchToMobile = false;
-			switchToDesktop = false;
+			if (desktopMode && !ResponsiveUtils.isDesktop()) {
+				switchToMobile = true;
+				switchToDesktop = false;
+			} else if (!desktopMode && ResponsiveUtils.isDesktop()) {
+				switchToMobile = false;
+				switchToDesktop = true;
+			} else {
+				switchToMobile = false;
+				switchToDesktop = false;
+			}
 		}
 		if (switchToMobile || switchToDesktop) {
 			for (MenuItem item : getItems()) {

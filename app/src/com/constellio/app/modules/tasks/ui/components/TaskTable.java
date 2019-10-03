@@ -676,7 +676,7 @@ public class TaskTable extends VerticalLayout {
 		}
 
 		protected Button newAddDocumentsButton() {
-			Button addDocumentsButton = new WindowButton($("TaskTable.details.addDocuments"), $("TaskTable.details.addDocuments"), WindowConfiguration.modalDialog("90%", "450px")) {
+			BaseButton addDocumentsButton = new WindowButton($("TaskTable.details.addDocuments"), $("TaskTable.details.addDocuments"), WindowConfiguration.modalDialog("90%", "450px")) {
 				@Override
 				protected Component buildWindowContent() {
 					VerticalLayout formLayout = new VerticalLayout();
@@ -738,6 +738,7 @@ public class TaskTable extends VerticalLayout {
 			addDocumentsButton.addStyleName(ValoTheme.BUTTON_LINK);
 			addDocumentsButton.addStyleName("task-details-add-documents-button");
 			addDocumentsButton.setIcon(FontAwesome.PLUS);
+			addDocumentsButton.setCaptionVisibleOnMobile(false);
 			return addDocumentsButton;
 		}
 
@@ -931,6 +932,7 @@ public class TaskTable extends VerticalLayout {
 			addCommentButton.setIcon(FontAwesome.PLUS);
 			addCommentButton.addStyleName(ValoTheme.BUTTON_LINK);
 			addCommentButton.addStyleName("task-details-add-comment-button");
+			addCommentButton.setCaptionVisibleOnMobile(false);
 			return addCommentButton;
 		}
 

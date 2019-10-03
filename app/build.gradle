@@ -2,7 +2,7 @@ apply plugin: 'war'
 
 /*
 vaadin {
-    version '7.7.15'
+    version '7.7.17'
 
     manageDependencies true
     manageRepositories true
@@ -75,7 +75,7 @@ dependencies {
     compile 'nl.bitwalker:UserAgentUtils:1.2.4'
     compile 'org.samba.jcifs:jcifs_gcm:322'
     compile 'au.com.bytecode:opencsv:2.4'
- 
+
     compile files("../libs/vaadin-breadcrumb-1.7.3.jar")
     compile files("../libs/vaadin-filteringtable-1.0.0.v7.jar")
     compile files("../libs/vaadin-lazy-load-wrapper-0.1-alpha.jar");

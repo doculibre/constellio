@@ -12,25 +12,23 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConsultLinkWindow extends BaseWindow {
+	
 	public ConsultLinkWindow(List<String> linkToDisplayList) {
+		addStyleName("consultation-link-window");
 		setModal(true);
-		setWidth("70%");
+		setWidth("90%");
 		setCaption($("consultationLink"));
 
-		StringBuilder stringBuilder = new StringBuilder();
-
-		for (String linkToDisplay : linkToDisplayList) {
-			stringBuilder.append(linkToDisplay + "<br><br>");
-		}
-
-		Label label = new BaseLabel(stringBuilder.toString(), ContentMode.HTML);
-
 		VerticalLayout mainLayout = new VerticalLayout();
-
-		mainLayout.addComponent(label);
+		mainLayout.addStyleName("consultation-link-window-layout");
 		mainLayout.setSpacing(true);
 		mainLayout.addStyleName(WindowButton.WINDOW_CONTENT_STYLE_NAME);
 
+		for (String linkToDisplay : linkToDisplayList) {
+			Label linkLabel = new BaseLabel(linkToDisplay, ContentMode.HTML);
+			linkLabel.addStyleName("consultation-link-window-link");
+			mainLayout.addComponent(linkLabel);
+		}
 
 		this.setContent(mainLayout);
 	}

@@ -586,7 +586,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-absolutelayout) - 
+ * @param {string} $primary-stylename (v-absolutelayout) -
  *
  * @group absolutelayout
  */
@@ -609,16 +609,16 @@
  */
 
 /**
- * A list of colors for custom event colors. Can be an empty list of you don't 
+ * A list of colors for custom event colors. Can be an empty list of you don't
  * need any custom event colors.
- * 
+ *
  * @example javascript
  * // Java code
  * // 'event' is an instance of EditableCalendarEvent
  * event.setStyleName("color1"); // 1st color in the list
  * event.setStyleName("color2"); // 2nd color in the list
  * // etc.
- * 
+ *
  * @group calendar
  */
 
@@ -632,7 +632,7 @@
  */
 
 /**
- * Outputs the global selectors and properties for the ColorPicker component - styles which are 
+ * Outputs the global selectors and properties for the ColorPicker component - styles which are
  * considered mandatory for the component to work properly.
  *
  * @param {string} $primary-stylename (v-colorpicker) - the primary style name for the selectors
@@ -652,14 +652,14 @@
 /**
  * The amount of spacing between different widgets in a component group.
  * If null, a computed value is used ($v-border size * -1, or 1px if $v-border size is 0)
- * 
+ *
  * @group csslayout
  */
 
 /**
  *
  *
- * @param {string} $primary-stylename (v-customcomponent) - 
+ * @param {string} $primary-stylename (v-customcomponent) -
  *
  * @group customcomponent
  */
@@ -667,7 +667,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-customlayout) - 
+ * @param {string} $primary-stylename (v-customlayout) -
  *
  * @group customlayout
  */
@@ -683,16 +683,16 @@
 
 /**
  * Outputs the styles and selectors for the DragAndDropWrapper component.
- * 
+ *
  * @param {string} $primary-stylename (v-ddwrapper) - the primary style name for the selectors
- * 
+ *
  * @group drag-n-drop
  */
 
 /**
  *
  *
- * @param {string} $primary-stylename (v-form) - 
+ * @param {string} $primary-stylename (v-form) -
  *
  * @group form
  */
@@ -759,14 +759,14 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-gridlayout) - 
+ * @param {string} $primary-stylename (v-gridlayout) -
  *
  * @group gridlayout
  */
 
 /**
  * The font weight for headers.
- * 
+ *
  * @group label
  */
 
@@ -778,7 +778,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-loginform) - 
+ * @param {string} $primary-stylename (v-loginform) -
  *
  * @group loginform
  */
@@ -786,8 +786,8 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-menubar) - 
- * @param {bool} $include-additional-styles - 
+ * @param {string} $primary-stylename (v-menubar) -
+ * @param {bool} $include-additional-styles -
  *
  * @group menubar
  */
@@ -795,7 +795,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-nativebutton) - 
+ * @param {string} $primary-stylename (v-nativebutton) -
  *
  * @group nativebutton
  */
@@ -803,7 +803,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-select) - 
+ * @param {string} $primary-stylename (v-select) -
  *
  * @group nativeselect
  */
@@ -816,8 +816,8 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-select-optiongroup) - 
- * @param {bool} $include-additional-styles - 
+ * @param {string} $primary-stylename (v-select-optiongroup) -
+ * @param {bool} $include-additional-styles -
  *
  * @group optiongroup
  */
@@ -874,8 +874,8 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-splitpanel) - 
- * @param {bool} $include-additional-styles - 
+ * @param {string} $primary-stylename (v-splitpanel) -
+ * @param {bool} $include-additional-styles -
  *
  * @group splitpanel
  */
@@ -887,7 +887,7 @@
 
 /**
  * Should the tabsheet content changes be animated.
- * 
+ *
  * @group tabsheet
  */
 
@@ -913,7 +913,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-treetable) - 
+ * @param {string} $primary-stylename (v-treetable) -
  *
  * @group treetable
  */
@@ -921,7 +921,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-select-twincol) - 
+ * @param {string} $primary-stylename (v-select-twincol) -
  *
  * @group twin-column-select
  */
@@ -2241,8 +2241,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -2334,8 +2334,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #ecf2f8;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #1362b1;
 	border-top-color: #156ab3;
@@ -2382,8 +2382,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #eaf4e9;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #227719;
 	border-top-color: #257d1a;
@@ -2423,8 +2423,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #f9f0ef;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #bb382e;
 	border-top-color: #bc3c31;
@@ -2561,10 +2561,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-tiny {
 	height: 28px;
 	padding: 0 13px;
-	
-	
+
+
 	font-size: 12px;
-	
+
 	border-radius: 4px;
 }
 
@@ -2579,10 +2579,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-small {
 	height: 31px;
 	padding: 0 14px;
-	
-	
+
+
 	font-size: 14px;
-	
+
 	border-radius: 4px;
 }
 
@@ -2597,10 +2597,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-large {
 	height: 44px;
 	padding: 0 19px;
-	
-	
+
+
 	font-size: 20px;
-	
+
 	border-radius: 4px;
 }
 
@@ -2615,10 +2615,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-huge {
 	height: 59px;
 	padding: 0 26px;
-	
-	
+
+
 	font-size: 26px;
-	
+
 	border-radius: 4px;
 }
 
@@ -2748,8 +2748,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 9px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -2878,8 +2878,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 7px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -3008,8 +3008,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 10px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -3101,7 +3101,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -3598,7 +3598,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-tiny {
 	height: 28px;
-	
+
 	font-size: 12px;
 }
 
@@ -3617,14 +3617,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
-	
+
 	padding: 3px 5px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3650,7 +3650,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-tiny span.v-icon {
-	
+
 	width: 28px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -3726,7 +3726,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-compact, .constellio .v-filterselect-small {
 	height: 31px;
-	
+
 }
 
 .constellio .v-filterselect-compact [class*="input"], .constellio .v-filterselect-small [class*="input"] {
@@ -3744,14 +3744,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
-	
+
 	padding: 3px 6px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3777,7 +3777,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-compact span.v-icon, .constellio .v-filterselect-small span.v-icon {
-	
+
 	width: 31px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -3857,7 +3857,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-large {
 	height: 44px;
-	
+
 	font-size: 20px;
 }
 
@@ -3876,14 +3876,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
-	
+
 	padding: 5px 8px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3909,7 +3909,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-large span.v-icon {
-	
+
 	width: 44px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -3985,7 +3985,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-huge {
 	height: 59px;
-	
+
 	font-size: 26px;
 }
 
@@ -4004,14 +4004,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
-	
+
 	padding: 7px 10px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4037,7 +4037,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-huge span.v-icon {
-	
+
 	width: 59px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -4335,13 +4335,13 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
 	border-radius: 0;
 	padding: 4px 7px;
-	
+
 	-webkit-box-shadow: none;
 	box-shadow: none;
 	-webkit-transition: box-shadow 180ms, border 180ms;
@@ -4430,7 +4430,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -4554,14 +4554,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
 	border-radius: 4px;
 	padding: 3px 7px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4586,14 +4586,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
 	border-radius: 4px;
 	padding: 3px 8px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4621,14 +4621,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
 	border-radius: 4px;
 	padding: 5px 10px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4653,14 +4653,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
 	border-radius: 4px;
 	padding: 7px 12px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4927,7 +4927,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -5030,15 +5030,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
 	border-radius: 4px;
 	padding: 6px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5072,15 +5072,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
 	border-radius: 4px;
 	padding: 6px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5114,15 +5114,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
 	border-radius: 4px;
 	padding: 6px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5156,15 +5156,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
 	border-radius: 4px;
 	padding: 6px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5216,7 +5216,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -5913,15 +5913,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
 	border-radius: 4px;
 	padding: 3px 7px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -6028,15 +6028,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
 	border-radius: 4px;
 	padding: 3px 8px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -6148,15 +6148,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
 	border-radius: 4px;
 	padding: 5px 10px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -6264,15 +6264,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
 	border-radius: 4px;
 	padding: 7px 12px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -6591,7 +6591,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #191919;
 	font-weight: 400;
-	
+
 	cursor: default;
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
@@ -6673,7 +6673,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 15px;
 	color: inherit;
 	font-weight: 400;
-	
+
 	cursor: pointer;
 	border-radius: 0;
 	border: 1px solid #c5c5c5;
@@ -6770,9 +6770,9 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-menubar > .v-menubar-menuitem-selected {
 	color: #ecf2f8;
-	
-	
-	
+
+
+
 	border-radius: 0;
 	border: 1px solid #1362b1;
 	border-top-color: #156ab3;
@@ -6921,9 +6921,9 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-menubar-small {
 	height: 31px;
 	padding: 0 14px;
-	
+
 	font-weight: 400;
-	
+
 	cursor: default;
 	border-radius: 4px;
 	padding: 0;
@@ -7074,8 +7074,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 9px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7237,8 +7237,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 7px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7366,8 +7366,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 7px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7529,8 +7529,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 10px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7658,8 +7658,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 10px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -8622,8 +8622,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -8735,8 +8735,8 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio tbody.v-drag-element tr {
 	display: block;
-	
-	
+
+
 	-webkit-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 	border-radius: 4px;
@@ -10001,13 +10001,13 @@ div.v-layout.v-horizontal.v-widget {
 	font-size: 2.4em;
 	margin-top: 1.4em;
 	margin-bottom: 1em;
-	
+
 	letter-spacing: -0.03em;
 }
 
 .constellio h2, .constellio .v-label-h2 {
 	font-size: 1.6em;
-	
+
 	margin-top: 1.6em;
 	margin-bottom: 0.77em;
 	letter-spacing: -0.02em;
@@ -10015,7 +10015,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio h3, .constellio .v-label-h3 {
 	font-size: 1.2em;
-	
+
 	margin-top: 1.8em;
 	margin-bottom: 0.77em;
 	letter-spacing: 0;
@@ -10287,7 +10287,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -11489,7 +11489,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .valo-menu .valo-menu-badge, .constellio .dashboard-view .notifications.unread .v-button-caption {
-	
+
 	-webkit-transition: background-color 300ms;
 	-moz-transition: background-color 300ms;
 	transition: background-color 300ms;
@@ -12174,6 +12174,10 @@ div.v-layout.v-horizontal.v-widget {
 	color: #197de1;
 }
 
+.constellio .red-star {
+	color: red;
+}
+
 .constellio .v-menubar-user-menu {
 	margin: 0;
 }
@@ -12294,6 +12298,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-controls {
 	font-size: 14px;
+	height: 30px;
 }
 
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-filter {
@@ -12308,17 +12313,28 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .task-table-layout .v-slot-task-table-controls .v-caption-task-table-sort {
 	position: relative;
 	top: -1px;
+	padding-top: 2px;
 	display: inline-block;
-	line-height: 39px;
+	line-height: initial;
 }
 
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort {
+	padding-bottom: 20px;
 	position: relative;
 	top: 1px;
 }
 
+.constellio .task-table-layout .v-slot-task-table-controls .task-table-sort .v-filterselect, .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort .v-filterselect-suggestmenu {
+	line-height: initial;
+}
+
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort .v-filterselect-button:before {
 	content: "\f078";
+	line-height: 0px;
+}
+
+.constellio .task-table-layout .v-slot-task-table-controls .task-table-sort-asc-button, .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort-desc-button {
+	height: initial;
 }
 
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort-asc-button {
@@ -12421,9 +12437,18 @@ div.v-layout.v-horizontal.v-widget {
 	z-index: 2;
 }
 
+.constellio .task-table-layout .task-table .task-details .v-slot-task-details-comment-workflow-layout .task-details-comment-workflow-checkbox-layout {
+	margin-top: 30px;
+}
+
 .constellio .task-table-layout .task-table .task-details .v-slot-task-details-comment-workflow-layout .v-checkbox {
 	top: 9px;
 	font-size: 14px;
+	padding-right: 6px;
+}
+
+.constellio .task-table-layout .task-table .task-details .v-slot-task-details-comment-workflow-layout .v-checkbox label {
+	white-space: initial;
 }
 
 .constellio .task-table-layout .task-table .task-details .v-slot-task-details-comment-workflow-layout .v-slot-task-details-add-comment-button {
@@ -12584,11 +12609,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-treetable .v-table-cell-wrapper .v-horizontallayout .v-slot .v-label {
 	line-height: initial;
-}
-
-.constellio .v-treetable .v-table-cell-wrapper:hover {
-	color: white;
-	background-color: #197de1;
 }
 
 .constellio .v-table-cell-content-file-icon-box {
@@ -14152,6 +14172,56 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 10px;
 }
 
+.constellio .v-caption-record-comments {
+	border-bottom: 1px dotted #dfdfdf;
+	font-weight: bold;
+	width: 300px;
+	padding-left: 0px;
+}
+
+.constellio .record-comments {
+	width: 100%;
+}
+
+.constellio .record-comments .v-slot-record-comments {
+	position: relative;
+	top: -30px;
+}
+
+.constellio .record-comments .record-comments-layout .v-slot-record-add-comment-button {
+	margin-bottom: -10px;
+	z-index: 2;
+	padding-right: 10px;
+}
+
+.constellio .record-comments .record-comments-layout .record-add-comment-button {
+	font-weight: 100;
+	font-size: 14px;
+}
+
+.constellio .record-comments .record-comments-layout .user-display-icon {
+	position: relative;
+	top: 4px;
+}
+
+.constellio .record-comments .record-comments-layout .record-comment-date-time {
+	font-size: 12px;
+	padding-top: 8px;
+	color: #9ca5af;
+}
+
+.constellio .record-comments .record-comments-layout .record-comment-message {
+	font-size: 14px;
+	position: relative;
+	top: -8px;
+	padding-left: 32px;
+}
+
+.constellio .record-comments .record-comments-layout .delete-record-comment-button {
+	position: relative;
+	top: -2px;
+}
+
 .constellio .error-label {
 	color: red;
 	border: 1px solid red;
@@ -14449,6 +14519,10 @@ div.v-layout.v-horizontal.v-widget {
 	margin-bottom: -50px;
 }
 
+.constellio .v-window[width-range~="0-800px"] .v-slot-borrowed-document-message, .constellio .v-window[width-range~="801-1100px"] .v-slot-borrowed-document-message {
+	padding-bottom: 10px;
+}
+
 .constellio .v-window .popupContent {
 	z-index: 20001;
 }
@@ -14612,6 +14686,14 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 0px;
 }
 
+.constellio .v-window .v-scrollable .base-window-content.consultation-link-window-layout {
+	padding-top: 0px;
+}
+
+.constellio .v-window .v-scrollable .base-window-content.consultation-link-window-layout .consultation-link-window-link {
+	padding-bottom: 10px;
+}
+
 .constellio .base-window .v-scrollable .base-window-content {
 	padding-left: 5px;
 	padding-right: 5px;
@@ -14620,6 +14702,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .base-window .v-scrollable .system-state-window-layout {
 	padding-top: 0px;
+}
+
+.constellio .base-window .v-scrollable .base-window-content-with-bottom-margin {
+	margin-bottom: 10px;
 }
 
 .constellio .base-window-content-scroll .v-scrollable {
@@ -14680,6 +14766,12 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .system-state-component-logs {
 	border: 2px solid yellowgreen;
+}
+
+.constellio .system-state-component-important-message {
+	font-weight: bold;
+	color: red;
+	font-size: 20px;
 }
 
 .constellio .user-documents-window {
@@ -14769,47 +14861,15 @@ div.v-layout.v-horizontal.v-widget {
 	width: 100%;
 }
 
-.constellio .header-selection-panel .header-selection-panel-layout {
-	width: 100%;
+.constellio .header-selection-panel {
+	margin-top: -25px;
 }
 
-.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions {
-	width: 225px;
-	border: 1px solid #3a434d;
-	border-radius: 4px;
-}
-
-.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button, .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .link, .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions v-link {
-	padding-left: 8px;
-	color: white;
-	font-weight: normal;
-	text-decoration: none;
-	font-size: 14px;
-	width: 100%;
-	border-radius: 0;
-	text-align: left;
-	border: none;
-	background-color: #414B56;
-	background-image: linear, to left, #38414a 0%, #414B56 9px;
-}
-
-.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button a, .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .link a, .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions v-link a {
-	color: white;
-}
-
-.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button:hover {
-	color: #197de1;
-	background-color: #3a434d;
-}
-
-.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button:after {
-	box-shadow: none;
-	border: none;
-}
-
-.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-disabled:hover {
-	color: white;
-	background-color: #414B56;
+.constellio .header-selection-panel .selection-panel-top-layout .v-menubar .v-icon {
+	float: right;
+	margin-right: -4px;
+	margin-left: 4px;
+	margin-top: 2px;
 }
 
 .constellio .v-listbuilder-buttons .v-button-wrap {
@@ -15115,6 +15175,11 @@ div.v-layout.v-horizontal.v-widget {
 	color: #197de1;
 }
 
+.constellio .viewable-record-table-panel .table-buttons-layout .v-button-icon-only {
+	width: inherit;
+	text-align: center;
+}
+
 .constellio .viewable-record-table-panel .table-buttons-layout .select-deselect-all-button {
 	left: 16px;
 }
@@ -15122,7 +15187,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .viewable-record-table-panel .table-buttons-layout .count-label {
 	position: relative;
 	top: 6px;
-	left: 20px;
+	left: 10px;
 	color: #4396ea;
 	font-weight: 500;
 }
@@ -15130,6 +15195,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .viewable-record-table-panel .table-buttons-layout .previous-button {
 	margin-left: 12px;
 	margin-right: -12px;
+}
+
+.constellio .viewable-record-table-panel .table-buttons-layout .list-mode-button, .constellio .viewable-record-table-panel .table-buttons-layout .table-mode-button {
+	width: 24px;
 }
 
 .constellio .viewable-record-table-panel .selection-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
@@ -15141,6 +15210,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .viewable-record-table-panel .selection-action-menu-bar .v-menubar-menuitem {
 	direction: rtl;
+	padding-left: 6px;
 }
 
 .constellio .viewable-record-table-panel .selection-action-menu-bar .v-menubar-menuitem .v-icon {
@@ -15198,6 +15268,10 @@ div.v-layout.v-horizontal.v-widget {
 	height: 5px;
 }
 
+.constellio .viewable-record-table-panel .viewable-record-table .v-table-table .v-table-cell-content .v-menubar {
+	margin-left: -16px;
+}
+
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-record {
 	padding-top: 4px;
 }
@@ -15229,6 +15303,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: left;
 	color: #197de1;
 	font-weight: bold;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-title:hover {
+	background-color: transparent;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .document-search-result-title {
@@ -15280,7 +15358,7 @@ div.v-layout.v-horizontal.v-widget {
 	width: auto;
 	position: relative;
 	float: right;
-	top: -24px;
+	top: -4px;
 	margin-bottom: -35px;
 }
 
@@ -15289,11 +15367,11 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation {
-	right: 6px;
+	right: 12px;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion {
-	right: -30px;
+	right: -24px;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation:hover, .constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion:hover {
@@ -15782,8 +15860,26 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar {
 	z-index: 2000;
 	position: absolute;
-	top: -40px;
 	right: 30px;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
+	content: "";
+	position: relative;
+	top: 5px;
+	margin-left: -2px;
+	opacity: 1;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar .v-menubar-menuitem {
+	direction: rtl;
+	padding-left: 6px;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar .v-menubar-menuitem .v-icon {
+	margin: 0 0px 0 6px;
+	position: relative;
+	padding-left: 6px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .v-slot-main-action-menu-buttons-layout {
@@ -15808,7 +15904,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .viewer-metadata-panel .v-slot-main-component {
 	position: relative;
-	top: 44px;
+	margin-top: 44px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .nested-view.viewer-metadata-panel {
@@ -15875,6 +15971,10 @@ div.v-layout.v-horizontal.v-widget {
 	position: relative;
 }
 
+.constellio .search-view .viewable-record-table-panel .viewable-record-table .search-result-with-elevation-buttons .search-result-title {
+	padding-right: 60px;
+}
+
 .constellio .v-ui[width-range~="1101px-"] .v-menubar-user-menu {
 	background: #3a434d;
 	padding-top: 6px;
@@ -15894,7 +15994,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .v-menubar-user-menu .v-menubar-menuitem .v-icon {
 	float: left;
-	padding-left: 5px;
+	margin-left: 5px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .valo-menu .valo-menu-part {
@@ -15985,7 +16085,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-ui[width-range~="1101px-"] .not-nested-action-menu-bar-layout {
-	top: -30px;
+	margin-top: -30px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .viewable-record-table-panel .action-menu-bar-layout {
@@ -16090,7 +16190,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .not-nested-action-menu-bar-layout {
-	top: -30px;
+	margin-top: -30px;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .viewable-record-table-panel .action-menu-bar-layout {
@@ -16196,10 +16296,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="0-800px"] .task-management-view .v-slot-task-action-buttons {
 	top: 0px;
-}
-
-.constellio .v-ui[width-range~="0-800px"] .search-view .viewable-record-table-panel .viewable-record-table .search-result-with-elevation-buttons .search-result-title {
-	padding-right: 60px;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .viewable-record-table-panel .viewable-record-table .metadata-caption, .constellio .v-ui[width-range~="0-800px"] .viewable-record-table-panel .viewable-record-table .metadata-value {

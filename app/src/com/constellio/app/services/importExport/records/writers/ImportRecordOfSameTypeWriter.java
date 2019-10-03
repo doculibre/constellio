@@ -77,6 +77,8 @@ public class ImportRecordOfSameTypeWriter {
 								} else if (item instanceof LocalDateTime) {
 									type = "datetime";
 
+								} else if (item instanceof ImportContent) {
+									type = "content";
 								}
 							}
 

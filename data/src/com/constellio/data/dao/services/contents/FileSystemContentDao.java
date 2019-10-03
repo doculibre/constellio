@@ -7,6 +7,10 @@ import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoE
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException.ContentDaoRuntimeException_CannotDeleteFolder;
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException.ContentDaoRuntimeException_CannotMoveFolderTo;
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException.ContentDaoRuntimeException_NoSuchFolder;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
+import com.constellio.data.extensions.contentDao.ContentDaoInputStreamOpenedParams;
+import com.constellio.data.extensions.contentDao.ContentDaoUploadParams;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
@@ -42,7 +46,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	File rootFolder;
 
 	File vaultRecoveryFolder;
-
+	
 	@VisibleForTesting
 	File replicatedRootFolder;
 
@@ -52,9 +56,12 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	List<FileSystemContentDaoExternalResourcesExtension> externalResourcesExtensions = new ArrayList<>();
 
-	public FileSystemContentDao(IOServices ioServices, DataLayerConfiguration configuration) {
-		this.ioServices = ioServices;
-		this.configuration = configuration;
+	DataLayerSystemExtensions extensions;
+
+	public FileSystemContentDao(DataLayerFactory dataLayerFactory) {
+		this.ioServices = dataLayerFactory.getIOServicesFactory().newIOServices();
+		this.configuration = dataLayerFactory.getDataLayerConfiguration();
+		this.extensions = dataLayerFactory.getExtensions().getSystemWideExtensions();
 
 		rootFolder = configuration.getContentDaoFileSystemFolder();
 		vaultRecoveryFolder = new File(rootFolder, RECOVERY_FOLDER);
@@ -187,6 +194,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			} else if (!isFileReplicated && isExecutedReplication) {
 				addFileNotReplicated(newContentId);
 			}
+			extensions.onVaultUpload(new ContentDaoUploadParams(newContentId, file.length(), true));
 		}
 	}
 
@@ -296,6 +304,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 				vaultRecoveryFileDelete(recoveryFile);
 			}
 		}
+
 	}
 
 	private void vaultRecoveryFileDelete(File recoveryFile) {
@@ -331,6 +340,8 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		boolean isReplicationExecuted = false;
 		CopyInputStreamFactory inputStreamFactory = null;
 
+		long length;
+
 		try {
 			inputStreamFactory = ioServices.copyToReusableStreamFactory(newInputStream, COPY_RECEIVED_STREAM_TO_FILE);
 
@@ -342,6 +353,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 				replicaCopySucessfull = copy(inputStreamFactory, replicatedTargetFile);
 			}
+			length = inputStreamFactory.length();
 		} finally {
 			ioServices.closeQuietly(inputStreamFactory);
 		}
@@ -355,6 +367,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		} else if (!replicaCopySucessfull && isReplicationExecuted) {
 			addFileNotReplicated(newContentId);
 		}
+		extensions.onVaultUpload(new ContentDaoUploadParams(newContentId, length, false));
 	}
 
 
@@ -379,6 +392,8 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	@Override
 	public InputStream getContentInputStream(String contentId, String streamName)
 			throws ContentDaoException_NoSuchContent {
+
+		extensions.onVaultInputStreamOpened(new ContentDaoInputStreamOpenedParams(contentId));
 
 		if (contentId.startsWith("#")) {
 			for (FileSystemContentDaoExternalResourcesExtension extension : externalResourcesExtensions) {

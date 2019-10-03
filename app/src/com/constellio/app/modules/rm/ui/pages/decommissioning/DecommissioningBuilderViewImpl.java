@@ -90,6 +90,11 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		addStyleName("search-decommissioning");
 	}
 
+	@Override
+	public boolean isSelectionActionMenuBar() {
+		return false;
+	}
+
 	public void setExtraParameters(String searchType, String saveEventId) {
 		Map<String, String> extraParameters = new HashMap<>();
 		extraParameters.put(DECOMMISSIONING_BUILDER_TYPE, searchType);
@@ -187,7 +192,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 
 	@Override
 	protected boolean isActionMenuBar() {
-		return true;
+		return false;
 	}
 
 	@Override

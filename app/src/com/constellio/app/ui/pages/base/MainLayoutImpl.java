@@ -35,7 +35,6 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,13 +63,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private UserDocumentsWindow userDocumentsWindow;
 	private List<NavigationItem> navigationItems;
 
-	private boolean reindexationRequired;
-	private Component message;
-
 	public MainLayoutImpl(final AppLayerFactory appLayerFactory) {
 		this.presenter = new MainLayoutPresenter(this);
-
-		reindexationRequired = appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired();
 
 		addStyleName("main-layout");
 
@@ -126,8 +120,6 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 					dragAndDropWrapper.setDropHandler(null);
 				} else if (newView instanceof DropHandler) {
 					dragAndDropWrapper.setDropHandler((DropHandler) newView);
-				} else if (appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired() != reindexationRequired) {
-					updateMessage();
 				} else {
 					List<DropHandler> viewDropHandlers = ComponentTreeUtils.getChildren((Component) newView, DropHandler.class);
 					if (viewDropHandlers.size() > 1) {
@@ -138,10 +130,6 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 						dragAndDropWrapper.setDropHandler(userDocumentsWindow);
 					}
 				}
-				//				SerializationUtils.clone(event.getOldView());
-				//				SerializationUtils.clone(newView);
-
-				reindexationRequired = appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired();
 			}
 		});
 
@@ -158,10 +146,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		contentFooterLayout.addComponent(contentViewWrapper);
 		contentFooterLayout.addComponent(footerLayout);
 
-		message = buildMessage();
-		if (message != null) {
-			footerLayout.addComponent(message);
-		}
+		//footerLayout.setVisible(false);
 
 		contentFooterLayout.setExpandRatio(contentViewWrapper, 1);
 
@@ -178,7 +163,6 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 			appLayerFactory.getExtensions().forCollection(collection).decorateView(params);
 		}
 
-		//		footerLayout.setVisible(false);
 
 		buildInitJavascript();
 	}
@@ -229,19 +213,6 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		});
 
 		return mainMenuButtons;
-	}
-
-	private Component buildMessage() {
-		String messageText = presenter.getMessage();
-		if (StringUtils.isEmpty(messageText)) {
-			return null;
-		}
-		Label message = new Label(messageText);
-		message.addStyleName("footer-warning");
-		message.addStyleName(ValoTheme.LABEL_LARGE);
-		message.addStyleName(ValoTheme.LABEL_BOLD);
-		message.addStyleName("message");
-		return message;
 	}
 
 	protected Component buildInstanceType(boolean isDistributed) {
@@ -298,19 +269,6 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		ComponentState state = presenter.getStateFor(navigationItem);
 		button.setVisible(state.isVisible());
 		button.setEnabled(state.isEnabled());
-	}
-
-	private void updateMessage() {
-		Component newMessage = buildMessage();
-		if (newMessage != null) {
-			if (footerLayout.getComponentIndex(message) != -1) {
-				footerLayout.replaceComponent(message, newMessage);
-			} else {
-				footerLayout.addComponent(newMessage, 1);
-			}
-			message = newMessage;
-		}
-
 	}
 
 	@Override

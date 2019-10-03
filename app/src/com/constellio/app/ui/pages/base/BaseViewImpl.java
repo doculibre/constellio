@@ -376,12 +376,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			menuBar.addStyleName("no-caption-action-menu-bar");
 		}
 
-		MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
+		MenuItem rootItem = menuBar.addItem("", FontAwesome.ELLIPSIS_V, null);
 		if (StringUtils.isNotBlank(menuBarCaption)) {
-			rootItem.setIcon(null);
 			rootItem.setText(menuBarCaption);
-		} else {
-			rootItem.setIcon(FontAwesome.ELLIPSIS_V);
 		}
 
 		for (final Button actionMenuButton : actionMenuButtons) {
@@ -394,6 +391,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 					updateActionMenuItems();
 				}
 			});
+			actionMenuItem.setEnabled(actionMenuButton.isEnabled());
+			actionMenuItem.setVisible(actionMenuButton.isVisible());
 			actionMenuButtonsAndItems.put(actionMenuButton, actionMenuItem);
 		}
 		return menuBar;

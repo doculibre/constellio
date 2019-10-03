@@ -112,28 +112,22 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		//		List<Button> buttons = super.buildActionMenuButtons(event);
-		//		buttons.add(buildRenameButton());
-		//		buttons.add(buildPrepareEmailButton());
-		//		buttons.add(buildBatchDuplicateButton());
-		//		buttons.add(buildDocumentsBatchProcessingButton());
-		//		buttons.add(buildFoldersBatchProcessingButton());
-		//		buttons.add(buildContainersBatchProcessingButton());
-		//		buttons.add(buildFoldersLabelsButton());
-		//		buttons.add(buildDocumentLabelsButton());
-		//		buttons.add(buildContainersLabelsButton());
-		//		buttons.add(buildBatchDeleteButton());
-		//		buttons.add(buildEmptyButton());
-		//		if (!presenter.isDefaultCart()) {
-		//			buttons.add(buildShareButton());
-		//		}
-		//		buttons.add(buildDecommissionButton());
-		//		buttons.add(buildPrintMetadataReportButton());
-		//		buttons.add(buildCreateSIPArchivesButton());
-		//		buttons.add(buildConsolidatedPdfButton());
-		//		return buttons;
+	protected String getActionMenuBarCaption() {
+		return $("CartView.recordsActions");
+	}
 
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		Cart cart = presenter.getCart();
 		Record record = null;
 		if (cart != null) {

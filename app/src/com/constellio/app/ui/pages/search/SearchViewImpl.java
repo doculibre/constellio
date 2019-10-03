@@ -164,7 +164,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setId("search-view");
-		layout.addStyleName(getId());
+		layout.addStyleName(layout.getId());
 		layout.addStyleName("search-main-container");
 		Component searchUIComponent = buildSearchUI();
 		if (searchUIComponent != null) {
@@ -543,6 +543,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 
 			@Override
+			public boolean isSelectionActionMenuBar() {
+				return SearchViewImpl.this.isSelectionActionMenuBar();
+			}
+
+			@Override
 			protected MenuItemRecordProvider getMenuItemProvider() {
 				return new MenuItemRecordProvider() {
 					@Override
@@ -629,6 +634,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		});
 
 		return viewerPanel;
+	}
+
+	public boolean isSelectionActionMenuBar() {
+		return true;
 	}
 
 	@Override

@@ -69,6 +69,7 @@ import com.constellio.app.ui.pages.home.TaxonomyTabSheet;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.app.ui.pages.viewGroups.CartViewGroup;
 import com.constellio.app.ui.pages.viewGroups.LogsViewGroup;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AgentStatus;
@@ -491,9 +492,9 @@ public class RMNavigationConfiguration implements Serializable {
 					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 						DecommissioningSecurityService service = new DecommissioningSecurityService(
 								user.getCollection(), appLayerFactory);
-						return visibleIf(service.hasAccessToDecommissioningMainPage(user) ||
-										 user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally() ||
-										 user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
+						return visibleIf((service.hasAccessToDecommissioningMainPage(user) ||
+										  user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally() ||
+										  user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething()) && !ResponsiveUtils.isPhone());
 					}
 				});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, FontAwesome.AREA_CHART, LogsViewGroup.class) {
@@ -509,7 +510,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(CorePermissions.VIEW_EVENTS).onSomething());
+				return visibleIf(user.has(CorePermissions.VIEW_EVENTS).onSomething() && !ResponsiveUtils.isPhone());
 			}
 		});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(AGENT, FontAwesome.LAPTOP, AgentViewGroup.class) {
@@ -539,7 +540,7 @@ public class RMNavigationConfiguration implements Serializable {
 				}
 
 				return visibleIf(rmConfigs.isAgentEnabled() && ConstellioAgentUtils.isAgentSupported()
-								 && agentStatus == AgentStatus.DISABLED);
+								 && agentStatus == AgentStatus.DISABLED && !ResponsiveUtils.isDesktop());
 			}
 		});
 	}

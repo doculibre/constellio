@@ -5,14 +5,11 @@ import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -21,8 +18,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class MainLayoutPresenter implements Serializable {
 
@@ -77,7 +72,6 @@ public class MainLayoutPresenter implements Serializable {
 			} else {
 				version = "no version file";
 			}
-
 		}
 
 		if (version != null) {
@@ -85,22 +79,6 @@ public class MainLayoutPresenter implements Serializable {
 		} else {
 			return "";
 		}
-	}
-
-	public String getMessage() {
-		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
-		SystemGlobalConfigsManager manager = appLayerFactory.getSystemGlobalConfigsManager();
-		if (manager.hasLastReindexingFailed()) {
-			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-			User user = new PresenterService(modelLayerFactory).getCurrentUser(ConstellioUI.getCurrentSessionContext());
-			return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally() ? $("MainLayout.reindexingFailed") : null;
-		}
-		if (manager.isReindexingRequired()) {
-			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-			User user = new PresenterService(modelLayerFactory).getCurrentUser(ConstellioUI.getCurrentSessionContext());
-			return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally() ? $("MainLayout.reindexingRequired") : null;
-		}
-		return null;
 	}
 
 	private String toPrintableVersion(String version) {

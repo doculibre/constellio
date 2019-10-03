@@ -21,7 +21,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
-import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
 import org.apache.commons.collections4.MapUtils;
 
@@ -99,7 +98,6 @@ public class RecordVOMenuBar extends BaseMenuBar {
 					}
 				});
 
-		final View originalView = ConstellioUI.getCurrent().getCurrentView();
 		menuItemFactory.buildMenuBar(rootItem, menuItemActions, new MenuItemRecordProvider() {
 			@Override
 			public List<Record> getRecords() {
@@ -113,12 +111,7 @@ public class RecordVOMenuBar extends BaseMenuBar {
 		}, new CommandCallback() {
 			@Override
 			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
-				View currentView = ConstellioUI.getCurrent().getCurrentView();
-				// No point in refreshing menu if we left the original page
-				if (currentView == originalView) {
-					// Recursive call
-					buildMenuItems();
-				}
+				buildMenuItems();
 			}
 		});
 	}

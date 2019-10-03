@@ -191,7 +191,6 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 					}
 				};
 				mainLayout.addComponents(warningLabel, form);
-				mainLayout.setHeight("99%");
 				return mainLayout;
 			}
 		};
