@@ -68,6 +68,7 @@ import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.utils.MimeTypes;
 import lombok.AllArgsConstructor;
@@ -98,6 +99,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_SIZE;
+import static com.constellio.model.conf.FoldersLocator.usingAppWrapper;
+import static com.constellio.model.entities.enums.ParsingBehavior.ASYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -179,7 +182,7 @@ public class ContentManager implements StatefulService {
 				if (Toggle.OLD_DELETE_UNUSED_CONTENT_METHOD.isEnabled() && serviceThreadEnabled
 					&& ReindexingServices.getReindexingInfos() == null
 					&& modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()
-				&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+					&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
 					deleteUnreferencedContents();
 
 				}
@@ -189,8 +192,20 @@ public class ContentManager implements StatefulService {
 		Runnable handleRecordsMarkedForParsingRunnable = new Runnable() {
 			@Override
 			public void run() {
-				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
-					handleRecordsMarkedForParsing();
+				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null && modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+					boolean converted = handleRecordsMarkedForParsing();
+
+					if (!converted && usingAppWrapper()) {
+						long waitedMinutes = 10;
+						if (new ConstellioEIMConfigs(modelLayerFactory).getDefaultParsingBehavior() == ASYNC_PARSING_FOR_ALL_CONTENTS) {
+							waitedMinutes = 1;
+						}
+						try {
+							Thread.sleep(waitedMinutes * 60_000);
+						} catch (InterruptedException e) {
+							throw new RuntimeException(e);
+						}
+					}
 				}
 			}
 		};
@@ -850,6 +865,7 @@ public class ContentManager implements StatefulService {
 						try {
 							transaction.setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(5));
 							transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+							transaction.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
 							recordServices.executeWithoutImpactHandling(transaction);
 						} catch (RecordServicesException e) {
 							throw new RuntimeException(e);
@@ -949,14 +965,10 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	public void handleRecordsMarkedForParsing() {
-		if (new ConstellioEIMConfigs(modelLayerFactory).isInContentParsingSchedule()) {
-			handleRecordsMarkedForParsing(RecordsFlushing.NOW());
-		}
-	}
 
-	public void handleRecordsMarkedForParsing(RecordsFlushing recordsFlushing) {
+	public boolean handleRecordsMarkedForParsing() {
 		Set<String> collections = getCollectionsWithFlag(Schemas.MARKED_FOR_PARSING);
+		boolean converted = false;
 		for (String collection : collections) {
 			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 			LogicalSearchQuery query = new LogicalSearchQuery();
@@ -964,43 +976,47 @@ public class ContentManager implements StatefulService {
 			query.setNumberOfRows(50);
 			query.sortDesc(Schemas.MODIFIED_ON);
 			query.sortDesc(Schemas.CREATED_ON);
+			query.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR);
 			query.setName("ContentManager:BackgroundThread:getRecordsWithFlag(markedForParsing_s)");
 
 			List<Record> records = searchServices.search(query);
 
-			Transaction tx = new Transaction();
-			tx.addAll(records);
-			for (Record record : records) {
-				MetadataSchema schema = types.getSchema(record.getSchemaCode());
-				for (Metadata metadata : schema.getContentMetadatasForPopulate()) {
+			if (!records.isEmpty()) {
+				Transaction tx = new Transaction();
+				tx.addAll(records);
+				for (Record record : records) {
+					MetadataSchema schema = types.getSchema(record.getSchemaCode());
+					for (Metadata metadata : schema.getContentMetadatasForPopulate()) {
 
-					for (Content content : record.<Content>getValues(metadata)) {
-						String hash = content.getCurrentVersion().getHash();
-						if (!isParsed(hash)) {
-							try {
-								parseAndSave(hash, getContentInputStreamFactory(hash), new ParseOptions());
-							} catch (IOException e) {
-								//TODO
+						for (Content content : record.<Content>getValues(metadata)) {
+							String hash = content.getCurrentVersion().getHash();
+							if (!isParsed(hash)) {
+								try {
+									parseAndSave(hash, getContentInputStreamFactory(hash), new ParseOptions());
+								} catch (IOException | ContentManagerRuntimeException_NoSuchContent e) {
+									//TODO
+								}
 							}
+
 						}
 
 					}
-
+					record.set(Schemas.MARKED_FOR_PARSING, null);
 				}
-				record.set(Schemas.MARKED_FOR_PARSING, null);
 
+				tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
+				tx.getRecordUpdateOptions().setFullRewrite(true);
+				try {
+					recordServices.execute(tx);
+				} catch (RecordServicesException e) {
+					//TODO
+					throw new RuntimeException(e);
+				}
+				converted = true;
 			}
-			tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
-			tx.getRecordUpdateOptions().setFullRewrite(true);
-			try {
-				recordServices.execute(tx);
-			} catch (RecordServicesException e) {
-				//TODO
-				throw new RuntimeException(e);
-			}
-
 		}
 
+		return converted;
 	}
 
 	private Set<String> getCollectionsWithFlag(Metadata... flags) {
