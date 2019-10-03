@@ -4,11 +4,14 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderAllowedDocumentTypeCalculator;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderAllowedFolderTypeCalculator;
 import com.constellio.app.modules.rm.model.validators.DocumentValidator;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -58,7 +61,19 @@ public class RMMigrationTo9_0_0_1 extends MigrationHelper implements MigrationSc
 					.setLabels(labels)
 					.setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(documentTypeSchema)
-					.setMultivalue(true);
+					.setMultivalue(true)
+					.defineDataEntry().asCalculated(FolderAllowedDocumentTypeCalculator.class);
+
+			MetadataSchemaBuilder folderTypeSchema = typesBuilder.getSchemaType(FolderType.SCHEMA_TYPE).getDefaultSchema();
+			labels = new HashMap<>();
+			labels.put(Language.French, "Types de dossier autorisés");
+			labels.put(Language.English, "Allowed folder types");
+			folderSchema.createUndeletable(Folder.ALLOWED_FOLDER_TYPES)
+					.setLabels(labels)
+					.setType(MetadataValueType.REFERENCE)
+					.defineReferencesTo(folderTypeSchema)
+					.setMultivalue(true)
+					.defineDataEntry().asCalculated(FolderAllowedFolderTypeCalculator.class);
 
 			MetadataSchemaBuilder documentSchema = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
 			documentSchema.defineValidators().add(DocumentValidator.class);

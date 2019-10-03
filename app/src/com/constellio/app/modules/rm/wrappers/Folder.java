@@ -91,6 +91,7 @@ public class Folder extends RMObject {
 	public static final String CONFIDENTIAL = "confidential";
 	public static final String DATE_TYPES = "dateTypes";
 	public static final String ALLOWED_DOCUMENT_TYPES = "allowedDocumentTypes";
+	public static final String ALLOWED_FOLDER_TYPES = "allowedFolderTypes";
 
 	public static final String MANUAL_EXPECTED_TRANSFER_DATE = "manualExpectedTransferDate";
 	public static final String MANUAL_EXPECTED_DEPOSIT_DATE = "manualExpectedDepositDate";
@@ -190,6 +191,41 @@ public class Folder extends RMObject {
 			}
 		}
 		setAllowedDocumentTypes(documentTypes);
+	}
+
+	public List<String> getAllowedFolderTypes() {
+		return getList(ALLOWED_FOLDER_TYPES);
+	}
+
+	public Folder setAllowedFolderTypes(List<String> folderTypes) {
+		set(ALLOWED_FOLDER_TYPES, folderTypes);
+		return this;
+	}
+
+	public void removeAllowedFolderType(String folderType) {
+		removeAllowedFolderTypes(Arrays.asList(folderType));
+	}
+
+	public void removeAllowedFolderTypes(List<String> folderTypesToRemove) {
+		List<String> folderTypes = new ArrayList<>();
+		folderTypes.addAll(getAllowedFolderTypes());
+		folderTypes.removeAll(folderTypesToRemove);
+		setAllowedFolderTypes(folderTypes);
+	}
+
+	public void addAllowedFolderType(String folderType) {
+		addAllowedFolderTypes(Arrays.asList(folderType));
+	}
+
+	public void addAllowedFolderTypes(List<String> folderTypesToAdd) {
+		List<String> folderTypes = new ArrayList<>();
+		folderTypes.addAll(getAllowedFolderTypes());
+		for (String folderType : folderTypesToAdd) {
+			if (!folderTypes.contains(folderType)) {
+				folderTypes.add(folderType);
+			}
+		}
+		setAllowedDocumentTypes(folderTypes);
 	}
 
 	public Folder setParentFolder(String folder) {

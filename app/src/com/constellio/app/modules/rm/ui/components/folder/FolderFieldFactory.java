@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDes
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualTransferDateFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderAdministrativeUnitFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderAllowedDocumentTypeFieldLookupImpl;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderAllowedTypeFieldLookupImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderBorrpwingTypeFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerFieldImpl;
@@ -37,6 +38,7 @@ import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_DESTRUCTION_D
 import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_TRANSFER_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
 import static com.constellio.app.modules.rm.wrappers.Folder.ALLOWED_DOCUMENT_TYPES;
+import static com.constellio.app.modules.rm.wrappers.Folder.ALLOWED_FOLDER_TYPES;
 import static com.constellio.app.modules.rm.wrappers.Folder.BORROWING_TYPE;
 import static com.constellio.app.modules.rm.wrappers.Folder.BORROW_PREVIEW_RETURN_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.BORROW_RETURN_DATE;
@@ -56,13 +58,13 @@ public class FolderFieldFactory extends RMRecordFieldFactory {
 	private final String collection;
 	private final List<CopyRetentionRule> rules;
 	private final String retentionRule;
-	private final List<String> currentTypes;
+	private final String parent;
 
-	public FolderFieldFactory(String collection, List<CopyRetentionRule> rules, String retentionRule, List<String> currentTypes) {
+	public FolderFieldFactory(String collection, List<CopyRetentionRule> rules, String retentionRule, String parent) {
 		this.collection = collection;
 		this.rules = rules;
 		this.retentionRule = retentionRule;
-		this.currentTypes = currentTypes;
+		this.parent = parent;
 	}
 
 	@Override
@@ -73,13 +75,7 @@ public class FolderFieldFactory extends RMRecordFieldFactory {
 
 		switch (metadataVO.getLocalCode()) {
 			case TYPE:
-				if (MetadataInputType.LOOKUP.equals(inputType)) {
-					field = new FolderTypeFieldLookupImpl();
-				} else if (MetadataInputType.RADIO_BUTTONS.equals(inputType)) {
-					field = new FolderTypeFieldOptionGroupImpl();
-				} else {
-					field = new FolderTypeFieldComboBoxImpl();
-				}
+				field = new FolderTypeFieldLookupImpl(parent);
 				break;
 			case PARENT_FOLDER:
 				field = new FolderParentFolderFieldImpl(taxonomyCodes);
@@ -133,7 +129,10 @@ public class FolderFieldFactory extends RMRecordFieldFactory {
 				field = new FolderDisposalTypeFieldImpl();
 				break;
 			case ALLOWED_DOCUMENT_TYPES:
-				field = new FolderAllowedDocumentTypeFieldLookupImpl(retentionRule, currentTypes);
+				field = new FolderAllowedDocumentTypeFieldLookupImpl(retentionRule);
+				break;
+			case ALLOWED_FOLDER_TYPES:
+				field = new FolderAllowedTypeFieldLookupImpl();
 				break;
 			default:
 				field = super.build(recordVO, metadataVO, locale);

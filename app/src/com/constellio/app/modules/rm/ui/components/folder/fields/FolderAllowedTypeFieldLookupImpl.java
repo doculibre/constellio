@@ -1,18 +1,19 @@
 package com.constellio.app.modules.rm.ui.components.folder.fields;
 
-import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
+import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 
 import java.util.List;
 
 import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
 import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
 
-public class FolderAllowedDocumentTypeFieldLookupImpl extends ListAddRemoveRecordLookupField implements FolderAllowedDocumentTypeField {
+public class FolderAllowedTypeFieldLookupImpl extends ListAddRemoveRecordLookupField implements FolderAllowedTypeField {
 
-	public FolderAllowedDocumentTypeFieldLookupImpl(String retentionRule) {
-		super(DocumentType.SCHEMA_TYPE, null, new FolderAllowedDocumentTypeTextInputDataProvider(getInstance(),
-				getCurrentSessionContext(), retentionRule));
+	public FolderAllowedTypeFieldLookupImpl() {
+		super(FolderType.SCHEMA_TYPE, null, new RecordTextInputDataProvider(getInstance(),
+				getCurrentSessionContext(), FolderType.SCHEMA_TYPE, false));
 	}
 
 	@Override
