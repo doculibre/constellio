@@ -532,6 +532,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 
 			@Override
+			public boolean isSelectionActionMenuBar() {
+				return SearchViewImpl.this.isSelectionActionMenuBar();
+			}
+
+			@Override
 			protected MenuItemRecordProvider getMenuItemProvider() {
 				return new MenuItemRecordProvider() {
 					@Override
@@ -618,6 +623,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		});
 		
 		return viewerPanel;
+	}
+
+	public boolean isSelectionActionMenuBar() {
+		return true;
 	}
 
 	@Override

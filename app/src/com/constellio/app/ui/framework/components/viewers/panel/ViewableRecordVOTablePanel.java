@@ -318,6 +318,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	private void addSelectionActionsMenuBarToView() {
+		if (!isSelectionActionMenuBar()) {
+			return;
+		}
+
 		selectionActionsMenuBar.addStyleName("selection-action-menu-bar");
 		selectionActionsMenuBar.setAutoOpen(false);
 		actionAndModeButtonsLayout.addComponent(selectionActionsMenuBar, 0);
@@ -329,6 +333,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				selectionActionsMenuBar.buildMenuItems();
 			}
 		});
+	}
+
+	public boolean isSelectionActionMenuBar() {
+		return true;
 	}
 
 	public List<Record> getSelectedRecords() {
