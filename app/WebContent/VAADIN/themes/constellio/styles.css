@@ -12611,11 +12611,6 @@ div.v-layout.v-horizontal.v-widget {
 	line-height: initial;
 }
 
-.constellio .v-treetable .v-table-cell-wrapper:hover {
-	color: white;
-	background-color: #197de1;
-}
-
 .constellio .v-table-cell-content-file-icon-box {
 	background-image: url('images/icons/container/box.png');
 	background-repeat: no-repeat;
@@ -15909,7 +15904,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .viewer-metadata-panel .v-slot-main-component {
 	position: relative;
-    margin-top: 44px;
+	margin-top: 44px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .nested-view.viewer-metadata-panel {
