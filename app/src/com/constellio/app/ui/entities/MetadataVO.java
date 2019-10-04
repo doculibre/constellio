@@ -50,6 +50,7 @@ public class MetadataVO implements Serializable {
 	final Map<String, Object> customParameters;
 	final CollectionInfoVO collectionInfoVO;
 	final boolean sortable;
+	private boolean forceHidden = false;
 
 	public MetadataVO(String code, String localCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
 					  boolean required,
@@ -413,4 +414,6 @@ public class MetadataVO implements Serializable {
 		return sortable;
 	}
 
+	public boolean isForceHidden() { return forceHidden; }
+	public void setForceHidden(boolean value) { forceHidden = value; }
 }

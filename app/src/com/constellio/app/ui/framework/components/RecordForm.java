@@ -16,6 +16,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.Item;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.VerticalLayout;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -60,9 +61,11 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 				Field<?> field = formFieldFactory.build(recordVO, metadataVO);
 				if (field != null) {
 					if (!isVisibleField(metadataVO, recordVO)
-						|| !SchemaVOUtils.isMetadataNotPresentInList(metadataVO, recordVO.getExcludedMetadataCodeList())
-						|| hiddenFields.contains(metadataVO)) {
+						|| !SchemaVOUtils.isMetadataNotPresentInList(metadataVO, recordVO.getExcludedMetadataCodeList())) {
 						field.setVisible(false);
+					}
+					if (hiddenFields.contains(metadataVO)){
+						metadataVO.setForceHidden(true);
 					}
 					if (metadataVO.isUnmodifiable() && recordVO.isSaved()) {
 						field.setReadOnly(true);
@@ -75,6 +78,16 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		}
 
 		return fieldsAndPropertyIds;
+	}
+
+	@Override
+	protected void addFieldToLayout(Field<?> field, VerticalLayout fieldLayout) {
+		Object propertyId = fieldGroup.getPropertyId(field);
+		if (propertyId instanceof MetadataVO && ((MetadataVO) propertyId).isForceHidden()){
+			hiddenLayout.addComponent(field);
+		}else{
+			super.addFieldToLayout(field, fieldLayout);
+		}
 	}
 
 	private static boolean isVisibleField(MetadataVO metadataVO, RecordVO recordVO) {
