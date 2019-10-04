@@ -145,10 +145,12 @@ public class SchemasDisplayManager
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(config.getCollection()).getSchema(config.getSchemaCode());
 		for (Metadata metadata : SchemaDisplayUtils.getRequiredMetadatasInSchemaForm(schema)) {
 			if (!config.getFormMetadataCodes().contains(metadata.getCode())) {
-				Map<String, Object> params = new HashMap<>();
-				params.put("code", metadata.getCode());
-				params.put("label", metadata.getLabelsByLanguageCodes());
-				errors.add(SchemasDisplayManager.class, REQUIRED_METADATA_IN_FORM_LIST, params);
+				if (!metadata.isEssential() || metadata.getDefaultValue() == null) {
+					Map<String, Object> params = new HashMap<>();
+					params.put("code", metadata.getCode());
+					params.put("label", metadata.getLabelsByLanguageCodes());
+					errors.add(SchemasDisplayManager.class, REQUIRED_METADATA_IN_FORM_LIST, params);
+				}
 			}
 		}
 	}

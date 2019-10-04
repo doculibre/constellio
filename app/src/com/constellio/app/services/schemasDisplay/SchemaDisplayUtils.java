@@ -235,6 +235,8 @@ public class SchemaDisplayUtils {
 				defaultSchemaConfig.getDisplayMetadataCodes());
 		List<String> formMetadataCodes = toCustomMetadataCodes(schemaCode, defaultSchema,
 				defaultSchemaConfig.getFormMetadataCodes());
+		List<String> formHiddenMetadataCodes = toCustomMetadataCodes(schemaCode, defaultSchema,
+				defaultSchemaConfig.getFormHiddenMetadataCodes());
 		List<String> searchMetadatasCodes = toCustomMetadataCodes(schemaCode, defaultSchema,
 				defaultSchemaConfig.getSearchResultsMetadataCodes());
 		List<String> tableMetadatasCodes = toCustomMetadataCodes(schemaCode, defaultSchema,
@@ -255,7 +257,7 @@ public class SchemaDisplayUtils {
 		}
 
 		return new SchemaDisplayConfig(types.getCollection(), schemaCode, displayMetadataCodes, formMetadataCodes,
-				searchMetadatasCodes, tableMetadatasCodes);
+				formHiddenMetadataCodes, searchMetadatasCodes, tableMetadatasCodes);
 	}
 
 	private static List<String> toCustomMetadataCodes(String schemaCode, String defaultSchema,
@@ -276,6 +278,7 @@ public class SchemaDisplayUtils {
 		List<String> displayMetadataCodes = getDefaultDisplayedMetadatas(schemaCode, schema.getMetadatas());
 		List<String> formMetadataCodes = schemaUtils
 				.toMetadataCodes(SchemaDisplayUtils.getAvailableMetadatasInSchemaForm(schema));
+		List<String> formHiddenMetadataCodes = new ArrayList<>();
 
 		formMetadataCodes.remove(schemaCode + "_" + Schemas.LEGACY_ID);
 		String title = schema.getCode() + "_" + Schemas.TITLE.getLocalCode();
@@ -285,7 +288,7 @@ public class SchemaDisplayUtils {
 		List<String> tableMetadatasCodes = asList(title, lastModificationDate);
 
 		return new SchemaDisplayConfig(types.getCollection(), schemaCode, displayMetadataCodes, formMetadataCodes,
-				searchMetadatasCodes, tableMetadatasCodes);
+				formHiddenMetadataCodes, searchMetadatasCodes, tableMetadatasCodes);
 	}
 
 	public static Comparator<Metadata> getMetadataLabelComparator(final SessionContext sessionContext) {

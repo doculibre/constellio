@@ -54,12 +54,14 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 	private static List<FieldAndPropertyId> buildFields(RecordVO recordVO, RecordFieldFactory formFieldFactory) {
 		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<>();
+		List<MetadataVO> hiddenFields = recordVO.getFormHiddenMetadatas();
 		for (MetadataVO metadataVO : recordVO.getFormMetadatas()) {
 			if (recordVO.getMetadataCodes().contains(metadataVO.getCode())) {
 				Field<?> field = formFieldFactory.build(recordVO, metadataVO);
 				if (field != null) {
-					if (!isVisibleField(metadataVO, recordVO) || !SchemaVOUtils
-							.isMetadataNotPresentInList(metadataVO, recordVO.getExcludedMetadataCodeList())) {
+					if (!isVisibleField(metadataVO, recordVO)
+						|| !SchemaVOUtils.isMetadataNotPresentInList(metadataVO, recordVO.getExcludedMetadataCodeList())
+						|| hiddenFields.contains(metadataVO)) {
 						field.setVisible(false);
 					}
 					if (metadataVO.isUnmodifiable() && recordVO.isSaved()) {

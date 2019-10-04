@@ -268,7 +268,24 @@ public class RecordVO implements Serializable {
 	}
 
 	public List<MetadataVO> getFormMetadatas() {
+		List<MetadataVO> formMetadatas = getFormShownMetadatas();
+		formMetadatas.addAll(getFormHiddenMetadatas());
+		return formMetadatas;
+	}
+
+	public List<MetadataVO> getFormShownMetadatas() {
 		List<MetadataVO> formMetadatas = getSchema().getFormMetadatas();
+		List<MetadataVO> filteredFormMetadatas = new ArrayList<>();
+		for (MetadataVO formMetadata : formMetadatas) {
+			if (excludedFormMetadataCodes == null || !excludedFormMetadataCodes.contains(formMetadata.code)) {
+				filteredFormMetadatas.add(formMetadata);
+			}
+		}
+		return filteredFormMetadatas;
+	}
+
+	public List<MetadataVO> getFormHiddenMetadatas() {
+		List<MetadataVO> formMetadatas = getSchema().getHiddenFormMetadatas();
 		List<MetadataVO> filteredFormMetadatas = new ArrayList<>();
 		for (MetadataVO formMetadata : formMetadatas) {
 			if (excludedFormMetadataCodes == null || !excludedFormMetadataCodes.contains(formMetadata.code)) {

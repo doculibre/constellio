@@ -70,6 +70,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		SchemaDisplayConfig schemaDisplayConfig = schemasDisplayManager.getSchema(collection, code);
 
 		List<String> formMetadataCodes = new ArrayList<>();
+		List<String> formHiddenMetadataCodes = new ArrayList<>();
 		List<String> displayMetadataCodes = new ArrayList<>();
 		List<String> searchMetadataCodes = new ArrayList<>();
 		List<String> tableMetadataCodes = new ArrayList<>();
@@ -83,6 +84,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 			} else {
 				formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
 			}
+			formHiddenMetadataCodes.addAll(schemaDisplayConfig.getFormHiddenMetadataCodes());
 			displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
 			searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
 			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
@@ -96,6 +98,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 				displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
 			}
 			formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
+			formHiddenMetadataCodes.addAll(schemaDisplayConfig.getFormHiddenMetadataCodes());
 			searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
 			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 		} else if (viewMode == VIEW_MODE.TABLE) {
@@ -108,6 +111,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 				tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 			}
 			formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
+			formHiddenMetadataCodes.addAll(schemaDisplayConfig.getFormHiddenMetadataCodes());
 			displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
 			searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
 		} else if (viewMode == VIEW_MODE.SEARCH) {
@@ -120,6 +124,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 				searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
 			}
 			formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
+			formHiddenMetadataCodes.addAll(schemaDisplayConfig.getFormHiddenMetadataCodes());
 			displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
 			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 		} else {
@@ -131,8 +136,8 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 
 		CollectionInfoVO collectionInfoVO = new CollectionInfoVO(collectionInfo.getMainSystemLanguage(), collectionInfo.getCode(), collectionInfo.getCollectionLanguages(),
 				collectionInfo.getMainSystemLocale(), collectionInfo.getSecondaryCollectionLanguesCodes(), collectionInfo.getCollectionLanguesCodes(), collectionInfo.getCollectionLocales());
-		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, localCode, formMetadataCodes, displayMetadataCodes,
-				tableMetadataCodes, searchMetadataCodes, labels, collectionInfoVO);
+		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, localCode, formMetadataCodes, formHiddenMetadataCodes,
+				displayMetadataCodes, tableMetadataCodes, searchMetadataCodes, labels, collectionInfoVO);
 
 		if (!withoutBuildingMetadatas) {
 			for (Metadata metadata : schema.getMetadatas()) {

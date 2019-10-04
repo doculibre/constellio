@@ -17,17 +17,20 @@ public class SchemaDisplayConfig implements Serializable {
 
 	private final List<String> formMetadataCodes;
 
+	private final List<String> formHiddenMetadataCodes;
+
 	private final List<String> searchResultsMetadataCodes;
 
 	private final List<String> tableMetadataCodes;
 
 	public SchemaDisplayConfig(String collection, String schemaCode, List<String> displayMetadataCodes,
-							   List<String> formMetadataCodes, List<String> searchResultsMetadataCodes,
-							   List<String> tableMetadataCodes) {
+							   List<String> formMetadataCodes, List<String> formHiddenMetadataCodes,
+							   List<String> searchResultsMetadataCodes, List<String> tableMetadataCodes) {
 		this.collection = collection;
 		this.schemaCode = schemaCode;
 		this.displayMetadataCodes = Collections.unmodifiableList(displayMetadataCodes);
 		this.formMetadataCodes = Collections.unmodifiableList(formMetadataCodes);
+		this.formHiddenMetadataCodes = Collections.unmodifiableList(formHiddenMetadataCodes);;
 		this.searchResultsMetadataCodes = Collections.unmodifiableList(searchResultsMetadataCodes);
 		this.tableMetadataCodes = Collections.unmodifiableList(tableMetadataCodes);
 	}
@@ -38,6 +41,10 @@ public class SchemaDisplayConfig implements Serializable {
 
 	public List<String> getFormMetadataCodes() {
 		return formMetadataCodes;
+	}
+
+	public List<String> getFormHiddenMetadataCodes() {
+		return formHiddenMetadataCodes;
 	}
 
 	public List<String> getSearchResultsMetadataCodes() {
@@ -58,22 +65,22 @@ public class SchemaDisplayConfig implements Serializable {
 
 	public SchemaDisplayConfig withDisplayMetadataCodes(List<String> displayMetadataCodes) {
 		return new SchemaDisplayConfig(collection, schemaCode, displayMetadataCodes, formMetadataCodes,
-				searchResultsMetadataCodes, tableMetadataCodes);
+				formHiddenMetadataCodes, searchResultsMetadataCodes, tableMetadataCodes);
 	}
 
 	public SchemaDisplayConfig withFormMetadataCodes(List<String> formMetadataCodes) {
 		return new SchemaDisplayConfig(collection, schemaCode, displayMetadataCodes, formMetadataCodes,
-				searchResultsMetadataCodes, tableMetadataCodes);
+				formHiddenMetadataCodes, searchResultsMetadataCodes, tableMetadataCodes);
 	}
 
 	public SchemaDisplayConfig withSearchResultsMetadataCodes(List<String> searchResultsMetadataCodes) {
 		return new SchemaDisplayConfig(collection, schemaCode, displayMetadataCodes, formMetadataCodes,
-				searchResultsMetadataCodes, tableMetadataCodes);
+				formHiddenMetadataCodes, searchResultsMetadataCodes, tableMetadataCodes);
 	}
 
 	public SchemaDisplayConfig withTableMetadataCodes(List<String> tableMetadataCodes) {
 		return new SchemaDisplayConfig(collection, schemaCode, displayMetadataCodes, formMetadataCodes,
-				searchResultsMetadataCodes, tableMetadataCodes);
+				formHiddenMetadataCodes, searchResultsMetadataCodes, tableMetadataCodes);
 	}
 
 	public SchemaDisplayConfig withNewSearchResultMetadataCode(String code) {
@@ -180,11 +187,12 @@ public class SchemaDisplayConfig implements Serializable {
 
 		List<String> displayMetadataCodes = listForCode(this.displayMetadataCodes, toCode);
 		List<String> formMetadataCodes = listForCode(this.formMetadataCodes, toCode);
+		List<String> formHiddenMetadataCodes = listForCode(this.formHiddenMetadataCodes, toCode);
 		List<String> searchResultsMetadataCodes = listForCode(this.searchResultsMetadataCodes, toCode);
 		List<String> tableMetadataCodes = listForCode(this.tableMetadataCodes, toCode);
 
-		return new SchemaDisplayConfig(collection, toCode, displayMetadataCodes, formMetadataCodes, searchResultsMetadataCodes,
-				tableMetadataCodes);
+		return new SchemaDisplayConfig(collection, toCode, displayMetadataCodes, formMetadataCodes,
+				formHiddenMetadataCodes, searchResultsMetadataCodes, tableMetadataCodes);
 	}
 
 	private List<String> listForCode(List<String> codes, String toCode) {
@@ -220,6 +228,9 @@ public class SchemaDisplayConfig implements Serializable {
 		if (formMetadataCodes != null ? !formMetadataCodes.equals(that.formMetadataCodes) : that.formMetadataCodes != null) {
 			return false;
 		}
+		if (formHiddenMetadataCodes != null ? !formHiddenMetadataCodes.equals(that.formHiddenMetadataCodes) : that.formHiddenMetadataCodes != null) {
+			return false;
+		}
 		if (searchResultsMetadataCodes != null ?
 			!searchResultsMetadataCodes.equals(that.searchResultsMetadataCodes) :
 			that.searchResultsMetadataCodes != null) {
@@ -234,6 +245,7 @@ public class SchemaDisplayConfig implements Serializable {
 		result = 31 * result + (collection != null ? collection.hashCode() : 0);
 		result = 31 * result + (displayMetadataCodes != null ? displayMetadataCodes.hashCode() : 0);
 		result = 31 * result + (formMetadataCodes != null ? formMetadataCodes.hashCode() : 0);
+		result = 31 * result + (formHiddenMetadataCodes != null ? formHiddenMetadataCodes.hashCode() : 0);
 		result = 31 * result + (searchResultsMetadataCodes != null ? searchResultsMetadataCodes.hashCode() : 0);
 		result = 31 * result + (tableMetadataCodes != null ? tableMetadataCodes.hashCode() : 0);
 		return result;

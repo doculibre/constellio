@@ -20,6 +20,7 @@ public class MetadataSchemaVO implements Serializable {
 	final List<MetadataVO> metadatas = new ArrayList<>();
 	final Map<Locale, String> labels;
 	final List<String> formMetadataCodes;
+	final List<String> hiddenFormMetadataCodes;
 	final List<String> displayMetadataCodes;
 	final List<String> searchMetadataCodes;
 	final List<String> tableMetadataCodes;
@@ -28,22 +29,23 @@ public class MetadataSchemaVO implements Serializable {
 
 	public MetadataSchemaVO(String code, String collection, Map<Locale, String> labels,
 							CollectionInfoVO collectionInfoVO) {
-		this(code, collection, null, null, null, null, null, labels, collectionInfoVO);
+		this(code, collection, null, null, null, null, null, null, labels, collectionInfoVO);
 	}
 
 	public MetadataSchemaVO(String code, String collection, String localCode, Map<Locale, String> labels,
 							CollectionInfoVO collectionInfoVO) {
-		this(code, collection, localCode, null, null, null, null, labels, collectionInfoVO);
+		this(code, collection, localCode, null, null, null, null, null, labels, collectionInfoVO);
 	}
 
 	public MetadataSchemaVO(String code, String collection, String localCode, List<String> formMetadataCodes,
-							List<String> displayMetadataCodes,
+							List<String> hiddenFormMetadataCodes, List<String> displayMetadataCodes,
 							List<String> tableMetadataCodes, List<String> searchMetadataCodes,
 							Map<Locale, String> labels, CollectionInfoVO collectionInfoVO) {
 		super();
 		this.code = code;
 		this.collection = collection;
 		this.formMetadataCodes = formMetadataCodes;
+		this.hiddenFormMetadataCodes = hiddenFormMetadataCodes;
 		this.displayMetadataCodes = displayMetadataCodes;
 		this.searchMetadataCodes = searchMetadataCodes;
 		this.tableMetadataCodes = tableMetadataCodes;
@@ -70,6 +72,10 @@ public class MetadataSchemaVO implements Serializable {
 
 	public final List<String> getFormMetadataCodes() {
 		return formMetadataCodes;
+	}
+
+	public final List<String> getHiddenFormMetadataCodes() {
+		return hiddenFormMetadataCodes;
 	}
 
 	public final List<String> getDisplayMetadataCodes() {
@@ -105,6 +111,21 @@ public class MetadataSchemaVO implements Serializable {
 			}
 		}
 		return formMetadatas;
+	}
+
+	public List<MetadataVO> getHiddenFormMetadatas() {
+		List<MetadataVO> hiddenMetadatas;
+		List<String> hiddenMetadataCodes = getHiddenFormMetadataCodes();
+		if (hiddenMetadataCodes == null) {
+			hiddenMetadatas = getMetadatas();
+		} else {
+			hiddenMetadatas = new ArrayList<>();
+			for (String hiddenMetadataCode : hiddenMetadataCodes) {
+				List<MetadataVO> metadataVOs = getMetadatas(hiddenMetadataCode);
+				hiddenMetadatas.addAll(metadataVOs);
+			}
+		}
+		return hiddenMetadatas;
 	}
 
 	public List<MetadataVO> getDisplayMetadatas() {
