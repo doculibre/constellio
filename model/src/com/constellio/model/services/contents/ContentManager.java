@@ -867,6 +867,9 @@ public class ContentManager implements StatefulService {
 							transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 							transaction.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
 							recordServices.executeWithoutImpactHandling(transaction);
+						} catch (RecordServicesException.OptimisticLocking e) {
+							LOGGER.trace("Optimistic locking occured with record " + e.getId());
+
 						} catch (RecordServicesException e) {
 							throw new RuntimeException(e);
 						}

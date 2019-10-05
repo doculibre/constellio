@@ -63,12 +63,12 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 
 	public Map<String, List<FacetValue>> getFieldFacetValues() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
-		return searchServices.getFieldFacetValues();
+		return searchServices.getFieldFacetValues(query);
 	}
 
 	public Map<String, Integer> getQueryFacetsValues() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
-		return searchServices.getQueryFacetsValues();
+		return searchServices.getQueryFacetsValues(query);
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
