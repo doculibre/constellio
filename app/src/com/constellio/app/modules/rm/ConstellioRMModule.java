@@ -309,12 +309,12 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
 
-		new Thread() {
-			@Override
-			public void run() {
-				preloadCategoryTaxonomyCache(collection, appLayerFactory);
-			}
-		}.start();
+//		new Thread() {
+		//			@Override
+		//			public void run() {
+		//				preloadCategoryTaxonomyCache(collection, appLayerFactory);
+		//			}
+		//		}.start();
 
 	}
 
