@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components.menuBar;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.MenuItemFactory;
 import com.constellio.app.services.menu.MenuItemFactory.CommandCallback;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
@@ -115,18 +116,34 @@ public class RecordListMenuBar extends BaseMenuBar {
 		menuItemActions.addAll(recordsMenuItemActions);
 
 		final View originalView = ConstellioUI.getCurrent().getCurrentView();
-		menuItemFactory.buildMenuBar(rootItem, menuItemActions, recordProvider, new CommandCallback() {
-			@Override
-			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
-				View currentView = ConstellioUI.getCurrent().getCurrentView();
-				// No point in refreshing menu if we left the original page
-				if (currentView == originalView) {
-					// Recursive call
-					buildMenuItems();
-				}
-			}
 
-		});
+		if (isAtLeastOneActionVisible(menuItemActions)) {
+			menuItemFactory.buildMenuBar(rootItem, menuItemActions, recordProvider, new CommandCallback() {
+				@Override
+				public void actionExecuted(MenuItemAction menuItemAction, Object component) {
+					View currentView = ConstellioUI.getCurrent().getCurrentView();
+					// No point in refreshing menu if we left the original page
+					if (currentView == originalView) {
+						// Recursive call
+						buildMenuItems();
+					}
+				}
+
+			});
+			this.setVisible(true);
+		} else {
+			this.setVisible(false);
+		}
+	}
+
+	private boolean isAtLeastOneActionVisible(List<MenuItemAction> menuItemActions) {
+		for (MenuItemAction currentMenuItemAction : menuItemActions) {
+			if (currentMenuItemAction.getState().getStatus() == MenuItemActionStateStatus.VISIBLE) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private BaseView getView() {
