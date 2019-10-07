@@ -141,7 +141,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 	@Override
 	public boolean isSubTaskPresentAndHaveCertainStatus(RecordVO recordVO) {
 
-		Record record = toRecord(recordVO);
+		Record record = recordVO.getRecord();
 
 		List<Record> tasksSearchServices = searchServices.search(new LogicalSearchQuery(
 				LogicalSearchQueryOperators.from(tasksSchemasRecordsServices.taskSchemaType())
@@ -177,7 +177,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 	@Override
 	public void deleteButtonClicked(RecordVO record) {
 		try {
-			taskPresenterServices.deleteTask(toRecord(record), getCurrentUser());
+			taskPresenterServices.deleteTask(record.getRecord(), getCurrentUser());
 		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 		}
@@ -186,7 +186,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 
 	@Override
 	public void closeButtonClicked(RecordVO record) {
-		taskPresenterServices.closeTask(toRecord(record), getCurrentUser());
+		taskPresenterServices.closeTask(record.getRecord(), getCurrentUser());
 		refreshCurrentTab();
 	}
 
@@ -202,18 +202,18 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 
 	@Override
 	public void autoAssignButtonClicked(RecordVO recordVO) {
-		taskPresenterServices.autoAssignTask(toRecord(recordVO), getCurrentUser());
+		taskPresenterServices.autoAssignTask(recordVO.getRecord(), getCurrentUser());
 		refreshCurrentTab();
 	}
 
 	@Override
 	public boolean isAutoAssignButtonEnabled(RecordVO recordVO) {
-		return taskPresenterServices.isAutoAssignButtonEnabled(toRecord(recordVO), getCurrentUser());
+		return taskPresenterServices.isAutoAssignButtonEnabled(recordVO.getRecord(), getCurrentUser());
 	}
 
 	@Override
 	public boolean isEditButtonEnabled(RecordVO recordVO) {
-		Record record = toRecord(recordVO);
+		Record record = recordVO.getRecord() ;
 		Task task = tasksSchemasRecordsServices.wrapTask(record);
 		String closed = task.getStatus();
 		boolean isNotEditable = !getFinishedOrClosedStatuses().contains(closed);
@@ -222,7 +222,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 
 	@Override
 	public boolean isReadByUser(RecordVO recordVO) {
-		return taskPresenterServices.isReadByUser(toRecord(recordVO));
+		return taskPresenterServices.isReadByUser(recordVO.getRecord());
 	}
 
 	@Override
@@ -253,7 +253,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 	public Task getTask(RecordVO recordVO) {
 		String originalSchemaCode = schemaPresenterUtils.getSchemaCode();
 		schemaPresenterUtils.setSchemaCode(recordVO.getSchemaCode());
-		Task task = tasksSchemasRecordsServices.wrapTask(toRecord(recordVO));
+		Task task = tasksSchemasRecordsServices.wrapTask(recordVO.getRecord());
 		schemaPresenterUtils.setSchemaCode(originalSchemaCode);
 		return task;
 
@@ -261,22 +261,22 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 
 	@Override
 	public boolean isCompleteButtonEnabled(RecordVO recordVO) {
-		return taskPresenterServices.isCompleteTaskButtonVisible(toRecord(recordVO), getCurrentUser());
+		return taskPresenterServices.isCompleteTaskButtonVisible(recordVO.getRecord() , getCurrentUser());
 	}
 
 	@Override
 	public boolean isCloseButtonEnabled(RecordVO recordVO) {
-		return taskPresenterServices.isCloseTaskButtonVisible(toRecord(recordVO), getCurrentUser());
+		return taskPresenterServices.isCloseTaskButtonVisible(recordVO.getRecord(), getCurrentUser());
 	}
 
 	@Override
 	public boolean isDeleteButtonEnabled(RecordVO recordVO) {
-		return taskPresenterServices.isDeleteTaskButtonVisible(toRecord(recordVO), getCurrentUser());
+		return taskPresenterServices.isDeleteTaskButtonVisible(recordVO.getRecord(), getCurrentUser());
 	}
 
 	@Override
 	public boolean isDeleteButtonVisible(RecordVO entity) {
-		return taskPresenterServices.isDeleteTaskButtonVisible(toRecord(entity), getCurrentUser());
+		return taskPresenterServices.isDeleteTaskButtonVisible(entity.getRecord(), getCurrentUser());
 	}
 
 	@Override

@@ -1,7 +1,6 @@
 package com.constellio.model.services.background;
 
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.records.Record;
@@ -52,11 +51,12 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 
 		if (ReindexingServices.getReindexingInfos() == null
 			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+			boolean found = false;
 			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				query.setCondition(LogicalSearchQueryOperators.fromAllSchemasInExceptEvents(collection)
 						.where(Schemas.MARKED_FOR_REINDEXING).isTrue());
-				query.setNumberOfRows(officeHours ? 10 : 100);
+				query.setNumberOfRows(100);
 				query.setName("BackgroundThread:RecordsReindexingBackgroundAction:getMarkedForReindexing()");
 				List<Record> records = searchServices.search(query);
 
@@ -67,20 +67,20 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 							.setOverwriteModificationDateAndUser(false));
 
 					executeTransaction(transaction);
+					found = true;
 				}
 			}
 
-			if (officeHours) {
-				if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER
-					|| Toggle.PERFORMANCE_TESTING.isEnabled()) {
-					try {
-						Thread.sleep(5 * 60 * 1000);
-					} catch (InterruptedException e) {
-						throw new RuntimeException(e);
-					}
+			if ((officeHours || !found)
+				&& new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+				try {
+					Thread.sleep(60 * 1000);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
 				}
 			}
 		}
+
 	}
 
 	private void executeTransaction(Transaction transaction) {

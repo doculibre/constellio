@@ -875,37 +875,40 @@ public class RecordServicesImpl extends BaseRecordServices {
 						RequiredRecordMigrations migrations =
 								modelLayerFactory.getRecordMigrationsManager().getRecordMigrationsFor(record);
 
-						if (!migrations.getScripts().isEmpty()) {
+						if (options.isUpdateCalculatedMetadatas()) {
 
-							for (RecordMigrationScript script : migrations.getScripts()) {
-								script.migrate(record);
+							if (!migrations.getScripts().isEmpty()) {
+
+								for (RecordMigrationScript script : migrations.getScripts()) {
+									script.migrate(record);
+								}
+								record.set(Schemas.MIGRATION_DATA_VERSION, migrations.getVersion());
+
+								reindexationOptionForThisRecord = TransactionRecordsReindexation.ALL();
 							}
-							record.set(Schemas.MIGRATION_DATA_VERSION, migrations.getVersion());
 
-							reindexationOptionForThisRecord = TransactionRecordsReindexation.ALL();
+
+							for (Metadata metadata : step.getMetadatas()) {
+								try {
+									automaticMetadataServices.updateAutomaticMetadata(context, (RecordImpl) record,
+											recordProvider, metadata, reindexationOptionForThisRecord, types, transaction);
+								} catch (RuntimeException e) {
+									throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), metadata, e);
+								}
+							}
+
+							MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
+							extensions.callRecordReindexed(new RecordReindexationEvent(record, modifiedMetadatas) {
+								@Override
+								public void recalculateRecord(List<String> metadatas) {
+									newAutomaticMetadataServices().updateAutomaticMetadatas(
+											(RecordImpl) record, newRecordProvider(transaction),
+											metadatas, transaction);
+								}
+							});
+
+							validationServices.validateAccess(record, transaction);
 						}
-
-
-						for (Metadata metadata : step.getMetadatas()) {
-							try {
-								automaticMetadataServices.updateAutomaticMetadata(context, (RecordImpl) record,
-										recordProvider, metadata, reindexationOptionForThisRecord, types, transaction);
-							} catch (RuntimeException e) {
-								throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), metadata, e);
-							}
-						}
-
-						MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
-						extensions.callRecordReindexed(new RecordReindexationEvent(record, modifiedMetadatas) {
-							@Override
-							public void recalculateRecord(List<String> metadatas) {
-								newAutomaticMetadataServices().updateAutomaticMetadatas(
-										(RecordImpl) record, newRecordProvider(transaction),
-										metadatas, transaction);
-							}
-						});
-
-						validationServices.validateAccess(record, transaction);
 					} else if (step instanceof UpdateCreationModificationUsersAndDateRecordPreparationStep) {
 						if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {
 							updateCreationModificationUsersAndDates(record, transaction, types.getSchema(record.getSchemaCode()));
@@ -993,18 +996,20 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 			boolean allParsed = true;
 			if (transaction.getRecordUpdateOptions().isRepopulate()) {
-			for (Metadata contentMetadata : schema.getContentMetadatasForPopulate()) {
-				for (Content aContent : record.<Content>getValues(contentMetadata)) {
-					allParsed &= parsedContentProvider
-										 .getParsedContentIfAlreadyParsed(aContent.getCurrentVersion().getHash()) != null;
+				for (Metadata contentMetadata : schema.getContentMetadatasForPopulate()) {
+					for (Content aContent : record.<Content>getValues(contentMetadata)) {
+						allParsed &= parsedContentProvider
+											 .getParsedContentIfAlreadyParsed(aContent.getCurrentVersion().getHash()) != null;
+					}
 				}
-			}
 
-			if (allParsed) {
-				record.set(Schemas.MARKED_FOR_PARSING, null);
-			} else {
-				record.set(Schemas.MARKED_FOR_PARSING, true);
-			}
+				if (allParsed) {
+					record.set(Schemas.MARKED_FOR_PARSING, null);
+				} else {
+					if (!record.isModified(Schemas.MARKED_FOR_PARSING)) {
+						record.set(Schemas.MARKED_FOR_PARSING, true);
+					}
+				}
 			}
 		}
 

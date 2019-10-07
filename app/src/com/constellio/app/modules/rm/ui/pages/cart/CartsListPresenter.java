@@ -44,7 +44,7 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 		return user.has(RMPermissionsTo.USE_GROUP_CART).globally();
 	}
 
-	public void displayButtonClicked(RecordVO recordVO) {
+	public void cartClickedInTable(RecordVO recordVO) {
 		view.navigate().to(RMViews.class).cart(recordVO.getId());
 	}
 
@@ -70,7 +70,7 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 		view.navigate().to(RMViews.class).listCarts();
 	}
 
-	public void displayButtonClicked(Cart cart) {
+	public void cartClickedInTable(Cart cart) {
 		view.navigate().to(RMViews.class).cart(cart.getId());
 	}
 
