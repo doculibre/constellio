@@ -6,7 +6,6 @@ import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -169,16 +168,16 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 			public void itemClick(ItemClickEvent event) {
 				BeanItem<DefaultFavoritesTable.CartItem> beanItem = (BeanItem<DefaultFavoritesTable.CartItem>) event.getItem();
 				Cart cart = buttonsContainer.getNestedContainer().getCart(beanItem.getBean());
-				displayButtonClicked(cart);
+				cartClickedInTable(cart);
 			}
 		});
 		table.addStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 		return table;
 	}
 
-	private void displayButtonClicked(Cart cart) {
+	private void cartClickedInTable(Cart cart) {
 		if (cart != null) {
-			presenter.displayButtonClicked(cart);
+			presenter.cartClickedInTable(cart);
 		} else {
 			presenter.displayDefaultFavorites();
 		}
@@ -190,18 +189,7 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 		RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
 
 		final ButtonsContainer<RecordVOLazyContainer> buttonsContainer = new ButtonsContainer<>(container);
-		buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new DisplayButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						RecordVO recordVO = buttonsContainer.getNestedContainer().getRecordVO((int) itemId);
-						presenter.displayButtonClicked(recordVO);
-					}
-				};
-			}
-		});
+
 		buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
@@ -218,6 +206,14 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 
 		RecordVOTable table = new RecordVOTable("", buttonsContainer) {
 		};
+
+		table.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				presenter.cartClickedInTable(container.getRecordVO(event.getItemId()));
+			}
+		});
+
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 90);
 		table.setPageLength(Math.min(15, container.size()));
