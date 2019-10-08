@@ -56,6 +56,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
@@ -886,7 +887,8 @@ public class BatchProcessingPresenterService {
 			Object value = formVO.get(metadataVO);
 
 			LOGGER.info(metadata.getCode() + ":" + value);
-			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
+			if ((metadata.getDataEntry().getType() == DataEntryType.MANUAL
+				 || isCalculatedWithEvaluator(metadata))
 				&& value != null
 				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
 				&& (!metadata.isMultivalue() || !((List) value).isEmpty())
@@ -903,6 +905,11 @@ public class BatchProcessingPresenterService {
 		}
 
 		return new BatchProcessRequest(selectedRecord, null, user, type, fieldsModifications);
+	}
+
+	private boolean isCalculatedWithEvaluator(Metadata metadata) {
+		return metadata.getDataEntry().getType() == DataEntryType.CALCULATED
+			   && ((CalculatedDataEntry) metadata.getDataEntry()).getCalculator().hasEvaluator();
 	}
 
 	public BatchProcessAction toAction(String selectedType, RecordVO formVO) {
