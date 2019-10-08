@@ -1051,7 +1051,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected BaseButton buildSavedSearchButton() {
 		WindowButton button = new WindowButton($("SearchView.saveSearch"), $("SearchView.saveSearch"),
-				WindowConfiguration.modalDialog("50%", "70%")) {
+				WindowConfiguration.modalDialog("500px", "540px")) {
 			@Override
 			protected Component buildWindowContent() {
 				final TextField titleField = new BaseTextField();
