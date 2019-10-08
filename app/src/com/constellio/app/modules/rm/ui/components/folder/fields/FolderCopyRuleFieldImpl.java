@@ -23,8 +23,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class FolderCopyRuleFieldImpl extends CustomField<String> implements FolderCopyRuleField {
 
-	private Generator generator;
-	private Table table;
+	protected Generator generator;
+	protected Table table;
 	private List<CopyRetentionRule> copyRetentionRules;
 	private RecordIdListToStringConverter recordIdListToStringConverter = new RecordIdListToStringConverter("<br />");
 
@@ -84,7 +84,7 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 		table.setPageLength(copyRetentionRules.size());
 	}
 
-	private class Generator implements ColumnGenerator {
+	protected class Generator implements ColumnGenerator {
 		public static final String SELECTOR = "selector";
 		public static final String RULE = "rule";
 		public static final String TITLE = "title";
@@ -142,7 +142,7 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 			return null;
 		}
 
-		private Object generateSelectorCell(final CopyRetentionRule copyRetentionRule) {
+		protected Object generateSelectorCell(final CopyRetentionRule copyRetentionRule) {
 			final CheckBox box = new CheckBox();
 			if (copyRetentionRule.getId().equals(getInternalValue())) {
 				box.setValue(true);
