@@ -98,7 +98,7 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 				return layout;
 			}
 		};
-		addButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		addButton.addStyleName(ValoTheme.BUTTON_LINK);
 
 		Table table = buildDefaultFavoritesTable();
 		tabLayout.addComponents(addButton, table);
