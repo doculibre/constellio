@@ -364,7 +364,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void displayDocumentButtonClicked() {
-		if (view.isInWindow() || nestedView) {
+		if (view.isInWindow()) {
 			view.openInWindow();
 		} else {
 			view.navigate().to(RMViews.class).displayDocument(documentVO.getId());
@@ -377,7 +377,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void editDocumentButtonClicked() {
-		if (view.isInWindow() || nestedView) {
+		if (view.isInWindow()) {
 			view.editInWindow();
 		} else {
 			presenterUtils.editDocumentButtonClicked(params);
