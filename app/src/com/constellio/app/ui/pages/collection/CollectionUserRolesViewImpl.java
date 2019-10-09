@@ -5,6 +5,7 @@ import com.constellio.app.ui.entities.RoleAuthVO;
 import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
@@ -153,7 +154,7 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		Button windowButton = new WindowButton($("CollectionUserRolesView.addRoleButton"),
-				$("CollectionUserRolesView.addRoleWindowTitle")) {
+				$("CollectionUserRolesView.addRoleWindowTitle"), WindowConfiguration.modalDialog("900px", "450px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();

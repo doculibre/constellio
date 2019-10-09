@@ -2332,14 +2332,15 @@ $popup-view-z-index: 3;
 			top: -62px;
 		}
 	}
-	
+
 	.-facets-sliderpanel {
 		.v-sliderpanel-wrapper {
 			.v-sliderpanel-content {
-			    position: absolute;
-			    height: 10000vh;
+			    position: relative;
 				background-color: $valo-menu-background-color;
 				padding-left: 6px;
+				left: 40px !important;
+				padding-bottom: 10px;
 			}
 			
 			.v-sliderpanel-tab.tab-beginning { 
