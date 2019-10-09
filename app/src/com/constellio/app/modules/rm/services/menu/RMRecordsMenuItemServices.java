@@ -299,7 +299,7 @@ public class RMRecordsMenuItemServices {
 
 			case RMRECORDS_CONSULT_LINK:
 				menuItemAction = buildMenuItemAction(RMRECORDS_CONSULT_LINK, state,
-						$("consultationLink"), FontAwesome.LAPTOP, -1, 510,
+						$("consultationLink"), FontAwesome.LINK, -1, 510,
 						getRecordsLimit(actionType), (ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).showConsultLink(ids, params));
 				break;
 			case RMRECORDS_CREATE_PDF:
