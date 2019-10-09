@@ -67,7 +67,7 @@ public class AddEditSchemaViewImpl extends BaseViewImpl implements AddEditSchema
 		labelsField = new MultilingualTextField(true);
 		labelsField.setId("labels");
 		labelsField.addStyleName("labels");
-		labelsField.setRequired(true);
+		labelsField.setRequired(false);
 
 		advancedSearch = new CheckBox($("AddEditSchemaView.advancedSearch"));
 		simpleSearch = new CheckBox($("AddEditSchemaView.simpleSearch"));
