@@ -100,6 +100,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	private I18NHorizontalLayout actionAndModeButtonsLayout;
 
+	private I18NHorizontalLayout actionButtonsLayout;
+
 	private VerticalLayout closeButtonViewerMetadataLayout;
 
 	private RecordVOContainer recordVOContainer;
@@ -222,8 +224,12 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		selectionButtonsLayout.addStyleName("selection-buttons-layout");
 		selectionButtonsLayout.setSpacing(true);
 
+		actionButtonsLayout = new I18NHorizontalLayout();
+		actionButtonsLayout.setSpacing(true);
+
 		actionAndModeButtonsLayout = new I18NHorizontalLayout();
 		actionAndModeButtonsLayout.addStyleName("action-mode-buttons-layout");
+		actionAndModeButtonsLayout.addComponents(actionButtonsLayout);
 
 		if (isSelectColumn()) {
 			selectionButtonsLayout.addComponent(selectDeselectAllToggleButton);
@@ -282,8 +288,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		if (quickActionButton instanceof BaseButton) {
 			((BaseButton) quickActionButton).setCaptionVisibleOnMobile(false);
 		}
-		actionAndModeButtonsLayout.addComponent(quickActionButton, 0);
-		actionAndModeButtonsLayout.setComponentAlignment(quickActionButton, Alignment.TOP_LEFT);
+		actionButtonsLayout.addComponent(quickActionButton, 0);
+		actionButtonsLayout.setComponentAlignment(quickActionButton, Alignment.TOP_LEFT);
 	}
 
 	public void setSelectionActionButtons() {
@@ -324,8 +330,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 		selectionActionsMenuBar.addStyleName("selection-action-menu-bar");
 		selectionActionsMenuBar.setAutoOpen(false);
-		actionAndModeButtonsLayout.addComponent(selectionActionsMenuBar, 0);
-		actionAndModeButtonsLayout.setComponentAlignment(selectionActionsMenuBar, Alignment.TOP_RIGHT);
+		actionButtonsLayout.addComponent(selectionActionsMenuBar, 0);
+		actionButtonsLayout.setComponentAlignment(selectionActionsMenuBar, Alignment.TOP_RIGHT);
 
 		addSelectionChangeListener(new SelectionChangeListener() {
 			@Override
