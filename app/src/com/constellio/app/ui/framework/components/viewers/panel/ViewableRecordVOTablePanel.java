@@ -122,6 +122,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	private Label countLabel;
 
+	private Label selectedItemCountLabel;
+
 	private BaseButton closeViewerButton;
 
 	private Object selectedItemId;
@@ -204,6 +206,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		countLabel.addStyleName("count-label");
 		countLabel.setVisible(false);
 
+		selectedItemCountLabel = new Label();
+		selectedItemCountLabel.addStyleName("count-label");
+		selectedItemCountLabel.setVisible(false);
+
 		viewerMetadataPanel = buildViewerMetadataPanel();
 		listModeButton = buildListModeButton();
 		tableModeButton = buildTableModeButton();
@@ -234,7 +240,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		if (isSelectColumn()) {
 			selectionButtonsLayout.addComponent(selectDeselectAllToggleButton);
 		}
-		selectionButtonsLayout.addComponent(countLabel);
+		selectionButtonsLayout.addComponents(selectedItemCountLabel, countLabel);
 		selectionButtonsLayout.addComponents(previousButton, nextButton);
 
 		actionAndModeButtonsLayout.addComponents(listModeButton, tableModeButton);
@@ -273,6 +279,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	public void setCountCaption(String caption) {
 		countLabel.setValue(caption);
 		countLabel.setVisible(StringUtils.isNotBlank(caption));
+	}
+
+	public void setSelectedCountCaption(int numberOfSelected) {
+		String key = numberOfSelected <= 1 ? "ViewableRecordVOTablePanel.nbSelectedElement1" : "ViewableRecordVOTablePanel.nbSelectedElements";
+		String totalCount = $(key, numberOfSelected);
+
+		selectedItemCountLabel.setValue(totalCount);
+		selectedItemCountLabel.setVisible(numberOfSelected > 0);
 	}
 
 	public void setQuickActionButton(List<Button> button) {
@@ -454,10 +468,47 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				@Override
 				protected SelectionManager newSelectionManager() {
 					SelectionManager selectionManager = ViewableRecordVOTablePanel.this.newSelectionManager();
+
 					if (selectionManager == null) {
 						selectionManager = super.newSelectionManager();
 					}
-					return selectionManager;
+
+					SelectionManager finalSelectionManager = createSelectionManagerWithSelectedCountCaption(selectionManager);
+
+					return finalSelectionManager;
+				}
+
+				private SelectionManager createSelectionManagerWithSelectedCountCaption(
+						SelectionManager selectionManager) {
+					final SelectionManager finalSelectionManager = selectionManager;
+					SelectionManager selectionManagerWithSelectedCount = new SelectionManager() {
+						@Override
+						public List<Object> getAllSelectedItemIds() {
+							return finalSelectionManager.getAllSelectedItemIds();
+						}
+
+						@Override
+						public boolean isAllItemsSelected() {
+							return finalSelectionManager.isAllItemsSelected();
+						}
+
+						@Override
+						public boolean isAllItemsDeselected() {
+							return finalSelectionManager.isAllItemsDeselected();
+						}
+
+						@Override
+						public boolean isSelected(Object itemId) {
+							return finalSelectionManager.isSelected(itemId);
+						}
+
+						@Override
+						public void selectionChanged(SelectionChangeEvent event) {
+							finalSelectionManager.selectionChanged(event);
+							setSelectedCountCaption(getSelectedRecords().size());
+						}
+					};
+					return selectionManagerWithSelectedCount;
 				}
 
 				@Override
@@ -1062,6 +1113,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			setContent(mainLayout);
 		}
 
+	}
+
+	public Button getCloseViewerButton() {
+		return closeViewerButton;
 	}
 
 	public class TableCompressEvent implements Serializable {
