@@ -12511,6 +12511,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-decoration: none;
 }
 
+.constellio .marginright {
+	margin-right: 10px;
+}
+
 .constellio .v-Notification-caption {
 	z-index: 20003;
 }

@@ -99,6 +99,7 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 			}
 		};
 		addButton.addStyleName(ValoTheme.BUTTON_LINK);
+		addButton.addStyleName("marginright");
 
 		Table table = buildDefaultFavoritesTable();
 		tabLayout.addComponents(addButton, table);
@@ -227,5 +228,5 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 	protected boolean isFullWidthIfActionMenuAbsent() {
 		return true;
 	}
-	
+
 }
