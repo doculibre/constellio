@@ -16,7 +16,6 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent;
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
-import com.constellio.app.ui.framework.components.table.BaseTable.ValueSelectionManager;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
 import com.constellio.app.ui.framework.components.tree.TreeItemClickListener;
@@ -52,8 +51,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -412,8 +413,16 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	private class HomeViewViewableItemTablePanel extends ViewableRecordVOTablePanel {
+		protected Set<Object> selectedItemIds;
+
 		public HomeViewViewableItemTablePanel(RecordVOContainer container) {
 			super(container);
+		}
+
+		public void initSelectedItemCache() {
+			if (selectedItemIds == null) {
+				selectedItemIds = new HashSet<>();
+			}
 		}
 
 		@Override
@@ -423,23 +432,37 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 		@Override
 		protected SelectionManager newSelectionManager() {
-			return new ValueSelectionManager() {
+			return new SelectionManager() {
 				@Override
 				public void selectionChanged(SelectionChangeEvent event) {
-					super.selectionChanged(event);
+					initSelectedItemCache();
 
-					List<Object> selectedItemIds = event.getSelectedItemIds();
-					List<Object> deselectedItemIds = event.getDeselectedItemIds();
+					List<Object> selectedItemIdsFromEvent = event.getSelectedItemIds();
+					List<Object> deselectedItemIdsFromEvent = event.getDeselectedItemIds();
+
+					if (deselectedItemIdsFromEvent != null && !deselectedItemIdsFromEvent.isEmpty()) {
+						for (Object currentDeselectedItem : deselectedItemIdsFromEvent) {
+							selectedItemIds.remove(currentDeselectedItem);
+						}
+					}
+
+					if (selectedItemIdsFromEvent != null && !selectedItemIdsFromEvent.isEmpty()) {
+						for (Object currentselectedItem : selectedItemIdsFromEvent) {
+							selectedItemIds.add(currentselectedItem);
+						}
+					}
+
+
 					boolean allItemsSelected = event.isAllItemsSelected();
 					boolean allItemsDeselected = event.isAllItemsDeselected();
-					if (selectedItemIds != null) {
-						for (Object selectedItemId : selectedItemIds) {
+					if (selectedItemIdsFromEvent != null) {
+						for (Object selectedItemId : selectedItemIdsFromEvent) {
 							RecordVO recordVO = getRecordVO(selectedItemId);
 							String recordId = recordVO.getId();
 							presenter.selectionChanged(recordId, true);
 						}
-					} else if (deselectedItemIds != null) {
-						for (Object deselectedItemId : deselectedItemIds) {
+					} else if (deselectedItemIdsFromEvent != null) {
+						for (Object deselectedItemId : deselectedItemIdsFromEvent) {
 							RecordVO recordVO = getRecordVO(deselectedItemId);
 							String recordId = recordVO.getId();
 							presenter.selectionChanged(recordId, false);
@@ -461,6 +484,12 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 							}
 						}
 					}
+				}
+
+				@Override
+				public List<Object> getAllSelectedItemIds() {
+					initSelectedItemCache();
+					return new ArrayList<>(selectedItemIds);
 				}
 
 				@Override
@@ -489,22 +518,18 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 				@Override
 				public boolean isSelected(Object itemId) {
+					initSelectedItemCache();
+
 					RecordVO recordVO = getRecordVO(itemId);
 					String recordId = recordVO.getId();
+
+					if (selectedItemIds.contains(itemId)) {
+						return true;
+					}
+
 					return presenter.isSelected(recordId);
 				}
 
-				@Override
-				protected Object getValue() {
-					return getActualTable().getValue();
-				}
-
-				@Override
-				protected void setValue(Object newValue) {
-					getActualTable().setValue(newValue);
-				}
-
-				@Override
 				protected Collection<?> getItemIds() {
 					return getActualTable().getItemIds();
 				}

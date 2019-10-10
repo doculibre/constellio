@@ -725,7 +725,6 @@ public class BaseTable extends Table {
 
 		private SelectionCheckBox(final Object itemId) {
 			this.itemId = itemId;
-			setValue(selectionManager.isSelected(itemId));
 			addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(com.vaadin.data.Property.ValueChangeEvent event) {
@@ -741,6 +740,7 @@ public class BaseTable extends Table {
 				}
 			});
 			addSelectionChangeListener(new CheckBoxSelectionChangeListener());
+			setValue(selectionManager.isSelected(itemId));
 		}
 
 		@Override
