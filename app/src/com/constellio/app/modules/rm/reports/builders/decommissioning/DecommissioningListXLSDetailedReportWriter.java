@@ -48,12 +48,12 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 		boldFont = new WritableCellFormat(new WritableFont(FONT, FONT_SIZE, WritableFont.BOLD));
 
 		try {
-			createHeader(workbook, 2);
-			createComment(workbook, 3);
-			createValidation(workbook, 4);
-			createIncludedFolder(workbook, 7);
-			createExcludedFolder(workbook, 7);
-			createUndefinedFolder(workbook, 7);
+			createHeader(workbook);
+			createComment(workbook);
+			createValidation(workbook);
+			createIncludedFolder(workbook);
+			createExcludedFolder(workbook);
+			createUndefinedFolder(workbook);
 		} catch (WriteException e) {
 			throw new RuntimeException(e);
 		}
@@ -66,8 +66,8 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 		}
 	}
 
-	private void createHeader(WritableWorkbook workbook, int columnCount) throws WriteException {
-		WritableSheet sheet = createSheet(workbook, columnCount, model.getHeaderSheetName());
+	private void createHeader(WritableWorkbook workbook) throws WriteException {
+		WritableSheet sheet = createSheet(workbook, 2, model.getHeaderSheetName());
 
 		for(int i = 0; i < model.getHeaderTitles().size(); i++) {
 			writeLine(sheet, Arrays.asList(model.getHeaderTitles().get(i), model.getHeaderInfos().get(i)), i, font,
@@ -79,8 +79,8 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 		writeLine(sheet, Arrays.asList(title, LocalDateTime.now()), generationLineNumber, font, boldFont);
 	}
 
-	private void createComment(WritableWorkbook workbook, int columnCount) throws WriteException {
-		WritableSheet sheet = createSheet(workbook, columnCount, model.getCommentSheetName());
+	private void createComment(WritableWorkbook workbook) throws WriteException {
+		WritableSheet sheet = createSheet(workbook, model.getCommentTitles().size(), model.getCommentSheetName());
 
 		writeLine(sheet, model.getCommentTitles(), 0, boldFont);
 		for(int i = 0; i < model.getComments().size(); i++) {
@@ -88,8 +88,8 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 		}
 	}
 
-	private void createValidation(WritableWorkbook workbook, int columnCount) throws WriteException {
-		WritableSheet sheet = createSheet(workbook, columnCount, model.getValidationSheetName());
+	private void createValidation(WritableWorkbook workbook) throws WriteException {
+		WritableSheet sheet = createSheet(workbook, model.getValidationTitles().size(), model.getValidationSheetName());
 
 		writeLine(sheet, model.getValidationTitles(), 0, boldFont);
 		for (int i = 0; i < model.getValidations().size(); i++) {
@@ -97,8 +97,9 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 		}
 	}
 
-	private void createIncludedFolder(WritableWorkbook workbook, int columnCount) throws WriteException {
-		WritableSheet sheet = createSheet(workbook, columnCount, model.getIncludedFolderSheetName());
+	private void createIncludedFolder(WritableWorkbook workbook) throws WriteException {
+		WritableSheet sheet = createSheet(workbook, model.getIncludedFolderTitles().size(),
+				model.getIncludedFolderSheetName());
 
 		writeLine(sheet, model.getIncludedFolderTitles(), 0, boldFont);
 		for (int i = 0; i < model.getIncludedFolders().size(); i++) {
@@ -106,8 +107,9 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 		}
 	}
 
-	private void createExcludedFolder(WritableWorkbook workbook, int columnCount) throws WriteException {
-		WritableSheet sheet = createSheet(workbook, columnCount, model.getExcludedFolderSheetName());
+	private void createExcludedFolder(WritableWorkbook workbook) throws WriteException {
+		WritableSheet sheet = createSheet(workbook, model.getExcludedFolderTitles().size(),
+				model.getExcludedFolderSheetName());
 
 		writeLine(sheet, model.getExcludedFolderTitles(), 0, boldFont);
 		for (int i = 0; i < model.getExcludedFolders().size(); i++) {
@@ -115,12 +117,13 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 		}
 	}
 
-	private void createUndefinedFolder(WritableWorkbook workbook, int columnCount) throws WriteException {
+	private void createUndefinedFolder(WritableWorkbook workbook) throws WriteException {
 		if (!model.getUseDecommissionningListWithSelectedFolders()) {
 			return;
 		}
 
-		WritableSheet sheet = createSheet(workbook, columnCount, model.getUndefinedFolderSheetName());
+		WritableSheet sheet = createSheet(workbook, model.getUndefinedFolderTitles().size(),
+				model.getUndefinedFolderSheetName());
 
 		writeLine(sheet, model.getUndefinedFolderTitles(), 0, boldFont);
 		for (int i = 0; i < model.getUndefinedFolders().size(); i++) {

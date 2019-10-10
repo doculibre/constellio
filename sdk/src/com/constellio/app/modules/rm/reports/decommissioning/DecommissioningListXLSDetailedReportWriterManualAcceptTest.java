@@ -130,15 +130,30 @@ public class DecommissioningListXLSDetailedReportWriterManualAcceptTest extends 
 				.setRetentionRuleEntered(records.ruleId_2).setCopyStatusEntered(CopyType.PRINCIPAL)
 				.setTitle("Number 3 folder").setOpenDate(LocalDate.now());
 
+		Folder folder4 = rm.newFolder().setCategoryEntered(cat).setAdministrativeUnitEntered(records.unitId_10)
+				.setRetentionRuleEntered(records.ruleId_2).setCopyStatusEntered(CopyType.PRINCIPAL)
+				.setTitle("Number 4 folder").setOpenDate(LocalDate.now());
+
+		Folder folder5 = rm.newFolder().setCategoryEntered(cat).setAdministrativeUnitEntered(records.unitId_10)
+				.setRetentionRuleEntered(records.ruleId_2).setCopyStatusEntered(CopyType.PRINCIPAL)
+				.setTitle("Number 5 folder").setOpenDate(LocalDate.now());
+
+		Folder folder6 = rm.newFolder().setCategoryEntered(cat).setAdministrativeUnitEntered(records.unitId_10)
+				.setRetentionRuleEntered(records.ruleId_2).setCopyStatusEntered(CopyType.PRINCIPAL)
+				.setTitle("Number 6 folder").setOpenDate(LocalDate.now());
+
 		DecomListFolderDetail detail1 = new DecomListFolderDetail(folder1, FolderDetailStatus.INCLUDED);
 		DecomListFolderDetail detail2 = new DecomListFolderDetail(folder2, FolderDetailStatus.INCLUDED);
 		DecomListFolderDetail detail3 = new DecomListFolderDetail(folder3, FolderDetailStatus.EXCLUDED);
+		DecomListFolderDetail detail4 = new DecomListFolderDetail(folder4, FolderDetailStatus.EXCLUDED);
+		DecomListFolderDetail detail5 = new DecomListFolderDetail(folder5, FolderDetailStatus.EXCLUDED);
+		DecomListFolderDetail detail6 = new DecomListFolderDetail(folder6, FolderDetailStatus.SELECTED);
 
-		decomList.setFolderDetails(Arrays.asList(detail1, detail2, detail3));
+		decomList.setFolderDetails(Arrays.asList(detail1, detail2, detail3, detail4, detail5, detail6));
 
 
 		Transaction tr = new Transaction();
-		tr.addAll(cat, folder1, folder2, folder3, decomList);
+		tr.addAll(cat, folder1, folder2, folder3, folder4, folder5, folder6, decomList);
 		rm.executeTransaction(tr);
 	}
 
