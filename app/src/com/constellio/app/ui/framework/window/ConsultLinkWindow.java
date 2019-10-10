@@ -3,9 +3,14 @@ package com.constellio.app.ui.framework.window;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseLabel;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.vaadin.jsclipboard.JSClipboard;
+import com.vaadin.jsclipboard.JSClipboardButton;
 import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.List;
 
@@ -16,7 +21,7 @@ public class ConsultLinkWindow extends BaseWindow {
 	public ConsultLinkWindow(List<String> linkToDisplayList) {
 		addStyleName("consultation-link-window");
 		setModal(true);
-		setWidth("90%");
+		setWidth("700px");
 		setCaption($("consultationLink"));
 
 		VerticalLayout mainLayout = new VerticalLayout();
@@ -29,6 +34,24 @@ public class ConsultLinkWindow extends BaseWindow {
 			linkLabel.addStyleName("consultation-link-window-link");
 			mainLayout.addComponent(linkLabel);
 		}
+
+		JSClipboardButton copyToClipboardButton = new JSClipboardButton(mainLayout, $("consultationWindow.copyToClipboard"));
+		copyToClipboardButton.addStyleName("clipboard-button");
+		copyToClipboardButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		copyToClipboardButton.addSuccessListener(new JSClipboard.SuccessListener() {
+			@Override
+			public void onSuccess() {
+				Notification.show($("consultationWindow.copyToClipboard.success"));
+			}
+		});
+		copyToClipboardButton.addErrorListener(new JSClipboard.ErrorListener() {
+			@Override
+			public void onError() {
+				Notification.show($("consultationWindow.copyToClipboard.error"), Notification.Type.ERROR_MESSAGE);
+			}
+		});
+		mainLayout.addComponent(copyToClipboardButton);
+		mainLayout.setComponentAlignment(copyToClipboardButton, Alignment.TOP_CENTER);
 
 		this.setContent(mainLayout);
 	}

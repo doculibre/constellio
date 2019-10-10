@@ -412,17 +412,17 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	}
 
 	private Component buildBadgeWrapper(final Component menuItemButton, final Label badgeLabel) {
-		CssLayout dashboardWrapper = new CssLayout(menuItemButton);
-		dashboardWrapper.addStyleName("badgewrapper");
-		dashboardWrapper.addStyleName(ValoTheme.MENU_ITEM);
-		dashboardWrapper.setWidth(100.0f, Unit.PERCENTAGE);
+		CssLayout badgeWrapper = new CssLayout(menuItemButton);
+		badgeWrapper.addStyleName("badgewrapper");
+		badgeWrapper.addStyleName(ValoTheme.MENU_ITEM);
+		badgeWrapper.setWidth(100.0f, Unit.PERCENTAGE);
 		badgeLabel.addStyleName(ValoTheme.MENU_BADGE);
-		badgeLabel.setWidthUndefined();
+		//		badgeLabel.setWidthUndefined();
 		if (StringUtils.isBlank(badgeLabel.getValue())) {
 			badgeLabel.setVisible(false);
 		}
-		dashboardWrapper.addComponent(badgeLabel);
-		return dashboardWrapper;
+		badgeWrapper.addComponent(badgeLabel);
+		return badgeWrapper;
 	}
 
 	@Override

@@ -341,7 +341,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	protected boolean isFullWidthIfActionMenuAbsent() {
-		return false;
+		return true;
 	}
 
 	protected boolean isActionMenuBar() {

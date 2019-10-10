@@ -111,7 +111,10 @@ public class RecordVOMenuBar extends BaseMenuBar {
 		}, new CommandCallback() {
 			@Override
 			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
-				buildMenuItems();
+				if (isAttached()) {
+					// Recursive call
+					buildMenuItems();
+				}
 			}
 		});
 	}

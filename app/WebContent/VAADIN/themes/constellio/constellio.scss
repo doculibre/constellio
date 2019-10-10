@@ -278,13 +278,11 @@ $popup-view-z-index: 3;
 			.v-caption-task-table-sort {
 				position: relative;
 				top: -1px;
-				padding-top: 2px;
 				display: inline-block;
 				line-height: initial;
 			}
 
 			.task-table-sort {
-			    padding-bottom: 20px;
 				position: relative;
 				top: 1px;
 				
@@ -516,19 +514,19 @@ $popup-view-z-index: 3;
 	    cursor: default;
 	}
 
-	.auto-scroll {
+	.auto-scroll2 {
 		overflow: auto;
 	}
 
-	.no-scroll {
+	.no-scroll2 {
 		overflow: hidden;
 	}
 
-	.no-scroll-horizontal {
+	.no-scroll-horizontal2 {
 		overflow-x: hidden;
 	}
 
-	.no-scroll-vertical {
+	.no-scroll-vertical2 {
 		overflow-y: hidden;
 	}
 
@@ -580,6 +578,10 @@ $popup-view-z-index: 3;
 		border-radius: 3px;
 		max-width: 35em;
 		overflow: hidden !important;
+		
+		.v-tooltip-text {
+			max-height: 20em;
+		}
 	}
 
     // Insert your own theme rules here
@@ -601,6 +603,11 @@ $popup-view-z-index: 3;
 	    			}
 	    		}
 	    	}
+    	}
+
+    	.v-table-cell-wrapper:hover {
+    		color: white;
+			background-color: #197de1;
     	}
     }
 
@@ -1171,6 +1178,10 @@ $popup-view-z-index: 3;
     	font-weight: bold;
     	color: red;
     }
+    	
+	.metadata-caption {
+		max-width: 250px;
+	}
 
 	.base-display {
 		
@@ -1799,6 +1810,10 @@ $popup-view-z-index: 3;
 			.consultation-link-window-link {
 				padding-bottom: 10px;
 			}
+			
+			.v-slot-clipboard-button {
+				padding-bottom: 10px;
+			}
 		}
 		
 	}
@@ -1807,6 +1822,7 @@ $popup-view-z-index: 3;
 		.v-scrollable {
 
 			.base-window-content {
+				overflow-y: auto;
 				padding-left: 5px;
 				padding-right: 5px;
 				padding-top: 25px;
@@ -1822,7 +1838,7 @@ $popup-view-z-index: 3;
 		}
 	}
 
-	.base-window-content-scroll {
+	.base-window-content-scroll2 {
 		.v-scrollable {
 			overflow: hidden;
 
@@ -2360,6 +2376,13 @@ $popup-view-z-index: 3;
 
     .viewable-record-table-panel {
   		//min-height: 2000px;
+  		
+  		.v-slot-main-component {
+  			overflow-y: auto;
+  		}
+  		
+  		.main-component-wrapper {
+  		}
 
   		.v-slot-viewable-record-table-panel-view-action-menu-layout {
 		    position: absolute;
@@ -2421,7 +2444,7 @@ $popup-view-z-index: 3;
   		}
 
   		.close-button-viewer-metadata-layout {
-		    position: absolute;
+		    position: relative;
   		}
 
   		.close-viewer-button {
@@ -2699,7 +2722,7 @@ $popup-view-z-index: 3;
 	    }
 
 		.header {
-			height: $header-height;
+			//height: $header-height;
 	    	text-align: left;
 	    	background-color: #fafafa;
 	    	width: 100%;
@@ -2782,7 +2805,7 @@ $popup-view-z-index: 3;
 			.header-collection-menu {
 				position: fixed;
 				right: 130px;
-				padding-top: 15px;
+				top: 15px;
 				padding-right: 6px;
 			}
 			
@@ -3181,7 +3204,7 @@ $popup-view-z-index: 3;
 
 							.v-slot-main-component {
 								position: relative;
-								margin-top: 44px;
+								top: 44px;
 							}
 						}
 
@@ -3313,11 +3336,11 @@ $popup-view-z-index: 3;
 	    	min-height: 700px;
 	    }
 	    
-	    .v-panel-content-content-view-wrapper {
+	    .v-panel-content-content-view-wrapper2 {
 	    	overflow-y: hidden;
 	    }
 
-    	.v-table {
+    	.v-table2 {
 	    	.v-scrollable {
 	    		overflow-x: hidden;
 	    	}
@@ -3511,7 +3534,7 @@ $popup-view-z-index: 3;
 	    	overflow-y: hidden;
 	    }
 
-    	.v-table {
+    	.v-table2 {
 	    	.v-scrollable {
 	    		overflow-x: hidden;
 	    	}
@@ -3647,7 +3670,7 @@ $popup-view-z-index: 3;
 	    	min-height: 500px;
 	    }
 
-	    .v-panel-content-content-view-wrapper {
+	    .v-panel-content-content-view-wrapper2 {
 	    	overflow-y: hidden;
 	    }
 

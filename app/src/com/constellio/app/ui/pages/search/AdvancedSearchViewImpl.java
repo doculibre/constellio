@@ -3,23 +3,18 @@ package com.constellio.app.ui.pages.search;
 import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
-import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
-import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
-import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.Page;
@@ -110,29 +105,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	@Override
 	protected Component buildSummary(final SearchResultTable results) {
 		return results.createSummary(Collections.emptyList(), Collections.emptyList());
-	}
-
-	@Override
-	protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
-		SearchResultTable table;
-		if (!Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
-			//Fixme : use dataProvider instead
-			final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
-			table = new SearchResultSimpleTable(container, presenter);
-			table.setWidth("100%");
-			((SearchResultSimpleTable) table).getTable().addItemClickListener(new ItemClickListener() {
-				@Override
-				public void itemClick(ItemClickEvent event) {
-					Object itemId = event.getItemId();
-					RecordVOItem item = (RecordVOItem) container.getItem(itemId);
-					RecordVO recordVO = item.getRecord();
-					((AdvancedSearchPresenter) presenter).searchResultClicked(recordVO, (Integer) itemId);
-				}
-			});
-		} else {
-			table = super.buildSimpleResultsTable(dataProvider);
-		}
-		return table;
 	}
 
 	private WindowButton buildAddToCartButton() {

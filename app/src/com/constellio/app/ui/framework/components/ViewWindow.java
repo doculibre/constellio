@@ -31,10 +31,10 @@ public class ViewWindow extends BaseWindow {
 			this.view = view;
 			
 			view.enter(null);
-			String viewHeight = getViewHeight();
-			if (viewHeight != null) {
-				view.setHeight(viewHeight);
-			}
+			//			String viewHeight = getViewHeight();
+			//			if (viewHeight != null) {
+			//				view.setHeight(viewHeight);
+			//			}
 		}
 		super.setContent(content);
 	}

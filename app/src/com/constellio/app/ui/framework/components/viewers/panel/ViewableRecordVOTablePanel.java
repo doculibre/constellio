@@ -60,14 +60,16 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.JavaScriptFunction;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
+import elemental.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
 
@@ -78,10 +80,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-//@JavaScript({ "theme://jquery/jquery-2.1.4.min.js", "theme://scroll/fix-vertical-scroll.js" })
+//@com.vaadin.annotations.JavaScript({ "theme://jquery/jquery-2.1.4.min.js" })
 public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements BrowserWindowResizeListener {
 
 	public static final int MAX_SELECTION_SIZE = 10000;
@@ -151,6 +154,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	private Button quickActionButton;
 
 	private RecordListMenuBar selectionActionsMenuBar;
+
 	private RecordListMenuBar initialSelectionActionsMenuBar = null;
 
 	public ViewableRecordVOTablePanel(RecordVOContainer container) {
@@ -186,9 +190,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	private void buildUI() {
-		setSizeFull();
+		setWidth("100%");
 		setSpacing(true);
 		addStyleName("viewable-record-table-panel");
+		setId(UUID.randomUUID().toString());
 
 		boolean empty = recordVOContainer.size() == 0;
 		table = buildResultsTable();
@@ -211,7 +216,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 		tableLayout = new VerticalLayout();
 		tableLayout.addStyleName("viewable-record-panel-table-layout");
-		tableLayout.setHeight("100%");
+		//		tableLayout.setHeight("100%");
 
 		tableButtonsLayout = new I18NCssLayout();
 		tableButtonsLayout.addStyleName("table-buttons-layout");
@@ -247,7 +252,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		closeButtonViewerMetadataLayout = new VerticalLayout(closeViewerButton, viewerMetadataPanel);
 		closeButtonViewerMetadataLayout.addStyleName("close-button-viewer-metadata-layout");
 		closeButtonViewerMetadataLayout.setId("close-button-viewer-metadata-layout");
-		closeButtonViewerMetadataLayout.setHeight("100%");
+		//		closeButtonViewerMetadataLayout.setHeight("100%");
 		closeButtonViewerMetadataLayout.setComponentAlignment(closeViewerButton, Alignment.TOP_RIGHT);
 		//		closeButtonViewerMetadataLayout.setWidthUndefined();
 
@@ -419,6 +424,43 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 	}
 
+	private void adjustHeight() {
+		if (closeButtonViewerMetadataLayout.isVisible()) {
+			ConstellioUI.getCurrent().runAsync(new Runnable() {
+				@Override
+				public void run() {
+					ConstellioUI.getCurrent().access(new Runnable() {
+						@Override
+						public void run() {
+							final String functionId = "zeFunction";
+							JavaScript.getCurrent().addFunction(functionId,
+									new JavaScriptFunction() {
+										@Override
+										public void call(JsonArray arguments) {
+											int tableBodyWrapperHeight = Integer.parseInt(StringUtils.removeEnd(arguments.getString(0), "px"));
+											int metadataPanelHeight = Integer.parseInt(StringUtils.removeEnd(arguments.getString(1), "px"));
+											int adjustedHeight = Math.max(tableBodyWrapperHeight, metadataPanelHeight) + 400;
+											ViewableRecordVOTablePanel.this.setHeight(adjustedHeight + "px");
+										}
+									});
+
+							StringBuilder js = new StringBuilder();
+							//							js.append("setTimeout(function() { ");
+							//							js.append("try { ");
+							js.append("  var tableBodyWrapperHeight =  document.getElementById('" + getId() + "').getElementsByClassName('v-table-body-wrapper')[0].style.height;");
+							js.append("  var metadataPanelHeight = document.getElementById('" + viewerMetadataPanel.getId() + "').getElementsByClassName('v-tabsheet-tabsheetpanel')[0].style.height;");
+							js.append(functionId + "(tableBodyWrapperHeight, metadataPanelHeight);");
+							//							js.append("console.info(tableBodyWrapperHeight + ', ' + metadataPanelHeight);");
+							//							js.append("} catch (err) { log.error(err.message); } ");
+							//							js.append(" }, 100);");
+							JavaScript.getCurrent().execute(js.toString());
+						}
+					});
+				}
+			}, 10, this);
+		}
+	}
+
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	private BaseTable buildResultsTable() {
 		BaseTable resultsTable;
@@ -584,6 +626,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		});
 		for (ItemClickListener listener : itemClickListeners) {
 			resultsTable.addItemClickListener(listener);
+		}
+		for (SelectionChangeListener listener : selectionChangeListeners) {
+			resultsTable.addSelectionChangeListener(listener);
 		}
 		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 		resultsTable.setAlwaysRecalculateColumnWidths(true);
@@ -999,7 +1044,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return table;
 	}
 
-	private class ViewerMetadataPanel extends Panel {
+	private class ViewerMetadataPanel extends VerticalLayout {
 
 		private VerticalLayout mainLayout;
 
@@ -1046,14 +1091,21 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 
 		private void buildUI() {
+			setId(UUID.randomUUID().toString());
+			setWidth("100%");
 			addStyleName(ValoTheme.PANEL_BORDERLESS);
 			addStyleName("viewer-metadata-panel");
-			setSizeFull();
 
 			mainLayout = new VerticalLayout();
 			mainLayout.addStyleName("viewer-metadata-panel-main-layout");
 			mainLayout.setSizeFull();
-			setContent(mainLayout);
+			addComponent(mainLayout);
+		}
+
+		@Override
+		public void beforeClientResponse(boolean initial) {
+			super.beforeClientResponse(initial);
+			//			adjustHeight();
 		}
 
 	}

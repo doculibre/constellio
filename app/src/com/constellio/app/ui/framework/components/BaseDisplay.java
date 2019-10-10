@@ -14,6 +14,7 @@ import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
@@ -139,7 +140,8 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	
 	private VerticalLayout newMainLayout() {
 		VerticalLayout mainLayout = new VerticalLayout();
-		mainLayout.setSizeUndefined();
+		// mainLayout.setSizeUndefined();
+		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 		mainLayout.addStyleName(STYLE_NAME + "-main-layout");
 		return mainLayout;
@@ -200,11 +202,12 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 		if (displayComponent.isVisible()) {
 			if (ResponsiveUtils.isDesktop()) {
 				I18NHorizontalLayout captionAndComponentLayout = new I18NHorizontalLayout();
-				if (isCaptionAndDisplayComponentWidthUndefined()) {
-					captionAndComponentLayout.setWidthUndefined();
-				} else {
-					captionAndComponentLayout.setSizeFull();
-				}
+				//				if (isCaptionAndDisplayComponentWidthUndefined()) {
+				//					captionAndComponentLayout.setWidthUndefined();
+				//				} else {
+				//					captionAndComponentLayout.setSizeFull();
+				//				}
+				captionAndComponentLayout.setSizeFull();
 
 				layout.addComponent(captionAndComponentLayout);
 				captionAndComponentLayout.addComponents(captionLabel, displayComponent);
@@ -220,6 +223,14 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	
 	protected boolean isUseTabsheet() {
 		return useTabSheet;
+	}
+
+	public void addSelectedTabChangeListener(SelectedTabChangeListener listener) {
+		tabSheet.addSelectedTabChangeListener(listener);
+	}
+
+	public void removeSelectedTabChangeListener(SelectedTabChangeListener listener) {
+		tabSheet.removeSelectedTabChangeListener(listener);
 	}
 	
 	public static class CaptionAndComponent implements Serializable {
