@@ -15146,10 +15146,11 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .-facets-sliderpanel .v-sliderpanel-wrapper .v-sliderpanel-content {
-	position: absolute;
-	height: 10000vh;
+	position: relative;
 	background-color: #414B56;
 	padding-left: 6px;
+	left: 40px !important;
+	padding-bottom: 10px;
 }
 
 .constellio .-facets-sliderpanel .v-sliderpanel-wrapper .v-sliderpanel-tab.tab-beginning {

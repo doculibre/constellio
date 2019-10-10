@@ -468,6 +468,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, sliderPanel);
 		body.addStyleName("search-result-and-facets-container");
 		body.setWidth("100%");
+		body.setHeight("100%");
 		body.setExpandRatio(resultsArea, 1);
 		body.setSpacing(true);
 
@@ -481,6 +482,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		main.addComponent(resultsAndFacetsPanel);
 		main.addStyleName("suggestions-summary-results-facets");
 		main.setWidth("100%");
+		main.setHeight("100%");
 		main.setSpacing(true);
 
 		return main;
@@ -1062,7 +1064,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected BaseButton buildSavedSearchButton() {
 		WindowButton button = new WindowButton($("SearchView.saveSearch"), $("SearchView.saveSearch"),
-				WindowConfiguration.modalDialog("50%", "70%")) {
+				WindowConfiguration.modalDialog("500px", "540px")) {
 			@Override
 			protected Component buildWindowContent() {
 				final TextField titleField = new BaseTextField();

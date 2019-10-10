@@ -270,6 +270,10 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		return dragAndDropWrapper;
 	}
 
+	protected boolean isBreadcrumbsVisible() {
+		return !inWindow;
+	}
+
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		String parameters = event != null ? event.getParameters() : null;
@@ -354,12 +358,16 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
-		return new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.backButtonClicked();
-			}
-		};
+		if (!inWindow) {
+			return new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					presenter.backButtonClicked();
+				}
+			};
+		} else {
+			return null;
+		}
 	}
 
 	private void refreshAvailableSpace() {
