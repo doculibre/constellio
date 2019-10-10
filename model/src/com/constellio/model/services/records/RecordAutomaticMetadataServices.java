@@ -109,7 +109,7 @@ public class RecordAutomaticMetadataServices {
 										 TransactionRecordsReindexation reindexation, Transaction transaction) {
 		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 		for (Metadata automaticMetadata : schema.getAutomaticMetadatas()) {
 			updateAutomaticMetadata(context, record, recordProvider, automaticMetadata, reindexation, types, transaction);
 		}
@@ -117,10 +117,15 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	public void loadTransientEagerMetadatas(RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record);
+		MetadataSchema schema = types.getSchemaOf(record);
+		loadTransientEagerMetadatas(schema, record, recordProvider, transaction);
+	}
+
+	public void loadTransientEagerMetadatas(MetadataSchema schema, RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
 		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record);
 		for (Metadata automaticMetadata : schema.getEagerTransientMetadatas()) {
 			updateAutomaticMetadata(context, record, recordProvider, automaticMetadata, reindexation, types, transaction);
 		}
@@ -131,7 +136,7 @@ public class RecordAutomaticMetadataServices {
 		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 		for (Metadata automaticMetadata : schema.getLazyTransientMetadatas()) {
 			updateAutomaticMetadata(context, record, recordProvider, automaticMetadata, reindexation, types, transaction);
 		}
@@ -143,7 +148,7 @@ public class RecordAutomaticMetadataServices {
 		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 		for (String metadata : automaticMetadatas) {
 			updateAutomaticMetadata(context, record, recordProvider, schema.get(metadata), reindexation, types, transaction);
 		}
@@ -478,7 +483,7 @@ public class RecordAutomaticMetadataServices {
 
 		MetadataList availableMetadatas = new MetadataList();
 		MetadataList availableMetadatasWithValue = new MetadataList();
-		for (Metadata metadata : types.getSchema(record.getSchemaCode()).getMetadatas()) {
+		for (Metadata metadata : types.getSchemaOf(record).getMetadatas()) {
 
 			if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
 				&& record.getLazyTransientValues().isEmpty()) {

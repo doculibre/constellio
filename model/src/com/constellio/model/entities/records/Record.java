@@ -1,5 +1,6 @@
 package com.constellio.model.entities.records;
 
+import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.CollectionObject;
@@ -112,5 +113,6 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 		return Boolean.TRUE.equals(get(Schemas.LOGICALLY_DELETED_STATUS));
 	}
 
-	;
+	RecordDTO getRecordDTO();
+
 }

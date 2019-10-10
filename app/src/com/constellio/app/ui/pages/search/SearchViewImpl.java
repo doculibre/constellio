@@ -28,6 +28,7 @@ import com.constellio.app.ui.framework.components.search.FacetsPanel;
 import com.constellio.app.ui.framework.components.search.FacetsSliderPanel;
 import com.constellio.app.ui.framework.components.search.ViewableRecordVOSearchResultTable;
 import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.components.table.BaseTable.PageLengthTableChangeEvent;
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
@@ -334,13 +335,15 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			((SearchResultDetailedTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		}*/
 
-		if (isDetailedView()) {
-			resultsArea.removeAllComponents();
+		boolean detailedView = isDetailedView();
+		resultsArea.removeAllComponents();
+		if (lazyLoadedSearchResults) {
 			resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
-			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		} else {
-			resultsArea.removeAllComponents();
-			resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
+			resultsArea.addComponent(resultsTable);
+		}
+		if (detailedView) {
+			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		}
 
 		refreshCapsule();
@@ -619,6 +622,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		viewerPanel.setItemsPerPageValue(selectedPageLength);
 		viewerPanel.getActualTable().setPageLength(selectedPageLength);
 		viewerPanel.getActualTable().setCurrentPage(currentPage);
+		viewerPanel.getActualTable().addPageLengthChangeListener(new BaseTable.PageLengthChangeListener() {
+
+			@Override
+			public void pageLengthChanged(PageLengthTableChangeEvent event) {
+				presenter.setSelectedPageLength(event.getPageLength());
+			}
+		});
 		viewerPanel.getActualTable().addPageChangeListener(new BaseTable.PageChangeListener() {
 			public void pageChanged(BaseTable.PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());

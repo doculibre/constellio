@@ -176,7 +176,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		presenter.setSchemaCode(zeSchema.code());
 
 		newLabels.put("fr", "zeTitle");
-		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
+		FormMetadataVO newMetadataForm = new FormMetadataVO((short) 0, zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
 				null, "", newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL,
 				false, false, true, "default",
 				null, null, false, true, new HashSet<String>(), view.getSessionContext(), false);
@@ -205,7 +205,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		presenter.setSchemaCode(zeCustomSchema.code());
 
 		newLabels.put("fr", "zeTitle");
-		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
+		FormMetadataVO newMetadataForm = new FormMetadataVO((short) 0, zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
 				null, "", newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL,
 				false, false, true, "default",
 				null, null, false, false, new HashSet<String>(), view.getSessionContext(), false);
@@ -234,7 +234,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		Metadata stringMeta = zeSchema.stringMetadata();
 
 		newLabels.put("fr", "zeTitleChanged");
-		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
+		FormMetadataVO newMetadataForm = new FormMetadataVO((short) 0, stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
 				newLabels, false, false, true, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL, false, false,
 				true, "default",
 				null, null, false, false, new HashSet<String>(), view.getSessionContext(), false);
@@ -264,7 +264,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		Metadata stringMeta = zeCustomSchema.stringMetadata();
 
 		newLabels.put("fr", "zeTitleChanged");
-		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
+		FormMetadataVO newMetadataForm = new FormMetadataVO((short) 0, stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
 				newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.HORIZONTAL, false,
 				false, true, "default",
 				null, null, false, true, new HashSet<String>(), view.getSessionContext(), false);
@@ -309,7 +309,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		presenter.setSchemaCode("zeSchemaType_zeNewSchema");
 
-		FormMetadataVO newMetadataForm = new FormMetadataVO("zeSchemaType_zeNewSchema_zeMask", MetadataValueType.STRING, false,
+		FormMetadataVO newMetadataForm = new FormMetadataVO((short) 0, "zeSchemaType_zeNewSchema_zeMask", MetadataValueType.STRING, false,
 				null, "",
 				newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL, false, false,
 				true, "default",
@@ -331,7 +331,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		Metadata stringMeta = zeCustomSchema.stringMetadata();
 
 		newLabels.put("fr", "zeTitleChanged");
-		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.REFERENCE, false, null, "",
+		FormMetadataVO newMetadataForm = new FormMetadataVO((short) 0, stringMeta.getCode(), MetadataValueType.REFERENCE, false, null, "",
 				newLabels, false, false, false, false, false, MetadataInputType.RADIO_BUTTONS, MetadataDisplayType.HORIZONTAL,
 				false, false, true, "default",
 				null, null, false, true, new HashSet<String>(), view.getSessionContext(), false);
@@ -346,7 +346,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDisplayConfig.getInputType()).isEqualTo(MetadataInputType.RADIO_BUTTONS);
 		assertThat(metadataDisplayConfig.getDisplayType()).isEqualTo(MetadataDisplayType.HORIZONTAL);
 
-		newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.REFERENCE, false, null, "",
+		newMetadataForm = new FormMetadataVO((short) 0, stringMeta.getCode(), MetadataValueType.REFERENCE, false, null, "",
 				newLabels, false, false, false, false, false, MetadataInputType.RADIO_BUTTONS, MetadataDisplayType.VERTICAL,
 				false, false, true, "default",
 				null, null, false, true, new HashSet<String>(), view.getSessionContext(), false);

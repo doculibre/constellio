@@ -356,7 +356,7 @@ public class RecordEADBuilder {
 
 		Record record = recordCtx.getRecord();
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 		EADArchiveDescription archdesc = buildArchiveDescription(record, schema);
 
 		this.eadXmlWriter = new RecordEADWriter();
@@ -367,7 +367,7 @@ public class RecordEADBuilder {
 		eadXmlWriter.addHeader(collectionInfo, collectionName, record.getSchemaCode(), schemaTypeLabel, schemaLabel);
 		eadXmlWriter.addArchdesc(archdesc, record.getId(), record.getTitle());
 
-		for (Metadata metadata : types.getSchema(record.getSchemaCode()).getMetadatas()) {
+		for (Metadata metadata : types.getSchemaOf(record).getMetadatas()) {
 			if (isMetadataIncludedInEAD(metadata)
 				&& isNotEmptyValue(record.getValues(metadata))) {
 				addMetadata(recordCtx, metadata);

@@ -97,7 +97,7 @@ public class AvailableSequencesServices {
 												  Metadata metadata, SequenceDataEntry dataEntry) {
 		Metadata metadataProvidingReference;
 		Metadata metadataProvidingSequenceCode;
-		MetadataSchema schema = types.getSchema(metadata.getSchemaCode());
+		MetadataSchema schema = types.getSchemaType(metadata.getSchemaTypeCode()).getSchema(metadata.getSchemaCode());
 
 		if (dataEntry.getMetadataProvidingSequenceCode().contains(".")) {
 			String[] splittedCode = dataEntry.getMetadataProvidingSequenceCode().split("\\.");

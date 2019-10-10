@@ -76,6 +76,7 @@ public class AppManagementService {
 	static final String WRITE_WAR_FILE_STREAM = "AppManagementService-WriteWarFile";
 	public static final String UPDATE_COMMAND = "UPDATE";
 	public static final String RESTART_COMMAND = "RESTART";
+	public static final String DUMP_COMMAND = "DUMP";
 	//public static final String URL_CHANGELOG = "http://update.constellio.com/changelog5_1";
 	//public static final String URL_WAR = "http://update.constellio.com/constellio5_1.war";
 	private static String SERVER_URL = "http://updatecenter.constellio.com:8080";
@@ -110,6 +111,17 @@ public class AppManagementService {
 		LOGGER.info("Sending command '" + RESTART_COMMAND + "' to wrapper command file '" + commandFile.getAbsolutePath() + "'");
 		try {
 			writeCommand(commandFile, RESTART_COMMAND);
+		} catch (IOException e) {
+			throw new AppManagementServiceException.CannotWriteInCommandFile(commandFile, e);
+		}
+	}
+
+	public void dump()
+			throws AppManagementServiceException {
+		File commandFile = foldersLocator.getWrapperCommandFile();
+		LOGGER.info("Sending command '" + DUMP_COMMAND + "' to wrapper command file '" + commandFile.getAbsolutePath() + "'");
+		try {
+			writeCommand(commandFile, DUMP_COMMAND);
 		} catch (IOException e) {
 			throw new AppManagementServiceException.CannotWriteInCommandFile(commandFile, e);
 		}

@@ -212,9 +212,9 @@ public class SchemasDisplayManager
 	}
 
 	public MetadataDisplayConfig getMetadata(String collection, String metadataCode) {
-		if (metadataCode.split("_").length != 3) {
-			throw new RuntimeException("Invalid code : " + metadataCode);
-		}
+		//		if (metadataCode.split("_").length != 3) {
+		//			throw new RuntimeException("Invalid code : " + metadataCode);
+		//		}
 		return getCacheForCollection(collection).getMetadata(metadataCode, metadataSchemasManager);
 	}
 

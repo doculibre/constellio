@@ -15,6 +15,7 @@ import java.util.Set;
 
 @SuppressWarnings("serial")
 public class FormMetadataVO implements Serializable {
+	short id;
 	String code;
 	String localcode;
 	MetadataValueType valueType;
@@ -43,7 +44,7 @@ public class FormMetadataVO implements Serializable {
 	boolean isMultiLingual;
 	List<String> readAccessRoles;
 
-	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO,
+	public FormMetadataVO(short id, String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO,
 						  String reference,
 						  Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable,
 						  boolean advancedSearch,
@@ -57,6 +58,7 @@ public class FormMetadataVO implements Serializable {
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR", 2)[1];
 		}
+		this.id = id;
 		this.code = code;
 		this.localcode = localCodeParsed;
 		this.valueType = type;
@@ -87,6 +89,7 @@ public class FormMetadataVO implements Serializable {
 
 	public FormMetadataVO(SessionContext sessionContext) {
 		super();
+		this.id = 0;
 		this.code = "";
 		this.localcode = "";
 		this.valueType = null;
@@ -111,6 +114,15 @@ public class FormMetadataVO implements Serializable {
 		this.customAttributes = new HashSet<>();
 		this.inheritance = null;
 		this.isMultiLingual = false;
+	}
+
+	public short getId() {
+		return id;
+	}
+
+	public FormMetadataVO setId(short id) {
+		this.id = id;
+		return this;
 	}
 
 	public void setCode(String code) {

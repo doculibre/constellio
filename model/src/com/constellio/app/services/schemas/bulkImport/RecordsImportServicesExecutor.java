@@ -633,7 +633,7 @@ public class RecordsImportServicesExecutor {
 										  TypeBatchImportContext typeBatchImportContext,
 										  Record record) {
 
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 		for (Metadata metadata : schema.getMetadatas().onlySequence()) {
 			if (record.get(metadata) != null) {
 				SequenceDataEntry sequenceDataEntry = (SequenceDataEntry) metadata.getDataEntry();

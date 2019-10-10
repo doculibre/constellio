@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 public class ConstellioFactories {
 
@@ -61,22 +62,20 @@ public class ConstellioFactories {
 	}
 
 	public static ConstellioFactories getInstance() {
-		File propertyFile = new FoldersLocator().getConstellioProperties();
 		ConstellioFactoriesDecorator constellioFactoriesDecorator = new ConstellioFactoriesDecorator();
-		return getInstance(propertyFile, constellioFactoriesDecorator);
+		return getInstance(() -> new FoldersLocator().getConstellioProperties(), constellioFactoriesDecorator);
 	}
 
 	public static ConstellioFactories getInstance(ConstellioFactoriesDecorator constellioFactoriesDecorator) {
-		File propertyFile = new FoldersLocator().getConstellioProperties();
-		return getInstance(propertyFile, constellioFactoriesDecorator);
+		return getInstance(() -> new FoldersLocator().getConstellioProperties(), constellioFactoriesDecorator);
 	}
 
-	public static ConstellioFactories getInstance(final File propertyFile,
+	public static ConstellioFactories getInstance(final Supplier<File> propertyFileSupplier,
 												  final ConstellioFactoriesDecorator decorator) {
 		return instanceProvider.getInstance(new Factory<ConstellioFactories>() {
 			@Override
 			public ConstellioFactories get() {
-				ConstellioFactories instance = buildFor(propertyFile, decorator, null, (short) 0);
+				ConstellioFactories instance = buildFor(propertyFileSupplier.get(), decorator, null, (short) 0);
 				return instance;
 			}
 		});

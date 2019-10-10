@@ -87,6 +87,8 @@ public class BaseTable extends Table {
 
 	private List<PageChangeListener> pageChangeListeners = new ArrayList<>();
 
+	private List<PageLengthChangeListener> pageLengthChangeListeners = new ArrayList<>();
+
 	private ContextMenu contextMenu;
 
 	public BaseTable(String tableId) {
@@ -128,7 +130,7 @@ public class BaseTable extends Table {
 			setColumnWidth(INDEX_PROPERTY_ID, INDEX_PROPERTY_WIDTH);
 			setColumnCollapsible(INDEX_PROPERTY_ID, false);
 		}
-		
+
 		addAttachListener(new AttachListener() {
 			@Override
 			public void attach(AttachEvent event) {
@@ -165,7 +167,7 @@ public class BaseTable extends Table {
 				}
 
 				scrollToFirstPagingItem();
-				
+
 				String tableId = getTableId();
 				if (tableId != null && columnsManager == null) {
 					columnsManager = newColumnsManager();
@@ -217,7 +219,7 @@ public class BaseTable extends Table {
 	public void setCurrentPageFirstItemIndex(int newIndex) {
 		if (isPaged()) {
 			pagingCurrentPageFirstItemIndex = newIndex;
-			if (isAttached()) {
+			if (isAttached() && newIndex % getPageLength() != 0) {
 				scrollToFirstPagingItem();
 			}
 		} else {
@@ -585,11 +587,27 @@ public class BaseTable extends Table {
 		}
 	}
 
+	private void firePageLengthChangedEvent(int pageLength) {
+		if (pageLengthChangeListeners != null) {
+			PageLengthTableChangeEvent event = new PageLengthTableChangeEvent() {
+
+				@Override
+				public int getPageLength() {
+					return pageLength;
+				}
+			};
+			for (PageLengthChangeListener listener : pageLengthChangeListeners) {
+				listener.pageLengthChanged(event);
+			}
+		}
+	}
+
 	@Override
 	public void setPageLength(int pageLength) {
 		if (isPaged()) {
 			if (pageLength >= 0 && getPageLength() != pageLength) {
 				pagedTableContainer.setPageLength(pageLength);
+				firePageLengthChangedEvent(pageLength);
 				super.setPageLength(pageLength);
 				firePagedChangedEvent();
 			}
@@ -656,6 +674,12 @@ public class BaseTable extends Table {
 	public void addPageChangeListener(PageChangeListener listener) {
 		if (!pageChangeListeners.contains(listener)) {
 			pageChangeListeners.add(listener);
+		}
+	}
+
+	public void addPageLengthChangeListener(PageLengthChangeListener listener) {
+		if (!pageLengthChangeListeners.contains(listener)) {
+			pageLengthChangeListeners.add(listener);
 		}
 	}
 
@@ -953,6 +977,23 @@ public class BaseTable extends Table {
 		}
 	}
 
+	public static interface PageLengthChangeListener {
+		public void pageLengthChanged(PageLengthTableChangeEvent event);
+	}
+
+	public abstract class PageLengthTableChangeEvent {
+
+		public BaseTable getTable() {
+			return BaseTable.this;
+		}
+
+		public int getCurrentPage() {
+			return BaseTable.this.getCurrentPage();
+		}
+
+		public abstract int getPageLength();
+	}
+
 	public class PagingControls extends I18NHorizontalLayout implements BrowserWindowResizeListener {
 
 		private int itemsPerPageValue = getPageLength();
@@ -1202,11 +1243,11 @@ public class BaseTable extends Table {
 		@Override
 		protected void buttonClickCallBack(boolean selectAllMode) {
 		}
-		
+
 		private int getMaxSelectableResults() {
 			ModelLayerFactory modelLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory();
-	        return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
-	    }
+			return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
+		}
 
 		@SuppressWarnings({"rawtypes", "unchecked"})
 		@Override

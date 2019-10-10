@@ -51,7 +51,7 @@ public class RecordsLinksResolver {
 	private ResolvedRecordLinks resolveRecordLinks(Transaction transaction, Record record, boolean allMetadatas,
 												   boolean reindexOnly) {
 
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 
 		Record originalRecord = record.isSaved() ? record.getCopyOfOriginalRecord() : null;
 		Set<String> idsToReindex = new HashSet<>();

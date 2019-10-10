@@ -96,6 +96,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	private boolean summaryCacheInitialized;
 
+	private CacheLoadingProgression cacheLoadingProgression;
+
 	public RecordsCaches2Impl(ModelLayerFactory modelLayerFactory,
 							  FileSystemRecordsValuesCacheDataStore fileSystemDataStore,
 							  RecordsCachesDataStore memoryDataStore) {
@@ -225,7 +227,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			if (insertion.isContinuingPermanentCacheInsertion()) {
 				Record oldRecord = null;
 				if (current != null) {
-					oldRecord = toRecord(current);
+					oldRecord = toRecord(schemaType, current);
 				}
 
 				return insertInPermanentCache(oldRecord, record, schemaType, insertion, insertionReason);
@@ -322,18 +324,17 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			String schemaCode = (String) recordDTO.getFields().get(SCHEMA.getDataStoreCode());
 
 			MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(collectionCode);
-			MetadataSchema schema = schemaTypes.getSchema(schemaCode);
 			MetadataSchemaType schemaType = schemaTypes.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
 
 			if (schemaType.getCacheType().isSummaryCache()) {
 
 				if (schemaType.getCacheType().hasVolatileCache()) {
 					recordDTO = volatileCache.get(id);
-					returnedRecord = recordDTO == null ? null : toRecord(recordDTO);
+					returnedRecord = recordDTO == null ? null : toRecord(schemaType, recordDTO);
 				}
 
 			} else {
-				returnedRecord = toRecord(recordDTO);
+				returnedRecord = toRecord(schemaType, recordDTO);
 			}
 		}
 
@@ -364,7 +365,6 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		Record returnedRecord = null;
 		if (recordDTO != null) {
 			String collectionCode = (String) recordDTO.getFields().get(COLLECTION.getDataStoreCode());
-			String schemaCode = (String) recordDTO.getFields().get(SCHEMA.getDataStoreCode());
 
 			if (optionnalCollection == null || collectionCode.equals(optionnalCollection)) {
 				returnedRecord = toRecord(recordDTO);
@@ -503,7 +503,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 		if (potentialIds != null && !potentialIds.isEmpty()) {
 			return potentialIds.stream().map((id) -> {
-				return toRecord(memoryDataStore.get(id));
+				return toRecord(schemaType, memoryDataStore.get(id));
 			}).filter((r) -> metadata.isMultivalue() ? r.getList(metadata).contains(value) : value.equals(r.get(metadata)));
 		} else {
 			return Stream.empty();
@@ -549,7 +549,6 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
 				loadSchemaType(schemaType);
 			}
-
 		});
 
 	}
@@ -560,6 +559,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		AtomicInteger added = new AtomicInteger();
 
 		long count = searchServices.streamFromSolr(type, type.getCacheType().isSummaryCache()).count();
+		cacheLoadingProgression = new CacheLoadingProgression(type.getCode(), type.getCollection(), 0, count);
 		if (count > 0) {
 			System.out.println("Loading records of schema type " + type.getCode() + " in increments of " + count);
 			searchServices.streamFromSolr(type, type.getCacheType().isSummaryCache()).parallel().forEach((record) -> {
@@ -571,6 +571,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 					long mb = OffHeapMemoryAllocator.getAllocatedMemory() / (1024 * 1024);
 					LOGGER.info("Adding records " + record.getTypeCode() + " : " + inserted + "/" + count
 								+ " (" + mb + "mb loaded in memory / " + VM.maxDirectMemory() + ")");
+					cacheLoadingProgression = new CacheLoadingProgression(type.getCode(), type.getCollection(), inserted, count);
 				}
 				if (response.getStatus() != CacheInsertionStatus.ACCEPTED) {
 					LOGGER.warn("Could not load record '" + record.getId() + "' in cache : " + response.getStatus());
@@ -609,7 +610,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			new Thread(() -> {
 				//One loading at a time
 				synchronized (RecordsCaches2Impl.class) {
-					typesLoadedAsync.forEach(this::loadSchemaType);
+					typesLoadedAsync.forEach(type -> loadSchemaType(type));
 				}
 				summaryCacheInitialized = true;
 				CacheRecordDTOUtils.stopCompilingDTOsStats();
@@ -695,10 +696,23 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		return recordServices.get().toRecord(dto, dto.getLoadingMode() == FULLY_LOADED);
 	}
 
+	protected Record toRecord(MetadataSchemaType schemaType, RecordDTO dto) {
+		return recordServices.get().toRecord(schemaType, dto, dto.getLoadingMode() == FULLY_LOADED);
+	}
+
+	protected Record toRecord(MetadataSchema schema, RecordDTO dto) {
+		return recordServices.get().toRecord(schema, dto, dto.getLoadingMode() == FULLY_LOADED);
+	}
+
 	@Override
 	public int estimateMaxResultSizeUsingIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata,
 														 String value) {
 		return metadataIndexCacheDataStore.estimateMaxResultSizeUsingIndexedMetadata(schemaType, metadata, value);
+	}
+
+	@Override
+	public CacheLoadingProgression getLoadingProgression() {
+		return cacheLoadingProgression;
 	}
 
 	protected Record getByMetadata(byte collectionId, Metadata metadata, String value) {
@@ -721,7 +735,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			List<String> potentialIds = metadataIndexCacheDataStore.search(schemaType, metadata, value);
 
 			for (String potentialId : potentialIds) {
-				Record record = toRecord(memoryDataStore.get(potentialId));
+				Record record = toRecord(schemaType, memoryDataStore.get(potentialId));
 				if (value.equals(record.get(metadata))) {
 					return record;
 				}
@@ -754,7 +768,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			List<String> potentialIds = metadataIndexCacheDataStore.search(schemaType, metadata, value);
 
 			for (String potentialId : potentialIds) {
-				Record record = toRecord(memoryDataStore.get(potentialId));
+				Record record = toRecord(schemaType, memoryDataStore.get(potentialId));
 				if (value.equals(record.get(metadata))) {
 					return record;
 				}
@@ -770,7 +784,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		return StreamSupport.stream(volatileCache.getEntries().spliterator(), false)
 				.filter((e -> e.getValue().getCollection().equals(schemaType.getCollection()) &&
 							  e.getValue().getSchemaCode().startsWith(schemaType.getCode() + "_")))
-				.map((e) -> toRecord(e.getValue()));
+				.map((e) -> toRecord(schemaType, e.getValue()));
 
 	}
 

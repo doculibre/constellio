@@ -17,7 +17,7 @@ public class MetadataSchemaVO implements Serializable {
 
 	final String code;
 	final String collection;
-	final List<MetadataVO> metadatas = new ArrayList<>();
+	final List<MetadataVO> metadatas = new ArrayList<MetadataVO>();
 	final Map<Locale, String> labels;
 	final List<String> formMetadataCodes;
 	final List<String> displayMetadataCodes;

@@ -54,7 +54,7 @@ public class ContentModificationsBuilder {
 
 	List<Content> getAllContentsOfRecords(Record record) {
 		List<Content> contents = new ArrayList<>();
-		MetadataSchema schema = metadataSchemaTypes.getSchema(record.getSchemaCode());
+		MetadataSchema schema = metadataSchemaTypes.getSchemaOf(record);
 		for (Metadata metadata : new MetadataList(schema.getMetadatas()).onlyWithType(MetadataValueType.CONTENT)) {
 			if (metadata.isMultivalue()) {
 				List<ContentImpl> metadataContents = record.getList(metadata);
@@ -73,7 +73,7 @@ public class ContentModificationsBuilder {
 	//
 	//	List<Metadata> getModifiedContentMetadatas(Record record) {
 	//		RecordImpl recordImpl = (RecordImpl) record;
-	//		List<Metadata> schemaMetadatas = metadataSchemaTypes.getSchema(record.getSchemaCode()).getMetadatas();
+	//		List<Metadata> schemaMetadatas = metadataSchematypes.getSchemaOf(record).getMetadatas();
 	//		List<Metadata> modifiedContentMetadatas = new ArrayList<>();
 	//		Map<String, Object> modifiedMetadatas = recordImpl.getModifiedValues();
 	//		for (Metadata schemaMetadata : schemaMetadatas) {

@@ -24,7 +24,7 @@ public class MetadataChildOfValidator implements Validator<Record> {
 
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
-		List<Metadata> parentMetadatas = schemaTypes.getSchema(record.getSchemaCode()).getParentReferences();
+		List<Metadata> parentMetadatas = schemaTypes.getSchemaOf(record).getParentReferences();
 		if (!parentMetadatas.isEmpty()) {
 			try {
 				record.getNonNullValueIn(parentMetadatas);
