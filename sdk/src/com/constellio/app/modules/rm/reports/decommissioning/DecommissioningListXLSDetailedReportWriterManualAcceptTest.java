@@ -62,7 +62,7 @@ public class DecommissioningListXLSDetailedReportWriterManualAcceptTest extends 
 		DecommissioningListXLSDetailedReportParameters parameters =
 				new DecommissioningListXLSDetailedReportParameters("test01",
 						DecommissioningList.SCHEMA_TYPE, zeCollection, users.adminIn(zeCollection),
-						"ABC", "DEF");
+						"ABC", "DEF", "GHI");
 
 		DecommissioningListXLSDetailedReportPresenter presenter =
 				new DecommissioningListXLSDetailedReportPresenter(getAppLayerFactory(), locale, zeCollection, parameters);
@@ -178,6 +178,19 @@ public class DecommissioningListXLSDetailedReportWriterManualAcceptTest extends 
 		reportedMetadataList.add(new ReportedMetadata(rm.folder.category().getCode(), 2));
 		reportedMetadataList.add(new ReportedMetadata(rm.folder.retentionRule().getCode(), 3));
 		reportedMetadataList.add(new ReportedMetadata(rm.folder.mediaType().getCode(), 4));
+		report.setReportedMetadata(reportedMetadataList);
+		reportServices.addUpdate(report);
+
+		report = new Report(recordServices.newRecordWithSchema(reportSchema), types);
+		report.setTitle("GHI");
+		report.setColumnsCount(2);
+		report.setLinesCount(1);
+		report.setSchemaTypeCode(Folder.SCHEMA_TYPE);
+
+		reportedMetadataList = new ArrayList<>();
+		reportedMetadataList.add(new ReportedMetadata(Schemas.IDENTIFIER.getCode(), 0));
+		reportedMetadataList.add(new ReportedMetadata(Schemas.TITLE.getCode(), 1));
+		reportedMetadataList.add(new ReportedMetadata(rm.folder.category().getCode(), 2));
 		report.setReportedMetadata(reportedMetadataList);
 		reportServices.addUpdate(report);
 	}

@@ -24,6 +24,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
@@ -40,6 +41,7 @@ public class DecommissioningListXLSDetailedReportPresenter extends BaseExcelRepo
 	private String decommissioningListId;
 	private String includedFolderReportTitle;
 	private String excludedFolderReportTitle;
+	private String undefinedFolderReportTitle;
 	private String collection;
 	private String username;
 	private String schemaTypeCode;
@@ -54,6 +56,7 @@ public class DecommissioningListXLSDetailedReportPresenter extends BaseExcelRepo
 		this.decommissioningListId = parameters.getDecommissioningListId();
 		this.includedFolderReportTitle = parameters.getIncludedFolderReportTitle();
 		this.excludedFolderReportTitle = parameters.getExcludedFolderReportTitle();
+		this.undefinedFolderReportTitle = parameters.getUndefinedFolderReportTitle();
 		this.collection = parameters.getCollection();
 		this.username = parameters.getUsername();
 		this.schemaTypeCode = parameters.getSchemaType();
@@ -127,14 +130,23 @@ public class DecommissioningListXLSDetailedReportPresenter extends BaseExcelRepo
 	}
 
 	private void buildFolders(DecommissioningListXLSDetailedReportModel model) {
-		List<Metadata> folderMetadataList = getFolderMetadataList(includedFolderReportTitle);
-		for (Metadata metadata : folderMetadataList) {
-			model.addFolderTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
+		List<Metadata> includedFolderMetadataList = getFolderMetadataList(includedFolderReportTitle);
+		for (Metadata metadata : includedFolderMetadataList) {
+			model.addIncludedFolderTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
 		}
 
-		List<Metadata> exclusionMetadataList = getFolderMetadataList(excludedFolderReportTitle);
-		for (Metadata metadata : exclusionMetadataList) {
-			model.addExclusionTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
+		List<Metadata> excludedFolderMetadataList = getFolderMetadataList(excludedFolderReportTitle);
+		for (Metadata metadata : excludedFolderMetadataList) {
+			model.addExcludedFolderTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
+		}
+
+		model.setUseDecommissionningListWithSelectedFolders(StringUtils.isNotEmpty(undefinedFolderReportTitle));
+		List<Metadata> undefinedFolderMetadataList = null;
+		if (model.getUseDecommissionningListWithSelectedFolders()) {
+			undefinedFolderMetadataList = getFolderMetadataList(undefinedFolderReportTitle);
+			for (Metadata metadata : undefinedFolderMetadataList) {
+				model.addUndefinedFolderTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
+			}
 		}
 
 		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -142,14 +154,17 @@ public class DecommissioningListXLSDetailedReportPresenter extends BaseExcelRepo
 
 		List<String> includedFolders = new ArrayList<>();
 		List<String> excludedFolders = new ArrayList<>();
+		List<String> undefinedFolders = new ArrayList<>();
 		Map<String, FolderDetailWithType> folderDetails = new HashMap<>();
 
 		for (FolderDetailWithType folder : decommissioningList.getFolderDetailsWithType()) {
 			if (folder.isIncluded()) {
 				folderDetails.put(folder.getFolderId(), folder);
 				includedFolders.add(folder.getFolderId());
-			} else {
+			} else if (folder.isExcluded()) {
 				excludedFolders.add(folder.getFolderId());
+			} else {
+				undefinedFolders.add(folder.getFolderId());
 			}
 		}
 
@@ -161,12 +176,19 @@ public class DecommissioningListXLSDetailedReportPresenter extends BaseExcelRepo
 			folder.setLinearSize(detail.getFolderLinearSize());
 			folder.setContainer(detail.getContainerRecordId());
 
-			model.addFolder(getRecordLine(folder.getWrappedRecord(), folderMetadataList));
+			model.addIncludedFolder(getRecordLine(folder.getWrappedRecord(), includedFolderMetadataList));
 		}
 
 		folders = new ArrayList<>(rmSchemasRecordsServices.getFolders(excludedFolders));
 		for (Folder folder : folders) {
-			model.addExclusion(getRecordLine(folder.getWrappedRecord(), exclusionMetadataList));
+			model.addExcludedFolder(getRecordLine(folder.getWrappedRecord(), excludedFolderMetadataList));
+		}
+
+		if (model.getUseDecommissionningListWithSelectedFolders()) {
+			folders = new ArrayList<>(rmSchemasRecordsServices.getFolders(undefinedFolders));
+			for (Folder folder : folders) {
+				model.addUndefinedFolder(getRecordLine(folder.getWrappedRecord(), undefinedFolderMetadataList));
+			}
 		}
 	}
 

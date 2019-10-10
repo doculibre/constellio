@@ -15,11 +15,16 @@ public class DecommissioningListXLSDetailedReportModel {
 	private List<Object> validationTitles;
 	private List<List<Object>> validations;
 
-	private List<Object> folderTitles;
-	private List<List<Object>> folders;
+	private List<Object> includedFolderTitles;
+	private List<List<Object>> includedFolders;
 
-	private List<Object> exclusionTitles;
-	private List<List<Object>> exclusions;
+	private List<Object> excludedFolderTitles;
+	private List<List<Object>> excludedFolders;
+
+	private List<Object> undefinedFolderTitles;
+	private List<List<Object>> undefinedFolders;
+
+	private boolean useDecommissionningListWithSelectedFolders = false;
 
 	public DecommissioningListXLSDetailedReportModel() {
 		headerTitles = new ArrayList<>();
@@ -28,10 +33,12 @@ public class DecommissioningListXLSDetailedReportModel {
 		comments = new ArrayList<>();
 		validationTitles = new ArrayList<>();
 		validations = new ArrayList<>();
-		folderTitles = new ArrayList<>();
-		folders = new ArrayList<>();
-		exclusionTitles = new ArrayList<>();
-		exclusions = new ArrayList<>();
+		includedFolderTitles = new ArrayList<>();
+		includedFolders = new ArrayList<>();
+		excludedFolderTitles = new ArrayList<>();
+		excludedFolders = new ArrayList<>();
+		undefinedFolderTitles = new ArrayList<>();
+		undefinedFolders = new ArrayList<>();
 	}
 
 	public String getHeaderSheetName() {
@@ -43,10 +50,11 @@ public class DecommissioningListXLSDetailedReportModel {
 	public String getValidationSheetName() {
 		return $("DecommissioningListDetailedReport.validationSheetName");
 	}
-	public String getFolderSheetName() {
-		return $("DecommissioningListDetailedReport.includeSheetName");
+	public String getIncludedFolderSheetName() {
+		return $("DecommissioningListDetailedReport.includedFolderSheetName");
 	}
-	public String getExclusionSheetName() { return $("DecommissioningListDetailedReport.excludeSheetName"); }
+	public String getExcludedFolderSheetName() { return $("DecommissioningListDetailedReport.excludedFolderSheetName"); }
+	public String getUndefinedFolderSheetName() { return $("DecommissioningListDetailedReport.undefinedFolderSheetName"); }
 
 	public void addHeaderTitle(Object title) { headerTitles.add(title); }
 	public List<Object> getHeaderTitles() { return headerTitles; }
@@ -63,13 +71,21 @@ public class DecommissioningListXLSDetailedReportModel {
 	public void addValidation(List<Object> line) { validations.add(line); }
 	public List<List<Object>> getValidations() { return validations; }
 
-	public void addFolderTitle(Object title) { folderTitles.add(title); }
-	public List<Object> getFolderTitles() { return folderTitles; }
-	public void addFolder(List<Object> line) { folders.add(line); }
-	public List<List<Object>> getFolders() { return folders; }
+	public void addIncludedFolderTitle(Object title) { includedFolderTitles.add(title); }
+	public List<Object> getIncludedFolderTitles() { return includedFolderTitles; }
+	public void addIncludedFolder(List<Object> line) { includedFolders.add(line); }
+	public List<List<Object>> getIncludedFolders() { return includedFolders; }
 
-	public void addExclusionTitle(Object title) { exclusionTitles.add(title); }
-	public List<Object> getExclusionTitles() { return exclusionTitles; }
-	public void addExclusion(List<Object> line) { exclusions.add(line); }
-	public List<List<Object>> getExclusions() { return exclusions; }
+	public void addExcludedFolderTitle(Object title) { excludedFolderTitles.add(title); }
+	public List<Object> getExcludedFolderTitles() { return excludedFolderTitles; }
+	public void addExcludedFolder(List<Object> line) { excludedFolders.add(line); }
+	public List<List<Object>> getExcludedFolders() { return excludedFolders; }
+
+	public void addUndefinedFolderTitle(Object title) { undefinedFolderTitles.add(title); }
+	public List<Object> getUndefinedFolderTitles() { return undefinedFolderTitles; }
+	public void addUndefinedFolder(List<Object> line) { undefinedFolders.add(line); }
+	public List<List<Object>> getUndefinedFolders() { return undefinedFolders; }
+
+	public void setUseDecommissionningListWithSelectedFolders(boolean value) { useDecommissionningListWithSelectedFolders = value; }
+	public boolean getUseDecommissionningListWithSelectedFolders() { return useDecommissionningListWithSelectedFolders; }
 }

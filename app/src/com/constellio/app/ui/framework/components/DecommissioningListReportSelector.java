@@ -26,6 +26,7 @@ public class DecommissioningListReportSelector extends VerticalLayout {
 	private final DecommissioningListPresenter presenter;
 	private AbstractSelect includedFolderSelector;
 	private AbstractSelect excludedFolderSelector;
+	private AbstractSelect undefinedFolderSelector;
 	private final Button button;
 
 	public DecommissioningListReportSelector(DecommissioningListPresenter presenter) {
@@ -33,15 +34,22 @@ public class DecommissioningListReportSelector extends VerticalLayout {
 		this.presenter = presenter;
 		button = buildActivationButton();
 		try {
-			Label label = new Label($("ReportTabButton.selectIncludedTemplate"));
+			Label label = new Label($("ReportTabButton.selectIncludedFolderTemplate"));
 			label.addStyleName(ValoTheme.LABEL_BOLD);
 			includedFolderSelector = buildSelector();
 			addComponents(label, buildSelectorWrapper(includedFolderSelector));
 
-			label = new Label($("ReportTabButton.selectExcludedTemplate"));
+			label = new Label($("ReportTabButton.selectExcludedFolderTemplate"));
 			label.addStyleName(ValoTheme.LABEL_BOLD);
 			excludedFolderSelector = buildSelector();
 			addComponents(label, buildSelectorWrapper(excludedFolderSelector));
+
+			if (presenter.getDecommissionningListWithSelectedFolders()) {
+				label = new Label($("ReportTabButton.selectUndefinedFolderTemplate"));
+				label.addStyleName(ValoTheme.LABEL_BOLD);
+				undefinedFolderSelector = buildSelector();
+				addComponents(label, buildSelectorWrapper(undefinedFolderSelector));
+			}
 
 			addComponent(button);
 		} catch (UnsupportedReportException e) {
@@ -51,22 +59,35 @@ public class DecommissioningListReportSelector extends VerticalLayout {
 
 	@Override
 	public void setEnabled(boolean enabled) {
-		includedFolderSelector.setEnabled(enabled);
-		excludedFolderSelector.setEnabled(enabled);
+		if (includedFolderSelector != null) {
+			includedFolderSelector.setEnabled(enabled);
+		}
+		if (excludedFolderSelector != null) {
+			excludedFolderSelector.setEnabled(enabled);
+		}
+		if (undefinedFolderSelector != null) {
+			undefinedFolderSelector.setEnabled(enabled);
+		}
 		button.setEnabled(enabled && isAllReportSelected());
 	}
 
 	private boolean isAllReportSelected()
 	{
-		return includedFolderSelector.getValue() != null && excludedFolderSelector.getValue() != null;
+		return (includedFolderSelector == null || includedFolderSelector.getValue() != null) &&
+				(excludedFolderSelector == null || excludedFolderSelector.getValue() != null) &&
+				(undefinedFolderSelector == null || undefinedFolderSelector.getValue() != null);
 	}
 
 	public String getIncludedFolderReport() {
-		return (String) includedFolderSelector.getValue();
+		return includedFolderSelector == null ? "" : (String) includedFolderSelector.getValue();
 	}
 
 	public String getExcludedFolderReport() {
-		return (String) excludedFolderSelector.getValue();
+		return excludedFolderSelector == null ? "" : (String) excludedFolderSelector.getValue();
+	}
+
+	public String getUndefinedFolderReport() {
+		return undefinedFolderSelector == null ? "" : (String) undefinedFolderSelector.getValue();
 	}
 
 	private AbstractSelect buildSelector() {
@@ -116,7 +137,8 @@ public class DecommissioningListReportSelector extends VerticalLayout {
 				if (factory == null) {
 					addComponent(new Label($("ReportViewer.noReportFactoryAvailable")));
 				} else {
-					Object reportParameters = presenter.getReportParameters(getIncludedFolderReport(), getExcludedFolderReport());
+					Object reportParameters = presenter.getReportParameters(getIncludedFolderReport(),
+							getExcludedFolderReport(), getUndefinedFolderReport());
 
 					StreamSource source = ReportViewer.buildSource(factory.getReportBuilder(reportParameters));
 

@@ -851,10 +851,15 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		}
 	}
 
-	public Object getReportParameters(String includedFolderReport, String excludedFolderReport) {
+	public Object getReportParameters(String includedFolderReport, String excludedFolderReport,
+									  String undefinedFolderReport) {
 		return new DecommissioningListXLSDetailedReportParameters(decommissioningList.getId(),
 				DecommissioningList.SCHEMA_TYPE, collection, getCurrentUser(),
-				includedFolderReport, excludedFolderReport);
+				includedFolderReport, excludedFolderReport, undefinedFolderReport);
+	}
+
+	public boolean getDecommissionningListWithSelectedFolders(){
+		return modelLayerFactory.getSystemConfigurationsManager().getValue(RMConfigs.DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS);
 	}
 
 	public boolean isDocumentsCertificateButtonVisible() {
