@@ -5,6 +5,7 @@ import com.constellio.app.ui.entities.RoleAuthVO;
 import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
@@ -31,6 +32,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -153,11 +155,12 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		Button windowButton = new WindowButton($("CollectionUserRolesView.addRoleButton"),
-				$("CollectionUserRolesView.addRoleWindowTitle")) {
+				$("CollectionUserRolesView.addRoleWindowTitle"),
+				WindowConfiguration.modalDialog("800px", "450px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
-
+				final Window window = getWindow();
 				if (presenter.isTargetFieldVisible()) {
 					targetField = new LookupRecordField(presenter.getPrincipalTaxonomySchemaCode());
 					targetField.setCaption($("CollectionUserRolesView.targetField"));
@@ -172,7 +175,10 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 				targetField.addValueChangeListener(new Property.ValueChangeListener() {
 					@Override
 					public void valueChange(Property.ValueChangeEvent event) {
-						warningLabel.setVisible(presenter.isTargetFieldVisible() && event.getProperty().getValue() == null);
+						boolean isVisible = presenter.isTargetFieldVisible() && event.getProperty().getValue() == null;
+						warningLabel.setVisible(isVisible);
+						int additionnalHeight = isVisible ? 100 : -100;
+						window.setHeight((window.getHeight() + additionnalHeight) + "px");
 					}
 				});
 
@@ -191,6 +197,7 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 					}
 				};
 				mainLayout.addComponents(warningLabel, form);
+				mainLayout.setExpandRatio(form, 1);
 				mainLayout.setHeight("99%");
 				return mainLayout;
 			}
