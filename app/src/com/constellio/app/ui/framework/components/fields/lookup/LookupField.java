@@ -667,7 +667,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 			setSpacing(true);
 
 			searchFieldLayout = new I18NHorizontalLayout();
-			searchFieldLayout.setWidthUndefined();
+			//			searchFieldLayout.setWidthUndefined();
 			searchFieldLayout.setSpacing(true);
 
 			searchField = new BaseTextField();

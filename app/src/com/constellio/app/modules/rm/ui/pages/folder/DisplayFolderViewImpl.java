@@ -484,11 +484,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			});
 			viewerPanel.addStyleName("folder-content-table");
-			//			viewerPanel.addStyleName("search-result-title");
 
 			if (!nestedView) {
 				contentAndFacetsLayout = new I18NHorizontalLayout();
-				contentAndFacetsLayout.setSizeFull();
+				contentAndFacetsLayout.addStyleName("content-and-facets-layout");
+				contentAndFacetsLayout.setWidth("100%");
 				contentAndFacetsLayout.setSpacing(true);
 				
 				FacetsSliderPanel sliderPanel = new FacetsSliderPanel(facetsPanel);

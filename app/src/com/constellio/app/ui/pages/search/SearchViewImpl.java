@@ -14,9 +14,7 @@ import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
-import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
-import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.capsule.CapsuleComponent;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -45,7 +43,6 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.jensjansson.pagedtable.PagedTable;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
@@ -672,90 +669,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		} else {
 			return Collections.emptyList();
 		}
-	}
-
-	@Deprecated
-	protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
-		//Fixme : use dataProvider instead
-		final SearchResultContainer container = buildResultContainer(dataProvider);
-		SearchResultSimpleTable table = new SearchResultSimpleTable(container, presenter);
-		table.setWidth("100%");
-		table.getTable().addItemClickListener(new ItemClickListener() {
-			@SuppressWarnings("rawtypes")
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				Object itemId = event.getItemId();
-				RecordVO recordVO = container.getRecordVO((int) itemId);
-				((SearchPresenter) presenter).searchResultClicked(recordVO, (Integer) itemId);
-			}
-		});
-		return table;
-	}
-
-	@Deprecated
-	protected SearchResultTable buildDetailedResultsTable(SearchResultVODataProvider dataProvider) {
-		SearchResultContainer container = buildResultContainer(dataProvider);
-		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip(), presenter.isShowNumberingColumn(dataProvider)) {
-			@Override
-			protected void onPreviousPageButtonClicked() {
-				super.onPreviousPageButtonClicked();
-				scrollBackUp();
-				presenter.searchNavigationButtonClicked();
-			}
-
-			@Override
-			protected void onNextPageButtonClicked() {
-				super.onNextPageButtonClicked();
-				scrollBackUp();
-				presenter.searchNavigationButtonClicked();
-			}
-
-			@Override
-			protected void onSetPageButtonClicked(int page) {
-				super.onSetPageButtonClicked(page);
-				scrollBackUp();
-				presenter.searchNavigationButtonClicked();
-			}
-		};
-
-		int totalResults = container.size();
-		int totalAmountOfPages = srTable.getTotalAmountOfPages();
-		int currentPage = presenter.getPageNumber();
-
-		int selectedPageLength = presenter.getSelectedPageLength();
-		//		presenter.setSelectedPageLength(selectedPageLength);
-
-		srTable.setPageLength(selectedPageLength);
-		srTable.setItemsPerPageValue(selectedPageLength);
-		srTable.setCurrentPage(currentPage);
-
-		srTable.addListener(new PagedTable.PageChangeListener() {
-			public void pageChanged(PagedTable.PagedTableChangeEvent event) {
-				presenter.setPageNumber(event.getCurrentPage());
-				presenter.saveTemporarySearch(false);
-				//					if (selectDeselectAllButton != null) {
-				//						hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
-				//						Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
-				//						boolean isSelectAllMode = true;
-				//						if (objIsSelectAllMode != null) {
-				//							isSelectAllMode = objIsSelectAllMode;
-				//						}
-				//						selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
-				//					}
-			}
-		});
-		srTable.getItemsPerPageField().addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(Property.ValueChangeEvent event) {
-				presenter.setSelectedPageLength((int) event.getProperty().getValue());
-				//					hashMapAllSelection = new HashMap<>();
-				presenter.searchNavigationButtonClicked();
-			}
-		});
-
-		srTable.setWidth("100%");
-
-		return srTable;
 	}
 
 	private void scrollBackUp() {

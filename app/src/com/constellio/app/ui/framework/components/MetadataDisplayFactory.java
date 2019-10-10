@@ -90,7 +90,6 @@ public class MetadataDisplayFactory implements Serializable {
 			displayComponent = null;
 		} else if (metadataVO.isMultivalue() && structureFactory != null && structureFactory instanceof CommentFactory) {
 			displayComponent = new RecordCommentsDisplayImpl(recordVO, metadataCode);
-			//			displayComponent.setWidthUndefined();
 		} else if (displayValue == null) {
 			displayComponent = null;
 		} else if (displayValue instanceof Collection<?>) {

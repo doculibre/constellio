@@ -1,18 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -89,6 +76,18 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class ConstellioHeaderImpl extends I18NHorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener, BrowserWindowResizeListener {
@@ -253,7 +252,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private BasePopupView newPopupView(final Component component) {
 		Responsive.makeResponsive(component);
 		component.addStyleName("header-popup-content");
-		component.setWidthUndefined();
+		//		component.setWidthUndefined();
 
 		Panel wrapper = new Panel(component);
 		wrapper.addStyleName("header-popup-content-wrapper");

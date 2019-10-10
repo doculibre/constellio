@@ -243,7 +243,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		Panel recordDisplayPanel = new Panel(recordDisplay);
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
-		recordDisplayPanel.addStyleName("panel-no-scroll");
+		//		recordDisplayPanel.addStyleName("panel-no-scroll");
 		recordDisplayPanel.setSizeFull();
 
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);

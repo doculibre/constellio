@@ -92,7 +92,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 
 		header = buildHeader();
 		header.setWidth("100%");
-		header.setHeightUndefined();
+		header.setHeight("63px");
+		//		header.setHeightUndefined();
 
 		mainMenu = buildMainMenu();
 
