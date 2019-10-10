@@ -16,6 +16,8 @@ public class BaseTextField extends TextField {
 
 	private boolean maskSet = false;
 
+	private boolean trim = true;
+
 	public BaseTextField() {
 		super();
 		init();
@@ -38,6 +40,12 @@ public class BaseTextField extends TextField {
 
 	public BaseTextField(String caption) {
 		super(caption);
+		init();
+	}
+
+	public BaseTextField(boolean trim) {
+		super();
+		this.trim = trim;
 		init();
 	}
 
@@ -84,7 +92,9 @@ public class BaseTextField extends TextField {
 
 	@Override
 	public void commit() throws SourceException, InvalidValueException {
-		setInternalValue(StringUtils.trim(getValue()));
+		if (trim == true) {
+			setInternalValue(StringUtils.trim(getValue()));
+		}
 		super.commit();
 	}
 }

@@ -11,6 +11,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.vaadin.ui.Field;
@@ -19,6 +20,7 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_UNIFORM_SUBDIVISION;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DELIMITER;
 
 public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory implements EsRmRobotActionParametersFields {
 	private static final String DEFAULT_RETENTION_RULE = "defaultRetentionRule";
@@ -93,6 +95,15 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 				uniformSubdivisionField = (LookupRecordField) super.build(recordVO, metadataVO, locale);
 				presenter.subdivisionFieldCreated();
 				return uniformSubdivisionField;
+			}
+			if (metadataVO.getLocalCode().equals(DELIMITER)) {
+				String inputMask = metadataVO.getInputMask();
+				BaseTextField textField = new BaseTextField(false);
+				textField.setInputMask(inputMask);
+				if (textField != null) {
+					super.postBuild(textField, recordVO, metadataVO);
+				}
+				return textField;
 			}
 			field = super.build(recordVO, metadataVO, locale);
 		}
