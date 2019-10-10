@@ -7,7 +7,11 @@ import com.constellio.app.services.appManagement.AppManagementService.LicenseInf
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.UserDocumentVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.utils.HttpRequestUtils;
 import com.constellio.data.utils.UnicodeUtils;
@@ -39,7 +43,9 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 
-import static com.constellio.app.utils.HttpRequestUtils.*;
+import static com.constellio.app.utils.HttpRequestUtils.isLocalhost;
+import static com.constellio.app.utils.HttpRequestUtils.isMacOsX;
+import static com.constellio.app.utils.HttpRequestUtils.isWindows;
 
 public class ConstellioAgentUtils {
 
@@ -55,7 +61,7 @@ public class ConstellioAgentUtils {
 		if (request == null) {
 			request = VaadinServletService.getCurrentServletRequest();
 		}
-		return request != null && (isWindows(request) || isMacOsX(request) || isLocalhost(request));
+		return request == null || (isWindows(request) || isMacOsX(request) || isLocalhost(request));
 	}
 
 	public static String getAgentBaseURL() {
