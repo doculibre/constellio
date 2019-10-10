@@ -44,17 +44,19 @@ public class PartialVaultExporter {
 
 		Set<String> hashes = new HashSet<>(appLayerFactory.getExtensions().getHashsToIncludeInSystemExport());
 
-		for (String id : recordIdsToInclude) {
-			try {
-				Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(id);
+		if (recordIdsToInclude != null) {
+			for (String id : recordIdsToInclude) {
+				try {
+					Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(id);
 
-				for (Metadata contentMetadata : metadataSchemasManager.getSchemaTypeOf(record).getAllMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
-					for (Content content : record.<Content>getValues(contentMetadata)) {
-						hashes.addAll(content.getHashOfAllVersions());
+					for (Metadata contentMetadata : metadataSchemasManager.getSchemaTypeOf(record).getAllMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
+						for (Content content : record.<Content>getValues(contentMetadata)) {
+							hashes.addAll(content.getHashOfAllVersions());
+						}
 					}
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					throw new SystemStateExporterRuntimeException_InvalidRecordId(id);
 				}
-			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-				throw new SystemStateExporterRuntimeException_InvalidRecordId(id);
 			}
 		}
 
