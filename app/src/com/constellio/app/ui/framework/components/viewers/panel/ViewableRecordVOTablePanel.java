@@ -103,6 +103,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	private I18NHorizontalLayout actionAndModeButtonsLayout;
 
+	private I18NHorizontalLayout actionButtonsLayout;
+
 	private VerticalLayout closeButtonViewerMetadataLayout;
 
 	private RecordVOContainer recordVOContainer;
@@ -122,6 +124,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	private SelectDeselectAllButton selectDeselectAllToggleButton;
 
 	private Label countLabel;
+
+	private Label selectedItemCountLabel;
 
 	private BaseButton closeViewerButton;
 
@@ -207,6 +211,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		countLabel.addStyleName("count-label");
 		countLabel.setVisible(false);
 
+		selectedItemCountLabel = new Label();
+		selectedItemCountLabel.addStyleName("count-label");
+		selectedItemCountLabel.setVisible(false);
+
 		viewerMetadataPanel = buildViewerMetadataPanel();
 		listModeButton = buildListModeButton();
 		tableModeButton = buildTableModeButton();
@@ -227,13 +235,17 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		selectionButtonsLayout.addStyleName("selection-buttons-layout");
 		selectionButtonsLayout.setSpacing(true);
 
+		actionButtonsLayout = new I18NHorizontalLayout();
+		actionButtonsLayout.setSpacing(true);
+
 		actionAndModeButtonsLayout = new I18NHorizontalLayout();
 		actionAndModeButtonsLayout.addStyleName("action-mode-buttons-layout");
+		actionAndModeButtonsLayout.addComponents(actionButtonsLayout);
 
 		if (isSelectColumn()) {
 			selectionButtonsLayout.addComponent(selectDeselectAllToggleButton);
 		}
-		selectionButtonsLayout.addComponent(countLabel);
+		selectionButtonsLayout.addComponents(selectedItemCountLabel, countLabel);
 		selectionButtonsLayout.addComponents(previousButton, nextButton);
 
 		actionAndModeButtonsLayout.addComponents(listModeButton, tableModeButton);
@@ -274,6 +286,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		countLabel.setVisible(StringUtils.isNotBlank(caption));
 	}
 
+	public void setSelectedCountCaption(int numberOfSelected) {
+		String key = numberOfSelected <= 1 ? "ViewableRecordVOTablePanel.nbSelectedElement1" : "ViewableRecordVOTablePanel.nbSelectedElements";
+		String totalCount = $(key, numberOfSelected);
+
+		selectedItemCountLabel.setValue(totalCount);
+		selectedItemCountLabel.setVisible(numberOfSelected > 0);
+	}
+
 	public void setQuickActionButton(List<Button> button) {
 		for (Button baseButton : button) {
 			setQuickActionButton(baseButton);
@@ -287,8 +307,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		if (quickActionButton instanceof BaseButton) {
 			((BaseButton) quickActionButton).setCaptionVisibleOnMobile(false);
 		}
-		actionAndModeButtonsLayout.addComponent(quickActionButton, 0);
-		actionAndModeButtonsLayout.setComponentAlignment(quickActionButton, Alignment.TOP_LEFT);
+		actionButtonsLayout.addComponent(quickActionButton, 0);
+		actionButtonsLayout.setComponentAlignment(quickActionButton, Alignment.TOP_LEFT);
 	}
 
 	public void setSelectionActionButtons() {
@@ -329,8 +349,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 		selectionActionsMenuBar.addStyleName("selection-action-menu-bar");
 		selectionActionsMenuBar.setAutoOpen(false);
-		actionAndModeButtonsLayout.addComponent(selectionActionsMenuBar, 0);
-		actionAndModeButtonsLayout.setComponentAlignment(selectionActionsMenuBar, Alignment.TOP_RIGHT);
+		actionButtonsLayout.addComponent(selectionActionsMenuBar, 0);
+		actionButtonsLayout.setComponentAlignment(selectionActionsMenuBar, Alignment.TOP_RIGHT);
 
 		addSelectionChangeListener(new SelectionChangeListener() {
 			@Override
@@ -490,10 +510,47 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				@Override
 				protected SelectionManager newSelectionManager() {
 					SelectionManager selectionManager = ViewableRecordVOTablePanel.this.newSelectionManager();
+
 					if (selectionManager == null) {
 						selectionManager = super.newSelectionManager();
 					}
-					return selectionManager;
+
+					SelectionManager finalSelectionManager = createSelectionManagerWithSelectedCountCaption(selectionManager);
+
+					return finalSelectionManager;
+				}
+
+				private SelectionManager createSelectionManagerWithSelectedCountCaption(
+						SelectionManager selectionManager) {
+					final SelectionManager finalSelectionManager = selectionManager;
+					SelectionManager selectionManagerWithSelectedCount = new SelectionManager() {
+						@Override
+						public List<Object> getAllSelectedItemIds() {
+							return finalSelectionManager.getAllSelectedItemIds();
+						}
+
+						@Override
+						public boolean isAllItemsSelected() {
+							return finalSelectionManager.isAllItemsSelected();
+						}
+
+						@Override
+						public boolean isAllItemsDeselected() {
+							return finalSelectionManager.isAllItemsDeselected();
+						}
+
+						@Override
+						public boolean isSelected(Object itemId) {
+							return finalSelectionManager.isSelected(itemId);
+						}
+
+						@Override
+						public void selectionChanged(SelectionChangeEvent event) {
+							finalSelectionManager.selectionChanged(event);
+							setSelectedCountCaption(getSelectedRecords().size());
+						}
+					};
+					return selectionManagerWithSelectedCount;
 				}
 
 				@Override
@@ -1108,6 +1165,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			//			adjustHeight();
 		}
 
+	}
+
+	public Button getCloseViewerButton() {
+		return closeViewerButton;
 	}
 
 	public class TableCompressEvent implements Serializable {

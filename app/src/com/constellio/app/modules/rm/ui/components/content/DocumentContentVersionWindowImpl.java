@@ -16,6 +16,7 @@ import com.constellio.app.ui.framework.components.content.DownloadContentVersion
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.server.Resource;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -59,7 +60,7 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 		setWidth("90%");
 		addStyleName("document-window-content");
 
-		readOnlyLabel = new Label(readOnlyMessage);
+		readOnlyLabel = new Label(readOnlyMessage, ContentMode.HTML);
 		readOnlyLabel.addStyleName(ValoTheme.LABEL_H2);
 		readOnlyLabel.setVisible(readOnlyMessage != null);
 
