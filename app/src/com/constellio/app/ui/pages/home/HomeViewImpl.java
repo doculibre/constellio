@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -418,6 +419,12 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			super(container);
 		}
 
+		public void initSelectedItemCache() {
+			if (selectedItemIds == null) {
+				selectedItemIds = new HashSet<>();
+			}
+		}
+
 		@Override
 		protected boolean isSelectColumn() {
 			return true;
@@ -428,6 +435,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			return new SelectionManager() {
 				@Override
 				public void selectionChanged(SelectionChangeEvent event) {
+					initSelectedItemCache();
 
 					List<Object> selectedItemIdsFromEvent = event.getSelectedItemIds();
 					List<Object> deselectedItemIdsFromEvent = event.getDeselectedItemIds();
@@ -480,6 +488,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 				@Override
 				public List<Object> getAllSelectedItemIds() {
+					initSelectedItemCache();
 					return new ArrayList<>(selectedItemIds);
 				}
 
@@ -509,6 +518,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 				@Override
 				public boolean isSelected(Object itemId) {
+					initSelectedItemCache();
+
 					RecordVO recordVO = getRecordVO(itemId);
 					String recordId = recordVO.getId();
 
