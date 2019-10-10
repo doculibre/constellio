@@ -175,13 +175,10 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 				targetField.addValueChangeListener(new Property.ValueChangeListener() {
 					@Override
 					public void valueChange(Property.ValueChangeEvent event) {
-						if (presenter.isTargetFieldVisible() && event.getProperty().getValue() == null) {
-							warningLabel.setVisible(true);
-							window.setHeight((window.getHeight() + 100) + "px");
-						} else {
-							warningLabel.setVisible(false);
-							window.setHeight((window.getHeight() - 100) + "px");
-						}
+						boolean isVisible = presenter.isTargetFieldVisible() && event.getProperty().getValue() == null;
+						warningLabel.setVisible(isVisible);
+						int additionnalHeight = isVisible ? 100 : -100;
+						window.setHeight((window.getHeight() + additionnalHeight) + "px");
 					}
 				});
 
