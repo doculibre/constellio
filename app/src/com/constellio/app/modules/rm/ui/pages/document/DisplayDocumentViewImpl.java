@@ -49,6 +49,7 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
+import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -794,7 +795,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 						try {
 							presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
 							getWindow().close();
-						} catch (Exception e) {
+						} catch (RecordServicesException e) {
 							showErrorMessage(MessageUtils.toMessage(e));
 						}
 					}

@@ -59,6 +59,7 @@ import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ItemClickEvent;
@@ -563,7 +564,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						try {
 							presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
 							getWindow().close();
-						} catch (Exception e) {
+						} catch (RecordServicesException e) {
 							showErrorMessage(MessageUtils.toMessage(e));
 						}
 					}

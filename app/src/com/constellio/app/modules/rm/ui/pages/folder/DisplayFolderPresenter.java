@@ -1221,20 +1221,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
-	public void createNewCartAndAddToItRequested(String title) {
+	public void createNewCartAndAddToItRequested(String title) throws RecordServicesException {
 		Cart cart = rmSchemasRecordsServices.newCart();
 		Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
-		try {
-			folder.addFavorite(cart.getId());
-			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
-			recordServices().update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-			view.showMessage($("DisplayFolderView.addedToCart"));
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+
+		folder.addFavorite(cart.getId());
+		recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+		recordServices().update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
+		view.showMessage($("DisplayFolderView.addedToCart"));
 	}
 
 	public RecordVODataProvider getEventsDataProvider() {

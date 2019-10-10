@@ -482,19 +482,15 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
-	public void createNewCartAndAddToItRequested(String title) {
+	public void createNewCartAndAddToItRequested(String title) throws RecordServicesException {
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
 		document.addFavorite(cart.getId());
-		try {
-			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
-			recordServices().update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-			view.showMessage($("DocumentActionsComponent.addedToCart"));
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+
+		recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+		recordServices().update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
+		view.showMessage($("DocumentActionsComponent.addedToCart"));
 	}
 
 	public boolean hasWritePermission() {
