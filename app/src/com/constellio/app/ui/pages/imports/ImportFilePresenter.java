@@ -50,7 +50,7 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally();
+		return user.has(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS).globally();
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
