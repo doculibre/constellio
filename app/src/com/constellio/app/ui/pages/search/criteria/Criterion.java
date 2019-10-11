@@ -1,14 +1,11 @@
 package com.constellio.app.ui.pages.search.criteria;
 
-import java.io.Serializable;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 
@@ -44,7 +41,7 @@ public class Criterion implements Serializable, ModifiableStructure {
 	public Criterion() {
 	}
 
-	public  Criterion(String schemaType) {
+	public Criterion(String schemaType) {
 		setSchemaType(schemaType);
 	}
 
@@ -66,7 +63,7 @@ public class Criterion implements Serializable, ModifiableStructure {
 		Clear();
 	}
 
-	public void Clear(){
+	public void Clear() {
 		dirty = true;
 		metadataCode = null;
 		metadataType = null;
@@ -184,10 +181,10 @@ public class Criterion implements Serializable, ModifiableStructure {
 			stringValueIsNotEmpty = !StringUtils.isBlank((String) value);
 		}
 		return metadataCode != null && value != null && stringValueIsNotEmpty
-				|| searchOperator == SearchOperator.IS_FALSE
-				|| searchOperator == SearchOperator.IS_TRUE
-				|| searchOperator == SearchOperator.IS_NULL
-				|| searchOperator == SearchOperator.IS_NOT_NULL
+			   || searchOperator == SearchOperator.IS_FALSE
+			   || searchOperator == SearchOperator.IS_TRUE
+			   || searchOperator == SearchOperator.IS_NULL
+			   || searchOperator == SearchOperator.IS_NOT_NULL
 				;
 	}
 

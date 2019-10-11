@@ -350,8 +350,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		top.setWidth("100%");
 
 		String caption = presenter.isDeactivatedMetadatasShown()
-				? $("ConstellioHeader.hideDeactivatedMetadatas")
-				: $("ConstellioHeader.showDeactivatedMetadatas");
+						 ? $("ConstellioHeader.hideDeactivatedMetadatas")
+						 : $("ConstellioHeader.showDeactivatedMetadatas");
 		showDeactivatedMetadatasButton = new Button(caption);
 		showDeactivatedMetadatasButton.addClickListener(new ClickListener() {
 			@Override
@@ -359,8 +359,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 				presenter.toggleDeactivatedMetadatas();
 
 				String caption = presenter.isDeactivatedMetadatasShown()
-						? $("ConstellioHeader.hideDeactivatedMetadatas")
-						: $("ConstellioHeader.showDeactivatedMetadatas");
+								 ? $("ConstellioHeader.hideDeactivatedMetadatas")
+								 : $("ConstellioHeader.showDeactivatedMetadatas");
 				showDeactivatedMetadatasButton.setCaption(caption);
 			}
 		});
@@ -462,7 +462,9 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	}
 
 	private void populateSchemaComponent(String schemaTypeCode) {
-		if (schemaTypeCode == null)  return;
+		if (schemaTypeCode == null) {
+			return;
+		}
 
 		String selectedSchema = presenter.getSchemaSelected();
 		advancedSearchSchemaField.removeAllItems();
@@ -478,13 +480,13 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 		if (advancedSearchSchemaField.getItemIds().size() > 2) {
 			advancedSearchSchemaField.setEnabled(true);
-		}else{
+		} else {
 			advancedSearchSchemaField.setEnabled(false);
 		}
 
 		if (selectedSchema == null || advancedSearchSchemaField.getItem(selectedSchema) == null) {
 			advancedSearchSchemaField.select("");
-		}else{
+		} else {
 			advancedSearchSchemaField.select(selectedSchema);
 		}
 	}
@@ -933,11 +935,11 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	private void setSelectionButtonIcon() {
 		Resource icon;
-//		if (selectionButton.isEnabled()) {
-//			icon = FontAwesome.CHECK_SQUARE_O;
-//		} else {
-//			icon = FontAwesome.SQUARE_O;
-//		}
+		//		if (selectionButton.isEnabled()) {
+		//			icon = FontAwesome.CHECK_SQUARE_O;
+		//		} else {
+		//			icon = FontAwesome.SQUARE_O;
+		//		}
 		selectionButton.setIcon(SELECTION_ICON_RESOURCE);
 	}
 

@@ -93,7 +93,7 @@ public class ConditionBuilder {
 		Metadata metadata;
 		if (StringUtils.isBlank(schemaCode)) {
 			metadata = schemaType.getMetadata(criterion.getMetadataCode());
-		}else{
+		} else {
 			metadata = schemaType.getSchema(schemaCode).getMetadata(criterion.getMetadataCode());
 		}
 

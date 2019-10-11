@@ -307,8 +307,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		return result;
 	}
 
-	public List<MetadataSchemaVO> getSchemaOfSelectedType()
-	{
+	public List<MetadataSchemaVO> getSchemaOfSelectedType() {
 		MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
 
 		List<MetadataSchemaVO> result = new ArrayList<>();
@@ -323,12 +322,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 	}
 
-	public void toggleDeactivatedMetadatas(){
+	public void toggleDeactivatedMetadatas() {
 		showDeactivatedMetadatas = !showDeactivatedMetadatas;
 		header.setShowDeactivatedMetadatas(showDeactivatedMetadatas);
 	}
 
-	public boolean isDeactivatedMetadatasShown(){
+	public boolean isDeactivatedMetadatasShown() {
 		return showDeactivatedMetadatas;
 	}
 
@@ -363,7 +362,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		String key = schemaTypeCode + "_" + showDeactivatedMetadatas;
 		Map<String, Set<String>> metadataCodesBySchema = metadataAllowedInCriteria.get(key);
-		if (metadataCodesBySchema == null){
+		if (metadataCodesBySchema == null) {
 			metadataCodesBySchema = new HashMap<>();
 			metadataAllowedInCriteria.put(key, metadataCodesBySchema);
 		}
@@ -374,12 +373,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 			metadataCodesBySchema.put(schemaCode, metadataCodes);
 
 			List<FacetValue> schema_s;
-			if (StringUtils.isBlank(schemaCode)){
+			if (StringUtils.isBlank(schemaCode)) {
 				schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
 						.setNumberOfRows(0)
 						.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
 						.getFieldFacetValues("schema_s");
-			}else{
+			} else {
 				schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
 						.setNumberOfRows(0)
 						.setCondition(from(schemaType.getSchema(schemaCode)).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
@@ -415,7 +414,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		MetadataList allMetadatas;
 		if (StringUtils.isBlank(schemaCode)) {
 			allMetadatas = schemaType.getAllMetadatas();
-		}else{
+		} else {
 			allMetadatas = schemaType.getSchema(schemaCode).getMetadatas();
 		}
 		for (Metadata metadata : allMetadatas) {

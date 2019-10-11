@@ -103,7 +103,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		List<Criterion> itemToRemove = new ArrayList<>();
 		for (Criterion criterion : container.getItemIds()) {
-			if (criterion.getMetadataCode() == null){
+			if (criterion.getMetadataCode() == null) {
 				itemToRemove.add(criterion);
 			}
 		}
@@ -112,7 +112,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			removeItem(criterion);
 		}
 
-		for (int i = container.getItemIds().size(); i < 2; i++){
+		for (int i = container.getItemIds().size(); i < 2; i++) {
 			addEmptyCriterion();
 		}
 	}
@@ -187,7 +187,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			//			comboBox.setPageLength(comboBox.size());
 			comboBox.setPageLength(20);
 
-			if (!comboBox.containsId(metadataVO)){
+			if (!comboBox.containsId(metadataVO)) {
 				criterion.Clear();
 			}
 

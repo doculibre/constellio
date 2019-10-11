@@ -130,7 +130,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return searchID;
 	}
 
-	public boolean hasBatchProcessPermission(){
+	public boolean hasBatchProcessPermission() {
 		return getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).globally() || getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).onSomething();
 	}
 
@@ -704,9 +704,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	@Override
 	public Object getReportParameters(String report) {
 		switch (report) {
-		case "Reports.fakeReport":
-		case "Reports.FolderLinearMeasureStats":
-			return super.getReportParameters(report);
+			case "Reports.fakeReport":
+			case "Reports.FolderLinearMeasureStats":
+				return super.getReportParameters(report);
 		}
 
 		return new SearchResultReportParameters(view.getSelectedRecordIds(), view.getSchemaType(),
@@ -926,15 +926,15 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		List<Record> records = getRecords(selectedRecordIds);
 		String currentUserId = getCurrentUser().getId();
 		switch (schemaTypeCode) {
-		case Folder.SCHEMA_TYPE:
-			addFoldersToCart(currentUserId, records);
-			break;
-		case Document.SCHEMA_TYPE:
-			addDocumentsToCart(currentUserId, records);
-			break;
-		case ContainerRecord.SCHEMA_TYPE:
-			addContainersToCart(currentUserId, records);
-			break;
+			case Folder.SCHEMA_TYPE:
+				addFoldersToCart(currentUserId, records);
+				break;
+			case Document.SCHEMA_TYPE:
+				addDocumentsToCart(currentUserId, records);
+				break;
+			case ContainerRecord.SCHEMA_TYPE:
+				addContainersToCart(currentUserId, records);
+				break;
 		}
 		try {
 			Transaction transaction = new Transaction(records);
