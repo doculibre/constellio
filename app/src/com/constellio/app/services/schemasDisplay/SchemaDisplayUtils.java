@@ -278,7 +278,7 @@ public class SchemaDisplayUtils {
 		List<String> displayMetadataCodes = getDefaultDisplayedMetadatas(schemaCode, schema.getMetadatas());
 		List<String> formMetadataCodes = schemaUtils
 				.toMetadataCodes(SchemaDisplayUtils.getAvailableMetadatasInSchemaForm(schema));
-		List<String> formHiddenMetadataCodes = new ArrayList<>();
+		List<String> formHiddenMetadataCodes = Collections.emptyList();
 
 		formMetadataCodes.remove(schemaCode + "_" + Schemas.LEGACY_ID);
 		String title = schema.getCode() + "_" + Schemas.TITLE.getLocalCode();

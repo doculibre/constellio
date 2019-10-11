@@ -1,4 +1,4 @@
-package com.constellio.app.ui.pages.management.schemas.metadata.fields;
+package com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copyRetentionRule;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyRuleFieldImpl;
@@ -9,9 +9,9 @@ import com.vaadin.ui.Table;
 
 import java.util.List;
 
-public class MetadataCopyRuleFieldImpl extends FolderCopyRuleFieldImpl {
+public class MetadataMainCopyRuleFieldImpl extends FolderCopyRuleFieldImpl {
 
-	public MetadataCopyRuleFieldImpl(List<CopyRetentionRule> copyRetentionRules) {
+	public MetadataMainCopyRuleFieldImpl(List<CopyRetentionRule> copyRetentionRules) {
 		super(copyRetentionRules);
 	}
 

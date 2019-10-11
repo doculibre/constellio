@@ -14,7 +14,6 @@ import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
-import com.constellio.app.ui.pages.management.schemas.metadata.fields.MetadataCopyRuleFieldImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -38,8 +37,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
@@ -99,11 +96,16 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 	private MetadataForm metadataForm;
 	private FormMetadataVO formMetadataVO;
+	private MetadataFieldFactory fieldFactory;
 
 	VerticalLayout viewLayout;
 
 	public AddEditMetadataViewImpl() {
 		this.presenter = new AddEditMetadataPresenter(this);
+	}
+
+	public void setFieldFactory(MetadataFieldFactory fieldFactory) {
+		this.fieldFactory = fieldFactory;
 	}
 
 	@Override
@@ -531,23 +533,16 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			viewLayout.addComponent(attributeField);
 		}
 
-		MetadataFieldFactory factory = new MetadataFieldFactory();
+		if (fieldFactory == null) {
+			fieldFactory = new MetadataFieldFactory();
+		}
 
 		MetadataVO defaultValueMetadataVO = presenter.getDefaultValueMetadataVO(formMetadataVO, editMode);
 
 		Field<?> previousDefaultValueField = defaultValueField;
 		if (defaultValueMetadataVO != null && presenter.isDefaultValuePossible(formMetadataVO)) {
 			try {
-				if (formMetadataVO.getLocalcode().equals(MAIN_COPY_RULE_ID_ENTERED)){
-					String ruleId = (String) formMetadataVO.getSchema().getMetadata(RETENTION_RULE_ENTERED).getDefaultValue();
-					if (StringUtils.isNotEmpty(ruleId)){
-						defaultValueField = new MetadataCopyRuleFieldImpl(presenter.getCopyRetentionRule(ruleId));
-					}else{
-						defaultValueField = factory.build(defaultValueMetadataVO);
-					}
-				}else{
-					defaultValueField = factory.build(defaultValueMetadataVO);
-				}
+				defaultValueField = fieldFactory.build(defaultValueMetadataVO);
 			} catch (Exception e) {
 				e.printStackTrace();
 				defaultValueField = null;

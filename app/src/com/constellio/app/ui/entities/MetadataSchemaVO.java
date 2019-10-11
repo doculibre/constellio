@@ -99,78 +99,37 @@ public class MetadataSchemaVO implements Serializable {
 	}
 
 	public List<MetadataVO> getFormMetadatas() {
-		List<MetadataVO> formMetadatas;
-		List<String> formMetadataCodes = getFormMetadataCodes();
-		if (formMetadataCodes == null) {
-			formMetadatas = getMetadatas();
-		} else {
-			formMetadatas = new ArrayList<>();
-			for (String formMetadataCode : formMetadataCodes) {
-				List<MetadataVO> metadataVOs = getMetadatas(formMetadataCode);
-				formMetadatas.addAll(metadataVOs);
-			}
-		}
-		return formMetadatas;
+		return getMetadataVOFromCodes(getFormMetadataCodes());
 	}
 
 	public List<MetadataVO> getHiddenFormMetadatas() {
-		List<MetadataVO> hiddenMetadatas;
-		List<String> hiddenMetadataCodes = getHiddenFormMetadataCodes();
-		if (hiddenMetadataCodes == null) {
-			hiddenMetadatas = getMetadatas();
-		} else {
-			hiddenMetadatas = new ArrayList<>();
-			for (String hiddenMetadataCode : hiddenMetadataCodes) {
-				List<MetadataVO> metadataVOs = getMetadatas(hiddenMetadataCode);
-				hiddenMetadatas.addAll(metadataVOs);
-			}
-		}
-		return hiddenMetadatas;
+		return getMetadataVOFromCodes(getHiddenFormMetadataCodes());
 	}
 
 	public List<MetadataVO> getDisplayMetadatas() {
-		List<MetadataVO> displayMetadatas;
-		List<String> displayMetadataCodes = getDisplayMetadataCodes();
-		if (displayMetadataCodes == null) {
-			displayMetadatas = getMetadatas();
-		} else {
-			displayMetadatas = new ArrayList<>();
-			for (String displayMetadataCode : displayMetadataCodes) {
-				List<MetadataVO> metadataVOs = getMetadatas(displayMetadataCode);
-				displayMetadatas.addAll(metadataVOs);
-			}
-		}
-		return displayMetadatas;
+		return getMetadataVOFromCodes(getDisplayMetadataCodes());
 	}
 
 	public List<MetadataVO> getTableMetadatas() {
-		List<MetadataVO> tableMetadatas;
-		List<String> tableMetadataCodes = getTableMetadataCodes();
-		if (tableMetadataCodes == null) {
-			tableMetadatas = getMetadatas();
-		} else {
-			tableMetadatas = new ArrayList<>();
-			for (String tableMetadataCode : tableMetadataCodes) {
-				List<MetadataVO> metadataVOs = getMetadatas(tableMetadataCode);
-				tableMetadatas.addAll(metadataVOs);
-			}
-		}
-		return tableMetadatas;
+		return getMetadataVOFromCodes(getTableMetadataCodes());
 	}
 
 	public List<MetadataVO> getSearchMetadatas() {
-		List<MetadataVO> searchMetadatas;
-		List<String> searchMetadataCodes = getSearchMetadataCodes();
-		if (searchMetadataCodes == null) {
-			searchMetadatas = getMetadatas();
+		return getMetadataVOFromCodes(getSearchMetadataCodes());
+	}
+
+	private List<MetadataVO> getMetadataVOFromCodes(List<String> codes) {
+		List<MetadataVO> metadatas;
+		if (codes == null) {
+			metadatas = getMetadatas();
 		} else {
-			searchMetadatas = new ArrayList<>();
-			for (String searchMetadataCode : searchMetadataCodes) {
-				List<MetadataVO> metadataVOs = getMetadatas(searchMetadataCode);
-				searchMetadatas.addAll(metadataVOs);
+			metadatas = new ArrayList<>();
+			for (String hiddenMetadataCode : codes) {
+				List<MetadataVO> metadataVOs = getMetadatas(hiddenMetadataCode);
+				metadatas.addAll(metadataVOs);
 			}
 		}
-		return searchMetadatas;
+		return metadatas;
 	}
 
 	public List<MetadataVO> getMetadatas(String metadataCode) {

@@ -8,8 +8,6 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.extensions.params.RMSchemaTypesPageExtensionExclusionByPropertyParams;
-import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -17,12 +15,9 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.entities.FormMetadataVO;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToFormVOBuilder;
-import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
@@ -75,7 +70,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
@@ -167,13 +161,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		if (types != null) {
 			Metadata metadata = types.getMetadata(metadataCode);
 
-			MetadataSchemaVO schemaVO = null;
-			if (metadata.getLocalCode().equals(MAIN_COPY_RULE_ID_ENTERED)) {
-				MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
-				schemaVO = schemaVOBuilder.build(defaultSchema(), RecordVO.VIEW_MODE.FORM, view.getSessionContext());
-			}
 			MetadataToFormVOBuilder voBuilder = new MetadataToFormVOBuilder(view.getSessionContext());
-			found = voBuilder.build(metadata, schemaVO, displayManager, schemaTypeCode, view.getSessionContext());
+			found = voBuilder.build(metadata, displayManager, schemaTypeCode, view.getSessionContext());
 		}
 
 		return found;
@@ -187,12 +176,6 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 		return result;
 	}
-
-	public List<CopyRetentionRule> getCopyRetentionRule(String retentionRule) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		return rm.getRetentionRule(retentionRule).getCopyRetentionRules();
-	}
-
 
 	public FormMetadataVO getParentFormMetadataVO() {
 		return getFormMetadataVO().getInheritance();

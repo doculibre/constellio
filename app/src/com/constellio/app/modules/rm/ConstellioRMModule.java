@@ -24,6 +24,7 @@ import com.constellio.app.modules.rm.extensions.RMListSchemaTypeExtension;
 import com.constellio.app.modules.rm.extensions.RMManageAuthorizationsPageExtension;
 import com.constellio.app.modules.rm.extensions.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMMenuItemActionsExtension;
+import com.constellio.app.modules.rm.extensions.RMMetadataMainCopyRuleFieldsExtension;
 import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
 import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
@@ -376,6 +377,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordDisplayFactoryExtensions.add(new RMRecordDisplayFactoryExtension(appLayerFactory, collection));
 		extensions.listSchemaCommandExtensions.add(new RMListSchemaExtention());
 		extensions.pagesComponentsExtensions.add(new RMUserProfileFieldsExtension(collection, appLayerFactory));
+		extensions.pagesComponentsExtensions.add(new RMMetadataMainCopyRuleFieldsExtension(collection, appLayerFactory));
 		extensions.sipExtensions.add(new RMSIPExtension(collection, appLayerFactory));
 		extensions.recordFieldFactoryExtensions.add(new RMAdministrativeUnitRecordFieldFactoryExtension());
 		extensions.xmlGeneratorExtensions.add(new RMXmlGeneratorExtension(collection, appLayerFactory));
