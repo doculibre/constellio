@@ -4,8 +4,13 @@ import com.constellio.app.modules.rm.reports.model.decommissioning.Decommissioni
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
-import jxl.write.*;
+import jxl.write.Label;
 import jxl.write.Number;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
 import org.joda.time.LocalDateTime;
 
 import java.io.IOException;
@@ -16,8 +21,7 @@ import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
-{
+public class DecommissioningListXLSDetailedReportWriter implements ReportWriter {
 	private static final WritableFont.FontName FONT = WritableFont.TIMES;
 	private static final int FONT_SIZE = 10;
 	private WritableCellFormat font;
@@ -69,7 +73,7 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 	private void createHeader(WritableWorkbook workbook) throws WriteException {
 		WritableSheet sheet = createSheet(workbook, 2, model.getHeaderSheetName());
 
-		for(int i = 0; i < model.getHeaderTitles().size(); i++) {
+		for (int i = 0; i < model.getHeaderTitles().size(); i++) {
 			writeLine(sheet, Arrays.asList(model.getHeaderTitles().get(i), model.getHeaderInfos().get(i)), i, font,
 					boldFont);
 		}
@@ -83,7 +87,7 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 		WritableSheet sheet = createSheet(workbook, model.getCommentTitles().size(), model.getCommentSheetName());
 
 		writeLine(sheet, model.getCommentTitles(), 0, boldFont);
-		for(int i = 0; i < model.getComments().size(); i++) {
+		for (int i = 0; i < model.getComments().size(); i++) {
 			writeLine(sheet, model.getComments().get(i), 1 + i, font);
 		}
 	}
@@ -156,8 +160,8 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 				continue;
 			}
 			if (cellObject instanceof Float ||
-					cellObject instanceof Integer ||
-					cellObject instanceof Double) {
+				cellObject instanceof Integer ||
+				cellObject instanceof Double) {
 				addNumber(sheet, format, columnNumber, lineNumber, new Double(cellObject.toString()));
 			} else {
 				addString(sheet, format, columnNumber, lineNumber, cellObject.toString());

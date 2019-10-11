@@ -858,7 +858,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 				includedFolderReport, excludedFolderReport, undefinedFolderReport);
 	}
 
-	public boolean getDecommissionningListWithSelectedFolders(){
+	public boolean getDecommissionningListWithSelectedFolders() {
 		return modelLayerFactory.getSystemConfigurationsManager().getValue(RMConfigs.DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS);
 	}
 

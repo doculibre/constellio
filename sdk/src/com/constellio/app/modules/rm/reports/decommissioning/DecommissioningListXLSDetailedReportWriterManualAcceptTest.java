@@ -157,8 +157,7 @@ public class DecommissioningListXLSDetailedReportWriterManualAcceptTest extends 
 		rm.executeTransaction(tr);
 	}
 
-	private void createReportTest()
-	{
+	private void createReportTest() {
 		RecordServices recordServices = getAppLayerFactory().getModelLayerFactory().newRecordServices();
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		ReportServices reportServices = new ReportServices(getModelLayerFactory(), zeCollection);

@@ -44,48 +44,128 @@ public class DecommissioningListXLSDetailedReportModel {
 	public String getHeaderSheetName() {
 		return $("DecommissioningListDetailedReport.idSheetName");
 	}
+
 	public String getCommentSheetName() {
 		return $("DecommissioningListDetailedReport.commentSheetName");
 	}
+
 	public String getValidationSheetName() {
 		return $("DecommissioningListDetailedReport.validationSheetName");
 	}
+
 	public String getIncludedFolderSheetName() {
 		return $("DecommissioningListDetailedReport.includedFolderSheetName");
 	}
-	public String getExcludedFolderSheetName() { return $("DecommissioningListDetailedReport.excludedFolderSheetName"); }
-	public String getUndefinedFolderSheetName() { return $("DecommissioningListDetailedReport.undefinedFolderSheetName"); }
 
-	public void addHeaderTitle(Object title) { headerTitles.add(title); }
-	public List<Object> getHeaderTitles() { return headerTitles; }
-	public void setHeader(List<Object> infos) { headerInfos = infos; }
-	public List<Object> getHeaderInfos() { return headerInfos; }
+	public String getExcludedFolderSheetName() {
+		return $("DecommissioningListDetailedReport.excludedFolderSheetName");
+	}
 
-	public void addCommentTitle(Object title) { commentTitles.add(title); }
-	public List<Object> getCommentTitles() { return commentTitles; }
-	public void addComment(List<Object> line) { comments.add(line); }
-	public List<List<Object>> getComments() { return comments; }
+	public String getUndefinedFolderSheetName() {
+		return $("DecommissioningListDetailedReport.undefinedFolderSheetName");
+	}
 
-	public void addValidationTitle(Object title) { validationTitles.add(title); }
-	public List<Object> getValidationTitles() { return validationTitles; }
-	public void addValidation(List<Object> line) { validations.add(line); }
-	public List<List<Object>> getValidations() { return validations; }
+	public void addHeaderTitle(Object title) {
+		headerTitles.add(title);
+	}
 
-	public void addIncludedFolderTitle(Object title) { includedFolderTitles.add(title); }
-	public List<Object> getIncludedFolderTitles() { return includedFolderTitles; }
-	public void addIncludedFolder(List<Object> line) { includedFolders.add(line); }
-	public List<List<Object>> getIncludedFolders() { return includedFolders; }
+	public List<Object> getHeaderTitles() {
+		return headerTitles;
+	}
 
-	public void addExcludedFolderTitle(Object title) { excludedFolderTitles.add(title); }
-	public List<Object> getExcludedFolderTitles() { return excludedFolderTitles; }
-	public void addExcludedFolder(List<Object> line) { excludedFolders.add(line); }
-	public List<List<Object>> getExcludedFolders() { return excludedFolders; }
+	public void setHeader(List<Object> infos) {
+		headerInfos = infos;
+	}
 
-	public void addUndefinedFolderTitle(Object title) { undefinedFolderTitles.add(title); }
-	public List<Object> getUndefinedFolderTitles() { return undefinedFolderTitles; }
-	public void addUndefinedFolder(List<Object> line) { undefinedFolders.add(line); }
-	public List<List<Object>> getUndefinedFolders() { return undefinedFolders; }
+	public List<Object> getHeaderInfos() {
+		return headerInfos;
+	}
 
-	public void setUseDecommissionningListWithSelectedFolders(boolean value) { useDecommissionningListWithSelectedFolders = value; }
-	public boolean getUseDecommissionningListWithSelectedFolders() { return useDecommissionningListWithSelectedFolders; }
+	public void addCommentTitle(Object title) {
+		commentTitles.add(title);
+	}
+
+	public List<Object> getCommentTitles() {
+		return commentTitles;
+	}
+
+	public void addComment(List<Object> line) {
+		comments.add(line);
+	}
+
+	public List<List<Object>> getComments() {
+		return comments;
+	}
+
+	public void addValidationTitle(Object title) {
+		validationTitles.add(title);
+	}
+
+	public List<Object> getValidationTitles() {
+		return validationTitles;
+	}
+
+	public void addValidation(List<Object> line) {
+		validations.add(line);
+	}
+
+	public List<List<Object>> getValidations() {
+		return validations;
+	}
+
+	public void addIncludedFolderTitle(Object title) {
+		includedFolderTitles.add(title);
+	}
+
+	public List<Object> getIncludedFolderTitles() {
+		return includedFolderTitles;
+	}
+
+	public void addIncludedFolder(List<Object> line) {
+		includedFolders.add(line);
+	}
+
+	public List<List<Object>> getIncludedFolders() {
+		return includedFolders;
+	}
+
+	public void addExcludedFolderTitle(Object title) {
+		excludedFolderTitles.add(title);
+	}
+
+	public List<Object> getExcludedFolderTitles() {
+		return excludedFolderTitles;
+	}
+
+	public void addExcludedFolder(List<Object> line) {
+		excludedFolders.add(line);
+	}
+
+	public List<List<Object>> getExcludedFolders() {
+		return excludedFolders;
+	}
+
+	public void addUndefinedFolderTitle(Object title) {
+		undefinedFolderTitles.add(title);
+	}
+
+	public List<Object> getUndefinedFolderTitles() {
+		return undefinedFolderTitles;
+	}
+
+	public void addUndefinedFolder(List<Object> line) {
+		undefinedFolders.add(line);
+	}
+
+	public List<List<Object>> getUndefinedFolders() {
+		return undefinedFolders;
+	}
+
+	public void setUseDecommissionningListWithSelectedFolders(boolean value) {
+		useDecommissionningListWithSelectedFolders = value;
+	}
+
+	public boolean getUseDecommissionningListWithSelectedFolders() {
+		return useDecommissionningListWithSelectedFolders;
+	}
 }

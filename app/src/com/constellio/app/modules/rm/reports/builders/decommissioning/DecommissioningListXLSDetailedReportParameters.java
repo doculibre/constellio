@@ -17,7 +17,7 @@ public class DecommissioningListXLSDetailedReportParameters {
 	}
 
 	public DecommissioningListXLSDetailedReportParameters(String decommissioningListId, String schemaType,
-														  String collection, User user ,
+														  String collection, User user,
 														  String includedFolderReportTitle,
 														  String excludedFolderReportTitle,
 														  String undefinedFolderReportTitle) {

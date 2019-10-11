@@ -27,7 +27,14 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -47,7 +54,8 @@ public class DecommissioningListXLSDetailedReportPresenter extends BaseExcelRepo
 	private String schemaTypeCode;
 	private User userInCollection;
 
-	public DecommissioningListXLSDetailedReportPresenter(AppLayerFactory appLayerFactory, Locale locale, String collection,
+	public DecommissioningListXLSDetailedReportPresenter(AppLayerFactory appLayerFactory, Locale locale,
+														 String collection,
 														 DecommissioningListXLSDetailedReportParameters parameters) {
 		super(appLayerFactory, locale, collection);
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();

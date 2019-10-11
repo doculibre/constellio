@@ -13,8 +13,14 @@ import com.vaadin.data.Validator;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.AbstractSelect;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.List;
@@ -71,11 +77,10 @@ public class DecommissioningListReportSelector extends VerticalLayout {
 		button.setEnabled(enabled && isAllReportSelected());
 	}
 
-	private boolean isAllReportSelected()
-	{
+	private boolean isAllReportSelected() {
 		return (includedFolderSelector == null || includedFolderSelector.getValue() != null) &&
-				(excludedFolderSelector == null || excludedFolderSelector.getValue() != null) &&
-				(undefinedFolderSelector == null || undefinedFolderSelector.getValue() != null);
+			   (excludedFolderSelector == null || excludedFolderSelector.getValue() != null) &&
+			   (undefinedFolderSelector == null || undefinedFolderSelector.getValue() != null);
 	}
 
 	public String getIncludedFolderReport() {
