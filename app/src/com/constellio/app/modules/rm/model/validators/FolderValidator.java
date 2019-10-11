@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.model.validators;
 
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
@@ -21,6 +14,13 @@ import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.records.RecordValidatorParams;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class FolderValidator implements RecordValidator {
 
@@ -75,7 +75,7 @@ public class FolderValidator implements RecordValidator {
 						.add(FolderValidator.class, FOLDER_UNIFORM_SUBDIVISION_MUST_BE_RELATED_TO_ITS_RULE, parameters);
 			}
 		} else if (params.getConfigProvider().<Boolean>get(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER)
-				&& folder.getCategory() != null) {
+				   && folder.getCategory() != null) {
 			Category category = Category.wrap(params.getRecord(folder.getCategory()), params.getTypes());
 			if (!category.getRententionRules().contains(retentionRule.getId())) {
 				Map<String, Object> parameters = new HashMap<>();
@@ -128,7 +128,7 @@ public class FolderValidator implements RecordValidator {
 		if (retentionRule != null) {
 			DocumentsTypeChoice choice = params.getConfigProvider().get(RMConfigs.DOCUMENTS_TYPES_CHOICE);
 			if (choice == DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
-					|| choice == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
+				|| choice == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
 				if (!retentionRule.getDocumentTypes().containsAll(folder.getAllowedDocumentTypes())) {
 					Map<String, Object> parameters = new HashMap<>();
 					parameters.put(RULE_CODE, retentionRule.getCode());
@@ -144,9 +144,9 @@ public class FolderValidator implements RecordValidator {
 			parentFolder = Folder.wrap(params.getRecord(folder.getParentFolder()), params.getTypes());
 		}
 
-		if (parentFolder != null){
+		if (parentFolder != null) {
 			if (!parentFolder.getAllowedFolderTypes().isEmpty()
-					&& !parentFolder.getAllowedFolderTypes().contains(folder.getType())){
+				&& !parentFolder.getAllowedFolderTypes().contains(folder.getType())) {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(ALLOWED_FOLDER_TYPES, parentFolder.getAllowedFolderTypes().toString());
 				parameters.put(FOLDER_TYPE, folder.getType());
@@ -154,9 +154,9 @@ public class FolderValidator implements RecordValidator {
 			}
 		}
 
-		if (params.getValidatedRecord().isSaved()){
+		if (params.getValidatedRecord().isSaved()) {
 			if (!folder.getAllowedDocumentTypes().isEmpty()
-					&& params.getValidatedRecord().getModifiedMetadatas(params.getTypes()).containsMetadataWithLocalCode(Folder.ALLOWED_DOCUMENT_TYPES)) {
+				&& params.getValidatedRecord().getModifiedMetadatas(params.getTypes()).containsMetadataWithLocalCode(Folder.ALLOWED_DOCUMENT_TYPES)) {
 				LogicalSearchQuery query = new LogicalSearchQuery().setQueryExecutionMethod(QueryExecutionMethod.ENSURE_INDEXED_METADATA_USED);
 				MetadataSchemaType documentSchemaType = params.getTypes().getSchemaType(Document.SCHEMA_TYPE);
 				query.setCondition(from(documentSchemaType)
@@ -170,7 +170,7 @@ public class FolderValidator implements RecordValidator {
 			}
 
 			if (!folder.getAllowedFolderTypes().isEmpty()
-					&& params.getValidatedRecord().getModifiedMetadatas(params.getTypes()).containsMetadataWithLocalCode(Folder.ALLOWED_FOLDER_TYPES)) {
+				&& params.getValidatedRecord().getModifiedMetadatas(params.getTypes()).containsMetadataWithLocalCode(Folder.ALLOWED_FOLDER_TYPES)) {
 				LogicalSearchQuery query = new LogicalSearchQuery().setQueryExecutionMethod(QueryExecutionMethod.ENSURE_INDEXED_METADATA_USED);
 				MetadataSchemaType folderSchemaType = params.getTypes().getSchemaType(Folder.SCHEMA_TYPE);
 				query.setCondition(from(folderSchemaType)

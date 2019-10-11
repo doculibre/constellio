@@ -27,5 +27,6 @@ public class FolderAllowedTypeFieldLookupImpl extends ListAddRemoveRecordLookupF
 	}
 
 	@Override
-	protected void fireValueChange(boolean repaintIsNotNeeded) {}
+	protected void fireValueChange(boolean repaintIsNotNeeded) {
+	}
 }

@@ -65,11 +65,11 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 
 		if (folderId != null) {
 			List<String> newDocumentTypes = rm.getFolder(folderId).getAllowedDocumentTypes();
-			if (newDocumentTypes.isEmpty()){
+			if (newDocumentTypes.isEmpty()) {
 				newDocumentTypes = getDocumentTypesFilteredByRetentionRule();
 			}
 
-			if (!newDocumentTypes.isEmpty()){
+			if (!newDocumentTypes.isEmpty()) {
 				condition = condition.andWhere(Schemas.IDENTIFIER).isIn(newDocumentTypes);
 			}
 		}
@@ -91,13 +91,12 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 		return getModelLayerFactory().newSearchServices().query(query);
 	}
 
-	private List<String> getDocumentTypesFilteredByRetentionRule(){
+	private List<String> getDocumentTypesFilteredByRetentionRule() {
 		List<String> newDocumentTypes = new ArrayList<>();
 		if (rmConfigs.getDocumentsTypesChoice()
-					== DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
-				|| rmConfigs.getDocumentsTypesChoice()
-					== DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES)
-		{
+			== DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
+			|| rmConfigs.getDocumentsTypesChoice()
+			   == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
 			RetentionRule retentionRule = rm.getRetentionRule(rm.getFolder(folderId).getRetentionRule());
 			List<String> documentTypes = retentionRule.getDocumentTypes();
 			if (currentType != null && !documentTypes.contains(currentType)) {

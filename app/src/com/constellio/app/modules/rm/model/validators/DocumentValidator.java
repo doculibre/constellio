@@ -32,14 +32,13 @@ public class DocumentValidator implements RecordValidator {
 			Folder folder = Folder.wrap(params.getRecord(document.getFolder()), params.getTypes());
 			List<String> allowedDocumentTypes = folder.getAllowedDocumentTypes();
 
-			if (allowedDocumentTypes.isEmpty()){
+			if (allowedDocumentTypes.isEmpty()) {
 				DocumentsTypeChoice choice = params.getConfigProvider().get(RMConfigs.DOCUMENTS_TYPES_CHOICE);
 				if (choice == DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
-						|| choice == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES)
-				{
-					if (folder.getRetentionRule() != null){
+					|| choice == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
+					if (folder.getRetentionRule() != null) {
 						RetentionRule retentionRule = RetentionRule.wrap(params.getRecord(folder.getRetentionRule()), params.getTypes());
-						if (!retentionRule.getDocumentTypes().contains(document.getType())){
+						if (!retentionRule.getDocumentTypes().contains(document.getType())) {
 							Map<String, Object> parameters = new HashMap<>();
 							parameters.put(RULE_CODE, retentionRule.getCode());
 							parameters.put(ALLOWED_DOCUMENT_TYPES, retentionRule.getDocumentTypes().toString());
@@ -48,7 +47,7 @@ public class DocumentValidator implements RecordValidator {
 						}
 					}
 				}
-			}else if (!allowedDocumentTypes.contains(document.getType())){
+			} else if (!allowedDocumentTypes.contains(document.getType())) {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(ALLOWED_DOCUMENT_TYPES, allowedDocumentTypes.toString());
 				parameters.put(DOCUMENT_TYPE, document.getType());

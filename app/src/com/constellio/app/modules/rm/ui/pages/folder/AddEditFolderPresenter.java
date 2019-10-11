@@ -162,7 +162,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	public String getFavGroup() {
-		if(params != null) {
+		if (params != null) {
 			return params.get(RMViews.FAV_GROUP_ID_KEY);
 		} else {
 			return null;

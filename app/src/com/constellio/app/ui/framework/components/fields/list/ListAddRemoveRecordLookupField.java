@@ -75,7 +75,7 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 			@Override
 			protected String getReadOnlyMessage() {
 				String readOnlyMessage = ListAddRemoveRecordLookupField.this.getReadOnlyMessage();
-				if(!StringUtils.isBlank(readOnlyMessage)) {
+				if (!StringUtils.isBlank(readOnlyMessage)) {
 					return readOnlyMessage;
 				} else {
 					return super.getReadOnlyMessage();
@@ -83,7 +83,7 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 			}
 		};
 
-		for(ValueChangeListener listener: lookupFieldListenerList) {
+		for (ValueChangeListener listener : lookupFieldListenerList) {
 			field.addValueChangeListener(listener);
 		}
 		field.setIgnoreLinkability(ignoreLinkability);
@@ -110,7 +110,7 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 	}
 
 	public Object getLookupFieldValue() {
-		if(addEditField != null) {
+		if (addEditField != null) {
 			return ((LookupRecordField) addEditField).getValue();
 		}
 		return null;

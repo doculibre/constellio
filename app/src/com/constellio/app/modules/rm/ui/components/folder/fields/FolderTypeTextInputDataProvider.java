@@ -27,7 +27,7 @@ public class FolderTypeTextInputDataProvider extends RecordTextInputDataProvider
 	private transient RMSchemasRecordsServices rm;
 
 	public FolderTypeTextInputDataProvider(ConstellioFactories constellioFactories,
-                                           SessionContext sessionContext, String parent) {
+										   SessionContext sessionContext, String parent) {
 		super(constellioFactories, sessionContext, FolderType.SCHEMA_TYPE, false);
 		this.parent = parent;
 		init();
@@ -60,7 +60,7 @@ public class FolderTypeTextInputDataProvider extends RecordTextInputDataProvider
 			Folder parentFolder = rm.getFolder(parent);
 			List<String> newFolderTypes = parentFolder.getAllowedFolderTypes();
 
-			if (!newFolderTypes.isEmpty()){
+			if (!newFolderTypes.isEmpty()) {
 				condition = condition.andWhere(Schemas.IDENTIFIER).isIn(newFolderTypes);
 			}
 		}

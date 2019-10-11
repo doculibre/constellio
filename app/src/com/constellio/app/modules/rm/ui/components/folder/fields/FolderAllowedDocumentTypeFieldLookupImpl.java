@@ -26,5 +26,6 @@ public class FolderAllowedDocumentTypeFieldLookupImpl extends ListAddRemoveRecor
 	}
 
 	@Override
-	protected void fireValueChange(boolean repaintIsNotNeeded) {}
+	protected void fireValueChange(boolean repaintIsNotNeeded) {
+	}
 }
