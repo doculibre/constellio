@@ -56,14 +56,14 @@ public class Criterion implements Serializable, ModifiableStructure {
 
 	public void setSchemaType(String schemaType) {
 		this.schemaType = schemaType;
-		Clear();
+		clear();
 	}
 
 	public void setSchemaSelected(String schemaCode) {
-		Clear();
+		clear();
 	}
 
-	public void Clear() {
+	public void clear() {
 		dirty = true;
 		metadataCode = null;
 		metadataType = null;

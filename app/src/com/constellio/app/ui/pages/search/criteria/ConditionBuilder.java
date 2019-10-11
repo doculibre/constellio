@@ -30,7 +30,7 @@ public class ConditionBuilder {
 	private String languageCode;
 
 	public ConditionBuilder(MetadataSchemaType schemaType, String languageCode) {
-		this(schemaType, "", languageCode);
+		this(schemaType, null, languageCode);
 	}
 
 	public ConditionBuilder(MetadataSchemaType schemaType, String schemaCode, String languageCode) {

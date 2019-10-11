@@ -98,7 +98,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		refreshRowCache();
 	}
 
-	public void setShowDeactivatedMetadatas(boolean isShown) {
+	public void setShowDeactivatedMetadatas(boolean shown) {
 		refreshRowCache();
 
 		List<Criterion> itemToRemove = new ArrayList<>();
@@ -188,7 +188,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			comboBox.setPageLength(20);
 
 			if (!comboBox.containsId(metadataVO)) {
-				criterion.Clear();
+				criterion.clear();
 			}
 
 			return comboBox;

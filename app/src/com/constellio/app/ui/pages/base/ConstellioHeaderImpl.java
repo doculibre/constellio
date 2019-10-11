@@ -760,8 +760,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	}
 
 	@Override
-	public void setShowDeactivatedMetadatas(boolean isShown) {
-		criteria.setShowDeactivatedMetadatas(isShown);
+	public void setShowDeactivatedMetadatas(boolean shown) {
+		criteria.setShowDeactivatedMetadatas(shown);
 	}
 
 	@Override

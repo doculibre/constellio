@@ -31,7 +31,7 @@ public interface ConstellioHeader extends Serializable {
 
 	void setAdvancedSearchSchema(String schemaCode);
 
-	void setShowDeactivatedMetadatas(boolean isShown);
+	void setShowDeactivatedMetadatas(boolean shown);
 
 	ConstellioHeader hideAdvancedSearchPopup();
 

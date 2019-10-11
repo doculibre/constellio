@@ -5,12 +5,12 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.wrappers.*;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class CoreMigrationTo_9_0_1 extends MigrationHelper implements MigrationScript {
+public class CoreMigrationTo_9_0_1_1 extends MigrationHelper implements MigrationScript {
 
 	@Override
 	public String getVersion() {
@@ -21,12 +21,12 @@ public class CoreMigrationTo_9_0_1 extends MigrationHelper implements MigrationS
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory)
 			throws Exception {
-		new CoreMigrationTo_9_0_1.SchemaAlterationFor9_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new CoreMigrationTo_9_0_1_1.SchemaAlterationFor9_0_1_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	class SchemaAlterationFor9_0_1 extends MetadataSchemasAlterationHelper {
+	class SchemaAlterationFor9_0_1_1 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor9_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
+		protected SchemaAlterationFor9_0_1_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
 										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}

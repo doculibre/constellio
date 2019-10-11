@@ -18,7 +18,7 @@ public class ConditionAppender {
 	private BooleanOperator pendingOperator;
 
 	public ConditionAppender(MetadataSchemaType schemaType) {
-		this(schemaType, "");
+		this(schemaType, null);
 	}
 
 	public ConditionAppender(MetadataSchemaType schemaType, String schemaCode) {

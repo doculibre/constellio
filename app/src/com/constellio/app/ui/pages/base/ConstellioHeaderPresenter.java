@@ -65,6 +65,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.constellio.model.services.users.UserServices;
@@ -372,18 +373,11 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 			metadataCodes = new HashSet<>();
 			metadataCodesBySchema.put(schemaCode, metadataCodes);
 
-			List<FacetValue> schema_s;
-			if (StringUtils.isBlank(schemaCode)) {
-				schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
-						.setNumberOfRows(0)
-						.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
-						.getFieldFacetValues("schema_s");
-			} else {
-				schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
-						.setNumberOfRows(0)
-						.setCondition(from(schemaType.getSchema(schemaCode)).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
-						.getFieldFacetValues("schema_s");
-			}
+			List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
+					.setNumberOfRows(0)
+					.setCondition(generateFromForMetadataAllowedInCriteria(schemaType).returnAll())
+					.addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
+					.getFieldFacetValues("schema_s");
 
 			if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
 				if (schema_s != null) {
@@ -438,6 +432,14 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		}
 		sort(result);
 		return result;
+	}
+
+	private OngoingLogicalSearchCondition generateFromForMetadataAllowedInCriteria(MetadataSchemaType type) {
+		if (StringUtils.isBlank(schemaCode)) {
+			return from(type);
+		} else {
+			return from(type.getSchema(schemaCode));
+		}
 	}
 
 	private boolean isMetadataVisibleForUser(Metadata metadata, User currentUser) {
