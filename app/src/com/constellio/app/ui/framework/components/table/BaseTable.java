@@ -11,6 +11,8 @@ import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEvent;
+import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -86,6 +88,11 @@ public class BaseTable extends Table {
 	private PagedTableContainer pagedTableContainer;
 
 	private List<PageChangeListener> pageChangeListeners = new ArrayList<>();
+
+	private List<RefreshRenderedCellsEvent> refreshRenderedCellsEventListenerList = new ArrayList<>();
+
+	private List<Object> selectedItem;
+	private boolean areAllItemSelected;
 
 	private ContextMenu contextMenu;
 
@@ -198,6 +205,20 @@ public class BaseTable extends Table {
 				//				int adjustedFirstIndex = pagingCurrentPageFirstItemIndex - ((currentPage - 1) * getPageLength());
 				super.setCurrentPageFirstItemIndex(pagingCurrentPageFirstItemIndex);
 			}
+		}
+	}
+
+	public void addRefreshRenderedCellsEventListener(RefreshRenderedCellsEvent refreshRenderedCellsEvent) {
+		refreshRenderedCellsEventListenerList.add(refreshRenderedCellsEvent);
+	}
+
+	public void fireAddRefreshRenderedCellsEvent(List<Object> selectedId, boolean areAllItemSelected) {
+		if (refreshRenderedCellsEventListenerList == null) {
+			return;
+		}
+
+		for (RefreshRenderedCellsEvent currentRefreshRenderedCellsEvent : refreshRenderedCellsEventListenerList) {
+			currentRefreshRenderedCellsEvent.refreshRenderedCellsEvent(new RefreshRenderedCellsEventParams(selectedId, areAllItemSelected));
 		}
 	}
 
@@ -519,7 +540,21 @@ public class BaseTable extends Table {
 
 	@Override
 	public void refreshRenderedCells() {
+		// Optimisation pour pas que chacun des composantes de sélection (checkbox)
+		// est à appeler les écouteur d'événement de la sélection et de valeur changé. C'est fait une fois après le
+		// rendu des cullules du tableau.
+		if (selectedItem == null) {
+			selectedItem = new ArrayList<>();
+		} else {
+			selectedItem.clear();
+		}
+
+		areAllItemSelected = true;
 		super.refreshRenderedCells();
+
+		if (!selectedItem.isEmpty()) {
+			fireAddRefreshRenderedCellsEvent(selectedItem, areAllItemSelected);
+		}
 	}
 
 	@Override
@@ -725,6 +760,14 @@ public class BaseTable extends Table {
 
 		private SelectionCheckBox(final Object itemId) {
 			this.itemId = itemId;
+			boolean selected = selectionManager.isSelected(itemId);
+
+			if (selected) {
+				selectedItem.add(itemId);
+			} else {
+				areAllItemSelected = false;
+			}
+			setValue(selected);
 			addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(com.vaadin.data.Property.ValueChangeEvent event) {
@@ -740,7 +783,6 @@ public class BaseTable extends Table {
 				}
 			});
 			addSelectionChangeListener(new CheckBoxSelectionChangeListener());
-			setValue(selectionManager.isSelected(itemId));
 		}
 
 		@Override

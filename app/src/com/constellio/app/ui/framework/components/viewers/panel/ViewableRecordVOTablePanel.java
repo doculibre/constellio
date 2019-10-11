@@ -34,6 +34,8 @@ import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChang
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable.RecordVOSelectionManager;
+import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEvent;
+import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -547,7 +549,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 						@Override
 						public void selectionChanged(SelectionChangeEvent event) {
 							finalSelectionManager.selectionChanged(event);
-							setSelectedCountCaption(getSelectedRecords().size());
+							setSelectedCountCaption(getAllSelectedItemIds().size());
 						}
 					};
 					return selectionManagerWithSelectedCount;
@@ -689,6 +691,19 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 		resultsTable.setAlwaysRecalculateColumnWidths(true);
+
+		resultsTable.addRefreshRenderedCellsEventListener(new RefreshRenderedCellsEvent() {
+			@Override
+			public void refreshRenderedCellsEvent(RefreshRenderedCellsEventParams refreshRenderedCellsEventParams) {
+
+				SelectionChangeEvent selectionChangeEvent = new SelectionChangeEvent();
+				selectionChangeEvent.setSelectedItemIds(refreshRenderedCellsEventParams.getSelectedIds());
+				selectionChangeEvent.setAllItemsSelected(refreshRenderedCellsEventParams.isAreAllItemSelected());
+
+				resultsTable.getSelectionManager().selectionChanged(selectionChangeEvent);
+				setSelectedCountCaption(resultsTable.getSelectionManager().getAllSelectedItemIds().size());
+			}
+		});
 
 		return resultsTable;
 	}
