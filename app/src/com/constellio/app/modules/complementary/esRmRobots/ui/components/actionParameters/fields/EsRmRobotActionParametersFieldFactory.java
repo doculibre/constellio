@@ -100,9 +100,7 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 				String inputMask = metadataVO.getInputMask();
 				BaseTextField textField = new BaseTextField(false);
 				textField.setInputMask(inputMask);
-				if (textField != null) {
-					super.postBuild(textField, recordVO, metadataVO);
-				}
+				super.postBuild(textField, recordVO, metadataVO);
 				return textField;
 			}
 			field = super.build(recordVO, metadataVO, locale);

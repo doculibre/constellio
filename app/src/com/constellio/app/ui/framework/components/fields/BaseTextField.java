@@ -92,7 +92,7 @@ public class BaseTextField extends TextField {
 
 	@Override
 	public void commit() throws SourceException, InvalidValueException {
-		if (trim == true) {
+		if (trim) {
 			setInternalValue(StringUtils.trim(getValue()));
 		}
 		super.commit();
