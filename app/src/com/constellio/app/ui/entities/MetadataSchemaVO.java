@@ -124,8 +124,8 @@ public class MetadataSchemaVO implements Serializable {
 			metadatas = getMetadatas();
 		} else {
 			metadatas = new ArrayList<>();
-			for (String hiddenMetadataCode : codes) {
-				List<MetadataVO> metadataVOs = getMetadatas(hiddenMetadataCode);
+			for (String metadataCode : codes) {
+				List<MetadataVO> metadataVOs = getMetadatas(metadataCode);
 				metadatas.addAll(metadataVOs);
 			}
 		}
