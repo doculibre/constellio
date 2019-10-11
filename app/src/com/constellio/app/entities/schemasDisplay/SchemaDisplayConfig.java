@@ -30,7 +30,7 @@ public class SchemaDisplayConfig implements Serializable {
 		this.schemaCode = schemaCode;
 		this.displayMetadataCodes = Collections.unmodifiableList(displayMetadataCodes);
 		this.formMetadataCodes = Collections.unmodifiableList(formMetadataCodes);
-		this.formHiddenMetadataCodes = Collections.unmodifiableList(formHiddenMetadataCodes);;
+		this.formHiddenMetadataCodes = Collections.unmodifiableList(formHiddenMetadataCodes);
 		this.searchResultsMetadataCodes = Collections.unmodifiableList(searchResultsMetadataCodes);
 		this.tableMetadataCodes = Collections.unmodifiableList(tableMetadataCodes);
 	}

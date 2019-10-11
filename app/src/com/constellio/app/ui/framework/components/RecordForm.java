@@ -64,7 +64,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 						|| !SchemaVOUtils.isMetadataNotPresentInList(metadataVO, recordVO.getExcludedMetadataCodeList())) {
 						field.setVisible(false);
 					}
-					if (hiddenFields.contains(metadataVO)){
+					if (hiddenFields.contains(metadataVO)) {
 						metadataVO.setForceHidden(true);
 					}
 					if (metadataVO.isUnmodifiable() && recordVO.isSaved()) {
@@ -83,9 +83,9 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	@Override
 	protected void addFieldToLayout(Field<?> field, VerticalLayout fieldLayout) {
 		Object propertyId = fieldGroup.getPropertyId(field);
-		if (propertyId instanceof MetadataVO && ((MetadataVO) propertyId).isForceHidden()){
+		if (propertyId instanceof MetadataVO && ((MetadataVO) propertyId).isForceHidden()) {
 			hiddenLayout.addComponent(field);
-		}else{
+		} else {
 			super.addFieldToLayout(field, fieldLayout);
 		}
 	}

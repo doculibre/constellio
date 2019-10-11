@@ -1,17 +1,5 @@
 package com.constellio.app.services.schemasDisplay;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -31,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -201,9 +190,9 @@ public class SchemasDisplayReader1 {
 
 					for (Metadata metadata : SchemaDisplayUtils.getRequiredMetadatasInSchemaForm(schema)) {
 						if (!formMetadataCodes.contains(metadata.getCode())) {
-							if (metadata.getDefaultValue() == null){
+							if (metadata.getDefaultValue() == null) {
 								formMetadataCodes.add(metadata.getCode());
-							}else{
+							} else {
 								formHiddenMetadataCodes.add(metadata.getCode());
 							}
 						}

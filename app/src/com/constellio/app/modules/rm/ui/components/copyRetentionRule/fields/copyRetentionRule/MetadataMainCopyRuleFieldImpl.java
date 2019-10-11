@@ -44,7 +44,7 @@ public class MetadataMainCopyRuleFieldImpl extends FolderCopyRuleFieldImpl {
 				public void valueChange(Property.ValueChangeEvent event) {
 					if (box.getValue()) {
 						onValueChange(copyRetentionRule.getId());
-					}else{
+					} else {
 						onValueChange(null);
 					}
 				}
