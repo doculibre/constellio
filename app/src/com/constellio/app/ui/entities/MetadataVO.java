@@ -50,6 +50,7 @@ public class MetadataVO implements Serializable {
 	final Map<String, Object> customParameters;
 	final CollectionInfoVO collectionInfoVO;
 	final boolean sortable;
+	private boolean forceHidden = false;
 
 	public MetadataVO(String code, String localCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
 					  boolean required,
@@ -59,7 +60,8 @@ public class MetadataVO implements Serializable {
 					  MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled,
 					  StructureFactory structureFactory,
 					  String metadataGroup, Object defaultValue, Set<String> customAttributes, boolean multiLingual,
-					  Locale locale, Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable) {
+					  Locale locale, Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO,
+					  boolean sortable) {
 		this(code, localCode, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
 				structureFactory, metadataGroup,
@@ -413,4 +415,11 @@ public class MetadataVO implements Serializable {
 		return sortable;
 	}
 
+	public boolean isForceHidden() {
+		return forceHidden;
+	}
+
+	public void setForceHidden(boolean value) {
+		forceHidden = value;
+	}
 }

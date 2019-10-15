@@ -139,7 +139,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		List<MetadataFilter> metadataThatDontSupportRoleAccessRetValueList = view.getConstellioFactories().getAppLayerFactory()
 				.getExtensions().forCollection(view.getCollection()).getMetadataAccessExclusionFilters();
 
-		if(metadata == null) {
+		if (metadata == null) {
 			return false;
 		}
 
@@ -176,7 +176,6 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 		return result;
 	}
-
 
 	public FormMetadataVO getParentFormMetadataVO() {
 		return getFormMetadataVO().getInheritance();
@@ -664,7 +663,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			Class<? extends Enum<?>> enumClass = null;
 			if (formMetadataVO.getValueType() == REFERENCE) {
 				inputType = MetadataInputType.LOOKUP;
-			} else if (formMetadataVO.getValueType() == BOOLEAN){
+			} else if (formMetadataVO.getValueType() == BOOLEAN) {
 				inputType = MetadataInputType.FIELD;
 			}
 			if (inputType != null && !inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)) {
