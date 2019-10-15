@@ -27,11 +27,11 @@ import com.constellio.app.ui.framework.components.layouts.I18NCssLayout;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.BaseTable.PagingControls;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeListener;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable.RecordVOSelectionManager;
 import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEvent;
@@ -197,7 +197,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	private void buildUI() {
 		setWidth("100%");
-		setSpacing(true);
+		//		setSpacing(true);
 		addStyleName("viewable-record-table-panel");
 		setId(UUID.randomUUID().toString());
 

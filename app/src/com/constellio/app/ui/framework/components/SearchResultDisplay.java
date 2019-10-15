@@ -33,8 +33,8 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,7 +45,7 @@ import java.util.Map;
 import static com.constellio.app.ui.application.ConstellioUI.getCurrent;
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class SearchResultDisplay extends CssLayout {
+public class SearchResultDisplay extends VerticalLayout {
 
 	public static final String RECORD_STYLE = "search-result-record";
 	public static final String TITLE_STYLE = "search-result-title";
@@ -109,7 +109,7 @@ public class SearchResultDisplay extends CssLayout {
 
 	protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
 		addStyleName(RECORD_STYLE);
-		setWidth("100%");
+		setWidth("350px");
 
 		addTitleComponents(searchResultVO);
 

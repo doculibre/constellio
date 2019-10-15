@@ -3,7 +3,7 @@ package com.constellio.app.ui.framework.components.search;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
