@@ -1,5 +1,6 @@
 package com.constellio.model.services.schemas;
 
+import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
@@ -176,7 +177,11 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	}
 
 	public MetadataSchema getSchemaOf(Record record) {
-		return getSchemaTypes(record).getSchema(record.getSchemaCode());
+		return getSchemaTypes(record).getSchemaOf(record);
+	}
+
+	public MetadataSchema getSchemaOf(RecordDTO record) {
+		return getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 	}
 
 	public MetadataSchemaType getSchemaTypeOf(Record record) {

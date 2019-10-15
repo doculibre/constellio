@@ -227,7 +227,7 @@ public class RecordExportServices {
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(record);
 
 
-		for (Metadata metadata : metadataSchemaTypes.getSchema(record.getSchemaCode()).getMetadatas()) {
+		for (Metadata metadata : metadataSchemaTypes.getSchemaOf(record).getMetadatas()) {
 
 			if (isMetadataExported(metadata, record, metadataSchemaTypes)) {
 				Object rawValue = record.get(metadata);

@@ -12137,11 +12137,13 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .valo-menu .valo-menu-part .valo-menu-item {
 	color: white;
 	font-size: 13px;
+	padding: 0 7px 0 19px;
 }
 
 .constellio .valo-menu .valo-menu-part .valo-menu-item .v-icon {
 	color: white;
 	font-size: 1.4em;
+	margin-right: 8px;
 }
 
 .constellio .valo-menu .valo-menu-part .valo-menu-item:hover {
@@ -14157,7 +14159,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .metadata-caption {
-	max-width: 250px;
+	max-width: 200px;
 }
 
 .constellio .base-display .base-display-main-layout {
@@ -14744,10 +14746,6 @@ div.v-layout.v-horizontal.v-widget {
 	width: 100%;
 }
 
-.constellio .constellio-menu-system-state-button [class*="caption"] {
-	padding-left: 14px;
-}
-
 .constellio .constellio-menu-system-state-button:hover {
 	color: white;
 }
@@ -15299,6 +15297,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-record {
 	padding-top: 4px;
+	min-width: 100%;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-with-checkbox-and-index {
@@ -15363,8 +15362,8 @@ div.v-layout.v-horizontal.v-widget {
 	display: block;
 	position: relative;
 	top: -24px;
-	left: 250px;
-	padding-right: 250px;
+	left: 200px;
+	padding-right: 200px;
 	margin-bottom: -24px;
 }
 
@@ -15383,7 +15382,6 @@ div.v-layout.v-horizontal.v-widget {
 	width: auto;
 	position: relative;
 	float: right;
-	top: -4px;
 	margin-bottom: -35px;
 }
 
@@ -15392,11 +15390,13 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation {
+	top: -4px;
 	right: 12px;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion {
-	right: -24px;
+	top: -6px;
+	right: -10px;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation:hover, .constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion:hover {

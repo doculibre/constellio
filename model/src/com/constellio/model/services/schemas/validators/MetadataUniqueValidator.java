@@ -62,7 +62,7 @@ public class MetadataUniqueValidator implements Validator<Record> {
 							Map<String, String> dependencyLanguageMap = new HashMap<>();
 
 							for (Dependency dependency : dependencyList) {
-								Metadata metadataDependedOn = schemaTypes.getSchema(record.getSchemaCode()).get(dependency.getLocalMetadataCode());
+								Metadata metadataDependedOn = schemaTypes.getSchemaOf(record).get(dependency.getLocalMetadataCode());
 								for (Language language : metadataDependedOn.getLabels().keySet()) {
 									String currentValue = dependencyLanguageMap.get(language.getCode());
 									if (currentValue == null) {

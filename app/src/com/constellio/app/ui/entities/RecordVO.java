@@ -291,12 +291,15 @@ public class RecordVO implements Serializable {
 	}
 
 	public MetadataVO getMetadataOrNull(String code) {
-		String codeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(code);
+		String searchedLocalCode = MetadataVO.getCodeWithoutPrefix(code);
 		for (MetadataValueVO metadataValue : metadataValues) {
 			MetadataVO metadata = metadataValue.getMetadata();
 			String metadataCode = metadata.getCode();
-			String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
-			if (code.equals(metadataCode) || codeWithoutPrefix.equals(metadataCodeWithoutPrefix)) {
+			String localCode = metadata.getLocalCode();
+			if (localCode == null) {
+				localCode = MetadataVO.getCodeWithoutPrefix(metadataCode);
+			}
+			if (searchedLocalCode.equals(localCode)) {
 				return metadataValue.getMetadata();
 			}
 		}

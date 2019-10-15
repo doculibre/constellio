@@ -48,7 +48,7 @@ public class SerializedCacheSearchService {
 	public SPEQueryResponse query(LogicalSearchQuery query, final int batch) {
 		long qtime = System.currentTimeMillis();
 		LogicalSearchQuery duplicateQuery = new LogicalSearchQuery(query);
-		List<Record> records = search(duplicateQuery,  batch);
+		List<Record> records = search(duplicateQuery, batch);
 		Map<String, Map<String, List<String>>> highlights = unmodifiableMap(cache.getHighlightingMap());
 
 		long numFound = records.size();
@@ -100,11 +100,29 @@ public class SerializedCacheSearchService {
 		return new LazyRecordList(batch, cache, modelLayerFactory, query, serializeRecords);
 	}
 
-	public Map<String, List<FacetValue>> getFieldFacetValues() {
+	public Map<String, List<FacetValue>> getFieldFacetValues(LogicalSearchQuery facetLoadingQuery) {
+		if (!cache.areFacetsLoaded() && hasFacetsConfigured(facetLoadingQuery)) {
+			SPEQueryResponse speQueryResponse = searchServices.query(new LogicalSearchQuery(facetLoadingQuery).setNumberOfRows(0));
+			cache.setFieldFacetValues(speQueryResponse.getFieldFacetValues());
+			cache.setQueryFacetsValues(speQueryResponse.getQueryFacetsValues());
+			cache.setFacetsComputed(true);
+		}
+
 		return cache.getFieldFacetValues();
 	}
 
-	public Map<String, Integer> getQueryFacetsValues() {
-		return cache.getQueryFacetsValues();
+	public Map<String, Integer> getQueryFacetsValues(LogicalSearchQuery facetLoadingQuery) {
+		if (!cache.areFacetsLoaded() && hasFacetsConfigured(facetLoadingQuery)) {
+			SPEQueryResponse speQueryResponse = searchServices.query(new LogicalSearchQuery(facetLoadingQuery).setNumberOfRows(0));
+			cache.setFieldFacetValues(speQueryResponse.getFieldFacetValues());
+			cache.setQueryFacetsValues(speQueryResponse.getQueryFacetsValues());
+			cache.setFacetsComputed(true);
+		}
+
+		return cache.getQueryFacetsValues() == null ? Collections.emptyMap() : cache.getQueryFacetsValues();
+	}
+
+	private boolean hasFacetsConfigured(LogicalSearchQuery query) {
+		return !query.getFieldFacets().isEmpty() || !query.getQueryFacets().isEmpty();
 	}
 }

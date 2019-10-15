@@ -767,7 +767,7 @@ public class RecordImpl implements Record {
 
 			try {
 
-				Metadata metadata = schemaTypes.getSchema(schemaCode).getMetadata(localCode);
+				Metadata metadata = schemaTypes.getSchemaOf(this).getMetadata(localCode);
 
 				boolean modified;
 				if (metadata.isMultivalue()) {
@@ -813,7 +813,7 @@ public class RecordImpl implements Record {
 				if (isSaved()) {
 					Record originalRecord = getCopyOfOriginalRecord();
 					try {
-						modifiedMetadatas.add(schemaTypes.getSchema(originalRecord.getSchemaCode()).getMetadata(localCode));
+						modifiedMetadatas.add(schemaTypes.getSchemaOf(originalRecord).getMetadata(localCode));
 					} catch (NoSuchMetadata e2) {
 
 					}

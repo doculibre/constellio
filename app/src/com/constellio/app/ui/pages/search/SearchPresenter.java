@@ -125,10 +125,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	public boolean isShowNumberingColumn(SearchResultVODataProvider dataProvider) {
 		return modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView() || dataProvider.size() > getMaxSelectableResults();
 	}
-	
+
 	private int getMaxSelectableResults() {
-        return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
-    }
+		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
+	}
 
 	public boolean isLazyLoadedSearchResults() {
 		return modelLayerFactory.getSystemConfigs().isLazyLoadedSearchResults();
@@ -396,7 +396,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		//Call #4
 
 		final SearchResultVODataProvider dataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
-				view.getSessionContext(), getSelectedPageLength()) {
+				view.getSessionContext(), this::getSelectedPageLength) {
 			@Override
 			public LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getSearchQuery().setHighlighting(highlighter).setOverridedQueryParams(extraSolrParams);
@@ -438,7 +438,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache,
 						true);
 				if (size == null) {
-					SPEQueryResponse response = searchServices.query(query, resultsPerPage);
+					SPEQueryResponse response = searchServices.query(query, getResultsPerPage());
 					logSearchEvent(this, response);
 					size = response.getRecords().size();
 				}

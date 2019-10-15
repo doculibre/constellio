@@ -84,10 +84,12 @@ $popup-view-z-index: 3;
 			.valo-menu-item {
 			    color: white;
 			    font-size: 13px;
+			    padding: 0 7px 0 19px;
 			    
 				.v-icon {
 		        	color: white; 
 		        	font-size: 1.4em;
+		        	margin-right: 8px;
 				}
 			
 				&:hover {
@@ -1183,7 +1185,7 @@ $popup-view-z-index: 3;
     }
     	
 	.metadata-caption {
-		max-width: 250px;
+		max-width: 200px;
 	}
 
 	.base-display {
@@ -1866,7 +1868,7 @@ $popup-view-z-index: 3;
 		//background: #3a434d;
 		
 		[class*="caption"] {
-			padding-left: 14px;
+			//padding-left: 14px;
 		}
     }
 
@@ -2510,6 +2512,7 @@ $popup-view-z-index: 3;
   			.search-result-record {
   				// padding-right: 45px;
   				padding-top: 4px; 
+  				min-width: 100%;
   			}
 
 			.search-result-with-checkbox-and-index {
@@ -2577,8 +2580,8 @@ $popup-view-z-index: 3;
 				display: block;
 				position: relative;
 				top: -24px;
-				left: 250px;
-				padding-right: 250px;
+				left: 200px;
+				padding-right: 200px;
 				margin-bottom: -24px;
 				
 				.v-icon {
@@ -2597,7 +2600,6 @@ $popup-view-z-index: 3;
 				width: auto;
 				position: relative;
 				float: right;
-				top: -4px;
 				margin-bottom: -35px;
 
 				.v-button-caption {
@@ -2606,11 +2608,13 @@ $popup-view-z-index: 3;
 			}
 			
 			.search-result-elevation {
+				top: -4px;
 				right: 12px;
 			}
 
 			.search-result-exclusion {
-				right: -24px;
+				top: -6px;
+				right: -10px;
 			}
 			
 			.search-result-elevation:hover, .search-result-exclusion:hover {

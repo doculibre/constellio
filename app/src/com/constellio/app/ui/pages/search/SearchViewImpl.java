@@ -25,8 +25,9 @@ import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
 import com.constellio.app.ui.framework.components.search.FacetsSliderPanel;
 import com.constellio.app.ui.framework.components.search.ViewableRecordVOSearchResultTable;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeListener;
+import com.constellio.app.ui.framework.components.table.BaseTable.PageLengthTableChangeEvent;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
@@ -79,6 +80,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.jetbrains.annotations.Nullable;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.sliderpanel.SliderPanel;
+import org.vaadin.sliderpanel.client.SliderPanelListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -122,6 +124,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private Map<String, String> extraParameters = null;
 	private boolean lazyLoadedSearchResults;
 	private List<SelectionChangeListener> selectionChangeListenerStorage = new ArrayList<>();
+	private boolean facetsOpened;
 
 	@Override
 	public void attach() {
@@ -277,13 +280,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	public void refreshSearchResultsAndFacets(boolean temporarySave) {
-		SearchResultVODataProvider dataProvider = refreshSearchResults(temporarySave, true);
+		SearchResultVODataProvider dataProvider = refreshSearchResults(temporarySave, facetsOpened);
 		refreshFacets(dataProvider);
 	}
 
 	@Override
 	public void refreshSearchResultsAndFacets() {
-		SearchResultVODataProvider dataProvider = refreshSearchResults(true, true);
+		SearchResultVODataProvider dataProvider = refreshSearchResults(true, facetsOpened);
 		refreshFacets(dataProvider);
 	}
 
@@ -329,13 +332,15 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			((SearchResultDetailedTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		}*/
 
-		if (isDetailedView()) {
-			resultsArea.removeAllComponents();
+		boolean detailedView = isDetailedView();
+		resultsArea.removeAllComponents();
+		if (lazyLoadedSearchResults) {
 			resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
-			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		} else {
-			resultsArea.removeAllComponents();
-			resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
+			resultsArea.addComponent(resultsTable);
+		}
+		if (detailedView) {
+			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		}
 
 		refreshCapsule();
@@ -359,7 +364,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
 		String sortCriterionValue = presenter.getSortCriterionValueAmong(sortableMetadata);
 		SortOrder sortOrder = presenter.getSortOrder();
-		facetsArea.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
+		if (facetsOpened) {
+			facetsArea.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
+		}
 		presenter.setPageNumber(1);
 	}
 
@@ -450,6 +457,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//		} else {
 
 		SliderPanel sliderPanel = new FacetsSliderPanel(facetsArea);
+		sliderPanel.addListener((SliderPanelListener) (expand) -> {
+			this.facetsOpened = expand;
+			if (facetsOpened) {
+				final SearchResultVODataProvider dataProvider = presenter.getSearchResults(true);
+				refreshFacets(dataProvider);
+			}
+		});
 
 		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, sliderPanel);
 		body.addStyleName("search-result-and-facets-container");
@@ -605,6 +619,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		viewerPanel.setItemsPerPageValue(selectedPageLength);
 		viewerPanel.getActualTable().setPageLength(selectedPageLength);
 		viewerPanel.getActualTable().setCurrentPage(currentPage);
+		viewerPanel.getActualTable().addPageLengthChangeListener(new BaseTable.PageLengthChangeListener() {
+
+			@Override
+			public void pageLengthChanged(PageLengthTableChangeEvent event) {
+				presenter.setSelectedPageLength(event.getPageLength());
+			}
+		});
 		viewerPanel.getActualTable().addPageChangeListener(new BaseTable.PageChangeListener() {
 			public void pageChanged(BaseTable.PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
@@ -620,7 +641,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				//					}
 			}
 		});
-		
+
 		return viewerPanel;
 	}
 

@@ -299,12 +299,12 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 
 	public Map<String, List<FacetValue>> getFieldFacetValues() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
-		return searchServices.getFieldFacetValues();
+		return searchServices.getFieldFacetValues(getQuery());
 	}
 
 	public Map<String, Integer> getQueryFacetsValues() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
-		return searchServices.getQueryFacetsValues();
+		return searchServices.getQueryFacetsValues(getQuery());
 	}
 
 }

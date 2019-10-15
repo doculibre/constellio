@@ -347,9 +347,9 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 
 	public boolean isRestartWithReindexButtonEnabled() {
 		if (appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isSystemDistributed()) {
-			return !UpgradeAppRecoveryServiceImpl.HAS_UPLOADED_A_WAR_SINCE_REBOOTING;
+			return !UpgradeAppRecoveryServiceImpl.HAS_UPLOADED_A_WAR_SINCE_REBOOTING || !FoldersLocator.usingAppWrapper();
 		} else {
-			return !recoveryModeEnabled();
+			return !recoveryModeEnabled() || !FoldersLocator.usingAppWrapper();
 		}
 	}
 

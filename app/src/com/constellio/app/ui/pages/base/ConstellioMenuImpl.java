@@ -417,7 +417,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		badgeWrapper.addStyleName(ValoTheme.MENU_ITEM);
 		badgeWrapper.setWidth(100.0f, Unit.PERCENTAGE);
 		badgeLabel.addStyleName(ValoTheme.MENU_BADGE);
-		//		badgeLabel.setWidthUndefined();
+		badgeLabel.setWidthUndefined();
 		if (StringUtils.isBlank(badgeLabel.getValue())) {
 			badgeLabel.setVisible(false);
 		}

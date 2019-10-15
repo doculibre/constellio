@@ -204,7 +204,7 @@ public class BatchProcessingPresenterService {
 			protected MetadataToVOBuilder newMetadataToVOBuilder() {
 				return new MetadataToVOBuilder() {
 					@Override
-					protected MetadataVO newMetadataVO(String metadataCode, String metadataLocalCode,
+					protected MetadataVO newMetadataVO(short id, String metadataCode, String metadataLocalCode,
 													   String datastoreCode,
 													   MetadataValueType type, String collection,
 													   MetadataSchemaVO schemaVO, boolean required,
@@ -232,7 +232,7 @@ public class BatchProcessingPresenterService {
 						defaultValue = null;
 						User user = schemas.getUser(sessionContext.getCurrentUser().getId());
 						return isMetadataModifiable(metadataCode, user, selectedRecordIds) ?
-							   super.newMetadataVO(metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue,
+							   super.newMetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 									   readOnly,
 									   unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									   metadataDisplayType,
@@ -323,7 +323,7 @@ public class BatchProcessingPresenterService {
 			protected MetadataToVOBuilder newMetadataToVOBuilder() {
 				return new MetadataToVOBuilder() {
 					@Override
-					protected MetadataVO newMetadataVO(String metadataCode, String metadataLocalCode,
+					protected MetadataVO newMetadataVO(short id, String metadataCode, String metadataLocalCode,
 													   String datastoreCode,
 													   MetadataValueType type, String collection,
 													   MetadataSchemaVO schemaVO, boolean required,
@@ -365,7 +365,7 @@ public class BatchProcessingPresenterService {
 								continue;
 							}
 						}
-						return super.newMetadataVO(metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue,
+						return super.newMetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 								readOnly,
 								unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 								metadataDisplayType,
@@ -513,7 +513,7 @@ public class BatchProcessingPresenterService {
 			//			recordServices.loadLazyTransientMetadatas(record);
 			//			recordServices.reloadEagerTransientMetadatas(record);
 
-			for (Metadata metadata : types.getSchema(record.getSchemaCode()).getLazyTransientMetadatas()) {
+			for (Metadata metadata : types.getSchemaOf(record).getLazyTransientMetadatas()) {
 				if (!LangUtils.isEqual(record.get(metadata), originalRecord.get(metadata))) {
 					if (!Schemas.isGlobalMetadataExceptTitle(metadata.getLocalCode()) && extensions
 							.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata)) {
@@ -522,7 +522,7 @@ public class BatchProcessingPresenterService {
 				}
 			}
 
-			for (Metadata metadata : types.getSchema(record.getSchemaCode()).getEagerTransientMetadatas()) {
+			for (Metadata metadata : types.getSchemaOf(record).getEagerTransientMetadatas()) {
 				if (!LangUtils.isEqual(record.get(metadata), originalRecord.get(metadata))) {
 					if (!Schemas.isGlobalMetadataExceptTitle(metadata.getLocalCode()) && extensions
 							.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata)) {
@@ -647,7 +647,7 @@ public class BatchProcessingPresenterService {
 				transactionList.add(transaction);
 				transaction = new Transaction();
 			}
-			MetadataSchema currentRecordSchema = types.getSchema(record.getSchemaCode());
+			MetadataSchema currentRecordSchema = types.getSchemaOf(record);
 
 			for (Map.Entry<String, Object> entry : request.getModifiedMetadatas().entrySet()) {
 				String localMetadataCode = new SchemaUtils().getLocalCodeFromMetadataCode(entry.getKey());
@@ -662,7 +662,7 @@ public class BatchProcessingPresenterService {
 				}
 			}
 
-			currentRecordSchema = types.getSchema(record.getSchemaCode());
+			currentRecordSchema = types.getSchemaOf(record);
 			for (Map.Entry<String, Object> entry : request.getModifiedMetadatas().entrySet()) {
 				String localMetadataCode = new SchemaUtils().getLocalCodeFromMetadataCode(entry.getKey());
 
@@ -702,7 +702,7 @@ public class BatchProcessingPresenterService {
 		for (String id : request.getIds()) {
 			Record record = recordServices.getDocumentById(id);
 			transaction.add(record);
-			MetadataSchema currentRecordSchema = types.getSchema(record.getSchemaCode());
+			MetadataSchema currentRecordSchema = types.getSchemaOf(record);
 
 			for (Map.Entry<String, Object> entry : request.getModifiedMetadatas().entrySet()) {
 				String localMetadataCode = new SchemaUtils().getLocalCodeFromMetadataCode(entry.getKey());
@@ -717,7 +717,7 @@ public class BatchProcessingPresenterService {
 				}
 			}
 
-			currentRecordSchema = types.getSchema(record.getSchemaCode());
+			currentRecordSchema = types.getSchemaOf(record);
 			for (Map.Entry<String, Object> entry : request.getModifiedMetadatas().entrySet()) {
 				String localMetadataCode = new SchemaUtils().getLocalCodeFromMetadataCode(entry.getKey());
 

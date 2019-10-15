@@ -265,7 +265,7 @@ public class User extends RecordWrapper {
 	}
 
 	public boolean hasGlobalAccessToMetadata(Metadata m) {
-		if (!isMetadataSecured(m)) {
+		if (!m.isSecured()) {
 			return true;
 		}
 
@@ -282,12 +282,6 @@ public class User extends RecordWrapper {
 		return false;
 	}
 
-	private boolean isMetadataSecured(Metadata m) {
-		if (m.getAccessRestrictions() == null || m.getAccessRestrictions().getRequiredReadRoles() == null || m.getAccessRestrictions().getRequiredReadRoles().size() <= 0) {
-			return false;
-		}
-		return true;
-	}
 
 	private boolean isAccessRole(String role) {
 		return role.equals(Role.READ) || role.equals(Role.WRITE) || role.equals(Role.DELETE);
@@ -304,7 +298,7 @@ public class User extends RecordWrapper {
 
 	public boolean hasAccessToMetadata(Metadata m, Record record) {
 
-		if (!isMetadataSecured(m)) {
+		if (!m.isSecured()) {
 			return true;
 		}
 
