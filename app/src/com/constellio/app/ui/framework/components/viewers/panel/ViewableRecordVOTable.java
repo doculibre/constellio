@@ -56,7 +56,7 @@ public class ViewableRecordVOTable extends RecordVOTable {
 
 	@Override
 	protected boolean isPartialRowUpdate() {
-		return true;
+		return false;
 	}
 
 	public boolean isCompressed() {
