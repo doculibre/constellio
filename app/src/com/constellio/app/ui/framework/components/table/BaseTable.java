@@ -9,8 +9,11 @@ import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuTab
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEvent;
+import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -55,7 +58,7 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
-public class BaseTable extends Table {
+public class BaseTable extends Table implements SelectionComponent {
 
 	public static final int DEFAULT_PAGE_LENGTH = 10;
 
@@ -86,6 +89,11 @@ public class BaseTable extends Table {
 	private PagedTableContainer pagedTableContainer;
 
 	private List<PageChangeListener> pageChangeListeners = new ArrayList<>();
+
+	private List<RefreshRenderedCellsEvent> refreshRenderedCellsEventListenerList = new ArrayList<>();
+
+	private List<Object> selectedItem;
+	private boolean areAllItemSelected;
 
 	private List<PageLengthChangeListener> pageLengthChangeListeners = new ArrayList<>();
 
@@ -200,6 +208,20 @@ public class BaseTable extends Table {
 				//				int adjustedFirstIndex = pagingCurrentPageFirstItemIndex - ((currentPage - 1) * getPageLength());
 				super.setCurrentPageFirstItemIndex(pagingCurrentPageFirstItemIndex);
 			}
+		}
+	}
+
+	public void addRefreshRenderedCellsEventListener(RefreshRenderedCellsEvent refreshRenderedCellsEvent) {
+		refreshRenderedCellsEventListenerList.add(refreshRenderedCellsEvent);
+	}
+
+	public void fireAddRefreshRenderedCellsEvent(List<Object> selectedId, boolean areAllItemSelected) {
+		if (refreshRenderedCellsEventListenerList == null) {
+			return;
+		}
+
+		for (RefreshRenderedCellsEvent currentRefreshRenderedCellsEvent : refreshRenderedCellsEventListenerList) {
+			currentRefreshRenderedCellsEvent.refreshRenderedCellsEvent(new RefreshRenderedCellsEventParams(selectedId, areAllItemSelected));
 		}
 	}
 
@@ -521,7 +543,21 @@ public class BaseTable extends Table {
 
 	@Override
 	public void refreshRenderedCells() {
+		// Optimisation pour pas que chacun des composantes de sélection (checkbox)
+		// est à appeler les écouteur d'événement de la sélection et de valeur changé. C'est fait une fois après le
+		// rendu des cullules du tableau.
+		if (selectedItem == null) {
+			selectedItem = new ArrayList<>();
+		} else {
+			selectedItem.clear();
+		}
+
+		areAllItemSelected = true;
 		super.refreshRenderedCells();
+
+		if (!selectedItem.isEmpty()) {
+			fireAddRefreshRenderedCellsEvent(selectedItem, areAllItemSelected);
+		}
 	}
 
 	@Override
@@ -749,6 +785,14 @@ public class BaseTable extends Table {
 
 		private SelectionCheckBox(final Object itemId) {
 			this.itemId = itemId;
+			boolean selected = selectionManager.isSelected(itemId);
+
+			if (selected) {
+				selectedItem.add(itemId);
+			} else {
+				areAllItemSelected = false;
+			}
+			setValue(selected);
 			addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(com.vaadin.data.Property.ValueChangeEvent event) {
@@ -764,7 +808,6 @@ public class BaseTable extends Table {
 				}
 			});
 			addSelectionChangeListener(new CheckBoxSelectionChangeListener());
-			setValue(selectionManager.isSelected(itemId));
 		}
 
 		@Override
@@ -789,172 +832,6 @@ public class BaseTable extends Table {
 				}
 			}
 		}
-
-	}
-
-	public static class SelectionChangeEvent {
-
-		private Component component;
-
-		private List<Object> selectedItemIds;
-
-		private List<Object> deselectedItemIds;
-
-		private boolean allItemsSelected;
-
-		private boolean allItemsDeselected;
-
-		public Component getComponent() {
-			return component;
-		}
-
-		public void setComponent(Component component) {
-			this.component = component;
-		}
-
-		public List<Object> getSelectedItemIds() {
-			return selectedItemIds;
-		}
-
-		public void setSelectedItemIds(List<Object> selectedItemIds) {
-			this.selectedItemIds = selectedItemIds;
-		}
-
-		@SuppressWarnings("unchecked")
-		public void setSelectedItemId(Object selectedItemId) {
-			if (selectedItemId instanceof List) {
-				setSelectedItemIds((List<Object>) selectedItemId);
-			} else if (selectedItemId != null) {
-				setSelectedItemIds(Arrays.asList(selectedItemId));
-			}
-		}
-
-		public List<Object> getDeselectedItemIds() {
-			return deselectedItemIds;
-		}
-
-		public void setDeselectedItemIds(List<Object> deselectedItemIds) {
-			this.deselectedItemIds = deselectedItemIds;
-		}
-
-		@SuppressWarnings("unchecked")
-		public void setDeselectedItemId(Object deselectedItemId) {
-			if (deselectedItemId instanceof List) {
-				setDeselectedItemIds((List<Object>) deselectedItemId);
-			} else if (deselectedItemId != null) {
-				setDeselectedItemIds(Arrays.asList(deselectedItemId));
-			}
-		}
-
-		public boolean isAllItemsSelected() {
-			return allItemsSelected;
-		}
-
-		public void setAllItemsSelected(boolean allItemsSelected) {
-			this.allItemsSelected = allItemsSelected;
-		}
-
-		public boolean isAllItemsDeselected() {
-			return allItemsDeselected;
-		}
-
-		public void setAllItemsDeselected(boolean allItemsDeselected) {
-			this.allItemsDeselected = allItemsDeselected;
-		}
-
-	}
-
-	public static interface SelectionChangeListener {
-
-		void selectionChanged(SelectionChangeEvent event);
-
-	}
-
-	public static interface SelectionManager extends SelectionChangeListener {
-
-		List<Object> getAllSelectedItemIds();
-
-		boolean isAllItemsSelected();
-
-		boolean isAllItemsDeselected();
-
-		boolean isSelected(Object itemId);
-
-	}
-
-	public static abstract class ValueSelectionManager implements SelectionManager {
-
-		@SuppressWarnings({"rawtypes", "unchecked"})
-		private List<Object> ensureListValue() {
-			List<Object> listValue;
-			Object objectValue = getValue();
-			if (objectValue instanceof List) {
-				listValue = (List) objectValue;
-			} else {
-				listValue = new ArrayList<>();
-			}
-			return listValue;
-		}
-
-		@Override
-		public List<Object> getAllSelectedItemIds() {
-			List<Object> allSelectedItemIds;
-			if (isAllItemsSelected()) {
-				allSelectedItemIds = new ArrayList<>(getItemIds());
-			} else {
-				allSelectedItemIds = ensureListValue();
-			}
-			return allSelectedItemIds;
-		}
-
-		@Override
-		public boolean isAllItemsSelected() {
-			List<Object> listValue = ensureListValue();
-			return listValue.containsAll(getItemIds());
-		}
-
-		@Override
-		public boolean isAllItemsDeselected() {
-			List<Object> listValue = ensureListValue();
-			return listValue.isEmpty();
-		}
-
-		@Override
-		public boolean isSelected(Object itemId) {
-			List<Object> listValue = ensureListValue();
-			return listValue.contains(itemId);
-		}
-
-		@Override
-		public void selectionChanged(SelectionChangeEvent event) {
-			if (event.isAllItemsSelected()) {
-				setValue(getItemIds());
-			} else if (event.isAllItemsDeselected()) {
-				setValue(new ArrayList<>());
-			} else {
-				List<Object> selectedItemIds = event.getSelectedItemIds();
-				List<Object> deselectedItemIds = event.getDeselectedItemIds();
-				List<Object> listValue = ensureListValue();
-				if (selectedItemIds != null) {
-					for (Object selectedItemId : selectedItemIds) {
-						if (!listValue.contains(selectedItemId)) {
-							listValue.add(selectedItemId);
-						}
-					}
-				} else if (deselectedItemIds != null) {
-					for (Object deselectedItemId : deselectedItemIds) {
-						listValue.remove(deselectedItemId);
-					}
-				}
-				setValue(listValue);
-			}
-		}
-
-		protected abstract Object getValue();
-
-		protected abstract void setValue(Object newValue);
-
-		protected abstract Collection<?> getItemIds();
 
 	}
 

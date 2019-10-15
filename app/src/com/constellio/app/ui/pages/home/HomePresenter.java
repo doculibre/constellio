@@ -245,7 +245,7 @@ public class HomePresenter extends BasePresenter<HomeView> {
 		return recordServices.getDocumentById(id);
 	}
 
-	boolean isSelected(String recordId) {
+	boolean isInCart(String recordId) {
 		SessionContext sessionContext = view.getSessionContext();
 		return sessionContext.getSelectedRecordIds().contains(recordId);
 	}

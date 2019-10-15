@@ -25,6 +25,7 @@ import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
 import com.constellio.app.ui.framework.components.search.FacetsSliderPanel;
 import com.constellio.app.ui.framework.components.search.ViewableRecordVOSearchResultTable;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.BaseTable.PageLengthTableChangeEvent;
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeListener;

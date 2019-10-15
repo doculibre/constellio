@@ -29,8 +29,8 @@ import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUp
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
 import com.constellio.app.ui.framework.components.search.FacetsSliderPanel;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;

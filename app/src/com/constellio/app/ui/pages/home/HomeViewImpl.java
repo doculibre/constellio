@@ -14,8 +14,8 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
 import com.constellio.app.ui.framework.components.tree.TreeItemClickListener;
@@ -468,16 +468,22 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 							presenter.selectionChanged(recordId, false);
 						}
 					} else if (allItemsSelected) {
-						for (Object itemId : getItemIds()) {
-							if (!isSelected(itemId)) {
+						Collection<?> itemIds = getItemIds();
+
+						selectedItemIds.addAll(itemIds);
+
+						for (Object itemId : itemIds) {
+							if (!isInCart(itemId)) {
 								RecordVO recordVO = getRecordVO(itemId);
 								String recordId = recordVO.getId();
 								presenter.selectionChanged(recordId, true);
 							}
 						}
 					} else if (allItemsDeselected) {
+						selectedItemIds.clear();
+
 						for (Object itemId : getItemIds()) {
-							if (isSelected(itemId)) {
+							if (isInCart(itemId)) {
 								RecordVO recordVO = getRecordVO(itemId);
 								String recordId = recordVO.getId();
 								presenter.selectionChanged(recordId, false);
@@ -516,18 +522,23 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					return allItemsDeselected;
 				}
 
+				private boolean isInCart(Object itemId) {
+					RecordVO recordVO = getRecordVO(itemId);
+					String recordId = recordVO.getId();
+
+					return presenter.isInCart(recordId);
+				}
+
 				@Override
 				public boolean isSelected(Object itemId) {
 					initSelectedItemCache();
 
-					RecordVO recordVO = getRecordVO(itemId);
-					String recordId = recordVO.getId();
 
 					if (selectedItemIds.contains(itemId)) {
 						return true;
 					}
 
-					return presenter.isSelected(recordId);
+					return isInCart(itemId);
 				}
 
 				protected Collection<?> getItemIds() {

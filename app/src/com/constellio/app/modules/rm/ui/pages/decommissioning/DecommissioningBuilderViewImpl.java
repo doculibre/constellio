@@ -12,8 +12,8 @@ import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeListener;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
 import com.constellio.app.ui.pages.search.SaveSearchListener;
 import com.constellio.app.ui.pages.search.SearchViewImpl;

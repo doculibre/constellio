@@ -28,7 +28,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Image;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -53,10 +52,6 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 
 	public RecordVOContainer getRecordVOContainer() {
 		return recordVOContainer;
-	}
-	
-	public Collection<?> getCompressedPropertyIds() {
-		return Arrays.asList(THUMBNAIL_PROPERTY, SEARCH_RESULT_PROPERTY);
 	}
 	
 	public boolean isCompressed() {
