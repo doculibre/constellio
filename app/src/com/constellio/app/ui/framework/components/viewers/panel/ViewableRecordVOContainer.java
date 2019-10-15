@@ -16,6 +16,7 @@ import com.constellio.app.ui.framework.components.resource.ConstellioResourceHan
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.data.Container;
 import com.vaadin.data.Container.ItemSetChangeNotifier;
 import com.vaadin.data.Item;
@@ -67,7 +68,9 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		for (Object propertyId : propertyIds) {
 			removeContainerProperty(propertyId);
 		}
-		addContainerProperty(THUMBNAIL_PROPERTY, Image.class, null);
+		if (!ResponsiveUtils.isPhone()) {
+			addContainerProperty(THUMBNAIL_PROPERTY, Image.class, null);
+		}
 		addContainerProperty(SEARCH_RESULT_PROPERTY, Component.class, null);
 	}
 

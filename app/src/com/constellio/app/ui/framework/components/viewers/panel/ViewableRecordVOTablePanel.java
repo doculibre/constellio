@@ -680,7 +680,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			resultsTable.addSelectionChangeListener(listener);
 		}
 		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
-		resultsTable.setAlwaysRecalculateColumnWidths(true);
 
 		resultsTable.addRefreshRenderedCellsEventListener(new RefreshRenderedCellsEvent() {
 			@Override
@@ -865,6 +864,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					for (TableCompressListener tableCompressListener : tableCompressListeners) {
 						tableCompressListener.tableCompressChange(tableCompressEvent);
 					}
+					table.refreshRenderedCells();
 				}
 				adjustTableExpansion();
 			}
