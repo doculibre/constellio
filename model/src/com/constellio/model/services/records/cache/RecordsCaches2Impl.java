@@ -615,6 +615,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				summaryCacheInitialized = true;
 				CacheRecordDTOUtils.stopCompilingDTOsStats();
 				LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
+				cacheLoadingProgression = null;
 
 			}).start();
 

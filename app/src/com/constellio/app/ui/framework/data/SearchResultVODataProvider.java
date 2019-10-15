@@ -190,7 +190,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 
 		int ajustedNumberOfItems = Math.max(numberOfItems, resultsPerPageSupplier.get() - (startIndex % resultsPerPageSupplier.get()));
 
-		List<Record> subListOfRecords = records.subList(startIndex, startIndex + Math.min(ajustedNumberOfItems, records.size()));
+		List<Record> subListOfRecords = records.subList(startIndex, startIndex + Math.min(ajustedNumberOfItems, records.size() - startIndex));
 
 
 		for (Record record : subListOfRecords) {

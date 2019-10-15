@@ -122,7 +122,8 @@ public class RecordAutomaticMetadataServices {
 		loadTransientEagerMetadatas(schema, record, recordProvider, transaction);
 	}
 
-	public void loadTransientEagerMetadatas(MetadataSchema schema, RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
+	public void loadTransientEagerMetadatas(MetadataSchema schema, RecordImpl record, RecordProvider recordProvider,
+											Transaction transaction) {
 		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record);
