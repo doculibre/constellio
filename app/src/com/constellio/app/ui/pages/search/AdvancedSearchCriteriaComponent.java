@@ -91,6 +91,32 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		refreshRowCache();
 	}
 
+	public void setSchemaSelected(String schemaCode) {
+		for (Criterion criterion : container.getItemIds()) {
+			criterion.setSchemaSelected(schemaCode);
+		}
+		refreshRowCache();
+	}
+
+	public void setShowDeactivatedMetadatas(boolean shown) {
+		refreshRowCache();
+
+		List<Criterion> itemToRemove = new ArrayList<>();
+		for (Criterion criterion : container.getItemIds()) {
+			if (criterion.getMetadataCode() == null) {
+				itemToRemove.add(criterion);
+			}
+		}
+
+		for (Criterion criterion : itemToRemove) {
+			removeItem(criterion);
+		}
+
+		for (int i = container.getItemIds().size(); i < 2; i++) {
+			addEmptyCriterion();
+		}
+	}
+
 	public AdvancedSearchCriteriaComponent addEmptyCriterion() {
 		addItem(new Criterion(schemaType));
 		setPageLength(size());
@@ -160,6 +186,11 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			});
 			//			comboBox.setPageLength(comboBox.size());
 			comboBox.setPageLength(20);
+
+			if (!comboBox.containsId(metadataVO)) {
+				criterion.clear();
+			}
+
 			return comboBox;
 		}
 	}

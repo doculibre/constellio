@@ -93,6 +93,11 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	}
 
 	@Override
+	public void setSchema(String schemaCode) {
+		header.selectAdvancedSearchSchema(schemaCode);
+	}
+
+	@Override
 	public String getSearchExpression() {
 		return header.getSearchExpression();
 	}
