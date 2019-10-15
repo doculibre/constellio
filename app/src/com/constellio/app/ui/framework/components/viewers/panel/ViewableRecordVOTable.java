@@ -54,11 +54,6 @@ public class ViewableRecordVOTable extends RecordVOTable {
 		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 	}
 
-	@Override
-	protected boolean isPartialRowUpdate() {
-		return false;
-	}
-
 	public boolean isCompressed() {
 		return compressed;
 	}

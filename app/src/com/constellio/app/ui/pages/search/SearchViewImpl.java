@@ -526,7 +526,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
 
-		final boolean indexColumn = presenter.isShowNumberingColumn(dataProvider);
 		ViewableRecordVOSearchResultTable.TableMode tableMode;
 		if (this.resultsTable != null) {
 			tableMode = ((ViewableRecordVOSearchResultTable) this.resultsTable).getTableMode();
@@ -534,11 +533,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			tableMode = null;
 		}
 		ViewableRecordVOSearchResultTable viewerPanel = new ViewableRecordVOSearchResultTable(container, tableMode, presenter, getRecordListMenuBar()) {
-			@Override
-			protected boolean isIndexColumn() {
-				return indexColumn;
-			}
-
 			@Override
 			protected boolean isPagedInListMode() {
 				return true;
