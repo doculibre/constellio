@@ -28,7 +28,6 @@ import com.constellio.app.ui.framework.components.search.ViewableRecordVOSearchR
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.BaseTable.PageLengthTableChangeEvent;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
