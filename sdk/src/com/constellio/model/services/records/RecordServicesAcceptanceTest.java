@@ -1573,6 +1573,16 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		transaction.add(record6);
 		transaction.addRecordToReindex("record7");
 
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
+				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
+				tuple("record1", null),
+				tuple("record2", null),
+				tuple("record3", null),
+				tuple("record4", null),
+				tuple("record5", null)
+		);
+
 		try {
 			recordServices.execute(transaction);
 			fail("Exception expected");
@@ -1580,7 +1590,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			//OK
 		}
 
-		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
 				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
 				tuple("record1", null),

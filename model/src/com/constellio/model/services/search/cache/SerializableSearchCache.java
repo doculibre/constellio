@@ -126,4 +126,9 @@ public class SerializableSearchCache implements Serializable {
 	public void resetTotalQTime() {
 		totalQTime = 0;
 	}
+
+	public boolean areFacetsLoaded() {
+		return (fieldFacetValues != null && !fieldFacetValues.isEmpty())
+			   || (queryFacetsValues != null && !queryFacetsValues.isEmpty());
+	}
 }

@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components.menuBar;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Record;
@@ -10,10 +11,10 @@ import java.io.IOException;
 
 public abstract class AbstractRecordMenuBarHandler implements RecordMenuBarHandler {
 
-	protected transient ConstellioFactories constellioFactories;
+	protected transient AppLayerFactory appLayerFactory;
 
-	public AbstractRecordMenuBarHandler(ConstellioFactories constellioFactories) {
-		this.constellioFactories = constellioFactories;
+	public AbstractRecordMenuBarHandler(AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
 		initTransientObjects();
 	}
 
@@ -24,14 +25,14 @@ public abstract class AbstractRecordMenuBarHandler implements RecordMenuBarHandl
 	}
 
 	private void initTransientObjects() {
-		if (constellioFactories == null) {
-			constellioFactories = ConstellioFactories.getInstance();
+		if (appLayerFactory == null) {
+			appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		}
 	}
 
 	@Override
 	public boolean isMenuBarForRecordId(String recordId) {
-		RecordServices recordServices = constellioFactories.getModelLayerFactory().newRecordServices();
+		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		Record record = recordServices.getDocumentById(recordId);
 		String schemaCode = record.getSchemaCode();
 		return isMenuBarForSchemaCode(schemaCode);

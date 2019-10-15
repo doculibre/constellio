@@ -269,6 +269,16 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public Record toRecord(MetadataSchemaType schemaType, RecordDTO recordDTO, boolean fullyLoaded) {
+		return recordServices.toRecord(schemaType, recordDTO, fullyLoaded);
+	}
+
+	@Override
+	public Record toRecord(MetadataSchema schema, RecordDTO recordDTO, boolean fullyLoaded) {
+		return recordServices.toRecord(schema, recordDTO, fullyLoaded);
+	}
+
+	@Override
 	public long documentsCount() {
 		return recordServices.documentsCount();
 	}

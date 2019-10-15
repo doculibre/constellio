@@ -867,6 +867,9 @@ public class ContentManager implements StatefulService {
 							transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 							transaction.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
 							recordServices.executeWithoutImpactHandling(transaction);
+						} catch (RecordServicesException.OptimisticLocking e) {
+							LOGGER.trace("Optimistic locking occured with record " + e.getId());
+
 						} catch (RecordServicesException e) {
 							throw new RuntimeException(e);
 						}
@@ -985,7 +988,7 @@ public class ContentManager implements StatefulService {
 				Transaction tx = new Transaction();
 				tx.addAll(records);
 				for (Record record : records) {
-					MetadataSchema schema = types.getSchema(record.getSchemaCode());
+					MetadataSchema schema = types.getSchemaOf(record);
 					for (Metadata metadata : schema.getContentMetadatasForPopulate()) {
 
 						for (Content content : record.<Content>getValues(metadata)) {
@@ -1175,7 +1178,7 @@ public class ContentManager implements StatefulService {
 				while (recordsListToReindexIterator.hasNext()) {
 					List<Record> batch = recordsListToReindexIterator.next();
 					for (Record record : batch) {
-						MetadataSchema schema = types.getSchema(record.getSchemaCode());
+						MetadataSchema schema = types.getSchemaOf(record);
 						for (Metadata contentMetadata : contentMetadatas) {
 							if (schema.hasMetadataWithCode(contentMetadata.getLocalCode())) {
 								record.markAsModified(contentMetadata);

@@ -27,6 +27,7 @@ public class RolesManager implements StatefulService, OneXMLConfigPerCollectionM
 	private CollectionsListManager collectionsListManager;
 	private ModelLayerFactory modelLayerFactory;
 	private ConstellioCacheManager cacheManager;
+	private SchemasRecordsServices schemasRecordsServices;
 
 	public RolesManager(ModelLayerFactory modelLayerFactory) {
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
@@ -103,7 +104,12 @@ public class RolesManager implements StatefulService, OneXMLConfigPerCollectionM
 	}
 
 	public Roles getCollectionRoles(String collection, ModelLayerFactory modelLayerFactory) {
-		return new Roles(getAllRoles(collection), new SchemasRecordsServices(collection, modelLayerFactory));
+
+		if (schemasRecordsServices == null) {
+			schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
+		}
+
+		return new Roles(getAllRoles(collection), schemasRecordsServices);
 	}
 
 	public Role getRole(String collection, String code)

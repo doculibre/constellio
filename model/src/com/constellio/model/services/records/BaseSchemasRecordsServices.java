@@ -90,7 +90,7 @@ public class BaseSchemasRecordsServices implements Serializable {
 	public String getLinkedSchemaOf(Record record) {
 		MetadataSchemaTypes types = getTypes();
 		String recordSchemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
-		MetadataSchema recordSchema = types.getSchema(record.getSchemaCode());
+		MetadataSchema recordSchema = types.getSchemaOf(record);
 
 		//The case where the record is a type
 		if (recordSchemaType.toLowerCase().contains("type")) {
@@ -137,7 +137,7 @@ public class BaseSchemasRecordsServices implements Serializable {
 
 	public void setType(Record record, Record type) {
 		MetadataSchemaTypes types = getTypes();
-		MetadataSchema currentRecordSchema = types.getSchema(record.getSchemaCode());
+		MetadataSchema currentRecordSchema = types.getSchemaOf(record);
 
 		Metadata recordTypeMetadata = getRecordTypeMetadataOf(record);
 

@@ -36,7 +36,7 @@ public class ViewableRecordVOTable extends RecordVOTable {
 
 	@Override
 	public boolean isMenuBarColumn() {
-		return true;
+		return !isCompressed();
 	}
 
 	@Override
@@ -52,6 +52,11 @@ public class ViewableRecordVOTable extends RecordVOTable {
 		addStyleName(ValoTheme.TABLE_NO_VERTICAL_LINES);
 		setColumnWidth(ViewableRecordVOContainer.THUMBNAIL_PROPERTY, ViewableRecordVOContainer.THUMBNAIL_WIDTH);
 		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+	}
+
+	@Override
+	protected boolean isPartialRowUpdate() {
+		return false;
 	}
 
 	public boolean isCompressed() {

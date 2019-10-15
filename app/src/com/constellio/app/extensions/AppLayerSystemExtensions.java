@@ -15,6 +15,9 @@ import com.constellio.app.extensions.api.UserCredentialExtension.UserCredentialE
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForSystemParams;
 import com.constellio.app.extensions.sequence.SystemSequenceExtension;
+import com.constellio.app.extensions.ui.ConstellioUIExtention;
+import com.constellio.app.extensions.ui.ConstellioUIExtention.ConstellioUIExtentionParams;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
@@ -38,7 +41,7 @@ public class AppLayerSystemExtensions {
 
 	public VaultBehaviorsList<UserCredentialExtension> userCredentialGroupExtensions = new VaultBehaviorsList<>();
 
-
+	public VaultBehaviorsList<ConstellioUIExtention> constellioUIExtentions = new VaultBehaviorsList<>();
 
 	public List<AvailableSequence> getAvailableSequences() {
 
@@ -129,5 +132,11 @@ public class AppLayerSystemExtensions {
 		return userCredentialGroupExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isGenerateTokenActionPossible(
 						new UserCredentialExtensionActionPossibleParams(userCredential, user)));
+	}
+
+	public void addToConstellioUIInitialisation(ConstellioUI constellioUI) {
+		for (ConstellioUIExtention constellioUIExtention : constellioUIExtentions) {
+			constellioUIExtention.addToInitialisation(new ConstellioUIExtentionParams(constellioUI));
+		}
 	}
 }

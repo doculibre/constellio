@@ -1,8 +1,6 @@
 package com.constellio.app.ui.application;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
-import com.constellio.app.modules.rm.ui.contextmenu.RMRecordContextMenuHandler;
-import com.constellio.app.modules.rm.ui.menuBar.RMRecordMenuBarHandler;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.sso.SSOServices;
@@ -141,8 +139,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 
-		addRecordContextMenuHandler(new RMRecordContextMenuHandler(constellioFactories));
-		addRecordMenuBarHandler(new RMRecordMenuBarHandler(constellioFactories));
+		appLayerFactory.getExtensions().getSystemWideExtensions().addToConstellioUIInitialisation(this);
 
 		List<InitUIListener> initUIListeners = appLayerFactory.getInitUIListeners();
 		for (InitUIListener initUIListener : initUIListeners) {

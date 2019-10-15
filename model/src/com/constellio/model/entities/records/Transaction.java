@@ -24,7 +24,7 @@ import java.util.Set;
 
 public class Transaction {
 
-	private String id = UUIDV1Generator.newRandomId();
+	private String id;
 
 	Map<String, Record> updatedRecordsMap = new HashMap<>();
 	List<Record> records = new ArrayList<>();
@@ -45,9 +45,11 @@ public class Transaction {
 	boolean isOnlyBeingPrepared = true;
 
 	public Transaction() {
+		this.id = UUIDV1Generator.newRandomId();
 	}
 
 	public Transaction(RecordUpdateOptions options) {
+		this.id = UUIDV1Generator.newRandomId();
 		this.recordUpdateOptions = new RecordUpdateOptions(options);
 	}
 
@@ -65,6 +67,7 @@ public class Transaction {
 	}
 
 	public Transaction(List<Record> records) {
+		this.id = UUIDV1Generator.newRandomId();
 		this.records = records;
 
 		if (!records.isEmpty()) {
@@ -74,6 +77,7 @@ public class Transaction {
 	}
 
 	public Transaction(Transaction transaction) {
+		this.id = UUIDV1Generator.newRandomId();
 		this.records = new ArrayList<>();
 		for (Record record : transaction.getRecords()) {
 			addUpdate(record);

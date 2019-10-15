@@ -60,6 +60,8 @@ public class MetadataSchema implements Serializable {
 
 	private List<Metadata> cacheIndexMetadatas;
 
+	private boolean hasEagerTransientMetadata;
+
 	public MetadataSchema(short id, String localCode, String code, CollectionInfo collectionInfo,
 						  Map<Language, String> labels,
 						  List<Metadata> metadatas,
@@ -88,6 +90,7 @@ public class MetadataSchema implements Serializable {
 		this.collectionInfo = collectionInfo;
 		this.summaryMetadatas = new SchemaUtils().buildListOfSummaryMetadatas(metadatas);
 		this.cacheIndexMetadatas = new SchemaUtils().buildListOfCacheIndexMetadatas(metadatas);
+		this.hasEagerTransientMetadata = metadatas.stream().anyMatch((m) -> m.getTransiency() == MetadataTransiency.TRANSIENT_EAGER);
 
 	}
 
@@ -95,6 +98,9 @@ public class MetadataSchema implements Serializable {
 		return summaryMetadatas;
 	}
 
+	public boolean hasEagerTransientMetadata() {
+		return hasEagerTransientMetadata;
+	}
 
 	public short getId() {
 		return id;

@@ -143,7 +143,7 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 	private void assertParentAndPrincipalPath(Record record, String parentTargetId) {
 		boolean flag = false;
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 		List<Metadata> parentReferencesMetadatas = schema.getParentReferences();
 		List<Metadata> referencesMetadatas = schema.getTaxonomyRelationshipReferences(Arrays.asList(taxonomiesManager
 				.getPrincipalTaxonomy(record.getCollection())));

@@ -490,7 +490,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 					MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager()
 							.getSchemaTypes(transaction.getCollection());
-					MetadataSchema metadataSchema = types.getSchema(record.getSchemaCode());
+					MetadataSchema metadataSchema = types.getSchemaOf(record);
 				}
 			} else {
 				try {
@@ -567,12 +567,37 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record toRecord(RecordDTO recordDTO, boolean allFields) {
+		MetadataSchema schema = modelFactory.getMetadataSchemasManager().getSchemaOf(recordDTO);
+		return toRecord(schema, recordDTO, allFields);
+	}
+
+	public Record toRecord(MetadataSchemaType schemaType, RecordDTO recordDTO, boolean allFields) {
 		String collection = (String) recordDTO.getFields().get("collection_s");
 		CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
 		Record record = new RecordImpl(recordDTO, collectionInfo);
-		newAutomaticMetadataServices()
-				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
-						new Transaction(new RecordUpdateOptions()));
+
+		if (schemaType.hasEagerTransientMetadata()) {
+			Transaction tx = new Transaction("temp");
+			tx.setOptions(new RecordUpdateOptions());
+
+			newAutomaticMetadataServices()
+					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(), tx);
+		}
+		return record;
+	}
+
+	public Record toRecord(MetadataSchema schema, RecordDTO recordDTO, boolean allFields) {
+		String collection = (String) recordDTO.getFields().get("collection_s");
+		CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+		Record record = new RecordImpl(recordDTO, collectionInfo);
+
+		if (schema.hasEagerTransientMetadata()) {
+			Transaction tx = new Transaction("temp");
+			tx.setOptions(new RecordUpdateOptions());
+
+			newAutomaticMetadataServices()
+					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(), tx);
+		}
 		return record;
 	}
 
@@ -864,7 +889,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			if (transaction.getRecordUpdateOptions().isRepopulate()) {
 				recordPopulateServices.populate(record, parsedContentProvider);
 			}
-			MetadataSchema schema = types.getSchema(record.getSchemaCode());
+			MetadataSchema schema = types.getSchemaOf(record);
 
 			if (onlyValidateRecord == null || onlyValidateRecord.equals(record.getId())) {
 
@@ -911,7 +936,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 						}
 					} else if (step instanceof UpdateCreationModificationUsersAndDateRecordPreparationStep) {
 						if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {
-							updateCreationModificationUsersAndDates(record, transaction, types.getSchema(record.getSchemaCode()));
+							updateCreationModificationUsersAndDates(record, transaction, types.getSchemaOf(record));
 						}
 
 					} else if (step instanceof SequenceRecordPreparationStep) {
@@ -1171,7 +1196,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				Long version = transactionResponseDTO.getNewDocumentVersion(record.getId());
 				if (version != null) {
 
-					MetadataSchema schema = types.getSchema(record.getSchemaCode());
+					MetadataSchema schema = types.getSchemaOf(record);
 
 					recordImpl.markAsSaved(version, schema);
 					recordsToInsertById.put(record.getId(), record);
@@ -1283,7 +1308,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		Map<String, MetadataList> modifiedMetadatasOfModifiedRecords = new HashMap<>();
 
 		for (Record record : modifiedOrUnsavedRecords) {
-			MetadataSchema schema = types.getSchema(record.getSchemaCode());
+			MetadataSchema schema = types.getSchemaOf(record);
 			if (record.isSaved()) {
 
 				if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)) {

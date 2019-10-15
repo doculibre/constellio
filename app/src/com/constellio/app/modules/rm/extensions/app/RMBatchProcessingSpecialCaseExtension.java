@@ -120,7 +120,7 @@ public class RMBatchProcessingSpecialCaseExtension extends BatchProcessingSpecia
 			}
 		}
 
-		MetadataSchema schema = metadataSchemaTypes.getSchema(record.getSchemaCode());
+		MetadataSchema schema = metadataSchemaTypes.getSchemaOf(record);
 		if (schema.hasMetadataWithCode(RMObject.FORM_MODIFIED_ON) && modifiedMetadatas != null && modifiedMetadatas.size() > 0) {
 			record.set(schema.get(RMObject.FORM_MODIFIED_ON), LocalDateTime.now());
 			record.set(schema.get(RMObject.FORM_MODIFIED_BY), batchProcessingSpecialCaseParams.getUser());

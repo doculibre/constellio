@@ -92,7 +92,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenLocaleThenDisplayedCaptionInSameLanguage() {
-		MetadataVO metadata1 = new MetadataVO("metadata1", "metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
+		MetadataVO metadata1 = new MetadataVO((short) 0, "metadata1", "metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
 				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
@@ -115,7 +115,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenDateMetadataThenDisplayedWithCorrectCaptionAndPattern() {
-		MetadataVO metadata1 = new MetadataVO("metadata1", "metadata1", MetadataValueType.DATE_TIME, zeCollection, schema, FACULTATIVE,
+		MetadataVO metadata1 = new MetadataVO((short) 0, "metadata1", "metadata1", MetadataValueType.DATE_TIME, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
 				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
@@ -132,7 +132,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenNullMetadataThenConsideredInvisible() {
-		MetadataVO metadata1 = new MetadataVO("metadata1", "metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
+		MetadataVO metadata1 = new MetadataVO((short) 0, "metadata1", "metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
 				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
@@ -148,7 +148,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenANumberIdMetadataThenDisplayedWithoutZeroBeforeTheNumber() {
-		MetadataVO metadata1 = new MetadataVO("metadata_default_id", "id", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
+		MetadataVO metadata1 = new MetadataVO((short) 0, "metadata_default_id", "id", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
 				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
@@ -165,7 +165,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenANotNumberIdMetadataThenTheId() {
-		MetadataVO metadata1 = new MetadataVO("metadata_default_id", "id", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
+		MetadataVO metadata1 = new MetadataVO((short) 0, "metadata_default_id", "id", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
 				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);

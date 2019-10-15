@@ -40,6 +40,7 @@ import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -342,19 +343,23 @@ public class RMRecordsMenuItemBehaviors {
 	public void showConsultLink(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		String constellioURL = getConstellioUrl(appLayerFactory.getModelLayerFactory());
 
-		List<String> linkList = new ArrayList<>();
+		List<ConsultLinkParams> linkList = new ArrayList<>();
 
 		List<Record> recordList = recordServices.getRecordsById(collection, recordIds);
 
 		for (Record currentRecord : recordList) {
 			if (currentRecord.getSchemaCode().startsWith(Document.SCHEMA_TYPE)) {
-				linkList.add(constellioURL + RMUrlUtil.getPathToConsultLinkForDocument(currentRecord.getId()));
+				linkList.add(new ConsultLinkParams(constellioURL + RMUrlUtil.getPathToConsultLinkForDocument(currentRecord.getId()),
+						currentRecord.getTitle()));
 			} else if (currentRecord.getSchemaCode().startsWith(Folder.SCHEMA_TYPE)) {
-				linkList.add(constellioURL + RMUrlUtil.getPathToConsultLinkForFolder(currentRecord.getId()));
+				linkList.add(new ConsultLinkParams(constellioURL + RMUrlUtil.getPathToConsultLinkForFolder(currentRecord.getId()),
+						currentRecord.getTitle()));
 			} else if (currentRecord.getSchemaCode().startsWith(ContainerRecord.SCHEMA_TYPE)) {
-				linkList.add(constellioURL + RMUrlUtil.getPathToConsultLinkForContainerRecord(currentRecord.getId()));
+				linkList.add(new ConsultLinkParams(constellioURL + RMUrlUtil.getPathToConsultLinkForContainerRecord(currentRecord.getId()),
+						currentRecord.getTitle()));
 			} else if (currentRecord.getSchemaCode().startsWith(RMTask.SCHEMA_TYPE)) {
-				linkList.add(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(currentRecord.getId()));
+				linkList.add(new ConsultLinkParams(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(currentRecord.getId()),
+						currentRecord.getTitle()));
 			}
 		}
 

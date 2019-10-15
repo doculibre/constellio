@@ -24,7 +24,7 @@ public interface SearchView extends BaseView {
 
 	Boolean computeStatistics();
 
-    void fireSomeRecordsSelected();
+	void fireSomeRecordsSelected();
 
 	void fireNoRecordSelected();
 

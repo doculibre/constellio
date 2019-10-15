@@ -103,7 +103,7 @@ public class ConditionnedActionExecutorInBatchBuilder {
 					transaction.setOptions(options);
 
 					for (Record record : records) {
-						MetadataSchema schema = types.getSchema(record.getSchemaCode());
+						MetadataSchema schema = types.getSchemaOf(record);
 						for (Map.Entry<String, Object> replacedMetadata : values.entrySet()) {
 							Metadata metadata = schema.get(replacedMetadata.getKey());
 							record.set(metadata, replacedMetadata.getValue());

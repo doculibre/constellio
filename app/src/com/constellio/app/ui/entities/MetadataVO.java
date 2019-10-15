@@ -50,8 +50,10 @@ public class MetadataVO implements Serializable {
 	final Map<String, Object> customParameters;
 	final CollectionInfoVO collectionInfoVO;
 	final boolean sortable;
+	final short id;
 
-	public MetadataVO(String code, String localCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
+	public MetadataVO(short id, String code, String localCode, MetadataValueType type, String collection,
+					  MetadataSchemaVO schema,
 					  boolean required,
 					  boolean multivalue, boolean readOnly, boolean unmodifiable, Map<Locale, String> labels,
 					  Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
@@ -59,15 +61,17 @@ public class MetadataVO implements Serializable {
 					  MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled,
 					  StructureFactory structureFactory,
 					  String metadataGroup, Object defaultValue, Set<String> customAttributes, boolean multiLingual,
-					  Locale locale, Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable) {
-		this(code, localCode, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
+					  Locale locale, Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO,
+					  boolean sortable) {
+		this(id, code, localCode, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
 				structureFactory, metadataGroup,
 				defaultValue, null, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable);
 	}
 
 
-	public MetadataVO(String code, String localCode, String datastoreCode, MetadataValueType type, String collection,
+	public MetadataVO(short id, String code, String localCode, String datastoreCode, MetadataValueType type,
+					  String collection,
 					  MetadataSchemaVO schema,
 					  boolean required, boolean multivalue, boolean readOnly, boolean unmodifiable,
 					  Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
@@ -78,6 +82,7 @@ public class MetadataVO implements Serializable {
 					  String inputMask, Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable) {
 		super();
+		this.id = id;
 		this.code = code;
 		this.localCode = localCode;
 		this.datastoreCode = datastoreCode;
@@ -107,12 +112,14 @@ public class MetadataVO implements Serializable {
 		this.collectionInfoVO = collectionInfoVO;
 		this.sortable = sortable;
 
-		if (schema != null && !schema.getMetadatas().contains(this)) {
+		if (schema != null && !schema.getMetadatas().stream().anyMatch(
+				(m) -> (m.getId() == id) || ((m.getId() == 0 || id == 0) && m.getLocalCode().equals(localCode)))) {
 			schema.getMetadatas().add(this);
 		}
 	}
 
-	public MetadataVO(String code, String localCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
+	public MetadataVO(short id, String code, String localCode, MetadataValueType type, String collection,
+					  MetadataSchemaVO schema,
 					  boolean required,
 					  boolean multivalue, boolean readOnly, Map<Locale, String> labels,
 					  Class<? extends Enum<?>> enumClass,
@@ -123,13 +130,14 @@ public class MetadataVO implements Serializable {
 					  Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable) {
 
-		this(code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
+		this(id, code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
 				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable);
 	}
 
 	public MetadataVO() {
 		super();
+		this.id = -1;
 		this.code = "";
 		this.localCode = "";
 		this.datastoreCode = null;
@@ -181,6 +189,10 @@ public class MetadataVO implements Serializable {
 			codeWithoutPrefix = null;
 		}
 		return codeWithoutPrefix;
+	}
+
+	public short getId() {
+		return id;
 	}
 
 	public boolean codeMatches(String code) {

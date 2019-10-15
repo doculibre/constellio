@@ -2,6 +2,7 @@ package com.constellio.model.entities.schemas;
 
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCodeFormat;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -371,5 +372,9 @@ public class MetadataSchemaTypes implements Serializable {
 	public Stream<MetadataSchemaType> streamTypes() {
 		return getSchemaTypes().stream();
 
+	}
+
+	public MetadataSchema getSchemaOf(Record record) {
+		return schemaTypesMap.get(record.getTypeCode()).getSchema(record.getSchemaCode());
 	}
 }

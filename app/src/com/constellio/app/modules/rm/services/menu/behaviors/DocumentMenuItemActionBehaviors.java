@@ -40,6 +40,7 @@ import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -114,7 +115,10 @@ public class DocumentMenuItemActionBehaviors {
 
 	public void getConsultationLink(Document document, MenuItemActionBehaviorParams params) {
 		String constellioURL = getConstellioUrl(modelLayerFactory);
-		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(constellioURL + RMUrlUtil.getPathToConsultLinkForDocument(document.getId())));
+
+		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(
+				new ConsultLinkParams(constellioURL + RMUrlUtil.getPathToConsultLinkForDocument(document.getId()),
+						document.getTitle())));
 		UI.getCurrent().addWindow(consultLinkWindow);
 	}
 
