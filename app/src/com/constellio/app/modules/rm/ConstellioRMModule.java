@@ -7,6 +7,7 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.AppLayerSystemExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.extensions.LabelSchemaRestrictionPageExtension;
@@ -65,6 +66,7 @@ import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExten
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
+import com.constellio.app.modules.rm.extensions.ui.RMConstellioUIExtention;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
@@ -342,6 +344,11 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		}
 	}
 
+	private void setupAppLayerSystemExtensions(AppLayerFactory appLayerFactory) {
+		AppLayerSystemExtensions extensions = appLayerFactory.getExtensions().getSystemWideExtensions();
+		extensions.constellioUIExtentions.add(new RMConstellioUIExtention(appLayerFactory));
+	}
+
 	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 
@@ -456,6 +463,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 						return false;
 					}
 				});
+
+		setupAppLayerSystemExtensions(appLayerFactory);
 	}
 
 	@Override

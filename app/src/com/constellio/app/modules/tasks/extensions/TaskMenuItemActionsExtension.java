@@ -12,6 +12,7 @@ import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
@@ -46,13 +47,14 @@ public class TaskMenuItemActionsExtension extends MenuItemActionsExtension {
 	private void showConsultLink(List<String> recordIds, MenuItemActionBehaviorParams behaviorParams) {
 		String constellioURL = getConstellioUrl(appLayerFactory.getModelLayerFactory());
 
-		List<String> linkList = new ArrayList<>();
+		List<ConsultLinkParams> linkList = new ArrayList<>();
 
 		List<Record> recordList = recordServices.getRecordsById(collection, recordIds);
 
 		for (Record currentRecord : recordList) {
 			if (currentRecord.getSchemaCode().startsWith(RMTask.SCHEMA_TYPE)) {
-				linkList.add(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(currentRecord.getId()));
+				linkList.add(new ConsultLinkParams(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(currentRecord.getId())
+						, currentRecord.getTitle()));
 			}
 		}
 
@@ -75,6 +77,7 @@ public class TaskMenuItemActionsExtension extends MenuItemActionsExtension {
 
 		return new MenuItemActionState(MenuItemActionStateStatus.VISIBLE);
 	}
+
 
 	@Override
 	public void addMenuItemActionsForRecord(MenuItemActionExtensionAddMenuItemActionsForRecordParams params) {

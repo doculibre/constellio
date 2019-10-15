@@ -48,6 +48,7 @@ import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -147,7 +148,10 @@ public class FolderMenuItemActionBehaviors {
 
 	public void getConsultationLink(Folder folder, MenuItemActionBehaviorParams params) {
 		String constellioURL = getConstellioUrl(modelLayerFactory);
-		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(constellioURL + RMUrlUtil.getPathToConsultLinkForFolder(folder.getId())));
+		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(
+				new ConsultLinkParams(constellioURL + RMUrlUtil.getPathToConsultLinkForFolder(folder.getId()),
+						folder.getTitle())));
+
 		UI.getCurrent().addWindow(consultLinkWindow);
 	}
 
