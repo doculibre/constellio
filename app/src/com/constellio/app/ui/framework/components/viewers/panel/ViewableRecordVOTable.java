@@ -23,9 +23,9 @@ import com.vaadin.ui.themes.ValoTheme;
 import java.util.Collection;
 
 public class ViewableRecordVOTable extends RecordVOTable {
-	
-//	private int uncompressedPageLength;
-	
+
+	//	private int uncompressedPageLength;
+
 	private boolean compressed;
 
 	public ViewableRecordVOTable(ViewableRecordVOContainer dataSource) {
@@ -52,17 +52,13 @@ public class ViewableRecordVOTable extends RecordVOTable {
 		addStyleName(ValoTheme.TABLE_NO_VERTICAL_LINES);
 		setColumnWidth(ViewableRecordVOContainer.THUMBNAIL_PROPERTY, ViewableRecordVOContainer.THUMBNAIL_WIDTH);
 		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
-	}
-
-	@Override
-	protected boolean isPartialRowUpdate() {
-		return false;
+		setColumnAlignment(ViewableRecordVOContainer.SEARCH_RESULT_PROPERTY, Align.LEFT);
 	}
 
 	public boolean isCompressed() {
 		return compressed;
 	}
-	
+
 	private ViewableRecordVOContainer getViewableRecordVOContainer() {
 		ViewableRecordVOContainer result = null;
 		Container dataSource = getContainerDataSource();
@@ -83,25 +79,25 @@ public class ViewableRecordVOTable extends RecordVOTable {
 			}
 		} else if (dataSource instanceof ViewableRecordVOContainer) {
 			result = (ViewableRecordVOContainer) dataSource;
-		} 
+		}
 		return result;
 	}
 
 	public void setCompressed(boolean compressed) {
 		boolean compressedChanged = this.compressed != compressed;
 		this.compressed = compressed;
-		
+
 		if (compressedChanged) {
 			ViewableRecordVOContainer container = getViewableRecordVOContainer();
 			container.setCompressed(compressed);
-			
+
 			manageColumns(getTableId());
-			
+
 			if (compressed) {
-//				uncompressedPageLength = getPageLength();
-//				setPageLength(25);
+				//				uncompressedPageLength = getPageLength();
+				//				setPageLength(25);
 			} else {
-//				setPageLength(uncompressedPageLength);
+				//				setPageLength(uncompressedPageLength);
 			}
 		}
 	}
@@ -133,7 +129,7 @@ public class ViewableRecordVOTable extends RecordVOTable {
 					@Override
 					public void layoutClick(LayoutClickEvent event) {
 						if (!(event.getSource() instanceof MenuBar)) {
-							Collection<?> itemClickListeners = getListeners(ItemClickEvent.class); 
+							Collection<?> itemClickListeners = getListeners(ItemClickEvent.class);
 							MouseEventDetails mouseEventDetails = new MouseEventDetails();
 							mouseEventDetails.setButton(event.getButton());
 							mouseEventDetails.setClientX(event.getClientX());
@@ -158,7 +154,7 @@ public class ViewableRecordVOTable extends RecordVOTable {
 				image.addClickListener(new ClickListener() {
 					@Override
 					public void click(ClickEvent event) {
-						Collection<?> itemClickListeners = getListeners(ItemClickEvent.class); 
+						Collection<?> itemClickListeners = getListeners(ItemClickEvent.class);
 						MouseEventDetails mouseEventDetails = new MouseEventDetails();
 						mouseEventDetails.setButton(event.getButton());
 						mouseEventDetails.setClientX(event.getClientX());

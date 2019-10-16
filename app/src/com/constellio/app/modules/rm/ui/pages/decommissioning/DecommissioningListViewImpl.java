@@ -50,6 +50,7 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.DefaultItemSorter;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -429,7 +430,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Button buildAddFoldersButton() {
-		addFolders = new AddButton($("DecommissioningListView.addToList")) {
+		addFolders = new AddButton($("DecommissioningListView.addToList"), FontAwesome.FOLDER, false) {
 			@Override
 			protected void buttonClick(ClickEvent clickEvent) {
 				presenter.addFoldersButtonClicked();
