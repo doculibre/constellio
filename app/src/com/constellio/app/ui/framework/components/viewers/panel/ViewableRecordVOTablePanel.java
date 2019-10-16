@@ -505,11 +505,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				}
 
 				@Override
-				public boolean isIndexColumn() {
-					return ViewableRecordVOTablePanel.this.isIndexColumn();
-				}
-
-				@Override
 				protected SelectionManager newSelectionManager() {
 					SelectionManager selectionManager = ViewableRecordVOTablePanel.this.newSelectionManager();
 
@@ -629,11 +624,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 						selectionManager = super.newSelectionManager();
 					}
 					return selectionManager;
-				}
-
-				@Override
-				public boolean isIndexColumn() {
-					return ViewableRecordVOTablePanel.this.isIndexColumn();
 				}
 
 				@Override
@@ -895,10 +885,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	protected boolean isSelectColumn() {
-		return false;
-	}
-
-	protected boolean isIndexColumn() {
 		return false;
 	}
 
