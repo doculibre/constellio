@@ -259,7 +259,7 @@ public class RMRecordsMenuItemBehaviors {
 		UserVO userVO = userToVOBuilder.build(params.getUser().getWrappedRecord(),
 				VIEW_MODE.DISPLAY, params.getView().getSessionContext());
 
-		final LabelButtonV2 labelsButton = new LabelButtonV2($("SearchView.labels"),
+		final LabelButtonV2 labelsButton = new LabelButtonV2($("SearchView.printLabels"),
 				$("SearchView.printLabels"),
 				customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory,

@@ -616,7 +616,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		viewerPanel.getActualTable().addItemsPerPageChangeListener(new BaseTable.ItemsPerPageChangeListener() {
 			@Override
 			public void itemsPerPageChanged(ItemsPerPageChangeEvent event) {
-				presenter.setSelectedPageLength(event.getNewItemsPerPage());
+				int newItemsPerPage = event.getNewItemsPerPage();
+				container.getQueryView().getQueryDefinition().setBatchSize(newItemsPerPage);
+				presenter.setSelectedPageLength(newItemsPerPage);
 			}
 		});
 		viewerPanel.getActualTable().addPageChangeListener(new BaseTable.PageChangeListener() {
