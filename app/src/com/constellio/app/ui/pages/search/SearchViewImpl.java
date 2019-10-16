@@ -27,7 +27,7 @@ import com.constellio.app.ui.framework.components.search.FacetsSliderPanel;
 import com.constellio.app.ui.framework.components.search.ViewableRecordVOSearchResultTable;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.components.table.BaseTable.PageLengthTableChangeEvent;
+import com.constellio.app.ui.framework.components.table.BaseTable.ItemsPerPageChangeEvent;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
@@ -608,20 +608,19 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 
 		int currentPage = presenter.getPageNumber();
-		int selectedPageLength = presenter.getSelectedPageLength();
+		int itemsPerPage = presenter.getSelectedPageLength();
 
-		viewerPanel.setItemsPerPageValue(selectedPageLength);
-		viewerPanel.getActualTable().setPageLength(selectedPageLength);
+		viewerPanel.setItemsPerPageValue(itemsPerPage);
+		viewerPanel.getActualTable().setItemsPerPage(itemsPerPage);
 		viewerPanel.getActualTable().setCurrentPage(currentPage);
-		viewerPanel.getActualTable().addPageLengthChangeListener(new BaseTable.PageLengthChangeListener() {
-
+		viewerPanel.getActualTable().addItemsPerPageChangeListener(new BaseTable.ItemsPerPageChangeListener() {
 			@Override
-			public void pageLengthChanged(PageLengthTableChangeEvent event) {
-				presenter.setSelectedPageLength(event.getPageLength());
+			public void itemsPerPageChanged(ItemsPerPageChangeEvent event) {
+				presenter.setSelectedPageLength(event.getNewItemsPerPage());
 			}
 		});
 		viewerPanel.getActualTable().addPageChangeListener(new BaseTable.PageChangeListener() {
-			public void pageChanged(BaseTable.PagedTableChangeEvent event) {
+			public void pageChanged(BaseTable.PageChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
 				presenter.saveTemporarySearch(false);
 				//					if (selectDeselectAllButton != null) {
