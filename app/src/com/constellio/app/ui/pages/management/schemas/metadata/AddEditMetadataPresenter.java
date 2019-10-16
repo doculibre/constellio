@@ -295,8 +295,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		return referenceSchema.getMetadata(dataEntrySource);
 	}
 
-	public MetadataDisplayConfig getDisplayConfig(Metadata metadata) {
-		return schemasDisplayManager().getMetadata(metadata.getCollection(), metadata.getCode());
+	public MetadataInputType getInputType(Metadata metadata) {
+		return schemasDisplayManager().getMetadata(metadata.getCollection(), metadata.getCode()).getInputType();
 	}
 
 	private boolean isAllowedReferenceType(MetadataSchemaType type) {
@@ -403,6 +403,9 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				MetadataSchemaBuilder sourceDefaultSchema = types.getSchemaType(typeCode).getDefaultSchema();
 				MetadataBuilder sourceMetadata = sourceDefaultSchema.getMetadata(formMetadataVO.getDataEntrySource());
 
+				if (formMetadataVO.getValueType() == ENUM) {
+					builder.defineAsEnum(sourceMetadata.getEnumClass());
+				}
 				builder.defineDataEntry().asCopied(refMetadata, sourceMetadata);
 			}
 
@@ -754,8 +757,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			if (inputType != null && !inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)) {
 				displayType = MetadataDisplayType.VERTICAL;
 			}
-			if (formMetadataVO.getValueType() == ENUM && editMode) {
-				enumClass = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(formMetadataVO.getCode()).getEnumClass();
+			if (formMetadataVO.getValueType() == ENUM) {
+				if (editMode) {
+					enumClass = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(formMetadataVO.getCode()).getEnumClass();
+				} else if (formMetadataVO.getDataEntryType() == DataEntryType.COPIED) {
+					enumClass = getSourceMetadata(formMetadataVO.getDataEntryReference(), formMetadataVO.getDataEntrySource()).getEnumClass();
+				}
 			}
 
 			CollectionInfo collectionInfo = defaultSchema().getCollectionInfo();

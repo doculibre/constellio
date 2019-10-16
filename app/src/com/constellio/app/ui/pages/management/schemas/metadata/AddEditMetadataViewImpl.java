@@ -338,8 +338,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			dataEntryRef.select(null);
 			dataEntrySource.select(null);
 			dataEntrySource.setEnabled(false);
+
+			valueType.addItem(MetadataValueType.ENUM);
+			valueType.setItemCaption(MetadataValueType.ENUM, $("ENUM"));
 		} else {
 			updateFields(true);
+
+			valueType.removeItem(MetadataValueType.ENUM);
 		}
 	}
 
@@ -360,14 +365,15 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		if (StringUtils.isNotBlank(sourceMetadataCode)) {
 			Metadata source = presenter.getSourceMetadata(refMetadataCode, sourceMetadataCode);
 			if (source != null) {
+				if (!inputType.isReadOnly()) {
+					formMetadataVO.setInput(presenter.getInputType(source));
+					inputType.setValue(formMetadataVO.getInput());
+				}
 				if (!valueType.isReadOnly()) {
 					valueType.select(source.getType());
 				}
 				if (!multivalueType.isReadOnly()) {
 					multivalueType.setValue(source.isMultivalue());
-				}
-				if (!inputType.isReadOnly()) {
-					inputType.setValue(presenter.getDisplayConfig(source).getInputType());
 				}
 				updateFields(false);
 			}
