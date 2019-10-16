@@ -127,6 +127,9 @@ war {
         }
     }
 
+    baseName = "constellio"
+    version = project.VERSION\
+
     webInf {
         from("resources_i18n/") {
             into("resources_i18n")
