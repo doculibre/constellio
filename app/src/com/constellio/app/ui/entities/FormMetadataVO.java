@@ -4,7 +4,10 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.SchemaUtils;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -42,6 +45,12 @@ public class FormMetadataVO implements Serializable {
 	boolean uniqueValue;
 	boolean isMultiLingual;
 	List<String> readAccessRoles;
+	@Getter @Setter
+	private DataEntryType dataEntryType;
+	@Getter @Setter
+	private String dataEntryReference;
+	@Getter @Setter
+	private String dataEntrySource;
 
 	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO,
 						  String reference,
@@ -52,7 +61,8 @@ public class FormMetadataVO implements Serializable {
 						  boolean autocomplete, boolean enabled,
 						  String metadataGroup,
 						  Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue,
-						  Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual) {
+						  Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual,
+						  DataEntryType dataEntryType, String dataEntryReference, String dataEntrySource) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR", 2)[1];
@@ -83,6 +93,9 @@ public class FormMetadataVO implements Serializable {
 		this.inheritance = null;
 		this.uniqueValue = uniqueValue;
 		this.isMultiLingual = isMultiLingual;
+		this.dataEntryType = dataEntryType;
+		this.dataEntryReference = dataEntryReference;
+		this.dataEntrySource = dataEntrySource;
 	}
 
 	public FormMetadataVO(SessionContext sessionContext) {
@@ -111,6 +124,9 @@ public class FormMetadataVO implements Serializable {
 		this.customAttributes = new HashSet<>();
 		this.inheritance = null;
 		this.isMultiLingual = false;
+		this.dataEntryType = DataEntryType.MANUAL;
+		this.dataEntryReference = null;
+		this.dataEntrySource = null;
 	}
 
 	public void setCode(String code) {
