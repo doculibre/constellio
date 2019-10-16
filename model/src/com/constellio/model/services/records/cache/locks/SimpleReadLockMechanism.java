@@ -31,8 +31,17 @@ public class SimpleReadLockMechanism {
 		obtainReadingPermit();
 	}
 
+	public void obtainSystemWideWritingPermit() {
+		obtainWritingPermit();
+	}
+
 	public void releaseSystemWideReadingPermit() {
 		finishedReading();
+	}
+
+
+	public void releaseSystemWideWritingPermit() {
+		finishedWriting();
 	}
 
 	public void obtainSchemaTypeWritingPermit(byte collectionId, short schemaTypeId) {

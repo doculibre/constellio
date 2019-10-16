@@ -402,6 +402,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 	private RecordDTO get(int id, byte collectionId, short typeId, short schemaId, int listIndex) {
 
+		//System.out.println("get " + id + "," + collectionId + "," + typeId + "," + schemaId + "," + listIndex);
 		if (schemaId == 0) {
 			return null;
 		}
@@ -694,24 +695,31 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 	}
 
 	public void close() {
-		this.ids.clear();
-		this.ids = null;
 
-		this.versions.clear();
-		this.versions = null;
+		mechanism.obtainSystemWideWritingPermit();
 
-		this.schema.clear();
-		this.schema = null;
+		try {
+			this.ids.clear();
+			this.ids = null;
 
-		this.type.clear();
-		this.type = null;
+			this.versions.clear();
+			this.versions = null;
 
-		this.collection.clear();
-		this.collection = null;
+			this.schema.clear();
+			this.schema = null;
 
-		this.summaryCachedData.clear();
-		this.summaryCachedData = null;
+			this.type.clear();
+			this.type = null;
 
+			this.collection.clear();
+			this.collection = null;
+
+			this.summaryCachedData.clear();
+			this.summaryCachedData = null;
+
+		} finally {
+			mechanism.releaseSystemWideWritingPermit();
+		}
 	}
 
 	private static class MetadataIndex {
