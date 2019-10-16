@@ -864,7 +864,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					for (TableCompressListener tableCompressListener : tableCompressListeners) {
 						tableCompressListener.tableCompressChange(tableCompressEvent);
 					}
-					table.refreshRenderedCells();
 				}
 				adjustTableExpansion();
 			}
