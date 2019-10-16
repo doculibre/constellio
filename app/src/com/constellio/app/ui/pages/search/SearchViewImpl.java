@@ -617,6 +617,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 			@Override
 			public void pageLengthChanged(PageLengthTableChangeEvent event) {
+				container.getQueryView().getQueryDefinition().setBatchSize(event.getPageLength());
 				presenter.setSelectedPageLength(event.getPageLength());
 			}
 		});

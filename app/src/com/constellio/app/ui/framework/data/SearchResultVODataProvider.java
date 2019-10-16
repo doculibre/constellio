@@ -187,11 +187,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		SPEQueryResponse response = searchServices.query(query, Math.max(resultsPerPageSupplier.get(), numberOfItems));
 		onQuery(query, response);
 		List<Record> records = response.getRecords();
-
-		int ajustedNumberOfItems = Math.max(numberOfItems, resultsPerPageSupplier.get() - (startIndex % resultsPerPageSupplier.get()));
-
-		List<Record> subListOfRecords = records.subList(startIndex, startIndex + Math.min(ajustedNumberOfItems, records.size() - startIndex));
-
+		List<Record> subListOfRecords = records.subList(startIndex, Math.min(startIndex + numberOfItems, records.size()));
 
 		for (Record record : subListOfRecords) {
 			RecordVO recordVO = voBuilder.build(record, VIEW_MODE.SEARCH, sessionContext);
