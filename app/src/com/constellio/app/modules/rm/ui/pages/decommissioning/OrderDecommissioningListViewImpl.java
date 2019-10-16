@@ -70,7 +70,6 @@ public class OrderDecommissioningListViewImpl extends BaseViewImpl implements Or
 
 		Button cancel = new Button($("cancel"));
 		cancel.addStyleName(CANCEL_BUTTON);
-		cancel.addStyleName(ValoTheme.BUTTON_PRIMARY);
 		cancel.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -92,11 +91,11 @@ public class OrderDecommissioningListViewImpl extends BaseViewImpl implements Or
 		up.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				FolderDetailVO value = (FolderDetailVO) listSelect.getValue();
-				if (value != null) {
-					presenter.swap(value.getFolderId(), -1);
+				String folderId = (String) listSelect.getValue();
+				if (folderId != null) {
+					presenter.swap(folderId, -1);
 					refreshList();
-					listSelect.select(value.getFolderId());
+					listSelect.select(folderId);
 				}
 			}
 		});
@@ -105,11 +104,11 @@ public class OrderDecommissioningListViewImpl extends BaseViewImpl implements Or
 		down.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				FolderDetailVO value = (FolderDetailVO) listSelect.getValue();
-				if (value != null) {
-					presenter.swap(value.getFolderId(), 1);
+				String folderId = (String) listSelect.getValue();
+				if (folderId != null) {
+					presenter.swap(folderId, 1);
 					refreshList();
-					listSelect.select(value.getFolderId());
+					listSelect.select(folderId);
 				}
 			}
 		});
@@ -124,15 +123,24 @@ public class OrderDecommissioningListViewImpl extends BaseViewImpl implements Or
 		listSelect.removeAllItems();
 
 		for (FolderDetailVO folderDetailVO : presenter.getFolderDetails()) {
-			listSelect.addItem(folderDetailVO);
-			String tmp = presenter.getLabelForCode(folderDetailVO);
-			listSelect.setItemCaption(folderDetailVO, tmp);
+			String folderId = folderDetailVO.getFolderId();
+			listSelect.addItem(folderId);
+			String folderTitle = presenter.getLabelForCode(folderId);
+			listSelect.setItemCaption(folderId, folderTitle);
 		}
 	}
 
 	private ListSelect folderList() {
-		listSelect = new ListSelect("");
+		listSelect = new ListSelect("") {
+			@Override
+			public void select(Object itemId) {
+				super.select(itemId);
+				focus();
+			}
+		};
+
 		listSelect.setWidth("100%");
+		listSelect.setNullSelectionAllowed(false);
 
 		refreshList();
 
