@@ -296,6 +296,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		return mainLayout;
 	}
 
+
+	public void addComponentAfterMenu(Component component) {
+		mainLayout.addComponent(component, 0);
+	}
+
 	private Component buildVersionTab() {
 		final VerticalLayout tabLayout = new VerticalLayout();
 		I18NHorizontalLayout buttonsLayout = new I18NHorizontalLayout();
