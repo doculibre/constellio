@@ -255,6 +255,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		return mainLayout;
 	}
 
+	public void addComponentAfterMenu(Component component) {
+		mainLayout.addComponent(component, 0);
+	}
+
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		return presenter.getBreadCrumbTrail();

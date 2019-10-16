@@ -116,7 +116,7 @@ public class ContainerRecordMenuItemActionBehaviors {
 				() -> appLayerFactory.getLabelTemplateManager().listTemplates(ContainerRecord.SCHEMA_TYPE);
 
 		SessionContext sessionContext = params.getView().getSessionContext();
-		Button labels = new LabelButtonV2($("SearchView.labels"), $("SearchView.printLabels"), customLabelTemplatesFactory,
+		Button labels = new LabelButtonV2($("SearchView.printLabels"), $("SearchView.printLabels"), customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory, appLayerFactory,
 				sessionContext.getCurrentCollection(), sessionContext.getCurrentUser(), params.getRecordVO());
 

@@ -74,7 +74,7 @@ public class ContainerMenuItemServices {
 		if (!filteredActionTypes.contains(CONTAINER_LABELS.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_LABELS.name(),
 					isMenuItemActionPossible(CONTAINER_LABELS.name(), container, user, params),
-					$("SearchView.labels"), FontAwesome.PRINT, -1, 300,
+					$("SearchView.printLabels"), FontAwesome.PRINT, -1, 300,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).printLabel(container, params));
 			menuItemActions.add(menuItemAction);
 		}
