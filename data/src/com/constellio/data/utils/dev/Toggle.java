@@ -95,9 +95,6 @@ public class Toggle {
 
 	public static AvailableToggle OLD_DELETE_UNUSED_CONTENT_METHOD = newToggle(false);
 
-
-	public static AvailableToggle DEACTIVATE_WORKFLOW_ACTIONS = newToggle(true);
-
 	public static AvailableToggle TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(true);
 
 	// ------------------------------------------------
