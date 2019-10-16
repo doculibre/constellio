@@ -1197,24 +1197,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return transactions;
 	}
 
-	public Record newRecordWithSchema(MetadataSchema schema, String id) {
-		Record record = new RecordImpl(schema, id);
-
-		for (Metadata metadata : schema.getMetadatas().onlyWithDefaultValue().onlyManuals()) {
-
-			if (metadata.isMultivalue()) {
-				List<Object> values = new ArrayList<>();
-				values.addAll((List) metadata.getDefaultValue());
-				record.set(metadata, values);
-			} else {
-				record.set(metadata, metadata.getDefaultValue());
-			}
-		}
-
-		return record;
+	public Record newRecordWithSchema(MetadataSchema schema) {
+		return newRecordWithSchema(schema, true);
 	}
 
-	public Record newRecordWithSchema(MetadataSchema schema) {
+	public Record newRecordWithSchema(MetadataSchema schema, boolean isWithDefaultValues) {
 		String id;
 		if ("collection_default".equals(schema.getCode())) {
 			id = schema.getCollection();
@@ -1228,7 +1215,31 @@ public class RecordServicesImpl extends BaseRecordServices {
 		} else {
 			id = uniqueIdGenerator.next();
 		}
-		return newRecordWithSchema(schema, id);
+
+		return newRecordWithSchema(schema, id, isWithDefaultValues);
+	}
+
+	public Record newRecordWithSchema(MetadataSchema schema, String id) {
+		return newRecordWithSchema(schema, id, true);
+	}
+
+	public Record newRecordWithSchema(MetadataSchema schema, String id, boolean withDefaultValues) {
+		Record record = new RecordImpl(schema, id);
+
+		if (withDefaultValues) {
+			for (Metadata metadata : schema.getMetadatas().onlyWithDefaultValue().onlyManuals()) {
+
+				if (metadata.isMultivalue()) {
+					List<Object> values = new ArrayList<>();
+					values.addAll((List) metadata.getDefaultValue());
+					record.set(metadata, values);
+				} else {
+					record.set(metadata, metadata.getDefaultValue());
+				}
+			}
+		}
+
+		return record;
 	}
 
 	public RecordAutomaticMetadataServices newAutomaticMetadataServices() {

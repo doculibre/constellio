@@ -40,8 +40,8 @@ public class BatchProcessToVOBuilder implements Serializable {
 			records = recordBatchProcess.getRecords();
 		} else if (batchProcess instanceof AsyncTaskBatchProcess) {
 			BatchProcessState batchProcessState = batchProcessesManager.getBatchProcessState(batchProcess.getId());
-			handledRecordsCount = Long.valueOf(batchProcessState.getCurrentlyProcessed()).intValue();
-			totalRecordsCount = Long.valueOf(batchProcessState.getTotalToProcess()).intValue();
+			handledRecordsCount = batchProcessState == null ? 0 : Long.valueOf(batchProcessState.getCurrentlyProcessed()).intValue();
+			totalRecordsCount = batchProcessState == null ? 0 : Long.valueOf(batchProcessState.getTotalToProcess()).intValue();
 		}
 		int errors = batchProcess.getErrors();
 		String username = batchProcess.getUsername();

@@ -245,9 +245,19 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public Record newRecordWithSchema(MetadataSchema schema, String id, boolean withDefaultValues) {
+		return recordServices.newRecordWithSchema(schema, id, withDefaultValues);
+	}
+
+	@Override
 	public Record newRecordWithSchema(
 			MetadataSchema schema, String id) {
 		return recordServices.newRecordWithSchema(schema, id);
+	}
+
+	@Override
+	public Record newRecordWithSchema(MetadataSchema schema, boolean isWithDefaultValues) {
+		return recordServices.newRecordWithSchema(schema, isWithDefaultValues);
 	}
 
 	@Override
