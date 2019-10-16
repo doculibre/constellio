@@ -65,7 +65,7 @@ public class ContainerMenuItemServices {
 		if (!filteredActionTypes.contains(CONTAINER_SLIP.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_SLIP.name(),
 					isMenuItemActionPossible(CONTAINER_SLIP.name(), container, user, params),
-					$("DisplayContainerView.slip"), null, -1, 200,
+					$("DisplayContainerView.slip"), FontAwesome.PRINT, -1, 200,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).report(container, params));
 			menuItemActions.add(menuItemAction);
 		}
