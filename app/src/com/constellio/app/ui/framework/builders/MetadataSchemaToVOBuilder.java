@@ -15,6 +15,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -135,8 +136,10 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 				tableMetadataCodes, searchMetadataCodes, labels, collectionInfoVO);
 
 		if (!withoutBuildingMetadatas) {
+			boolean isMultiLingualActivated = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SEIZE_MULTILANGUAL_VALUES);
+
 			for (Metadata metadata : schema.getMetadatas()) {
-				if (viewMode == VIEW_MODE.FORM && metadata.isMultiLingual()) {
+				if (viewMode == VIEW_MODE.FORM && metadata.isMultiLingual() && isMultiLingualActivated) {
 					List<Locale> supportedLocales = schema.getCollectionInfo().getCollectionLocales();
 					for (Locale supportedLocale : supportedLocales) {
 						metadataToVOBuilder.build(metadata, supportedLocale, schemaVO, sessionContext);
