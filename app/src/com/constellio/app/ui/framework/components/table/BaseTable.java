@@ -70,8 +70,6 @@ public class BaseTable extends Table implements SelectionComponent {
 
 	public static final String SELECT_PROPERTY_ID = "select";
 
-	public static final String INDEX_PROPERTY_ID = "index";
-
 	public static final String MENUBAR_PROPERTY_ID = "menuBar";
 
 	private String tableId;
@@ -128,15 +126,6 @@ public class BaseTable extends Table implements SelectionComponent {
 			setColumnHeader(SELECT_PROPERTY_ID, "");
 			setColumnWidth(SELECT_PROPERTY_ID, SELECT_PROPERTY_WIDTH);
 			setColumnCollapsible(SELECT_PROPERTY_ID, false);
-		}
-
-		if (isIndexColumn()) {
-			addGeneratedColumn(INDEX_PROPERTY_ID, newIndexColumnGenerator());
-			columnGeneratorsAdded = true;
-
-			setColumnHeader(INDEX_PROPERTY_ID, "#");
-			setColumnWidth(INDEX_PROPERTY_ID, INDEX_PROPERTY_WIDTH);
-			setColumnCollapsible(INDEX_PROPERTY_ID, false);
 		}
 
 		addAttachListener(new AttachListener() {
@@ -273,31 +262,6 @@ public class BaseTable extends Table implements SelectionComponent {
 		};
 	}
 
-	public boolean isIndexColumn() {
-		return false;
-	}
-
-	protected ColumnGenerator newIndexColumnGenerator() {
-		return new ColumnGenerator() {
-			@Override
-			public Object generateCell(Table source, Object itemId, Object columnId) {
-				Property<?> containerProperty;
-				CellKey cellKey = getCellKey(itemId, INDEX_PROPERTY_ID);
-				int index = indexOfId(itemId) + 1;
-				if (cellKey != null) {
-					containerProperty = cellProperties.get(cellKey);
-					if (containerProperty == null) {
-						containerProperty = new ObjectProperty<>(index);
-						cellProperties.put(cellKey, new Label(index + ""));
-					}
-				} else {
-					containerProperty = new ObjectProperty<>(new Label(index + ""));
-				}
-				return containerProperty;
-			}
-		};
-	}
-
 	public boolean isMenuBarColumn() {
 		return false;
 	}
@@ -388,12 +352,8 @@ public class BaseTable extends Table implements SelectionComponent {
 
 	@Override
 	public void setVisibleColumns(Object... visibleColumns) {
-		if ((isSelectColumn() || isIndexColumn()) && columnGeneratorsAdded) {
+		if (isSelectColumn() && columnGeneratorsAdded) {
 			List<Object> visibleColumnsList = new ArrayList<>(Arrays.asList(visibleColumns));
-			if (isIndexColumn() && (!visibleColumnsList.contains(INDEX_PROPERTY_ID) || visibleColumnsList.get(0) != INDEX_PROPERTY_ID)) {
-				visibleColumnsList.remove(INDEX_PROPERTY_ID);
-				visibleColumnsList.add(0, INDEX_PROPERTY_ID);
-			}
 			if (isSelectColumn() && (!visibleColumnsList.contains(SELECT_PROPERTY_ID) || visibleColumnsList.get(0) != SELECT_PROPERTY_ID)) {
 				visibleColumnsList.remove(SELECT_PROPERTY_ID);
 				visibleColumnsList.add(0, SELECT_PROPERTY_ID);

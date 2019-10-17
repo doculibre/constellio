@@ -146,6 +146,10 @@ public class SolrUserCredentialsManager {
 
 	public UserCredential getUserCredential(String username) {
 
+		if (username == null) {
+			return null;
+		}
+
 		Record record = modelLayerFactory.newRecordServices()
 				.getRecordByMetadata(schemas.credentialUsername(), username);
 

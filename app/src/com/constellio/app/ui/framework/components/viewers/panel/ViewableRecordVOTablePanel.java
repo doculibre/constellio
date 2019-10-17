@@ -505,11 +505,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				}
 
 				@Override
-				public boolean isIndexColumn() {
-					return ViewableRecordVOTablePanel.this.isIndexColumn();
-				}
-
-				@Override
 				protected SelectionManager newSelectionManager() {
 					SelectionManager selectionManager = ViewableRecordVOTablePanel.this.newSelectionManager();
 
@@ -632,11 +627,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				}
 
 				@Override
-				public boolean isIndexColumn() {
-					return ViewableRecordVOTablePanel.this.isIndexColumn();
-				}
-
-				@Override
 				public boolean isPaged() {
 					// Never paged in table mode
 					return false;
@@ -690,7 +680,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			resultsTable.addSelectionChangeListener(listener);
 		}
 		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
-		resultsTable.setAlwaysRecalculateColumnWidths(true);
+		//resultsTable.setAlwaysRecalculateColumnWidths(true);
 
 		resultsTable.addRefreshRenderedCellsEventListener(new RefreshRenderedCellsEvent() {
 			@Override
@@ -895,10 +885,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	protected boolean isSelectColumn() {
-		return false;
-	}
-
-	protected boolean isIndexColumn() {
 		return false;
 	}
 

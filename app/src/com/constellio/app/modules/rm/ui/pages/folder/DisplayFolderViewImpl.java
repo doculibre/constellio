@@ -255,6 +255,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		return mainLayout;
 	}
 
+	public void addComponentAfterMenu(Component component) {
+		mainLayout.addComponent(component, 0);
+	}
+
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		return presenter.getBreadCrumbTrail();
@@ -591,6 +595,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		} else {
 			if (displayFolderButton != null) {
 				quickActionMenuButtons.add(displayFolderButton);
+			}
+			if (editFolderButton != null) {
+				quickActionMenuButtons.add(editFolderButton);
 			}
 		}
 		return quickActionMenuButtons;

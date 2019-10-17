@@ -294,7 +294,7 @@ public class CartMenuItemActionBehaviors {
 		};
 		SessionContext sessionContext = params.getView().getSessionContext();
 		LabelButtonV2 labelsButton = new LabelButtonV2(
-				$("SearchView.labels"),
+				$("SearchView.printLabels"),
 				$("SearchView.printLabels"),
 				customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory,

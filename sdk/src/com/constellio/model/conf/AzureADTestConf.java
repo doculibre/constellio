@@ -14,7 +14,7 @@ public class AzureADTestConf {
 		AzureADServerConfig azurServerConf = new AzureADServerConfig()
 				.setClientId(SDKPasswords.testAzureAuthenticationApplicationId())
 				.setAuthorityTenantId(SDKPasswords.testAzureTenantName());
-		return new LDAPServerConfiguration(azurServerConf, false);
+		return new LDAPServerConfiguration(azurServerConf, true);
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(String... collections) {
