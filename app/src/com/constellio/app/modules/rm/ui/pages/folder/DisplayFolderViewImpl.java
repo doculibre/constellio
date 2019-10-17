@@ -596,6 +596,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			if (displayFolderButton != null) {
 				quickActionMenuButtons.add(displayFolderButton);
 			}
+			if (editFolderButton != null) {
+				quickActionMenuButtons.add(editFolderButton);
+			}
 		}
 		return quickActionMenuButtons;
 	}
