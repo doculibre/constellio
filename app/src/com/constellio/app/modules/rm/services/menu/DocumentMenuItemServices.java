@@ -246,7 +246,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_ADD_AUTHORIZATION.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_AUTHORIZATION.name(),
 					isMenuItemActionPossible(DOCUMENT_ADD_AUTHORIZATION.name(), document, user, params),
-					$("DocumentContextMenu.shareDocument"), FontAwesome.KEY, -1, 2000,
+					$("DocumentContextMenu.shareDocument"), FontAwesome.PAPER_PLANE_O, -1, 2000,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(document, params));
 
 			menuItemActions.add(menuItemAction);
