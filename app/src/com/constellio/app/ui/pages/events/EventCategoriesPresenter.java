@@ -6,9 +6,12 @@ import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.util.HashMap;
 
 public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView> {
 
@@ -31,6 +34,11 @@ public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView>
 			view.navigate().to(TaskViews.class).listTasksLogs();
 		} else if (eventCategory == EventCategory.IMPORT_EXPORT) {
 			view.navigate().to(CoreViews.class).listImportExport();
+		} else if (eventCategory == EventCategory.CURRENTLY_BORROWED_DOCUMENTS) {
+			HashMap<String, Object> params = new HashMap<>();
+			params.put(EventViewParameters.EVENT_TYPE, EventType.CURRENT_BORROW_DOCUMENT);
+			params.put(EventViewParameters.EVENT_CATEGORY, EventCategory.CURRENTLY_BORROWED_DOCUMENTS);
+			view.navigate().to(RMViews.class).showEvent(params);
 		} else {
 			view.navigate().to().showEventCategory(eventCategory);
 		}

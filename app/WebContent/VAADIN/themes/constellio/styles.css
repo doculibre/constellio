@@ -14546,6 +14546,18 @@ div.v-layout.v-horizontal.v-widget {
 	z-index: 1002;
 }
 
+.constellio .v-window[width-range~="1101px-"] .base-display .v-slot-display-value .display-value .agent-link {
+	padding-right: 26px;
+}
+
+.constellio .v-window[width-range~="1101px-"] .base-display .v-slot-display-caption-and-component {
+	padding-right: 300px;
+}
+
+.constellio .v-window[width-range~="1101px-"] .base-display .v-slot-list-add-remove-comment {
+	width: 100%;
+}
+
 .constellio .v-window[width-range~="0-800px"] .responsive-button [class*="caption"], .constellio .v-window[width-range~="801-1100px"] .responsive-button [class*="caption"] {
 	display: none;
 }
@@ -15469,7 +15481,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .collapsible-horizontal-splitpanel .v-splitpanel-hsplitter-collapsible-horizontal-splitpanel:before {
-	position: absolute;
 	top: 50%;
 	margin-left: -4px;
 }
@@ -16071,8 +16082,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 26px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .display-caption-and-component .display-caption {
-	min-width: 200px;
+.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .-v-slot-display-caption-and-component {
+	padding-right: 300px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-list-add-remove-comment {

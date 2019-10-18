@@ -822,6 +822,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		String schemaTypeCode = recordVO.getSchema().getTypeCode();
 		if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			displayInWindowOnSelection = false;
+		} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			displayInWindowOnSelection = true;
 		} else {
 			displayInWindowOnSelection = !ResponsiveUtils.isDesktop();
 		}
