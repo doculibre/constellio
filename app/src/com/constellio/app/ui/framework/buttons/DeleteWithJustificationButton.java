@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.buttons;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -20,8 +21,10 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 	public static final String CANCEL_DELETION = "cancel-deletion";
 	public static final String DELETION_REASON = "deletion-reason";
 
+	private ContentMode messageContentMode = null;
+
 	public DeleteWithJustificationButton(String caption, boolean iconOnly) {
-		this(caption, iconOnly, WindowConfiguration.modalDialog("35%", "350px"));
+		this(caption, iconOnly, WindowConfiguration.modalDialog("610px", "350px"));
 	}
 
 	public DeleteWithJustificationButton(String caption, boolean iconOnly, WindowConfiguration windowConfiguration) {
@@ -95,9 +98,16 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 		// Do nothing by default
 	}
 
+	public void setMessageContentMode(ContentMode contentMode) {
+		this.messageContentMode = contentMode;
+	}
+
 	public Component getMessageComponent() {
 		HorizontalLayout messageLayout = new HorizontalLayout();
 		Label message = new Label(getConfirmDialogMessage());
+		if (messageContentMode != null) {
+			message.setContentMode(messageContentMode);
+		}
 		Label required = new Label(" *");
 		required.addStyleName("red-star");
 
