@@ -172,7 +172,7 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 	private WindowButton buildLookupButton(final String schemaType, final ReportWithCaptionVO report,
 			final boolean askToShowDeativated) {
 		return new WindowButton($(report.getCaption()),
-				$(report.getCaption())) {
+				$(report.getCaption()), new WindowConfiguration(true, true, "475px", "225px")) {
 			@Override
 			protected Component buildWindowContent() {
 
@@ -243,7 +243,7 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 	private WindowButton getParametersFromUser(final Field field, final String allCaption, final String onlyCaption,
 			final ReportWithCaptionVO report, final boolean askForDesativated) {
 		WindowButton windowButton = new WindowButton($(report.getCaption()),
-				$(report.getCaption()), new WindowConfiguration(true, true, "600px", "500px")) {
+				$(report.getCaption()), new WindowConfiguration(true, true, "475px", "425px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout verticalLayout = new VerticalLayout();
@@ -352,7 +352,7 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 
 	private WindowButton getIsDeativatedFromUser(final ReportWithCaptionVO report) {
 		WindowButton windowButton = new WindowButton($(report.getCaption()),
-				$(report.getCaption()), new WindowConfiguration(true, true, "600px", "500px")) {
+				$(report.getCaption()), new WindowConfiguration(true, true, "600px", "150px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout verticalLayout = new VerticalLayout();
