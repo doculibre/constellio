@@ -63,6 +63,7 @@ public abstract class MenuItemActionsExtension {
 		private List<MenuItemAction> menuItemActions;
 		private List<String> excludedActionTypes;
 		private MenuItemActionBehaviorParams behaviorParams;
+		private boolean returnedResults;
 	}
 
 	@AllArgsConstructor
