@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
 import com.constellio.app.ui.framework.components.viewers.VisibilityChangeEvent;
 import com.constellio.app.ui.framework.components.viewers.VisibilityChangeListener;
@@ -26,15 +27,16 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocumentView {
 
-	public static final String RECORD_FORM_WIDTH = "700px";
+	public static final int RECORD_FORM_WIDTH = 50;
+	public static final Unit RECORD_FORM_WIDTH_UNIT = Unit.PERCENTAGE;
 	private final AddEditDocumentPresenter presenter;
 	private RecordVO recordVO;
 	private ContentViewer contentViewer;
 	private DocumentFormImpl recordForm;
 	private I18NHorizontalLayout mainLayout;
-	private boolean popup;
 	private boolean isUserDocumentViewer = false;
 	private boolean isDuplicateDocumentViewer = false;
+	private Component contentMetadataComponent;
 
 	public AddEditDocumentViewImpl() {
 		this(null);
@@ -63,6 +65,11 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 
 	@Override
 	protected void afterViewAssembled(ViewChangeEvent event) {
+		if (contentViewer != null && !contentViewer.isViewerComponentVisible()
+			&& contentMetadataComponent instanceof CollapsibleHorizontalSplitPanel
+			&& ((CollapsibleHorizontalSplitPanel) contentMetadataComponent).getRealFirstComponent() == contentViewer) {
+			mainLayout.replaceComponent(contentMetadataComponent, recordForm);
+		}
 		presenter.viewAssembled();
 	}
 
@@ -105,16 +112,10 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 				contentViewer = new ContentViewer(recordVO, Document.CONTENT, contentVersionVO);
 			}
 
-			contentViewer.setWidth("100%");
-			contentViewer.setHeight("100%");
-
-			mainLayout.addComponents(recordForm);
+			contentViewer.setSizeFull();
+			recordForm.setSizeFull();
 
 			if (contentViewer.isViewerComponentVisible()) {
-				mainLayout.addComponent(contentViewer, 0);
-				recordForm.setWidth(RECORD_FORM_WIDTH);
-				mainLayout.setExpandRatio(contentViewer, 1);
-
 				contentViewer.addImageViewerVisibilityChangeListener(new VisibilityChangeListener() {
 					@Override
 					public void onVisibilityChange(VisibilityChangeEvent visibilityChangeEvent) {
@@ -129,11 +130,18 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 						}
 					}
 				});
-			}
 
+				CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
+				splitPanel.setFirstComponent(contentViewer);
+				splitPanel.setSecondComponent(recordForm);
+				splitPanel.setSecondComponentWidth(RECORD_FORM_WIDTH, RECORD_FORM_WIDTH_UNIT);
+				contentMetadataComponent = splitPanel;
+			}
 		} else {
-			mainLayout.addComponent(recordForm);
+			contentMetadataComponent = recordForm;
 		}
+		mainLayout.addComponent(contentMetadataComponent);
+		mainLayout.setExpandRatio(contentMetadataComponent, 1);
 
 
 		return mainLayout;
@@ -155,20 +163,14 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 			@Override
 			public void reload() {
 				Component oldRecordForm = recordForm;
-
 				recordForm = newForm();
-
 				if ((isUserDocumentViewer && presenter.getUserDocumentRecordVO() == null)
 					|| (isDuplicateDocumentViewer && presenter.getDuplicateDocumentRecordVO() == null)) {
 					isDuplicateDocumentViewer = false;
 					isUserDocumentViewer = false;
 					mainLayout.removeComponent(contentViewer);
 					contentViewer = null;
-				} else if (contentViewer != null && contentViewer.isViewerComponentVisible()) {
-					recordForm.setWidth(RECORD_FORM_WIDTH);
-					mainLayout.setExpandRatio(contentViewer, 1);
 				}
-
 				mainLayout.replaceComponent(oldRecordForm, recordForm);
 			}
 

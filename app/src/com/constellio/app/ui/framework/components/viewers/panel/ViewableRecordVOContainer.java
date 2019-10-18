@@ -11,10 +11,8 @@ import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
-import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
-import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.data.Container;
@@ -114,10 +112,6 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 			@Override
 			public Component getValue() {
 				Component recordDisplay = getRecordDisplay(itemId);
-				ReferenceDisplay referenceDisplay = ComponentTreeUtils.getFirstChild(recordDisplay, ReferenceDisplay.class);
-				if (referenceDisplay != null) {
-					referenceDisplay.setIcon(null);
-				}
 				return recordDisplay;
 			}
 
@@ -307,7 +301,6 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		RecordVO recordVO = recordVOContainer.getRecordVO(itemId);
 		SearchResultVO searchResultVO = new SearchResultVO(recordVO, new HashMap<String, List<String>>());
 		SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, null, null, null, null);
-		searchResultDisplay.getTitleLink().setIcon(null);
 		return searchResultDisplay;
 	}
 

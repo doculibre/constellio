@@ -113,6 +113,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private VerticalLayout summary;
 	private Component resultsAndFacetsPanel;
 	private VerticalLayout resultsArea;
+	private SliderPanel facetsSliderPanel;
 	private FacetsPanel facetsArea;
 	private VerticalLayout capsuleArea;
 
@@ -368,6 +369,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			facetsArea.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
 		}
 		presenter.setPageNumber(1);
+		facetsSliderPanel.setVisible(dataProvider.size() > 0 || !facetSelections.isEmpty());
 	}
 
 	@Override
@@ -456,16 +458,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//			resultsAndFacetsPanel = body;
 		//		} else {
 
-		SliderPanel sliderPanel = new FacetsSliderPanel(facetsArea);
-		sliderPanel.addListener((SliderPanelListener) (expand) -> {
+		facetsSliderPanel = new FacetsSliderPanel(facetsArea);
+		facetsSliderPanel.addListener((SliderPanelListener) (expand) -> {
 			this.facetsOpened = expand;
 			if (facetsOpened) {
 				final SearchResultVODataProvider dataProvider = presenter.getSearchResults(true);
 				refreshFacets(dataProvider);
 			}
 		});
+		facetsSliderPanel.setVisible(false);
 
-		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, sliderPanel);
+		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsSliderPanel);
 		body.addStyleName("search-result-and-facets-container");
 		body.setWidth("100%");
 		body.setHeight("100%");
@@ -571,7 +574,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				ClickListener elevationClickListener = getElevationClickListener(searchResultVO, index);
 				ClickListener exclusionClickListener = getExclusionClickListener(searchResultVO, index);
 				SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, query, null, elevationClickListener, exclusionClickListener);
-				searchResultDisplay.getTitleLink().setIcon(null);
 				return searchResultDisplay;
 			}
 
@@ -982,7 +984,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected BaseButton buildSavedSearchButton() {
 		WindowButton button = new WindowButton($("SearchView.saveSearch"), $("SearchView.saveSearch"),
-				WindowConfiguration.modalDialog("500px", "540px")) {
+				WindowConfiguration.modalDialog("500px", "300px")) {
 			@Override
 			protected Component buildWindowContent() {
 				final TextField titleField = new BaseTextField();
@@ -1011,6 +1013,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 						boolean visible = event.getProperty().getValue().equals(ShareType.RESTRICTED);
 						users.setVisible(visible);
 						groups.setVisible(visible);
+
+						if (visible) {
+							getWindow().setHeight("540px");
+						} else {
+							getWindow().setHeight("300px");
+						}
+
 						if (!visible) {
 							groups.clear();
 							users.clear();

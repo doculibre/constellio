@@ -113,7 +113,7 @@ public class MetadataVO implements Serializable {
 		this.sortable = sortable;
 
 		if (schema != null && !schema.getMetadatas().stream().anyMatch(
-				(m) -> (m.getId() == id) || ((m.getId() == 0 || id == 0) && m.getLocalCode().equals(localCode)))) {
+				(m) -> (m.getId() == id && (m.getLocale() == null || m.getLocale().toLanguageTag().equals(locale.toLanguageTag()))) || ((m.getId() == 0 || id == 0) && m.getLocalCode().equals(localCode)))) {
 			schema.getMetadatas().add(this);
 		}
 	}

@@ -18,6 +18,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Property;
+import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
@@ -172,7 +173,7 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 	private WindowButton buildLookupButton(final String schemaType, final ReportWithCaptionVO report,
 			final boolean askToShowDeativated) {
 		return new WindowButton($(report.getCaption()),
-				$(report.getCaption())) {
+				$(report.getCaption()), new WindowConfiguration(true, true, "475px", "225px")) {
 			@Override
 			protected Component buildWindowContent() {
 
@@ -243,7 +244,7 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 	private WindowButton getParametersFromUser(final Field field, final String allCaption, final String onlyCaption,
 			final ReportWithCaptionVO report, final boolean askForDesativated) {
 		WindowButton windowButton = new WindowButton($(report.getCaption()),
-				$(report.getCaption()), new WindowConfiguration(true, true, "600px", "500px")) {
+				$(report.getCaption()), new WindowConfiguration(true, true, "475px", "250px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout verticalLayout = new VerticalLayout();
@@ -267,6 +268,17 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 				optionGroup.setItemCaption(Selected.Select, onlyCaption);
 				optionGroup.setMultiSelect(false);
 				verticalLayout2.addComponent(optionGroup);
+
+				optionGroup.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						if (optionGroup.getValue() == Selected.All) {
+							getWindow().setHeight("250px");
+						} else {
+							getWindow().setHeight("425px");
+						}
+					}
+				});
 
 				final Button okButton = new Button($("Ok"));
 
@@ -352,7 +364,7 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 
 	private WindowButton getIsDeativatedFromUser(final ReportWithCaptionVO report) {
 		WindowButton windowButton = new WindowButton($(report.getCaption()),
-				$(report.getCaption()), new WindowConfiguration(true, true, "600px", "500px")) {
+				$(report.getCaption()), new WindowConfiguration(true, true, "600px", "150px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout verticalLayout = new VerticalLayout();

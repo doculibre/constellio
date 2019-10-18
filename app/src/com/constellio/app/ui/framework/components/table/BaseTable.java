@@ -97,6 +97,8 @@ public class BaseTable extends Table implements SelectionComponent {
 
 	private ContextMenu contextMenu;
 
+	private int customPageLength;
+
 	public BaseTable(String tableId) {
 		super();
 		this.tableId = tableId;
@@ -172,6 +174,12 @@ public class BaseTable extends Table implements SelectionComponent {
 				}
 			}
 		});
+	}
+
+	@Override
+	public void setPageLength(int pageLength) {
+		this.customPageLength = pageLength;
+		super.setPageLength(pageLength);
 	}
 
 	// Wait until attach to set to make sure that the page length hasn't changed

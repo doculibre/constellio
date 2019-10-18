@@ -128,7 +128,7 @@ public class ListPrincipalAccessAuthorizationsViewImpl extends ListAuthorization
 		@PropertyId("accessRoles") protected ListOptionGroup accessRoles;
 
 		public AddPrincipalAccessButton() {
-			super("", "", WindowConfiguration.modalDialog("40%", "30%"));
+			super("", "", WindowConfiguration.modalDialog("550px", "350px"));
 			String caption = $("ListPrincipalAccessAuthorizationsView.addAccess");
 			super.setCaption(caption);
 			super.setWindowCaption(caption);

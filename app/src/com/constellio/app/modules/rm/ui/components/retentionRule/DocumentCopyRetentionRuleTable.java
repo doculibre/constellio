@@ -112,6 +112,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 		}
 
 		table = new BaseTable(getClass().getName());
+		table.addStyleName("copy-retention-rule-table");
 		table.setWidth("100%");
 		table.setPageLength(0);
 
