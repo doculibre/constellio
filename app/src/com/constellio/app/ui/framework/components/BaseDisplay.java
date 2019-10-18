@@ -142,7 +142,6 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 		VerticalLayout mainLayout = new VerticalLayout();
 		// mainLayout.setSizeUndefined();
 		mainLayout.setSizeFull();
-		mainLayout.setSpacing(true);
 		mainLayout.addStyleName(STYLE_NAME + "-main-layout");
 		return mainLayout;
 	}
@@ -159,7 +158,6 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 				layout = new VerticalLayout();
 				layout.addStyleName("base-display-tab-layout");
 				layout.setWidth("100%");
-				layout.setSpacing(true);
 
 				panel = new Panel(layout);
 				panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
@@ -201,13 +199,9 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent, VerticalLayout layout) {
 		if (displayComponent.isVisible()) {
 			if (ResponsiveUtils.isDesktop()) {
+				captionLabel.setWidth("300px");
 				I18NHorizontalLayout captionAndComponentLayout = new I18NHorizontalLayout();
-				//				if (isCaptionAndDisplayComponentWidthUndefined()) {
-				//					captionAndComponentLayout.setWidthUndefined();
-				//				} else {
-				//					captionAndComponentLayout.setSizeFull();
-				//				}
-				captionAndComponentLayout.setSizeFull();
+				captionAndComponentLayout.addStyleName("display-caption-and-component");
 
 				layout.addComponent(captionAndComponentLayout);
 				captionAndComponentLayout.addComponents(captionLabel, displayComponent);

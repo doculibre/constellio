@@ -85,6 +85,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
+	public static final int RECORD_DISPLAY_WIDTH = 50;
+	public static final Unit RECORD_DISPLAY_WIDTH_UNIT = Unit.PERCENTAGE;
 	private VerticalLayout mainLayout;
 	private Label borrowedLabel;
 	private RecordVO documentVO;
@@ -141,9 +143,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			&& ((CollapsibleHorizontalSplitPanel) contentMetadataComponent).getRealFirstComponent() == contentViewer) {
 			mainLayout.replaceComponent(contentMetadataComponent, tabSheet);
 		}
-
 		presenter.viewAssembled();
-
 	}
 
 	@Override
@@ -282,7 +282,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
 			splitPanel.setFirstComponent(contentViewer);
 			splitPanel.setSecondComponent(tabSheet);
-			splitPanel.setSecondComponentWidth(700, Unit.PIXELS);
+			splitPanel.setSecondComponentWidth(RECORD_DISPLAY_WIDTH, RECORD_DISPLAY_WIDTH_UNIT);
 			contentMetadataComponent = splitPanel;
 		} else {
 			contentMetadataComponent = tabSheet;
