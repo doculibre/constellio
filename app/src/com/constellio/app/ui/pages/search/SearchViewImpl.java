@@ -27,7 +27,7 @@ import com.constellio.app.ui.framework.components.search.FacetsSliderPanel;
 import com.constellio.app.ui.framework.components.search.ViewableRecordVOSearchResultTable;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.components.table.BaseTable.PageLengthTableChangeEvent;
+import com.constellio.app.ui.framework.components.table.BaseTable.ItemsPerPageChangeEvent;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
@@ -113,6 +113,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private VerticalLayout summary;
 	private Component resultsAndFacetsPanel;
 	private VerticalLayout resultsArea;
+	private SliderPanel facetsSliderPanel;
 	private FacetsPanel facetsArea;
 	private VerticalLayout capsuleArea;
 
@@ -368,6 +369,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			facetsArea.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
 		}
 		presenter.setPageNumber(1);
+		facetsSliderPanel.setVisible(dataProvider.size() > 0 || !facetSelections.isEmpty());
 	}
 
 	@Override
@@ -456,16 +458,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//			resultsAndFacetsPanel = body;
 		//		} else {
 
-		SliderPanel sliderPanel = new FacetsSliderPanel(facetsArea);
-		sliderPanel.addListener((SliderPanelListener) (expand) -> {
+		facetsSliderPanel = new FacetsSliderPanel(facetsArea);
+		facetsSliderPanel.addListener((SliderPanelListener) (expand) -> {
 			this.facetsOpened = expand;
 			if (facetsOpened) {
 				final SearchResultVODataProvider dataProvider = presenter.getSearchResults(true);
 				refreshFacets(dataProvider);
 			}
 		});
+		facetsSliderPanel.setVisible(false);
 
-		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, sliderPanel);
+		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsSliderPanel);
 		body.addStyleName("search-result-and-facets-container");
 		body.setWidth("100%");
 		body.setHeight("100%");
@@ -571,7 +574,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				ClickListener elevationClickListener = getElevationClickListener(searchResultVO, index);
 				ClickListener exclusionClickListener = getExclusionClickListener(searchResultVO, index);
 				SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, query, null, elevationClickListener, exclusionClickListener);
-				searchResultDisplay.getTitleLink().setIcon(null);
 				return searchResultDisplay;
 			}
 
@@ -608,21 +610,21 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 
 		int currentPage = presenter.getPageNumber();
-		int selectedPageLength = presenter.getSelectedPageLength();
+		int itemsPerPage = presenter.getSelectedPageLength();
 
-		viewerPanel.setItemsPerPageValue(selectedPageLength);
-		viewerPanel.getActualTable().setPageLength(selectedPageLength);
+		viewerPanel.setItemsPerPageValue(itemsPerPage);
+		viewerPanel.getActualTable().setItemsPerPage(itemsPerPage);
 		viewerPanel.getActualTable().setCurrentPage(currentPage);
-		viewerPanel.getActualTable().addPageLengthChangeListener(new BaseTable.PageLengthChangeListener() {
-
+		viewerPanel.getActualTable().addItemsPerPageChangeListener(new BaseTable.ItemsPerPageChangeListener() {
 			@Override
-			public void pageLengthChanged(PageLengthTableChangeEvent event) {
-				container.getQueryView().getQueryDefinition().setBatchSize(event.getPageLength());
-				presenter.setSelectedPageLength(event.getPageLength());
+			public void itemsPerPageChanged(ItemsPerPageChangeEvent event) {
+				int newItemsPerPage = event.getNewItemsPerPage();
+				container.getQueryView().getQueryDefinition().setBatchSize(newItemsPerPage);
+				presenter.setSelectedPageLength(newItemsPerPage);
 			}
 		});
 		viewerPanel.getActualTable().addPageChangeListener(new BaseTable.PageChangeListener() {
-			public void pageChanged(BaseTable.PagedTableChangeEvent event) {
+			public void pageChanged(BaseTable.PageChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
 				presenter.saveTemporarySearch(false);
 				//					if (selectDeselectAllButton != null) {

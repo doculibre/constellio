@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
@@ -17,10 +18,15 @@ import com.vaadin.event.MouseEvents.ClickEvent;
 import com.vaadin.event.MouseEvents.ClickListener;
 import com.vaadin.shared.MouseEventDetails;
 import com.vaadin.ui.Image;
+import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.JavaScriptFunction;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.themes.ValoTheme;
+import elemental.json.JsonArray;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
+import java.util.UUID;
 
 public class ViewableRecordVOTable extends RecordVOTable {
 
@@ -45,6 +51,7 @@ public class ViewableRecordVOTable extends RecordVOTable {
 	}
 
 	private void init() {
+		setId(UUID.randomUUID().toString());
 		addStyleName("viewable-record-table");
 		addStyleName(ValoTheme.TABLE_BORDERLESS);
 		addStyleName(ValoTheme.TABLE_NO_HEADER);
@@ -90,16 +97,45 @@ public class ViewableRecordVOTable extends RecordVOTable {
 		if (compressedChanged) {
 			ViewableRecordVOContainer container = getViewableRecordVOContainer();
 			container.setCompressed(compressed);
-
 			manageColumns(getTableId());
-
-			if (compressed) {
-				//				uncompressedPageLength = getPageLength();
-				//				setPageLength(25);
-			} else {
-				//				setPageLength(uncompressedPageLength);
-			}
+			//			refreshRenderedCells();
+			refreshRowCache();
+			adjustHeight();
 		}
+	}
+
+	private void adjustHeight() {
+		ConstellioUI.getCurrent().runAsync(new Runnable() {
+			@Override
+			public void run() {
+				ConstellioUI.getCurrent().access(new Runnable() {
+					@Override
+					public void run() {
+						final String functionId = "zeFunction";
+						JavaScript.getCurrent().addFunction(functionId,
+								new JavaScriptFunction() {
+									@Override
+									public void call(JsonArray arguments) {
+										String tableBodyWrapperDivHeight = StringUtils.removeEnd(arguments.getString(0), "px");
+										if (StringUtils.isNotBlank(tableBodyWrapperDivHeight)) {
+											StringBuilder js = new StringBuilder();
+											js.append("  var tableBodyWrapperDiv =  document.getElementById('" + getId() + "').getElementsByClassName('v-table-body-wrapper')[0].getElementsByTagName('div')[0];");
+											js.append("  tableBodyWrapperDiv.style.height = '" + tableBodyWrapperDivHeight + "';");
+											JavaScript.getCurrent().execute(js.toString());
+										}
+									}
+								});
+
+						StringBuilder js = new StringBuilder();
+						js.append("  var tableBodyWrapperDiv =  document.getElementById('" + getId() + "').getElementsByClassName('v-table-body-wrapper')[0].getElementsByTagName('div')[0];");
+						js.append("  var tableBodyWrapperDivHeight =  tableBodyWrapperDiv.style.height;");
+						js.append("  tableBodyWrapperDiv.style.height = '';");
+						js.append(functionId + "(tableBodyWrapperDivHeight);");
+						JavaScript.getCurrent().execute(js.toString());
+					}
+				});
+			}
+		}, 10, this);
 	}
 
 	@Override

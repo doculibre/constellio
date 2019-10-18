@@ -96,6 +96,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private ContentVersionUploadField uploadField;
 	private TabSheet tabSheet;
 	private RecordDisplay recordDisplay;
+	private FacetsSliderPanel facetsSliderPanel;
 	private Component folderContentComponent;
 	private ViewableRecordVOTablePanel viewerPanel;
 	private Component tasksComponent;
@@ -489,20 +490,20 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			});
 			viewerPanel.addStyleName("folder-content-table");
 
-			if (!nestedView) {
+			if (!nestedView && (folderContentDataProvider.size() > 0 || !folderContentDataProvider.getFieldFacetValues().isEmpty())) {
 				contentAndFacetsLayout = new I18NHorizontalLayout();
 				contentAndFacetsLayout.addStyleName("content-and-facets-layout");
 				contentAndFacetsLayout.setWidth("100%");
 				contentAndFacetsLayout.setSpacing(true);
-				
-				FacetsSliderPanel sliderPanel = new FacetsSliderPanel(facetsPanel);
-				contentAndFacetsLayout.addComponents(viewerPanel, sliderPanel);
+
+				facetsSliderPanel = new FacetsSliderPanel(facetsPanel);
+				contentAndFacetsLayout.addComponents(viewerPanel, facetsSliderPanel);
 				contentAndFacetsLayout.setExpandRatio(viewerPanel, 1);
 				
 				tabSheet.replaceComponent(folderContentComponent, folderContentComponent = contentAndFacetsLayout);
 			} else {
 				tabSheet.replaceComponent(folderContentComponent, folderContentComponent = viewerPanel);
-			}
+			}		
 			viewerPanel.setSelectionActionButtons();
 		}
 		tabSheet.setSelectedTab(folderContentComponent);

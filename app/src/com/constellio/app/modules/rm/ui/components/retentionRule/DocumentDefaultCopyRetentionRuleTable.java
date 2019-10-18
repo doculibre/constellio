@@ -97,6 +97,7 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 		mainLayout.setSpacing(true);
 
 		table = new BaseTable(getClass().getName());
+		table.addStyleName("copy-retention-rule-table");
 		table.setWidth("100%");
 		table.setPageLength(0);
 

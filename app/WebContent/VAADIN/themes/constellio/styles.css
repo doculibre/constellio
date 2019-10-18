@@ -12282,7 +12282,7 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: -36px;
 	padding-right: 10px;
 	position: relative;
-	top: 82px;
+	top: 38px;
 	z-index: 1000;
 }
 
@@ -12314,7 +12314,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .task-table-layout .v-slot-task-table-controls .v-caption-task-table-sort {
 	position: relative;
-	top: -1px;
+	top: 4px;
 	display: inline-block;
 	line-height: initial;
 }
@@ -12328,6 +12328,11 @@ div.v-layout.v-horizontal.v-widget {
 	line-height: initial;
 }
 
+.constellio .task-table-layout .v-slot-task-table-controls .task-table-sort .v-filterselect-input {
+	position: relative;
+	top: -5px;
+}
+
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort .v-filterselect-button:before {
 	content: "\f078";
 	line-height: 0px;
@@ -12335,6 +12340,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort-asc-button, .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort-desc-button {
 	height: initial;
+	top: 4px;
 }
 
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort-asc-button {
@@ -14162,12 +14168,29 @@ div.v-layout.v-horizontal.v-widget {
 	max-width: 200px;
 }
 
+.constellio .v-table .v-scrollable {
+	overflow-x: hidden;
+}
+
+.constellio .copy-retention-rule-table .v-scrollable {
+	overflow-x: auto;
+}
+
 .constellio .base-display .base-display-main-layout {
 	width: 100%;
 }
 
 .constellio .base-display .v-label-undef-w {
 	white-space: normal;
+}
+
+.constellio .base-display .display-caption-and-component {
+	min-height: 34px;
+}
+
+.constellio .base-display .display-caption, .constellio .base-display .display-value {
+	position: relative;
+	top: 4px;
 }
 
 .constellio .base-display .v-disabled {
@@ -14666,20 +14689,8 @@ div.v-layout.v-horizontal.v-widget {
 	position: fixed;
 }
 
-.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .display-value {
-	padding-right: 300px;
-}
-
 .constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
 	padding-right: 26px;
-}
-
-.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
-	margin-right: 300px;
-}
-
-.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
-	padding-right: 300px;
 }
 
 .constellio .v-window .popupContent .action-menu-wrapper .base-display .record-comments-layout {
@@ -14912,10 +14923,6 @@ div.v-layout.v-horizontal.v-widget {
 	color: inherit;
 	border: none;
 	box-shadow: none;
-}
-
-.constellio .v-tabsheet-content {
-	margin-top: 7px;
 }
 
 .constellio .clickable-row .v-table-body tr, .constellio .clickable-row .v-table-body .reference-display {
@@ -15279,14 +15286,6 @@ div.v-layout.v-horizontal.v-widget {
 	vertical-align: top;
 }
 
-.constellio .viewable-record-table-panel .viewable-record-table .v-table-table .v-table-cell-content .v-checkbox {
-	margin-top: 23px;
-}
-
-.constellio .viewable-record-table-panel .viewable-record-table .v-table-table .v-table-cell-content .row-index {
-	margin-top: 23px;
-}
-
 .constellio .viewable-record-table-panel .viewable-record-table .v-table-table .v-table-cell-content .v-spacing {
 	height: 5px;
 }
@@ -15446,7 +15445,7 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: center;
 	white-space: nowrap;
 	outline: medium none;
-	cursor: pointer;
+	cursor: ew-resize;
 	color: #191919;
 	font-weight: 400;
 	border-radius: 4px 4px 4px 4px;
@@ -16043,10 +16042,6 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: hidden;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .v-table2 .v-scrollable {
-	overflow-x: hidden;
-}
-
 .constellio .v-ui[width-range~="1101px-"] .stats-table-layout .v-table .v-scrollable {
 	overflow-x: auto;
 }
@@ -16072,20 +16067,12 @@ div.v-layout.v-horizontal.v-widget {
 	top: 50px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .display-value {
-	padding-right: 300px;
-}
-
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
 	padding-right: 26px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
-	margin-right: 300px;
-}
-
-.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
-	padding-right: 300px;
+.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .display-caption-and-component .display-caption {
+	min-width: 200px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-list-add-remove-comment {
@@ -16115,6 +16102,14 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-ui[width-range~="1101px-"] .viewable-record-table-panel .action-menu-bar-layout {
 	top: 10px;
 	right: 50px;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .viewable-record-table .v-table-table .v-table-cell-content .v-checkbox {
+	margin-top: 23px;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .search-result-title .v-icon {
+	display: none;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
@@ -16175,12 +16170,16 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: hidden;
 }
 
-.constellio .v-ui[width-range~="801-1100px"] .v-table2 .v-scrollable {
-	overflow-x: hidden;
-}
-
 .constellio .v-ui[width-range~="801-1100px"] .folder-content-table .v-scrollable {
 	overflow-x: auto;
+}
+
+.constellio .v-ui[width-range~="801-1100px"] .viewable-record-table .v-table-table .v-table-cell-content .v-checkbox {
+	margin-top: 23px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"] .search-result-title .v-icon {
+	display: none;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .action-menu-wrapper {
@@ -16199,6 +16198,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="801-1100px"] .action-menu-wrapper .base-display .base-display-main-layout .v-slot-list-add-remove-comment {
 	width: 100%;
+}
+
+.constellio .v-ui[width-range~="801-1100px"] .base-display .v-slot-display-caption, .constellio .v-ui[width-range~="801-1100px"] .base-display .v-slot-display-value {
+	min-height: 34px;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .action-menu {
@@ -16220,6 +16223,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-ui[width-range~="801-1100px"] .viewable-record-table-panel .action-menu-bar-layout {
 	top: -60px;
 	right: 50px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"] .viewable-record-table .v-table-table .v-table-cell-content .v-checkbox {
+	margin-top: 23px;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .viewable-record-table-panel .viewable-record-table .metadata-caption, .constellio .v-ui[width-range~="801-1100px"] .viewable-record-table-panel .viewable-record-table .metadata-value {
@@ -16249,6 +16256,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="0-800px"] .responsive-button [class*="caption"] {
 	display: none;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .v-table .v-scrollable {
+	overflow-x: auto;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .header .header-logo {
@@ -16301,6 +16312,14 @@ div.v-layout.v-horizontal.v-widget {
 	content: "\f002";
 	margin-top: 5px;
 	margin-left: -14px;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .base-display .v-slot-display-caption, .constellio .v-ui[width-range~="0-800px"] .base-display .v-slot-display-value {
+	min-height: 34px;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .viewable-record-table .v-table-table .v-table-cell-content .v-checkbox {
+	margin-top: 13px;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .v-slot-action-menu {

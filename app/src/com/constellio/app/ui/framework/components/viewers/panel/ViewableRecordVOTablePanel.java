@@ -262,6 +262,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		if (table.isPaged()) {
 			tableLayout.addComponent(pagingControls = table.createPagingControls());
 		}
+		Label spacer = new Label("");
+		spacer.setHeight("50px");
+		tableLayout.addComponent(spacer);
 
 		closeButtonViewerMetadataLayout = new VerticalLayout(closeViewerButton, viewerMetadataPanel);
 		closeButtonViewerMetadataLayout.addStyleName("close-button-viewer-metadata-layout");
@@ -444,6 +447,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			setExpandRatio(tableLayout, 1);
 			setExpandRatio(closeButtonViewerMetadataLayout, 0);
 		}
+		//		adjustHeight();
 	}
 
 	private void adjustHeight() {
@@ -459,10 +463,12 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 									new JavaScriptFunction() {
 										@Override
 										public void call(JsonArray arguments) {
-											int tableBodyWrapperHeight = Integer.parseInt(StringUtils.removeEnd(arguments.getString(0), "px"));
-											int metadataPanelHeight = Integer.parseInt(StringUtils.removeEnd(arguments.getString(1), "px"));
-											int adjustedHeight = Math.max(tableBodyWrapperHeight, metadataPanelHeight) + 400;
-											ViewableRecordVOTablePanel.this.setHeight(adjustedHeight + "px");
+											if (StringUtils.isNotBlank(arguments.getString(0))) {
+												int tableBodyWrapperHeight = Integer.parseInt(StringUtils.removeEnd(arguments.getString(0), "px"));
+												int metadataPanelHeight = Integer.parseInt(StringUtils.removeEnd(arguments.getString(1), "px"));
+												int adjustedHeight = Math.max(tableBodyWrapperHeight, metadataPanelHeight) + 400;
+												ViewableRecordVOTablePanel.this.setHeight(adjustedHeight + "px");
+											}
 										}
 									});
 
@@ -507,13 +513,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				@Override
 				protected SelectionManager newSelectionManager() {
 					SelectionManager selectionManager = ViewableRecordVOTablePanel.this.newSelectionManager();
-
 					if (selectionManager == null) {
 						selectionManager = super.newSelectionManager();
 					}
-
 					SelectionManager finalSelectionManager = createSelectionManagerWithSelectedCountCaption(selectionManager);
-
 					return finalSelectionManager;
 				}
 
@@ -1145,6 +1148,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					this.addStyleName("nested-view");
 				}
 				mainLayout.addComponent(panelContent);
+				Label spacer = new Label("");
+				spacer.setHeight("100px");
+				mainLayout.addComponent(spacer);
 			}
 		}
 

@@ -109,7 +109,7 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
 		addStyleName(RECORD_STYLE);
-		setWidth("350px");
+		setWidth("50px");
 
 		addTitleComponents(searchResultVO);
 

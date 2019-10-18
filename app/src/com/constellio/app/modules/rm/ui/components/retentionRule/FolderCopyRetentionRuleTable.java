@@ -130,6 +130,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		}
 
 		table = new BaseTable(getClass().getName());
+		table.addStyleName("copy-retention-rule-table");
 		table.setWidth("100%");
 		table.setPageLength(0);
 		table.setSelectable(false);

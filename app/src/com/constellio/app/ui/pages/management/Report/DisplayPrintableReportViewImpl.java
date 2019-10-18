@@ -115,6 +115,6 @@ public class DisplayPrintableReportViewImpl extends BaseViewImpl implements Disp
 
 	@Override
 	protected String getTitle() {
-		return $("LabelDisplayViewImpl.title") + " : " + recordVO.getTitle();
+		return $("DisplayPrintableReportViewImpl.title") + " : " + recordVO.getTitle();
 	}
 }
