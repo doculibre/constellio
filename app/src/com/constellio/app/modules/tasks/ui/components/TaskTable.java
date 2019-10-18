@@ -211,14 +211,12 @@ public class TaskTable extends VerticalLayout {
 		sortAscButton = new BaseButton() {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				if (table.getSortContainerPropertyId() != null) {
-					if (table.isSortAscending()) {
-						table.setSortAscending(false);
-						sortAscButton.setIcon(FontAwesome.SORT_DESC);
-					} else {
-						table.setSortAscending(true);
-						sortAscButton.setIcon(FontAwesome.SORT_ASC);
-					}
+				if (table.isSortAscending()) {
+					table.setSortAscending(false);
+					sortAscButton.setIcon(FontAwesome.SORT_DESC);
+				} else {
+					table.setSortAscending(true);
+					sortAscButton.setIcon(FontAwesome.SORT_ASC);
 				}
 			}
 		};
