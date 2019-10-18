@@ -232,13 +232,4 @@ public class SystemMemory {
 			}
 		}
 	}
-
-	public static void main(String[] args) {
-		SystemMemory systemInfo = new SystemMemory(MemoryDetails.build("15728640", "k"), MemoryDetails.build("5120mb", null), MemoryDetails.build("5 G", null));
-		System.out.println(systemInfo.getPercentageOfAllocatedMemory() * 100 + " %");
-		System.out.println(systemInfo.getTotalSystemMemory().toString());
-		System.out.println(systemInfo.getConstellioAllocatedMemory().toString());
-		System.out.println(systemInfo.getSolrAllocatedMemory().toString());
-		System.out.println(new MemoryDetails(2652897.28, MemoryUnit.KB).toString(MemoryUnit.GB, 1));
-	}
 }
