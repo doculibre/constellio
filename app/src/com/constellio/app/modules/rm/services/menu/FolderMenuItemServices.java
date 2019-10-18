@@ -62,7 +62,7 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_ADD_DOCUMENT.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_DOCUMENT.name(),
 					isMenuItemActionPossible(FOLDER_ADD_DOCUMENT.name(), folder, user, params),
-					$("DisplayFolderView.addDocument"), null, -1, 100,
+					$("DisplayFolderView.addDocument"), FontAwesome.FILE_O, -1, 100,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToDocument(folder, params)));
 		}
 
@@ -169,7 +169,7 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_PRINT_LABEL.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_PRINT_LABEL.name(),
 					isMenuItemActionPossible(FOLDER_PRINT_LABEL.name(), folder, user, params),
-					$("DisplayFolderView.printLabel"), null, -1, 1500,
+					$("DisplayFolderView.printLabel"), FontAwesome.PRINT, -1, 1500,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).printLabel(folder, params)));
 		}
 
