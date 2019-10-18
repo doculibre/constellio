@@ -113,6 +113,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private VerticalLayout summary;
 	private Component resultsAndFacetsPanel;
 	private VerticalLayout resultsArea;
+	private SliderPanel sliderPanel;
 	private FacetsPanel facetsArea;
 	private VerticalLayout capsuleArea;
 
@@ -364,6 +365,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
 		String sortCriterionValue = presenter.getSortCriterionValueAmong(sortableMetadata);
 		SortOrder sortOrder = presenter.getSortOrder();
+
+		sliderPanel.setVisible(true);
+
 		if (facetsOpened) {
 			facetsArea.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
 		}
@@ -456,7 +460,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//			resultsAndFacetsPanel = body;
 		//		} else {
 
-		SliderPanel sliderPanel = new FacetsSliderPanel(facetsArea);
+		sliderPanel = new FacetsSliderPanel(facetsArea);
 		sliderPanel.addListener((SliderPanelListener) (expand) -> {
 			this.facetsOpened = expand;
 			if (facetsOpened) {
@@ -464,6 +468,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				refreshFacets(dataProvider);
 			}
 		});
+		sliderPanel.setVisible(false);
 
 		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, sliderPanel);
 		body.addStyleName("search-result-and-facets-container");

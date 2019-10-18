@@ -228,6 +228,11 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		return qtime;
 	}
 
+	public int getResultsCount() {
+		int resultsCount = queryCache.getSize();
+		return resultsCount;
+	}
+
 	public List<MetadataSchema> getSchemas() {
 		List<MetadataSchema> schemas;
 		DataStoreFilters filters = query.getCondition().getFilters();
