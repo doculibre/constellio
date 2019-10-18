@@ -32,6 +32,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -152,11 +153,12 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		Button windowButton = new WindowButton($("CollectionGroupRolesView.addRoleButton"),
-				$("CollectionGroupRolesView.addRoleWindowTitle"), WindowConfiguration.modalDialog("900px", "450px")) {
+				$("CollectionGroupRolesView.addRoleWindowTitle"),
+				WindowConfiguration.modalDialog("800px", "450px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
-
+				final Window window = getWindow();
 				if (presenter.isRMModuleEnabled()) {
 					targetField = new LookupRecordField(presenter.getPrincipalTaxonomySchemaCode());
 					targetField.setCaption($("CollectionGroupRolesView.targetField"));
@@ -171,7 +173,10 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 				targetField.addValueChangeListener(new Property.ValueChangeListener() {
 					@Override
 					public void valueChange(Property.ValueChangeEvent event) {
-						warningLabel.setVisible(presenter.isRMModuleEnabled() && event.getProperty().getValue() == null);
+						boolean isVisible = presenter.isRMModuleEnabled() && event.getProperty().getValue() == null;
+						warningLabel.setVisible(isVisible);
+						int additionnalHeight = isVisible ? 100 : -100;
+						window.setHeight((window.getHeight() + additionnalHeight) + "px");
 					}
 				});
 

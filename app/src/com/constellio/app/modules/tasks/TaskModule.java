@@ -2,7 +2,6 @@ package com.constellio.app.modules.tasks;
 
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
-import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
@@ -48,14 +47,12 @@ import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_4;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_5;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_2_42;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_3_1;
-import com.constellio.app.modules.tasks.migrations.records.TaskVisibilityInTreesMigrationTo8_3_1;
 import com.constellio.app.modules.tasks.model.TaskRecordsCachesHook;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.background.AlertOverdueTasksBackgroundAction;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
 
@@ -67,8 +64,7 @@ import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatin
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
 import static org.joda.time.Duration.standardHours;
 
-public class TaskModule implements InstallableSystemModule, ModuleWithComboMigration,
-		InstallableSystemModuleWithRecordMigrations {
+public class TaskModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "tasks";
 	public static final String NAME = "Tasks";
 
@@ -99,15 +95,6 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		scripts.add(new TasksMigrationTo8_2_42());
 		scripts.add(new TasksMigrationTo8_3_1());
 		//		scripts.add(new TasksMigrationTo_8_3_1_1());
-
-		return scripts;
-	}
-
-	@Override
-	public List<RecordMigrationScript> getRecordMigrationScripts(String collection, AppLayerFactory appLayerFactory) {
-		List<RecordMigrationScript> scripts = new ArrayList<>();
-
-		scripts.add(new TaskVisibilityInTreesMigrationTo8_3_1(collection, appLayerFactory));
 
 		return scripts;
 	}

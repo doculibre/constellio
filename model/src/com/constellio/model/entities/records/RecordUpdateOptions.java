@@ -46,6 +46,8 @@ public class RecordUpdateOptions {
 
 	private boolean repopulate = true;
 
+	private boolean markIdsForReindexing = true;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -86,6 +88,17 @@ public class RecordUpdateOptions {
 		this.updateCalculatedMetadatas = copy.updateCalculatedMetadatas;
 
 		this.repopulate = copy.repopulate;
+
+		this.markIdsForReindexing = copy.markIdsForReindexing;
+	}
+
+	public boolean isMarkIdsForReindexing() {
+		return markIdsForReindexing;
+	}
+
+	public RecordUpdateOptions setMarkIdsForReindexing(boolean markIdsForReindexing) {
+		this.markIdsForReindexing = markIdsForReindexing;
+		return this;
 	}
 
 	public boolean isUpdateCalculatedMetadatas() {

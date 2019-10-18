@@ -151,7 +151,8 @@ public class RMFavoritesTable implements Serializable {
 		RecordVODataProvider folderVODataProvider = new RecordVODataProvider(folderSchema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(folderSchemaType).where(rm.folder.favorites()).isContaining(asList(user.getId()))).filteredByStatus(StatusFilter.ACTIVES);
+				return new LogicalSearchQuery(from(folderSchemaType).where(rm.folder.favorites()).isContaining(asList(user.getId())))
+						.filteredByStatus(StatusFilter.ACTIVES).filteredWithUser(user);
 			}
 		};
 
@@ -161,7 +162,8 @@ public class RMFavoritesTable implements Serializable {
 			@Override
 			public LogicalSearchQuery getQuery() {
 				final Metadata documentFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FAVORITES);
-				return new LogicalSearchQuery(from(documentSchemaType).where(documentFavoritesList).isContaining(asList(user.getId()))).filteredByStatus(StatusFilter.ACTIVES);
+				return new LogicalSearchQuery(from(documentSchemaType).where(documentFavoritesList).isContaining(asList(user.getId())))
+						.filteredByStatus(StatusFilter.ACTIVES).filteredWithUser(user);
 			}
 		};
 
@@ -171,7 +173,8 @@ public class RMFavoritesTable implements Serializable {
 			@Override
 			public LogicalSearchQuery getQuery() {
 				final Metadata containerFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.FAVORITES);
-				return new LogicalSearchQuery(from(containerSchemaType).where(containerFavoritesList).isContaining(asList(user.getId()))).filteredByStatus(StatusFilter.ACTIVES);
+				return new LogicalSearchQuery(from(containerSchemaType).where(containerFavoritesList).isContaining(asList(user.getId())))
+						.filteredByStatus(StatusFilter.ACTIVES).filteredWithUser(user);
 			}
 		};
 
