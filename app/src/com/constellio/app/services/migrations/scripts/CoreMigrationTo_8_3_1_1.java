@@ -45,7 +45,7 @@ public class CoreMigrationTo_8_3_1_1 implements MigrationScript {
 				for (User user : schemas.wrapUsers(records)) {
 					Object setting = user.get(defaultTabInFolderDisplay);
 					if (setting != null && setting.toString().matches("D|SF")) {
-						tx.add((User) user.set(defaultTabInFolderDisplay, DefaultTabInFolderDisplay.CONTENT));
+						tx.add((User) user.set(defaultTabInFolderDisplay, DefaultTabInFolderDisplay.CONTENT.getCode()));
 					}
 				}
 

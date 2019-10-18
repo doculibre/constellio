@@ -273,6 +273,18 @@ public class DocumentRecordActionsServices {
 		return false;
 	}
 
+	public boolean isCheckOutActionNotPossibleDocumentDeleted(Record record, User user) {
+		Document document = rm.wrapDocument(record);
+
+		if (user.hasWriteAccess().on(record)) {
+			if (isCheckOutNotPossibleDocumentDeleted(document) && modelLayerCollectionExtensions.isRecordModifiableBy(record, user) && !modelLayerCollectionExtensions
+					.isModifyBlocked(record, user)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public boolean isGenerateReportActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record) &&
 			   !record.isLogicallyDeleted() &&
@@ -326,7 +338,24 @@ public class DocumentRecordActionsServices {
 		boolean email = isEmail(document);
 		return document.getContent() != null &&
 			   !document.isLogicallyDeletedStatus() &&
-			   !email && !isContentCheckedOut(document.getContent());
+			   !email && !isContentCheckedOut(document.getContent()) &&
+			   !isDocumentLogicallyDeleted(document);
+	}
+
+	private boolean isCheckOutNotPossibleDocumentDeleted(Document document) {
+		boolean email = isEmail(document);
+		return document.getContent() != null &&
+			   !document.isLogicallyDeletedStatus() &&
+			   !email && !isContentCheckedOut(document.getContent()) &&
+			   isDocumentLogicallyDeleted(document);
+	}
+
+	private boolean isDocumentLogicallyDeleted(Document document) {
+		if (document.getId() != null) {
+			return rm.getDocument(document.getId()).isLogicallyDeletedStatus();
+		} else {
+			return true;
+		}
 	}
 
 	private boolean isContentCheckedOut(Document document) {
