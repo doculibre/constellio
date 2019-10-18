@@ -105,4 +105,8 @@ public interface RecordsCaches {
 	}
 
 	CacheLoadingProgression getLoadingProgression();
+
+	void enableVolatileCache();
+
+	void disableVolatileCache();
 }
