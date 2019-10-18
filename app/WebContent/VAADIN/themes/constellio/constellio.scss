@@ -243,7 +243,7 @@ $popup-view-z-index: 3;
 			margin-top: -36px;
 			padding-right: 10px;
 			position: relative;
-			top: 82px;
+			top: 38px;
 			z-index: 1000;
 		}
 
@@ -279,7 +279,7 @@ $popup-view-z-index: 3;
 
 			.v-caption-task-table-sort {
 				position: relative;
-				top: -1px;
+				top: 4px;
 				display: inline-block;
 				line-height: initial;
 			}
@@ -291,6 +291,11 @@ $popup-view-z-index: 3;
 				.v-filterselect, .v-filterselect-suggestmenu {
 					line-height: initial;
 				}
+				
+				.v-filterselect-input {
+					position: relative;
+					top: -5px;
+				}
 
 				.v-filterselect-button:before {
 					content: "\f078";
@@ -300,6 +305,7 @@ $popup-view-z-index: 3;
 			
 			.task-table-sort-asc-button, .task-table-sort-desc-button {
 				height: initial;
+				top: 4px;
 			}
 
 			.task-table-sort-asc-button {
@@ -867,9 +873,6 @@ $popup-view-z-index: 3;
 	.v-table-cell-content-file-icon-folder_frozen {
 		@include folder-icon(folder_frozen);
 	}
-	
-	
-	
 
 	.v-table-cell-content-file-icon-folder_orange_frozen {
 		@include folder-icon(folder_orange_frozen);
@@ -1188,6 +1191,18 @@ $popup-view-z-index: 3;
 		max-width: 200px;
 	}
 
+	.v-table {
+    	.v-scrollable {
+    		overflow-x: hidden;
+    	}
+	}
+	
+	.copy-retention-rule-table {
+    	.v-scrollable {
+    		overflow-x: auto;
+    	}
+	}
+
 	.base-display {
 		
 		.base-display-main-layout {
@@ -1197,7 +1212,16 @@ $popup-view-z-index: 3;
 		.v-label-undef-w {
 			white-space: normal;
 		}
-
+					
+		.display-caption-and-component {
+			min-height: 34px;
+		}
+			
+		.display-caption, .display-value {
+			position: relative;
+			top: 4px;
+		}
+		
     	.v-disabled {
     		opacity: inherit;
     		color: inherit;
@@ -1761,19 +1785,9 @@ $popup-view-z-index: 3;
 				.base-display {
 					.v-slot-display-value {
 						.display-value {
-	            			padding-right: 300px;
-	            			
 	            			.agent-link {
 	            				padding-right: 26px;
 	            			}
-						}
-					
-						.v-label-display-value {
-	            			margin-right: 300px;
-						}
-						
-						.reference-display {
-	            			padding-right: 300px;
 						}
 					}
 						
@@ -2068,10 +2082,6 @@ $popup-view-z-index: 3;
 		color: inherit;
 		border: none;
 		box-shadow: none;
-	}
-
-	.v-tabsheet-content {
-		margin-top: 7px;
 	}
 
 	.clickable-row {
@@ -2490,14 +2500,6 @@ $popup-view-z-index: 3;
 		  			border: none;
 					vertical-align: top;
 
-					.v-checkbox {
-						margin-top: 23px;
-					}
-
-					.row-index {
-						margin-top: 23px;
-					}
-
 					.v-spacing {
 						height: 5px;
 					}
@@ -2675,13 +2677,14 @@ $popup-view-z-index: 3;
 				overflow: auto;
 			}
 		}
+		
 		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel {
 			width: 10px;
 
 		    text-align: center;
 		    white-space: nowrap;
 		    outline: medium none;
-		    cursor: pointer;
+		    cursor: ew-resize;
 		    color: rgb(25, 25, 25);
 		    font-weight: 400;
 		    border-radius: 4px 4px 4px 4px;
@@ -3346,12 +3349,6 @@ $popup-view-z-index: 3;
 	    .v-panel-content-content-view-wrapper2 {
 	    	overflow-y: hidden;
 	    }
-
-    	.v-table2 {
-	    	.v-scrollable {
-	    		overflow-x: hidden;
-	    	}
-    	}
     	
     	.stats-table-layout {
 	    	.v-table {
@@ -3399,20 +3396,17 @@ $popup-view-z-index: 3;
 			.base-display {
 				.v-slot-display-value {
 					.display-value {
-            			padding-right: 300px;
-            			
             			.agent-link {
             				padding-right: 26px;
             			}
 					}
-				
-					.v-label-display-value {
-            			margin-right: 300px;
-					}
 					
-					.reference-display {
-            			padding-right: 300px;
+					.display-caption-and-component {
+						.display-caption {
+							min-width: 200px;
+						}
 					}
+				
 				}
 
 				.v-slot-list-add-remove-comment {
@@ -3453,6 +3447,22 @@ $popup-view-z-index: 3;
 	  			top: 10px;
 	  			right: 50px;
 	  		}
+  		}
+
+  		.viewable-record-table {
+			.v-table-table {
+				.v-table-cell-content {
+					.v-checkbox {
+						margin-top: 23px;
+					}
+				}
+			}
+		}			
+  		
+  		.search-result-title {
+  			.v-icon {
+  				display: none;
+  			}
   		}
 
 	    .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
@@ -3541,17 +3551,27 @@ $popup-view-z-index: 3;
 	    	overflow-y: hidden;
 	    }
 
-    	.v-table2 {
-	    	.v-scrollable {
-	    		overflow-x: hidden;
-	    	}
-    	}
-
     	.folder-content-table {
 	    	.v-scrollable {
 	    		overflow-x: auto;
 	    	}
     	}
+
+  		.viewable-record-table {
+			.v-table-table {
+				.v-table-cell-content {
+					.v-checkbox {
+						margin-top: 23px;
+					}
+				}
+			}
+		}	
+  		
+  		.search-result-title {
+  			.v-icon {
+  				display: none;
+  			}
+  		}
 
         .action-menu-wrapper {
             padding-right: 260px;
@@ -3566,15 +3586,18 @@ $popup-view-z-index: 3;
 					width:100%;
             		padding-right: 260px;
             		
-					.v-slot-display-value {
-					}
-	
 					.v-slot-list-add-remove-comment {
 						width: 100%;
 					}
 				}
 			
 			}
+        }
+        
+        .base-display {
+			.v-slot-display-caption, .v-slot-display-value {
+				min-height: 34px;
+			}		
         }
 
 	    .action-menu {
@@ -3599,6 +3622,16 @@ $popup-view-z-index: 3;
 	  			right: 50px;
 	  		}
   		}
+
+  		.viewable-record-table {
+			.v-table-table {
+				.v-table-cell-content {
+					.v-checkbox {
+						margin-top: 23px;
+					}
+				}
+			}
+		}		
 		
 		.viewable-record-table-panel .viewable-record-table .metadata-caption, .viewable-record-table-panel .viewable-record-table .metadata-value {
 			display: none;
@@ -3639,6 +3672,12 @@ $popup-view-z-index: 3;
 			[class*="caption"] {
 				display: none;
 			}
+		}
+	
+		.v-table {
+	    	.v-scrollable {
+	    		overflow-x: auto;
+	    	}
 		}
 
     	.header {
@@ -3699,6 +3738,22 @@ $popup-view-z-index: 3;
 			margin-top: 5px;
 		    margin-left: -14px;
 		}
+        
+        .base-display {
+			.v-slot-display-caption, .v-slot-display-value {
+				min-height: 34px;
+			}		
+        }
+
+  		.viewable-record-table {
+			.v-table-table {
+				.v-table-cell-content {
+					.v-checkbox {
+						margin-top: 13px;
+					}
+				}
+			}
+		}	
 
     	.v-slot-action-menu {
 	        padding: 10px;

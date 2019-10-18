@@ -1016,45 +1016,47 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public void searchNavigationButtonClicked() {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-			SearchEvent searchEvent = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
 					appLayerFactory.getModelLayerFactory());
 
-			List<String> params = new ArrayList<>(searchEvent.getParams());
+			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
+			SearchEvent searchEvent = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			if (searchEvent != null) {
+				List<String> params = new ArrayList<>(searchEvent.getParams());
 
-			int pageNumber = getPageNumber();
-			int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
-			int start = (pageNumber > 0 ? pageNumber - 1 : 0) * rows;
+				int pageNumber = getPageNumber();
+				int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
+				int start = (pageNumber > 0 ? pageNumber - 1 : 0) * rows;
 
-			ListIterator<String> listIterator = params.listIterator();
-			while (listIterator.hasNext()) {
-				String param = listIterator.next();
+				ListIterator<String> listIterator = params.listIterator();
+				while (listIterator.hasNext()) {
+					String param = listIterator.next();
 
-				if (StringUtils.startsWith(param, "start=")) {
-					listIterator.set("start=" + start);
+					if (StringUtils.startsWith(param, "start=")) {
+						listIterator.set("start=" + start);
+					}
+
+					if (StringUtils.startsWith(param, "rows=")) {
+						listIterator.set("rows=" + rows);
+					}
 				}
 
-				if (StringUtils.startsWith(param, "rows=")) {
-					listIterator.set("rows=" + rows);
+				SearchEvent newSearchEvent = schemasRecordsServices.newSearchEvent();
+				newSearchEvent.setParams(params);
+				newSearchEvent.setClickCount(searchEvent.getClickCount());
+				newSearchEvent.setPageNavigationCount(searchEvent.getPageNavigationCount() + 1);
+				newSearchEvent.setOriginalQuery(searchEvent.getOriginalQuery());
+				newSearchEvent.setQuery(searchEvent.getQuery());
+				newSearchEvent.setNumFound(searchEvent.getNumFound());
+				newSearchEvent.setQTime(searchEvent.getQTime());
+				newSearchEvent.setCapsule(searchEvent.getCapsule());
+
+				if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
+					view.getSessionContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
+					searchEventServices.save(newSearchEvent);
+				} else {
+					searchEventServices.setLastPageNavigation(searchEvent.getId(), pageNumber);
 				}
-			}
-
-			SearchEvent newSearchEvent = schemasRecordsServices.newSearchEvent();
-			newSearchEvent.setParams(params);
-			newSearchEvent.setClickCount(searchEvent.getClickCount());
-			newSearchEvent.setPageNavigationCount(searchEvent.getPageNavigationCount() + 1);
-			newSearchEvent.setOriginalQuery(searchEvent.getOriginalQuery());
-			newSearchEvent.setQuery(searchEvent.getQuery());
-			newSearchEvent.setNumFound(searchEvent.getNumFound());
-			newSearchEvent.setQTime(searchEvent.getQTime());
-			newSearchEvent.setCapsule(searchEvent.getCapsule());
-
-			if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
-				view.getSessionContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
-				searchEventServices.save(newSearchEvent);
-			} else {
-				searchEventServices.setLastPageNavigation(searchEvent.getId(), pageNumber);
 			}
 		}
 	}
