@@ -94,7 +94,7 @@ public abstract class AdvancedSearchMenuItemActionExtension extends MenuItemActi
 
 		MenuItemAction menuItemAction = MenuItemAction.builder()
 				.type(RECORDS_GENERATE_REPORT)
-				.state(getActionStateForReportInternal(params.getQuery()))
+				.state(getActionStateForReportInternal(params.getQuery(), params.isReturnedResults()))
 				.caption($("SearchView.metadataReportTitle"))
 				.icon(null)
 				.group(-1)
@@ -106,7 +106,7 @@ public abstract class AdvancedSearchMenuItemActionExtension extends MenuItemActi
 
 		MenuItemAction menuItemAction2 = MenuItemAction.builder()
 				.type(RECORDS_BATCH)
-				.state(getActionStateForBatchProcessingInternal(params.getQuery(), params.getBehaviorParams().getUser()))
+				.state(getActionStateForBatchProcessingInternal(params.getQuery(), params.getBehaviorParams().getUser(), params.isReturnedResults()))
 				.caption($("AdvancedSearchView.batchProcessing"))
 				.icon(null)
 				.group(-1)
@@ -129,16 +129,17 @@ public abstract class AdvancedSearchMenuItemActionExtension extends MenuItemActi
 	}
 
 	private MenuItemActionState getActionStateForBatchProcessingInternal(LogicalSearchQuery logicalSearchQuery,
-																		 User user) {
-		if (logicalSearchQuery == null || searchServices.getResultsCount(logicalSearchQuery) <= 0) {
+																		 User user, boolean hasResults) {
+		if (logicalSearchQuery == null || !hasResults) {
 			return MenuItemActionState.visibleOrHidden(false);
 		}
 
 		return getActionStateForBatchProcessing(logicalSearchQuery, user);
 	}
 
-	private MenuItemActionState getActionStateForReportInternal(LogicalSearchQuery logicalSearchQuery) {
-		if (logicalSearchQuery == null || searchServices.getResultsCount(logicalSearchQuery) <= 0) {
+	private MenuItemActionState getActionStateForReportInternal(LogicalSearchQuery logicalSearchQuery,
+																boolean hasResults) {
+		if (logicalSearchQuery == null || !hasResults) {
 			return MenuItemActionState.visibleOrHidden(false);
 		}
 
