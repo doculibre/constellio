@@ -235,7 +235,7 @@ public class SystemInfo {
 
 			if (constellioMemoryPercentage <= 20) {
 				validationErrors.add(SystemInfo.class, CONSTELLIO_ALLOCATED_MEMORY, constellioMemoryParameters);
-			} else if (constellioMemoryPercentage < 40) {
+			} else if (constellioMemoryPercentage < 39) {
 				validationErrors.addWarning(SystemInfo.class, CONSTELLIO_ALLOCATED_MEMORY, constellioMemoryParameters);
 			} else {
 				validationErrors.addLog(SystemInfo.class, CONSTELLIO_ALLOCATED_MEMORY, constellioMemoryParameters);
@@ -243,13 +243,13 @@ public class SystemInfo {
 
 			if (solrMemoryPercentage <= 20) {
 				validationErrors.add(SystemInfo.class, SOLR_ALLOCATED_MEMORY, solrMemoryParameters);
-			} else if (solrMemoryPercentage < 40) {
+			} else if (solrMemoryPercentage < 39) {
 				validationErrors.addWarning(SystemInfo.class, SOLR_ALLOCATED_MEMORY, solrMemoryParameters);
 			} else {
 				validationErrors.addLog(SystemInfo.class, SOLR_ALLOCATED_MEMORY, solrMemoryParameters);
 			}
 
-			if (unallocatedMemoryPercentage < 20 && systemMemory.getUnallocatedMemory().isLessThan(new MemoryDetails(2d, MemoryUnit.GB))) {
+			if (unallocatedMemoryPercentage < 19 && systemMemory.getUnallocatedMemory().isLessThan(new MemoryDetails(2d, MemoryUnit.GB))) {
 				validationErrors.addWarning(SystemInfo.class, UNALLOCATED_MEMORY, unallocatedMemoryParameters);
 			} else {
 				validationErrors.addLog(SystemInfo.class, UNALLOCATED_MEMORY, unallocatedMemoryParameters);

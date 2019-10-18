@@ -856,7 +856,8 @@ public class BatchProcessingPresenterService {
 			Object value = formVO.get(metadataVO);
 
 			LOGGER.info(metadata.getCode() + ":" + value);
-			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
+			if ((metadata.getDataEntry().getType() == DataEntryType.MANUAL
+				 || isCalculatedWithEvaluator(metadata))
 				&& value != null
 				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
 				&& (!metadata.isMultivalue() || !((List) value).isEmpty())
@@ -923,7 +924,8 @@ public class BatchProcessingPresenterService {
 			Object value = formVO.get(metadataVO);
 
 			LOGGER.info(metadata.getCode() + ":" + value);
-			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
+			if ((metadata.getDataEntry().getType() == DataEntryType.MANUAL
+				 || isCalculatedWithEvaluator(metadata))
 				&& value != null
 				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
 				&& (!metadata.isMultivalue() || !((List) value).isEmpty())

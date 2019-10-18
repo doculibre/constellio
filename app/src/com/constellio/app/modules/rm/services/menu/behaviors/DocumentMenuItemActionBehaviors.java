@@ -383,6 +383,8 @@ public class DocumentMenuItemActionBehaviors {
 			} catch (RecordServicesException e) {
 				params.getView().showErrorMessage(MessageUtils.toMessage(e));
 			}
+		} else if (documentRecordActionsServices.isCheckOutActionNotPossibleDocumentDeleted(document.getWrappedRecord(), params.getUser())) {
+			params.getView().showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
 		}
 	}
 

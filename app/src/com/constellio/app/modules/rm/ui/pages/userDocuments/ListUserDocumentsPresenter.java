@@ -4,19 +4,19 @@ import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsView.UserFolderBreadcrumbItem;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.entities.UserDocumentVO;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserDocumentToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserFolderToVOBuilder;
+import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.UpdatableContentVersionPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -38,6 +38,7 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserDocumentsServices;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -51,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -73,6 +75,8 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 	private ConstellioEIMConfigs eimConfigs;
 
 	boolean newContentSinceLastRefresh = false;
+
+	private RecordVO currentFolderVO;
 
 	public ListUserDocumentsPresenter(ListUserDocumentsView view) {
 		super(view, UserDocument.DEFAULT_SCHEMA);
@@ -112,6 +116,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 
 		computeAllItemsSelected();
 		view.setUserContent(Arrays.asList(userFoldersDataProvider, userDocumentsDataProvider));
+		view.setBackButtonVisible(false);
 	}
 
 	private LogicalSearchQuery getUserFoldersQuery() {
@@ -120,10 +125,14 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		Metadata userMetadata = userFolderSchema.getMetadata(UserFolder.USER);
 		Metadata parentUserFolderMetadata = userFolderSchema.getMetadata(UserFolder.PARENT_USER_FOLDER);
 
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(userFolderSchema).where(userMetadata).is(currentUser.getWrappedRecord());
+		if (currentFolderVO != null) {
+			condition = condition.andWhere(parentUserFolderMetadata).isEqualTo(currentFolderVO.getId());
+		} else {
+			condition = condition.andWhere(parentUserFolderMetadata).isNull();
+		}
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(
-				LogicalSearchQueryOperators.from(userFolderSchema).where(userMetadata).is(currentUser.getWrappedRecord())
-						.andWhere(parentUserFolderMetadata).isNull());
+		query.setCondition(condition);
 		query.sortAsc(Schemas.IDENTIFIER);
 
 		return query;
@@ -135,10 +144,14 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		Metadata userMetadata = userDocumentSchema.getMetadata(UserDocument.USER);
 		Metadata userFolderMetadata = userDocumentSchema.getMetadata(UserDocument.USER_FOLDER);
 
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(userDocumentSchema).where(userMetadata).is(currentUser.getWrappedRecord());
+		if (currentFolderVO != null) {
+			condition = condition.andWhere(userFolderMetadata).isEqualTo(currentFolderVO.getId());
+		} else {
+			condition = condition.andWhere(userFolderMetadata).isNull();
+		}
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(
-				LogicalSearchQueryOperators.from(userDocumentSchema).where(userMetadata).is(currentUser.getWrappedRecord())
-						.andWhere(userFolderMetadata).isNull());
+		query.setCondition(condition);
 		query.sortAsc(Schemas.IDENTIFIER);
 
 		return query;
@@ -437,7 +450,71 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 				.isSpaceLimitReached(getCurrentUser().getUsername(), collection, length);
 	}
 
+	public boolean isDisplayButtonVisible() {
+		return ConstellioAgentUtils.isAdvancedFeaturesEnabled();
+	}
+
+	public boolean isDisplayButtonVisible(RecordVO recordVO) {
+		return recordVO.getSchema().getCode().equals(UserFolder.DEFAULT_SCHEMA);
+	}
+
+	public void displayButtonClicked(RecordVO recordVO) {
+		this.currentFolderVO = recordVO;
+		view.setBackButtonVisible(true);
+		updateBreadcrumbs();
+		view.refresh();
+	}
+
 	public void backButtonClicked() {
-		view.navigate().to(RMViews.class).personnalSpace();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		UserFolder currentFolder = rm.getUserFolder(currentFolderVO.getId());
+		if (currentFolder.getParent() != null) {
+			UserFolder currentFolderParent = rm.getUserFolder(currentFolder.getParent());
+			currentFolderVO = voBuilder.build(currentFolderParent.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext());
+		} else {
+			currentFolderVO = null;
+			view.setBackButtonVisible(false);
+		}
+		updateBreadcrumbs();
+		view.refresh();
+	}
+
+	public boolean breadcrumbItemClicked(BreadcrumbItem item) {
+		boolean handled;
+		if (item instanceof UserFolderBreadcrumbItem) {
+			String folderId = ((UserFolderBreadcrumbItem) item).getFolderId();
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			UserFolder currentFolder = rm.getUserFolder(folderId);
+			currentFolderVO = voBuilder.build(currentFolder.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext());
+
+			updateBreadcrumbs();
+			view.refresh();
+			handled = true;
+		} else if (item instanceof TitleBreadcrumbTrail.CurrentViewItem) {
+			currentFolderVO = null;
+
+			view.setBackButtonVisible(false);
+			updateBreadcrumbs();
+			view.refresh();
+			handled = true;
+		} else {
+			handled = false;
+		}
+		return handled;
+	}
+
+	private void updateBreadcrumbs() {
+		List<BreadcrumbItem> items = new ArrayList<>();
+		if (currentFolderVO != null) {
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			String folderId = currentFolderVO.getId();
+			while (folderId != null) {
+				UserFolder currentFolder = rm.getUserFolder(folderId);
+				boolean enabled = !items.isEmpty();
+				items.add(new UserFolderBreadcrumbItem(folderId, enabled));
+				folderId = currentFolder.getParent();
+			}
+		}
+		view.setBreadcrumbs(items);
 	}
 }
