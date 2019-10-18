@@ -490,14 +490,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			});
 			viewerPanel.addStyleName("folder-content-table");
 
-			if (!nestedView && folderContentDataProvider.size() > 0) {
+			if (!nestedView && (folderContentDataProvider.size() > 0 || !folderContentDataProvider.getFieldFacetValues().isEmpty())) {
 				contentAndFacetsLayout = new I18NHorizontalLayout();
 				contentAndFacetsLayout.addStyleName("content-and-facets-layout");
 				contentAndFacetsLayout.setWidth("100%");
 				contentAndFacetsLayout.setSpacing(true);
 
 				facetsSliderPanel = new FacetsSliderPanel(facetsPanel);
-				facetsSliderPanel.setVisible(folderContentDataProvider.size() > 0);
 				contentAndFacetsLayout.addComponents(viewerPanel, facetsSliderPanel);
 				contentAndFacetsLayout.setExpandRatio(viewerPanel, 1);
 				

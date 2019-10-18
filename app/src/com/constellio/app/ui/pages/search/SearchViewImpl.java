@@ -369,7 +369,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			facetsArea.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
 		}
 		presenter.setPageNumber(1);
-		facetsSliderPanel.setVisible(dataProvider.size() > 0);
+		facetsSliderPanel.setVisible(dataProvider.size() > 0 || !facetSelections.isEmpty());
 	}
 
 	@Override
@@ -466,6 +466,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				refreshFacets(dataProvider);
 			}
 		});
+		facetsSliderPanel.setVisible(false);
 
 		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsSliderPanel);
 		body.addStyleName("search-result-and-facets-container");
