@@ -213,7 +213,7 @@ public class CartActionsServices {
 
 		return hasCartPermission(cart.getId(), user)
 			   && cartUtil.cartHasRecords(cart.getId())
-			   && cartUtil.cartContainerIsEmpty(cart.getId())
+			   && !cartUtil.cartContainerIsEmpty(cart.getId())
 			   && canDeleteFolders(user, cart.getId())
 			   && canDeleteDocuments(user, cart.getId())
 			   && hasCartBatchDeletePermission(user)
