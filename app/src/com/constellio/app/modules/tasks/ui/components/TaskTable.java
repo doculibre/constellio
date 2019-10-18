@@ -156,7 +156,7 @@ public class TaskTable extends VerticalLayout {
 		sortField = new BaseComboBox($("TaskTable.sortBy"));
 		sortField.addItem("_NULL_");
 		sortField.setNullSelectionItemId("_NULL_");
-		sortField.setItemCaption("_NULL_", "");
+		sortField.setItemCaption("_NULL_", $("TaskTable.sortBy.null"));
 		sortField.setWidth("250px");
 		sortField.addStyleName("task-table-sort");
 		sortField.addStyleName(ValoTheme.COMBOBOX_BORDERLESS);
@@ -164,13 +164,19 @@ public class TaskTable extends VerticalLayout {
 		sortField.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				Object value = event.getProperty().getValue();
-				table.setSortContainerPropertyId(value);
-				table.setSortAscending(true);
-				if (value != null) {
-					sortAscButton.setCaption($("TaskTable.sort.asc"));
-				} else {
-					sortAscButton.setCaption($("TaskTable.sort.none"));
+				Object previousSort = table.getSortContainerPropertyId();
+
+				MetadataVO metadata = (MetadataVO) event.getProperty().getValue();
+				table.setSortContainerPropertyId(metadata);
+				if(previousSort == null && metadata != null) {
+					MetadataValueType type = metadata.getType();
+					boolean isSortAsc = true;
+					if(type.isDateOrDateTime()) {
+						isSortAsc = false;
+					}
+
+					table.setSortAscending(isSortAsc);
+					sortAscButton.setIcon(isSortAsc? FontAwesome.SORT_ASC: FontAwesome.SORT_DESC);
 				}
 			}
 		});
@@ -202,22 +208,19 @@ public class TaskTable extends VerticalLayout {
 			}
 		}
 
-		sortAscButton = new BaseButton($("TaskTable.sort.none")) {
+		sortAscButton = new BaseButton() {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				if (table.getSortContainerPropertyId() != null) {
-					if (table.isSortAscending()) {
-						sortAscButton.setCaption($("TaskTable.sort.desc"));
-						table.setSortAscending(false);
-					} else {
-						sortAscButton.setCaption($("TaskTable.sort.asc"));
-						table.setSortAscending(true);
-					}
+				if (table.isSortAscending()) {
+					table.setSortAscending(false);
+					sortAscButton.setIcon(FontAwesome.SORT_DESC);
 				} else {
-					sortAscButton.setCaption($("TaskTable.sort.none"));
+					table.setSortAscending(true);
+					sortAscButton.setIcon(FontAwesome.SORT_ASC);
 				}
 			}
 		};
+		sortAscButton.setIcon(FontAwesome.SORT_ASC);
 		sortAscButton.addStyleName(ValoTheme.BUTTON_LINK);
 		sortAscButton.addStyleName("task-table-sort-asc-button");
 

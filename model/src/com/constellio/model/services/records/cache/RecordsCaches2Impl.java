@@ -43,7 +43,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
-import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +85,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	private FileSystemRecordsValuesCacheDataStore fileSystemDataStore;
 	private RecordsCachesDataStore memoryDataStore;
 	private DB memoryDiskDatabase;
-	protected HTreeMap<String, RecordDTO> volatileCache;
+	protected VolatileCache volatileCache;
 	private MetadataIndexCacheDataStore metadataIndexCacheDataStore;
 	private boolean fullyPermanentInitialized;
 	private boolean summaryPermanentInitialized;
@@ -122,7 +121,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				Executors.newScheduledThreadPool(2);
 
 		//Maximum 50K records or 100mo
-		volatileCache = memoryDiskDatabase
+		volatileCache = new VolatileCache(memoryDiskDatabase
 				.hashMap("volatileCache")
 				.keySerializer(Serializer.STRING)
 				.valueSerializer(Serializer.JAVA)
@@ -134,7 +133,18 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				.expireAfterGet()
 				.expireAfterCreate()
 				//.expireStoreSize(modelLayerFactory.getConfiguration().getRecordsVolatileCacheMemorySize())
-				.create();
+				.create());
+
+	}
+
+	@Override
+	public void enableVolatileCache() {
+		volatileCache.setEnabled(true);
+	}
+
+	@Override
+	public void disableVolatileCache() {
+		volatileCache.setEnabled(false);
 
 	}
 
@@ -175,8 +185,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				cache = collectionCaches.get(collection);
 				if (cache == null) {
 					byte collectionId = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection).getCollectionId();
-					cache = new RecordsCache2Impl(collection, collectionId, modelLayerFactory, fileSystemDataStore,
-							memoryDataStore, volatileCache, this);
+					cache = new RecordsCache2Impl(collection, collectionId, this);
 					collectionCaches.put(collection, cache);
 				}
 			}
@@ -623,6 +632,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			summaryCacheInitialized = true;
 			CacheRecordDTOUtils.stopCompilingDTOsStats();
 			LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
+			cacheLoadingProgression = null;
 		}
 
 

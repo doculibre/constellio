@@ -984,7 +984,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected BaseButton buildSavedSearchButton() {
 		WindowButton button = new WindowButton($("SearchView.saveSearch"), $("SearchView.saveSearch"),
-				WindowConfiguration.modalDialog("500px", "540px")) {
+				WindowConfiguration.modalDialog("500px", "300px")) {
 			@Override
 			protected Component buildWindowContent() {
 				final TextField titleField = new BaseTextField();
@@ -1013,6 +1013,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 						boolean visible = event.getProperty().getValue().equals(ShareType.RESTRICTED);
 						users.setVisible(visible);
 						groups.setVisible(visible);
+
+						if (visible) {
+							getWindow().setHeight("540px");
+						} else {
+							getWindow().setHeight("300px");
+						}
+
 						if (!visible) {
 							groups.clear();
 							users.clear();

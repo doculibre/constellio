@@ -60,7 +60,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -126,6 +125,7 @@ public class ReindexingServices {
 
 	public void reindexCollections(ReindexationParams params) {
 
+		modelLayerFactory.getRecordsCaches().disableVolatileCache();
 		dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(false);
 		try {
 			if (params.isBackground()) {
@@ -198,6 +198,7 @@ public class ReindexingServices {
 			REINDEXING_INFOS = null;
 
 			dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(true);
+			modelLayerFactory.getRecordsCaches().enableVolatileCache();
 		}
 
 
