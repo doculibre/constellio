@@ -167,7 +167,7 @@ public class FolderMenuItemActionBehaviors {
 
 	public void move(Folder folder, MenuItemActionBehaviorParams params) {
 		Button moveInFolderButton = new WindowButton($("DisplayFolderView.parentFolder"),
-				$("DisplayFolderView.parentFolder"), WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
+				$("DisplayFolderView.parentFolder"), WindowButton.WindowConfiguration.modalDialog("570px", "160px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout verticalLayout = new VerticalLayout();
