@@ -19,7 +19,6 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
@@ -84,7 +83,6 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	private BaseTextField documentFilterField;
 	private BaseTextField containerFilterField;
 	private String currentSchemaType;
-	private ReportSelector reportSelector;
 	private VerticalLayout mainLayout;
 
 	public CartViewImpl() {
@@ -280,23 +278,20 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		containerTab.setCaption($("CartView.containersTab"));
 		containerLayout.setSchemaType(ContainerRecord.SCHEMA_TYPE);
 		containerTab.setVisible(!containerTable.getContainerDataSource().getItemIds().isEmpty());
-		mainLayout = new VerticalLayout(reportSelector = new ReportSelector(presenter));
+		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
 			@Override
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
 				Component selectedTab = event.getTabSheet().getSelectedTab();
 				if (selectedTab instanceof CartTabLayout) {
+
 					currentSchemaType = ((CartTabLayout) selectedTab).getSchemaType();
 				}
-				ReportSelector newReportSelector = new ReportSelector(presenter);
-				mainLayout.replaceComponent(reportSelector, newReportSelector);
-				reportSelector = newReportSelector;
 			}
 		});
 		if (!folderTab.isVisible() && !documentTab.isVisible() && !containerTab.isVisible()) {
 			mainLayout.addComponent(new Label($("CartView.emptyCart")));
-			reportSelector.setVisible(false);
 		} else {
 			mainLayout.addComponent(tabSheet);
 			tabSheet.fireTabSelectionChanged();
