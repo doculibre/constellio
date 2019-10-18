@@ -74,6 +74,7 @@ public class RecordListMenuBar extends BaseMenuBar {
 
 		MenuItem rootItem = addItem(rootItemCaption, FontAwesome.ELLIPSIS_V, null);
 
+		boolean hasResults = !recordProvider.getRecords().isEmpty();
 		List<MenuItemAction> queryMenuItemActions = menuItemServices.getActionsForRecords(recordProvider.getQuery(),
 				excludedActionTypes,
 				new MenuItemActionBehaviorParams() {
@@ -91,7 +92,7 @@ public class RecordListMenuBar extends BaseMenuBar {
 					public User getUser() {
 						return userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(), collection);
 					}
-				});
+				}, hasResults);
 
 		List<MenuItemAction> recordsMenuItemActions = menuItemServices.getActionsForRecords(recordProvider.getRecords(), excludedActionTypes,
 				new MenuItemActionBehaviorParams() {
