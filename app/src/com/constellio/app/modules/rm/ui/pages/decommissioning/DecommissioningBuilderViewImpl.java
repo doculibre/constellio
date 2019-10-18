@@ -301,7 +301,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		adminUnit.addStyleName(ADMIN_UNIT);
 
 		HorizontalLayout layout = new HorizontalLayout(label, adminUnit);
-		label.setWidth("150px");
+		label.setWidth("160px");
 		adminUnit.setSizeFull();
 		layout.setExpandRatio(adminUnit, 1);
 		layout.setSizeFull();

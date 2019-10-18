@@ -2,6 +2,9 @@ package com.constellio.app.modules.rm.ui.util;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.services.appManagement.AppManagementService;
+import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -30,6 +33,7 @@ import com.vaadin.server.VaadinServlet;
 import com.vaadin.server.VaadinServletService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
@@ -340,6 +344,14 @@ public class ConstellioAgentUtils {
 			throw new RuntimeException(e);
 		}
 		return version;
+	}
+
+	public static boolean isAdvancedFeaturesEnabled() {
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+		AppManagementService appManagementService = appLayerFactory.newApplicationService();
+		LicenseInfo licenseInfo = appManagementService.getLicenseInfo();
+		return licenseInfo != null && licenseInfo.getExpirationDate().isAfter(new LocalDate());
 	}
 
 	public static void main(String[] args)

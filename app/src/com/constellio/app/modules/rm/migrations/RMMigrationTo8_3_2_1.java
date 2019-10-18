@@ -33,6 +33,10 @@ public class RMMigrationTo8_3_2_1 implements MigrationScript {
 			MetadataSchemaBuilder cartSchema = types().getSchema(Cart.DEFAULT_SCHEMA);
 			cartSchema.get(Cart.TITLE).required();
 
+			for (MetadataSchemaBuilder schemaBuilder : types().getSchemaType(Folder.SCHEMA_TYPE).getAllSchemas()) {
+				schemaBuilder.get(Folder.MAIN_COPY_RULE_ID_ENTERED).setEnabled(true);
+			}
+
 			MetadataSchemaBuilder folderSchema = types().getSchema(Folder.DEFAULT_SCHEMA);
 			folderSchema.get(Folder.MAIN_COPY_RULE_ID_ENTERED).setEssential(true);
 		}
