@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -26,6 +27,7 @@ public class BaseDaoTest {
 		initMocks(this);
 
 		when(recordServices.realtimeGetRecordById(anyString())).thenReturn(record);
+		when(recordServices.realtimeGetRecordById(anyString(), anyLong())).thenReturn(record);
 	}
 
 	@Test
