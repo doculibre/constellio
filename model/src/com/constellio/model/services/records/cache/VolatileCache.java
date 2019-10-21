@@ -22,6 +22,7 @@ public class VolatileCache {
 
 	public VolatileCache setEnabled(boolean enabled) {
 		this.enabled = enabled;
+		map.clear();
 		return this;
 	}
 
@@ -32,7 +33,7 @@ public class VolatileCache {
 	}
 
 	public RecordDTO get(String id) {
-		return enabled ? null : map.get(id);
+		return enabled ? map.get(id) : null;
 	}
 
 	public void put(String id, RecordDTO recordDTO) {
