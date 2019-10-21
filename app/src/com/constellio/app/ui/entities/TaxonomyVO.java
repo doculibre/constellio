@@ -1,11 +1,13 @@
 package com.constellio.app.ui.entities;
 
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.model.entities.Language;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
 
 @SuppressWarnings("serial")
 public class TaxonomyVO implements Serializable {
@@ -13,6 +15,8 @@ public class TaxonomyVO implements Serializable {
 	private String code;
 
 	private java.util.Map<Language, String> title;
+
+	private java.util.Map<Language, String> abbreviation;
 
 	private List<String> schemaTypes;
 
@@ -29,11 +33,12 @@ public class TaxonomyVO implements Serializable {
 	public TaxonomyVO() {
 	}
 
-	public TaxonomyVO(String code, java.util.Map<Language, String> title, List<String> schemaTypes, String collection,
-					  List<String> userIds,
+	public TaxonomyVO(String code, Map<Language, String> title, Map<Language, String> abbreviation,
+					  List<String> schemaTypes, String collection, List<String> userIds,
 					  List<String> groupIds, boolean visibleInHomePage) {
 		this.code = code;
 		this.title = title;
+		this.abbreviation = abbreviation;
 		this.schemaTypes = schemaTypes;
 		this.collection = collection;
 		this.userIds = userIds;
@@ -50,7 +55,7 @@ public class TaxonomyVO implements Serializable {
 		this.code = code;
 	}
 
-	public java.util.Map<Language, String> getTitleMap() {
+	public Map<Language, String> getTitleMap() {
 		return title;
 	}
 
@@ -63,11 +68,29 @@ public class TaxonomyVO implements Serializable {
 		if (title == null) {
 			return null;
 		}
-		return title.get(Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage()));
+		return title.get(Language.withCode(getCurrentSessionContext().getCurrentLocale().getLanguage()));
 	}
 
-	public void setTitle(java.util.Map<Language, String> title) {
+	public void setTitle(Map<Language, String> title) {
 		this.title = title;
+	}
+
+	public Map<Language, String> getAbbreviationMap() {
+		return abbreviation;
+	}
+
+	public String getAbbreviation(Language language) {
+		return abbreviation.get(language);
+	}
+
+	public String getAbbreviation() {
+		return abbreviation != null ?
+			   abbreviation.get(Language.withCode(getCurrentSessionContext().getCurrentLocale().getLanguage())) :
+			   null;
+	}
+
+	public void setAbbreviation(Map<Language, String> abbreviation) {
+		this.abbreviation = abbreviation;
 	}
 
 	public List<String> getSchemaTypes() {
