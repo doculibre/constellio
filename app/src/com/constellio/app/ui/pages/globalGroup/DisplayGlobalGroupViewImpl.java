@@ -20,7 +20,15 @@ import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
 import com.constellio.app.ui.framework.data.UserCredentialVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.schemas.MetadataList;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
@@ -34,10 +42,12 @@ import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 
 @SuppressWarnings("serial")
 public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayGlobalGroupView {
@@ -153,7 +163,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		addSubGroupButtons(dataProvider, buttonsContainer);
 		container = buttonsContainer;
 		String title = "DisplayGlobalGroup.listSubGroups";
-		return buildTable(container, title);
+		return buildTable(container, title, GlobalGroup.SCHEMA_TYPE);
 	}
 
 	private Table buildUserTable() {
@@ -163,7 +173,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		addUserButtons(dataProvider, buttonsContainer);
 		container = buttonsContainer;
 		String title = "DisplayGlobalGroup.listGroupsUserCredentials";
-		return buildTable(container, title);
+		return buildTable(container, title, UserCredential.SCHEMA_TYPE);
 	}
 
 	private Table buildAvailableUserTable() {
@@ -193,11 +203,11 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		});
 		container = buttonsContainer;
 		String title = "DisplayGlobalGroup.listUserCredentials";
-		return buildTable(container, title);
+		return buildTable(container, title, UserCredential.SCHEMA_TYPE);
 
 	}
 
-	private Table buildTable(Container container, String title) {
+	private Table buildTable(Container container, String title, String schemaTypeCode) {
 		Table table = new BaseTable(getClass().getName(), $(title), container);
 		int tableSize = batchSize;
 		if (tableSize > table.getItemIds().size()) {
@@ -210,6 +220,13 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		table.addStyleName(title);
 		table.setColumnHeader(PROPERTY_BUTTONS, "");
 		table.setColumnWidth(PROPERTY_BUTTONS, 120);
+
+		table.setColumnHeader("code", $("DisplayGlobalGroupView.codeColumn"));
+		table.setColumnHeader("name", $("DisplayGlobalGroupView.nameColumn"));
+		table.setColumnHeader("username", $("DisplayGlobalGroupView.usernameColumn"));
+		table.setColumnHeader("firstName", $("DisplayGlobalGroupView.firstNameColumn"));
+		table.setColumnHeader("lastName", $("DisplayGlobalGroupView.lastNameColumn"));
+		table.setColumnHeader("email", $("DisplayGlobalGroupView.emailColumn"));
 		return table;
 	}
 
