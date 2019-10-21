@@ -461,40 +461,12 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 					boolean allItemsSelected = event.isAllItemsSelected();
 					boolean allItemsDeselected = event.isAllItemsDeselected();
-					if (selectedItemIdsFromEvent != null) {
-						for (Object selectedItemId : selectedItemIdsFromEvent) {
-							RecordVO recordVO = getRecordVO(selectedItemId);
-							String recordId = recordVO.getId();
-							presenter.selectionChanged(recordId, true);
-						}
-					} else if (deselectedItemIdsFromEvent != null) {
-						for (Object deselectedItemId : deselectedItemIdsFromEvent) {
-							RecordVO recordVO = getRecordVO(deselectedItemId);
-							String recordId = recordVO.getId();
-							presenter.selectionChanged(recordId, false);
-						}
-					} else if (allItemsSelected) {
+					if (allItemsSelected) {
 						Collection<?> itemIds = getItemIds();
 
 						selectedItemIds.addAll(itemIds);
-
-						for (Object itemId : itemIds) {
-							if (!isInCart(itemId)) {
-								RecordVO recordVO = getRecordVO(itemId);
-								String recordId = recordVO.getId();
-								presenter.selectionChanged(recordId, true);
-							}
-						}
 					} else if (allItemsDeselected) {
 						selectedItemIds.clear();
-
-						for (Object itemId : getItemIds()) {
-							if (isInCart(itemId)) {
-								RecordVO recordVO = getRecordVO(itemId);
-								String recordId = recordVO.getId();
-								presenter.selectionChanged(recordId, false);
-							}
-						}
 					}
 				}
 
@@ -528,23 +500,12 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					return allItemsDeselected;
 				}
 
-				private boolean isInCart(Object itemId) {
-					RecordVO recordVO = getRecordVO(itemId);
-					String recordId = recordVO.getId();
-
-					return presenter.isInCart(recordId);
-				}
-
 				@Override
 				public boolean isSelected(Object itemId) {
 					initSelectedItemCache();
 
 
-					if (selectedItemIds.contains(itemId)) {
-						return true;
-					}
-
-					return isInCart(itemId);
+					return selectedItemIds.contains(itemId);
 				}
 
 				protected Collection<?> getItemIds() {
