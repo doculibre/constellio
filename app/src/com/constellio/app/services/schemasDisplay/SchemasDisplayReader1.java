@@ -60,7 +60,7 @@ public class SchemasDisplayReader1 {
 		this.languages = languages;
 	}
 
-	public SchemasDisplayManagerCache readSchemaTypesDisplay(String collection) {
+	public SchemasDisplayManagerCache readSchemaTypesDisplay(String collection, boolean enableEssentialMetadataHiding) {
 
 		Element rootElement = document.getRootElement();
 
@@ -70,7 +70,7 @@ public class SchemasDisplayReader1 {
 
 		setSchemaTypeDisplayConfigs(collection, rootElement, schemasDisplayManagerCache);
 
-		setSchemaDisplayConfigs(collection, rootElement, schemasDisplayManagerCache);
+		setSchemaDisplayConfigs(collection, rootElement, schemasDisplayManagerCache, enableEssentialMetadataHiding);
 
 		setMetadataDisplayConfigs(collection, rootElement, schemasDisplayManagerCache);
 
@@ -159,14 +159,16 @@ public class SchemasDisplayReader1 {
 	}
 
 	private void setSchemaDisplayConfigs(String collection, Element rootElement,
-										 SchemasDisplayManagerCache schemasDisplayManagerCache) {
+										 SchemasDisplayManagerCache schemasDisplayManagerCache,
+										 boolean enableEssentialMetadataHiding) {
 		Map<String, SchemaDisplayConfig> schemaDisplayConfigs = convertElementToSchemaDisplayConfigs(collection,
-				rootElement);
+				rootElement, enableEssentialMetadataHiding);
 		schemasDisplayManagerCache.setSchemaDisplayConfigs(schemaDisplayConfigs);
 	}
 
 	private Map<String, SchemaDisplayConfig> convertElementToSchemaDisplayConfigs(String collection,
-																				  Element rootElement) {
+																				  Element rootElement,
+																				  boolean enableEssentialMetadataHiding) {
 
 		Map<String, SchemaDisplayConfig> map = new HashMap<>();
 
@@ -190,7 +192,7 @@ public class SchemasDisplayReader1 {
 
 					for (Metadata metadata : SchemaDisplayUtils.getRequiredMetadatasInSchemaForm(schema)) {
 						if (!formMetadataCodes.contains(metadata.getCode())) {
-							if (metadata.getDefaultValue() == null) {
+							if (!enableEssentialMetadataHiding || metadata.getDefaultValue() == null) {
 								formMetadataCodes.add(metadata.getCode());
 							} else {
 								formHiddenMetadataCodes.add(metadata.getCode());
