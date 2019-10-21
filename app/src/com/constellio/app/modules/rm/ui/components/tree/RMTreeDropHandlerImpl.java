@@ -22,10 +22,6 @@ public abstract class RMTreeDropHandlerImpl implements DropHandler, RMTreeDropHa
 
 	@Override
 	public void drop(DragAndDropEvent dragEvent) {
-		if (!PlatformDetectionUtils.isDesktop()) {
-			return;
-		}
-
 		AbstractSelectTargetDetails dropTargetData = (AbstractSelectTargetDetails) dragEvent.getTargetDetails();
 		Tree tree = (Tree) dragEvent.getTargetDetails().getTarget();
 		Transferable transferable = dragEvent.getTransferable();

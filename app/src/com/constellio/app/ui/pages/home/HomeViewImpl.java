@@ -28,6 +28,7 @@ import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorat
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.app.ui.util.PlatformDetectionUtils;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -239,7 +240,12 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			tree.setContextMenu(menu);
 		}
 
-		tree.setDragMode(TreeDragMode.NONE);
+		if (PlatformDetectionUtils.isDesktop()) {
+			tree.setDragMode(TreeDragMode.NODE);
+		} else {
+			tree.setDragMode(TreeDragMode.NONE);
+		}
+
 		tree.setDropHandler(new RMTreeDropHandlerImpl() {
 			@Override
 			public void showErrorMessage(String errorMessage) {
