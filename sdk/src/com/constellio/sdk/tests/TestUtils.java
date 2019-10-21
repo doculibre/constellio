@@ -6,6 +6,7 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.events.EventBusManager;
+import com.constellio.data.events.SDKEventBusSendingDelayedService;
 import com.constellio.data.events.SDKEventBusSendingService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
@@ -1258,17 +1259,32 @@ public class TestUtils {
 	}
 
 	public static void linkEventBus(ModelLayerFactory modelLayerFactory1, ModelLayerFactory modelLayerFactory2) {
-		linkEventBus(modelLayerFactory1.getDataLayerFactory(), modelLayerFactory2.getDataLayerFactory());
+		linkEventBus(modelLayerFactory1.getDataLayerFactory(), modelLayerFactory2.getDataLayerFactory(), 0);
+	}
+
+	public static void linkEventBus(ModelLayerFactory modelLayerFactory1, ModelLayerFactory modelLayerFactory2,
+									int delayInSeconds) {
+		linkEventBus(modelLayerFactory1.getDataLayerFactory(), modelLayerFactory2.getDataLayerFactory(), delayInSeconds);
 	}
 
 	public static SDKEventBusSendingService linkEventBus(DataLayerFactory dataLayerFactory1,
 														 DataLayerFactory dataLayerFactory2) {
+		return linkEventBus(dataLayerFactory1, dataLayerFactory2, 0);
+	}
+
+	public static SDKEventBusSendingService linkEventBus(DataLayerFactory dataLayerFactory1,
+														 DataLayerFactory dataLayerFactory2,
+														 int delayInSeconds) {
 		EventBusManager eventBusManager1 = dataLayerFactory1.getEventBusManager();
 		EventBusManager eventBusManager2 = dataLayerFactory2.getEventBusManager();
 		assertThat(eventBusManager1).isNotSameAs(eventBusManager2);
 
-		SDKEventBusSendingService sendingService1 = new SDKEventBusSendingService();
-		SDKEventBusSendingService sendingService2 = new SDKEventBusSendingService();
+		SDKEventBusSendingService sendingService1 = delayInSeconds > 0 ?
+													new SDKEventBusSendingDelayedService(delayInSeconds) :
+													new SDKEventBusSendingService();
+		SDKEventBusSendingService sendingService2 = delayInSeconds > 0 ?
+													new SDKEventBusSendingDelayedService(delayInSeconds) :
+													new SDKEventBusSendingService();
 
 		eventBusManager1.setEventBusSendingService(sendingService1);
 		eventBusManager2.setEventBusSendingService(sendingService2);

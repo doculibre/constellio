@@ -33,12 +33,17 @@ public abstract class ResourceService extends BaseService {
 
 	abstract protected ResourceAdaptor<?> getAdaptor();
 
-	@SuppressWarnings("unchecked")
 	public <T> T getResource(String host, String id, String serviceKey, String method, String date, int expiration,
 							 String signature, Set<String> filters) throws Exception {
+		return getResource(host, id, serviceKey, method, date, expiration, signature, filters, null);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T getResource(String host, String id, String serviceKey, String method, String date, int expiration,
+							 String signature, Set<String> filters, String eTag) throws Exception {
 		validateParameters(host, id, serviceKey, method, date, expiration, null, null, null, signature);
 
-		Record record = getRecord(id, false);
+		Record record = getRecord(id, eTag, false);
 		User user = getUser(serviceKey, record.getCollection());
 		validationService.validateUserAccess(user, record, method);
 

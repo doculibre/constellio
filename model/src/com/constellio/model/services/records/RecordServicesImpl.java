@@ -514,7 +514,15 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return realtimeGetById(DataStore.RECORDS, id);
 	}
 
+	public Record realtimeGetRecordById(String id, Long version) {
+		return realtimeGetById(DataStore.RECORDS, id, version);
+	}
+
 	public Record realtimeGetById(String dataStore, String id) {
+		return realtimeGetById(dataStore, id, null);
+	}
+
+	public Record realtimeGetById(String dataStore, String id, Long version) {
 		try {
 			RecordDTO recordDTO = dao(dataStore).realGet(id);
 			String collection = (String) recordDTO.getFields().get("collection_s");
@@ -546,6 +554,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public Record realtimeGetById(MetadataSchemaType schemaType, String id) {
 		return realtimeGetById(schemaType.getDataStore(), id);
+	}
+
+	public Record realtimeGetById(MetadataSchemaType schemaType, String id, Long version) {
+		return realtimeGetById(schemaType.getDataStore(), id, version);
 	}
 
 	public List<Record> realtimeGetRecordById(List<String> ids) {

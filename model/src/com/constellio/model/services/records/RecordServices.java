@@ -81,9 +81,15 @@ public interface RecordServices {
 
 	Record realtimeGetById(MetadataSchemaType schemaType, String id);
 
+	Record realtimeGetById(MetadataSchemaType schemaType, String id, Long version);
+
 	Record realtimeGetById(String dataStore, String id);
 
+	Record realtimeGetById(String dataStore, String id, Long version);
+
 	Record realtimeGetRecordById(String id);
+
+	Record realtimeGetRecordById(String id, Long version);
 
 	Record getDocumentById(String id);
 
