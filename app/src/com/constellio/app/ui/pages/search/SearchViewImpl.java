@@ -367,6 +367,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		SortOrder sortOrder = presenter.getSortOrder();
 		if (facetsOpened) {
 			facetsArea.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
+			facetsSliderPanel.setHeightUndefined();
 		}
 		presenter.setPageNumber(1);
 		facetsSliderPanel.setVisible(dataProvider.size() > 0 || !facetSelections.isEmpty());
@@ -466,7 +467,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				refreshFacets(dataProvider);
 			}
 		});
-		facetsSliderPanel.setVisible(false);
+		facetsSliderPanel.setHeight("800px");
+		facetsSliderPanel.setVisible(true);
 
 		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsSliderPanel);
 		body.addStyleName("search-result-and-facets-container");
