@@ -32,7 +32,7 @@ public class BaseServiceTest {
 		initMocks(this);
 
 		when(documentDao.getUser(anyString(), anyString())).thenReturn(user);
-		when(documentDao.getRecordById(anyString())).thenReturn(record);
+		when(documentDao.getRecordById(anyString(), null)).thenReturn(record);
 
 		when(baseService.getDao()).thenReturn(documentDao);
 	}
