@@ -1803,7 +1803,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("default").getFormMetadataCodes())).isEqualTo(asList(
 				"administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m2", "m1", "type", "title", "container",
 				"openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
-				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "mainCopyRuleIdEntered"));
 		assertThat(localCodes(folderSchemaDisplay("default").getDisplayMetadataCodes())).containsExactly("m3");
 		assertThat(localCodes(folderSchemaDisplay("default").getSearchResultsMetadataCodes())).containsExactly("m4", "m5", "m1");
 		assertThat(localCodes(folderSchemaDisplay("default").getTableMetadataCodes())).containsExactly("m3", "m5");
@@ -1811,7 +1811,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("custom1").getFormMetadataCodes())).isEqualTo(asList(
 				"m1", "type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered",
 				"openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
-				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "mainCopyRuleIdEntered"));
 		assertThat(localCodes(folderSchemaDisplay("custom1").getDisplayMetadataCodes())).containsExactly("m3", "m2");
 		assertThat(localCodes(folderSchemaDisplay("custom1").getSearchResultsMetadataCodes())).containsExactly("m3", "m4");
 		assertThat(localCodes(folderSchemaDisplay("custom1").getTableMetadataCodes())).containsExactly("m4", "m5");
@@ -1819,7 +1819,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("custom2").getFormMetadataCodes())).isEqualTo(asList(
 				"type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m3",
 				"openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
-				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "mainCopyRuleIdEntered"));
 		assertThat(localCodes(folderSchemaDisplay("custom2").getDisplayMetadataCodes())).containsExactly("m4", "m5");
 		assertThat(localCodes(folderSchemaDisplay("custom2").getSearchResultsMetadataCodes())).containsExactly("m1", "m3", "m2");
 		assertThat(localCodes(folderSchemaDisplay("custom2").getTableMetadataCodes())).containsExactly("m1", "m4");
@@ -1863,7 +1863,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("default").getFormMetadataCodes())).isEqualTo(asList(
 				"m1", "m2", "openingDate", "title", "actualDepositDate", "actualDestructionDate", "actualTransferDate",
 				"administrativeUnitEntered", "categoryEntered", "container", "copyStatusEntered", "enteredClosingDate",
-				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered", "mainCopyRuleIdEntered"));
 		assertThat(localCodes(folderSchemaDisplay("default").getDisplayMetadataCodes())).containsExactly("m5");
 		assertThat(localCodes(folderSchemaDisplay("default").getSearchResultsMetadataCodes())).containsExactly("m1", "m2", "m5");
 		assertThat(localCodes(folderSchemaDisplay("default").getTableMetadataCodes())).containsExactly("m3", "m5");
@@ -1871,7 +1871,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("custom1").getFormMetadataCodes())).isEqualTo(asList(
 				"m2", "m1", "openingDate", "title", "actualDepositDate", "actualDestructionDate", "actualTransferDate",
 				"administrativeUnitEntered", "categoryEntered", "container", "copyStatusEntered", "enteredClosingDate",
-				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered", "mainCopyRuleIdEntered"));
 		assertThat(localCodes(folderSchemaDisplay("custom1").getDisplayMetadataCodes())).containsExactly("m2", "m3");
 		assertThat(localCodes(folderSchemaDisplay("custom1").getSearchResultsMetadataCodes())).containsExactly("m1");
 		assertThat(localCodes(folderSchemaDisplay("custom1").getTableMetadataCodes())).containsExactly("m4", "m5");
@@ -1879,7 +1879,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("custom2").getFormMetadataCodes())).isEqualTo(asList(
 				"type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m3",
 				"openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
-				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "m1", "m4",
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "mainCopyRuleIdEntered", "m1", "m4",
 				"m5", "m6", "m7", "m8"));
 		assertThat(localCodes(folderSchemaDisplay("custom2").getDisplayMetadataCodes()))
 				.isEqualTo(asList("m4", "m5", "m1", "m2", "m3", "m6", "m7", "m8"));

@@ -1029,11 +1029,10 @@ public class UserServices {
 		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				from(collectionTypes.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema()).returnAll());
-		query.filteredByStatus(StatusFilter.DELETED);
-
 		List<User> deletedUsers = new ArrayList<>();
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		for (Record record : searchServices.search(query)) {
-			deletedUsers.add(new User(record, collectionTypes, null));
+			deletedUsers.add(schemas.wrapUser(record));
 		}
 		for (User user : deletedUsers) {
 			LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
