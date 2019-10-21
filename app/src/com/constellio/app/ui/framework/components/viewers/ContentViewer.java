@@ -101,6 +101,14 @@ public class ContentViewer extends CustomComponent {
 	}
 
 	@Override
+	public void setHeight(float height, Unit unit) {
+		super.setHeight(height, unit);
+		if (viewerComponent instanceof DocumentViewer) {
+			viewerComponent.setHeight(height, unit);
+		}
+	}
+
+	@Override
 	public void attach() {
 		super.attach();
 //		if (ComponentTreeUtils.findParent(this, Window.class) != null) {

@@ -50,6 +50,10 @@ import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.event.dd.DragAndDropEvent;
+import com.vaadin.event.dd.DropHandler;
+import com.vaadin.event.dd.acceptcriteria.AcceptAll;
+import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
@@ -87,7 +91,7 @@ import java.util.UUID;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 //@com.vaadin.annotations.JavaScript({ "theme://jquery/jquery-2.1.4.min.js" })
-public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements BrowserWindowResizeListener {
+public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements BrowserWindowResizeListener, DropHandler {
 
 	public static final int MAX_SELECTION_SIZE = 10000;
 
@@ -1107,9 +1111,61 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return table;
 	}
 
+	public boolean scrollIntoView(Integer itemIndex, String recordId) {
+		boolean scrolledIntoView;
+		if (itemIndex < recordVOContainer.size()) {
+			List<?> itemIds = recordVOContainer.getItemIds(itemIndex, 1);
+			if (!itemIds.isEmpty()) {
+				Object itemId = itemIds.get(0);
+				RecordVO recordVO = recordVOContainer.getRecordVO(itemIndex);
+				if (recordVO != null && recordVO.getId().equals(recordId)) {
+					table.setCurrentPageFirstItemIndex(itemIndex);
+					if (isCompressionSupported()) {
+						selectRecordVO(itemId, null, false);
+					}
+					scrolledIntoView = true;
+				} else {
+					scrolledIntoView = false;
+				}
+			} else {
+				scrolledIntoView = false;
+			}
+		} else {
+			scrolledIntoView = false;
+		}
+		return scrolledIntoView;
+	}
+
+	@Override
+	public void browserWindowResized(BrowserWindowResizeEvent event) {
+		// TODO Auto-generated method stub
+	}
+
+	public BaseView getMainView() {
+		return null;
+	}
+
+	public boolean isDropSupported() {
+		return selectedItemId != null && viewerMetadataPanel.getPanelContent() instanceof DropHandler;
+	}
+
+	@Override
+	public void drop(DragAndDropEvent event) {
+		Component panelContent = viewerMetadataPanel.getPanelContent();
+		if (panelContent instanceof DropHandler) {
+			((DropHandler) panelContent).drop(event);
+		}
+	}
+
+	@Override
+	public AcceptCriterion getAcceptCriterion() {
+		return AcceptAll.get();
+	}
+	
 	private class ViewerMetadataPanel extends VerticalLayout {
 
 		private VerticalLayout mainLayout;
+		private Component panelContent;
 
 		public ViewerMetadataPanel() {
 			buildUI();
@@ -1120,7 +1176,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			this.removeStyleName("nested-view");
 
 			if (recordVO != null) {
-				Component panelContent;
 				String schemaTypeCode = recordVO.getSchema().getTypeCode();
 				if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, true, false);
@@ -1153,6 +1208,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				Label spacer = new Label("");
 				spacer.setHeight("100px");
 				mainLayout.addComponent(spacer);
+			} else {
+				panelContent = null;
 			}
 		}
 
@@ -1172,6 +1229,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		public void beforeClientResponse(boolean initial) {
 			super.beforeClientResponse(initial);
 			//			adjustHeight();
+		}
+
+		public Component getPanelContent() {
+			return panelContent;
 		}
 
 	}
@@ -1283,40 +1344,5 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			setTableMode(TableMode.TABLE);
 		}
 
-	}
-
-	public boolean scrollIntoView(Integer itemIndex, String recordId) {
-		boolean scrolledIntoView;
-		if (itemIndex < recordVOContainer.size()) {
-			List<?> itemIds = recordVOContainer.getItemIds(itemIndex, 1);
-			if (!itemIds.isEmpty()) {
-				Object itemId = itemIds.get(0);
-				RecordVO recordVO = recordVOContainer.getRecordVO(itemIndex);
-				if (recordVO != null && recordVO.getId().equals(recordId)) {
-					table.setCurrentPageFirstItemIndex(itemIndex);
-					if (isCompressionSupported()) {
-						selectRecordVO(itemId, null, false);
-					}
-					scrolledIntoView = true;
-				} else {
-					scrolledIntoView = false;
-				}
-			} else {
-				scrolledIntoView = false;
-			}
-		} else {
-			scrolledIntoView = false;
-		}
-		return scrolledIntoView;
-	}
-
-	@Override
-	public void browserWindowResized(BrowserWindowResizeEvent event) {
-		// TODO Auto-generated method stub
-	}
-
-
-	public BaseView getMainView() {
-		return null;
 	}
 }

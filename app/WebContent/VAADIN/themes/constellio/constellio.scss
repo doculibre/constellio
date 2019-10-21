@@ -525,19 +525,19 @@ $popup-view-z-index: 3;
 	    cursor: default;
 	}
 
-	.auto-scroll2 {
+	.auto-scroll {
 		overflow: auto;
 	}
 
-	.no-scroll2 {
+	.no-scroll {
 		overflow: hidden;
 	}
 
-	.no-scroll-horizontal2 {
+	.no-scroll-horizontal {
 		overflow-x: hidden;
 	}
 
-	.no-scroll-vertical2 {
+	.no-scroll-vertical {
 		overflow-y: hidden;
 	}
 
@@ -1226,6 +1226,27 @@ $popup-view-z-index: 3;
     		opacity: inherit;
     		color: inherit;
     	}
+		
+		.v-slot-record-comments, .v-caption-record-comments {
+			width: 100%;
+		}
+		
+		.v-slot-record-add-comment-button {
+			position: relative;
+			top: -4px;
+		}
+		
+		.v-caption-record-comments {
+			.v-captiontext {
+				position: relative;
+				top: 6px;
+			}
+		}
+		
+		.v-slot-record-no-comment {
+			position: relative;
+			top: -10px;
+		}
 	}
 
     .display-caption {
@@ -1650,19 +1671,48 @@ $popup-view-z-index: 3;
 			.v-slot-display-value {
 				float: left;
 			}
-		}
 			
-		.v-slot-action-menu-bar-layout {    
-		    top: -50px;
-		    margin-bottom: -50px;
+			.v-slot-action-menu-bar-layout {    
+			    margin-bottom: -40px;
+			}
+			
+			.v-slot-borrowed-document-message {
+				padding-bottom: 10px;
+			} 
+			
+			.v-slot-record-comments, .v-caption-record-comments {
+				width: 100%;
+			}
+			
+			.v-slot-record-add-comment-button {
+				position: relative;
+				top: -4px;
+			}
+			
+			.v-caption-record-comments {
+				.v-captiontext {
+					position: relative;
+					top: 6px;
+				}
+			}
+			
+			.v-slot-record-no-comment {
+				position: relative;
+				top: -10px;
+			}
 		}
-		
-		.v-slot-borrowed-document-message {
-			padding-bottom: 10px;
-		} 
 	}
 	
 	.v-window {
+		.v-splitpanel-second-container {
+			.horizontal-split-layout-content {
+				overflow-y: auto;
+			}
+
+			.v-panel-content-scroll-divider {
+				padding-right: 20px;
+			}
+		}
 	
 		.popupContent {
 			z-index: 20001;
@@ -1864,7 +1914,7 @@ $popup-view-z-index: 3;
 				overflow-y: auto;
 				padding-left: 5px;
 				padding-right: 5px;
-				padding-top: 25px;
+				padding-top: 40px;
 			}
 
 		    .system-state-window-layout {
@@ -1874,24 +1924,6 @@ $popup-view-z-index: 3;
             .base-window-content-with-bottom-margin {
                 margin-bottom: 10px;
             }
-		}
-	}
-
-	.base-window-content-scroll2 {
-		.v-scrollable {
-			overflow: hidden;
-
-			.v-panel {
-				.v-scrollable {
-					overflow: auto;
-				}
-			}
-		}
-		
-		.v-table {
-			.v-scrollable {
-				overflow: auto;
-			}
 		}
 	}
 
@@ -2383,6 +2415,12 @@ $popup-view-z-index: 3;
 			top: -62px;
 		}
 	}
+	
+	.display-folder-view {
+		.v-slot-facets-sliderpanel {
+			top: 40px;
+		}
+	}
 
 	.-facets-sliderpanel {
 		.v-sliderpanel-wrapper {
@@ -2729,7 +2767,7 @@ $popup-view-z-index: 3;
 		}
 
 		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel:before {
-	    	//position: absolute;
+	    	position: absolute;
 			top: 50%;
 	     	margin-left: -4px;
 		}
@@ -3365,10 +3403,6 @@ $popup-view-z-index: 3;
 	    .main-component-wrapper {
 	    	min-height: 700px;
 	    }
-	    
-	    .v-panel-content-content-view-wrapper2 {
-	    	overflow-y: hidden;
-	    }
     	
     	.stats-table-layout {
 	    	.v-table {
@@ -3731,10 +3765,6 @@ $popup-view-z-index: 3;
 
 	    .main-component-wrapper {
 	    	min-height: 500px;
-	    }
-
-	    .v-panel-content-content-view-wrapper2 {
-	    	overflow-y: hidden;
 	    }
 
 		.back-button {

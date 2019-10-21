@@ -25,6 +25,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
@@ -45,6 +46,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.event.ItemClickEvent;
@@ -59,6 +61,8 @@ import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.JavaScriptFunction;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
@@ -67,6 +71,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import elemental.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -112,9 +117,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private DisplayDocumentPresenter presenter;
 
 	private boolean nestedView;
+	private boolean inWindow;
 
 	private List<Window.CloseListener> editWindowCloseListeners = new ArrayList<>();
 	private Component contentMetadataComponent;
+
+	private CollapsibleHorizontalSplitPanel splitPanel;
 
 	public DisplayDocumentViewImpl() {
 		this(null, false, false);
@@ -122,6 +130,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	public DisplayDocumentViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		this.nestedView = nestedView;
+		this.inWindow = inWindow;
 		presenter = new DisplayDocumentPresenter(this, recordVO, nestedView, inWindow);
 	}
 
@@ -162,7 +171,28 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private ContentViewer newContentViewer() {
 		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
 		final ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
+		if (inWindow && !isViewerInSeparateTab()) {
+			//			int viewerHeight = Page.getCurrent().getBrowserWindowHeight() - 125;
+			//			contentViewer.setHeight(viewerHeight + "px");
 
+			final String functionId = "adjustContentViewerHeight";
+			JavaScript.getCurrent().addFunction(functionId,
+					new JavaScriptFunction() {
+						@Override
+						public void call(JsonArray arguments) {
+							int splitterDivHeight = (int) arguments.getNumber(0);
+							int newViewerHeight = splitterDivHeight - 40;
+							contentViewer.setHeight(newViewerHeight + "px");
+							splitPanel.setFirstComponentHeight(newViewerHeight, Unit.PIXELS);
+						}
+					});
+
+			StringBuilder js = new StringBuilder();
+			js.append("  var splitterDiv =  document.getElementsByClassName('v-splitpanel-hsplitter')[0];");
+			js.append("  var splitterDivHeight =  constellio_getHeight(splitterDiv);");
+			js.append(functionId + "(splitterDivHeight);");
+			JavaScript.getCurrent().execute(js.toString());
+		}
 		return contentViewer;
 	}
 
@@ -248,7 +278,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
-		if (contentViewerInitiallyVisible && (nestedView || !ResponsiveUtils.isDesktop())) {
+		if (contentViewerInitiallyVisible && isViewerInSeparateTab()) {
 			tabSheet.addTab(contentViewer, $("DisplayDocumentView.tabs.contentViewer"));
 		}
 		tabSheet.addTab(recordDisplayPanel, $("DisplayDocumentView.tabs.metadata"));
@@ -278,8 +308,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		});
 
-		if (contentViewerInitiallyVisible && !nestedView && ResponsiveUtils.isDesktop()) {
-			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
+		if (contentViewerInitiallyVisible && !isViewerInSeparateTab()) {
+			splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
 			splitPanel.setFirstComponent(contentViewer);
 			splitPanel.setSecondComponent(tabSheet);
 			splitPanel.setSecondComponentWidth(RECORD_DISPLAY_WIDTH, RECORD_DISPLAY_WIDTH_UNIT);
@@ -296,6 +326,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		return mainLayout;
 	}
 
+	protected boolean isViewerInSeparateTab() {
+		return nestedView || !ResponsiveUtils.isDesktop();
+	}
 
 	public void addComponentAfterMenu(Component component) {
 		mainLayout.addComponent(component, 0);
@@ -802,7 +835,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void openInWindow() {
-		DisplayDocumentViewImpl displayView = new DisplayDocumentViewImpl(documentVO, true, true);
+		DisplayDocumentViewImpl displayView = new DisplayDocumentViewImpl(documentVO, false, true);
 		Window window = new DisplayDocumentWindow(displayView);
 		for (Window.CloseListener closeListener : editWindowCloseListeners) {
 			window.addCloseListener(closeListener);
@@ -813,11 +846,17 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void editInWindow() {
 		AddEditDocumentViewImpl editView = new AddEditDocumentViewImpl(documentVO, true);
-		Window window = new AddEditDocumentWindow(editView);
-		for (Window.CloseListener closeListener : editWindowCloseListeners) {
-			window.addCloseListener(closeListener);
+		BaseWindow window;
+		if (inWindow) {
+			window = ComponentTreeUtils.findParent(this, BaseWindow.class);
+			window.setContent(editView);
+		} else {
+			window = new AddEditDocumentWindow(editView);
+			for (Window.CloseListener closeListener : editWindowCloseListeners) {
+				window.addCloseListener(closeListener);
+			}
+			getUI().addWindow(window);
 		}
-		getUI().addWindow(window);
 	}
 
 	public void addEditWindowCloseListener(Window.CloseListener closeListener) {

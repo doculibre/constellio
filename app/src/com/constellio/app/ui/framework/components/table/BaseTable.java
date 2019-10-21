@@ -97,7 +97,7 @@ public class BaseTable extends Table implements SelectionComponent {
 
 	private ContextMenu contextMenu;
 
-	private int customPageLength;
+	private int customPageLength = DEFAULT_PAGE_LENGTH;
 
 	public BaseTable(String tableId) {
 		super();
@@ -490,6 +490,7 @@ public class BaseTable extends Table implements SelectionComponent {
 		cellProperties.clear();
 		clearCheckBoxSelectionChangeListeners();
 		super.containerItemSetChange(event);
+		adjustPageLengthBasedOnItemsPerPage();
 	}
 
 	private void clearCheckBoxSelectionChangeListeners() {
@@ -563,6 +564,7 @@ public class BaseTable extends Table implements SelectionComponent {
 			firePageChangedEvent();
 		} else {
 			super.setContainerDataSource(newDataSource);
+			adjustPageLengthBasedOnItemsPerPage();
 		}
 	}
 
@@ -642,6 +644,9 @@ public class BaseTable extends Table implements SelectionComponent {
 			} else {
 				super.setPageLength(itemsPerPage);
 			}
+			//		} else if (customPageLength > 0 && super.size() > 0) {
+			//			int newPageLength = Math.min(super.size(), customPageLength);
+			//			super.setPageLength(newPageLength);
 		}
 	}
 

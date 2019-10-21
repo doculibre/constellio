@@ -25,10 +25,26 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 	private Component firstComponent;
 	
 	private Component secondComponent;
+
+	private HorizontalSplitLayoutContent firstComponentContainer;
+
+	private HorizontalSplitLayoutContent secondComponentContainer;
+
+	private float firstComponentWidth = -1;
+
+	private Unit firstComponentWidthUnit = Unit.PERCENTAGE;
 	
 	private float secondComponentWidth = 50;
 	
 	private Unit secondComponentWidthUnit = Unit.PERCENTAGE;
+
+	private float firstComponentHeight = -1;
+
+	private Unit firstComponentHeightUnit = Unit.PERCENTAGE;
+
+	private float secondComponentHeight = -1;
+
+	private Unit secondComponentHeightUnit = Unit.PERCENTAGE;
 	
 	public CollapsibleHorizontalSplitPanel(String panelId) {
 		this.panelId = panelId;
@@ -52,7 +68,39 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 		boolean secondComponentVisibleFromCookie = getCookieValue();
 		setSecondComponentVisible(secondComponentVisibleFromCookie);
 	}
-	
+
+	public float getFirstComponentWidth() {
+		return firstComponentWidth;
+	}
+
+	public Unit getFirstComponentWidthUnit() {
+		return firstComponentWidthUnit;
+	}
+
+	public void setFirstComponentWidth(float width, Unit unit) {
+		this.firstComponentWidth = width;
+		this.firstComponentWidthUnit = unit;
+		if (firstComponentContainer != null) {
+			firstComponentContainer.setWidth(width, unit);
+		}
+	}
+
+	public float getFirstComponentHeight() {
+		return firstComponentHeight;
+	}
+
+	public Unit getFirstComponentHeightUnit() {
+		return firstComponentHeightUnit;
+	}
+
+	public void setFirstComponentHeight(float height, Unit unit) {
+		this.firstComponentHeight = height;
+		this.firstComponentHeightUnit = unit;
+		if (firstComponentContainer != null) {
+			firstComponentContainer.setHeight(height, unit);
+		}
+	}
+
 	public float getSecondComponentWidth() {
 		return secondComponentWidth;
 	}
@@ -66,6 +114,26 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 		this.secondComponentWidthUnit = unit;
 		if (secondComponentVisible) {
 			setSplitPosition(secondComponentWidth, secondComponentWidthUnit, true);
+		}
+		if (secondComponentContainer != null) {
+			//			secondComponentContainer.setWidth(width, unit);
+			secondComponentContainer.setWidth("100%");
+		}
+	}
+
+	public float getSecondComponentHeight() {
+		return secondComponentHeight;
+	}
+
+	public Unit getSecondComponentHeightUnit() {
+		return secondComponentHeightUnit;
+	}
+
+	public void setSecondComponentHeight(float height, Unit unit) {
+		this.secondComponentHeight = height;
+		this.secondComponentHeightUnit = unit;
+		if (secondComponentContainer != null) {
+			secondComponentContainer.setHeight(height, unit);
 		}
 	}
 
@@ -145,26 +213,78 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 	@Override
 	public void setFirstComponent(Component c) {
 		this.firstComponent = c;
-		super.setFirstComponent(new HorizontalSplitLayoutContent(c, false));
+
+		float width;
+		Unit widthUnit;
+		float height;
+		Unit heightUnit;
+		if (firstComponentWidth != -1) {
+			width = firstComponentWidth;
+			widthUnit = firstComponentWidthUnit;
+		} else {
+			width = c.getWidth();
+			widthUnit = c.getWidthUnits();
+		}
+		if (firstComponentHeight != -1) {
+			height = firstComponentHeight;
+			heightUnit = firstComponentHeightUnit;
+		} else {
+			height = c.getHeight();
+			heightUnit = c.getHeightUnits();
+		}
+		super.setFirstComponent(firstComponentContainer = new HorizontalSplitLayoutContent(c, false, width, widthUnit, height, heightUnit));
 	}
 
 	@Override
 	public void setSecondComponent(Component c) {
 		this.secondComponent = c;
-		super.setSecondComponent(new HorizontalSplitLayoutContent(c, true));
+
+		float width;
+		Unit widthUnit;
+		float height;
+		Unit heightUnit;
+		if (secondComponentWidth != -1) {
+			width = secondComponentWidth;
+			widthUnit = secondComponentWidthUnit;
+		} else {
+			width = c.getWidth();
+			widthUnit = c.getWidthUnits();
+		}
+		if (secondComponentHeight != -1) {
+			height = secondComponentHeight;
+			heightUnit = secondComponentHeightUnit;
+		} else {
+			height = c.getHeight();
+			heightUnit = c.getHeightUnits();
+		}
+		super.setSecondComponent(secondComponentContainer = new HorizontalSplitLayoutContent(c, true, width, widthUnit, height, heightUnit));
 	}
 	
 	private static class HorizontalSplitLayoutContent extends HorizontalLayout {
-		
-		public HorizontalSplitLayoutContent(Component component, boolean second) {
-			setSizeFull();
+
+		public HorizontalSplitLayoutContent(Component component, boolean second, float width, Unit widthUnits,
+											float height, Unit heightUnits) {
+			addStyleName("horizontal-split-layout-content");
+
+			if (width != -1) {
+				setWidth(width, widthUnits);
+			} else {
+				setWidth("100%");
+			}
+			if (height != -1) {
+				setHeight(height, heightUnits);
+			} else {
+				setHeight("100%");
+			}
 			
 			Label spacer = new Label();
 			spacer.setWidth("4px");
 			if (second) {
+				addStyleName("horizontal-split-layout-content-second");
 				spacer.addStyleName(STYLE_NAME + "spacer-second");
 				addComponents(spacer, component);
 			} else {
+				addStyleName("horizontal-split-layout-content-first");
 				spacer.addStyleName(STYLE_NAME + "spacer-first");
 				addComponents(component, spacer);
 			}

@@ -443,7 +443,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		return mainLayout;
 	}
 
-	public void runAsync(final Runnable runnable, int pollInterval, final Component component) {
+	public Thread runAsync(final Runnable runnable, int pollInterval, final Component component) {
 		final boolean restorePollingInterval;
 		final int pollIntervalBefore = getPollInterval();
 		if (getPollInterval() <= 0) {
@@ -452,7 +452,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		} else {
 			restorePollingInterval = false;
 		}
-		new Thread() {
+		Thread thread = new Thread() {
 			@Override
 			public void run() {
 				try {
@@ -469,7 +469,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 					}
 				}
 			}
-		}.start();
+		};
+		thread.start();
+		return thread;
 	}
 
 }
