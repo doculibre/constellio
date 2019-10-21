@@ -72,8 +72,13 @@ public abstract class BaseDao {
 	}
 
 	public Record getRecordById(String id) {
+		return getRecordById(id, null);
+	}
+
+	public Record getRecordById(String id, String eTag) {
 		try {
-			return recordServices.realtimeGetRecordById(id);
+			Long recordVersion = eTag != null ? Long.valueOf(eTag) : null;
+			return recordServices.realtimeGetRecordById(id, recordVersion);
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 			return null;
 		}
