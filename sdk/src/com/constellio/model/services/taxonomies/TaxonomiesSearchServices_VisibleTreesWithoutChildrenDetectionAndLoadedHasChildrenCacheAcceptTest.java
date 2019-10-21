@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -69,6 +70,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAndLoa
 				withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
+		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.enable();
 
 		inCollection(zeCollection).giveReadAccessTo(admin);
 
