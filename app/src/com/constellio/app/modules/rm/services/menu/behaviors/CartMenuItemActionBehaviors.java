@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.menu.behaviors.ui.CartBatchProcessingPresenter;
 import com.constellio.app.modules.rm.services.menu.behaviors.ui.CartBatchProcessingViewImpl;
+import com.constellio.app.modules.rm.services.menu.behaviors.util.RMMessageUtil;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -80,6 +81,7 @@ import com.jgoodies.common.base.Strings;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource.StreamSource;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
@@ -320,18 +322,8 @@ public class CartMenuItemActionBehaviors {
 
 				@Override
 				protected String getConfirmDialogMessage() {
-					List<String> cartFolderIds = cartUtil.getCartFolderIds(cart.getId());
-					List<String> cartDocumentIds = cartUtil.getCartDocumentIds(cart.getId());
+					StringBuilder stringBuilder = getRecordCountByTypeAsText(cart);
 
-					StringBuilder stringBuilder = new StringBuilder();
-					String prefix = "";
-					if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
-						stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
-						prefix = " " + $("CartView.andAll") + " ";
-					}
-					if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
-						stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
-					}
 					return $("CartView.deleteConfirmationMessageWithoutJustification", stringBuilder.toString());
 				}
 			};
@@ -344,24 +336,21 @@ public class CartMenuItemActionBehaviors {
 
 				@Override
 				protected String getConfirmDialogMessage() {
-					List<String> cartFolderIds = cartUtil.getCartFolderIds(cart.getId());
-					List<String> cartDocumentIds = cartUtil.getCartDocumentIds(cart.getId());
+					StringBuilder stringBuilder = getRecordCountByTypeAsText(cart);
 
-					StringBuilder stringBuilder = new StringBuilder();
-					String prefix = "";
-					if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
-						stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
-						prefix = " " + $("CartView.andAll") + " ";
-					}
-					if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
-						stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
-					}
 					return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
 				}
 			};
+
+			((DeleteWithJustificationButton) button).setMessageContentMode(ContentMode.HTML);
 		}
 
 		button.click();
+	}
+
+	private StringBuilder getRecordCountByTypeAsText(Cart cart) {
+		return RMMessageUtil.getRecordCountByTypeAsText(cartUtil.getCartFolderIds(cart.getId()).size(),
+				cartUtil.getCartDocumentIds(cart.getId()).size(), cartUtil.getCartContainersIds(cart.getId()).size());
 	}
 
 	public void deletionRequested(String reason, Cart cart, MenuItemActionBehaviorParams params) {

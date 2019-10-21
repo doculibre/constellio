@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.services.actions.FolderRecordActionsService
 import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.menu.behaviors.util.RMMessageUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
@@ -70,6 +71,7 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -79,7 +81,6 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDateTime;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -383,7 +384,7 @@ public class RMRecordsMenuItemBehaviors {
 					int documentCount = countPerShemaType(Document.SCHEMA_TYPE, recordIds);
 					int containerCount = countPerShemaType(ContainerRecord.SCHEMA_TYPE, recordIds);
 
-					StringBuilder stringBuilder = getRecordsInfo(folderCount, documentCount, containerCount);
+					StringBuilder stringBuilder = RMMessageUtil.getRecordCountByTypeAsText(folderCount, documentCount, containerCount);
 
 					return $("CartView.deleteConfirmationMessageWithoutJustification", stringBuilder.toString());
 				}
@@ -402,40 +403,17 @@ public class RMRecordsMenuItemBehaviors {
 					int documentCount = countPerShemaType(Document.SCHEMA_TYPE, recordIds);
 					int containerCount = countPerShemaType(ContainerRecord.SCHEMA_TYPE, recordIds);
 
-					StringBuilder stringBuilder = getRecordsInfo(folderCount, documentCount, containerCount);
+					StringBuilder stringBuilder = RMMessageUtil.getRecordCountByTypeAsText(folderCount, documentCount, containerCount);
 
 					return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
 				}
 			};
+			((DeleteWithJustificationButton) button).setMessageContentMode(ContentMode.HTML);
 		}
 
 		button.click();
 	}
 
-	@NotNull
-	private StringBuilder getRecordsInfo(int folderCount, int documentCount, int containerCount) {
-		StringBuilder stringBuilder = new StringBuilder();
-		String prefix = "";
-		if (folderCount > 0) {
-			stringBuilder.append(prefix + folderCount + " " + $("CartView.folders"));
-			if ((containerCount > 0 || documentCount > 0) && (containerCount == 0 || documentCount == 0)) {
-				prefix = " " + $("CartView.andAll") + " ";
-			} else if (containerCount > 0 && documentCount > 0) {
-				prefix = ", ";
-			}
-		}
-		if (documentCount > 0) {
-			stringBuilder.append(prefix + documentCount + " " + $("CartView.documents"));
-			if (containerCount > 0) {
-				prefix = " " + $("CartView.andAll") + " ";
-			}
-		}
-
-		if (containerCount > 0) {
-			stringBuilder.append(prefix + documentCount + " " + $("CartView.containers"));
-		}
-		return stringBuilder;
-	}
 
 	private boolean isBatchDeletePossible(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		return documentRecordActionsServices.canDeleteDocuments(recordIds, params.getUser())
