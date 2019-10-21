@@ -177,7 +177,6 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		return result;
 	}
 
-
 	public FormMetadataVO getParentFormMetadataVO() {
 		return getFormMetadataVO().getInheritance();
 	}

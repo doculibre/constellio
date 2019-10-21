@@ -23,6 +23,7 @@ public class SavedSearch extends RecordWrapper {
 	public static final String FREE_TEXT_SEARCH = "freeTextSearch";
 	public static final String ADVANCED_SEARCH = "advancedSearch";
 	public static final String SCHEMA_FILTER = "schemaFilter";
+	public static final String SCHEMA_CODE_FILTER = "schemaCodeFilter";
 	public static final String SEARCH_TYPE = "searchType";
 	public static final String SORT_ORDER = "sortOrder";
 	public static final String TEMPORARY = "temporary";
@@ -143,6 +144,15 @@ public class SavedSearch extends RecordWrapper {
 
 	public SavedSearch setSchemaFilter(String schemaFilter) {
 		set(SCHEMA_FILTER, schemaFilter);
+		return this;
+	}
+
+	public String getSchemaCodeFilter() {
+		return get(SCHEMA_CODE_FILTER);
+	}
+
+	public SavedSearch setSchemaCodeFilter(String schemaCode) {
+		set(SCHEMA_CODE_FILTER, schemaCode);
 		return this;
 	}
 

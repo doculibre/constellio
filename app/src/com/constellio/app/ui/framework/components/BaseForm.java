@@ -77,6 +77,8 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	protected VerticalLayout formLayout;
 
+	protected VerticalLayout hiddenLayout;
+
 	protected I18NHorizontalLayout buttonsLayout;
 
 	protected Button saveButton;
@@ -119,6 +121,10 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 		formLayout = new VerticalLayout();
 		formLayout.setSpacing(true);
+
+		hiddenLayout = new VerticalLayout();
+		formLayout.addComponent(hiddenLayout);
+		hiddenLayout.setVisible(false);
 
 		fieldGroup = new FieldGroup(item) {
 			@Override

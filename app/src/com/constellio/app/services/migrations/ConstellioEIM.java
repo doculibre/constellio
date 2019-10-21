@@ -75,6 +75,7 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_3_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_3_1_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_0_5;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_1;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -160,6 +161,7 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_9_0());
 		//scripts.add(new CoreMigrationTo_8_3_0_1());
 		scripts.add(new CoreMigrationTo_9_0_0_5());
+		scripts.add(new CoreMigrationTo_9_0_1_1());
 		return scripts;
 	}
 
