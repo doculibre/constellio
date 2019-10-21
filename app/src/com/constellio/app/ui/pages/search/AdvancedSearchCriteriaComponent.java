@@ -327,13 +327,13 @@ public class AdvancedSearchCriteriaComponent extends Table {
 							subCriterion = (Criterion) criterion.getEndValue();
 						} else {
 							subCriterion = new Criterion(criterion.getSchemaType());
+							MetadataVO copiedMetadataVO = presenter.getMetadataVO((String) comboBox.getValue());
+							String enumClassName = null;
+							if (copiedMetadataVO.getEnumClass() != null) {
+								enumClassName = copiedMetadataVO.getEnumClass().getName();
+							}
+							subCriterion.setMetadata(copiedMetadataVO.getCode(), copiedMetadataVO.getType(), enumClassName);
 						}
-						MetadataVO copiedMetadataVO = presenter.getMetadataVO((String) comboBox.getValue());
-						String enumClassName = null;
-						if (copiedMetadataVO.getEnumClass() != null) {
-							enumClassName = copiedMetadataVO.getEnumClass().getName();
-						}
-						subCriterion.setMetadata(copiedMetadataVO.getCode(), copiedMetadataVO.getType(), enumClassName);
 						criterion.setEndValue(subCriterion);
 
 						copiedMetadataValueContainer.removeAllComponents();
