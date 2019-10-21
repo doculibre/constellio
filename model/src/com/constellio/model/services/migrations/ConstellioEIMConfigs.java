@@ -133,6 +133,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ENABLE_INACTIF_SCHEMAS_IN_SEARCH;
 
+	public static final SystemConfiguration SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH;
+
 	public static final SystemConfiguration SPACE_QUOTA_FOR_USER_DOCUMENTS;
 
 	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
@@ -234,6 +236,8 @@ public class ConstellioEIMConfigs {
 				.whichIsHidden());
 
 		add(ENABLE_INACTIF_SCHEMAS_IN_SEARCH = search.createBooleanTrueByDefault("enableInactifSchemasInSearch"));
+
+		add(SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH = search.createBooleanTrueByDefault("showCopiedMetadataSeparatelyInSearch"));
 
 		add(ENABLE_LEARN_TO_RANK_FEATURE = search.createBooleanFalseByDefault("enableLearnToRankFeature")
 				.whichIsHidden());
@@ -366,6 +370,10 @@ public class ConstellioEIMConfigs {
 
 	public Boolean areInactifSchemasEnabledInSearch() {
 		return manager.getValue(ENABLE_INACTIF_SCHEMAS_IN_SEARCH);
+	}
+
+	public Boolean isShowCopiedMetadataSeparatelyInSearch() {
+		return manager.getValue(SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH);
 	}
 
 	public Boolean isCleanDuringInstall() {

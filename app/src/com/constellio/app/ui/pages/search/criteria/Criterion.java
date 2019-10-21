@@ -1,14 +1,11 @@
 package com.constellio.app.ui.pages.search.criteria;
 
-import java.io.Serializable;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 
@@ -25,7 +22,9 @@ public class Criterion implements Serializable, ModifiableStructure {
 		IS_FALSE,
 		IN_HIERARCHY,
 		IS_NULL,
-		IS_NOT_NULL
+		IS_NOT_NULL,
+		CONTAINS,
+		NOT_CONTAINS
 	}
 
 	private String schemaType;

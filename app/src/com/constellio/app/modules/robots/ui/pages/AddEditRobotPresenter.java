@@ -202,6 +202,16 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	}
 
 	@Override
+	public boolean isSeparateCopiedMetadata() {
+		return false;
+	}
+
+	@Override
+	public List<MetadataVO> getCopiedMetadataAllowedInCriteria(String referenceCode) {
+		return getMetadataAllowedInCriteria();
+	}
+
+	@Override
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
 		MetadataSchemaType schemaType = types().getSchemaType(schemaFilter);
 		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()

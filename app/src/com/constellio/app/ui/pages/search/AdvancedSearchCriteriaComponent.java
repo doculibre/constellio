@@ -37,6 +37,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.joda.time.LocalDateTime;
 
@@ -204,39 +205,77 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				case ENUM:
 					return buildEnumValueComponent(criterion);
 				case REFERENCE:
-					return buildReferenceValueComponent(criterion);
+					return buildReferenceComponent(criterion);
 			}
 			return null;
 		}
 
-		private Component buildReferenceValueComponent(final Criterion criterion) {
+		private Component buildReferenceComponent(final Criterion criterion) {
+			I18NHorizontalLayout copiedMetadataValueContainer = new I18NHorizontalLayout();
+			copiedMetadataValueContainer.setWidth("100%");
+			Component referenceValueComponent = buildReferenceValueComponent(criterion, copiedMetadataValueContainer);
+
+			VerticalLayout verticalLayout = new VerticalLayout(referenceValueComponent, copiedMetadataValueContainer);
+			verticalLayout.setSpacing(true);
+
+			return verticalLayout;
+		}
+
+		private Component buildReferenceValueComponent(final Criterion criterion,
+													   I18NHorizontalLayout copiedMetadataValueContainer) {
 			MetadataVO metadata = presenter.getMetadataVO(criterion.getMetadataCode());
+			final Component referenceValue = buildReferenceEntryField(metadata.getAllowedReferences(), criterion);
+			final Component copiedMetadataSelector = buildCopiedMetadataSelector(criterion, copiedMetadataValueContainer);
+			final Component operator = buildReferenceOperatorComponent(criterion, referenceValue, copiedMetadataSelector, copiedMetadataValueContainer);
 
-			final Field<?> value = buildReferenceEntryField(metadata.getAllowedReferences(), criterion);
+			I18NHorizontalLayout component = new I18NHorizontalLayout(operator, referenceValue, copiedMetadataSelector);
+			component.setComponentAlignment(referenceValue, Alignment.MIDDLE_RIGHT);
+			component.setComponentAlignment(copiedMetadataSelector, Alignment.MIDDLE_RIGHT);
+			component.setExpandRatio(referenceValue, 1);
+			component.setExpandRatio(copiedMetadataSelector, 1);
+			component.setWidth("100%");
+			component.setSpacing(true);
 
+			return component;
+		}
+
+		private Component buildReferenceOperatorComponent(final Criterion criterion, Component referenceValue,
+														  Component copiedMetadataSelector,
+														  I18NHorizontalLayout copiedMetadataValueContainer) {
 			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
+			if (presenter.isSeparateCopiedMetadata()) {
+				operator.addItem(SearchOperator.CONTAINS);
+				operator.setItemCaption(SearchOperator.CONTAINS, $("AdvancedSearchView.contains"));
+				operator.addItem(SearchOperator.NOT_CONTAINS);
+				operator.setItemCaption(SearchOperator.NOT_CONTAINS, $("AdvancedSearchView.notContains"));
+			}
 			operator.setNullSelectionAllowed(false);
 			operator.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
 					SearchOperator newOperator = (SearchOperator) operator.getValue();
 					if (newOperator != null) {
+						if (isContainsTypeOperator(criterion.getSearchOperator()) != isContainsTypeOperator(newOperator)) {
+							criterion.setValue(null);
+						}
 						criterion.setSearchOperator(newOperator);
-						value.setVisible(
-								!newOperator.equals(SearchOperator.IS_NULL) && !newOperator.equals(SearchOperator.IS_NOT_NULL));
+
+						referenceValue.setVisible(!newOperator.equals(SearchOperator.IS_NULL)
+												  && !newOperator.equals(SearchOperator.IS_NOT_NULL)
+												  && !isContainsTypeOperator(newOperator));
+						copiedMetadataSelector.setVisible(isContainsTypeOperator(newOperator));
+						copiedMetadataValueContainer.setVisible(canShowCopiedMetadataValueContainer(criterion));
 					} else {
-						value.setVisible(true);
+						referenceValue.setVisible(true);
+						copiedMetadataSelector.setVisible(false);
+						copiedMetadataValueContainer.setVisible(false);
 					}
 				}
 			});
+			operator.setValue(criterion.getSearchOperator());
+			copiedMetadataValueContainer.setVisible(canShowCopiedMetadataValueContainer(criterion));
 
-			I18NHorizontalLayout component = new I18NHorizontalLayout(operator, value);
-			component.setComponentAlignment(value, Alignment.MIDDLE_RIGHT);
-			component.setExpandRatio(value, 1);
-			component.setWidth("100%");
-			component.setSpacing(true);
-
-			return component;
+			return operator;
 		}
 
 		private Field<?> buildReferenceEntryField(AllowedReferences references, final Criterion criterion) {
@@ -247,14 +286,80 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			final LookupRecordField field = new LookupRecordField(allowedSchemaType, firstAllowedSchema, true, true, true, true);
 			field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
 			field.setWidth("100%");
-			field.setValue((String) criterion.getValue());
 			field.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
 					criterion.setValue(field.getValue());
 				}
 			});
+			if (isContainsTypeOperator(criterion.getSearchOperator())) {
+				field.setValue(null);
+			} else {
+				field.setValue(criterion.getValue());
+			}
 			return field;
+		}
+
+		private Component buildCopiedMetadataSelector(final Criterion criterion,
+													  I18NHorizontalLayout copiedMetadataValueContainer) {
+			ComboBox comboBox = new BaseComboBox();
+			comboBox.addStyleName("advanced-search-form-metadata");
+			comboBox.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
+			comboBox.setNullSelectionAllowed(false);
+			comboBox.setVisible(false);
+
+			if (!presenter.isSeparateCopiedMetadata()
+				|| StringUtils.isBlank(criterion.getMetadataCode())) {
+				return comboBox;
+			}
+
+			for (MetadataVO metadata : presenter.getCopiedMetadataAllowedInCriteria(criterion.getMetadataCode())) {
+				comboBox.addItem(metadata.getCode());
+				comboBox.setItemCaption(metadata.getCode(), metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale()));
+			}
+			comboBox.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					criterion.setValue(comboBox.getValue());
+					if (comboBox.getValue() != null) {
+						Criterion subCriterion;
+						if (criterion.getEndValue() != null) {
+							subCriterion = (Criterion) criterion.getEndValue();
+						} else {
+							subCriterion = new Criterion(criterion.getSchemaType());
+						}
+						MetadataVO copiedMetadataVO = presenter.getMetadataVO((String) comboBox.getValue());
+						String enumClassName = null;
+						if (copiedMetadataVO.getEnumClass() != null) {
+							enumClassName = copiedMetadataVO.getEnumClass().getName();
+						}
+						subCriterion.setMetadata(copiedMetadataVO.getCode(), copiedMetadataVO.getType(), enumClassName);
+						criterion.setEndValue(subCriterion);
+
+						copiedMetadataValueContainer.removeAllComponents();
+						copiedMetadataValueContainer.addComponent(generateCell(subCriterion));
+						copiedMetadataValueContainer.setVisible(isContainsTypeOperator(criterion.getSearchOperator()));
+					} else {
+						copiedMetadataValueContainer.setVisible(false);
+						criterion.setEndValue(null);
+					}
+				}
+			});
+			if (isContainsTypeOperator(criterion.getSearchOperator())) {
+				comboBox.setValue(criterion.getValue());
+			} else {
+				comboBox.setValue(null);
+			}
+			comboBox.setPageLength(comboBox.size());
+			return comboBox;
+		}
+
+		private boolean canShowCopiedMetadataValueContainer(Criterion criterion) {
+			return criterion.getValue() != null && isContainsTypeOperator(criterion.getSearchOperator());
+		}
+
+		private boolean isContainsTypeOperator(SearchOperator operator) {
+			return operator.equals(SearchOperator.CONTAINS) || operator.equals(SearchOperator.NOT_CONTAINS);
 		}
 
 		private Component buildSchemaCriterionComponent(final Criterion criterion) {
@@ -834,6 +939,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		List<MetadataVO> getMetadataAllowedInCriteria();
 
+		List<MetadataVO> getCopiedMetadataAllowedInCriteria(String referenceCode);
+
 		Map<String, String> getMetadataSchemasList(String schemaTypeCode);
 
 		MetadataVO getMetadataVO(String metadataCode);
@@ -841,5 +948,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		Component getExtensionComponentForCriterion(Criterion criterion);
 
 		void showErrorMessage(String message);
+
+		boolean isSeparateCopiedMetadata();
 	}
 }

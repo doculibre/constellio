@@ -139,6 +139,9 @@ public class CriterionFactory implements StructureFactory {
 				break;
 			case REFERENCE:
 				newCriterion.setValue(value);
+				if (endValue != null) {
+					newCriterion.setEndValue(build(endValue));
+				}
 				break;
 			case CONTENT:
 				newCriterion.setValue(value);

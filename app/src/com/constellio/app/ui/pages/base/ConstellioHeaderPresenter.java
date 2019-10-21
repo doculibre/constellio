@@ -52,8 +52,11 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -112,6 +115,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private Map<String, String> deselectedRecordsWithSchema;
 
 	private Map<String, Set<String>> metadataAllowedInCriteria = new HashMap<>();
+	private Map<String, Set<String>> copiedMetadataAllowedInCriteria = new HashMap<>();
 
 	public ConstellioHeaderPresenter(ConstellioHeader header) {
 		this.header = header;
@@ -321,42 +325,102 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	@Override
-	public List<MetadataVO> getMetadataAllowedInCriteria() {
+	public boolean isSeparateCopiedMetadata() {
+		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH);
+	}
 
+	@Override
+	public List<MetadataVO> getMetadataAllowedInCriteria() {
 		MetadataSchemaType schemaType = types().getSchemaType(schemaTypeCode);
+		boolean isSeparateCopiedMetadata = isSeparateCopiedMetadata();
 
 		Set<String> metadataCodes = metadataAllowedInCriteria.get(schemaTypeCode);
 		if (metadataCodes == null) {
 			metadataCodes = new HashSet<>();
 			metadataAllowedInCriteria.put(schemaTypeCode, metadataCodes);
 
-			List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
-					.setNumberOfRows(0)
-					.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
-					.getFieldFacetValues("schema_s");
+			if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
+				for (Metadata metadata : getMetadatasWithRecords(schemaType)) {
+					boolean isCopiedMetadata = metadata.getDataEntry().getType() == DataEntryType.COPIED;
+					if (metadata.isEnabled() && (!isSeparateCopiedMetadata || !isCopiedMetadata)) {
+						if (metadata.getInheritance() != null) {
+							metadataCodes.add(metadata.getInheritance().getCode());
+						} else if (metadata.getInheritance() == null) {
+							metadataCodes.add(metadata.getCode());
+						}
+					}
+				}
+			} else {
+				for (Metadata metadata : schemaType.getAllMetadatas()) {
+					boolean isCopiedMetadata = metadata.getDataEntry().getType() == DataEntryType.COPIED;
+					if ((!isSeparateCopiedMetadata || !isCopiedMetadata)) {
+						metadataCodes.add(metadata.getCode());
+					}
+				}
+			}
+		}
+
+		return getFilteredMetadatas(schemaType, metadataCodes);
+	}
+
+	@Override
+	public List<MetadataVO> getCopiedMetadataAllowedInCriteria(String referenceCode) {
+		MetadataSchemaType schemaType = types().getSchemaType(schemaTypeCode);
+
+		Set<String> metadataCodes = copiedMetadataAllowedInCriteria.get(schemaTypeCode);
+		if (metadataCodes == null) {
+			metadataCodes = new HashSet<>();
+			copiedMetadataAllowedInCriteria.put(schemaTypeCode, metadataCodes);
 
 			if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
-				if (schema_s != null) {
-					for (FacetValue facetValue : schema_s) {
-						if (facetValue.getQuantity() > 0) {
-							String schema = facetValue.getValue();
-							for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
-								if (metadata.getInheritance() != null && metadata.isEnabled()) {
-									metadataCodes.add(metadata.getInheritance().getCode());
-								} else if (metadata.getInheritance() == null && metadata.isEnabled()) {
-									metadataCodes.add(metadata.getCode());
-								}
+				for (Metadata metadata : getMetadatasWithRecords(schemaType)) {
+					boolean isCopiedMetadata = metadata.getDataEntry().getType() == DataEntryType.COPIED;
+					if (metadata.isEnabled() && isCopiedMetadata) {
+						CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();
+						if (dataEntry.getReferenceMetadata().equals(referenceCode)) {
+							if (metadata.getInheritance() != null) {
+								metadataCodes.add(metadata.getInheritance().getCode());
+							} else if (metadata.getInheritance() == null) {
+								metadataCodes.add(metadata.getCode());
 							}
 						}
 					}
 				}
 			} else {
 				for (Metadata metadata : schemaType.getAllMetadatas()) {
-					metadataCodes.add(metadata.getCode());
+					boolean isCopiedMetadata = metadata.getDataEntry().getType() == DataEntryType.COPIED;
+					if (isCopiedMetadata) {
+						CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();
+						if (dataEntry.getReferenceMetadata().equals(referenceCode)) {
+							metadataCodes.add(metadata.getCode());
+						}
+					}
 				}
 			}
 		}
 
+		return getFilteredMetadatas(schemaType, metadataCodes);
+	}
+
+	private List<Metadata> getMetadatasWithRecords(MetadataSchemaType schemaType) {
+		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
+				.setNumberOfRows(0)
+				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
+				.getFieldFacetValues("schema_s");
+
+		List<Metadata> metadatas = new ArrayList<>();
+		if (schema_s != null) {
+			for (FacetValue facetValue : schema_s) {
+				if (facetValue.getQuantity() > 0) {
+					String schema = facetValue.getValue();
+					metadatas.addAll(types().getSchema(schema).getMetadatas());
+				}
+			}
+		}
+		return metadatas;
+	}
+
+	private List<MetadataVO> getFilteredMetadatas(MetadataSchemaType schemaType, Set<String> metadataCodes) {
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
