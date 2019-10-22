@@ -163,7 +163,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		addSubGroupButtons(dataProvider, buttonsContainer);
 		container = buttonsContainer;
 		String title = "DisplayGlobalGroup.listSubGroups";
-		return buildTable(container, title, GlobalGroup.SCHEMA_TYPE);
+		return buildTable(container, title);
 	}
 
 	private Table buildUserTable() {
@@ -173,7 +173,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		addUserButtons(dataProvider, buttonsContainer);
 		container = buttonsContainer;
 		String title = "DisplayGlobalGroup.listGroupsUserCredentials";
-		return buildTable(container, title, UserCredential.SCHEMA_TYPE);
+		return buildTable(container, title);
 	}
 
 	private Table buildAvailableUserTable() {
@@ -203,11 +203,11 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		});
 		container = buttonsContainer;
 		String title = "DisplayGlobalGroup.listUserCredentials";
-		return buildTable(container, title, UserCredential.SCHEMA_TYPE);
+		return buildTable(container, title);
 
 	}
 
-	private Table buildTable(Container container, String title, String schemaTypeCode) {
+	private Table buildTable(Container container, String title) {
 		Table table = new BaseTable(getClass().getName(), $(title), container);
 		int tableSize = batchSize;
 		if (tableSize > table.getItemIds().size()) {
