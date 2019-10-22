@@ -62,7 +62,8 @@ public class RMMigrationTo9_0_0_1 extends MigrationHelper implements MigrationSc
 					.setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(documentTypeSchema)
 					.setMultivalue(true)
-					.defineDataEntry().asCalculated(FolderAllowedDocumentTypeCalculator.class);
+					.defineDataEntry().asCalculated(FolderAllowedDocumentTypeCalculator.class)
+					.setSystemReserved(true);
 
 			MetadataSchemaBuilder folderTypeSchema = typesBuilder.getSchemaType(FolderType.SCHEMA_TYPE).getDefaultSchema();
 			labels = new HashMap<>();
@@ -73,7 +74,8 @@ public class RMMigrationTo9_0_0_1 extends MigrationHelper implements MigrationSc
 					.setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(folderTypeSchema)
 					.setMultivalue(true)
-					.defineDataEntry().asCalculated(FolderAllowedFolderTypeCalculator.class);
+					.defineDataEntry().asCalculated(FolderAllowedFolderTypeCalculator.class)
+					.setSystemReserved(true);
 
 			MetadataSchemaBuilder documentSchema = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
 			documentSchema.defineValidators().add(DocumentValidator.class);

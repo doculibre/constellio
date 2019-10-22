@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.folder.fields;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -16,6 +17,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -24,6 +26,7 @@ import static com.constellio.model.services.search.query.logical.valueCondition.
 public class FolderTypeTextInputDataProvider extends RecordTextInputDataProvider {
 
 	private String parent;
+	private transient RMConfigs rmConfigs;
 	private transient RMSchemasRecordsServices rm;
 
 	public FolderTypeTextInputDataProvider(ConstellioFactories constellioFactories,
@@ -40,6 +43,7 @@ public class FolderTypeTextInputDataProvider extends RecordTextInputDataProvider
 	}
 
 	private void init() {
+		this.rmConfigs = new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager());
 		this.rm = new RMSchemasRecordsServices(sessionContext.getCurrentCollection(),
 				getModelLayerFactory());
 	}
@@ -58,7 +62,10 @@ public class FolderTypeTextInputDataProvider extends RecordTextInputDataProvider
 
 		if (parent != null) {
 			Folder parentFolder = rm.getFolder(parent);
-			List<String> newFolderTypes = parentFolder.getAllowedFolderTypes();
+			List<String> newFolderTypes = Collections.EMPTY_LIST;
+			if (rmConfigs.isTypeRestrictionEnabledInFolder()) {
+				newFolderTypes = parentFolder.getAllowedFolderTypes();
+			}
 
 			if (!newFolderTypes.isEmpty()) {
 				condition = condition.andWhere(Schemas.IDENTIFIER).isIn(newFolderTypes);

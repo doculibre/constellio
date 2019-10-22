@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableTypeRestrictionInFolderScript;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
@@ -83,7 +84,8 @@ public class RMConfigs {
 			ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING,
 			CREATE_MISSING_AUTHORIZATIONS_FOR_TASK,
 			SUB_FOLDER_DECOMMISSIONING,
-			IGNORE_VALIDATIONS_IN_BATCH_PROCESSING;
+			IGNORE_VALIDATIONS_IN_BATCH_PROCESSING,
+			ENABLE_TYPE_RESTRICTION_IN_FOLDER;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -253,6 +255,9 @@ public class RMConfigs {
 		add(AGENT_CREATE_DROP_DIR_SHORTCUT = agent.createBooleanTrueByDefault("agentCreateDropDirShortcut"));
 
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
+
+		add(ENABLE_TYPE_RESTRICTION_IN_FOLDER = others.createBooleanFalseByDefault("enableTypeRestrictionInFolder")
+				.scriptedBy(EnableOrDisableTypeRestrictionInFolderScript.class).whichIsHidden());
 
 		add(BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
 
@@ -602,4 +607,7 @@ public class RMConfigs {
 		return manager.getValue(IGNORE_VALIDATIONS_IN_BATCH_PROCESSING);
 	}
 
+	public boolean isTypeRestrictionEnabledInFolder() {
+		return manager.getValue(ENABLE_TYPE_RESTRICTION_IN_FOLDER);
+	}
 }

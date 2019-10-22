@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -64,7 +65,11 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 		}
 
 		if (folderId != null) {
-			List<String> newDocumentTypes = rm.getFolder(folderId).getAllowedDocumentTypes();
+			List<String> newDocumentTypes = Collections.EMPTY_LIST;
+			if (rmConfigs.isTypeRestrictionEnabledInFolder()) {
+				newDocumentTypes = rm.getFolder(folderId).getAllowedDocumentTypes();
+			}
+
 			if (newDocumentTypes.isEmpty()) {
 				newDocumentTypes = getDocumentTypesFilteredByRetentionRule();
 			}

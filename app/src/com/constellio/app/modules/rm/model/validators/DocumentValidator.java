@@ -32,7 +32,8 @@ public class DocumentValidator implements RecordValidator {
 			Folder folder = Folder.wrap(params.getRecord(document.getFolder()), params.getTypes());
 			List<String> allowedDocumentTypes = folder.getAllowedDocumentTypes();
 
-			if (allowedDocumentTypes.isEmpty()) {
+			if (!params.getConfigProvider().<Boolean>get(RMConfigs.ENABLE_TYPE_RESTRICTION_IN_FOLDER)
+				|| allowedDocumentTypes.isEmpty()) {
 				DocumentsTypeChoice choice = params.getConfigProvider().get(RMConfigs.DOCUMENTS_TYPES_CHOICE);
 				if (choice == DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
 					|| choice == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
