@@ -443,6 +443,14 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		return mainLayout;
 	}
 
+	public Component getStaticFooterContent() {
+		return mainLayout.getStaticFooterContent();
+	}
+
+	public void setStaticFooterContent(Component component) {
+		mainLayout.setStaticFooterContent(component);
+	}
+
 	public Thread runAsync(final Runnable runnable, int pollInterval, final Component component) {
 		final boolean restorePollingInterval;
 		final int pollIntervalBefore = getPollInterval();

@@ -12609,10 +12609,6 @@ div.v-layout.v-horizontal.v-widget {
 	max-height: 20em;
 }
 
-.constellio .v-treetable .v-table-cell-wrapper {
-	cursor: pointer;
-}
-
 .constellio .v-treetable .v-table-cell-wrapper .v-icon {
 	padding-right: 6px;
 }
@@ -12625,7 +12621,18 @@ div.v-layout.v-horizontal.v-widget {
 	line-height: initial;
 }
 
-.constellio .v-treetable .v-table-cell-wrapper:hover {
+.constellio .v-treetable .v-checkbox {
+	cursor: pointer;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	padding-right: 6px;
+}
+
+.constellio .v-treetable .v-checkbox > input ~ label:before, .constellio .v-treetable .v-checkbox > input ~ label:after {
+	top: 3px;
+}
+
+.constellio .v-treetable .v-checkbox:hover {
 	color: white;
 	background-color: #197de1;
 }
@@ -15531,6 +15538,10 @@ div.v-layout.v-horizontal.v-widget {
 	content: "\f100";
 }
 
+.constellio .page-size-layout {
+	padding-right: 20px;
+}
+
 .constellio .constellio-layout {
 	background-color: white;
 	font-weight: 400;
@@ -15998,14 +16009,6 @@ div.v-layout.v-horizontal.v-widget {
 	text-decoration: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .v-slot-license {
-	padding-top: 5px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .v-slot-license .v-label {
-	text-align: center;
-}
-
 .constellio .constellio-layout .view-group {
 	text-align: center;
 }
@@ -16041,6 +16044,19 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .v-tabsheet-display-folder {
 	position: relative;
+}
+
+.constellio .v-slot-license {
+	padding-top: 0px;
+}
+
+.constellio .v-slot-license .v-label {
+	text-align: center;
+}
+
+.constellio .static-footer-layout {
+	padding-left: 20px;
+	padding-right: 20px;
 }
 
 .constellio .search-view .viewable-record-table-panel .viewable-record-table .search-result-with-elevation-buttons .search-result-title {
@@ -16103,6 +16119,10 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-x: auto;
 }
 
+.constellio .v-ui[width-range~="1101px-"] .base-display .v-slot-display-caption-and-component {
+	padding-right: 300px;
+}
+
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper {
 	padding-right: 260px;
 }
@@ -16114,10 +16134,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
 	padding-right: 26px;
-}
-
-.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .-v-slot-display-caption-and-component {
-	padding-right: 300px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-list-add-remove-comment {
@@ -16155,6 +16171,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .search-result-title .v-icon {
 	display: none;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .search-result-title .v-icon + span {
+	margin-left: auto;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
@@ -16225,6 +16245,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="801-1100px"] .search-result-title .v-icon {
 	display: none;
+}
+
+.constellio .v-ui[width-range~="801-1100px"] .search-result-title .v-icon + span {
+	margin-left: auto;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .action-menu-wrapper {
@@ -16375,7 +16399,13 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="0-800px"] .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar {
 	top: inherit;
-	right: inherit;
+	right: -22px;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .v-slot-page-management-layout {
+	position: relative;
+	top: -11px;
+	left: -184px;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .task-management-view .v-slot-task-action-buttons {
@@ -16674,7 +16704,7 @@ div.v-layout.v-horizontal.v-widget {
 	direction: rtl;
 }
 
-.constellio .right-to-left .content-footer-wrapper .content-footer .v-slot-license {
+.constellio .right-to-left .v-slot-license {
 	direction: rtl;
 }
 

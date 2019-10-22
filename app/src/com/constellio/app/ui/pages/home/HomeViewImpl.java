@@ -180,7 +180,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		final ViewableRecordVOTablePanel table = new ViewableRecordItemTablePanel(dataProvider);
 		table.addStyleName("record-table");
 		table.setSizeFull();
-
 		return table;
 	}
 

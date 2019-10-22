@@ -264,7 +264,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		tableLayout.addComponent(tableButtonsLayout);
 		tableLayout.addComponent(table);
 		if (table.isPaged()) {
+			//			ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
 			tableLayout.addComponent(pagingControls = table.createPagingControls());
+			tableLayout.setComponentAlignment(pagingControls, Alignment.BOTTOM_CENTER);
 		}
 		Label spacer = new Label("");
 		spacer.setHeight("50px");
@@ -735,10 +737,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 				tableLayout.replaceComponent(tableBefore, table);
 				if (pagingControls != null) {
-					tableLayout.removeComponent(pagingControls);
+					ConstellioUI.getCurrent().setStaticFooterContent(null);
 				}
 				if (table.isPaged()) {
-					tableLayout.addComponent(pagingControls = table.createPagingControls());
+					ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
 				}
 				adjustTableExpansion();
 

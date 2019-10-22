@@ -599,7 +599,6 @@ $popup-view-z-index: 3;
 
     .v-treetable {
     	.v-table-cell-wrapper {
-    		cursor: pointer;
 
 	    	.v-icon {
 	    		padding-right: 6px;
@@ -615,8 +614,19 @@ $popup-view-z-index: 3;
 	    		}
 	    	}
     	}
+    	
+    	.v-checkbox {
+    		cursor: pointer;
+			padding-top: 3px;
+			padding-bottom: 3px;
+			padding-right: 6px;
+    	}
 
-    	.v-table-cell-wrapper:hover {
+		.v-checkbox > input ~ label:before, .v-checkbox > input ~ label:after {
+			top: 3px;
+		}
+
+    	.v-checkbox:hover {
     		color: white;
 			background-color: #197de1;
     	}
@@ -2780,6 +2790,10 @@ $popup-view-z-index: 3;
 		    content: "\f100";
 		}
 	}
+	
+	.page-size-layout {
+		padding-right: 20px;
+	}
 
     .constellio-layout {
 		background-color: white;
@@ -3297,14 +3311,6 @@ $popup-view-z-index: 3;
 			    		text-decoration: none;
 			    	}
 			    }
-
-			    .v-slot-license {
-			    	padding-top: 5px;
-
-			    	.v-label {
-			    		text-align: center;
-			    	}
-			    }
 		    }
 	    }
 
@@ -3347,6 +3353,19 @@ $popup-view-z-index: 3;
 			//top: -38px;
 	    }
 
+    }
+
+    .v-slot-license {
+    	padding-top: 0px;
+
+    	.v-label {
+    		text-align: center;
+    	}
+    }
+    
+    .static-footer-layout {
+    	padding-left: 20px;
+    	padding-right: 20px;
     }
 		
 	.search-view {
@@ -3439,6 +3458,12 @@ $popup-view-z-index: 3;
 		//	bottom: 80px;
 	    //}
 
+		.base-display {
+			.v-slot-display-caption-and-component {
+				padding-right: 300px;
+			}
+		}
+
         .action-menu-wrapper {
             padding-right: 260px;
 
@@ -3456,10 +3481,6 @@ $popup-view-z-index: 3;
 					}
 				}
 					
-				.-v-slot-display-caption-and-component {
-					padding-right: 300px;
-				}
-
 				.v-slot-list-add-remove-comment {
 					width: 100%;
 				}
@@ -3513,6 +3534,10 @@ $popup-view-z-index: 3;
   		.search-result-title {
   			.v-icon {
   				display: none;
+  			}
+  			
+  			.v-icon + span {
+  				margin-left: auto;
   			}
   		}
 
@@ -3621,6 +3646,10 @@ $popup-view-z-index: 3;
   		.search-result-title {
   			.v-icon {
   				display: none;
+  			}
+  			
+  			.v-icon + span {
+  				margin-left: auto;
   			}
   		}
 
@@ -3814,7 +3843,13 @@ $popup-view-z-index: 3;
 		
 		.constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar {
 			top: inherit;
-			right: inherit;
+			right: -22px;
+		}
+		
+		.v-slot-page-management-layout {
+			position: relative;
+			top: -11px;
+			left: -184px;
 		}
 		
 		.task-management-view {
@@ -4170,11 +4205,11 @@ $popup-view-z-index: 3;
 				.v-slot-footer {
 					direction: rtl;
 				}
-				
-				.v-slot-license {
-					direction: rtl;
-				}
 			}
+		}
+				
+		.v-slot-license {
+			direction: rtl;
 		}
 	
 		.i18n-horizontal-layout-right-to-left {
