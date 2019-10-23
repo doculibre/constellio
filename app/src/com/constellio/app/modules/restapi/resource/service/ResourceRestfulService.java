@@ -86,9 +86,22 @@ public abstract class ResourceRestfulService {
 	}
 
 	protected void validateETag(String eTag) {
-		if (eTag != null && !StringUtils.isUnsignedLong(eTag)) {
+		String unquotedEtag = unquoteETag(eTag);
+		if (unquotedEtag != null && !StringUtils.isUnsignedLong(unquotedEtag)) {
 			throw new InvalidParameterException("ETag", eTag);
 		}
+	}
+
+	protected String unquoteETag(String eTag) {
+		if (eTag == null) {
+			return null;
+		}
+
+		String unquotedEtag = eTag;
+		if (eTag.charAt(0) == '"' && eTag.charAt(eTag.length() - 1) == '"') {
+			unquotedEtag = eTag.substring(1, eTag.length() - 1);
+		}
+		return unquotedEtag;
 	}
 
 }

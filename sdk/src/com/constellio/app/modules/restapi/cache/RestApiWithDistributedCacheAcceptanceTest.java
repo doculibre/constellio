@@ -90,7 +90,7 @@ public class RestApiWithDistributedCacheAcceptanceTest extends BaseDocumentRestf
 		record = recordServices.getDocumentById(fakeDocument.getId());
 		assertThat(record.getVersion()).isNotEqualTo(Long.valueOf(eTag));
 
-		Response response = doGetQuery(record.getId(), eTag);
+		Response response = doGetQuery(record.getId(), "\"".concat(eTag).concat("\""));
 		assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
 
 		String getQueryEtag = response.getHeaderString("ETag").replace("\"", "");

@@ -104,7 +104,8 @@ public class DocumentRestfulService extends ResourceRestfulService {
 
 		validateETag(eTag);
 
-		DocumentDto document = documentService.get(host, id, serviceKey, method, date, expiration, signature, filters, eTag);
+		DocumentDto document = documentService.get(host, id, serviceKey, method, date, expiration, signature,
+				filters, unquoteETag(eTag));
 		return Response.ok(document).tag(document.getETag()).build();
 	}
 
@@ -221,7 +222,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		validateDocument(document, fileStream);
 
 		validateETag(eTag);
-		document.setETag(eTag);
+		document.setETag(unquoteETag(eTag));
 
 		DocumentDto updatedDocument = documentService.update(host, id, serviceKey, method, date, expiration, signature,
 				document, fileStream, false, flush, filters);
@@ -277,7 +278,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		validateDocument(document, fileStream);
 
 		validateETag(eTag);
-		document.setETag(eTag);
+		document.setETag(unquoteETag(eTag));
 
 		DocumentDto updatedDocument = documentService.update(host, id, serviceKey, method, date, expiration, signature,
 				document, fileStream, true, flush, filters);
