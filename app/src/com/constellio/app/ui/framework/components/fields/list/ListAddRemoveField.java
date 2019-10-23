@@ -1,26 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -51,6 +30,16 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class ListAddRemoveField<T extends Serializable, F extends AbstractField<?>> extends CustomField<List<T>> {
 	public static final String STYLE_NAME = "list-add-remove";
@@ -285,6 +274,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 
 		addEditFieldLayout = new HorizontalLayout();
 		addEditFieldLayout.addStyleName(ADD_EDIT_FIELD_LAYOUT_STYLE_NAME);
+		addEditFieldLayout.setWidth("100%");
 		addEditFieldLayout.setSpacing(true);
 
 		addEditField = newAddEditField();

@@ -189,6 +189,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 							int newViewerHeight = splitterDivHeight - 40;
 							contentViewer.setHeight(newViewerHeight + "px");
 							splitPanel.setFirstComponentHeight(newViewerHeight, Unit.PIXELS);
+
+							if (contentViewer.isVerticalScroll()) {
+								splitPanel.addStyleName("first-component-no-vertical-scroll");
+							}
 						}
 					});
 

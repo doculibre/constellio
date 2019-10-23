@@ -170,6 +170,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	private RecordListMenuBar initialSelectionActionsMenuBar = null;
 
+	private boolean allItemsVisible = false;
+
 	public ViewableRecordVOTablePanel(RecordVOContainer container) {
 		this(container, TableMode.LIST, null);
 	}
@@ -267,7 +269,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		tableLayout.addComponent(tableButtonsLayout);
 		tableLayout.addComponent(table);
 		if (table.isPaged()) {
+			//			ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
 			tableLayout.addComponent(pagingControls = table.createPagingControls());
+			tableLayout.setComponentAlignment(pagingControls, Alignment.BOTTOM_CENTER);
 		}
 		Label spacer = new Label("");
 		spacer.setHeight("50px");
@@ -291,6 +295,17 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		});
 		closeButtonViewerMetadataLayout.setVisible(isCompressionSupported());
 		adjustTableExpansion();
+	}
+
+	public boolean isAllItemsVisible() {
+		return allItemsVisible;
+	}
+
+	public void setAllItemsVisible(boolean allItemsVisible) {
+		this.allItemsVisible = allItemsVisible;
+		if (allItemsVisible && (table != null && (tableMode == TableMode.TABLE || !isPagedInListMode()))) {
+			table.setPageLength(table.size());
+		}
 	}
 
 	public void setCountCaption(String caption) {
@@ -602,6 +617,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 			resultsTable.setSelectable(true);
 			resultsTable.setMultiSelect(false);
+			if (!resultsTable.isPaged() && allItemsVisible) {
+				resultsTable.setPageLength(resultsTable.size());
+			} 
 		} else {
 			resultsTable = new RecordVOTable(recordVOContainer) {
 				@Override
@@ -659,6 +677,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			for (Object propertyId : tableModeColumnExpandRatios.keySet()) {
 				resultsTable.setColumnExpandRatio(propertyId, tableModeColumnExpandRatios.get(propertyId));
 			}
+			if (allItemsVisible) {
+				resultsTable.setPageLength(resultsTable.size());
+			} 
 		}
 
 		final CellStyleGenerator cellStyleGenerator = resultsTable.getCellStyleGenerator();
@@ -738,10 +759,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 				tableLayout.replaceComponent(tableBefore, table);
 				if (pagingControls != null) {
+					//					ConstellioUI.getCurrent().setStaticFooterContent(null);
 					tableLayout.removeComponent(pagingControls);
 				}
 				if (table.isPaged()) {
+					//			ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
 					tableLayout.addComponent(pagingControls = table.createPagingControls());
+					tableLayout.setComponentAlignment(pagingControls, Alignment.BOTTOM_CENTER);
 				}
 				adjustTableExpansion();
 

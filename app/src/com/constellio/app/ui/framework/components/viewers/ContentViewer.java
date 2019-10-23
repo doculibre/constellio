@@ -118,4 +118,8 @@ public class ContentViewer extends CustomComponent {
 //		}
 	}
 
+	public boolean isVerticalScroll() {
+		return viewerComponent instanceof DocumentViewer;
+	}
+
 }

@@ -20,7 +20,8 @@ public class HttpDocSearchResultDisplayImpl extends SearchResultDisplay {
 	}
 
 	@Override
-	protected Label newHighlightsLabel(SearchResultVO searchResultVO) {
+	protected Label newHighlightsLabel() {
+		SearchResultVO searchResultVO = getSearchResultVO();
 		String currentCollection = sessionContext.getCurrentCollection();
 		List<String> collectionLanguages = appLayerFactory.getCollectionsManager().getCollectionLanguages(currentCollection);
 		MetadataSchema schema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
@@ -59,7 +60,7 @@ public class HttpDocSearchResultDisplayImpl extends SearchResultDisplay {
 
 			return label;
 		} else {
-			return super.newHighlightsLabel(searchResultVO);
+			return super.newHighlightsLabel();
 		}
 	}
 
