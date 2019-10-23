@@ -1091,6 +1091,20 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 	}
 
 	@Test
+	public void testPartialUpdateWithQuotedEtag() throws Exception {
+		Record document = recordServices.getDocumentById(documentToPartialUpdate.getId());
+		String eTag = "\"".concat(String.valueOf(document.getVersion())).concat("\"");
+
+		documentToPartialUpdate.setTitle("aNewTitle");
+		Response response = buildPatchQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
+				.build("PATCH", entity(buildMultiPart(documentToPartialUpdate), MULTIPART_FORM_DATA_TYPE)).invoke();
+		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+
+		DocumentDto documentDto = response.readEntity(DocumentDto.class);
+		assertThat(documentDto.getTitle()).isEqualTo(documentToPartialUpdate.getTitle());
+	}
+
+	@Test
 	public void testPartialUpdateWithOldEtag() throws Exception {
 		Record document = recordServices.getDocumentById(documentToPartialUpdate.getId());
 		String eTag = String.valueOf(document.getVersion());
