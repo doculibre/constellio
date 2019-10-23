@@ -12229,12 +12229,20 @@ div.v-layout.v-horizontal.v-widget {
 	pointer-events: none;
 }
 
+.constellio .tabsheet-secondary {
+	top: -10px;
+}
+
 .constellio .tabsheet-secondary .v-tabsheet-tabitemcell .v-caption {
 	font-size: 14px;
 }
 
 .constellio .tabsheet-secondary .v-tabsheet-tabsheetpanel {
 	font-size: 14px;
+}
+
+.constellio .v-tabsheet-tabsheetpanel > .v-scrollable > .v-widget {
+	padding-top: 10px;
 }
 
 .constellio .user-display .user-display-icon img {
@@ -14158,6 +14166,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-slot-login-panel, .constellio .v-slot-setup-panel {
 	background-image: url(images/background.jpg);
 	background-repeat: no-repeat;
+	background-size: cover;
 }
 
 .constellio .v-slot-login-panel .login-logo, .constellio .v-slot-setup-panel .login-logo {
@@ -14617,6 +14626,14 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-window[width-range~="0-800px"] .base-display .v-slot-record-no-comment, .constellio .v-window[width-range~="801-1100px"] .base-display .v-slot-record-no-comment {
 	position: relative;
 	top: -10px;
+}
+
+.constellio .v-window .collapsible-horizontal-splitpanel .v-splitpanel-first-container .horizontal-split-layout-content {
+	overflow-y: auto;
+}
+
+.constellio .v-window .collapsible-horizontal-splitpanel.first-component-no-vertical-scroll .v-splitpanel-first-container .horizontal-split-layout-content {
+	overflow-y: hidden;
 }
 
 .constellio .v-window .v-splitpanel-second-container .horizontal-split-layout-content {
@@ -15376,6 +15393,18 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 40px;
 }
 
+.constellio .viewable-record-table-panel .viewable-record-table .v-slot-search-result-index {
+	display: none;
+	line-height: 14px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .v-slot-search-result-index .search-result-index {
+	position: relative;
+	top: 2px;
+	font-size: 14px;
+	font-weight: 700;
+}
+
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-title {
 	padding-top: 6px;
 	padding-bottom: 4px;
@@ -16061,6 +16090,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .search-view .viewable-record-table-panel .viewable-record-table .search-result-with-elevation-buttons .search-result-title {
 	padding-right: 60px;
+}
+
+.constellio .search-view .viewable-record-table .v-slot-search-result-index {
+	display: block;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .v-menubar-user-menu {

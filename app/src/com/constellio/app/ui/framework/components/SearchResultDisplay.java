@@ -38,6 +38,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class SearchResultDisplay extends VerticalLayout {
 
 	public static final String RECORD_STYLE = "search-result-record";
+	public static final String INDEX_STYLE = "search-result-index";
 	public static final String TITLE_STYLE = "search-result-title";
 	public static final String HIGHLIGHTS_STYLE = "search-result-highlights";
 	public static final String METADATA_CAPTION_STYLE = "search-result-metadata-caption";
@@ -68,11 +70,14 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	SchemasRecordsServices schemasRecordsService;
 
-	BaseButton excludeButton;
-	BaseButton elevateButton;
+	private SearchResultVO searchResultVO;
+	private MetadataDisplayFactory componentFactory;
 
-	String query;
-	Map<String, String> extraParam;
+	private BaseButton excludeButton;
+	private BaseButton elevateButton;
+
+	private String query;
+	private Map<String, String> extraParam;
 	boolean noLinks;
 
 	private Component titleLink;
@@ -87,6 +92,8 @@ public class SearchResultDisplay extends VerticalLayout {
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 							   AppLayerFactory appLayerFactory, String query, Map<String, String> extraParam,
 							   boolean noLinks) {
+		this.searchResultVO = searchResultVO;
+		this.componentFactory = componentFactory;
 		this.appLayerFactory = appLayerFactory;
 		this.extraParam = extraParam;
 		schemasRecordsService = new SchemasRecordsServices(ConstellioUI.getCurrentSessionContext().getCurrentCollection(),
@@ -96,7 +103,11 @@ public class SearchResultDisplay extends VerticalLayout {
 		searchConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSearchConfigurationsManager();
 
 		this.sessionContext = getCurrent().getSessionContext();
-		init(searchResultVO, componentFactory);
+		init();
+	}
+
+	public SearchResultVO getSearchResultVO() {
+		return searchResultVO;
 	}
 
 	public Map<String, String> getExtraParam() {
@@ -107,22 +118,33 @@ public class SearchResultDisplay extends VerticalLayout {
 		this.extraParam = extraParam;
 	}
 
-	protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
+	private void init() {
 		addStyleName(RECORD_STYLE);
 		setWidth("50px");
 
-		addTitleComponents(searchResultVO);
+		addTitleComponents();
+		addResultIndex();
 
-		addComponent(newHighlightsLabel(searchResultVO));
+		addComponent(newHighlightsLabel());
 		List<Component> additionalComponents = appLayerFactory.getExtensions().forCollection(sessionContext.getCurrentCollection())
 				.addComponentToSearchResult(new AddComponentToSearchResultParams(searchResultVO));
 		for (Component additionalComponent : additionalComponents) {
 			addComponent(additionalComponent);
 		}
-		buildMetadataComponent(searchResultVO.getRecordVO(), componentFactory);
+		buildMetadataComponent();
 	}
 
-	private void addTitleComponents(SearchResultVO searchResultVO) {
+	private void addResultIndex() {
+		int index = searchResultVO.getIndex() + 1;
+		if (index > 0) {
+			String formattedIndex = "#" + NumberFormat.getIntegerInstance().format(index);
+			Label indexLabel = new Label(formattedIndex);
+			indexLabel.addStyleName(INDEX_STYLE);
+			addComponent(indexLabel);
+		}
+	}
+
+	private void addTitleComponents() {
 		final RecordVO record = searchResultVO.getRecordVO();
 
 		titleLink = newTitleLink(searchResultVO);
@@ -166,7 +188,7 @@ public class SearchResultDisplay extends VerticalLayout {
 		return new ReferenceDisplay(searchResultVO.getRecordVO(), true, extraParam);
 	}
 
-	protected Label newHighlightsLabel(SearchResultVO searchResultVO) {
+	protected Label newHighlightsLabel() {
 		String formattedHighlights = formatHighlights(searchResultVO.getHighlights(), searchResultVO.getRecordVO());
 		Label highlights = new Label(formattedHighlights, ContentMode.HTML);
 		highlights.addStyleName(HIGHLIGHTS_STYLE);
@@ -205,7 +227,8 @@ public class SearchResultDisplay extends VerticalLayout {
 		return StringUtils.join(parts, SEPARATOR);
 	}
 
-	private void buildMetadataComponent(RecordVO recordVO, MetadataDisplayFactory componentFactory) {
+	private void buildMetadataComponent() {
+		RecordVO recordVO = searchResultVO.getRecordVO();
 		if (noLinks) {
 			StringBuilder sb = new StringBuilder();
 			for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {

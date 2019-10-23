@@ -7,7 +7,6 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.buttons.BackButton;
-import com.constellio.app.ui.framework.components.BaseMouseOverIcon;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
@@ -66,8 +65,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	private I18NHorizontalLayout breadcrumbTrailLayout;
 
 	private BaseBreadcrumbTrail breadcrumbTrail;
-
-	private BaseMouseOverIcon guideButton;
 
 	private Label titleLabel;
 
@@ -171,15 +168,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				}
 			}
 
-			if (getGuideUrl() != null) {
-				guideButton = new BaseMouseOverIcon(new ThemeResource("images/icons/audit-icon.png"), $("guide")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getUI().getPage().open(getGuideUrl(), "_blank");
-					}
-				};
-			}
-
 			backButton = new BackButton();
 			ClickListener backButtonClickListener = getBackButtonClickListener();
 			backButton.addStyleName(BACK_BUTTON_CODE);
@@ -203,12 +191,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				breadcrumbTrail.setWidth(null);
 				breadcrumbTrailLayout.addComponent(breadcrumbTrail);
 				breadcrumbTrailLayout.setComponentAlignment(breadcrumbTrail, Alignment.MIDDLE_LEFT);
-			}
-
-			if (guideButton != null) {
-				breadcrumbTrailLayout.addComponent(guideButton);
-				breadcrumbTrailLayout.setComponentAlignment(guideButton, Alignment.MIDDLE_LEFT);
-				breadcrumbTrailLayout.setExpandRatio(guideButton, 1.0f);
 			}
 
 			if (breadcrumbTrailLayout.getComponentCount() != 0) {

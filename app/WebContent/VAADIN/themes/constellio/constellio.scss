@@ -184,6 +184,8 @@ $popup-view-z-index: 3;
 	}
 
 	.tabsheet-secondary {
+		top: -10px;
+	
 		.v-tabsheet-tabitemcell {
 			.v-caption {
 				font-size: 14px;
@@ -193,6 +195,10 @@ $popup-view-z-index: 3;
 		.v-tabsheet-tabsheetpanel {
 			font-size: 14px;
 		}
+	}
+
+	.v-tabsheet-tabsheetpanel > .v-scrollable > .v-widget {
+		padding-top: 10px;
 	}
 
 	.user-display {
@@ -1184,6 +1190,7 @@ $popup-view-z-index: 3;
     .v-slot-login-panel, .v-slot-setup-panel {
     	background-image: url(images/background.jpg);
 		background-repeat: no-repeat;
+		background-size: cover;
 
 		.login-logo {
 			width: 100%;
@@ -1714,6 +1721,22 @@ $popup-view-z-index: 3;
 	}
 	
 	.v-window {
+		.collapsible-horizontal-splitpanel {
+			.v-splitpanel-first-container {
+				.horizontal-split-layout-content {
+					overflow-y: auto;
+				}
+			}
+		}
+		
+		.collapsible-horizontal-splitpanel.first-component-no-vertical-scroll {
+			.v-splitpanel-first-container {
+				.horizontal-split-layout-content {
+					overflow-y: hidden;
+				}
+			}
+		}
+		
 		.v-splitpanel-second-container {
 			.horizontal-split-layout-content {
 				overflow-y: auto;
@@ -2605,6 +2628,18 @@ $popup-view-z-index: 3;
 			    padding-right: 310px;
 			    padding-left: 40px;
 			}
+			
+			.v-slot-search-result-index {
+				display: none;
+				line-height: 14px;
+				
+				.search-result-index {
+					position: relative;
+					top: 2px;
+					font-size: 14px;
+					font-weight: 700;
+				}
+			}
 
 			.search-result-title {
 				padding-top: 6px;
@@ -3376,6 +3411,13 @@ $popup-view-z-index: 3;
 				}
 			}
 		}
+		
+
+  		.viewable-record-table {
+	  		.v-slot-search-result-index {
+	  			display: block;
+	  		}
+  		}
 	}
 
     .v-ui[width-range~="1101px-"] {

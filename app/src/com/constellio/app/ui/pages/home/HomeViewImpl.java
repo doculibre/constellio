@@ -180,6 +180,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		final ViewableRecordVOTablePanel table = new ViewableRecordItemTablePanel(dataProvider);
 		table.addStyleName("record-table");
 		table.setSizeFull();
+		table.setAllItemsVisible(true);
 		return table;
 	}
 
@@ -422,6 +423,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 		public HomeViewViewableItemTablePanel(RecordVOContainer container) {
 			super(container);
+			setAllItemsVisible(true);
 		}
 
 		public void initSelectedItemCache() {

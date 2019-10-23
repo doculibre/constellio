@@ -166,6 +166,10 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 							int newViewerHeight = splitterDivHeight - 4;
 							contentViewer.setHeight(newViewerHeight + "px");
 							splitPanel.setFirstComponentHeight(newViewerHeight, Unit.PIXELS);
+
+							if (contentViewer.isVerticalScroll()) {
+								splitPanel.addStyleName("first-component-no-vertical-scroll");
+							}
 						}
 					});
 

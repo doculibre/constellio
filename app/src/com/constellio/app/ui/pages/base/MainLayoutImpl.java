@@ -8,8 +8,10 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.pages.base.ConstellioMenuImpl.ConstellioMenuButton;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.PlatformDetectionUtils;
@@ -18,6 +20,7 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
@@ -37,6 +40,7 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,9 +69,12 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private UserDocumentsWindow userDocumentsWindow;
 	private List<NavigationItem> navigationItems;
 	private VerticalLayout contentAndStaticFooterLayout;
+
 	private VerticalLayout staticFooterLayout;
+	private I18NHorizontalLayout staticFooterContentAndGuideLayout;
 	private I18NHorizontalLayout staticFooterExtraComponentsLayout;
 	private Component staticFooterContent;
+	private BaseButton guideButton;
 
 	public MainLayoutImpl(final AppLayerFactory appLayerFactory) {
 		this.presenter = new MainLayoutPresenter(this);
@@ -103,6 +110,11 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		staticFooterLayout.setHeight("76px");
 		staticFooterLayout.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
 
+		staticFooterContentAndGuideLayout = new I18NHorizontalLayout();
+		staticFooterContentAndGuideLayout.addStyleName("static-footer-content-and-guide-layout");
+		staticFooterContentAndGuideLayout.setWidth("100%");
+		staticFooterContentAndGuideLayout.setSpacing(true);
+
 		header = buildHeader();
 		header.setWidth("100%");
 		header.setHeight("63px");
@@ -120,6 +132,19 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		};
 		dragAndDropWrapper.setSizeFull();
 		dragAndDropWrapper.setDropHandler(userDocumentsWindow);
+
+		guideButton = new BaseButton($("guide"), new ThemeResource("images/icons/about.png")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				BaseViewImpl view = (BaseViewImpl) ConstellioUI.getCurrent().getViewChangeEvent().getNewView();
+				String guideUrl = view.getGuideUrl();
+				Page.getCurrent().open(guideUrl, "_blank", false);
+			}
+		};
+		guideButton.addStyleName(ValoTheme.BUTTON_LINK);
+		guideButton.addStyleName("guide-button");
+		guideButton.setVisible(false);
+		guideButton.addExtension(new NiceTitle($("guide.details")));
 
 		addComponent(header);
 		addComponent(dragAndDropWrapper);
@@ -144,6 +169,9 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		staticFooterExtraComponentsLayout.setWidth("100%");
 		staticFooterExtraComponentsLayout.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
 
+		staticFooterContentAndGuideLayout.addComponent(guideButton);
+		staticFooterContentAndGuideLayout.setComponentAlignment(guideButton, Alignment.MIDDLE_RIGHT);
+		
 		PagesComponentsExtensionParams params = new PagesComponentsExtensionParams(header, mainMenu, staticFooterExtraComponentsLayout, this,
 				contentViewWrapper, contentFooterWrapperLayout, presenter.getUser());
 		appLayerFactory.getExtensions().getSystemWideExtensions().decorateView(params);
@@ -151,6 +179,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		if (collection != null) {
 			appLayerFactory.getExtensions().forCollection(collection).decorateView(params);
 		}
+
+		staticFooterLayout.addComponent(staticFooterContentAndGuideLayout);
 		if (ResponsiveUtils.isDesktop() && staticFooterExtraComponentsLayout.getComponentCount() > 0) {
 			staticFooterLayout.addComponent(staticFooterExtraComponentsLayout);
 			staticFooterLayout.setComponentAlignment(staticFooterExtraComponentsLayout, Alignment.BOTTOM_CENTER);
@@ -185,6 +215,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 						dragAndDropWrapper.setDropHandler(userDocumentsWindow);
 					}
 				}
+				updateHelpButtonState((BaseViewImpl) newView);
 			}
 		});
 	}
@@ -196,20 +227,27 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	public void setStaticFooterContent(Component component) {
 		if (staticFooterContent != null) {
 			if (component == null) {
-				staticFooterLayout.removeComponent(staticFooterContent);
+				staticFooterContentAndGuideLayout.removeComponent(staticFooterContent);
 				staticFooterContent = null;
 			} else {
-				staticFooterLayout.replaceComponent(staticFooterContent, staticFooterContent = component);
-				staticFooterLayout.setComponentAlignment(staticFooterContent, Alignment.MIDDLE_CENTER);
+				staticFooterContentAndGuideLayout.replaceComponent(staticFooterContent, staticFooterContent = component);
+				staticFooterContentAndGuideLayout.setComponentAlignment(staticFooterContent, Alignment.MIDDLE_CENTER);
+				staticFooterContentAndGuideLayout.setExpandRatio(staticFooterContent, 1);
 			}
 		} else if (component != null) {
-			staticFooterLayout.addComponent(staticFooterContent = component, 0);
-			staticFooterLayout.setComponentAlignment(staticFooterContent, Alignment.MIDDLE_CENTER);
+			staticFooterContentAndGuideLayout.addComponent(staticFooterContent = component, 0);
+			staticFooterContentAndGuideLayout.setComponentAlignment(staticFooterContent, Alignment.MIDDLE_CENTER);
+			staticFooterContentAndGuideLayout.setExpandRatio(staticFooterContent, 1);
 		} else {
 			staticFooterContent = null;
 		}
 	}
 
+	private void updateHelpButtonState(BaseViewImpl view) {
+		String guideUrl = view.getGuideUrl();
+		guideButton.setVisible(StringUtils.isNotBlank(guideUrl));
+	}
+	
 	protected ConstellioHeaderImpl buildHeader() {
 		return new ConstellioHeaderImpl();
 	}

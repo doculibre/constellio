@@ -189,10 +189,12 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		List<Record> records = response.getRecords();
 		List<Record> subListOfRecords = records.subList(startIndex, Math.min(startIndex + numberOfItems, records.size()));
 
+		int searchResultIndex = startIndex;
 		for (Record record : subListOfRecords) {
 			RecordVO recordVO = voBuilder.build(record, VIEW_MODE.SEARCH, sessionContext);
-			SearchResultVO searchResultVO = new SearchResultVO(recordVO, response.getHighlighting(recordVO.getId()));
+			SearchResultVO searchResultVO = new SearchResultVO(searchResultIndex, recordVO, response.getHighlighting(recordVO.getId()));
 			results.add(searchResultVO);
+			searchResultIndex++;
 		}
 
 		return results;
