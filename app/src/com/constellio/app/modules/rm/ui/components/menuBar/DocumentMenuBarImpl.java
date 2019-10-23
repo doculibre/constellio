@@ -24,6 +24,7 @@ import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.RefreshableContainer;
+import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
@@ -40,6 +41,7 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -49,6 +51,7 @@ import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+@Slf4j
 public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar {
 
 	private boolean visible = true;
@@ -535,7 +538,12 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		boolean newWindow;
 		if (window == null) {
 			newWindow = true;
-			window = new DisplayDocumentWindow(view);
+			try {
+				window = new DisplayDocumentWindow(view);
+			} catch (UserDoesNotHaveAccessException e) {
+				log.error(e.getMessage(), e);
+				return;
+			}
 		} else {
 			newWindow = false;
 			window.setContent(view);
@@ -552,7 +560,12 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		boolean newWindow;
 		if (window == null) {
 			newWindow = true;
-			window = new AddEditDocumentWindow(recordVO);
+			try {
+				window = new AddEditDocumentWindow(recordVO);
+			} catch (UserDoesNotHaveAccessException e) {
+				log.error(e.getMessage(), e);
+				return;
+			}
 		} else {
 			newWindow = false;
 			window.setContent(view);

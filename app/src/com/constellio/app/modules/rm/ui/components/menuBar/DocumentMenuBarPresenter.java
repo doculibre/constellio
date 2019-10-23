@@ -11,6 +11,7 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.utils.ReportGeneratorUtils;
@@ -20,9 +21,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.SchemaUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
+@Slf4j
 public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<DocumentMenuBar> {
 
 	private DocumentMenuBar menuBar;
@@ -70,7 +73,11 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 
 	public void displayDocumentButtonClicked() {
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled() && menuBar.isInViewer()) {
-			menuBar.displayInWindow();
+			try {
+				menuBar.displayInWindow();
+			} catch (UserDoesNotHaveAccessException e) {
+				log.error(e.getMessage(), e);
+			}
 		} else {
 			Map<String, String> params = ParamUtils.getCurrentParams();
 

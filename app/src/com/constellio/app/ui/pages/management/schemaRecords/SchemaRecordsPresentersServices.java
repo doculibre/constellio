@@ -48,5 +48,4 @@ public class SchemaRecordsPresentersServices {
 		boolean defaultValue = user.has(CorePermissions.MANAGE_VALUELIST).globally();
 		return extensions.canViewSchemaRecord(defaultValue, user, metadataSchemaType, restrictedRecord);
 	}
-
 }

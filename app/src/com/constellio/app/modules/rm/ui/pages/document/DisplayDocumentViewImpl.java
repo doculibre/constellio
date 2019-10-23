@@ -10,6 +10,8 @@ import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.ProvideSecurityWithNoUrlParamSupport;
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
@@ -25,9 +27,9 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
-import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.ViewWindow;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
@@ -44,6 +46,7 @@ import com.constellio.app.ui.framework.components.viewers.ContentViewer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
+import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.ComponentTreeUtils;
@@ -72,6 +75,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -88,7 +92,8 @@ import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
+@Slf4j
+public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler, ProvideSecurityWithNoUrlParamSupport {
 
 	public static final int RECORD_DISPLAY_WIDTH = 50;
 	public static final Unit RECORD_DISPLAY_WIDTH_UNIT = Unit.PERCENTAGE;
@@ -840,7 +845,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void openInWindow() {
 		DisplayDocumentViewImpl displayView = new DisplayDocumentViewImpl(documentVO, false, true);
-		Window window = new DisplayDocumentWindow(displayView);
+		Window window = null;
+		try {
+			window = new DisplayDocumentWindow(displayView);
+		} catch (UserDoesNotHaveAccessException e) {
+			log.error(e.getMessage(), e);
+			return;
+		}
 		for (Window.CloseListener closeListener : editWindowCloseListeners) {
 			window.addCloseListener(closeListener);
 		}
@@ -850,19 +861,26 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void editInWindow() {
 		AddEditDocumentViewImpl editView = new AddEditDocumentViewImpl(documentVO, true);
-		BaseWindow window;
-		if (inWindow) {
-			window = ComponentTreeUtils.findParent(this, BaseWindow.class);
-			window.setContent(editView);
-		} else {
-			window = new AddEditDocumentWindow(editView);
-			for (Window.CloseListener closeListener : editWindowCloseListeners) {
-				window.addCloseListener(closeListener);
+		ViewWindow window;
+		try {
+			if (inWindow) {
+				window = ComponentTreeUtils.findParent(this, ViewWindow.class);
+				if (window instanceof ViewWindow) {
+					window.setView(editView);
+				}
+			} else {
+				window = new AddEditDocumentWindow(editView);
+
+				for (Window.CloseListener closeListener : editWindowCloseListeners) {
+					window.addCloseListener(closeListener);
+				}
+				getUI().addWindow(window);
 			}
-			getUI().addWindow(window);
+		} catch (UserDoesNotHaveAccessException e) {
+			log.error(e.getMessage(), e);
+			return;
 		}
 	}
-
 	public void addEditWindowCloseListener(Window.CloseListener closeListener) {
 		this.editWindowCloseListeners.add(closeListener);
 	}
@@ -875,4 +893,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		return this.editWindowCloseListeners;
 	}
 
+	@Override
+	public SecurityWithNoUrlParamSupport getSecurityWithNoUrlParamSupport() {
+		return presenter;
+	}
 }
