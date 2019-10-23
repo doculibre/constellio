@@ -194,5 +194,4 @@ public class BaseWindow extends Window {
 	public ConstellioFactories getConstellioFactories() {
 		return ConstellioFactories.getInstance();
 	}
-
 }

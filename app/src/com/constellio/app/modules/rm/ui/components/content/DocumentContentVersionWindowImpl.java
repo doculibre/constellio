@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Map;
-
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentWindow;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -13,6 +9,7 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
+import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.server.Resource;
@@ -27,7 +24,13 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
+@Slf4j
 public class DocumentContentVersionWindowImpl extends VerticalLayout implements DocumentContentVersionWindow {
 
 	private RecordVO recordVO;
@@ -172,7 +175,13 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 	@Override
 	public void displayInWindow() {
 		closeWindow();
-		Window window =  new DisplayDocumentWindow(recordVO);
-		ConstellioUI.getCurrent().addWindow(window);
+		Window window;
+		try {
+			window = new DisplayDocumentWindow(recordVO);
+			ConstellioUI.getCurrent().addWindow(window);
+		} catch (UserDoesNotHaveAccessException e) {
+			log.error(e.getMessage(), e);
+		}
+
 	}
 }

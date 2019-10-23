@@ -296,10 +296,11 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 	}
 
 	protected Component getRecordDisplay(Object itemId) {
+		Integer index = recordVOContainer.indexOfId(itemId);
 		UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(currentUser);
 		RecordVO recordVO = recordVOContainer.getRecordVO(itemId);
-		SearchResultVO searchResultVO = new SearchResultVO(recordVO, new HashMap<String, List<String>>());
+		SearchResultVO searchResultVO = new SearchResultVO(index, recordVO, new HashMap<String, List<String>>());
 		SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, null, null, null, null);
 		return searchResultDisplay;
 	}

@@ -33,8 +33,8 @@ public class ImageViewer extends CustomComponent {
 	private static String[] NEED_CONVERSION_EXTENSIONS = {"tif", "tiff"};
 
 	private static final int DEFAULT_WIDTH = 800;
-
 	private static final int DEFAULT_HEIGHT = 1000;
+
 	private RecordVO recordVO;
 
 	private String metadataCode;
@@ -146,16 +146,17 @@ public class ImageViewer extends CustomComponent {
 				js.append("\n");
 				js.append("});");
 				js.append("\n");
-				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:100%; height:" + height + "px;\"></div>";
+				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:100%; height:" + heightStr + ";\"></div>";
 
 				Component compositionRoot = new Label(divHTML, ContentMode.HTML);
 				compositionRoot.setWidth(widthStr);
 				compositionRoot.setHeight(heightStr);
 				setCompositionRoot(compositionRoot);
+
+				setWidth("100%");
 				
 				javascriptToExecute = "setTimeout(function() {" + js.toString() + "}, 1)";
 				show();
-
 			}
 		} catch (Throwable t) {
 			// FIXME

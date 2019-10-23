@@ -11,4 +11,6 @@ public interface DisplaySchemaRecordView extends BaseView, AdminViewGroup {
 
 	void setSubRecords(RecordVODataProvider dataProvider);
 
+	boolean isViewRecordMode();
+
 }

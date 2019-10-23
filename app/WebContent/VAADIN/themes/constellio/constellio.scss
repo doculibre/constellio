@@ -184,6 +184,8 @@ $popup-view-z-index: 3;
 	}
 
 	.tabsheet-secondary {
+		top: -10px;
+	
 		.v-tabsheet-tabitemcell {
 			.v-caption {
 				font-size: 14px;
@@ -193,6 +195,10 @@ $popup-view-z-index: 3;
 		.v-tabsheet-tabsheetpanel {
 			font-size: 14px;
 		}
+	}
+
+	.v-tabsheet-tabsheetpanel > .v-scrollable > .v-widget {
+		padding-top: 10px;
 	}
 
 	.user-display {
@@ -599,7 +605,6 @@ $popup-view-z-index: 3;
 
     .v-treetable {
     	.v-table-cell-wrapper {
-    		cursor: pointer;
 
 	    	.v-icon {
 	    		padding-right: 6px;
@@ -615,8 +620,19 @@ $popup-view-z-index: 3;
 	    		}
 	    	}
     	}
+    	
+    	.v-checkbox {
+    		cursor: pointer;
+			padding-top: 3px;
+			padding-bottom: 3px;
+			padding-right: 6px;
+    	}
 
-    	.v-table-cell-wrapper:hover {
+		.v-checkbox > input ~ label:before, .v-checkbox > input ~ label:after {
+			top: 3px;
+		}
+
+    	.v-checkbox:hover {
     		color: white;
 			background-color: #197de1;
     	}
@@ -1174,6 +1190,7 @@ $popup-view-z-index: 3;
     .v-slot-login-panel, .v-slot-setup-panel {
     	background-image: url(images/background.jpg);
 		background-repeat: no-repeat;
+		background-size: cover;
 
 		.login-logo {
 			width: 100%;
@@ -1704,6 +1721,22 @@ $popup-view-z-index: 3;
 	}
 	
 	.v-window {
+		.collapsible-horizontal-splitpanel {
+			.v-splitpanel-first-container {
+				.horizontal-split-layout-content {
+					overflow-y: auto;
+				}
+			}
+		}
+		
+		.collapsible-horizontal-splitpanel.first-component-no-vertical-scroll {
+			.v-splitpanel-first-container {
+				.horizontal-split-layout-content {
+					overflow-y: hidden;
+				}
+			}
+		}
+		
 		.v-splitpanel-second-container {
 			.horizontal-split-layout-content {
 				overflow-y: auto;
@@ -2595,6 +2628,18 @@ $popup-view-z-index: 3;
 			    padding-right: 310px;
 			    padding-left: 40px;
 			}
+			
+			.v-slot-search-result-index {
+				display: none;
+				line-height: 14px;
+				
+				.search-result-index {
+					position: relative;
+					top: 2px;
+					font-size: 14px;
+					font-weight: 700;
+				}
+			}
 
 			.search-result-title {
 				padding-top: 6px;
@@ -2779,6 +2824,10 @@ $popup-view-z-index: 3;
 		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel-second-hidden:before {
 		    content: "\f100";
 		}
+	}
+	
+	.page-size-layout {
+		padding-right: 20px;
 	}
 
     .constellio-layout {
@@ -3297,14 +3346,6 @@ $popup-view-z-index: 3;
 			    		text-decoration: none;
 			    	}
 			    }
-
-			    .v-slot-license {
-			    	padding-top: 5px;
-
-			    	.v-label {
-			    		text-align: center;
-			    	}
-			    }
 		    }
 	    }
 
@@ -3348,6 +3389,19 @@ $popup-view-z-index: 3;
 	    }
 
     }
+
+    .v-slot-license {
+    	padding-top: 0px;
+
+    	.v-label {
+    		text-align: center;
+    	}
+    }
+    
+    .static-footer-layout {
+    	padding-left: 20px;
+    	padding-right: 20px;
+    }
 		
 	.search-view {
 		.viewable-record-table-panel .viewable-record-table {
@@ -3357,6 +3411,13 @@ $popup-view-z-index: 3;
 				}
 			}
 		}
+		
+
+  		.viewable-record-table {
+	  		.v-slot-search-result-index {
+	  			display: block;
+	  		}
+  		}
 	}
 
     .v-ui[width-range~="1101px-"] {
@@ -3439,6 +3500,12 @@ $popup-view-z-index: 3;
 		//	bottom: 80px;
 	    //}
 
+		.base-display {
+			.v-slot-display-caption-and-component {
+				padding-right: 300px;
+			}
+		}
+
         .action-menu-wrapper {
             padding-right: 260px;
 
@@ -3456,10 +3523,6 @@ $popup-view-z-index: 3;
 					}
 				}
 					
-				.-v-slot-display-caption-and-component {
-					padding-right: 300px;
-				}
-
 				.v-slot-list-add-remove-comment {
 					width: 100%;
 				}
@@ -3513,6 +3576,10 @@ $popup-view-z-index: 3;
   		.search-result-title {
   			.v-icon {
   				display: none;
+  			}
+  			
+  			.v-icon + span {
+  				margin-left: auto;
   			}
   		}
 
@@ -3621,6 +3688,10 @@ $popup-view-z-index: 3;
   		.search-result-title {
   			.v-icon {
   				display: none;
+  			}
+  			
+  			.v-icon + span {
+  				margin-left: auto;
   			}
   		}
 
@@ -3814,7 +3885,13 @@ $popup-view-z-index: 3;
 		
 		.constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar {
 			top: inherit;
-			right: inherit;
+			right: -22px;
+		}
+		
+		.v-slot-page-management-layout {
+			position: relative;
+			top: -11px;
+			left: -184px;
 		}
 		
 		.task-management-view {
@@ -4170,11 +4247,11 @@ $popup-view-z-index: 3;
 				.v-slot-footer {
 					direction: rtl;
 				}
-				
-				.v-slot-license {
-					direction: rtl;
-				}
 			}
+		}
+				
+		.v-slot-license {
+			direction: rtl;
 		}
 	
 		.i18n-horizontal-layout-right-to-left {

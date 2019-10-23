@@ -1063,8 +1063,9 @@ public class BaseTable extends Table implements SelectionComponent {
 
 				addComponents(pageSizeLayout, pageManagementLayout);
 				setComponentAlignment(pageManagementLayout, Alignment.BOTTOM_CENTER);
-				setExpandRatio(pageSizeLayout, 1);
-				setWidth("100%");
+				//				setExpandRatio(pageSizeLayout, 1);
+				//				setWidth("100%");
+				setSpacing(true);
 
 				addPageChangeListener(new PageChangeListener() {
 					public void pageChanged(PageChangeEvent event) {
