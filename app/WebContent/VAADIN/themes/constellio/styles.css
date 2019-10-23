@@ -14200,10 +14200,6 @@ div.v-layout.v-horizontal.v-widget {
 	white-space: normal;
 }
 
-.constellio .base-display .display-caption-and-component {
-	min-height: 34px;
-}
-
 .constellio .base-display .display-caption, .constellio .base-display .display-value {
 	position: relative;
 	top: 4px;
@@ -14220,7 +14216,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .base-display .v-slot-record-add-comment-button {
 	position: relative;
-	top: -4px;
 }
 
 .constellio .base-display .v-caption-record-comments .v-captiontext {
@@ -14230,7 +14225,14 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .base-display .v-slot-record-no-comment {
 	position: relative;
-	top: -10px;
+}
+
+.constellio .base-display .v-button {
+	height: auto;
+}
+
+.constellio .base-display .v-slot-record-no-comment {
+	top: 0px;
 }
 
 .constellio .display-caption {
@@ -14581,15 +14583,21 @@ div.v-layout.v-horizontal.v-widget {
 	z-index: 1002;
 }
 
+.constellio .v-window[width-range~="1101px-"] .base-display .v-slot-display-caption {
+	width: 300px;
+	display: inline-block;
+}
+
+.constellio .v-window[width-range~="1101px-"] .base-display .v-slot-display-value {
+	width: calc(100% - 300px);
+	display: inline-block;
+}
+
 .constellio .v-window[width-range~="1101px-"] .base-display .v-slot-display-value .display-value .agent-link {
 	padding-right: 26px;
 }
 
-.constellio .v-window[width-range~="1101px-"] .base-display .v-slot-display-caption-and-component {
-	padding-right: 300px;
-}
-
-.constellio .v-window[width-range~="1101px-"] .base-display .v-slot-list-add-remove-comment {
+.constellio .v-window[width-range~="1101px-"] .base-display .v-slot-record-comments, .constellio .v-window[width-range~="1101px-"] .base-display .v-caption-record-comments {
 	width: 100%;
 }
 
@@ -14626,6 +14634,11 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-window[width-range~="0-800px"] .base-display .v-slot-record-no-comment, .constellio .v-window[width-range~="801-1100px"] .base-display .v-slot-record-no-comment {
 	position: relative;
 	top: -10px;
+}
+
+.constellio .v-window .add-record-comment-form .base-form-layout {
+	position: relative;
+	top: 20px;
 }
 
 .constellio .v-window .collapsible-horizontal-splitpanel .v-splitpanel-first-container .horizontal-split-layout-content {
@@ -14709,7 +14722,30 @@ div.v-layout.v-horizontal.v-widget {
 	z-index: 2000;
 	position: absolute;
 	top: -40px;
-	right: 30px;
+	right: 58px;
+}
+
+.constellio .v-window .popupContent .action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
+	content: "";
+	position: relative;
+	top: 5px;
+	margin-left: -2px;
+	opacity: 1;
+}
+
+.constellio .v-window .popupContent .action-menu-bar .v-menubar-menuitem {
+	direction: rtl;
+	padding-left: 6px;
+}
+
+.constellio .v-window .popupContent .action-menu-bar .v-menubar-menuitem .v-icon {
+	margin: 0 0px 0 6px;
+	position: relative;
+	padding-left: 6px;
+}
+
+.constellio .v-window .popupContent .display-schema-record-view .action-menu-bar {
+	top: 0px;
 }
 
 .constellio .v-window .popupContent .v-slot-action-menu-bar-layout {
@@ -14811,7 +14847,6 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: auto;
 	padding-left: 5px;
 	padding-right: 5px;
-	padding-top: 40px;
 }
 
 .constellio .base-window .v-scrollable .system-state-window-layout {
@@ -14820,6 +14855,14 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .base-window .v-scrollable .base-window-content-with-bottom-margin {
 	margin-bottom: 10px;
+}
+
+.constellio .base-window .v-scrollable .base-view {
+	padding-top: 40px;
+}
+
+.constellio .base-window .v-scrollable .header-selection-panel {
+	overflow-y: hidden;
 }
 
 .constellio .constellio-menu-system-state-button {
@@ -14960,7 +15003,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .header-selection-panel {
-	margin-top: -25px;
+	margin-top: 0px;
 }
 
 .constellio .header-selection-panel .selection-panel-top-layout .v-menubar .v-icon {
@@ -15363,10 +15406,6 @@ div.v-layout.v-horizontal.v-widget {
 	height: 5px;
 }
 
-.constellio .viewable-record-table-panel .viewable-record-table .v-table-table .v-table-cell-content .v-menubar {
-	margin-left: -16px;
-}
-
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-record {
 	padding-top: 4px;
 	min-width: 100%;
@@ -15411,6 +15450,7 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: left;
 	color: #197de1;
 	font-weight: bold;
+	height: auto;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-title:hover {
@@ -15475,12 +15515,12 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation {
 	top: -4px;
-	right: 12px;
+	right: 8px;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion {
 	top: -6px;
-	right: -10px;
+	right: -16px;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation:hover, .constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion:hover {
@@ -15724,7 +15764,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .reference-display {
 	white-space: normal;
-	height: inherit;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .reference-display-link {
@@ -15737,12 +15776,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .agent-action-link {
 	white-space: normal;
-	height: inherit;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .download-content-version-link {
 	white-space: normal;
-	height: inherit;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .copy-retention-rule-table-medium-types-field {
@@ -16089,10 +16126,10 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .search-view .viewable-record-table-panel .viewable-record-table .search-result-with-elevation-buttons .search-result-title {
-	padding-right: 60px;
+	padding-right: 30px;
 }
 
-.constellio .search-view .viewable-record-table .v-slot-search-result-index {
+.constellio .search-view .viewable-record-table-panel-with-index .viewable-record-table .v-slot-search-result-index {
 	display: block;
 }
 
@@ -16152,8 +16189,18 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-x: auto;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .base-display .v-slot-display-caption-and-component {
-	padding-right: 300px;
+.constellio .v-ui[width-range~="1101px-"] .base-display .v-slot-display-caption {
+	width: 300px;
+	display: inline-block;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .base-display .v-slot-display-value {
+	width: calc(100% - 300px);
+	display: inline-block;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .base-display .v-slot-record-comments, .constellio .v-ui[width-range~="1101px-"] .base-display .v-caption-record-comments {
+	width: 100%;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper {

@@ -97,6 +97,8 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
+		addStyleName("add-edit-document-view");
+		
 		newForm();
 
 		mainLayout = new I18NHorizontalLayout();

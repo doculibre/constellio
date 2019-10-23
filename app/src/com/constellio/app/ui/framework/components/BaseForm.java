@@ -123,6 +123,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 		formLayout = new VerticalLayout();
 		formLayout.setSpacing(true);
+		formLayout.addStyleName("base-form-layout");
 
 		hiddenLayout = new VerticalLayout();
 		formLayout.addComponent(hiddenLayout);

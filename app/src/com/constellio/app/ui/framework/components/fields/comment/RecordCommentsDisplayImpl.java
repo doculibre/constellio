@@ -162,6 +162,7 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 				window.close();
 			}
 		};
+		commentForm.addStyleName("add-record-comment-form");
 		return commentForm;
 	}
 

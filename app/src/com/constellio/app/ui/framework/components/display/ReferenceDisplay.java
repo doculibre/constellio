@@ -105,7 +105,8 @@ public class ReferenceDisplay extends Button {
 	}
 
 	private void init(RecordVO recordVO, boolean link) {
-		setSizeFull();
+		//		setSizeFull();
+		setWidth("100%");
 		addStyleName(STYLE_NAME);
 		addStyleName(ValoTheme.BUTTON_LINK);
 		setEnabled(false);

@@ -3,7 +3,6 @@ package com.constellio.app.ui.framework.components;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
@@ -55,7 +54,8 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	public BaseDisplay(List<CaptionAndComponent> captionsAndDisplayComponents, boolean useTabSheet) {
 		this.useTabSheet = useTabSheet;
 		addStyleName(STYLE_NAME);
-		setSizeFull();
+		//		setSizeFull();
+		setWidth("100%");
 		setResponsive(true);
 
 		tabSheet = new TabSheet();
@@ -198,16 +198,7 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent, VerticalLayout layout) {
 		if (displayComponent.isVisible()) {
-			if (ResponsiveUtils.isDesktop()) {
-				captionLabel.setWidth("300px");
-				I18NHorizontalLayout captionAndComponentLayout = new I18NHorizontalLayout();
-				captionAndComponentLayout.addStyleName("display-caption-and-component");
-
-				layout.addComponent(captionAndComponentLayout);
-				captionAndComponentLayout.addComponents(captionLabel, displayComponent);
-			} else {
-				layout.addComponents(captionLabel, displayComponent);
-			}
+			layout.addComponents(captionLabel, displayComponent);
 		}
 	}
 

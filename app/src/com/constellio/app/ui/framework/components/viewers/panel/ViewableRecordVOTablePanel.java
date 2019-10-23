@@ -54,6 +54,7 @@ import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
+import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
@@ -91,7 +92,7 @@ import java.util.UUID;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 //@com.vaadin.annotations.JavaScript({ "theme://jquery/jquery-2.1.4.min.js" })
-public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements BrowserWindowResizeListener, DropHandler {
+public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements BrowserWindowResizeListener, DropHandler, ViewChangeListener {
 
 	public static final int MAX_SELECTION_SIZE = 10000;
 
@@ -169,6 +170,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	private boolean allItemsVisible = false;
 
+	private ViewWindow viewWindow;
+
 	public ViewableRecordVOTablePanel(RecordVOContainer container) {
 		this(container, TableMode.LIST, null);
 	}
@@ -189,11 +192,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	public void attach() {
 		super.attach();
 		Page.getCurrent().addBrowserWindowResizeListener(this);
+		ConstellioUI.getCurrent().getNavigator().addViewChangeListener(this);
 	}
 
 	@Override
 	public void detach() {
 		Page.getCurrent().removeBrowserWindowResizeListener(this);
+		ConstellioUI.getCurrent().getNavigator().removeViewChangeListener(this);
 		super.detach();
 	}
 
@@ -616,7 +621,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			resultsTable.setMultiSelect(false);
 			if (!resultsTable.isPaged() && allItemsVisible) {
 				resultsTable.setPageLength(resultsTable.size());
-			} 
+			}
+			if (isIndexVisible()) {
+				addStyleName("viewable-record-table-panel-with-index");
+			}
 		} else {
 			resultsTable = new RecordVOTable(recordVOContainer) {
 				@Override
@@ -640,6 +648,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				@Override
 				public boolean isSelectColumn() {
 					return ViewableRecordVOTablePanel.this.isSelectColumn();
+				}
+
+				@Override
+				public boolean isIndexColumn() {
+					return ViewableRecordVOTablePanel.this.isIndexVisible();
 				}
 
 				@Override
@@ -724,6 +737,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		});
 
 		return resultsTable;
+	}
+
+	public boolean isIndexVisible() {
+		return false;
 	}
 
 	public boolean isMenuBarColumn() {
@@ -821,7 +838,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	private void displayRecordVOInWindow(RecordVO recordVO) {
-		ViewWindow viewWindow;
 		String schemaTypeCode = recordVO.getSchema().getTypeCode();
 		if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			viewWindow = new DisplayDocumentWindow(recordVO);
@@ -839,6 +855,18 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			}
 		});
 		ConstellioUI.getCurrent().addWindow(viewWindow);
+	}
+
+	@Override
+	public boolean beforeViewChange(ViewChangeEvent event) {
+		if (viewWindow != null) {
+			viewWindow.close();
+		}
+		return true;
+	}
+
+	@Override
+	public void afterViewChange(ViewChangeEvent event) {
 	}
 
 	private void navigateToRecordVO(RecordVO recordVO) {

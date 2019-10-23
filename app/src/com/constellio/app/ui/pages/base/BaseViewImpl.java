@@ -143,6 +143,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				}
 			}
 
+			addStyleName("base-view");
 			addStyleName("main-component-wrapper");
 			setSizeFull();
 

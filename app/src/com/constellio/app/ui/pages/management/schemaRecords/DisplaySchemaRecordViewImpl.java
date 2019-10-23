@@ -76,7 +76,6 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 		} else if (recordVO != null) {
 			presenter.forParams(recordVO.getId());
 		}
-
 	}
 
 	@Override
@@ -96,8 +95,10 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
+		addStyleName("display-schema-record-view");
+		
 		mainLayout = new VerticalLayout();
-		mainLayout.setSizeFull();
+		mainLayout.setWidth("100%");
 		mainLayout.setSpacing(true);
 
 		recordDisplay = new RecordDisplay(recordVO);
@@ -172,8 +173,13 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 	}
 
 	@Override
+	protected String getActionMenuBarCaption() {
+		return $("DisplaySchemaRecordView.actions");
+	}
+
+	@Override
 	protected boolean isActionMenuBar() {
-		return nestedView;
+		return nestedView || isInWindow;
 	}
 
 	@Override

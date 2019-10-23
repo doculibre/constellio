@@ -156,7 +156,7 @@ public class SearchResultDisplay extends VerticalLayout {
 
 		if (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
 			&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
-			titleLink.setWidth("90%");
+			//			titleLink.setWidth("90%");
 			
 			addStyleName("search-result-with-elevation-buttons");
 			

@@ -1230,10 +1230,6 @@ $popup-view-z-index: 3;
 			white-space: normal;
 		}
 					
-		.display-caption-and-component {
-			min-height: 34px;
-		}
-			
 		.display-caption, .display-value {
 			position: relative;
 			top: 4px;
@@ -1250,7 +1246,7 @@ $popup-view-z-index: 3;
 		
 		.v-slot-record-add-comment-button {
 			position: relative;
-			top: -4px;
+			//top: -4px;
 		}
 		
 		.v-caption-record-comments {
@@ -1262,7 +1258,14 @@ $popup-view-z-index: 3;
 		
 		.v-slot-record-no-comment {
 			position: relative;
-			top: -10px;
+		}
+		
+		.v-button {
+			height: auto;
+		}
+
+		.v-slot-record-no-comment {
+			top: 0px;
 		}
 	}
 
@@ -1659,19 +1662,24 @@ $popup-view-z-index: 3;
 	
 	.v-window[width-range~="1101px-"] {
 		.base-display {
+
+			.v-slot-display-caption {
+				width: 300px;
+				display: inline-block;
+			}
+			
 			.v-slot-display-value {
+				width: calc(100% - 300px);
+				display: inline-block;
+				
 				.display-value {
         			.agent-link {
         				padding-right: 26px;
         			}
 				}
 			}
-				
-			.v-slot-display-caption-and-component {
-				padding-right: 300px;
-			}
-
-			.v-slot-list-add-remove-comment {
+		
+			.v-slot-record-comments, .v-caption-record-comments {
 				width: 100%;
 			}
 		}
@@ -1721,6 +1729,13 @@ $popup-view-z-index: 3;
 	}
 	
 	.v-window {
+		.add-record-comment-form {
+			.base-form-layout {
+				position: relative;
+				top: 20px;
+			}
+		}
+	
 		.collapsible-horizontal-splitpanel {
 			.v-splitpanel-first-container {
 				.horizontal-split-layout-content {
@@ -1817,7 +1832,33 @@ $popup-view-z-index: 3;
 		    	z-index: 2000;
 		    	position: absolute;
 		    	top: -40px;
-		    	right: 30px;
+		    	right: 58px;
+					    	 
+	  			.v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
+					content: "";
+				    position: relative;
+				    top: 5px;
+				    margin-left: -2px;
+				    opacity: 1;
+				}
+	
+				.v-menubar-menuitem {
+					direction: rtl;
+					padding-left: 6px;
+	
+					.v-icon {
+						margin: 0 0px 0 6px;
+						position: relative;
+						//top: 2px;
+						padding-left: 6px;
+					}
+				}
+			}
+
+		    .display-schema-record-view {
+		    	.action-menu-bar {
+			    	top: 0px;
+			    }	
 			}
 			
 			.v-slot-action-menu-bar-layout {    
@@ -1947,7 +1988,6 @@ $popup-view-z-index: 3;
 				overflow-y: auto;
 				padding-left: 5px;
 				padding-right: 5px;
-				padding-top: 40px;
 			}
 
 		    .system-state-window-layout {
@@ -1956,6 +1996,14 @@ $popup-view-z-index: 3;
 
             .base-window-content-with-bottom-margin {
                 margin-bottom: 10px;
+            }
+            
+            .base-view {
+				padding-top: 40px;
+            }
+            
+            .header-selection-panel {
+            	overflow-y: hidden;
             }
 		}
 	}
@@ -2116,7 +2164,8 @@ $popup-view-z-index: 3;
 	}
 				
 	.header-selection-panel {
-		margin-top: -25px;
+		//margin-top: -25px;
+		margin-top: 0px;
 		
 		.selection-panel-top-layout .v-menubar .v-icon {
 		    float: right;
@@ -2594,10 +2643,6 @@ $popup-view-z-index: 3;
 					.v-spacing {
 						height: 5px;
 					}
-					
-					.v-menubar {
-						margin-left: -16px;
-					}
 				}
   			
 			}
@@ -2648,6 +2693,7 @@ $popup-view-z-index: 3;
 				text-align: left;
 				color: #197de1;
 				font-weight: bold;
+				height: auto;
 			}
 			
 			.search-result-title:hover {
@@ -2714,12 +2760,12 @@ $popup-view-z-index: 3;
 			
 			.search-result-elevation {
 				top: -4px;
-				right: 12px;
+				right: 8px;
 			}
 
 			.search-result-exclusion {
 				top: -6px;
-				right: -10px;
+				right: -16px;
 			}
 			
 			.search-result-elevation:hover, .search-result-exclusion:hover {
@@ -2993,7 +3039,7 @@ $popup-view-z-index: 3;
 							
 							.reference-display {
             					white-space: normal;
-            					height: inherit;
+            					//height: inherit;
 							}
 
 						   	.reference-display-link {
@@ -3006,12 +3052,12 @@ $popup-view-z-index: 3;
 
 							.agent-action-link {
             					white-space: normal;
-            					height: inherit;
+            					//height: inherit;
 							}
 							
 							.download-content-version-link {
             					white-space: normal;
-            					height: inherit;
+            					//height: inherit;
 							}
 
 							.copy-retention-rule-table-medium-types-field {
@@ -3407,13 +3453,13 @@ $popup-view-z-index: 3;
 		.viewable-record-table-panel .viewable-record-table {
 			.search-result-with-elevation-buttons {
 				.search-result-title {
-					padding-right: 60px;
+					padding-right: 30px;
 				}
 			}
 		}
 		
 
-  		.viewable-record-table {
+  		.viewable-record-table-panel-with-index .viewable-record-table {
 	  		.v-slot-search-result-index {
 	  			display: block;
 	  		}
@@ -3501,8 +3547,18 @@ $popup-view-z-index: 3;
 	    //}
 
 		.base-display {
-			.v-slot-display-caption-and-component {
-				padding-right: 300px;
+			.v-slot-display-caption {
+				width: 300px;
+				display: inline-block;
+			}
+			
+			.v-slot-display-value {
+				width: calc(100% - 300px);
+				display: inline-block;
+			}
+		
+			.v-slot-record-comments, .v-caption-record-comments {
+				width: 100%;
 			}
 		}
 
