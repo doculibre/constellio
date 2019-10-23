@@ -39,7 +39,7 @@ public class BaseDaoTest {
 	@Test
 	public void testGetRecordByIdWithInvalidId() {
 		String id = "fakeId";
-		when(recordServices.realtimeGetRecordById(id))
+		when(recordServices.realtimeGetRecordById(id, null))
 				.thenThrow(new RecordServicesRuntimeException.NoSuchRecordWithId(null, null, null));
 
 		Record record = baseDao.getRecordById(id);

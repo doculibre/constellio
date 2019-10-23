@@ -70,7 +70,7 @@ public class ValidationServiceTest {
 
 		when(signatureService.sign(anyString(), anyString())).thenReturn(signature);
 
-		when(validationDao.getUserTokens(anyString(), anyBoolean())).thenReturn(singletonList(token));
+		when(validationDao.getUserTokens(anyString(), anyBoolean(), anyBoolean())).thenReturn(singletonList(token));
 		when(validationDao.isUserAuthenticated(anyString(), anyString())).thenReturn(true);
 		when(validationDao.getDateFormat()).thenReturn("yyyy-MM-dd");
 		when(validationDao.getUserByUsername(anyString(), anyString())).thenReturn(record);
@@ -94,7 +94,8 @@ public class ValidationServiceTest {
 
 	@Test(expected = InvalidSignatureException.class)
 	public void testValidateSignatureWithInvalidToken() throws Exception {
-		when(validationDao.getUserTokens(anyString(), anyBoolean())).thenReturn(Lists.newArrayList("fakeToken1", "fakeToken2"));
+		when(validationDao.getUserTokens(anyString(), anyBoolean(), anyBoolean()))
+				.thenReturn(Lists.newArrayList("fakeToken1", "fakeToken2"));
 		when(signatureService.sign(anyString(), anyString())).thenReturn("anotherSignature");
 
 		validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical,
@@ -103,7 +104,7 @@ public class ValidationServiceTest {
 
 	@Test(expected = UnauthenticatedUserException.class)
 	public void testValidateSignatureWithNoToken() throws Exception {
-		when(validationDao.getUserTokens(anyString(), anyBoolean())).thenReturn(Collections.<String>emptyList());
+		when(validationDao.getUserTokens(anyString(), anyBoolean(), anyBoolean())).thenReturn(Collections.<String>emptyList());
 
 		validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical,
 				copySourceId, signature);
