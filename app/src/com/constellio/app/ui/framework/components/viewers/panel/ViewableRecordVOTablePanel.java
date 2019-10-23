@@ -95,7 +95,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 //@com.vaadin.annotations.JavaScript({ "theme://jquery/jquery-2.1.4.min.js" })
 @Slf4j
-public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements BrowserWindowResizeListener, DropHandler {
+public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements BrowserWindowResizeListener, DropHandler, ViewChangeListener {
 
 	public static final int MAX_SELECTION_SIZE = 10000;
 
