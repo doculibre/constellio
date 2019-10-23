@@ -40,6 +40,7 @@ import com.constellio.app.modules.rm.extensions.RMSelectionPanelExtension;
 import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
 import com.constellio.app.modules.rm.extensions.RMTaskRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
+import com.constellio.app.modules.rm.extensions.RMUserHavePermissionOnRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMUserProfileFieldsExtension;
 import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
 import com.constellio.app.modules.rm.extensions.RemoveClickableNotificationsWhenChangingPage;
@@ -361,6 +362,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.downloadContentVersionLinkExtensions.add(new RMDownloadContentVersionLinkExtension());
 		extensions.cmisExtensions.add(new RMCmisExtension(collection, appLayerFactory));
 		extensions.recordAppExtensions.add(new RMRecordAppExtension(collection, appLayerFactory));
+		extensions.userHavePermissionOnRecordExtensions.add(new RMUserHavePermissionOnRecordExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new RMRecordNavigationExtension(appLayerFactory, collection));
 		extensions.searchPageExtensions.add(new RMSearchPageExtension(collection, appLayerFactory));
 		extensions.batchProcessingExtensions.add(new RMBatchProcessingExtension(collection, appLayerFactory));
