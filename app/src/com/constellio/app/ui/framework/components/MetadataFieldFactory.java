@@ -9,11 +9,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.UserVO;
-import com.constellio.app.ui.framework.components.fields.BasePasswordField;
-import com.constellio.app.ui.framework.components.fields.BaseRichTextArea;
-import com.constellio.app.ui.framework.components.fields.BaseTextArea;
-import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
+import com.constellio.app.ui.framework.components.fields.*;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateTimeField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
@@ -227,7 +223,7 @@ public class MetadataFieldFactory implements Serializable {
 					break;
 				case STRING:
 					if (MetadataInputType.PASSWORD.equals(metadataInputType)) {
-						field = new BasePasswordField();
+						field = new EditablePasswordField();
 					} else {
 						String inputMask = metadata.getInputMask();
 						BaseTextField textField = new BaseTextField();
