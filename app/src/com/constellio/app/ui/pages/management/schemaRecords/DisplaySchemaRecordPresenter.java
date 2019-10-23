@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -26,7 +27,7 @@ import java.io.IOException;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 @SuppressWarnings("serial")
-public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<DisplaySchemaRecordView> {
+public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<DisplaySchemaRecordView> implements SecurityWithNoUrlParamSupport {
 
 	private transient SequenceServices sequenceServices;
 	private transient RecordServices recordServices;
@@ -46,6 +47,9 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 										boolean inWindow) {
 		super(view);
 		this.recordVO = recordVO;
+		if (recordVO != null) {
+			this.schemaCode = this.recordVO.getSchema().getCode();
+		}
 		this.nestedView = nestedView;
 		this.inWindow = inWindow;
 		this.view.setRecordVO(recordVO);
@@ -131,7 +135,11 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		Record restrictedRecord = recordServices().getDocumentById(params);
-		return new SchemaRecordsPresentersServices(appLayerFactory).canViewSchemaTypeRecord(restrictedRecord, user);
+		if (!view.isViewRecordMode()) {
+			return new SchemaRecordsPresentersServices(appLayerFactory).canViewSchemaTypeRecord(restrictedRecord, user);
+		} else {
+			return user.hasReadAccess().on(restrictedRecord);
+		}
 	}
 
 	public boolean isSequenceTable() {
@@ -202,4 +210,12 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		}
 	}
 
+	@Override
+	public boolean hasPageAccess(User user) {
+		if (recordVO != null) {
+			return hasPageAccess(recordVO.getId(), user);
+		} else {
+			throw new IllegalStateException("recordVO need to be passed by the constructor when using this security method.");
+		}
+	}
 }

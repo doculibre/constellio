@@ -38,6 +38,7 @@ import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCe
 import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
+import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.schemaRecords.DisplaySchemaRecordWindow;
 import com.constellio.app.ui.util.ComponentTreeUtils;
@@ -76,6 +77,7 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
 
@@ -91,6 +93,7 @@ import java.util.UUID;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 //@com.vaadin.annotations.JavaScript({ "theme://jquery/jquery-2.1.4.min.js" })
+@Slf4j
 public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements BrowserWindowResizeListener, DropHandler {
 
 	public static final int MAX_SELECTION_SIZE = 10000;
@@ -799,22 +802,28 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	private void displayRecordVOInWindow(RecordVO recordVO) {
 		ViewWindow viewWindow;
 		String schemaTypeCode = recordVO.getSchema().getTypeCode();
-		if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			viewWindow = new DisplayDocumentWindow(recordVO);
-		} else {
-			viewWindow = new DisplaySchemaRecordWindow(recordVO);
-		}
-		viewWindow.addCloseListener(new Window.CloseListener() {
-			@Override
-			public void windowClose(CloseEvent e) {
-				if (selectedRecordVO != null && getTableMode() == TableMode.LIST) {
-					refreshMetadata();
-				} else {
-					recordVOContainer.forceRefresh();
-				}
+
+		try {
+			if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
+				viewWindow = new DisplayDocumentWindow(recordVO);
+			} else {
+				viewWindow = new DisplaySchemaRecordWindow(recordVO);
 			}
-		});
-		ConstellioUI.getCurrent().addWindow(viewWindow);
+
+			viewWindow.addCloseListener(new Window.CloseListener() {
+				@Override
+				public void windowClose(CloseEvent e) {
+					if (selectedRecordVO != null && getTableMode() == TableMode.LIST) {
+						refreshMetadata();
+					} else {
+						recordVOContainer.forceRefresh();
+					}
+				}
+			});
+			ConstellioUI.getCurrent().addWindow(viewWindow);
+		} catch (UserDoesNotHaveAccessException e) {
+			log.error(e.getMessage(), e);
+		}
 	}
 
 	private void navigateToRecordVO(RecordVO recordVO) {
@@ -853,7 +862,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			compressionChange = null;
 		}
 
-		if (!newSelectedItemId.equals(this.selectedItemId) || reload) {
+		if (newSelectedItemId != null && !newSelectedItemId.equals(this.selectedItemId) || reload) {
 			selectedItemId = newSelectedItemId;
 			if (reload) {
 				recordVOContainer.forceRefresh();

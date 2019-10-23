@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
@@ -68,7 +69,7 @@ import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_US
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
+public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> implements SecurityWithNoUrlParamSupport {
 	private transient RecordServices recordServices;
 
 	protected DocumentToVOBuilder voBuilder;
@@ -161,6 +162,18 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public Record getRecord() {
 		return record;
+	}
+
+	public boolean hasPageAccess(User user) {
+		if (record == null) {
+			return false;
+		}
+
+		if (!hasPageAccess(record.getId(), user)) {
+			return false;
+		} else {
+			return hasRestrictedRecordAccess(record.getId(), user, record);
+		}
 	}
 
 	@Override

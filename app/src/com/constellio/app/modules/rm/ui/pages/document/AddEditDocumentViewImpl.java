@@ -3,6 +3,8 @@ package com.constellio.app.modules.rm.ui.pages.document;
 import com.constellio.app.modules.rm.ui.components.document.DocumentForm;
 import com.constellio.app.modules.rm.ui.components.document.DocumentFormImpl;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.ProvideSecurityWithNoUrlParamSupport;
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -28,7 +30,7 @@ import elemental.json.JsonArray;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocumentView {
+public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocumentView, ProvideSecurityWithNoUrlParamSupport {
 
 	public static final int RECORD_FORM_WIDTH = 50;
 	public static final Unit RECORD_FORM_WIDTH_UNIT = Unit.PERCENTAGE;
@@ -142,6 +144,8 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 				splitPanel.setSecondComponent(recordForm);
 				splitPanel.setSecondComponentWidth(RECORD_FORM_WIDTH, RECORD_FORM_WIDTH_UNIT);
 				contentMetadataComponent = splitPanel;
+			} else {
+				contentMetadataComponent = recordForm;
 			}
 		} else {
 			contentMetadataComponent = recordForm;
@@ -249,4 +253,8 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 		return !inWindow;
 	}
 
+	@Override
+	public SecurityWithNoUrlParamSupport getSecurityWithNoUrlParamSupport() {
+		return presenter;
+	}
 }
