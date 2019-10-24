@@ -1063,6 +1063,16 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 		assertThat(getDocument.getContent().getHash()).isNotNull();
 	}
 
+	@Test
+	public void testCreateDocumentWithCalculatedUsr() throws Exception {
+		addUserCalculatedMetadata(Document.DEFAULT_SCHEMA);
+
+		Response postResponse = buildPostQuery().request().header("host", host)
+				.post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+	}
+
 	//
 	// PRIVATE FUNCTIONS
 	//
