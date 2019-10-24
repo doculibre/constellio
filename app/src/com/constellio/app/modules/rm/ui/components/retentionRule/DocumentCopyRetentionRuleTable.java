@@ -93,6 +93,9 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 		this.presenter = presenter;
 		this.variableRetentionPeriodVOList = presenter.getOpenPeriodsDDVList();
 
+		addStyleName("copy-retention-rule-table");
+		addStyleName("document-copy-retention-rule-table");
+
 		setSizeFull();
 
 		mainLayout = new VerticalLayout();

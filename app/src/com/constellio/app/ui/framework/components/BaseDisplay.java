@@ -34,6 +34,7 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	public static final String STYLE_NAME = "base-display";
 	public static final String STYLE_CAPTION = "display-caption";
 	public static final String STYLE_VALUE = "display-value";
+	public static final String STYLE_FULL_WIDTH = "display-value-full-width";
 
 	private boolean useTabSheet;
 

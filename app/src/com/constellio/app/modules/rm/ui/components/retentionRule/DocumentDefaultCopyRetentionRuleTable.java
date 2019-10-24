@@ -90,6 +90,9 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 		this.presenter = presenter;
 		this.variableRetentionPeriodVOList = presenter.getOpenPeriodsDDVList();
 
+		addStyleName("copy-retention-rule-table");
+		addStyleName("document-copy-retention-rule-table");
+
 		setSizeFull();
 
 		mainLayout = new VerticalLayout();

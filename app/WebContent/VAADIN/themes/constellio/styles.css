@@ -14210,7 +14210,7 @@ div.v-layout.v-horizontal.v-widget {
 	color: inherit;
 }
 
-.constellio .base-display .v-slot-record-comments, .constellio .base-display .v-caption-record-comments {
+.constellio .base-display .v-slot-display-value-full-width, .constellio .base-display .v-slot-record-comments, .constellio .base-display .v-caption-record-comments {
 	width: 100%;
 }
 
@@ -14229,6 +14229,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .base-display .v-button {
 	height: auto;
+	white-space: normal;
 }
 
 .constellio .base-display .v-slot-record-no-comment {
@@ -14429,7 +14430,6 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #FFFFFF;
 	height: auto;
 	font-size: 16px;
-	padding-right: 220px;
 }
 
 .constellio .xbreadcrumbs .v-link a span, .constellio .xbreadcrumbs .xbreadcrumbbutton .v-button-caption {
@@ -14583,6 +14583,10 @@ div.v-layout.v-horizontal.v-widget {
 	z-index: 1002;
 }
 
+.constellio .v-window[width-range~="1101px-"] .base-display .v-slot-display-caption, .constellio .v-window[width-range~="1101px-"] .base-display .v-slot-display-value {
+	padding-bottom: 5px;
+}
+
 .constellio .v-window[width-range~="1101px-"] .base-display .v-slot-display-caption {
 	width: 300px;
 	display: inline-block;
@@ -14607,6 +14611,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-window[width-range~="0-800px"] .base-display .v-slot-display-value, .constellio .v-window[width-range~="801-1100px"] .base-display .v-slot-display-value {
 	float: left;
+	padding-bottom: 5px;
 }
 
 .constellio .v-window[width-range~="0-800px"] .base-display .v-slot-action-menu-bar-layout, .constellio .v-window[width-range~="801-1100px"] .base-display .v-slot-action-menu-bar-layout {
@@ -14633,7 +14638,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-window[width-range~="0-800px"] .base-display .v-slot-record-no-comment, .constellio .v-window[width-range~="801-1100px"] .base-display .v-slot-record-no-comment {
 	position: relative;
-	top: -10px;
+	top: 0px;
 }
 
 .constellio .v-window .add-record-comment-form .base-form-layout {
@@ -14847,6 +14852,22 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: auto;
 	padding-left: 5px;
 	padding-right: 5px;
+}
+
+.constellio .base-window .v-scrollable .auto-scroll {
+	overflow: auto;
+}
+
+.constellio .base-window .v-scrollable .no-scroll {
+	overflow: hidden;
+}
+
+.constellio .base-window .v-scrollable .no-scroll-horizontal {
+	overflow-x: hidden;
+}
+
+.constellio .base-window .v-scrollable .no-scroll-vertical {
+	overflow-y: hidden;
 }
 
 .constellio .base-window .v-scrollable .system-state-window-layout {
@@ -15450,6 +15471,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: left;
 	color: #197de1;
 	font-weight: bold;
+	height: auto;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-title .v-button {
 	height: auto;
 }
 
@@ -16189,6 +16214,10 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-x: auto;
 }
 
+.constellio .v-ui[width-range~="1101px-"] .base-display .v-slot-display-caption, .constellio .v-ui[width-range~="1101px-"] .base-display .v-slot-display-value {
+	padding-bottom: 5px;
+}
+
 .constellio .v-ui[width-range~="1101px-"] .base-display .v-slot-display-caption {
 	width: 300px;
 	display: inline-block;
@@ -16199,7 +16228,7 @@ div.v-layout.v-horizontal.v-widget {
 	display: inline-block;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .base-display .v-slot-record-comments, .constellio .v-ui[width-range~="1101px-"] .base-display .v-caption-record-comments {
+.constellio .v-ui[width-range~="1101px-"] .base-display .v-slot-display-value-full-width, .constellio .v-ui[width-range~="1101px-"] .base-display .v-slot-record-comments, .constellio .v-ui[width-range~="1101px-"] .base-display .v-caption-record-comments {
 	width: 100%;
 }
 
@@ -16307,8 +16336,16 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 30px;
 }
 
+.constellio .v-ui[width-range~="801-1100px"] .base-display .v-slot-display-value {
+	padding-bottom: 5px;
+}
+
 .constellio .v-ui[width-range~="801-1100px"] .main-component-wrapper {
 	min-height: 600px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"] .v-slot-static-footer-extra-components-layout {
+	display: none;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .v-panel-content-content-view-wrapper {
@@ -16342,15 +16379,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="801-1100px"] .action-menu-wrapper .base-display .base-display-main-layout {
 	width: 100%;
-	padding-right: 260px;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .action-menu-wrapper .base-display .base-display-main-layout .v-slot-list-add-remove-comment {
 	width: 100%;
-}
-
-.constellio .v-ui[width-range~="801-1100px"] .base-display .v-slot-display-caption, .constellio .v-ui[width-range~="801-1100px"] .base-display .v-slot-display-value {
-	min-height: 34px;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .action-menu {
@@ -16437,8 +16469,16 @@ div.v-layout.v-horizontal.v-widget {
 	margin: 0;
 }
 
+.constellio .v-ui[width-range~="0-800px"] .base-display .v-slot-display-caption {
+	padding-bottom: 5px;
+}
+
 .constellio .v-ui[width-range~="0-800px"] .main-component-wrapper {
 	min-height: 500px;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .v-slot-static-footer-extra-components-layout {
+	display: none;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .back-button {
@@ -16457,10 +16497,6 @@ div.v-layout.v-horizontal.v-widget {
 	content: "\f002";
 	margin-top: 5px;
 	margin-left: -14px;
-}
-
-.constellio .v-ui[width-range~="0-800px"] .base-display .v-slot-display-caption, .constellio .v-ui[width-range~="0-800px"] .base-display .v-slot-display-value {
-	min-height: 34px;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .viewable-record-table .v-table-table .v-table-cell-content .v-checkbox {

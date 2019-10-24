@@ -189,7 +189,6 @@ public class UpdateContentVersionPresenter implements Serializable {
 						}
 					} catch (final IcapException e) {
 						window.showErrorMessage(e.getMessage());
-
 						return;
 					}
 				} else {

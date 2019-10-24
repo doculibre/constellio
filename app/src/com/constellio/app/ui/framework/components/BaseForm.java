@@ -434,9 +434,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 						LOGGER.warn(e.getMessage(), e);
 					}
 				} catch (Exception e) {
-
 					ValidationErrors validationErrorsFromException = MessageUtils.getValidationErrors(e);
-
 					if (isSpecialContainerTitleCase) {
 						ValidationErrors newValidationErrors = new ValidationErrors();
 						if (validationErrorsFromException != null) {

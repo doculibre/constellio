@@ -1240,10 +1240,10 @@ $popup-view-z-index: 3;
     		color: inherit;
     	}
 		
-		.v-slot-record-comments, .v-caption-record-comments {
+		.v-slot-display-value-full-width, .v-slot-record-comments, .v-caption-record-comments {
 			width: 100%;
 		}
-		
+
 		.v-slot-record-add-comment-button {
 			position: relative;
 			//top: -4px;
@@ -1262,6 +1262,7 @@ $popup-view-z-index: 3;
 		
 		.v-button {
 			height: auto;
+			white-space: normal;
 		}
 
 		.v-slot-record-no-comment {
@@ -1492,7 +1493,7 @@ $popup-view-z-index: 3;
 		background-color: #FFFFFF;
 		height: auto;
 		font-size: 16px;
-		padding-right: 220px;
+		//padding-right: 220px;
 
 		.v-link a span,.xbreadcrumbbutton .v-button-caption {
 			font-size: 0.9em;
@@ -1663,6 +1664,10 @@ $popup-view-z-index: 3;
 	.v-window[width-range~="1101px-"] {
 		.base-display {
 
+			.v-slot-display-caption, .v-slot-display-value {
+				padding-bottom: 5px;
+			}
+			
 			.v-slot-display-caption {
 				width: 300px;
 				display: inline-block;
@@ -1695,6 +1700,7 @@ $popup-view-z-index: 3;
 		.base-display {
 			.v-slot-display-value {
 				float: left;
+				padding-bottom: 5px;
 			}
 			
 			.v-slot-action-menu-bar-layout {    
@@ -1723,7 +1729,7 @@ $popup-view-z-index: 3;
 			
 			.v-slot-record-no-comment {
 				position: relative;
-				top: -10px;
+				top: 0px;
 			}
 		}
 	}
@@ -1988,6 +1994,22 @@ $popup-view-z-index: 3;
 				overflow-y: auto;
 				padding-left: 5px;
 				padding-right: 5px;
+			}
+		
+			.auto-scroll {
+				overflow: auto;
+			}
+		
+			.no-scroll {
+				overflow: hidden;
+			}
+		
+			.no-scroll-horizontal {
+				overflow-x: hidden;
+			}
+		
+			.no-scroll-vertical {
+				overflow-y: hidden;
 			}
 
 		    .system-state-window-layout {
@@ -2694,6 +2716,10 @@ $popup-view-z-index: 3;
 				color: #197de1;
 				font-weight: bold;
 				height: auto;
+				
+				.v-button {
+					height: auto;
+				}
 			}
 			
 			.search-result-title:hover {
@@ -3547,6 +3573,10 @@ $popup-view-z-index: 3;
 	    //}
 
 		.base-display {
+			.v-slot-display-caption, .v-slot-display-value {
+				padding-bottom: 5px;
+			}
+			
 			.v-slot-display-caption {
 				width: 300px;
 				display: inline-block;
@@ -3557,7 +3587,7 @@ $popup-view-z-index: 3;
 				display: inline-block;
 			}
 		
-			.v-slot-record-comments, .v-caption-record-comments {
+			.v-slot-display-value-full-width, .v-slot-record-comments, .v-caption-record-comments {
 				width: 100%;
 			}
 		}
@@ -3716,9 +3746,19 @@ $popup-view-z-index: 3;
 				//width: 500px;
 			}
     	}
+    	
+    	.base-display {
+			.v-slot-display-value {
+				padding-bottom: 5px;
+			}
+		}	
 
 	    .main-component-wrapper {
 	    	min-height: 600px;
+	    }
+	    
+	    .v-slot-static-footer-extra-components-layout {
+	    	display: none;
 	    }
 
 	    .v-panel-content-content-view-wrapper {
@@ -3762,7 +3802,6 @@ $popup-view-z-index: 3;
 			.base-display {
 				.base-display-main-layout {
 					width:100%;
-            		padding-right: 260px;
             		
 					.v-slot-list-add-remove-comment {
 						width: 100%;
@@ -3772,12 +3811,6 @@ $popup-view-z-index: 3;
 			}
         }
         
-        .base-display {
-			.v-slot-display-caption, .v-slot-display-value {
-				min-height: 34px;
-			}		
-        }
-
 	    .action-menu {
 	        position: fixed;
 	        top: $header-height;
@@ -3889,9 +3922,19 @@ $popup-view-z-index: 3;
 			    margin: 0;
 			}
     	}
+    	
+    	.base-display {
+			.v-slot-display-caption {
+				padding-bottom: 5px;
+			}
+		}	
 
 	    .main-component-wrapper {
 	    	min-height: 500px;
+	    }
+	    
+	    .v-slot-static-footer-extra-components-layout {
+	    	display: none;
 	    }
 
 		.back-button {
@@ -3913,12 +3956,6 @@ $popup-view-z-index: 3;
 		    margin-left: -14px;
 		}
         
-        .base-display {
-			.v-slot-display-caption, .v-slot-display-value {
-				min-height: 34px;
-			}		
-        }
-
   		.viewable-record-table {
 			.v-table-table {
 				.v-table-cell-content {

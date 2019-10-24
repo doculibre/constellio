@@ -177,6 +177,7 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 		addCommentButton.setIcon(FontAwesome.PLUS);
 		addCommentButton.addStyleName(ValoTheme.BUTTON_LINK);
 		addCommentButton.addStyleName("record-add-comment-button");
+		addCommentButton.setCaptionVisibleOnMobile(false);
 		if (delayedReadOnly != null) {
 			addCommentButton.setVisible(!delayedReadOnly);
 		}

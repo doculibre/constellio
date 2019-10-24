@@ -9,8 +9,6 @@ import com.vaadin.ui.VerticalLayout;
 
 import java.util.Locale;
 
-import java.util.Locale;
-
 public class RetentionRuleDisplay extends RecordDisplay {
 
 	public RetentionRuleDisplay(RetentionRuleDisplayPresenter presenter, RetentionRuleVO retentionRuleVO,
@@ -30,16 +28,19 @@ public class RetentionRuleDisplay extends RecordDisplay {
 			folderCopyRetentionRuleTable.setCaption(captionLabel.getValue());
 			folderCopyRetentionRuleTable.setWidth("100%");
 			layout.addComponent(folderCopyRetentionRuleTable);
+			displayComponent.addStyleName(STYLE_FULL_WIDTH);
 		} else if (displayComponent instanceof DocumentCopyRetentionRuleTable) {
 			DocumentCopyRetentionRuleTable documentCopyRetentionRuleTable = (DocumentCopyRetentionRuleTable) displayComponent;
 			documentCopyRetentionRuleTable.setCaption(captionLabel.getValue());
 			documentCopyRetentionRuleTable.setWidth("100%");
 			layout.addComponent(documentCopyRetentionRuleTable);
+			displayComponent.addStyleName(STYLE_FULL_WIDTH);
 		} else if (displayComponent instanceof DocumentDefaultCopyRetentionRuleTable) {
 			DocumentDefaultCopyRetentionRuleTable documentDefaultCopyRetentionRuleTable = (DocumentDefaultCopyRetentionRuleTable) displayComponent;
 			documentDefaultCopyRetentionRuleTable.setCaption(captionLabel.getValue());
 			documentDefaultCopyRetentionRuleTable.setWidth("100%");
 			layout.addComponent(documentDefaultCopyRetentionRuleTable);
+			displayComponent.addStyleName(STYLE_FULL_WIDTH);
 		} else {
 			super.addCaptionAndDisplayComponent(captionLabel, displayComponent, layout);
 		}

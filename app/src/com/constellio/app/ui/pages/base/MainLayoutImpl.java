@@ -181,13 +181,14 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		}
 
 		staticFooterLayout.addComponent(staticFooterContentAndGuideLayout);
-		if (ResponsiveUtils.isDesktop() && staticFooterExtraComponentsLayout.getComponentCount() > 0) {
+		if (staticFooterExtraComponentsLayout.getComponentCount() > 0) {
 			staticFooterLayout.addComponent(staticFooterExtraComponentsLayout);
 			staticFooterLayout.setComponentAlignment(staticFooterExtraComponentsLayout, Alignment.BOTTOM_CENTER);
 		}
 		if (staticFooterContent != null) {
 			setStaticFooterContent(staticFooterContent);
 		}
+		updateStaticFooterState();
 
 		buildInitJavascript();
 		
@@ -216,6 +217,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 					}
 				}
 				updateHelpButtonState((BaseViewImpl) newView);
+				updateStaticFooterState();
 			}
 		});
 	}
@@ -243,9 +245,29 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		}
 	}
 
+	private boolean isStaticFooterEmpty() {
+		boolean staticFooterEmpty;
+		if (staticFooterContent == null && !guideButton.isVisible() && (!ResponsiveUtils.isDesktop() || staticFooterExtraComponentsLayout.getComponentCount() == 0)) {
+			staticFooterEmpty = true;
+		} else {
+			staticFooterEmpty = false;
+		}
+		return staticFooterEmpty;
+	}
+
 	private void updateHelpButtonState(BaseViewImpl view) {
 		String guideUrl = view.getGuideUrl();
-		guideButton.setVisible(StringUtils.isNotBlank(guideUrl));
+		boolean guideButtonVisible = StringUtils.isNotBlank(guideUrl);
+		guideButton.setVisible(guideButtonVisible);
+	}
+
+	private void updateStaticFooterState() {
+		boolean staticFooterEmpty = isStaticFooterEmpty();
+		if (!staticFooterLayout.isVisible() && !staticFooterEmpty) {
+			staticFooterLayout.setVisible(true);
+		} else if (staticFooterLayout.isVisible() && staticFooterEmpty) {
+			staticFooterLayout.setVisible(false);
+		}
 	}
 	
 	protected ConstellioHeaderImpl buildHeader() {
