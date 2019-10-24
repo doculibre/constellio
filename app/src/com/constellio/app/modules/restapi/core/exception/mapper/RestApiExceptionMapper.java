@@ -3,6 +3,7 @@ package com.constellio.app.modules.restapi.core.exception.mapper;
 import com.constellio.app.modules.restapi.core.exception.BaseRestApiException;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
+import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.WebApplicationException;
@@ -32,6 +33,12 @@ public class RestApiExceptionMapper extends BaseRestApiExceptionMapper implement
 			errorResponse.setCode(ex.getResponse().getStatusInfo().getStatusCode());
 			errorResponse.setDescription(ex.getResponse().getStatusInfo().getReasonPhrase());
 			errorResponse.setMessage(ex.getLocalizedMessage());
+		} else if (e instanceof ValidationException) {
+			ValidationException ex = (ValidationException) e;
+
+			errorResponse.setCode(Response.Status.BAD_REQUEST.getStatusCode());
+			errorResponse.setDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
+			errorResponse.setMessage(i18n.$(ex.getErrors().getValidationErrors().get(0), locale));
 		} else if (e instanceof ValidationRuntimeException) {
 			ValidationRuntimeException ex = (ValidationRuntimeException) e;
 
