@@ -12,8 +12,6 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.jgoodies.common.base.Strings;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
-import com.vaadin.data.Property.ValueChangeEvent;
-import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
 import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -99,31 +97,18 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		};
 		uploadField.setCaption($("UpdateContentVersionWindow.uploadField"));
 		uploadField.setImmediate(true);
-		uploadField.addValidator(new Validator() {
-			@Override
-			public void validate(Object value)
-					throws InvalidValueException {
-				if (getContentVersion() == null && getMajorVersion() instanceof Boolean) {
-					throw new InvalidValueException($("UpdateContentVersionWindow.validate.noVersionIfContentVersionUploaded"));
-				}
-			}
-		});
 
 		majorVersionField = new OptionGroup();
 		majorVersionField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 		majorVersionField.setCaption($("UpdateContentVersionWindow.version"));
 		majorVersionField.setRequired(true);
 		majorVersionField.setImmediate(true);
-
-		majorVersionField.addValueChangeListener(new ValueChangeListener() {
+		majorVersionField.addValidator(new Validator() {
 			@Override
-			public void valueChange(ValueChangeEvent event) {
-				Object value = majorVersionField.getValue();
-
-				if (value instanceof String) {
-					uploadField.setRequired(false);
-				} else {
-					uploadField.setRequired(true);
+			public void validate(Object value)
+					throws InvalidValueException {
+				if (getContentVersion() != null && value == null) {
+					throw new InvalidValueException($("UpdateContentVersionWindow.validate.noVersionIfContentVersionUploaded"));
 				}
 			}
 		});
