@@ -103,6 +103,7 @@ subprojects {
         compile group: 'net.markenwerk', name: 'utils-mail-dkim', version: '1.1.10'
         compile group: 'org.mapdb', name: 'mapdb', version: '3.0.7'
         compile group: 'com.carrotsearch', name: 'hppc', version: '0.8.1'
+        //compile group: 'net.sourceforge.tess4j', name: 'tess4j', version: '4.4.1'
         compile name: 'mets-api'
         testCompile 'nl.jqno.equalsverifier:equalsverifier:1.4.1'
     }

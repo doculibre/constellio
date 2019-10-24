@@ -291,6 +291,48 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
+	public void processOCR(Document document, MenuItemActionBehaviorParams params) {
+		// TODO::JOLA --> Install and execute Tess4j on document
+		/*Tesseract instance = new Tesseract();
+		instance.setDatapath("C:\\Program Files\\Tesseract-OCR\\tessdata");
+		instance.setLanguage("fra+eng");
+		instance.setHocr(true);
+
+		File file = new File("C:\\Users\\Constellio\\Desktop\\DemoEmailExtractorAcceptanceTest-pdfWithImages.pdf");
+		try {
+			String result = instance.doOCR(file);
+			if (result.equals("")) {
+				int test = 10;
+			}
+			int test = 20;
+		} catch (Exception e) {
+
+		}*/
+	}
+
+	/*public void processOCR(Document document, MenuItemActionBehaviorParams params) {
+		ContentManager contentManager = modelLayerFactory.getContentManager();
+		FileParser fileParser = modelLayerFactory.newFileParser();
+
+		ContentVersion version = document.getContent().getCurrentVersion();
+		InputStream stream = contentManager.getContentInputStream(version.getHash(), version.getFilename());
+
+		try {
+			ParsedContent parsedContent = fileParser.parseWithoutBeautifying(stream, true, true);
+			String text = parsedContent.getParsedContent();
+
+			File file = new File();
+			ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
+
+			Content content = contentManager.createMajor(users.gandalfLeblancIn(zeCollection), file.getName(), versionDataSummary);
+			document.setContent(content);
+
+			recordServices.update(document);
+		} catch (Exception e) {
+
+		}
+	}*/
+
 
 	public void unPublish(Document document, MenuItemActionBehaviorParams params) {
 		document.setPublished(false);

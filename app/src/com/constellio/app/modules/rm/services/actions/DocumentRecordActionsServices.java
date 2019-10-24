@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.services.actions;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -20,6 +21,7 @@ import java.util.List;
 public class DocumentRecordActionsServices {
 
 	private RMSchemasRecordsServices rm;
+	private transient RMConfigs rmConfigs;
 	private RMModuleExtensions rmModuleExtensions;
 	private String collection;
 	private RecordServices recordServices;
@@ -27,6 +29,7 @@ public class DocumentRecordActionsServices {
 
 	public DocumentRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.rmConfigs = new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		this.collection = collection;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
@@ -172,6 +175,22 @@ public class DocumentRecordActionsServices {
 		}
 
 		return rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
+
+	public boolean isProcessOCRActionPossible(Record record, User user) {
+		Document document = rm.getDocument(record.getId());
+
+		boolean isPDF = true; // TODO::JOLA --> Check if it's a pdf
+		if (!isCheckOutPossible(document) ||
+			document.getContent() == null ||
+			!isEditActionPossible(record, user) ||
+			record.isLogicallyDeleted() ||
+			!rmConfigs.isTess4jInstalled() ||
+			!isPDF) {
+			return false;
+		}
+
+		return rmModuleExtensions.isProcessOCRActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isAddToCartActionPossible(Record record, User user) {

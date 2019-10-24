@@ -38,6 +38,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_MANAGE_AUTHORIZATIONS;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_OPEN;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PRINT_LABEL;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PROCESS_OCR;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PUBLISH;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_REMOVE_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNPUBLISH;
@@ -166,6 +167,16 @@ public class DocumentMenuItemServices {
 					$("DocumentContextMenu.createPDFA"), FontAwesome.FILE_PDF_O, -1, 1100,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).createPdf(document, params));
 			menuItemAction.setConfirmMessage($("ConfirmDialog.confirmCreatePDFA"));
+
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!filteredActionTypes.contains(DOCUMENT_PROCESS_OCR.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_PROCESS_OCR.name(),
+					isMenuItemActionPossible(DOCUMENT_PROCESS_OCR.name(), document, user, params),
+					$("DocumentContextMenu.processOCR"), FontAwesome.EYE, -1, 1050,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).processOCR(document, params));
+			menuItemAction.setConfirmMessage($("ConfirmDialog.confirmProcessOCR"));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -303,6 +314,8 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.isGetPublicLinkActionPossible(record, user);
 			case DOCUMENT_CREATE_PDF:
 				return documentRecordActionsServices.isCreatePdfActionPossible(record, user);
+			case DOCUMENT_PROCESS_OCR:
+				return documentRecordActionsServices.isProcessOCRActionPossible(record, user);
 			case DOCUMENT_ADD_TO_SELECTION:
 				return documentRecordActionsServices.isAddToSelectionActionPossible(record, user, sessionContext) &&
 					   (sessionContext.getSelectedRecordIds() == null ||
@@ -361,6 +374,7 @@ public class DocumentMenuItemServices {
 		DOCUMENT_GET_PUBLIC_LINK,
 		DOCUMENT_UNPUBLISH,
 		DOCUMENT_CREATE_PDF,
+		DOCUMENT_PROCESS_OCR,
 		DOCUMENT_ADD_TO_SELECTION,
 		DOCUMENT_REMOVE_TO_SELECTION,
 		DOCUMENT_ADD_TO_CART,

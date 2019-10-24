@@ -83,7 +83,8 @@ public class RMConfigs {
 			ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING,
 			CREATE_MISSING_AUTHORIZATIONS_FOR_TASK,
 			SUB_FOLDER_DECOMMISSIONING,
-			IGNORE_VALIDATIONS_IN_BATCH_PROCESSING;
+			IGNORE_VALIDATIONS_IN_BATCH_PROCESSING,
+			TESS4J_INSTALLED;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -321,6 +322,9 @@ public class RMConfigs {
 		add(CREATE_MISSING_AUTHORIZATIONS_FOR_TASK = others.createBooleanFalseByDefault("createMissingAuthorizationsForTask"));
 
 		add(IGNORE_VALIDATIONS_IN_BATCH_PROCESSING = others.createBooleanFalseByDefault("ignoreValidationsInBatchProcessing")
+				.whichIsHidden());
+
+		add(TESS4J_INSTALLED = others.createBooleanTrueByDefault("ignoreValidationsInBatchProcessing") // TODO::JOLA --> Switch to false by default
 				.whichIsHidden());
 	}
 
@@ -602,4 +606,7 @@ public class RMConfigs {
 		return manager.getValue(IGNORE_VALIDATIONS_IN_BATCH_PROCESSING);
 	}
 
+	public boolean isTess4jInstalled() {
+		return manager.getValue(TESS4J_INSTALLED);
+	}
 }

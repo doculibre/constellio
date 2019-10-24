@@ -381,6 +381,16 @@ public class RMModuleExtensions implements ModuleExtensions {
 		});
 	}
 
+	public boolean isProcessOCRActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isProcessOCRActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
+			}
+		});
+	}
+
 	public boolean isAddToCartActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true, new BooleanCaller<DocumentExtension>() {
 			@Override
