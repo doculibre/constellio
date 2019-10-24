@@ -203,6 +203,10 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		return new RecordToVOBuilder().build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
+	public boolean userHasPermissionOn(RecordVO recordVO) {
+		return getCurrentUser().hasReadAccess().on(recordVO.getRecord());
+	}
+
 	private boolean documentExists(String fileName, Folder folder) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Record record = folder.getWrappedRecord();

@@ -780,10 +780,13 @@ public class TaskTable extends VerticalLayout {
 
 			for (String linkedDocumentId : linkedDocumentIds) {
 				RecordVO documentVO = presenter.getDocumentVO(linkedDocumentId);
+				boolean isUserAuthorized = presenter.userHasPermissionOn(documentVO);
+
 				ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
 				String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
 				Component linkComponent;
-				if (agentURL != null) {
+
+				if (agentURL != null && isUserAuthorized) {
 					linkComponent = new ConstellioAgentLink(agentURL, documentVO, contentVersionVO, documentVO.getTitle(), false, new BaseUpdatableContentVersionPresenter());
 					((ConstellioAgentLink) linkComponent).addVisitedClickListener(documentVO.getId());
 				} else {
@@ -1075,6 +1078,8 @@ public class TaskTable extends VerticalLayout {
 		Task getTask(RecordVO recordVO);
 
 		RecordVO getDocumentVO(String linkedDocumentId);
+
+		boolean userHasPermissionOn(RecordVO recordVO);
 
 		boolean taskCommentAdded(RecordVO taskVO, Comment newComment);
 
