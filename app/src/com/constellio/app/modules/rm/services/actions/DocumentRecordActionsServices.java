@@ -189,9 +189,9 @@ public class DocumentRecordActionsServices {
 			return false;
 		}
 
-		String extention = FilenameUtils.getExtension(document.getContent().getCurrentVersion().getFilename());
-		if (!extention.toUpperCase().equals("PDF") &&
-			!extention.toUpperCase().equals("PDFA")) {
+		String extension = FilenameUtils.getExtension(document.getContent().getCurrentVersion().getFilename());
+		if (!extension.toUpperCase().equals("PDF") &&
+			!extension.toUpperCase().equals("PDFA")) {
 			return false;
 		}
 
