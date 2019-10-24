@@ -15,6 +15,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
+import org.apache.commons.io.FilenameUtils;
 
 import java.util.List;
 
@@ -180,13 +181,17 @@ public class DocumentRecordActionsServices {
 	public boolean isProcessOCRActionPossible(Record record, User user) {
 		Document document = rm.getDocument(record.getId());
 
-		boolean isPDF = true; // TODO::JOLA --> Check if it's a pdf
 		if (!isCheckOutPossible(document) ||
 			document.getContent() == null ||
 			!isEditActionPossible(record, user) ||
 			record.isLogicallyDeleted() ||
-			!rmConfigs.isTess4jInstalled() ||
-			!isPDF) {
+			!rmConfigs.isTess4jInstalled()) {
+			return false;
+		}
+
+		String extention = FilenameUtils.getExtension(document.getContent().getCurrentVersion().getFilename());
+		if (!extention.toUpperCase().equals("PDF") &&
+			!extention.toUpperCase().equals("PDFA")) {
 			return false;
 		}
 

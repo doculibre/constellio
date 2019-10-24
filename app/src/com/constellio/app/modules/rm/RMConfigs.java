@@ -324,7 +324,7 @@ public class RMConfigs {
 		add(IGNORE_VALIDATIONS_IN_BATCH_PROCESSING = others.createBooleanFalseByDefault("ignoreValidationsInBatchProcessing")
 				.whichIsHidden());
 
-		add(TESS4J_INSTALLED = others.createBooleanTrueByDefault("ignoreValidationsInBatchProcessing") // TODO::JOLA --> Switch to false by default
+		add(TESS4J_INSTALLED = others.createBooleanFalseByDefault("ignoreValidationsInBatchProcessing")
 				.whichIsHidden());
 	}
 
