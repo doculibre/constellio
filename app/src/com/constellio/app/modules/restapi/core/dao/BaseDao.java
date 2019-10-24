@@ -145,7 +145,7 @@ public abstract class BaseDao {
 	}
 
 	protected void clearCustomMetadataValues(Record record, MetadataSchema schema) {
-		for (Metadata metadata : schema.getMetadatas().onlyUSR()) {
+		for (Metadata metadata : schema.getMetadatas().onlyUSR().onlyManuals()) {
 			record.set(metadata, null);
 		}
 	}
