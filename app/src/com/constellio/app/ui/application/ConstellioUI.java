@@ -448,7 +448,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	}
 
 	public void setStaticFooterContent(Component component) {
-		mainLayout.setStaticFooterContent(component);
+		if (mainLayout != null) {
+			mainLayout.setStaticFooterContent(component);
+		}
 	}
 
 	public Thread runAsync(final Runnable runnable, int pollInterval, final Component component) {

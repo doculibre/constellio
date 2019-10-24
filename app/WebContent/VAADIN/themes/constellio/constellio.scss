@@ -75,6 +75,10 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+	.v-slot-setup-panel {
+		overflow-y: auto;
+	}
+
 	.valo-menu {
 		.valo-menu-part {
 		    padding-top: inherit;

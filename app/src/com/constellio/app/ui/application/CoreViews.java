@@ -64,7 +64,6 @@ public class CoreViews {
 	}
 
 	public void home() {
-
 		clearBreadcrumbTrail();
 		navigator.navigateTo(NavigatorConfigurationService.HOME);
 	}

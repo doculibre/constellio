@@ -12128,6 +12128,10 @@ div.v-layout.v-horizontal.v-widget {
 	color: gray;
 }
 
+.constellio .v-slot-setup-panel {
+	overflow-y: auto;
+}
+
 .constellio .valo-menu .valo-menu-part {
 	padding-top: inherit;
 	overflow-x: hidden;
