@@ -91,6 +91,8 @@ Schemas {
 
 	public static final Metadata HIDDEN = add(new Metadata(-47, "hidden_s", BOOLEAN, false));
 
+	public static final Metadata ABBREVIATION = new Metadata(-48, "abbreviation_s", STRING, false);
+
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();
 		if (localCode.startsWith("USR") || localCode.startsWith("MAP")) {
