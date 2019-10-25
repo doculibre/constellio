@@ -173,7 +173,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		return new MetadataVO((short) 0, User.EMAIL, User.EMAIL, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
 				null, null, null, null, null,
 				null, null, false, new HashSet<String>(), false,
-				null, new HashMap<String, Object>(), getCollectionInfoVO(collection), false);
+				null, new HashMap<String, Object>(), getCollectionInfoVO(collection), false, false);
 	}
 
 	private static MetadataVO lastNameMetadata(MetadataSchemaVO userSchema) {
