@@ -1,6 +1,8 @@
 package com.constellio.model.services.records.cache.offHeapCollections;
 
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.StringRecordId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,9 +71,28 @@ public class SortedStringIdsList implements SortedIdsList {
 
 	@Override
 	public synchronized List<String> getValues() {
+		return getValuesWithoutSynchronizing();
+	}
+
+	@Override
+	public synchronized List<RecordId> getValuesId() {
+		return getValuesIdWithoutSynchronizing();
+	}
+
+	@Override
+	public List<String> getValuesWithoutSynchronizing() {
 		List<String> values = intIdsList.getValues();
 		values.addAll(stringIds);
 		return values;
+	}
+
+	@Override
+	public List<RecordId> getValuesIdWithoutSynchronizing() {
+		List<RecordId> list = intIdsList.getValuesId();
+		for (String id : stringIds) {
+			list.add(new StringRecordId(id));
+		}
+		return list;
 	}
 
 	@Override
