@@ -18,6 +18,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
@@ -119,8 +120,12 @@ public class SearchResultDisplay extends VerticalLayout {
 	}
 
 	private void init() {
-		addStyleName(RECORD_STYLE);
 		setWidth("50px");
+
+		addStyleName(RECORD_STYLE);
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(searchResultVO.getRecordVO().getSchema().getCode());
+		String schemaStyleName = RECORD_STYLE + "-" + schemaTypeCode;
+		addStyleName(schemaStyleName);
 
 		addTitleComponents();
 		addResultIndex();

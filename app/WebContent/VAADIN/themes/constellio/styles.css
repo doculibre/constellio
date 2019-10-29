@@ -14196,6 +14196,10 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-x: auto;
 }
 
+.constellio .reference-display, .constellio .agent-link {
+	height: auto;
+}
+
 .constellio .base-display .base-display-main-layout {
 	width: 100%;
 }
@@ -15412,6 +15416,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .viewable-record-table-panel .table-buttons-layout .action-mode-buttons-layout {
 	float: right;
+	padding-right: 4px;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table-table-mode .v-table-row-nullviewer-results-table-tableMode {
@@ -16202,6 +16207,10 @@ div.v-layout.v-horizontal.v-widget {
 	min-height: 700px;
 }
 
+.constellio .v-ui[width-range~="1101px-"] .viewable-record-table .scrollable {
+	overflow-x: hidden;
+}
+
 .constellio .v-ui[width-range~="1101px-"] .stats-table-layout .v-table .v-scrollable {
 	overflow-x: auto;
 }
@@ -16282,11 +16291,11 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: 23px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .search-result-title .v-icon {
+.constellio .v-ui[width-range~="1101px-"] .search-result-record-folder .search-result-title .v-icon, .constellio .v-ui[width-range~="1101px-"] .search-result-record-task .search-result-title .v-icon {
 	display: none;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .search-result-title .v-icon + span {
+.constellio .v-ui[width-range~="1101px-"] .search-result-record-folder .search-result-title .v-icon + span, .constellio .v-ui[width-range~="1101px-"] .search-result-record-task .search-result-title .v-icon + span {
 	margin-left: auto;
 }
 
@@ -16356,6 +16365,10 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: hidden;
 }
 
+.constellio .v-ui[width-range~="801-1100px"] .viewable-record-table .scrollable {
+	overflow-x: hidden;
+}
+
 .constellio .v-ui[width-range~="801-1100px"] .folder-content-table .v-scrollable {
 	overflow-x: auto;
 }
@@ -16364,11 +16377,11 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: 23px;
 }
 
-.constellio .v-ui[width-range~="801-1100px"] .search-result-title .v-icon {
+.constellio .v-ui[width-range~="801-1100px"] .search-result-record-folder .search-result-title .v-icon, .constellio .v-ui[width-range~="801-1100px"] .search-result-record-task .search-result-title .v-icon {
 	display: none;
 }
 
-.constellio .v-ui[width-range~="801-1100px"] .search-result-title .v-icon + span {
+.constellio .v-ui[width-range~="801-1100px"] .search-result-record-folder .search-result-title .v-icon + span, .constellio .v-ui[width-range~="801-1100px"] .search-result-record-task .search-result-title .v-icon + span {
 	margin-left: auto;
 }
 

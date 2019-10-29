@@ -1223,6 +1223,10 @@ $popup-view-z-index: 3;
     		overflow-x: auto;
     	}
 	}
+	
+	.reference-display, .agent-link {
+		height: auto;
+	}
 
 	.base-display {
 		
@@ -2645,6 +2649,7 @@ $popup-view-z-index: 3;
             
             .action-mode-buttons-layout {
             	float: right;
+            	padding-right: 4px;
             }
   		}
 
@@ -3540,6 +3545,12 @@ $popup-view-z-index: 3;
 	    .main-component-wrapper {
 	    	min-height: 700px;
 	    }
+	    
+    	.viewable-record-table {
+    		.scrollable {
+    			overflow-x: hidden;
+    		}
+    	}
     	
     	.stats-table-layout {
 	    	.v-table {
@@ -3663,14 +3674,16 @@ $popup-view-z-index: 3;
 			}
 		}			
   		
-  		.search-result-title {
-  			.v-icon {
-  				display: none;
-  			}
-  			
-  			.v-icon + span {
-  				margin-left: auto;
-  			}
+  		.search-result-record-folder, .search-result-record-task {
+	  		.search-result-title {
+	  			.v-icon {
+	  				display: none;
+	  			}
+	  			
+	  			.v-icon + span {
+	  				margin-left: auto;
+	  			}
+	  		}
   		}
 
 	    .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
@@ -3768,6 +3781,12 @@ $popup-view-z-index: 3;
 	    .v-panel-content-content-view-wrapper {
 	    	overflow-y: hidden;
 	    }
+	    
+    	.viewable-record-table {
+    		.scrollable {
+    			overflow-x: hidden;
+    		}
+    	}
 
     	.folder-content-table {
 	    	.v-scrollable {
@@ -3783,16 +3802,18 @@ $popup-view-z-index: 3;
 					}
 				}
 			}
-		}	
+		}				
   		
-  		.search-result-title {
-  			.v-icon {
-  				display: none;
-  			}
-  			
-  			.v-icon + span {
-  				margin-left: auto;
-  			}
+  		.search-result-record-folder, .search-result-record-task {
+	  		.search-result-title {
+	  			.v-icon {
+	  				display: none;
+	  			}
+	  			
+	  			.v-icon + span {
+	  				margin-left: auto;
+	  			}
+	  		}
   		}
 
         .action-menu-wrapper {
