@@ -4,8 +4,10 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.vaadin.data.Item;
@@ -138,5 +140,10 @@ public class DisplayFacetConfigurationViewImpl extends BaseViewImpl implements D
 				return super.buildSingleValue(recordVO, metadata, displayValue);
 			}
 		}
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return SearchConfigurationViewImpl.getSearchConfigurationBreadCrumbTrail(this, getTitle());
 	}
 }
