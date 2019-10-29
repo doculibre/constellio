@@ -1,12 +1,18 @@
 package com.constellio.app.ui.pages.management.facet;
 
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.buttons.IconButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Layout;
 import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
@@ -19,6 +25,9 @@ public class OrderFacetConfigurationViewImpl extends BaseViewImpl implements Ord
 	public static final String BUTTONS_LAYOUT = "base-form-buttons-layout";
 	public static final String SAVE_BUTTON = "base-form-save";
 	public static final String CANCEL_BUTTON = "base-form-cancel";
+	public static final ThemeResource UP_IMG = new ThemeResource("images/icons/actions/up_grey.png");
+	public static final ThemeResource DOWN_IMG = new ThemeResource("images/icons/actions/down_grey.png");
+	private HorizontalLayout buttonLayout;
 
 	public OrderFacetConfigurationViewImpl() {
 		presenter = new OrderFacetConfigurationPresenter(this);
@@ -42,13 +51,26 @@ public class OrderFacetConfigurationViewImpl extends BaseViewImpl implements Ord
 		subLayout.addComponent(getSideButtonLayout());
 
 		mainLayout.addComponent(subLayout);
-		mainLayout.addComponent(getFormButton());
+		Layout formButton = getFormButton();
+
+		if (isAddButtonsToStaticFooter()) {
+			ConstellioUI.getCurrent().setStaticFooterContent(formButton);
+		} else {
+			mainLayout.addComponent(formButton);
+		}
+
+
 		return mainLayout;
 	}
 
-	private Component getFormButton() {
-		HorizontalLayout mainLayout = new HorizontalLayout();
-		mainLayout.setSpacing(true);
+	private boolean isAddButtonsToStaticFooter() {
+		return !isInWindow();
+	}
+
+	private Layout getFormButton() {
+		buttonLayout = new HorizontalLayout();
+		buttonLayout.setSpacing(true);
+
 
 		Button save = new Button($("save"));
 		save.addStyleName(SAVE_BUTTON);
@@ -70,20 +92,19 @@ public class OrderFacetConfigurationViewImpl extends BaseViewImpl implements Ord
 			}
 		});
 
-		mainLayout.addComponent(save);
-		mainLayout.addComponent(cancel);
-		mainLayout.addStyleName(BUTTONS_LAYOUT);
+		buttonLayout.addComponent(save);
+		buttonLayout.addComponent(cancel);
+		buttonLayout.addStyleName(BUTTONS_LAYOUT);
 
-		return mainLayout;
+		return buttonLayout;
 	}
 
 	private Component getSideButtonLayout() {
 		VerticalLayout verticalLayout = new VerticalLayout();
 
-		Button up = new Button($("OrderFacetConfigurationView.up"));
-		up.addClickListener(new ClickListener() {
+		Button up = new IconButton(UP_IMG, "", true, false) {
 			@Override
-			public void buttonClick(ClickEvent event) {
+			protected void buttonClick(ClickEvent event) {
 				String value = (String) listSelect.getValue();
 				if (value != null && !value.isEmpty()) {
 					presenter.swap(value, -1);
@@ -91,12 +112,13 @@ public class OrderFacetConfigurationViewImpl extends BaseViewImpl implements Ord
 					listSelect.select(value);
 				}
 			}
-		});
+		};
+		up.setWidth("35px");
+		up.addStyleName("upanddownposition");
 
-		Button down = new Button($("OrderFacetConfigurationView.down"));
-		down.addClickListener(new ClickListener() {
+		Button down = new IconButton(DOWN_IMG, "", false, false) {
 			@Override
-			public void buttonClick(ClickEvent event) {
+			protected void buttonClick(ClickEvent event) {
 				String value = (String) listSelect.getValue();
 				if (value != null && !value.isEmpty()) {
 					presenter.swap(value, 1);
@@ -104,10 +126,14 @@ public class OrderFacetConfigurationViewImpl extends BaseViewImpl implements Ord
 					listSelect.select(value);
 				}
 			}
-		});
+		};
+		down.setWidth("35px");
+		down.addStyleName("upanddownposition");
 
 		verticalLayout.addComponent(up);
 		verticalLayout.addComponent(down);
+
+		verticalLayout.addStyleName("upanddownpositionlayout");
 
 		return verticalLayout;
 	}
@@ -124,11 +150,17 @@ public class OrderFacetConfigurationViewImpl extends BaseViewImpl implements Ord
 
 	private ListSelect facetList() {
 		listSelect = new ListSelect("");
+		listSelect.setNullSelectionAllowed(false);
 		listSelect.setWidth("100%");
 
 		refreshList();
 
 		return listSelect;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return SearchConfigurationViewImpl.getFacetListBreadCrumbTrail(this, getTitle());
 	}
 
 	@Override

@@ -75,6 +75,18 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+    .upanddownposition {
+        .v-button-wrap {
+                position: absolute;
+                right: 5px;
+        }
+    }
+
+    .upanddownpositionlayout {
+          margin-top: 26px;
+          margin-left: -11px;
+    }
+
 	.v-slot-setup-panel {
 		overflow-y: auto;
 	}
