@@ -28,7 +28,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 
 	@Override
 	public ModifiableStructure build(String string) {
-		String stringWithNullReplaced = replacer.replaceOn(string);
+		String stringWithNullReplaced = buildStringWithNullReplaced(string);
 		StringTokenizer stringTokenizer = new StringTokenizer(stringWithNullReplaced, ":");
 		String versionOrCode = readString(stringTokenizer);
 		if (isVersion2(versionOrCode)) {
@@ -49,6 +49,16 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		//		String newString = toString(copyRetentionRuleFactory);
 		//return build(newString);
 
+	}
+
+	private String buildStringWithNullReplaced(String string) {
+		String stringWithNullReplaced = string;
+
+		while (stringWithNullReplaced.contains("::")) {
+			stringWithNullReplaced = replacer.replaceOn(stringWithNullReplaced);
+		}
+
+		return stringWithNullReplaced;
 	}
 
 	private ModifiableStructure getModifiableStructureV2(StringTokenizer stringTokenizer) {
