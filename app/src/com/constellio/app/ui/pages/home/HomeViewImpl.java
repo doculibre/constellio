@@ -415,7 +415,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) item;
 			return recordVOItem.getBean().getRecord();
 		}
-			
+
 	}
 
 	private class HomeViewViewableItemTablePanel extends ViewableRecordVOTablePanel {

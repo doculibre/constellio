@@ -33,6 +33,7 @@ public class Category extends RecordWrapper {
 	public static final String RETENTION_RULES = "retentionRules";
 	public static final String LEVEL = "level";
 	public static final String COPY_RETENTION_RULES_ON_DOCUMENT_TYPES = "copyRetentionRulesOnDocumentTypes";
+	public static final String ABBREVIATION = "abbreviation";
 
 	@Deprecated
 	public Category(Record record, MetadataSchemaTypes types) {
@@ -180,5 +181,9 @@ public class Category extends RecordWrapper {
 
 	public Category addRetentionRules(RetentionRule... rules) {
 		return add(RETENTION_RULES, rules);
+	}
+
+	public String getAbbreviation() {
+		return get(ABBREVIATION);
 	}
 }

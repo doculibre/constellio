@@ -168,15 +168,15 @@ public class TaskTable extends VerticalLayout {
 
 				MetadataVO metadata = (MetadataVO) event.getProperty().getValue();
 				table.setSortContainerPropertyId(metadata);
-				if(previousSort == null && metadata != null) {
+				if (previousSort == null && metadata != null) {
 					MetadataValueType type = metadata.getType();
 					boolean isSortAsc = true;
-					if(type.isDateOrDateTime()) {
+					if (type.isDateOrDateTime()) {
 						isSortAsc = false;
 					}
 
 					table.setSortAscending(isSortAsc);
-					sortAscButton.setIcon(isSortAsc? FontAwesome.SORT_ASC: FontAwesome.SORT_DESC);
+					sortAscButton.setIcon(isSortAsc ? FontAwesome.SORT_ASC : FontAwesome.SORT_DESC);
 				}
 			}
 		});

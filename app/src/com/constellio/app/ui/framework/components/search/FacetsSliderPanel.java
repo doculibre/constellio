@@ -14,7 +14,7 @@ public class FacetsSliderPanel extends SliderPanel {
 	public FacetsSliderPanel(Component component) {
 		super(builder(component));
 	}
-	
+
 	private static SliderPanelBuilder builder(Component component) {
 		LazyLoadWrapper lazyLoadWrapper = new LazyLoadWrapper(component);
 		SliderPanelBuilder builder = new SliderPanelBuilder(lazyLoadWrapper)

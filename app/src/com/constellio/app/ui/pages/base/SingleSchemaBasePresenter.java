@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -20,6 +18,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
+
+import java.util.List;
 
 public abstract class SingleSchemaBasePresenter<T extends BaseView> extends BasePresenter<T> {
 
@@ -128,7 +128,7 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 	}
 
 	protected final boolean delete(Record record, String reason, boolean physically, int waitSeconds,
-								ValidationErrors validationErrors) {
+								   ValidationErrors validationErrors) {
 
 		boolean isDeletetionSuccessful = false;
 		try {

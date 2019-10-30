@@ -38,6 +38,7 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 	List<String> groupIds;
 	AddEditTaxonomyPresenter presenter;
 	Map<Language, String> newTaxonomyTitle;
+	Map<Language, String> newTaxonomyAbv;
 	MockedFactories mockedFactories = new MockedFactories();
 	@Mock
 	CollectionsListManager collectionsListManager;
@@ -64,6 +65,9 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 		newTaxonomyTitle = new HashMap<>();
 		newTaxonomyTitle.put(Language.French, "taxonomy 1");
 
+		newTaxonomyAbv = new HashMap<>();
+		newTaxonomyAbv.put(Language.French, "taxo1");
+
 		userIds = new ArrayList<>();
 		userIds.add("chuck");
 		userIds.add("bob");
@@ -71,10 +75,11 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 		groupIds = new ArrayList<>();
 		groupIds.add("heroes");
 		groupIds.add("legends");
-		taxonomyVO = new TaxonomyVO("taxo1", newTaxonomyTitle, new ArrayList<String>(), zeCollection, userIds, groupIds, true);
-
+		taxonomyVO = new TaxonomyVO("taxo1", newTaxonomyTitle, newTaxonomyAbv, new ArrayList<String>(),
+				zeCollection, userIds, groupIds, true);
 
 		when(taxonomy1.getTitle()).thenReturn(taxonomyVO.getTitleMap());
+		when(taxonomy1.getAbbreviation()).thenReturn(taxonomyVO.getAbbreviationMap());
 
 		presenter = spy(new AddEditTaxonomyPresenter(view));
 
@@ -88,7 +93,8 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(taxonomyVO, true);
 
-		verify(valueListServices).createTaxonomy(taxonomyVO.getTitleMap(), taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(), true, true);
+		verify(valueListServices).createTaxonomy(taxonomyVO.getTitleMap(), taxonomyVO.getAbbreviationMap(),
+				taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(), true, true);
 		verify(view.navigate().to()).listTaxonomies();
 	}
 
@@ -121,8 +127,8 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(taxonomyVO, false);
 
-		verify(valueListServices, never()).createTaxonomy(taxonomyVO.getTitleMap(), taxonomyVO.getUserIds(),
-				taxonomyVO.getGroupIds(), true, true);
+		verify(valueListServices, never()).createTaxonomy(taxonomyVO.getTitleMap(), taxonomyVO.getAbbreviationMap(),
+				taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(), true, true);
 	}
 
 	@Test

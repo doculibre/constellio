@@ -85,7 +85,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		mainMenuContentFooterLayout.setSizeFull();
 		mainMenuContentFooterLayout.addStyleName("main-menu-content-footer");
 
-		contentViewWrapper = new Panel(); 
+		contentViewWrapper = new Panel();
 		contentViewWrapper.addStyleName(ValoTheme.PANEL_BORDERLESS);
 
 		Navigator navigator = new Navigator(UI.getCurrent(), contentViewWrapper);
@@ -171,7 +171,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 
 		staticFooterContentAndGuideLayout.addComponent(guideButton);
 		staticFooterContentAndGuideLayout.setComponentAlignment(guideButton, Alignment.MIDDLE_RIGHT);
-		
+
 		PagesComponentsExtensionParams params = new PagesComponentsExtensionParams(header, mainMenu, staticFooterExtraComponentsLayout, this,
 				contentViewWrapper, contentFooterWrapperLayout, presenter.getUser());
 		appLayerFactory.getExtensions().getSystemWideExtensions().decorateView(params);
@@ -191,7 +191,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		updateStaticFooterState();
 
 		buildInitJavascript();
-		
+
 		navigator.addViewChangeListener(new ViewChangeListener() {
 			@Override
 			public boolean beforeViewChange(ViewChangeEvent event) {
@@ -269,7 +269,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 			staticFooterLayout.setVisible(false);
 		}
 	}
-	
+
 	protected ConstellioHeaderImpl buildHeader() {
 		return new ConstellioHeaderImpl();
 	}

@@ -86,6 +86,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 			}
 
 			taxonomy = taxonomy.withTitle(taxonomyVO.getTitleMap())
+					.withAbbreviation(taxonomyVO.getAbbreviationMap())
 					.withUserIds(taxonomyVO.getUserIds())
 					.withGroupIds(taxonomyVO.getGroupIds())
 					.withVisibleInHomeFlag(taxonomyVO.isVisibleInHomePage());
@@ -103,8 +104,8 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 			}
 
 			Taxonomy taxonomy = valueListServices()
-					.createTaxonomy(taxonomyVO.getTitleMap(), taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(),
-							taxonomyVO.isVisibleInHomePage(), isMultiLingual);
+					.createTaxonomy(taxonomyVO.getTitleMap(), taxonomyVO.getAbbreviationMap(), taxonomyVO.getUserIds(),
+							taxonomyVO.getGroupIds(), taxonomyVO.isVisibleInHomePage(), isMultiLingual);
 			createMetadatasInClassifiedObjects(taxonomy, taxonomyVO.getClassifiedObjects(), true);
 			view.navigate().to().listTaxonomies();
 			titles.add(taxonomyVO.getTitleMap());

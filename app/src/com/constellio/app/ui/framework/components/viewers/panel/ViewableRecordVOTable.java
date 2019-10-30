@@ -118,10 +118,10 @@ public class ViewableRecordVOTable extends RecordVOTable {
 									public void call(JsonArray arguments) {
 										String tableBodyWrapperDivHeight = StringUtils.removeEnd(arguments.getString(0), "px");
 										//										if (StringUtils.isNotBlank(tableBodyWrapperDivHeight)) {
-											StringBuilder js = new StringBuilder();
-											js.append("  var tableBodyWrapperDiv =  document.getElementById('" + getId() + "').getElementsByClassName('v-table-body-wrapper')[0].getElementsByTagName('div')[0];");
-											js.append("  tableBodyWrapperDiv.style.height = '" + tableBodyWrapperDivHeight + "';");
-											JavaScript.getCurrent().execute(js.toString());
+										StringBuilder js = new StringBuilder();
+										js.append("  var tableBodyWrapperDiv =  document.getElementById('" + getId() + "').getElementsByClassName('v-table-body-wrapper')[0].getElementsByTagName('div')[0];");
+										js.append("  tableBodyWrapperDiv.style.height = '" + tableBodyWrapperDivHeight + "';");
+										JavaScript.getCurrent().execute(js.toString());
 										//										}
 									}
 								});

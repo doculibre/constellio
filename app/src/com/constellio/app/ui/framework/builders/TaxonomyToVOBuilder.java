@@ -17,6 +17,7 @@ public class TaxonomyToVOBuilder implements Serializable {
 		List<String> groupIds = taxonomy.getGroupIds();
 		boolean visibleInHomePage = taxonomy.isVisibleInHomePage();
 
-		return new TaxonomyVO(code, taxonomy.getTitle(), schemaTypes, collection, userIds, groupIds, visibleInHomePage);
+		return new TaxonomyVO(code, taxonomy.getTitle(), taxonomy.getAbbreviation(), schemaTypes, collection, userIds,
+				groupIds, visibleInHomePage);
 	}
 }

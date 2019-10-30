@@ -630,7 +630,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 				adjustSelectAllButton(selected);
 			}
 		};
-		
+
 		Component selectDeselectAllToggleButton = selectionTableAdapter.getComponent(0);
 		I18NHorizontalLayout selectionPanelTopLayout = new I18NHorizontalLayout();
 		selectionPanelTopLayout.addStyleName("selection-panel-top-layout");
@@ -678,7 +678,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 				return null;
 			}
 		};
-		
+
 		List<String> excludedActionTypes = Arrays.asList(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name());
 		RecordListMenuBar recordListMenuBar = new RecordListMenuBar(recordProvider, $("ConstellioHeader.selectionActions"), excludedActionTypes);
 		return recordListMenuBar;

@@ -1222,7 +1222,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	public AcceptCriterion getAcceptCriterion() {
 		return AcceptAll.get();
 	}
-	
+
 	private class ViewerMetadataPanel extends VerticalLayout {
 
 		private VerticalLayout mainLayout;

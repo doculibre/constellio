@@ -213,7 +213,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 
 	@Override
 	public boolean isEditButtonEnabled(RecordVO recordVO) {
-		Record record = recordVO.getRecord() ;
+		Record record = recordVO.getRecord();
 		Task task = tasksSchemasRecordsServices.wrapTask(record);
 		String closed = task.getStatus();
 		boolean isNotEditable = !getFinishedOrClosedStatuses().contains(closed);
@@ -261,7 +261,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 
 	@Override
 	public boolean isCompleteButtonEnabled(RecordVO recordVO) {
-		return taskPresenterServices.isCompleteTaskButtonVisible(recordVO.getRecord() , getCurrentUser());
+		return taskPresenterServices.isCompleteTaskButtonVisible(recordVO.getRecord(), getCurrentUser());
 	}
 
 	@Override

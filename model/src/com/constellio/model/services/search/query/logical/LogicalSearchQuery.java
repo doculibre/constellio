@@ -223,7 +223,6 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 
-
 	public LogicalSearchQuery filteredWithUserHierarchyRead(User user) {
 		if (user == null) {
 			throw new IllegalArgumentException("user required");
@@ -262,7 +261,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 
 	public LogicalSearchQuery filteredWithUserHierarchy(User user, String access, MetadataSchemaType selectedType,
-															boolean includeInvisible) {
+														boolean includeInvisible) {
 		if (user == null) {
 			throw new IllegalArgumentException("user required");
 		}
