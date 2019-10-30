@@ -84,6 +84,10 @@ public class Metadata implements DataStoreField {
 
 	final Map<String, Object> customParameter;
 
+	final String schemaTypeCode;
+
+	final boolean secured;
+
 	Metadata(int id, String localCode, MetadataValueType type, boolean multivalue) {
 		this(id, "global_default", localCode, type, multivalue, false);
 	}
@@ -143,6 +147,11 @@ public class Metadata implements DataStoreField {
 		this.inheritanceCode = computeInheritanceCode();
 		this.global = computeIsGlobal();
 		this.customParameter = Collections.unmodifiableMap(new HashMap<String, Object>());
+		this.schemaTypeCode = new SchemaUtils().getSchemaTypeCode(this);
+
+		this.secured = getAccessRestrictions() != null && getAccessRestrictions().getRequiredReadRoles() != null &&
+					   !getAccessRestrictions().getRequiredReadRoles().isEmpty();
+
 	}
 
 	public boolean isFilteredByAny(List<MetadataFilter> metadataFilterList) {
@@ -153,6 +162,10 @@ public class Metadata implements DataStoreField {
 		}
 
 		return false;
+	}
+
+	public boolean isSecured() {
+		return secured;
 	}
 
 	public final String computeInheritanceCode() {
@@ -228,6 +241,9 @@ public class Metadata implements DataStoreField {
 		this.inheritanceCode = computeInheritanceCode();
 		this.global = computeIsGlobal();
 		this.customParameter = Collections.unmodifiableMap(customParameter);
+		this.schemaTypeCode = new SchemaUtils().getSchemaTypeCode(this);
+		this.secured = getAccessRestrictions() != null && getAccessRestrictions().getRequiredReadRoles() != null &&
+					   !getAccessRestrictions().getRequiredReadRoles().isEmpty();
 	}
 
 	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled,
@@ -265,6 +281,9 @@ public class Metadata implements DataStoreField {
 		this.inheritanceCode = computeInheritanceCode();
 		this.global = computeIsGlobal();
 		this.customParameter = Collections.unmodifiableMap(customParameter);
+		this.schemaTypeCode = inheritance.getSchemaTypeCode();
+		this.secured = getAccessRestrictions() != null && getAccessRestrictions().getRequiredReadRoles() != null &&
+					   !getAccessRestrictions().getRequiredReadRoles().isEmpty();
 	}
 
 	public Map<String, Object> getCustomParameter() {
@@ -526,7 +545,7 @@ public class Metadata implements DataStoreField {
 	}
 
 	public String getSchemaTypeCode() {
-		return new SchemaUtils().getSchemaTypeCode(this);
+		return schemaTypeCode;
 	}
 
 	public MetadataPopulateConfigs getPopulateConfigs() {

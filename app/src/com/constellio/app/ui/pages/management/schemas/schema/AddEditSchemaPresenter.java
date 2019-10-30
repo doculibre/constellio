@@ -6,8 +6,6 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToFormVOBuilder;
-import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
-import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
@@ -94,11 +92,6 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		FormMetadataSchemaVO schemaVO = new MetadataSchemaToFormVOBuilder().build(schema, code, sessionContext, schemaTypeDisplayConfig, editMode);
 		setSchemaVO(schemaVO);
 		initialIsCodeEditable = isCodeEditable();
-	}
-
-	public MetadataVODataProvider getDataProvider() {
-		String schemaCode = schemaVO.getCode();
-		return new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode);
 	}
 
 	public void saveButtonClicked() throws ValidationException {

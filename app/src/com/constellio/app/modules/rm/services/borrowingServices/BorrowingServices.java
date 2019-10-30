@@ -344,7 +344,7 @@ public class BorrowingServices {
 		}
 
 		if (isCreateEvent) {
-			if (borrowingType == BorrowingType.BORROW) {
+			if (borrowingType == BorrowingType.BORROW || borrowingType == BorrowingType.CONSULTATION) {
 				loggingServices.returnRecord(folderRecord, currentUser, returnDateTime);
 			}
 		}

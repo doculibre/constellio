@@ -29,6 +29,11 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 		lookupFieldListenerList = new ArrayList<>();
 	}
 
+	@Override
+	protected boolean isEditPossible() {
+		return false;
+	}
+
 	public String getSchemaTypeCode() {
 		return schemaTypeCode;
 	}

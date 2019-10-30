@@ -18,6 +18,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
@@ -33,11 +34,12 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,9 +47,10 @@ import java.util.Map;
 import static com.constellio.app.ui.application.ConstellioUI.getCurrent;
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class SearchResultDisplay extends CssLayout {
+public class SearchResultDisplay extends VerticalLayout {
 
 	public static final String RECORD_STYLE = "search-result-record";
+	public static final String INDEX_STYLE = "search-result-index";
 	public static final String TITLE_STYLE = "search-result-title";
 	public static final String HIGHLIGHTS_STYLE = "search-result-highlights";
 	public static final String METADATA_CAPTION_STYLE = "search-result-metadata-caption";
@@ -68,14 +71,19 @@ public class SearchResultDisplay extends CssLayout {
 
 	SchemasRecordsServices schemasRecordsService;
 
-	BaseButton excludeButton;
-	BaseButton elevateButton;
+	private SearchResultVO searchResultVO;
+	private MetadataDisplayFactory componentFactory;
 
-	String query;
-	Map<String, String> extraParam;
+	private BaseButton excludeButton;
+	private BaseButton elevateButton;
+
+	private String query;
+	private Map<String, String> extraParam;
 	boolean noLinks;
 
 	private Component titleLink;
+
+	private Boolean lastModeDesktop;
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 							   AppLayerFactory appLayerFactory, String query, boolean noLinks) {
@@ -85,6 +93,8 @@ public class SearchResultDisplay extends CssLayout {
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 							   AppLayerFactory appLayerFactory, String query, Map<String, String> extraParam,
 							   boolean noLinks) {
+		this.searchResultVO = searchResultVO;
+		this.componentFactory = componentFactory;
 		this.appLayerFactory = appLayerFactory;
 		this.extraParam = extraParam;
 		schemasRecordsService = new SchemasRecordsServices(ConstellioUI.getCurrentSessionContext().getCurrentCollection(),
@@ -94,7 +104,11 @@ public class SearchResultDisplay extends CssLayout {
 		searchConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSearchConfigurationsManager();
 
 		this.sessionContext = getCurrent().getSessionContext();
-		init(searchResultVO, componentFactory);
+		init();
+	}
+
+	public SearchResultVO getSearchResultVO() {
+		return searchResultVO;
 	}
 
 	public Map<String, String> getExtraParam() {
@@ -105,30 +119,41 @@ public class SearchResultDisplay extends CssLayout {
 		this.extraParam = extraParam;
 	}
 
-	protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
+	private void init() {
+		setWidth("50px");
+
 		addStyleName(RECORD_STYLE);
-		setWidth("100%");
-		//		setSpacing(true);
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(searchResultVO.getRecordVO().getSchema().getCode());
+		String schemaStyleName = RECORD_STYLE + "-" + schemaTypeCode;
+		addStyleName(schemaStyleName);
 
-		addTitleComponents(searchResultVO);
+		addTitleComponents();
+		addResultIndex();
 
-		addComponent(newHighlightsLabel(searchResultVO));
+		addComponent(newHighlightsLabel());
 		List<Component> additionalComponents = appLayerFactory.getExtensions().forCollection(sessionContext.getCurrentCollection())
 				.addComponentToSearchResult(new AddComponentToSearchResultParams(searchResultVO));
 		for (Component additionalComponent : additionalComponents) {
 			addComponent(additionalComponent);
 		}
-		buildMetadataComponent(searchResultVO.getRecordVO(), componentFactory);
+		buildMetadataComponent();
 	}
 
-	private void addTitleComponents(SearchResultVO searchResultVO) {
+	private void addResultIndex() {
+		int index = searchResultVO.getIndex() + 1;
+		if (index > 0) {
+			String formattedIndex = "#" + NumberFormat.getIntegerInstance().format(index);
+			Label indexLabel = new Label(formattedIndex);
+			indexLabel.addStyleName(INDEX_STYLE);
+			addComponent(indexLabel);
+		}
+	}
+
+	private void addTitleComponents() {
 		final RecordVO record = searchResultVO.getRecordVO();
 
 		titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
-
-		titleLink.setWidth("100%");
-		addComponent(titleLink);
 
 		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
 		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
@@ -136,6 +161,10 @@ public class SearchResultDisplay extends CssLayout {
 
 		if (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
 			&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
+			//			titleLink.setWidth("90%");
+
+			addStyleName("search-result-with-elevation-buttons");
+
 			boolean isElevated = searchConfigurationsManager.isElevated(currentSessionContext.getCurrentCollection(), query, record.getId());
 
 			Resource elevateIcon = isElevated ? FontAwesome.ARROW_CIRCLE_O_DOWN : FontAwesome.ARROW_CIRCLE_O_UP;
@@ -147,7 +176,10 @@ public class SearchResultDisplay extends CssLayout {
 
 			addComponent(elevateButton);
 			addComponent(excludeButton);
+		} else {
+			titleLink.setWidth("100%");
 		}
+		addComponent(titleLink);
 	}
 
 	protected void addVisitedStyleNameIfNecessary(Component titleLink, String id) {
@@ -161,7 +193,7 @@ public class SearchResultDisplay extends CssLayout {
 		return new ReferenceDisplay(searchResultVO.getRecordVO(), true, extraParam);
 	}
 
-	protected Label newHighlightsLabel(SearchResultVO searchResultVO) {
+	protected Label newHighlightsLabel() {
 		String formattedHighlights = formatHighlights(searchResultVO.getHighlights(), searchResultVO.getRecordVO());
 		Label highlights = new Label(formattedHighlights, ContentMode.HTML);
 		highlights.addStyleName(HIGHLIGHTS_STYLE);
@@ -200,7 +232,8 @@ public class SearchResultDisplay extends CssLayout {
 		return StringUtils.join(parts, SEPARATOR);
 	}
 
-	private void buildMetadataComponent(RecordVO recordVO, MetadataDisplayFactory componentFactory) {
+	private void buildMetadataComponent() {
+		RecordVO recordVO = searchResultVO.getRecordVO();
 		if (noLinks) {
 			StringBuilder sb = new StringBuilder();
 			for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
@@ -208,23 +241,11 @@ public class SearchResultDisplay extends CssLayout {
 					MetadataVO metadataVO = metadataValue.getMetadata();
 					if (!metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
 						String stringDisplayValue = componentFactory.buildString(recordVO, metadataValue);
-						if (stringDisplayValue != null) {
-							sb.append("<div class=\"search-result-metadata\">");
-							sb.append("<div class=\"metadata-caption\">");
-							sb.append(metadataVO.getLabel());
-							sb.append(":</div><div class=\"metadata-value\">");
-							sb.append(stringDisplayValue);
-							sb.append("</div>");
-							sb.append("</div>");
-						}
+						buildSearchResultInfo(sb, metadataVO.getLabel(), stringDisplayValue);
 					}
 				}
 			}
-			if (sb.length() > 0) {
-				sb.insert(0, "<div class=\"search-result-metadatas\">");
-				sb.append("</div>");
-				addComponent(new Label(sb.toString(), ContentMode.HTML));
-			}
+			this.addComponent(addSearchResultMetadatas(sb));
 		} else {
 			for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
 				if (recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {
@@ -240,6 +261,28 @@ public class SearchResultDisplay extends CssLayout {
 					}
 				}
 			}
+		}
+	}
+
+	public static Label addSearchResultMetadatas(StringBuilder sb) {
+		if (sb.length() > 0) {
+			sb.insert(0, "<div class=\"search-result-metadatas\">");
+			sb.append("</div>");
+			return new Label(sb.toString(), ContentMode.HTML);
+		} else {
+			return null;
+		}
+	}
+
+	public static void buildSearchResultInfo(StringBuilder sb, String label, String stringDisplayValue) {
+		if (stringDisplayValue != null) {
+			sb.append("<div class=\"search-result-metadata\">");
+			sb.append("<div class=\"metadata-caption\">");
+			sb.append(label);
+			sb.append(":</div><div class=\"metadata-value\">");
+			sb.append(stringDisplayValue);
+			sb.append("</div>");
+			sb.append("</div>");
 		}
 	}
 

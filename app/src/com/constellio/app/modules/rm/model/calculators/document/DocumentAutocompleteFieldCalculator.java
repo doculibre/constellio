@@ -3,11 +3,14 @@ package com.constellio.app.modules.rm.model.calculators.document;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.enums.AutocompleteSplitCriteria;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator.LocalAutocompleteMetadatasDependency;
 
 import java.util.ArrayList;
@@ -24,12 +27,15 @@ public class DocumentAutocompleteFieldCalculator extends AbstractMetadataValueCa
 	DynamicLocalDependency autocompleteMetadatasDependency = new LocalAutocompleteMetadatasDependency();
 	ReferenceDependency<List<String>> folderAutocompleteTermsDependency = ReferenceDependency
 			.toAString(Document.FOLDER, Schemas.SCHEMA_AUTOCOMPLETE_FIELD.getLocalCode()).whichIsMultivalue();
+	ConfigDependency<AutocompleteSplitCriteria> autocompletSplitCriteriaConfigDependency
+			= ConstellioEIMConfigs.AUTOCOMPLETE_SPLIT_CRITERIA.dependency();
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
 		Set<String> words = new HashSet<>();
-		splitInLowerCasedTermsRemovingAccents(words, parameters.get(autocompleteMetadatasDependency));
-		splitInLowerCasedTermsRemovingAccents(words, parameters.get(folderAutocompleteTermsDependency));
+		AutocompleteSplitCriteria autocompleteSplitCriteria = parameters.get(autocompletSplitCriteriaConfigDependency);
+		splitInLowerCasedTermsRemovingAccents(words, parameters.get(autocompleteMetadatasDependency), autocompleteSplitCriteria);
+		splitInLowerCasedTermsRemovingAccents(words, parameters.get(folderAutocompleteTermsDependency), autocompleteSplitCriteria);
 		List<String> returnedWords = new ArrayList<>(words);
 		Collections.sort(returnedWords);
 		return returnedWords;
@@ -52,7 +58,7 @@ public class DocumentAutocompleteFieldCalculator extends AbstractMetadataValueCa
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return asList(autocompleteMetadatasDependency, folderAutocompleteTermsDependency);
+		return asList(autocompleteMetadatasDependency, folderAutocompleteTermsDependency, autocompletSplitCriteriaConfigDependency);
 	}
 
 }

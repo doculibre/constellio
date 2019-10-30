@@ -12,6 +12,7 @@ import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.Layout;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -115,7 +116,7 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 
 			@Override
 			public void reload() {
-				replaceComponent(this, newForm());
+				((Layout) this.getParent()).replaceComponent(this, newForm());
 			}
 
 			@Override

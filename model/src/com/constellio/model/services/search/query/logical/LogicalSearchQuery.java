@@ -6,8 +6,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.SecurityModel;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.entities.SearchBoost;
@@ -18,6 +21,7 @@ import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.security.SecurityTokenManager;
+import com.constellio.model.services.security.SecurityTokenManager.UserTokens;
 import lombok.Getter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -28,6 +32,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.constellio.model.entities.schemas.Schemas.TOKENS;
+import static com.constellio.model.entities.schemas.Schemas.TOKENS_OF_HIERARCHY;
+import static com.constellio.model.entities.security.SecurityModelUtils.hasNegativeAccessOnSecurisedRecord;
 import static com.constellio.model.services.search.VisibilityStatusFilter.VISIBLES;
 import static java.util.Arrays.asList;
 
@@ -77,7 +84,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	private String language;
 
-	private QueryExecutionMethod queryExecutionMethod = QueryExecutionMethod.USE_CACHE_IF_POSSIBLE;
+	private QueryExecutionMethod queryExecutionMethod = QueryExecutionMethod.DEFAULT;
 
 	public LogicalSearchQuery() {
 		numberOfRows = DEFAULT_NUMBER_OF_ROWS;
@@ -213,6 +220,53 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public LogicalSearchQuery filteredWithUserDelete(User user) {
 		return filteredWithUser(user, Role.DELETE);
+	}
+
+
+	public LogicalSearchQuery filteredWithUserHierarchyRead(User user) {
+		if (user == null) {
+			throw new IllegalArgumentException("user required");
+		}
+		userFilters = asList((UserFilter) new HierarchyUserFilter(user, Role.READ, null, false));
+		return this;
+	}
+
+
+	public LogicalSearchQuery filteredWithUserHierarchyWrite(User user) {
+		if (user == null) {
+			throw new IllegalArgumentException("user required");
+		}
+		userFilters = asList((UserFilter) new HierarchyUserFilter(user, Role.WRITE, null, false));
+		return this;
+	}
+
+	public LogicalSearchQuery filteredWithUserHierarchyRead(User user, MetadataSchemaType selectedType,
+															boolean includeInvisible) {
+		if (user == null) {
+			throw new IllegalArgumentException("user required");
+		}
+		userFilters = asList((UserFilter) new HierarchyUserFilter(user, Role.READ, selectedType, includeInvisible));
+		return this;
+	}
+
+
+	public LogicalSearchQuery filteredWithUserHierarchyWrite(User user, MetadataSchemaType selectedType,
+															 boolean includeInvisible) {
+		if (user == null) {
+			throw new IllegalArgumentException("user required");
+		}
+		userFilters = asList((UserFilter) new HierarchyUserFilter(user, Role.WRITE, selectedType, includeInvisible));
+		return this;
+	}
+
+
+	public LogicalSearchQuery filteredWithUserHierarchy(User user, String access, MetadataSchemaType selectedType,
+														boolean includeInvisible) {
+		if (user == null) {
+			throw new IllegalArgumentException("user required");
+		}
+		userFilters = asList((UserFilter) new HierarchyUserFilter(user, access, selectedType, includeInvisible));
+		return this;
 	}
 
 	public List<UserFilter> getUserFilters() {
@@ -531,6 +585,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
+
 	public interface UserFilter {
 		String buildFQ(SecurityTokenManager securityTokenManager);
 
@@ -604,6 +659,157 @@ public class LogicalSearchQuery implements SearchQuery {
 			}
 		}
 	}
+
+	public static class HierarchyUserFilter implements UserFilter {
+
+		User user;
+
+		String access;
+
+		MetadataSchemaType forSelectionOfSchemaType;
+
+		boolean showInvisibleRecordsInLinkingMode;
+
+		public HierarchyUserFilter(User user, String access,
+								   MetadataSchemaType forSelectionOfSchemaType,
+								   boolean showInvisibleRecordsInLinkingMode) {
+			this.user = user;
+			this.access = access;
+			this.forSelectionOfSchemaType = forSelectionOfSchemaType;
+			this.showInvisibleRecordsInLinkingMode = showInvisibleRecordsInLinkingMode;
+		}
+
+		@Override
+		public String buildFQ(SecurityTokenManager securityTokenManager) {
+			return FilterUtils.userHierarchyFilter(user, securityTokenManager, access,
+					forSelectionOfSchemaType, showInvisibleRecordsInLinkingMode);
+		}
+
+
+		@Override
+		public boolean isExecutableInCache() {
+			SecurityTokenManager securityTokenManager = user.getRolesDetails().getSchemasRecordsServices()
+					.getModelLayerFactory().getSecurityTokenManager();
+			UserTokens tokens = securityTokenManager.getTokens(user);
+			return forSelectionOfSchemaType == null && tokens.getAllowTokens().isEmpty() && tokens.getShareAllowTokens().isEmpty();
+		}
+
+		@Override
+		public boolean hasUserAccessToRecord(Record record) {
+			SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
+					.newRecordServices().getSecurityModel(user.getCollection());
+			String selectedTypeSmallCode = null;
+			if (forSelectionOfSchemaType != null) {
+				selectedTypeSmallCode = forSelectionOfSchemaType.getSmallCode();
+				if (selectedTypeSmallCode == null) {
+					selectedTypeSmallCode = forSelectionOfSchemaType.getCode();
+				}
+			}
+
+			String tokenPrefix;
+			if (Role.READ.equals(this.access)) {
+				if (forSelectionOfSchemaType == null) {
+					tokenPrefix = "r";
+				} else {
+					tokenPrefix = "r" + selectedTypeSmallCode;
+				}
+			} else {
+				if (forSelectionOfSchemaType == null) {
+					tokenPrefix = "w";
+				} else {
+					tokenPrefix = "w" + selectedTypeSmallCode;
+				}
+			}
+
+			ModelLayerFactory modelLayerFactory = user.getRolesDetails().getSchemasRecordsServices()
+					.getModelLayerFactory();
+			SecurityTokenManager securityTokenManager = modelLayerFactory.getSecurityTokenManager();
+
+			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(record).getDefaultSchema();
+
+			List<String> recordTokens = record.getList(schema.getMetadata(TOKENS.getLocalCode()));
+			List<String> tokensHierarchy = record.getList(schema.getMetadata(TOKENS_OF_HIERARCHY.getLocalCode()));
+
+			if (user.isActiveUser() && !user.hasCollectionAccess(this.access == null ? Role.READ : this.access)) {
+
+				if (hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(user.getId(), false))) {
+
+					if (tokensHierarchy.contains("nr_" + user.getId())) {
+						return false;
+					}
+				}
+
+				for (String aGroup : user.getUserGroups()) {
+					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)
+						&& hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(aGroup, true))) {
+
+						if (tokensHierarchy.contains("nr_" + aGroup)) {
+							return false;
+						}
+					}
+				}
+			}
+
+			if (user.isActiveUser()) {
+
+				if (user.hasCollectionReadAccess() || user.hasCollectionDeleteAccess() || user.hasCollectionWriteAccess()) {
+					if (record.getCollection().equals(user.getCollection())) {
+						return true;
+					}
+				}
+
+				if (tokensHierarchy.contains(tokenPrefix + "_" + user.getId())) {
+					return true;
+				}
+
+				if (this.showInvisibleRecordsInLinkingMode && tokensHierarchy.contains("z" + tokenPrefix + "_" + user.getId())) {
+					return true;
+				}
+
+				for (String schemaType : securityTokenManager.getGlobalPermissionSecurableSchemaTypesVisibleBy(user, Role.READ)) {
+					if (record.getTypeCode().equals(schemaType)) {
+						return true;
+					}
+				}
+
+				for (String aGroup : user.getUserGroups()) {
+					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+
+						if (tokensHierarchy.contains(tokenPrefix + "_" + aGroup)) {
+							return true;
+						}
+
+						if (this.showInvisibleRecordsInLinkingMode && tokensHierarchy.contains("z" + tokenPrefix + "_" + aGroup)) {
+							return true;
+						}
+					}
+				}
+
+				if (user.hasRequiredAccess(this.access).on(record)) {
+					return true;
+				}
+
+				for (String schemaType : securityTokenManager.getSchemaTypesWithoutSecurity()) {
+					if (record.getTypeCode().equals(schemaType)) {
+						return true;
+					}
+				}
+
+
+				if (tokensHierarchy.contains(Record.PUBLIC_TOKEN)) {
+					return true;
+				}
+
+			}
+			return false;
+		}
+
+		@Override
+		public User getUser() {
+			return user;
+		}
+	}
+
 
 	public VisibilityStatusFilter getVisibilityStatusFilter() {
 		return visibilityStatusFilter;

@@ -147,12 +147,13 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 	public void whenGetChildrenOfTaxonomyRecordsThenReturnOnlyChildrenRecords()
 			throws Exception {
 		givenFoldersAndDocuments();
+
 		List<Record> taxonomy1FirstTypeItem2RecordChildren = services.getChildConcept(records.taxo1_firstTypeItem2,
-				options);
+				options, false);
 		List<Record> taxonomy1FirstTypeItem2SecondItem2RecordChildren = services.getChildConcept(
-				records.taxo1_firstTypeItem2_secondTypeItem2, options);
+				records.taxo1_firstTypeItem2_secondTypeItem2, options, false);
 		List<Record> taxonomy2RecordChildren = services.getChildConcept(records.taxo2_defaultSchemaItem2_defaultSchemaItem2,
-				options);
+				options, false);
 
 		assertThat(taxonomy1FirstTypeItem2RecordChildren).extracting("id").containsOnly(
 				records.taxo1_firstTypeItem2_firstTypeItem1.getId(), records.taxo1_firstTypeItem2_firstTypeItem2.getId(),
@@ -188,9 +189,13 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 	public void whenGetChildrenOfNonTaxonomyRecordsThenReturnChildrenUsingChildOfMetadata()
 			throws Exception {
 		givenFoldersAndDocuments();
-		List<Record> folderRecordChildren = services.getChildConcept(folder, options);
-		List<Record> subFolderRecordChildren = services.getChildConcept(subFolder, options);
-		List<Record> documentRecordChildren = services.getChildConcept(document, options);
+		List<Record> folderRecordChildren = services.getChildConcept(folder, options, false);
+		List<Record> subFolderRecordChildren = services.getChildConcept(subFolder, options, false);
+		List<Record> documentRecordChildren = services.getChildConcept(document, options, false);
+
+		assertThat(services.getChildConcept(folder, options, true)).isEmpty();
+		assertThat(services.getChildConcept(subFolder, options, true)).isEmpty();
+		assertThat(services.getChildConcept(document, options, true)).isEmpty();
 
 		assertThat(folderRecordChildren).extracting("id").containsOnly(subFolder.getId(), document.getId());
 		assertThat(subFolderRecordChildren).isEmpty();
@@ -399,7 +404,9 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 		recordServices.logicallyDelete(recordToDelete, chuck);
 		assertThat(recordToDelete.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 
-		List<Record> folderRecordChildren = services.getChildConcept(folder, options);
+		assertThat(services.getChildConcept(folder, options, true)).isEmpty();
+
+		List<Record> folderRecordChildren = services.getChildConcept(folder, options, false);
 
 		assertThat(folderRecordChildren).extracting("id").containsOnly(document.getId());
 
@@ -416,8 +423,10 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 		assertThat(recordToDelete.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 
 		options.setIncludeStatus(StatusFilter.ALL);
-		List<Record> folderRecordChildren = services.getChildConcept(folder, options);
 
+		assertThat(services.getChildConcept(folder, options, true)).isEmpty();
+
+		List<Record> folderRecordChildren = services.getChildConcept(folder, options, false);
 		assertThat(folderRecordChildren).extracting("id").containsOnly(subFolder.getId(), document.getId());
 
 	}
@@ -433,7 +442,7 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 		assertThat(recordToDelete.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 
 		options.setIncludeStatus(StatusFilter.DELETED);
-		List<Record> folderRecordChildren = services.getChildConcept(folder, options);
+		List<Record> folderRecordChildren = services.getChildConcept(folder, options, false);
 
 		assertThat(folderRecordChildren).extracting("id").containsOnly(subFolder.getId());
 

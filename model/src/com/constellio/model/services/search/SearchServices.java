@@ -15,6 +15,7 @@ import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.Holder;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
@@ -89,8 +90,10 @@ import static com.constellio.model.entities.schemas.Schemas.ESTIMATED_SIZE;
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
 import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
 import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.onlyFields;
+import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.onlySummaryFields;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.INEXISTENT_COLLECTION_42;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.DEFAULT;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
@@ -141,7 +144,9 @@ public class SearchServices {
 		this.disconnectableRecordsCaches = recordsCaches;
 		this.modelLayerFactory = modelLayerFactory;
 		this.logicalSearchQueryExecutorInCache = new LogicalSearchQueryExecutorInCache(this, recordsCaches,
-				metadataSchemasManager, modelLayerFactory.getExtensions().getSystemWideExtensions(), mainDataLanguage);
+				metadataSchemasManager,
+				modelLayerFactory.getSearchConfigurationsManager(),
+				modelLayerFactory.getExtensions().getSystemWideExtensions(), mainDataLanguage);
 	}
 
 	public LogicalSearchQueryExecutorInCache getQueryExecutorInCache() {
@@ -268,8 +273,19 @@ public class SearchServices {
 		}
 
 		Number maxRecordSize = (Number) queryResponseDTO.getResults().get(0).getFields().get(ESTIMATED_SIZE.getDataStoreCode());
-		int batchSize = (maxRecordSize == null || maxRecordSize.intValue() == 0) ? 1000 : (100_000_1000 / maxRecordSize.intValue());
+
+		int batchSize;
+
+		batchSize = (maxRecordSize == null || maxRecordSize.intValue() == 0) ? 1000 : (100_000_1000 / maxRecordSize.intValue());
 		LOGGER.info("Streaming schema type '" + schemaType.getCode() + "' with batches of " + batchSize + ". Max record size is " + maxRecordSize);
+
+		if (summary && queryResponseDTO.getNumFound() > 1_000_000) {
+			batchSize = Math.max(batchSize, 20_000);
+
+		} else if (summary && queryResponseDTO.getNumFound() > 100_000) {
+			batchSize = Math.max(batchSize, 2_000);
+
+		}
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(schemaType).returnAll());
@@ -350,7 +366,7 @@ public class SearchServices {
 			@Override
 			public Spliterator<Record> get() {
 				SearchResponseIterator<Record> iterator = getRecordSearchResponseIteratorUsingSolr(clonedQuery, batchSize, true);
-				return Spliterators.spliterator(iterator, iterator.getNumFound(), 0);
+				return Spliterators.spliteratorUnknownSize(iterator, 0);
 			}
 		}, 0, false);
 
@@ -594,7 +610,7 @@ public class SearchServices {
 
 	public Record searchSingleResult(LogicalSearchCondition condition) {
 
-		if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition, false)) {
+		if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition, DEFAULT)) {
 			Record record = searchSingleResultUsingCache(condition);
 
 			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
@@ -612,8 +628,24 @@ public class SearchServices {
 
 			return record;
 
-		} else {
+		} else if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition, onlySummaryFields(), DEFAULT)) {
+			Record recordSummary = searchSingleResultUsingCache(condition);
 
+			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+				Record recordFromSolr = searchSingleResultUsingSolr(condition);
+
+				String recordId = recordSummary == null ? null : recordSummary.getId();
+				String recordFromSolrId = recordFromSolr == null ? null : recordFromSolr.getId();
+
+				if (!LangUtils.isEqual(recordId, recordFromSolrId)) {
+					throw new RuntimeException("Cached query execution problem");
+				}
+
+			}
+
+			return recordSummary == null ? null : recordServices.getDocumentById(recordSummary.getId());
+
+		} else {
 			return searchSingleResultUsingSolr(condition);
 		}
 	}
@@ -853,7 +885,7 @@ public class SearchServices {
 
 	public long getResultsCount(LogicalSearchQuery query) {
 		LogicalSearchQuery clonedQuery = new LogicalSearchQuery(query);
-		clonedQuery.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
+		clonedQuery.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
 		clonedQuery.clearSort();
 		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(clonedQuery)) {
 			Stream<Record> stream = logicalSearchQueryExecutorInCache.stream(clonedQuery);
@@ -1413,15 +1445,17 @@ public class SearchServices {
 						if (metadata.getType() == MetadataValueType.CONTENT) {
 							for (String language : languages) {
 								String analyzedField = metadata.getAnalyzedField(language).getDataStoreCode();
-								if (!fields.contains(analyzedField)) {
-									sb.append(analyzedField + " ");
+								if (!fields.contains(analyzedField) && !analyzedField.contains("null")) {
+									sb.append(analyzedField);
+									sb.append(" ");
 									fields.add(analyzedField);
 								}
 							}
 						} else {
 							String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? queryLanguage : mainDataLanguage).getDataStoreCode();
-							if (!fields.contains(analyzedField)) {
-								sb.append(analyzedField + " ");
+							if (!fields.contains(analyzedField) && !analyzedField.contains("null")) {
+								sb.append(analyzedField);
+								sb.append(" ");
 								fields.add(analyzedField);
 							}
 
@@ -1566,5 +1600,41 @@ public class SearchServices {
 		} else {
 			return modelLayerFactory.getDataLayerFactory().newEventsDao();
 		}
+	}
+
+	public Set<String> getHashesOf(LogicalSearchQuery query) {
+		Set<String> hashes = new HashSet<>();
+		String collection = getCollection(query);
+		List<MetadataSchemaType> types = getSearchedTypes(query, metadataSchemasManager.getSchemaTypes(collection));
+		if (types.size() != 1) {
+			throw new IllegalArgumentException("Query must be searching in exactly one schema type");
+		}
+		MetadataSchemaType schemaType = types.get(0);
+
+		List<Metadata> contentMetadatas = schemaType.getAllMetadatas().onlyWithType(MetadataValueType.CONTENT);
+
+		if (contentMetadatas.isEmpty()) {
+			return Collections.emptySet();
+		}
+
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(contentMetadatas));
+		query.setCondition(query.getCondition().andWhereAny(contentMetadatas).isNotNull());
+
+		Iterator<Record> recordIterator = recordsIterator(query, 1000);
+		while (recordIterator.hasNext()) {
+			Record record = recordIterator.next();
+			for (Metadata contentMetadata : contentMetadatas) {
+				for (Content content : record.<Content>getValues(contentMetadata)) {
+					hashes.addAll(content.getHashOfAllVersions());
+				}
+			}
+		}
+
+		return hashes;
+	}
+
+
+	public Set<String> getHashesOf(LogicalSearchCondition condition) {
+		return getHashesOf(new LogicalSearchQuery(condition));
 	}
 }

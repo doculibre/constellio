@@ -354,7 +354,11 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 			int event = xmlReader.next();
 
 			if (event == XMLStreamConstants.START_ELEMENT) {
-				values.add(parseScalar(type));
+				if (CONTENT_VALUE.equals(type)) {
+					values.add(parseContent());
+				} else {
+					values.add(parseScalar(type));
+				}
 			} else if (event == XMLStreamConstants.END_ELEMENT) {
 
 				if (xmlReader.getLocalName().equals(localName)) {

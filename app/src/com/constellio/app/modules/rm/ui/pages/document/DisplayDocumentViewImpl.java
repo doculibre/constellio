@@ -10,6 +10,8 @@ import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.ProvideSecurityWithNoUrlParamSupport;
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
@@ -27,6 +29,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.ViewWindow;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
@@ -43,8 +46,11 @@ import com.constellio.app.ui.framework.components.viewers.ContentViewer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
+import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.util.ComponentTreeUtils;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -58,6 +64,8 @@ import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.JavaScriptFunction;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
@@ -66,6 +74,8 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import elemental.json.JsonArray;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -82,10 +92,12 @@ import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
+@Slf4j
+public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler, ProvideSecurityWithNoUrlParamSupport {
 
+	public static final int RECORD_DISPLAY_WIDTH = 50;
+	public static final Unit RECORD_DISPLAY_WIDTH_UNIT = Unit.PERCENTAGE;
 	private VerticalLayout mainLayout;
-
 	private Label borrowedLabel;
 	private RecordVO documentVO;
 	private String taxonomyCode;
@@ -110,8 +122,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private DisplayDocumentPresenter presenter;
 
 	private boolean nestedView;
+	private boolean inWindow;
 
 	private List<Window.CloseListener> editWindowCloseListeners = new ArrayList<>();
+	private Component contentMetadataComponent;
+
+	private CollapsibleHorizontalSplitPanel splitPanel;
 
 	public DisplayDocumentViewImpl() {
 		this(null, false, false);
@@ -119,6 +135,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	public DisplayDocumentViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		this.nestedView = nestedView;
+		this.inWindow = inWindow;
 		presenter = new DisplayDocumentPresenter(this, recordVO, nestedView, inWindow);
 	}
 
@@ -135,6 +152,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected void afterViewAssembled(ViewChangeEvent event) {
+		if (!contentViewer.isViewerComponentVisible()
+			&& contentMetadataComponent instanceof CollapsibleHorizontalSplitPanel
+			&& ((CollapsibleHorizontalSplitPanel) contentMetadataComponent).getRealFirstComponent() == contentViewer) {
+			mainLayout.replaceComponent(contentMetadataComponent, tabSheet);
+		}
 		presenter.viewAssembled();
 	}
 
@@ -151,14 +173,35 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		versionTable.setContentVersions(contentVersions);
 	}
 
-	@Override
-	protected String getTitle() {
-		return null;
-	}
-
 	private ContentViewer newContentViewer() {
 		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
-		ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
+		final ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
+		if (inWindow && !isViewerInSeparateTab()) {
+			//			int viewerHeight = Page.getCurrent().getBrowserWindowHeight() - 125;
+			//			contentViewer.setHeight(viewerHeight + "px");
+
+			final String functionId = "adjustContentViewerHeight";
+			JavaScript.getCurrent().addFunction(functionId,
+					new JavaScriptFunction() {
+						@Override
+						public void call(JsonArray arguments) {
+							int splitterDivHeight = (int) arguments.getNumber(0);
+							int newViewerHeight = splitterDivHeight - 40;
+							contentViewer.setHeight(newViewerHeight + "px");
+							splitPanel.setFirstComponentHeight(newViewerHeight, Unit.PIXELS);
+
+							if (contentViewer.isVerticalScroll()) {
+								splitPanel.addStyleName("first-component-no-vertical-scroll");
+							}
+						}
+					});
+
+			StringBuilder js = new StringBuilder();
+			js.append("  var splitterDiv =  document.getElementsByClassName('v-splitpanel-hsplitter')[0];");
+			js.append("  var splitterDivHeight =  constellio_getHeight(splitterDiv);");
+			js.append(functionId + "(splitterDivHeight);");
+			JavaScript.getCurrent().execute(js.toString());
+		}
 		return contentViewer;
 	}
 
@@ -239,17 +282,17 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		Panel recordDisplayPanel = new Panel(recordDisplay);
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
-		recordDisplayPanel.addStyleName("panel-no-scroll");
+		//		recordDisplayPanel.addStyleName("panel-no-scroll");
 		recordDisplayPanel.setSizeFull();
 
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
-		if (contentViewerInitiallyVisible && nestedView) {
+		if (contentViewerInitiallyVisible && isViewerInSeparateTab()) {
 			tabSheet.addTab(contentViewer, $("DisplayDocumentView.tabs.contentViewer"));
 		}
 		tabSheet.addTab(recordDisplayPanel, $("DisplayDocumentView.tabs.metadata"));
 		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
-		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks", presenter.getTaskCount()));
+		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks"));
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayDocumentView.tabs.logs"));
@@ -264,16 +307,21 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
 				if (event.getTabSheet().getSelectedTab() == eventsComponent) {
 					presenter.refreshEvents();
+
+				} else if (event.getTabSheet().getSelectedTab() == tasksComponent) {
+					presenter.tasksTabSelected();
+
+				} else if (event.getTabSheet().getSelectedTab() == contentViewer) {
+					contentViewer.refresh();
 				}
 			}
 		});
 
-		Component contentMetadataComponent;
-		if (contentViewerInitiallyVisible && !nestedView) {
-			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
+		if (contentViewerInitiallyVisible && !isViewerInSeparateTab()) {
+			splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
 			splitPanel.setFirstComponent(contentViewer);
 			splitPanel.setSecondComponent(tabSheet);
-			splitPanel.setSecondComponentWidth(700, Unit.PIXELS);
+			splitPanel.setSecondComponentWidth(RECORD_DISPLAY_WIDTH, RECORD_DISPLAY_WIDTH_UNIT);
 			contentMetadataComponent = splitPanel;
 		} else {
 			contentMetadataComponent = tabSheet;
@@ -285,6 +333,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		mainLayout.setExpandRatio(contentMetadataComponent, 1);
 
 		return mainLayout;
+	}
+
+	protected boolean isViewerInSeparateTab() {
+		return nestedView || !ResponsiveUtils.isDesktop();
+	}
+
+	public void addComponentAfterMenu(Component component) {
+		mainLayout.addComponent(component, 0);
 	}
 
 	private Component buildVersionTab() {
@@ -372,6 +428,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 			favGroupIdKey = presenter.getParams().get(RMViews.FAV_GROUP_ID_KEY);
 		}
+
 
 		SearchType searchType = null;
 		if (searchTypeAsString != null) {
@@ -487,8 +544,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		});
 		Component oldTasksComponent = tasksComponent;
-		tasksComponent = tasksTable;
-		tabSheet.replaceComponent(oldTasksComponent, tasksComponent);
+		tabSheet.replaceComponent(oldTasksComponent, tasksTable);
 	}
 
 	@Override
@@ -526,6 +582,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		displayDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
 		displayDocumentButton.addStyleName("display-document-link");
+		displayDocumentButton.setCaptionVisibleOnMobile(false);
 
 		openDocumentButton = new LinkButton($("DisplayDocumentView.openDocument")) {
 			@Override
@@ -535,6 +592,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		openDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
 		openDocumentButton.addStyleName("open-document-link");
+		openDocumentButton.setCaptionVisibleOnMobile(false);
 
 		if (((DocumentVO) documentVO).getContent() != null) {
 			downloadDocumentButton = new DownloadContentVersionLink(((DocumentVO) documentVO).getContent(),
@@ -551,12 +609,15 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				presenter.editDocumentButtonClicked();
 			}
 		};
+		editDocumentButton.setCaptionVisibleOnMobile(false);
 
 		List<String> excludedActionTypes = Arrays.asList(
 				DocumentMenuItemActionType.DOCUMENT_DISPLAY.name(),
 				DocumentMenuItemActionType.DOCUMENT_OPEN.name(),
 				DocumentMenuItemActionType.DOCUMENT_EDIT.name());
-		return new RecordVOActionButtonFactory(documentVO, excludedActionTypes).build();
+		List<Button> actionMenuButtons = new RecordVOActionButtonFactory(documentVO, this, excludedActionTypes).build();
+
+		return actionMenuButtons;
 	}
 
 	@Override
@@ -616,10 +677,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void setCopyDocumentButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setStartWorkflowButtonState(ComponentState state) {
 	}
 
 	@Override
@@ -762,13 +819,22 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
+	public String getTitle() {
+		if (!nestedView) {
+			return $("DisplayDocumentView.viewTitle");
+		} else {
+			return null;
+		}
+	}
+
+	@Override
 	protected boolean isActionMenuBar() {
 		return true;
 	}
 
 	@Override
 	protected boolean isBreadcrumbsVisible() {
-		return !nestedView;
+		return !nestedView && !presenter.isInWindow();
 	}
 
 	@Override
@@ -778,8 +844,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void openInWindow() {
-		DisplayDocumentViewImpl displayView = new DisplayDocumentViewImpl(documentVO, true, true);
-		Window window = new DisplayDocumentWindow(displayView);
+		DisplayDocumentViewImpl displayView = new DisplayDocumentViewImpl(documentVO, false, true);
+		Window window = null;
+		try {
+			window = new DisplayDocumentWindow(displayView);
+		} catch (UserDoesNotHaveAccessException e) {
+			log.error(e.getMessage(), e);
+			return;
+		}
 		for (Window.CloseListener closeListener : editWindowCloseListeners) {
 			window.addCloseListener(closeListener);
 		}
@@ -789,13 +861,26 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void editInWindow() {
 		AddEditDocumentViewImpl editView = new AddEditDocumentViewImpl(documentVO, true);
-		Window window = new AddEditDocumentWindow(editView);
-		for (Window.CloseListener closeListener : editWindowCloseListeners) {
-			window.addCloseListener(closeListener);
-		}
-		getUI().addWindow(window);
-	}
+		ViewWindow window;
+		try {
+			if (inWindow) {
+				window = ComponentTreeUtils.findParent(this, ViewWindow.class);
+				if (window instanceof ViewWindow) {
+					window.setView(editView);
+				}
+			} else {
+				window = new AddEditDocumentWindow(editView);
 
+				for (Window.CloseListener closeListener : editWindowCloseListeners) {
+					window.addCloseListener(closeListener);
+				}
+				getUI().addWindow(window);
+			}
+		} catch (UserDoesNotHaveAccessException e) {
+			log.error(e.getMessage(), e);
+			return;
+		}
+	}
 	public void addEditWindowCloseListener(Window.CloseListener closeListener) {
 		this.editWindowCloseListeners.add(closeListener);
 	}
@@ -808,4 +893,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		return this.editWindowCloseListeners;
 	}
 
+	@Override
+	public SecurityWithNoUrlParamSupport getSecurityWithNoUrlParamSupport() {
+		return presenter;
+	}
 }

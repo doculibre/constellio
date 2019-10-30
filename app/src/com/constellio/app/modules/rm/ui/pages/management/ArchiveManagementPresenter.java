@@ -18,12 +18,12 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 		view.navigate().to(RMViews.class).decommissioning();
 	}
 
-	public void newContainerButtonClicked() {
-		view.navigate().to(RMViews.class).addContainer();
-	}
-
 	public void multipleContainersButtonClicked() {
 		view.navigate().to(RMViews.class).addMultipleContainers();
+	}
+
+	public void newContainerButtonClicked() {
+		view.navigate().to(RMViews.class).addContainer();
 	}
 
 	public void containersButtonClicked() {

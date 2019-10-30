@@ -10,6 +10,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class OffHeapLongListAcceptanceTest extends ConstellioTest {
 
+	//	@Before
+	//	public void validateNotWritingOutsideOfReservedMemory() {
+	//		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
+	//	}
+
 	@Test
 	public void whenSavingValuesThenRetrievable() {
 
@@ -19,7 +24,7 @@ public class OffHeapLongListAcceptanceTest extends ConstellioTest {
 
 		Random random = new Random();
 
-		for (int i = 0; i < 500_000; i++) {
+		for (int i = 0; i < 100_000; i++) {
 			System.out.println(i);
 			int modifiedIndex = random.nextInt(100_000);
 			long newValue = random.nextLong();
@@ -38,6 +43,7 @@ public class OffHeapLongListAcceptanceTest extends ConstellioTest {
 			}
 		}
 
+		longList.clear();
 
 	}
 }

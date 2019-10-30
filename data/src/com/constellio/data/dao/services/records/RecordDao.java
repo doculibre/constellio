@@ -10,18 +10,31 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.SolrParams;
 
-import java.util.Iterator;
 import java.util.List;
 
 public interface RecordDao {
 
-	RecordDTO get(String id)
+	RecordDTO get(String id, boolean callExtensions)
 			throws RecordDaoException.NoSuchRecordWithId;
 
-	RecordDTO realGet(String id)
+	RecordDTO realGet(String id, boolean callExtensions)
 			throws RecordDaoException.NoSuchRecordWithId;
 
-	List<RecordDTO> realGet(List<String> ids);
+	List<RecordDTO> realGet(List<String> ids, boolean callExtensions);
+
+	default RecordDTO get(String id)
+			throws RecordDaoException.NoSuchRecordWithId {
+		return get(id, true);
+	}
+
+	default RecordDTO realGet(String id)
+			throws RecordDaoException.NoSuchRecordWithId {
+		return realGet(id, true);
+	}
+
+	default List<RecordDTO> realGet(List<String> ids) {
+		return realGet(ids, true);
+	}
 
 	QueryResponseDTO query(String queryName, SolrParams params);
 
@@ -49,8 +62,6 @@ public interface RecordDao {
 	void removeOldLocks();
 
 	long getCurrentVersion(String id);
-
-	void recreateZeroCounterIndexesIn(String collection, Iterator<RecordDTO> recordsIterator);
 
 	BigVaultServer getBigVaultServer();
 

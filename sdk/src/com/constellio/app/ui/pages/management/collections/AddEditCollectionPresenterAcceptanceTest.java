@@ -71,7 +71,7 @@ public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 		givenExistingCollectionWhenGetCollectionAfterModulesModificationVOThenOk();
 	}
 
-	private void givenExistingCollectionWhenGetCollectionAfterModulesModificationVOThenOk() {
+	private void givenExistingCollectionWhenGetCollectionAfterModulesModificationVOThenOk() throws Exception {
 		CollectionVO zeCollectionVO = presenterRelatedToZeCollection.getCollectionVO();
 		Collection zeCollectionRecord = collectionsManager.getCollection(zeCollection);
 		assertThat(zeCollectionVO.getCode()).isEqualTo(zeCollectionRecord.getCode());
@@ -80,15 +80,14 @@ public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(zeCollectionVO.getModules()).containsExactlyElementsOf(enabledModulesForZeCollection);
 
 		Module esModule = modulesManager.getInstalledModule(ConstellioESModule.ID);
-		Set<String> invalidModules = modulesManager
+		modulesManager
 				.installValidModuleAndGetInvalidOnes(esModule, getModelLayerFactory().getCollectionsListManager());
-		invalidModules.addAll(modulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, esModule));
+		modulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, esModule);
 		zeCollectionVO = presenterRelatedToZeCollection.getCollectionVO();
 		assertThat(zeCollectionVO.getCode()).isEqualTo(zeCollectionRecord.getCode());
 		assertThat(zeCollectionVO.getName()).isEqualTo(zeCollectionRecord.getName());
 		//enabledModulesForZeCollection = asList(ConstellioRMModule.ID, TaskModule.ID, ConstellioESModule.ID);
 		assertThat(zeCollectionVO.getModules()).containsOnlyOnce(ConstellioRMModule.ID, TaskModule.ID, ConstellioESModule.ID);
-		assertThat(invalidModules).isEmpty();
 	}
 
 	private void givenUnsavedCollectionWhenGetCollectionVOThenOk() {

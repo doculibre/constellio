@@ -359,5 +359,10 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	public String getSavedSearchId() {
 		return searchID;
 	}
-	
+
+
+	@Override
+	public void showErrorMessage(String message) {
+		view.showErrorMessage(message);
+	}
 }

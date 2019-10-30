@@ -14,6 +14,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.EditButton;
@@ -25,10 +26,11 @@ import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFa
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
-import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
+import com.constellio.app.ui.framework.components.search.FacetsSliderPanel;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
@@ -50,7 +52,10 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
+import com.vaadin.server.Page.BrowserWindowResizeEvent;
+import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -79,7 +84,7 @@ import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
+public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler, BrowserWindowResizeListener {
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
 
@@ -91,6 +96,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private ContentVersionUploadField uploadField;
 	private TabSheet tabSheet;
 	private RecordDisplay recordDisplay;
+	private FacetsSliderPanel facetsSliderPanel;
 	private Component folderContentComponent;
 	private ViewableRecordVOTablePanel viewerPanel;
 	private Component tasksComponent;
@@ -101,6 +107,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Label borrowedLabel;
 
 	private Window documentVersionWindow;
+
+	private I18NHorizontalLayout contentAndFacetsLayout; 
 
 	private RecordVODataProvider folderContentDataProvider;
 	private RecordVODataProvider tasksDataProvider;
@@ -122,6 +130,18 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		this.nestedView = nestedView;
 		this.inWindow = inWindow;
 		presenter = new DisplayFolderPresenter(this, recordVO, nestedView, inWindow);
+	}
+
+	@Override
+	public void attach() {
+		super.attach();
+		Page.getCurrent().addBrowserWindowResizeListener(this);
+	}
+
+	@Override
+	public void detach() {
+		Page.getCurrent().removeBrowserWindowResizeListener(this);
+		super.detach();
 	}
 
 	@Override
@@ -174,7 +194,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		};
 		uploadField.addStyleName("display-folder-upload-field");
-		//		uploadField.setVisible(false);
+		uploadField.setVisible(false);
 		uploadField.setImmediate(true);
 		uploadField.setMultiValue(false);
 		uploadField.setMajorVersionFieldVisible(false);
@@ -211,12 +231,16 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				Component selectedTab = tabSheet.getSelectedTab();
 				if (selectedTab == recordDisplay) {
 					presenter.metadataTabSelected();
+					setFacetsPanelVisible(false);
 				} else if (selectedTab == folderContentComponent) {
 					presenter.folderContentTabSelected();
+					setFacetsPanelVisible(facetsSliderPanel != null);
 				} else if (selectedTab == tasksComponent) {
 					presenter.tasksTabSelected();
+					setFacetsPanelVisible(false);
 				} else if (selectedTab == eventsComponent) {
 					presenter.eventsTabSelected();
+					setFacetsPanelVisible(false);
 				}
 			}
 		});
@@ -231,9 +255,18 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		documentVersionWindow.center();
 		documentVersionWindow.setModal(true);
 
-		mainLayout.addComponents(borrowedLabel, uploadField, tabSheet);
+		contentAndFacetsLayout = new I18NHorizontalLayout(tabSheet);
+		//contentAndFacetsLayout.addStyleName("content-and-facets-layout");
+		contentAndFacetsLayout.setWidth("100%");
+		contentAndFacetsLayout.setExpandRatio(tabSheet, 1);
+
+		mainLayout.addComponents(borrowedLabel, uploadField, contentAndFacetsLayout);
 		presenter.selectInitialTabForUser();
 		return mainLayout;
+	}
+
+	public void addComponentAfterMenu(Component component) {
+		mainLayout.addComponent(component, 0);
 	}
 
 	@Override
@@ -246,7 +279,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	private Button newDisplayFolderButton() {
-		Button displayFolderButton;
+		BaseButton displayFolderButton;
 		if (!presenter.isLogicallyDeleted()) {
 			displayFolderButton = new DisplayButton($("DisplayFolderView.displayFolder"), false) {
 				@Override
@@ -254,6 +287,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					presenter.displayFolderButtonClicked();
 				}
 			};
+			displayFolderButton.setCaptionVisibleOnMobile(false);
 		} else {
 			displayFolderButton = null;
 		}
@@ -261,7 +295,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	private Button newEditFolderButton() {
-		Button editFolderButton;
+		BaseButton editFolderButton;
 		if (!presenter.isLogicallyDeleted()) {
 			editFolderButton = new EditButton($("DisplayFolderView.editFolder")) {
 				@Override
@@ -269,6 +303,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					presenter.editFolderButtonClicked();
 				}
 			};
+			editFolderButton.setCaptionVisibleOnMobile(false);
 		} else {
 			editFolderButton = null;
 		}
@@ -276,7 +311,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	private Button newAddDocumentButton() {
-		Button addDocumentButton;
+		BaseButton addDocumentButton;
 		if (!presenter.isLogicallyDeleted()) {
 			addDocumentButton = new AddButton($("DisplayFolderView.addDocument")) {
 				@Override
@@ -284,6 +319,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					presenter.addDocumentButtonClicked();
 				}
 			};
+			addDocumentButton.setIcon(FontAwesome.FILE_O);
+			addDocumentButton.setCaptionVisibleOnMobile(false);
 		} else {
 			addDocumentButton = null;
 		}
@@ -380,9 +417,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			};
 			refreshFacets(folderContentDataProvider);
 
-			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel("FolderContent");
-			splitPanel.setSizeFull();
-
 			viewerPanel = new ViewableRecordVOTablePanel(recordVOContainer) {
 				@Override
 				protected boolean isSelectColumn() {
@@ -464,21 +498,25 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			});
 			viewerPanel.addStyleName("folder-content-table");
-			//			viewerPanel.addStyleName("search-result-title");
 
-			splitPanel.setFirstComponent(viewerPanel);
-			splitPanel.setSecondComponent(facetsPanel);
-			splitPanel.setSecondComponentWidth(250, Unit.PIXELS);
-
-			if (!nestedView) {
-				tabSheet.replaceComponent(folderContentComponent, folderContentComponent = splitPanel);
-			} else {
-				tabSheet.replaceComponent(folderContentComponent, folderContentComponent = viewerPanel);
+			if (!nestedView && (folderContentDataProvider.size() > 0 || !folderContentDataProvider.getFieldFacetValues().isEmpty())) {
+				if (facetsSliderPanel != null && facetsSliderPanel.getParent() != null) {
+					contentAndFacetsLayout.removeComponent(facetsSliderPanel);
+				}
+				facetsSliderPanel = new FacetsSliderPanel(facetsPanel);
+				contentAndFacetsLayout.addComponent(facetsSliderPanel);
 			}
-			viewerPanel.setDefaultSelectionActionButtons();
+			tabSheet.replaceComponent(folderContentComponent, folderContentComponent = viewerPanel);
+			viewerPanel.setSelectionActionButtons();
 		}
 		tabSheet.setSelectedTab(folderContentComponent);
 		tabSheet.addSelectedTabChangeListener(selectedTabChangeListener);
+	}
+
+	private void setFacetsPanelVisible(boolean visible) {
+		if (facetsSliderPanel != null) {
+			facetsSliderPanel.setVisible(visible);
+		}
 	}
 
 	@Override
@@ -491,6 +529,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	public void selectTasksTab() {
 		if (!(tasksComponent instanceof Table)) {
 			Table table = new RecordVOTable(tasksDataProvider) {
+				@SuppressWarnings("unchecked")
 				@Override
 				protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue,
 														   RecordVO recordVO) {
@@ -557,10 +596,19 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	protected List<Button> getQuickActionMenuButtons() {
 		List<Button> quickActionMenuButtons = new ArrayList<>();
 		if (!nestedView) {
-			quickActionMenuButtons.add(editFolderButton);
-			quickActionMenuButtons.add(addDocumentButton);
+			if (editFolderButton != null) {
+				quickActionMenuButtons.add(editFolderButton);
+			}
+			if (addDocumentButton != null) {
+				quickActionMenuButtons.add(addDocumentButton);
+			}
 		} else {
-			quickActionMenuButtons.add(displayFolderButton);
+			if (displayFolderButton != null) {
+				quickActionMenuButtons.add(displayFolderButton);
+			}
+			if (editFolderButton != null) {
+				quickActionMenuButtons.add(editFolderButton);
+			}
 		}
 		return quickActionMenuButtons;
 	}
@@ -619,7 +667,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void drop(DragAndDropEvent event) {
-		if (dragNDropAllowed) {
+		boolean handledByViewer;
+		if (viewerPanel != null && viewerPanel.isDropSupported()) {
+			viewerPanel.drop(event);
+			handledByViewer = true;
+		} else {
+			handledByViewer = false;
+		}
+		if (!handledByViewer && dragNDropAllowed) {
 			uploadField.drop(event);
 		}
 	}
@@ -752,6 +807,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public RecordVO getReturnRecordVO() {
 		return presenter.getReturnRecordVO();
+	}
+
+	@Override
+	public void browserWindowResized(BrowserWindowResizeEvent event) {
+		// TODO Auto-generated method stub
 	}
 
 }

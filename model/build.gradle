@@ -34,7 +34,7 @@ dependencies {
     compile "org.springframework:spring-context:3.1.2.RELEASE"
     compile "com.microsoft.azure:adal4j:1.3.0"
 
-    compile files("../libs/simple-java-mail-5.1.7-modified.jar")
+    compile files("../libs/simple-java-mail-5.2.1-SNAPSHOT.jar")
 }
 
 sourceSets {

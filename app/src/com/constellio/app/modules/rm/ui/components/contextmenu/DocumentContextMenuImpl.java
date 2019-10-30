@@ -26,6 +26,7 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Container;
 import com.vaadin.server.ClientConnector;
 import com.vaadin.server.Page;
@@ -161,6 +162,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			public List<Record> getRecords() {
 				return Arrays.asList(recordVO.getRecord());
 			}
+
+			@Override
+			public LogicalSearchQuery getQuery() {
+				return null;
+			}
 		});
 	}
 
@@ -233,10 +239,6 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 	@Override
 	public void setCopyDocumentButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setStartWorkflowButtonState(ComponentState state) {
 	}
 
 	@Override

@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.components.viewers;
 
-import java.util.Arrays;
-import java.util.UUID;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -16,19 +10,41 @@ import com.constellio.app.ui.framework.components.viewers.image.ImageViewer;
 import com.constellio.app.ui.framework.components.viewers.video.VideoViewer;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
 
 public class ContentViewer extends CustomComponent {
 
 	private Component viewerComponent;
+	private List<VisibilityChangeListener> imageViewerVisibilityChangeListenerList;
+	private boolean didVisibilityChangeWhileAttaching = false;
 
 	public ContentViewer(RecordVO recordVO, String metadataCode, ContentVersionVO contentVersionVO) {
+		imageViewerVisibilityChangeListenerList = new ArrayList<>();
 		setId(UUID.randomUUID().toString());
 		if (contentVersionVO != null) {
 			String fileName = contentVersionVO.getFileName();
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 
 			if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
-				ImageViewer imageViewer = new ImageViewer(recordVO, Document.CONTENT, contentVersionVO);
+				ImageViewer imageViewer = new ImageViewer(recordVO, Document.CONTENT, contentVersionVO) {
+					@Override
+					public void setVisible(boolean newVisibility) {
+						boolean wasVisible = this.isVisible();
+						super.setVisible(newVisibility);
+
+						if (newVisibility != wasVisible) {
+							fireImageViewerVisibilityChangeListerners(newVisibility);
+						}
+					}
+				};
+
 				viewerComponent = imageViewer;
 			} else if (Arrays.asList(AudioViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
 				AudioViewer audioViewer = new AudioViewer(contentVersionVO);
@@ -55,8 +71,41 @@ public class ContentViewer extends CustomComponent {
 		}
 	}
 
+	public void refresh() {
+		if (viewerComponent instanceof ImageViewer) {
+			((ImageViewer) viewerComponent).show();
+		}
+	}
+
+	protected void fireImageViewerVisibilityChangeListerners(boolean visiblility) {
+		Iterator<VisibilityChangeListener> visibilityChangeListenerIterator = imageViewerVisibilityChangeListenerList.iterator();
+
+		while (visibilityChangeListenerIterator.hasNext()) {
+			VisibilityChangeEvent visibilityChangeEvent = new VisibilityChangeEvent(visiblility, false);
+			VisibilityChangeListener visibilityChangeListener = visibilityChangeListenerIterator.next();
+
+			visibilityChangeListener.onVisibilityChange(visibilityChangeEvent);
+
+			if (visibilityChangeEvent.isRemoveThisVisiblityLisener()) {
+				visibilityChangeListenerIterator.remove();
+			}
+		}
+	}
+
+	public void addImageViewerVisibilityChangeListener(VisibilityChangeListener visibilityChangeListener) {
+		imageViewerVisibilityChangeListenerList.add(visibilityChangeListener);
+	}
+
 	public boolean isViewerComponentVisible() {
 		return isVisible() && viewerComponent != null && viewerComponent.isVisible();
+	}
+
+	@Override
+	public void setHeight(float height, Unit unit) {
+		super.setHeight(height, unit);
+		if (viewerComponent instanceof DocumentViewer) {
+			viewerComponent.setHeight(height, unit);
+		}
 	}
 
 	@Override
@@ -67,6 +116,10 @@ public class ContentViewer extends CustomComponent {
 //			js += "document.getElementById('" + getId() + "').style.width=calc(100% - 850px);";
 //			JavaScript.getCurrent().execute(js);
 //		}
+	}
+
+	public boolean isVerticalScroll() {
+		return viewerComponent instanceof DocumentViewer;
 	}
 
 }

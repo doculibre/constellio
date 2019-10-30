@@ -17,6 +17,9 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.event.dd.DragAndDropEvent;
+import com.vaadin.event.dd.DropHandler;
+import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -32,7 +35,7 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class PropertiesAnalyserViewImpl extends BaseViewImpl implements PropertiesAnalyserView {
+public class PropertiesAnalyserViewImpl extends BaseViewImpl implements PropertiesAnalyserView, DropHandler {
 
 	private TabSheet propertiesAndStylesTabs;
 	private TabWithTable propertiesTab;
@@ -207,5 +210,15 @@ public class PropertiesAnalyserViewImpl extends BaseViewImpl implements Properti
 						});
 			}
 		};
+	}
+
+	@Override
+	public void drop(DragAndDropEvent event) {
+		uploadField.drop(event);
+	}
+
+	@Override
+	public AcceptCriterion getAcceptCriterion() {
+		return uploadField.getAcceptCriterion();
 	}
 }

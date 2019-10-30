@@ -32,7 +32,7 @@ allprojects {
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
-        options.fork = true
+        options.fork = false
         options.incremental = true
     }
 

@@ -144,7 +144,8 @@ public class SchemasDisplayManager
 	private void validate(ValidationErrors errors, SchemaDisplayConfig config) {
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(config.getCollection()).getSchema(config.getSchemaCode());
 		for (Metadata metadata : SchemaDisplayUtils.getRequiredMetadatasInSchemaForm(schema)) {
-			if (!config.getFormMetadataCodes().contains(metadata.getCode())) {
+			if (!config.getFormMetadataCodes().contains(metadata.getCode())
+				&& (!metadata.isEssential() || metadata.getDefaultValue() == null)) {
 				Map<String, Object> params = new HashMap<>();
 				params.put("code", metadata.getCode());
 				params.put("label", metadata.getLabelsByLanguageCodes());
@@ -212,9 +213,9 @@ public class SchemasDisplayManager
 	}
 
 	public MetadataDisplayConfig getMetadata(String collection, String metadataCode) {
-		if (metadataCode.split("_").length != 3) {
-			throw new RuntimeException("Invalid code : " + metadataCode);
-		}
+		//		if (metadataCode.split("_").length != 3) {
+		//			throw new RuntimeException("Invalid code : " + metadataCode);
+		//		}
 		return getCacheForCollection(collection).getMetadata(metadataCode, metadataSchemasManager);
 	}
 

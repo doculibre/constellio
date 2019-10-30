@@ -9,6 +9,7 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ResourceReference;
 import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
 import org.apache.commons.io.FilenameUtils;
@@ -26,12 +27,14 @@ import java.util.Arrays;
 @StyleSheet("theme://iviewer/jquery.iviewer.css")
 public class ImageViewer extends CustomComponent {
 
+	private String javascriptToExecute;
+
 	public static String[] SUPPORTED_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "tif", "tiff"};
 	private static String[] NEED_CONVERSION_EXTENSIONS = {"tif", "tiff"};
 
 	private static final int DEFAULT_WIDTH = 800;
-
 	private static final int DEFAULT_HEIGHT = 1000;
+
 	private RecordVO recordVO;
 
 	private String metadataCode;
@@ -58,9 +61,16 @@ public class ImageViewer extends CustomComponent {
 			int width = (int) getWidth();
 			int height = (int) getHeight();
 
-			if (width <= 0 || height <= 0) {
+			Unit widthUnits = getWidthUnits();
+			Unit heightUnits = getHeightUnits();
+
+			if (width <= 0) {
 				width = DEFAULT_WIDTH;
+				widthUnits = Unit.PIXELS;
+			}
+			if (height <= 0) {
 				height = DEFAULT_HEIGHT;
+				heightUnits = Unit.PIXELS;
 			}
 
 			int maxWidth = Page.getCurrent().getBrowserWindowWidth();
@@ -109,13 +119,15 @@ public class ImageViewer extends CustomComponent {
 
 				float heightWidthRatio = (float) imageHeight / imageWidth;
 				float heightF = (float) heightWidthRatio * height;
-				height = (int) heightF;
+
+				String widthStr = "" + width + widthUnits;
+				String heightStr = "" + heightF + heightUnits;
 
 				ResourceReference contentResourceReference = ResourceReference.create(contentResource, this, "ImageViewer.file");
 				String contentURL = contentResourceReference.getURL();
 				
 //				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:" + width + "px; height:"+ height + "px;\"></div>";
-				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:100%; height:"+ height + "px;\"></div>";
+
 				StringBuffer js = new StringBuffer();
 				js.append("var $ = jQuery;");
 				js.append("\n");
@@ -134,17 +146,28 @@ public class ImageViewer extends CustomComponent {
 				js.append("\n");
 				js.append("});");
 				js.append("\n");
+				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:100%; height:" + heightStr + ";\"></div>";
 
-				setCompositionRoot(new Label(divHTML, ContentMode.HTML));
+				Component compositionRoot = new Label(divHTML, ContentMode.HTML);
+				compositionRoot.setWidth(widthStr);
+				compositionRoot.setHeight(heightStr);
+				setCompositionRoot(compositionRoot);
 
-				com.vaadin.ui.JavaScript javascript = com.vaadin.ui.JavaScript.getCurrent();
-				javascript.execute("setTimeout(function() {" + js.toString() + "}, 1)");
+				setWidth("100%");
+
+				javascriptToExecute = "setTimeout(function() {" + js.toString() + "}, 1)";
+				show();
 			}
 		} catch (Throwable t) {
 			// FIXME
 			t.printStackTrace();
 			setVisible(false);
 		}
+	}
+
+	public void show() {
+		com.vaadin.ui.JavaScript javascript = com.vaadin.ui.JavaScript.getCurrent();
+		javascript.execute(javascriptToExecute);
 	}
 
 	public static boolean isSupported(String fileName) {

@@ -7,6 +7,10 @@ import com.constellio.model.entities.records.wrappers.User;
 
 public class ContainerRecordExtension {
 
+	public ExtensionBooleanResult isConsultActionPossible(ContainerRecordExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public ExtensionBooleanResult isAddToCartActionPossible(ContainerRecordExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
@@ -28,6 +32,11 @@ public class ContainerRecordExtension {
 	}
 
 	public ExtensionBooleanResult isEmptyTheBoxActionPossible(ContainerRecordExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ExtensionBooleanResult isConsultLinkActionPossible(
+			ContainerRecordExtensionActionPossibleParams containerRecordExtensionActionPossibleParams) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 

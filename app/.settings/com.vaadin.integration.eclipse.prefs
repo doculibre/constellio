@@ -1,7 +1,8 @@
 com.vaadin.integration.eclipse.notifyOfVaadinUpdates=false
 com.vaadin.integration.eclipse.widgetsetBuildsSuspended=true
-com.vaadin.integration.eclipse.widgetsetCompilationEta=155963
+com.vaadin.integration.eclipse.widgetsetCompilationEta=43999
 com.vaadin.integration.eclipse.widgetsetDirty=true
+com.vaadin.integration.eclipse.widgetsetExtraParameters=-logLevel TRACE
 com.vaadin.integration.eclipse.widgetsetStyle=OBF
 com.vaadin.integration.eclipse.widgetsetVerbose=true
 eclipse.preferences.version=1

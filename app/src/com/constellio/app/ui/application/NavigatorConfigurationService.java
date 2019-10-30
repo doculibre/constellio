@@ -1,6 +1,7 @@
 package com.constellio.app.ui.application;
 
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.personalspace.PersonnalSpaceViewImpl;
 import com.constellio.app.modules.rm.ui.pages.systemCheck.SystemCheckViewImpl;
 import com.constellio.app.ui.pages.SIP.SIPProgressionViewImpl;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -119,6 +120,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String APP_MANAGEMENT = "appManagement";
 	public static final String SIMPLE_SEARCH = "search";
 	public static final String ADVANCED_SEARCH = "advancedSearch";
+	public static final String PERSONNAL_SPACE = "personalSpace";
 	public static final String LIST_TAXONOMY = "taxonomies";
 	public static final String TAXONOMY_ADD_EDIT = "taxonomyAddEdit";
 	public static final String TAXONOMY_MANAGEMENT = "taxonomyManagement";
@@ -241,6 +243,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(SIMPLE_SEARCH, SimpleSearchViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADVANCED_SEARCH, AdvancedSearchViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(HOME, HomeViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(PERSONNAL_SPACE, PersonnalSpaceViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(APP_MANAGEMENT, AppManagementView.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_MANAGEMENT, TaxonomyManagementViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_CONCEPT_ADD_EDIT, AddEditTaxonomyConceptViewImpl.class));

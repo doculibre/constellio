@@ -564,7 +564,7 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "id:" + id);
 		try {
-			return (Long) vaultServer.realtimeGet(id).getFieldValue("_version_");
+			return (Long) vaultServer.realtimeGet(id, false).getFieldValue("_version_");
 		} catch (BigVaultException e) {
 			throw new RuntimeException(e);
 		}

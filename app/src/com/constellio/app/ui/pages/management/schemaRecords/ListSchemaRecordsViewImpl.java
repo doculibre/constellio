@@ -153,13 +153,12 @@ public class ListSchemaRecordsViewImpl extends BaseViewImpl implements ListSchem
 		final TextField searchField = new BaseTextField();
 		searchField.focus();
 		searchField.setNullRepresentation("");
-		Button searchButton = new SearchButton();
-		searchButton.addClickListener(new ClickListener() {
+		Button searchButton = new SearchButton() {
 			@Override
-			public void buttonClick(ClickEvent event) {
+			protected void buttonClick(ClickEvent event) {
 				presenter.search(searchField.getValue());
 			}
-		});
+		};
 		searchLayout.addComponents(searchField, searchButton);
 
 		OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {

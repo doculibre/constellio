@@ -1,6 +1,5 @@
 package com.constellio.model.services.search.query.logical.condition;
 
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 
 import java.util.List;
@@ -50,7 +49,7 @@ public class NegatedLogicalSearchCondition extends LogicalSearchCondition {
 
 
 	@Override
-	public boolean test(Record record) {
+	public boolean test(TestedQueryRecord record) {
 		return !negated.test(record);
 	}
 }

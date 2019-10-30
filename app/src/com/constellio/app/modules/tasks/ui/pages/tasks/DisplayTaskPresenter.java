@@ -62,9 +62,22 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 
 	transient private RMModuleExtensions rmModuleExtensions;
 
+	private boolean nestedView = false;
+	private boolean inWindow = false;
+
 	public DisplayTaskPresenter(DisplayTaskView view) {
 		super(view, Task.DEFAULT_SCHEMA);
 		initTransientObjects();
+	}
+
+	public DisplayTaskPresenter(DisplayTaskView view, RecordVO recordVO, boolean nestedView, boolean inWindow) {
+		super(view, Task.DEFAULT_SCHEMA);
+		this.nestedView = nestedView;
+		this.inWindow = inWindow;
+		initTransientObjects();
+		if (recordVO != null) {
+			initTaskVO(recordVO.getId());
+		}
 	}
 
 	@Override
@@ -139,7 +152,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	public void initTaskVO(String id) {
 		Record task = getRecord(id);
 		setSchemaCode(task.getSchemaCode());
-		taskVO = new TaskVO(new TaskToVOBuilder().build(task, FORM, view.getSessionContext()));
+		taskVO = new TaskToVOBuilder().build(task, FORM, view.getSessionContext());
 		initSubTaskDataProvider();
 		eventsDataProvider = getEventsDataProvider();
 	}
@@ -357,7 +370,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	}
 
 	@Override
-	public void reloadTaskModified(Task task) {
+	public void reloadTaskModified(String id) {
 		reloadCurrentTask();
 	}
 

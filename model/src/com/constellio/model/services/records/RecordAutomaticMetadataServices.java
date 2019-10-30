@@ -109,7 +109,7 @@ public class RecordAutomaticMetadataServices {
 										 TransactionRecordsReindexation reindexation, Transaction transaction) {
 		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 		for (Metadata automaticMetadata : schema.getAutomaticMetadatas()) {
 			updateAutomaticMetadata(context, record, recordProvider, automaticMetadata, reindexation, types, transaction);
 		}
@@ -117,10 +117,16 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	public void loadTransientEagerMetadatas(RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record);
+		MetadataSchema schema = types.getSchemaOf(record);
+		loadTransientEagerMetadatas(schema, record, recordProvider, transaction);
+	}
+
+	public void loadTransientEagerMetadatas(MetadataSchema schema, RecordImpl record, RecordProvider recordProvider,
+											Transaction transaction) {
 		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record);
 		for (Metadata automaticMetadata : schema.getEagerTransientMetadatas()) {
 			updateAutomaticMetadata(context, record, recordProvider, automaticMetadata, reindexation, types, transaction);
 		}
@@ -131,7 +137,7 @@ public class RecordAutomaticMetadataServices {
 		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 		for (Metadata automaticMetadata : schema.getLazyTransientMetadatas()) {
 			updateAutomaticMetadata(context, record, recordProvider, automaticMetadata, reindexation, types, transaction);
 		}
@@ -143,7 +149,7 @@ public class RecordAutomaticMetadataServices {
 		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 		for (String metadata : automaticMetadatas) {
 			updateAutomaticMetadata(context, record, recordProvider, schema.get(metadata), reindexation, types, transaction);
 		}
@@ -478,7 +484,7 @@ public class RecordAutomaticMetadataServices {
 
 		MetadataList availableMetadatas = new MetadataList();
 		MetadataList availableMetadatasWithValue = new MetadataList();
-		for (Metadata metadata : types.getSchema(record.getSchemaCode()).getMetadatas()) {
+		for (Metadata metadata : types.getSchemaOf(record).getMetadatas()) {
 
 			if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
 				&& record.getLazyTransientValues().isEmpty()) {
@@ -605,27 +611,47 @@ public class RecordAutomaticMetadataServices {
 					disabledGroups.add(globalGroup.getCode());
 				}
 			}
+
+			boolean newGroupsDisabled = true;
+			while (newGroupsDisabled) {
+				newGroupsDisabled = false;
+
+				for (Record record : searchServices.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
+						.getSchemaType(GlobalGroup.SCHEMA_TYPE))) {
+					GlobalGroup globalGroup = systemCollectionSchemasRecordServices.wrapGlobalGroup(record);
+					boolean disabled = disabledGroups.contains(globalGroup.getCode());
+					if (!disabled && globalGroup.getParent() != null && disabledGroups.contains(globalGroup.getParent())) {
+						disabledGroups.add(globalGroup.getCode());
+						newGroupsDisabled = true;
+					}
+				}
+			}
 		}
 
 		GroupAuthorizationsInheritance groupInheritanceMode =
 				systemConfigurationsManager.getValue(ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE);
-		KeyListMap<String, String> groupsReceivingAccessToGroup = new KeyListMap<>();
+		KeyListMap<String, String> groupsReceivingAccessFromGroup = new KeyListMap<>();
 		KeyListMap<String, String> groupsGivingAccessToGroup = new KeyListMap<>();
-		MetadataSchema groupSchema = types.getSchema(Group.DEFAULT_SCHEMA);
-		Map<String, Boolean> globalGroupDisabledMap = new HashMap<>();
-		if (groupSchema.hasMetadataWithCode(Group.ANCESTORS)) {
-			Metadata groupAncestorMetadata = groupSchema.getMetadata(Group.ANCESTORS);
+
+		KeyListMap<String, String> groupsGivingAccessToUser = new KeyListMap<>();
+		KeyListMap<String, String> activePrincipalsGivingAccessToPrincipal = new KeyListMap<>();
+
+		Map<String, Boolean> globalGroupEnabledMap = new HashMap<>();
+		if (types.getSchema(Group.DEFAULT_SCHEMA).hasMetadataWithCode(Group.ANCESTORS)) {
+			Metadata groupAncestorMetadata = types.getSchema(Group.DEFAULT_SCHEMA).getMetadata(Group.ANCESTORS);
+
 			for (Record group : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
 				if (group != null) {
-					globalGroupDisabledMap.put(group.getId(), !disabledGroups.contains(group.<String>get(Schemas.CODE)));
+					boolean enabled = !disabledGroups.contains(group.<String>get(Schemas.CODE));
+					globalGroupEnabledMap.put(group.getId(), enabled);
 
 					for (String ancestor : group.<String>getList(groupAncestorMetadata)) {
 						if (groupInheritanceMode == FROM_PARENT_TO_CHILD) {
 							groupsGivingAccessToGroup.add(group.getId(), ancestor);
-							groupsReceivingAccessToGroup.add(ancestor, group.getId());
+							groupsReceivingAccessFromGroup.add(ancestor, group.getId());
 
 						} else {
-							groupsReceivingAccessToGroup.add(group.getId(), ancestor);
+							groupsReceivingAccessFromGroup.add(group.getId(), ancestor);
 							groupsGivingAccessToGroup.add(ancestor, group.getId());
 						}
 
@@ -634,6 +660,23 @@ public class RecordAutomaticMetadataServices {
 				} else {
 					LOGGER.warn("Null record returned while getting all groups");
 				}
+			}
+		}
+
+		Metadata userGroups = types.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema().getMetadata(User.GROUPS);
+		for (Record user : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(User.SCHEMA_TYPE))) {
+			if (user != null) {
+				Set<String> allGroups = new HashSet<>();
+
+				for (String groupId : user.<String>getList(userGroups)) {
+					allGroups.add(groupId);
+					allGroups.addAll(groupsGivingAccessToGroup.get(groupId));
+				}
+
+				groupsGivingAccessToUser.addAll(user.getId(), new ArrayList<>(allGroups));
+				activePrincipalsGivingAccessToPrincipal.add(user.getId(), user.getId());
+			} else {
+				LOGGER.warn("Null record returned while getting all groups");
 			}
 		}
 
@@ -656,8 +699,29 @@ public class RecordAutomaticMetadataServices {
 			}
 		}
 
-		return new SingletonSecurityModel(authorizationDetails, globalGroupDisabledMap, groupsReceivingAccessToGroup, groupsGivingAccessToGroup, groupInheritanceMode,
-				securableRecordSchemaTypes, collection);
+
+		for (Map.Entry<String, List<String>> entry : groupsGivingAccessToGroup.getMapEntries()) {
+			for (String groupId : entry.getValue()) {
+				Boolean disabled = globalGroupEnabledMap.get(groupId);
+				if (Boolean.TRUE.equals(disabled)) {
+					activePrincipalsGivingAccessToPrincipal.add(entry.getKey(), groupId);
+				}
+
+			}
+		}
+
+		for (Map.Entry<String, List<String>> entry : groupsGivingAccessToUser.getMapEntries()) {
+			for (String groupId : entry.getValue()) {
+				Boolean disabled = globalGroupEnabledMap.get(groupId);
+				if (Boolean.TRUE.equals(disabled)) {
+					activePrincipalsGivingAccessToPrincipal.add(entry.getKey(), groupId);
+				}
+			}
+		}
+
+		return new SingletonSecurityModel(authorizationDetails, globalGroupEnabledMap, groupsReceivingAccessFromGroup,
+				groupsGivingAccessToGroup, groupsGivingAccessToUser, activePrincipalsGivingAccessToPrincipal,
+				groupInheritanceMode, securableRecordSchemaTypes, collection);
 	}
 
 
@@ -689,10 +753,6 @@ public class RecordAutomaticMetadataServices {
 		List<String> removedAuthorizations = new ArrayList<>();
 		List<String> attachedAncestors = new ArrayList<>();
 		MetadataSchema recordSchema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
-
-		if (record.getId().equals("zeSubFolder")) {
-			System.out.println("!!");
-		}
 
 		List<Metadata> parentReferences = recordSchema.getParentReferences();
 		for (Metadata metadata : parentReferences) {

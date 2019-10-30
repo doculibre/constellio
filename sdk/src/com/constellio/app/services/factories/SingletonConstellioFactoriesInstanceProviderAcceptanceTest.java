@@ -76,7 +76,7 @@ public class SingletonConstellioFactoriesInstanceProviderAcceptanceTest extends 
 						System.out.println("OK");
 						System.out.println("OK");
 						System.out.println("OK");
-						ConstellioFactories.getInstance(constellioProperties, configurationDecorator).getAppLayerFactory();
+						ConstellioFactories.getInstance(() -> constellioProperties, configurationDecorator).getAppLayerFactory();
 					}
 
 					@Override
@@ -89,7 +89,7 @@ public class SingletonConstellioFactoriesInstanceProviderAcceptanceTest extends 
 		};
 
 		ConstellioFactories constellioFactories = ConstellioFactories
-				.getInstance(constellioProperties, configurationAndServicesDecorator);
+				.getInstance(() -> constellioProperties, configurationAndServicesDecorator);
 
 	}
 
@@ -169,7 +169,7 @@ public class SingletonConstellioFactoriesInstanceProviderAcceptanceTest extends 
 		};
 
 		ConstellioFactories constellioFactories = ConstellioFactories
-				.getInstance(constellioProperties, configurationAndServicesDecorator);
+				.getInstance(() -> constellioProperties, configurationAndServicesDecorator);
 
 		otherThread.join();
 		assertThat(numberOfTimeThatAnOtherThreadHasObtainedInstances.get()).isBetween(1, 2);

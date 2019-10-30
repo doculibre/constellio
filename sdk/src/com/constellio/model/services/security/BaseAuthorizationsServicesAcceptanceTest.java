@@ -112,7 +112,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	protected List<String> initialFinishedBatchProcesses;
 
-	protected String auth1, auth2, auth3, auth4, auth5, auth6, auth7;
+	protected String auth1, auth2, auth3, auth4, auth5, auth6, auth7, auth8;
 
 	String[] allUsers = new String[]{alice, bob, charles, dakota, edouard, gandalf, chuck, sasquatch, robin};
 
@@ -400,6 +400,22 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			return assertThat(usersWithWriteAccess).describedAs("write access on record '" + recordId + "'");
 		}
 
+		public ListAssert<String> usersWithHierarchyWriteAccess() {
+
+			Record record = getModelLayerFactory().newRecordServices().getDocumentById(recordId);
+			List<User> allUsers = getModelLayerFactory().newUserServices().getAllUsersInCollection(zeCollection);
+
+			List<String> usersWithWriteAccess = new ArrayList<>();
+			for (User user : allUsers) {
+				if (hasHierarchyWriteAccess(user, record)) {
+					usersWithWriteAccess.add(user.getUsername());
+				}
+			}
+
+
+			return assertThat(usersWithWriteAccess).describedAs("write access on record '" + recordId + "'");
+		}
+
 		public ListAssert<String> usersWithDeleteAccess() {
 
 			Record record = getModelLayerFactory().newRecordServices().getDocumentById(recordId);
@@ -489,6 +505,66 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUserDelete(user)
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
 		Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.set(wasEnabled);
+
+		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
+			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
+				 + "' using wrapper method, but not using search");
+		}
+
+		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
+			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
+				 + "' using search, but not using wrapper method");
+		}
+		return hasAccessUsingWrapperMethod;
+	}
+
+	protected boolean hasHierarchyReadAccess(User user, Record record) {
+		return hasHierarchyReadAccess(user, record, null, false);
+	}
+
+	protected boolean hasHierarchyReadAccess(User user, Record record, MetadataSchemaType selectedType,
+											 boolean includeInvisible) {
+		//boolean hasAccessUsingWrapperMethod = user.hasWriteAccess().on(record);
+
+		boolean wasEnabled = Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.enable();
+		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery()
+				.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR)
+				.filteredWithUserHierarchyRead(user, selectedType, includeInvisible)
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+		Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.set(wasEnabled);
+
+		//TODO
+		boolean hasAccessUsingWrapperMethod = hasAccessUsingSearchTokens;
+
+		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
+			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
+				 + "' using wrapper method, but not using search");
+		}
+
+		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
+			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
+				 + "' using search, but not using wrapper method");
+		}
+		return hasAccessUsingWrapperMethod;
+	}
+
+	protected boolean hasHierarchyWriteAccess(User user, Record record) {
+		return hasHierarchyWriteAccess(user, record, null, false);
+	}
+
+	protected boolean hasHierarchyWriteAccess(User user, Record record, MetadataSchemaType selectedType,
+											  boolean includeInvisible) {
+		//boolean hasAccessUsingWrapperMethod = user.hasWriteAccess().on(record);
+
+		boolean wasEnabled = Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.enable();
+		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery()
+				.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR)
+				.filteredWithUserHierarchyRead(user, selectedType, includeInvisible)
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+		Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.set(wasEnabled);
+
+		//TODO
+		boolean hasAccessUsingWrapperMethod = hasAccessUsingSearchTokens;
 
 		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
 			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()

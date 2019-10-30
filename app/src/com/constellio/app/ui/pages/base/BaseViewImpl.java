@@ -7,7 +7,6 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.buttons.BackButton;
-import com.constellio.app.ui.framework.components.BaseMouseOverIcon;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
@@ -67,11 +66,13 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	private BaseBreadcrumbTrail breadcrumbTrail;
 
-	private BaseMouseOverIcon guideButton;
-
 	private Label titleLabel;
 
 	private BackButton backButton;
+
+	private Boolean delayedBackButtonVisible;
+
+	private I18NHorizontalLayout titleBackButtonLayout;
 
 	private Component mainComponent;
 	private Component actionMenu;
@@ -109,7 +110,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				}
 			}
 
-			DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this);
+			DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this, event);
 			AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
 
 			appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentBeforeViewAssembledOnViewEntered(params);
@@ -142,6 +143,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				}
 			}
 
+			addStyleName("base-view");
 			addStyleName("main-component-wrapper");
 			setSizeFull();
 
@@ -154,31 +156,27 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				breadcrumbTrail = buildBreadcrumbTrail();
 			}
 
-			String title = getTitle();
-			if (isBreadcrumbsVisible() && breadcrumbTrail == null && title != null) {
-				breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
-			} else if (!isBreadcrumbsVisible() && title != null) {
-				titleLabel = new Label(title);
-				titleLabel.addStyleName(ValoTheme.LABEL_H1);
-			}
+			titleBackButtonLayout = new I18NHorizontalLayout();
+			titleBackButtonLayout.setWidth("100%");
 
-			if (getGuideUrl() != null) {
-				guideButton = new BaseMouseOverIcon(new ThemeResource("images/icons/audit-icon.png"), $("guide")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getUI().getPage().open(getGuideUrl(), "_blank");
-					}
-				};
+			String title = getTitle();
+			if (isBreadcrumbsVisible()) {
+				if (breadcrumbTrail == null && title != null) {
+					breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
+				} else if (title != null && breadcrumbTrail == null) {
+					titleLabel = new Label(title);
+					titleLabel.addStyleName(ValoTheme.LABEL_H1);
+				}
 			}
 
 			backButton = new BackButton();
 			ClickListener backButtonClickListener = getBackButtonClickListener();
-			if (backButtonClickListener != null) {
-				backButton.setVisible(true);
-				backButton.addStyleName(BACK_BUTTON_CODE);
-				backButton.addClickListener(backButtonClickListener);
-			} else {
+			backButton.addStyleName(BACK_BUTTON_CODE);
+			if (backButtonClickListener == null) {
 				backButton.setVisible(false);
+			} else {
+				backButton.setVisible(!Boolean.FALSE.equals(delayedBackButtonVisible));
+				backButton.addClickListener(backButtonClickListener);
 			}
 
 			actionMenu = buildActionMenu(event);
@@ -196,27 +194,26 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				breadcrumbTrailLayout.setComponentAlignment(breadcrumbTrail, Alignment.MIDDLE_LEFT);
 			}
 
-			if (guideButton != null) {
-				breadcrumbTrailLayout.addComponent(guideButton);
-				breadcrumbTrailLayout.setComponentAlignment(guideButton, Alignment.MIDDLE_LEFT);
-				breadcrumbTrailLayout.setExpandRatio(guideButton, 1.0f);
-			}
-
 			if (breadcrumbTrailLayout.getComponentCount() != 0) {
 				addComponent(breadcrumbTrailLayout);
 			}
 
-			if (titleLabel != null) {
-				addComponents(titleLabel);
-			}
-			addComponent(backButton);
-
 			if (actionMenu != null && isActionMenuBar()) {
 				addComponent(actionMenu);
 			}
+
 			addComponent(mainComponent);
 			if (actionMenu != null && !isActionMenuBar()) {
 				addComponent(actionMenu);
+			}
+
+			if (titleLabel != null || backButton != null) {
+				if (titleLabel != null) {
+					titleBackButtonLayout.addComponents(titleLabel);
+				}
+				titleBackButtonLayout.addComponents(backButton);
+			} else {
+				titleBackButtonLayout.setVisible(false);
 			}
 
 			setExpandRatio(mainComponent, 1f);
@@ -261,6 +258,14 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				LOGGER.error("Error when entering view", e);
 				throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
 			}
+		}
+	}
+
+	public void refreshActionMenu() {
+		if (actionMenu != null) {
+			Component oldActionMenu = actionMenu;
+			actionMenu = buildActionMenu(null);
+			replaceComponent(oldActionMenu, actionMenu);
 		}
 	}
 
@@ -333,7 +338,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	protected boolean isFullWidthIfActionMenuAbsent() {
-		return false;
+		return true;
 	}
 
 	protected boolean isActionMenuBar() {
@@ -353,6 +358,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	protected MenuBar newActionMenuBar() {
+		actionMenuButtonsAndItems.clear();
+
 		String menuBarCaption = getActionMenuBarCaption();
 		if (menuBarCaption == null) {
 			menuBarCaption = "";
@@ -366,12 +373,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			menuBar.addStyleName("no-caption-action-menu-bar");
 		}
 
-		MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
+		MenuItem rootItem = menuBar.addItem("", FontAwesome.ELLIPSIS_V, null);
 		if (StringUtils.isNotBlank(menuBarCaption)) {
-			rootItem.setIcon(null);
 			rootItem.setText(menuBarCaption);
-		} else {
-			rootItem.setIcon(FontAwesome.ELLIPSIS_V);
 		}
 
 		for (final Button actionMenuButton : actionMenuButtons) {
@@ -381,8 +385,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
 					actionMenuButton.click();
+					updateActionMenuItems();
 				}
 			});
+			actionMenuItem.setEnabled(actionMenuButton.isEnabled());
+			actionMenuItem.setVisible(actionMenuButton.isVisible());
 			actionMenuButtonsAndItems.put(actionMenuButton, actionMenuItem);
 		}
 		return menuBar;
@@ -457,11 +464,14 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
                     actionMenuLayout = null;
                 }
                 result = actionMenuLayout;
-            }
-        }
-        if (result != null) {
-			result.addStyleName("action-menu");
-        }
+				if (result != null) {
+					result.addStyleName("action-menu");
+				}
+			}
+		}
+		//        if (result != null) {
+		//			result.addStyleName("action-menu");
+		//        }
         return result;
     }
 
@@ -606,17 +616,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		}
 	}
 
-	public class CustomCssLayout extends CssLayout {
-		@Override
-		public void addComponents(Component... components) {
-			for (Component component : components) {
-				if (component != null) {
-					super.addComponent(component);
-				}
-			}
-		}
-	}
-
 	protected boolean isBreadcrumbsVisible() {
 		return true;
 	}
@@ -624,6 +623,37 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	@Override
 	public MainLayout getMainLayout() {
 		return ConstellioUI.getCurrent().getMainLayout();
+	}
+
+	@Override
+	public void setBackButtonVisible(boolean visible) {
+		if (backButton != null) {
+			backButton.setVisible(visible);
+		} else {
+			delayedBackButtonVisible = visible;
+		}
+	}
+
+	public BaseBreadcrumbTrail getBreadcrumbTrail() {
+		return breadcrumbTrail;
+	}
+
+	public void replaceBreadcrumbTrail(BaseBreadcrumbTrail newBreadcrumbTrail) {
+		if (breadcrumbTrail != null) {
+			breadcrumbTrailLayout.replaceComponent(breadcrumbTrail, breadcrumbTrail = newBreadcrumbTrail);
+		}
+	}
+
+	public class CustomCssLayout extends CssLayout {
+		@Override
+		public void addComponents(Component... components) {
+			for (Component component : components) {
+
+				if (component != null) {
+					super.addComponent(component);
+				}
+			}
+		}
 	}
 
 	@Override

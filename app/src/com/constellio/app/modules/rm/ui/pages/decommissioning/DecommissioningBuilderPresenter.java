@@ -200,6 +200,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		return searchType;
 	}
 
+	public String getAdminUnitId() {
+		return adminUnitId;
+	}
+
 	public DecommissioningList getDecommissioningList() {
 		return decommissioningListId == null ? null : rmRecordServices().getDecommissioningList(decommissioningListId);
 	}
@@ -508,8 +512,13 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	@Override
+	public void showErrorMessage(String message) {
+		view.showErrorMessage(message);
+	}
+
+	@Override
 	public String getSavedSearchId() {
 		return searchID;
 	}
-	
+
 }

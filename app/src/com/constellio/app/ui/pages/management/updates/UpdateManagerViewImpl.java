@@ -99,7 +99,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.restartAndReindex();
+				presenter.restartAndReindex(false);
 			}
 		};
 		reindex.setDialogMode(ConfirmDialogButton.DialogMode.WARNING);
@@ -157,7 +157,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				return layout;
 			}
 		};
-		lastAlert.setVisible(presenter.getLastAlertConfigValue() != null);
+		lastAlert.setVisible(presenter.hasLastAlertPermission() && presenter.getLastAlertConfigValue() != null);
 		buttons.add(lastAlert);
 
 		return buttons;
@@ -553,4 +553,9 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		return AcceptAll.get();
 	}
 
+
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return (ClickListener) event -> presenter.backButtonClicked();
+	}
 }

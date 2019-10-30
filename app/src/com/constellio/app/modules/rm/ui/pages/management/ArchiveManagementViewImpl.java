@@ -58,6 +58,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		newContainer.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		newContainer.addStyleName(NEW_CONTAINER);
 
+
 		multipleContainers = new IconButton(MULTIPLE_CONTAINERS_ICON, $("ArchiveManagementView.newContainers"), false) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -97,7 +98,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		baginfo.setVisible(presenter.hasAccessToBagInfoPage());
 
 		presenter.onViewAssembled();
-		CssLayout layout = new CssLayout(decommissioning, multipleContainers, newContainer, containers, reports, baginfo);
+		CssLayout layout = new CssLayout(decommissioning, newContainer, multipleContainers, containers, reports, baginfo);
 		layout.addStyleName("view-group");
 
 		return layout;
@@ -109,11 +110,6 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 	}
 
 	@Override
-	public void setNewContainerButtonVisible(boolean visible) {
-		newContainer.setVisible(visible);
-	}
-
-	@Override
 	public void setContainersButtonVisible(boolean visible) {
 		containers.setVisible(visible);
 	}
@@ -121,5 +117,10 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 	@Override
 	public void setPrintReportsButtonVisible(boolean visible) {
 		reports.setVisible(visible);
+	}
+
+	@Override
+	public void setNewContainerButtonVisible(boolean visible) {
+		newContainer.setVisible(visible);
 	}
 }

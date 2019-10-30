@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import static com.constellio.model.entities.schemas.MetadataSchemaTypes.LIMIT_OF_SCHEMAS__IN_TYPE;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
 
 public class MetadataSchemaType implements Serializable {
 
@@ -64,6 +65,10 @@ public class MetadataSchemaType implements Serializable {
 
 	private RecordCacheType recordCacheType;
 
+	private MetadataList allMetadatas;
+
+	private boolean hasEagerTransientMetadata;
+
 	public MetadataSchemaType(short id, String code, String smallCode, CollectionInfo collectionInfo,
 							  Map<Language, String> labels,
 							  List<MetadataSchema> customSchemas,
@@ -92,6 +97,24 @@ public class MetadataSchemaType implements Serializable {
 		this.metadatasById = computeMetadatasById(defaultSchema, customSchemas);
 		this.schemasById = computeSchemasById(defaultSchema, customSchemas);
 		this.recordCacheType = recordCacheType;
+		this.allMetadatas = computeAllMetadatas(defaultSchema, customSchemas);
+		hasEagerTransientMetadata = allMetadatas.stream().anyMatch((m) -> m.getTransiency() == TRANSIENT_EAGER);
+	}
+
+	private static MetadataList computeAllMetadatas(MetadataSchema defaultSchema, List<MetadataSchema> customSchemas) {
+		MetadataList metadatas = new MetadataList();
+
+		metadatas.addAll(defaultSchema.getMetadatas());
+
+		for (MetadataSchema customSchema : customSchemas) {
+			for (Metadata customParentReferenceMetadata : customSchema.getMetadatas()) {
+				if (customParentReferenceMetadata.getInheritance() == null) {
+					metadatas.add(customParentReferenceMetadata);
+				}
+			}
+		}
+
+		return metadatas.unModifiable();
 	}
 
 	private List<MetadataSchema> computeSchemasById(MetadataSchema defaultSchema, List<MetadataSchema> customSchemas) {
@@ -166,6 +189,10 @@ public class MetadataSchemaType implements Serializable {
 			schemaMap.put(schema.getLocalCode(), schema);
 		}
 		return Collections.unmodifiableMap(schemaMap);
+	}
+
+	public boolean hasEagerTransientMetadata() {
+		return hasEagerTransientMetadata;
 	}
 
 	public boolean isReadOnlyLocked() {
@@ -309,6 +336,20 @@ public class MetadataSchemaType implements Serializable {
 		}
 
 		return Collections.unmodifiableList(referenceMetadatas);
+	}
+
+
+	public List<Metadata> getAllParentReferencesTo(String metadataSchemaType) {
+		List<Metadata> refs = new ArrayList<>();
+
+
+		for (Metadata parentReferenceMetadata : defaultSchema.getParentReferences()) {
+			if (parentReferenceMetadata.getReferencedSchemaType().equals(metadataSchemaType)) {
+				refs.add(parentReferenceMetadata);
+			}
+		}
+
+		return refs;
 	}
 
 	public List<Metadata> getAllParentReferences() {
@@ -464,19 +505,7 @@ public class MetadataSchemaType implements Serializable {
 	}
 
 	public MetadataList getAllMetadatas() {
-		MetadataList metadatas = new MetadataList();
-
-		metadatas.addAll(defaultSchema.getMetadatas());
-
-		for (MetadataSchema customSchema : customSchemas) {
-			for (Metadata customParentReferenceMetadata : customSchema.getMetadatas()) {
-				if (customParentReferenceMetadata.getInheritance() == null) {
-					metadatas.add(customParentReferenceMetadata);
-				}
-			}
-		}
-
-		return metadatas.unModifiable();
+		return allMetadatas;
 	}
 
 	public MetadataList getAllMetadatasIncludingThoseWithInheritance() {

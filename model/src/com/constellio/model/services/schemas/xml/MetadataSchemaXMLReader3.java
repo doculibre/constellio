@@ -320,8 +320,8 @@ public class MetadataSchemaXMLReader3 {
 
 		String isCacheIndexStringValue = metadataElement.getAttributeValue("cacheIndex");
 
-		if(inheriteGlobalMetadata && isCacheIndexStringValue == null) {
-			metadataBuilder.setCacheIndex(false);
+		if (inheriteGlobalMetadata && isCacheIndexStringValue == null) {
+			metadataBuilder.setCacheIndex(globalMetadataInCollectionSchema.isCacheIndex());
 		} else {
 			metadataBuilder.setCacheIndex(readBooleanWithDefaultValue(isCacheIndexStringValue, false));
 		}

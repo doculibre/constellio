@@ -1,8 +1,6 @@
 package com.constellio.app.ui.application;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
-import com.constellio.app.modules.rm.ui.contextmenu.RMRecordContextMenuHandler;
-import com.constellio.app.modules.rm.ui.menuBar.RMRecordMenuBarHandler;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.sso.SSOServices;
@@ -43,8 +41,6 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
-import com.vaadin.server.Page.BrowserWindowResizeEvent;
-import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.RequestHandler;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.VaadinRequest;
@@ -101,6 +97,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 											String notOKCaption) {
 					DefaultConfirmDialogFactory factory = new DefaultConfirmDialogFactory();
 					ConfirmDialog confirmDialog = factory.create(windowCaption, message, okTitle, cancelTitle, notOKCaption);
+					confirmDialog.addStyleName("confirm-dialog");
 					confirmDialog.setContentMode(ConfirmDialog.ContentMode.HTML);
 					confirmDialog.setResizable(true);
 					confirmDialog.addAttachListener(new AttachListener() {
@@ -131,7 +128,6 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 	@Override
 	protected void init(VaadinRequest request) {
-
 		if (!getSession().getRequestHandlers().contains(CONSTELLIO_RESSOURCE_HANDLER)) {
 			getSession().addRequestHandler(CONSTELLIO_RESSOURCE_HANDLER);
 		}
@@ -143,8 +139,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 
-		addRecordContextMenuHandler(new RMRecordContextMenuHandler(constellioFactories));
-		addRecordMenuBarHandler(new RMRecordMenuBarHandler(constellioFactories));
+		appLayerFactory.getExtensions().getSystemWideExtensions().addToConstellioUIInitialisation(this);
 
 		List<InitUIListener> initUIListeners = appLayerFactory.getInitUIListeners();
 		for (InitUIListener initUIListener : initUIListeners) {
@@ -154,14 +149,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		Responsive.makeResponsive(this);
 		addStyleName(ValoTheme.UI_WITH_MENU);
 
-		// Some views need to be aware of browser resize events so a
-		// BrowserResizeEvent gets fired to the event but on every occasion.
-		Page.getCurrent().addBrowserWindowResizeListener(
-				new BrowserWindowResizeListener() {
-					@Override
-					public void browserWindowResized(final BrowserWindowResizeEvent event) {
-					}
-				});
+		int tooltipDelay = 50;
+		getTooltipConfiguration().setOpenDelay(tooltipDelay);
+		getTooltipConfiguration().setQuickOpenDelay(tooltipDelay);
 
 		if (getErrorHandler() == null) {
 			setErrorHandler(new ConstellioErrorHandler());
@@ -375,7 +365,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	}
 
 	public static SessionContext getCurrentSessionContext() {
-		return getCurrent().getSessionContext();
+		return getCurrent() != null ? getCurrent().getSessionContext() : null;
 	}
 
 	public boolean isProductionMode() {
@@ -453,7 +443,17 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		return mainLayout;
 	}
 
-	public void runAsync(final Runnable runnable, int pollInterval, final Component component) {
+	public Component getStaticFooterContent() {
+		return mainLayout.getStaticFooterContent();
+	}
+
+	public void setStaticFooterContent(Component component) {
+		if (mainLayout != null) {
+			mainLayout.setStaticFooterContent(component);
+		}
+	}
+
+	public Thread runAsync(final Runnable runnable, int pollInterval, final Component component) {
 		final boolean restorePollingInterval;
 		final int pollIntervalBefore = getPollInterval();
 		if (getPollInterval() <= 0) {
@@ -462,7 +462,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		} else {
 			restorePollingInterval = false;
 		}
-		new Thread() {
+		Thread thread = new Thread() {
 			@Override
 			public void run() {
 				try {
@@ -479,7 +479,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 					}
 				}
 			}
-		}.start();
+		};
+		thread.start();
+		return thread;
 	}
 
 }

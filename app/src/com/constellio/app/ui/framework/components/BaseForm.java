@@ -1,7 +1,11 @@
 package com.constellio.app.ui.framework.components;
 
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -15,9 +19,9 @@ import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractValidator;
-import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.AbstractField;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -31,6 +35,7 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -74,6 +79,8 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	protected VerticalLayout formLayout;
 
+	protected VerticalLayout hiddenLayout;
+
 	protected I18NHorizontalLayout buttonsLayout;
 
 	protected Button saveButton;
@@ -94,11 +101,11 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	private Class<?> validatorClass = null;
 
-	public BaseForm(final T viewObject, Serializable objectWithMemberFields, Field<?>... fields) {
+	public BaseForm(T viewObject, Serializable objectWithMemberFields, Field<?>... fields) {
 		this(viewObject, new MemberFieldBinder(objectWithMemberFields), fields);
 	}
 
-	public BaseForm(final T viewObject, List<FieldAndPropertyId> fieldsAndPropertyIds) {
+	public BaseForm(T viewObject, List<FieldAndPropertyId> fieldsAndPropertyIds) {
 		this(viewObject, new FieldAndPropertyIdBinder(fieldsAndPropertyIds), toFields(fieldsAndPropertyIds));
 	}
 
@@ -116,6 +123,11 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 		formLayout = new VerticalLayout();
 		formLayout.setSpacing(true);
+		formLayout.addStyleName("base-form-layout");
+
+		hiddenLayout = new VerticalLayout();
+		formLayout.addComponent(hiddenLayout);
+		hiddenLayout.setVisible(false);
 
 		fieldGroup = new FieldGroup(item) {
 			@Override
@@ -176,7 +188,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		buttonsLayout.setSpacing(true);
 
 		saveButton = new Button(getSaveButtonCaption());
-		saveButton.addStyleName(SAVE_BUTTON);
+		//		saveButton.addStyleName(SAVE_BUTTON);
 		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 		saveButton.addClickListener(new ClickListener() {
 			@Override
@@ -200,8 +212,9 @@ public abstract class BaseForm<T> extends CustomComponent {
 			formLayout.addComponent(tabSheet);
 		}
 
-		formLayout.addComponent(buttonsLayout);
 		buttonsLayout.addComponents(saveButton, cancelButton);
+		buttonsLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
+		buttonsLayout.setComponentAlignment(cancelButton, Alignment.BOTTOM_LEFT);
 
 		if (useTabSheet) {
 			List<String> orderedTabGroupLabels = getOrderedTabCaptions(viewObject);
@@ -240,6 +253,22 @@ public abstract class BaseForm<T> extends CustomComponent {
 				tabSheet.setSelectedTab(0);
 			}
 		}
+	}
+
+	@Override
+	public void attach() {
+		super.attach();
+		if (buttonsLayout.getParent() == null) {
+			if (isAddButtonsToStaticFooter()) {
+				ConstellioUI.getCurrent().setStaticFooterContent(buttonsLayout);
+			} else {
+				formLayout.addComponent(buttonsLayout);
+			}
+		}
+	}
+
+	protected boolean isAddButtonsToStaticFooter() {
+		return ComponentTreeUtils.findParent(this, Window.class) == null;
 	}
 
 	protected List<String> getOrderedTabCaptions(T viewObject) {
@@ -297,13 +326,25 @@ public abstract class BaseForm<T> extends CustomComponent {
 				panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
 				panel.addStyleName("base-form-tab-panel");
 				panel.setWidth("100%");
-				panel.setHeight((Page.getCurrent().getBrowserWindowHeight() - 250) + "px");
+
 				tabs.put(tabCaption, panel);
 				if (tabIcon != null) {
 					tabSheet.addTab(panel, tabCaption, tabIcon);
 				} else {
 					tabSheet.addTab(panel, tabCaption);
 				}
+				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+
+				List<String> tabCaptionToIgnore = appLayerFactory.getExtensions().
+						forCollection(ConstellioUI.getCurrentSessionContext().getCurrentCollection()).
+						getTabSheetCaptionToHideInDisplayAndForm();
+
+				if (tabCaptionToIgnore.contains(groupLabel)) {
+					Tab tab = tabSheet.getTab(panel);
+					tab.setVisible(false);
+					tab.setEnabled(false);
+				}
+
 			} else {
 				fieldLayout = (VerticalLayout) panel.getContent();
 			}
@@ -393,9 +434,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 						LOGGER.warn(e.getMessage(), e);
 					}
 				} catch (Exception e) {
-
 					ValidationErrors validationErrorsFromException = MessageUtils.getValidationErrors(e);
-
 					if (isSpecialContainerTitleCase) {
 						ValidationErrors newValidationErrors = new ValidationErrors();
 						if (validationErrorsFromException != null) {

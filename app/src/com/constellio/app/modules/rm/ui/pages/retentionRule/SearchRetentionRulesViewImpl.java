@@ -147,13 +147,12 @@ public class SearchRetentionRulesViewImpl extends BaseViewImpl implements Search
 		searchField.focus();
 		searchField.setValue(presenter.getQueryExpression());
 		searchField.setNullRepresentation("");
-		Button searchButton = new SearchButton();
-		searchButton.addClickListener(new ClickListener() {
+		Button searchButton = new SearchButton() {
 			@Override
-			public void buttonClick(ClickEvent event) {
+			protected void buttonClick(ClickEvent event) {
 				presenter.search(searchField.getValue());
 			}
-		});
+		};
 		searchLayout.addComponents(searchField, searchButton);
 
 		OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {

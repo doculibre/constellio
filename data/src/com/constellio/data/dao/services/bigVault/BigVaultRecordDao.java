@@ -7,7 +7,6 @@ import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
@@ -53,7 +52,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -271,38 +269,6 @@ public class BigVaultRecordDao implements RecordDao {
 		bigVaultServer.removeLockWithAgeGreaterThan(10);
 	}
 
-	@Override
-	public void recreateZeroCounterIndexesIn(String collection, Iterator<RecordDTO> idsIterator) {
-
-		ModifiableSolrParams params = new ModifiableSolrParams();
-		params.set("fq", "id:idx_rfc_*");
-		params.set("q", "type_s:index");
-		params.set("fq", "collection_s:" + collection);
-
-		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
-				.addDeletedQuery(SolrUtils.toDeleteQueries(params));
-		String transactionId = transaction.getTransactionId();
-		try {
-
-			if (secondTransactionLogManager != null) {
-				secondTransactionLogManager.prepare(transactionId, transaction);
-			}
-
-			TransactionResponseDTO response = bigVaultServer.addAll(transaction);
-
-			if (secondTransactionLogManager != null) {
-				secondTransactionLogManager.flush(transactionId, response);
-			}
-
-		} catch (BigVaultException e) {
-			if (secondTransactionLogManager != null) {
-				secondTransactionLogManager.cancel(transactionId);
-			}
-			throw new RuntimeException(e);
-		}
-
-	}
-
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	private List<String> getRecordAncestors(RecordDTO newRecord) {
 		List<String> recordsAncestors = new ArrayList<>();
@@ -459,7 +425,7 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	@Override
-	public RecordDTO get(String id)
+	public RecordDTO get(String id, boolean callExtensions)
 			throws RecordDaoException.NoSuchRecordWithId {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("fq", ID_FIELD + ":" + id);
@@ -474,11 +440,11 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	@Override
-	public RecordDTO realGet(String id)
+	public RecordDTO realGet(String id, boolean callExtensions)
 			throws RecordDaoException.NoSuchRecordWithId {
 		SolrDocument solrDocument;
 		try {
-			solrDocument = bigVaultServer.realtimeGet(id);
+			solrDocument = bigVaultServer.realtimeGet(id, callExtensions);
 		} catch (BigVaultException.CouldNotExecuteQuery e) {
 			throw new BigVaultRuntimeException.CannotQuerySingleDocument(e);
 		}
@@ -491,13 +457,13 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	@Override
-	public List<RecordDTO> realGet(List<String> ids) {
+	public List<RecordDTO> realGet(List<String> ids, boolean callExtensions) {
 
 		List<RecordDTO> recordDTOS = new ArrayList<>();
 
 		try {
 
-			for (SolrDocument solrDocument : bigVaultServer.realtimeGet(ids)) {
+			for (SolrDocument solrDocument : bigVaultServer.realtimeGet(ids, callExtensions)) {
 				if (solrDocument != null) {
 					recordDTOS.add(toEntity(solrDocument, RecordDTOMode.FULLY_LOADED));
 				}
@@ -1028,7 +994,7 @@ public class BigVaultRecordDao implements RecordDao {
 	public long getCurrentVersion(String id) {
 
 		try {
-			return get(id).getVersion();
+			return get(id, true).getVersion();
 		} catch (NoSuchRecordWithId noSuchRecordWithId) {
 			return -1L;
 		}

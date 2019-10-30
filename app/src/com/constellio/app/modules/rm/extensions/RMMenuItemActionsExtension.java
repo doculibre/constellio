@@ -49,17 +49,19 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 		List<String> excludedActionTypes = params.getExcludedActionTypes();
 		MenuItemActionBehaviorParams behaviorParams = params.getBehaviorParams();
 
-		if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
-			menuItemActions.addAll(documentMenuItemServices.getActionsForRecord(rm.wrapDocument(record), user,
-					excludedActionTypes, behaviorParams));
-		} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
-			menuItemActions.addAll(folderMenuItemServices.getActionsForRecord(rm.wrapFolder(record), user,
-					excludedActionTypes, behaviorParams));
-		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
-			menuItemActions.addAll(containerMenuItemServices.getActionsForRecord(rm.wrapContainerRecord(record), user,
-					excludedActionTypes, behaviorParams));
-		} else if(record.isOfSchemaType(Cart.SCHEMA_TYPE)) {
-			menuItemActions.addAll(cartMenuItemServices.getActionsForRecord(rm.wrapCart(record), user, excludedActionTypes, behaviorParams));
+		if (record != null) {
+			if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+				menuItemActions.addAll(documentMenuItemServices.getActionsForRecord(rm.wrapDocument(record), user,
+						excludedActionTypes, behaviorParams));
+			} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+				menuItemActions.addAll(folderMenuItemServices.getActionsForRecord(rm.wrapFolder(record), user,
+						excludedActionTypes, behaviorParams));
+			} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+				menuItemActions.addAll(containerMenuItemServices.getActionsForRecord(rm.wrapContainerRecord(record), user,
+						excludedActionTypes, behaviorParams));
+			} else if (record.isOfSchemaType(Cart.SCHEMA_TYPE)) {
+				menuItemActions.addAll(cartMenuItemServices.getActionsForRecord(rm.wrapCart(record), user, excludedActionTypes, behaviorParams));
+			}
 		}
 	}
 

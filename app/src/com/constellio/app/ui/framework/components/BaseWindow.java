@@ -1,7 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
 import com.constellio.app.api.extensions.params.BaseWindowParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -13,16 +11,19 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Window;
 
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
 public class BaseWindow extends Window {
 
 	public static final String WINDOW_STYLE_NAME = "base-window";
 	public static final String WINDOW_CONTENT_STYLE_NAME = WINDOW_STYLE_NAME + "-content";
 	public static final String WINDOW_CONTENT_SCROLL_STYLE_NAME = WINDOW_STYLE_NAME + "-content-scroll";
+	public static final String WINDOW_CONTENT_WITH_BOTTOM_MARGIN = WINDOW_CONTENT_STYLE_NAME + "-with-bottom-margin";
 
 	public static final int OVER_ADVANCED_SEARCH_FORM_Z_INDEX = 20001;
 
 	private Integer zIndex = null;
-	
+
 	private Float opacity = null;
 
 	private float widthBeforeMinimize;
@@ -109,6 +110,7 @@ public class BaseWindow extends Window {
 	}
 
 	private void init() {
+		setResponsive(true);
 		addStyleName(WINDOW_STYLE_NAME);
 		addStyleName(WINDOW_CONTENT_SCROLL_STYLE_NAME);
 		if (isRightToLeft()) {
@@ -147,7 +149,7 @@ public class BaseWindow extends Window {
 		BaseWindowParams params = new BaseWindowParams(this);
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		appLayerFactory.getExtensions().getSystemWideExtensions().decorateWindow(params);
-		
+
 		if (zIndex != null) {
 			executeZIndexAdjustJavascript(zIndex);
 		}
@@ -157,9 +159,16 @@ public class BaseWindow extends Window {
 	}
 
 	public static void executeZIndexAdjustJavascript(int zIndex) {
+		executeZIndexAdjustJavascript(zIndex, null);
+	}
+
+	public static void executeZIndexAdjustJavascript(int zIndex, String className) {
+		if (className == null) {
+			className = "v-window";
+		}
 		String jsVarName = "var_" + ((int) (Math.random() * 1000)) + "_" + System.currentTimeMillis();
 		StringBuffer zIndexFixJS = new StringBuffer();
-		zIndexFixJS.append("var " + jsVarName + " = document.getElementsByClassName('v-window');\n");
+		zIndexFixJS.append("var " + jsVarName + " = document.getElementsByClassName('" + className + "');\n");
 		zIndexFixJS.append("for (i = 0; i < " + jsVarName + ".length; i++) {\n");
 		zIndexFixJS.append("    " + jsVarName + "[i].style.zIndex=" + zIndex + ";\n");
 		zIndexFixJS.append("}");
@@ -185,5 +194,4 @@ public class BaseWindow extends Window {
 	public ConstellioFactories getConstellioFactories() {
 		return ConstellioFactories.getInstance();
 	}
-
 }

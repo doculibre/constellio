@@ -49,7 +49,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
+import java.util.stream.Collectors;
 
 import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_STRING;
 
@@ -163,25 +165,49 @@ public class BigVaultServer implements Cloneable {
 		return response;
 	}
 
-	public SolrDocument realtimeGet(String id)
+	public SolrDocument realtimeGet(String id, boolean callExtensions)
 			throws BigVaultException.CouldNotExecuteQuery {
 
 		try {
-			return server.getById(id);
+			SolrDocument document = server.getById(id);
+
+			if (callExtensions) {
+				extensions.afterRealtimeGetById(0, id, document != null);
+			}
+
+			return document;
 		} catch (SolrServerException | IOException e) {
 			throw new BigVaultException.CouldNotExecuteQuery("realtime get of " + id, e);
 		}
 
 	}
 
-	public List<SolrDocument> realtimeGet(List<String> ids)
+	public List<SolrDocument> realtimeGet(List<String> ids, boolean callExtensions)
 			throws BigVaultException.CouldNotExecuteQuery {
 
 		try {
-			return server.getById(ids);
+			List<SolrDocument> documents = server.getById(ids);
+
+			if (callExtensions) {
+				for (SolrDocument document : documents) {
+					extensions.afterRealtimeGetById(0, (String) document.getFieldValue("id"), true);
+				}
+
+				if (documents.size() != ids.size()) {
+					Set<String> foundIds = documents.stream().map((r) -> (String) r.getFieldValue("id")).collect(Collectors.toSet());
+					for (String id : ids) {
+						if (!foundIds.contains(id)) {
+							extensions.afterRealtimeGetById(0, id, false);
+						}
+					}
+				}
+			}
+
+			return documents;
 		} catch (SolrServerException | IOException e) {
 			throw new BigVaultException.CouldNotExecuteQuery("realtime get of " + ids, e);
 		}
+
 
 	}
 

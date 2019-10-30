@@ -62,6 +62,8 @@ public class DocumentViewer extends CustomComponent {
 
 	private File file;
 
+	private Component compositionRoot;
+
 	public DocumentViewer(RecordVO recordVO, String metadataCode, ContentVersionVO contentVersionVO) {
 		this.recordVO = recordVO;
 		this.metadataCode = metadataCode;
@@ -165,7 +167,7 @@ public class DocumentViewer extends CustomComponent {
 
 				//				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/viewerjs/index.html?/VIEWER/#../../../../" + contentURL + "\" width=\"" + width + "\" height=\"" + height + "\" allowfullscreen webkitallowfullscreen></iframe>";
 				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/pdfjs/web/viewer.html?file=../../../../../" + contentURL + "\" width=\"100%\" height=\"100%\" allowfullscreen webkitallowfullscreen></iframe>";
-				Component compositionRoot = new Label(iframeHTML, ContentMode.HTML);
+				compositionRoot = new Label(iframeHTML, ContentMode.HTML);
 				compositionRoot.setWidth(widthStr);
 				compositionRoot.setHeight(heightStr);
 				setCompositionRoot(compositionRoot);
@@ -186,6 +188,22 @@ public class DocumentViewer extends CustomComponent {
 	public static boolean isSupported(String fileName) {
 		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 		return Arrays.asList(SUPPORTED_EXTENSIONS).contains(extension);
+	}
+
+	@Override
+	public void setHeight(float height, Unit unit) {
+		super.setHeight(height, unit);
+		if (compositionRoot != null) {
+			compositionRoot.setHeight(height, unit);
+		}
+	}
+
+	@Override
+	public void setWidth(float width, Unit unit) {
+		super.setWidth(width, unit);
+		if (compositionRoot != null) {
+			compositionRoot.setWidth(width, unit);
+		}
 	}
 
 }

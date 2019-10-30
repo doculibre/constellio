@@ -1,7 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType;
 import com.constellio.app.modules.rm.ui.breadcrumb.ContainerByAdministrativeUnitBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
@@ -11,16 +11,9 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
@@ -32,11 +25,9 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.data.utils.Factory;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
@@ -50,10 +41,10 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -62,14 +53,17 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	private final DisplayContainerPresenter presenter;
 	private Label borrowedLabel;
 	private boolean popup = false;
-	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
+	private boolean isNested = false;
+	private Button consultButton = null;
+	private Button editButton = null;
 	public DisplayContainerViewImpl() {
-		this(null, false);
+		this(null, false, false);
 	}
 
 
-	public DisplayContainerViewImpl(RecordVO recordVO, boolean popup) {
+	public DisplayContainerViewImpl(RecordVO recordVO, boolean popup, boolean isNested) {
 		presenter = new DisplayContainerPresenter(this, recordVO, popup);
+		this.isNested = isNested;
 		this.popup = popup;
 	}
 
@@ -92,7 +86,6 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		final VerticalLayout layout = new VerticalLayout();
-		layout.setWidth("100%");
 		layout.setSpacing(true);
 
 		final RecordVO recordVO = presenter.getContainer();
@@ -126,16 +119,22 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				}
 			}
 		};
+
+		if (isNested) {
+			Label titleLabel = new Label(getTitleCaption());
+			titleLabel.addStyleName(ValoTheme.LABEL_H1);
+			layout.addComponent(titleLabel);
+		}
+
 		layout.addComponents(borrowedLabel, new RecordDisplay(recordVO, metadataDisplayFactory));
 
 		layout.addComponent(buildFoldersTable(presenter.getFolders()));
-
 		return layout;
 	}
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
-		if (!popup) {
+		if (!popup && !isNested) {
 			return new ClickListener() {
 				@Override
 				public void buttonClick(ClickEvent event) {
@@ -176,88 +175,75 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		return table;
 	}
 
-	@Override
-	protected String getTitle() {
+	private String getTitleCaption() {
 		return $("DisplayContainerView.viewTitle");
 	}
 
 	@Override
+	protected String getTitle() {
+		if (!isNested) {
+			return getTitleCaption();
+		} else {
+			return null;
+		}
+	}
+
+	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = super.buildActionMenuButtons(event);
-		Button edit = new EditButton($("DisplayContainerView.edit")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.editContainer();
-			}
-		};
-		edit.setVisible(presenter.isEditButtonVisible());
-		actionMenuButtons.add(edit);
+		List<Button> buttonList = new RecordVOActionButtonFactory(presenter.getContainer(), Collections.emptyList()).build();
 
-		Button slip = new ReportButton(new ReportWithCaptionVO("Reports.ContainerRecordReport", $("Reports.ContainerRecordReport")), presenter) {
-			@Override
-			protected Component buildWindowContent() {
-				presenter.saveIfFirstTimeReportCreated();
-				return super.buildWindowContent();
-			}
-		};
-		slip.setCaption($("DisplayContainerView.slip"));
-		slip.setStyleName(ValoTheme.BUTTON_LINK);
-		slip.setEnabled(presenter.canPrintReports());
-		actionMenuButtons.add(slip);
-		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-			@Override
-			public List<LabelTemplate> get() {
-				return presenter.getCustomTemplates();
-			}
-		};
-		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-			@Override
-			public List<LabelTemplate> get() {
-				return presenter.getDefaultTemplates();
-			}
-		};
-		Button labels = new LabelButtonV2($("SearchView.labels"), $("SearchView.printLabels"), customLabelTemplatesFactory,
-				defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection(),getSessionContext().getCurrentUser(), presenter.getContainer());
-		labels.setEnabled(presenter.canPrintReports());
-		actionMenuButtons.add(labels);
-		WindowButton addToCartButton = buildAddToCartButton();
-		Button addToCartMyCartButton = buildAddToMyCartButton();
+		consultButton = getConsultButton(buttonList);
 
-		if (presenter.hasCurrentUserPermissionToUseCartGroup()) {
-			actionMenuButtons.add(addToCartButton);
-		} else if (presenter.hasCurrentUserPermissionToUseMyCart()){
-			actionMenuButtons.add(addToCartMyCartButton);
+		if (consultButton != null) {
+			buttonList.remove(consultButton);
 		}
 
-		actionMenuButtons.add(addToCartButton);
-		Button empty = new ConfirmDialogButton($("DisplayContainerView.empty")) {
-			@Override
-			protected String getConfirmDialogMessage() {
-				return $("DisplayContainerView.confirmEmpty");
-			}
+		editButton = getEditButton(buttonList);
 
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.emptyButtonClicked();
-			}
-		};
-		ComponentState state = presenter.getEmptyButtonState();
-		empty.setVisible(state.isVisible());
-		empty.setEnabled(state.isEnabled());
-		actionMenuButtons.add(empty);
+		if (!isNested && editButton != null) {
+			buttonList.remove(editButton);
+		}
 
-		Button delete = new DeleteButton($("DisplayContainerView.delete")) {
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.deleteButtonClicked();
-			}
-		};
-		delete.setVisible(presenter.canDelete());
-		delete.setEnabled(presenter.canDelete());
-		actionMenuButtons.add(delete);
+		return buttonList;
+	}
 
-		return new RecordVOActionButtonFactory(presenter.getContainer(), new ArrayList<>()).build();
+	private Button getConsultButton(List<Button> buttons) {
+		return getButtonById(buttons, ContainerRecordMenuItemActionType.CONTAINER_CONSULT.name());
+	}
+
+	private Button getEditButton(List<Button> buttons) {
+		return getButtonById(buttons, ContainerRecordMenuItemActionType.CONTAINER_EDIT.name());
+	}
+
+	private Button getButtonById(List<Button> buttons, String id) {
+		for (Button button : buttons) {
+			if (button.getId().equals(id)) {
+				return button;
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		if (consultButton != null && isNested) {
+			return Arrays.asList(consultButton);
+		} else if (editButton != null && !isNested) {
+			return Arrays.asList(editButton);
+		} else {
+			return Collections.emptyList();
+		}
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
 	}
 
 	private Button buildAddToMyCartButton(){
@@ -361,6 +347,11 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			borrowedLabel.setVisible(false);
 			borrowedLabel.setValue(null);
 		}
+	}
+
+	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return !isNested;
 	}
 
 	@Override

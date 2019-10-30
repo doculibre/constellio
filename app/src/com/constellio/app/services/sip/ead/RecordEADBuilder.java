@@ -218,11 +218,12 @@ public class RecordEADBuilder {
 			}
 
 			if (modifiableStructure instanceof Comment) {
-				mappedStructure = new TreeMap<>();
-				mappedStructure.put("message", ((Comment) modifiableStructure).getMessage());
-				mappedStructure.put("username", ((Comment) modifiableStructure).getUsername());
-				mappedStructure.put("userId", ((Comment) modifiableStructure).getUserId());
-				mappedStructure.put("dateTime", ((Comment) modifiableStructure).getDateTime());
+				Comment comment = (Comment) modifiableStructure;
+				mappedStructure = new TreeMap<String, Object>();
+				mappedStructure.put("userId", comment.getUserId());
+				mappedStructure.put("username", comment.getUsername());
+				mappedStructure.put("dateTime", comment.getDateTime());
+				mappedStructure.put("message", comment.getMessage());
 			}
 
 		}
@@ -355,7 +356,7 @@ public class RecordEADBuilder {
 
 		Record record = recordCtx.getRecord();
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 		EADArchiveDescription archdesc = buildArchiveDescription(record, schema);
 
 		this.eadXmlWriter = new RecordEADWriter();
@@ -366,7 +367,7 @@ public class RecordEADBuilder {
 		eadXmlWriter.addHeader(collectionInfo, collectionName, record.getSchemaCode(), schemaTypeLabel, schemaLabel);
 		eadXmlWriter.addArchdesc(archdesc, record.getId(), record.getTitle());
 
-		for (Metadata metadata : types.getSchema(record.getSchemaCode()).getMetadatas()) {
+		for (Metadata metadata : types.getSchemaOf(record).getMetadatas()) {
 			if (isMetadataIncludedInEAD(metadata)
 				&& isNotEmptyValue(record.getValues(metadata))) {
 				addMetadata(recordCtx, metadata);

@@ -8,11 +8,12 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
-import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
 import com.constellio.app.ui.pages.search.SaveSearchListener;
 import com.constellio.app.ui.pages.search.SearchViewImpl;
@@ -32,10 +33,12 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.modules.rm.extensions.app.RMDecommissioningBuilderMenuItemActionsExtension.RMRECORDS_CREATE_DECOMMISSIONING_LIST;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecommissioningBuilderViewImpl extends SearchViewImpl<DecommissioningBuilderPresenter>
@@ -53,6 +56,11 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 	private Button addToListButton;
 	private LookupRecordField adminUnit;
 	private String saveEventId = null;
+	//	private MenuItemServices menuItemServices;
+	//	private MenuItemFactory menuItemFactory;
+	private Button generateDecomlistButon;
+	private Button createList;
+	private Button buttonAddToList;
 
 	public DecommissioningBuilderViewImpl() {
 		presenter = new DecommissioningBuilderPresenter(this);
@@ -76,7 +84,15 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 			}
 		});
 
+		//		menuItemServices = new MenuItemServices(getCollection(), getConstellioFactories().getAppLayerFactory());
+		//		menuItemFactory = new MenuItemFactory();
+
 		addStyleName("search-decommissioning");
+	}
+
+	@Override
+	public boolean isSelectionActionMenuBar() {
+		return false;
 	}
 
 	public void setExtraParameters(String searchType, String saveEventId) {
@@ -93,7 +109,91 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		super.initBeforeCreateComponents(event);
 	}
 
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		// TODO a ajuster apres le refactor pour les whiteliste de l'api des menu.
+		//		MenuItemIdProvider menuItemIdProvider = new MenuItemIdProvider() {
+		//			@Override
+		//			public List<String> getIds() {
+		//				return getSelectedRecordIds();
+		//			}
+		//
+		//			@Override
+		//			public LogicalSearchQuery getQuery() {
+		//				return null;
+		//			}
+		//		};
+		//
+		//		List<MenuItemAction> queryMenuItemActions = menuItemServices.getActionsForRecords(menuItemIdProvider.getIds(),
+		//				Collections.emptyList(),
+		//				new MenuItemActionBehaviorParams() {
+		//					@Override
+		//					public BaseView getView() {
+		//						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+		//					}
+		//
+		//					@Override
+		//					public Map<String, String> getFormParams() {
+		//						return MapUtils.emptyIfNull(ParamUtils.getCurrentParams());
+		//					}
+		//
+		//					@Override
+		//					public User getUser() {
+		//						return presenter.getUser();
+		//					}
+		//				});
+		//
+		//
+		//		MenuItemAction generateDecomlistMenuAction = null;
+		//
+		//		for(MenuItemAction menuItemActionType : queryMenuItemActions) {
+		//			if(RMRECORDS_CREATE_DECOMMISSIONING_LIST.equals(menuItemActionType.getType())) {
+		//				generateDecomlistMenuAction = menuItemActionType;
+		//				break;
+		//			}
+		//		}
+		//
+		//		if(generateDecomlistMenuAction != null) {
+		//			generateDecomlistButon = menuItemFactory.buildActionButtons(Arrays.asList(generateDecomlistMenuAction), menuItemIdProvider, new CommandCallback() {
+		//				@Override
+		//				public void actionExecuted(MenuItemAction menuItemAction, Object component) {
+		//				}
+		//			}).get(0);
+		//		}
 
+
+		createList = new DecommissioningButton($("DecommissioningBuilderView.createDecommissioningList"));
+		createList.addStyleName(ValoTheme.BUTTON_LINK);
+		createList.addStyleName(CREATE_LIST);
+
+		buttonAddToList = buildAddToListButton();
+
+		updateGenerateDecomListButton();
+
+		addSelectionChangeListener(new SelectionChangeListener() {
+			@Override
+			public void selectionChanged(SelectionChangeEvent event) {
+				updateGenerateDecomListButton();
+			}
+		});
+
+		return Arrays.asList(createList, buttonAddToList);
+	}
+
+	private void updateGenerateDecomListButton() {
+		if (createList != null) {
+			createList.setEnabled(!getSelectedRecordIds().isEmpty());
+		}
+
+		if (buttonAddToList != null) {
+			buttonAddToList.setEnabled(!getSelectedRecordIds().isEmpty());
+		}
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return false;
+	}
 
 	@Override
 	protected String getTitle() {
@@ -187,15 +287,6 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		return searchUI;
 	}
 
-	@Override
-	protected Component buildSummary(SearchResultTable results) {
-		Button createList = new DecommissioningButton($("DecommissioningBuilderView.createDecommissioningList"));
-		createList.addStyleName(ValoTheme.BUTTON_LINK);
-		createList.addStyleName(CREATE_LIST);
-
-		return results.createSummary(buildSelectAllButton(), buildAddToSelectionButton(), createList, buildAddToListButton());
-	}
-
 	private HorizontalLayout buildAdministrativeUnitComponent() {
 		Label label = new Label($("DecommissioningBuilderView.administrativeUnit"));
 		adminUnit.setRequired(true);
@@ -210,7 +301,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		adminUnit.addStyleName(ADMIN_UNIT);
 
 		HorizontalLayout layout = new HorizontalLayout(label, adminUnit);
-		label.setWidth("150px");
+		label.setWidth("160px");
 		adminUnit.setSizeFull();
 		layout.setExpandRatio(adminUnit, 1);
 		layout.setSizeFull();
@@ -292,4 +383,18 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		return new DecommissionBreadcrumbTrail(getTitle(),  presenter.getSearchType(), null, presenter.decommissioningListId, this);
 	}
+
+	public SearchType getSearchType() {
+		return presenter.getSearchType();
+	}
+
+	public String getAdminUnitId() {
+		return presenter.getAdminUnitId();
+	}
+
+	@Override
+	public List<String> menuItemToExcludeInSelectionMenu() {
+		return Arrays.asList(RMRECORDS_CREATE_DECOMMISSIONING_LIST);
+	}
+
 }

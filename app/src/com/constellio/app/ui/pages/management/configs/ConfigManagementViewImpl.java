@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.configs;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.SystemConfigurationVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.BaseMouseOverIcon;
@@ -21,7 +22,6 @@ import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.AbstractField;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -153,8 +153,7 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 		saveButton.addStyleName(BaseForm.SAVE_BUTTON);
 		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-		layout.addComponent(saveButton);
-		layout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
+		ConstellioUI.getCurrent().setStaticFooterContent(saveButton);
 
 		return layout;
 	}
@@ -243,6 +242,6 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 
 	@Override
 	protected String getGuideUrl() {
-		return null;//"http://documentation.constellio.com/pages/viewpage.action?pageId=2326848";
+		return "http://documentation.constellio.com/pages/viewpage.action?pageId=2326848";
 	}
 }

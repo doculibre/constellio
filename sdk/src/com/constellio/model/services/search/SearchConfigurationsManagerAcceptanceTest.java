@@ -114,6 +114,7 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void setElevatedAndExclusionThenRemoveAllElevation() {
+		cacheIntegrityCheckedAfterTest = false;
 		LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
 		logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
@@ -142,6 +143,7 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void elevationsSetElevatedSetExclutionGetDefinedSearchWithParametersThenVerifyOrder() {
+		cacheIntegrityCheckedAfterTest = false;
 		LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
 		logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);

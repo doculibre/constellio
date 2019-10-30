@@ -1,6 +1,5 @@
 package com.constellio.model.services.search.query.logical.condition;
 
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -93,7 +92,7 @@ public class CompositeLogicalSearchCondition extends LogicalSearchCondition {
 
 
 	@Override
-	public boolean test(Record record) {
+	public boolean test(TestedQueryRecord record) {
 
 		boolean returnedValue = this.logicalOperator == AND;
 

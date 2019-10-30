@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import com.constellio.app.ui.framework.components.SearchResultTable;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
 import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
@@ -11,7 +12,9 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -96,8 +99,8 @@ public class AddExistingContainerViewImpl extends SearchViewImpl<AddExistingCont
 		return searchUI;
 	}
 
-	@Override
-	protected Component buildSummary(SearchResultTable results) {
+	@NotNull
+	private Button buildAddExistingContainerButton() {
 		Button addContainers = new Button($("AddExistingContainerView.addContainers"));
 		addContainers.addStyleName(ValoTheme.BUTTON_LINK);
 		addContainers.addClickListener(new ClickListener() {
@@ -107,7 +110,29 @@ public class AddExistingContainerViewImpl extends SearchViewImpl<AddExistingCont
 			}
 		});
 
-		return results.createSummary(buildSelectAllButton(), buildAddToSelectionButton(), addContainers);
+		this.addSelectionChangeListener(new SelectionChangeListener() {
+			@Override
+			public void selectionChanged(SelectionChangeEvent event) {
+				addContainers.setEnabled(event.isAllItemsSelected() || (event != null && !event.getSelectedItemIds().isEmpty()));
+			}
+		});
+
+		return addContainers;
+	}
+
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> listButton = new ArrayList<>(super.getQuickActionMenuButtons());
+
+		Button addContainerButton = buildAddExistingContainerButton();
+		addContainerButton.setEnabled(!this.getSelectedRecordIds().isEmpty());
+		listButton.add(0, addContainerButton);
+		return listButton;
+	}
+
+	@Override
+	public boolean isSelectionActionMenuBar() {
+		return false;
 	}
 
 	@Override

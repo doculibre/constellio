@@ -8,6 +8,8 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
+import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
+import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
@@ -28,12 +30,17 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -53,15 +60,20 @@ import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.logging.SearchEventServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.SearchServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.FilenameUtils;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,6 +83,7 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
+import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
@@ -85,23 +98,28 @@ public class DocumentMenuItemActionBehaviors {
 	private RMSchemasRecordsServices rm;
 	private LoggingServices loggingServices;
 	private DecommissioningLoggingService decommissioningLoggingService;
-	private SearchServices searchServices;
-	private MetadataSchemasManager metadataSchemasManager;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 
 	public DocumentMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		recordServices = modelLayerFactory.newRecordServices();
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		loggingServices = modelLayerFactory.newLoggingServices();
 		decommissioningLoggingService = new DecommissioningLoggingService(appLayerFactory.getModelLayerFactory());
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
-		metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+	}
+
+	public void getConsultationLink(Document document, MenuItemActionBehaviorParams params) {
+		String constellioURL = getConstellioUrl(modelLayerFactory);
+
+		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(
+				new ConsultLinkParams(constellioURL + RMUrlUtil.getPathToConsultLinkForDocument(document.getId()),
+						document.getTitle())));
+		UI.getCurrent().addWindow(consultLinkWindow);
 	}
 
 	public void display(Document document, MenuItemActionBehaviorParams params) {
@@ -151,6 +169,31 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void delete(Document document, MenuItemActionBehaviorParams params) {
+
+		final boolean isDocumentCheckout = documentRecordActionsServices.isContentCheckedOut(document.getContent());
+
+		Button deleteDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				deleteConfirmationDocumentButtonClicked(document, params);
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				if (isDocumentCheckout) {
+					return $("DocumentMenuItemActionBehaviors.documentIsCheckoutDeleteConfirmationMessage");
+				} else {
+					return super.getConfirmDialogMessage();
+				}
+			}
+		};
+
+		deleteDocumentButton.click();
+
+	}
+
+
+	private void deleteConfirmationDocumentButtonClicked(Document document, MenuItemActionBehaviorParams params) {
 		if (validateDeleteDocumentPossibleExtensively(document.getWrappedRecord(), params.getUser()).isEmpty()) {
 			String parentId = document.getFolder();
 			try {
@@ -161,7 +204,9 @@ public class DocumentMenuItemActionBehaviors {
 				params.getView().showMessage(MessageUtils.toMessage(e));
 				return;
 			}
-			if (parentId != null) {
+			if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
+				return;
+			} else if (parentId != null) {
 				navigateToDisplayFolder(parentId, params.getFormParams());
 			} else {
 				params.getView().navigate().to().recordsManagement();
@@ -187,10 +232,31 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
+	public void linkToDocument(Document document, MenuItemActionBehaviorParams params) {
+		WindowButton.WindowConfiguration publicLinkConfig = new WindowConfiguration(true, false, "75%", "125px");
+		WindowButton publicLinkButton = new WindowButton(
+				$("DocumentContextMenu.publicLink"), $("DocumentContextMenu.publicLink"), publicLinkConfig) {
+			@Override
+			protected Component buildWindowContent() {
+				String url = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
+				String publicLink = url + "dl?id=" + document.getId();
+
+				Label link = new Label(publicLink);
+				Label message = new Label($("DocumentContextMenu.publicLinkInfo"));
+				message.addStyleName(ValoTheme.LABEL_BOLD);
+				return new VerticalLayout(message, link);
+			}
+		};
+		publicLinkButton.click();
+	}
+
+
 	public void publish(Document document, MenuItemActionBehaviorParams params) {
 		document.setPublished(true);
 		try {
 			recordServices.update(document);
+			linkToDocument(document, params);
+			params.getView().refreshActionMenu();
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
@@ -230,6 +296,7 @@ public class DocumentMenuItemActionBehaviors {
 		document.setPublished(false);
 		try {
 			recordServices.update(document);
+			params.getView().refreshActionMenu();
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
@@ -304,6 +371,8 @@ public class DocumentMenuItemActionBehaviors {
 
 				DocumentVO documentVO = getDocumentVO(params, document);
 
+				params.getView().refreshActionMenu();
+
 				String checkedOutVersion = content.getCurrentVersion().getVersion();
 				params.getView().showMessage($("DocumentActionsComponent.checkedOut", checkedOutVersion));
 				String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent(), params.getView().getSessionContext());
@@ -314,10 +383,18 @@ public class DocumentMenuItemActionBehaviors {
 			} catch (RecordServicesException e) {
 				params.getView().showErrorMessage(MessageUtils.toMessage(e));
 			}
+		} else if (documentRecordActionsServices.isCheckOutActionNotPossibleDocumentDeleted(document.getWrappedRecord(), params.getUser())) {
+			params.getView().showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
 		}
 	}
 
 	public void addAuthorization(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to().shareContent(document.getId());
+		updateSearchResultClicked(document.getWrappedRecord());
+	}
+
+
+	public void manageAuthorizations(Document document, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to().listObjectAccessAndRoleAuthorizations(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
 	}

@@ -2,6 +2,7 @@ plugins {
     id "application"
     id "org.ajoberstar.grgit" version "3.0.0-rc.2"
     id "com.devsoap.plugin.vaadin" version "1.4.1" apply false
+    //id "fi.jasoft.plugin.vaadin" version '1.1.11' apply false
 }
 
 apply plugin: 'war'
@@ -12,7 +13,7 @@ defaultTasks 'clean', 'compileJava'
 subprojects {
     ext {
         version_mime = "0.7.2"
-        version_vaadin = "7.7.5"
+        version_vaadin = "7.7.17"
     }
 
     configurations.all {
@@ -20,7 +21,7 @@ subprojects {
 		exclude group: 'com.google.gwt', module: 'gwt-user'
 		exclude group: 'com.vaadin.external.gwt', module: 'gwt-elemental'
 		exclude group: 'com.vaadin.external.gwt', module: 'gwt-dev'
-		
+
         resolutionStrategy {
             force "org.apache.james:apache-mime4j:${version_mime}"
             force "com.sun.mail:javax.mail:1.6.2"
@@ -36,6 +37,11 @@ subprojects {
     }
 
     dependencies {
+        annotationProcessor('org.projectlombok:lombok:1.18.2')
+        compileOnly('org.projectlombok:lombok:1.18.2')
+        testAnnotationProcessor('org.projectlombok:lombok:1.18.2')
+        testCompileOnly('org.projectlombok:lombok:1.18.2')
+
         compile "com.cybozu.labs:langdetect:1.1-20120112"
         compile "com.eaio.uuid:uuid:3.2"
         compile "org.jdom:jdom:2.0.2"
@@ -92,13 +98,11 @@ subprojects {
         compile 'com.sun.mail:javax.mail:1.6.2'
         compile 'com.microsoft.azure:adal4j:1.6.3'
         compile 'com.nimbusds:oauth2-oidc-sdk:4.5'
+        compile "com.microsoft.graph:microsoft-graph:1.5.0"
         compile group: 'com.github.bbottema', name: 'emailaddress-rfc2822', version: '1.1.2'
         compile group: 'net.markenwerk', name: 'utils-mail-dkim', version: '1.1.10'
         compile group: 'org.mapdb', name: 'mapdb', version: '3.0.7'
         compile group: 'com.carrotsearch', name: 'hppc', version: '0.8.1'
-
-        compileOnly "org.projectlombok:lombok:1.18.2"
-        annotationProcessor "org.projectlombok:lombok:1.18.2"
         compile name: 'mets-api'
         testCompile 'nl.jqno.equalsverifier:equalsverifier:1.4.1'
     }

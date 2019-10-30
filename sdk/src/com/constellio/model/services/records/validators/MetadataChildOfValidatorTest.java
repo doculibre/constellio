@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 public class MetadataChildOfValidatorTest extends ConstellioTest {
@@ -58,6 +59,7 @@ public class MetadataChildOfValidatorTest extends ConstellioTest {
 
 		when(metadata.getCode()).thenReturn("zeType_zeSchemaCode_zeCompleteCode");
 		when(schemaTypes.getSchema("zeType_zeSchemaCode")).thenReturn(schema);
+		when(schemaTypes.getSchemaOf(any(Record.class))).thenReturn(schema);
 
 		when(schema.getCode()).thenReturn("zeType_zeSchemaCode");
 		when(metadata.getType()).thenReturn(MetadataValueType.STRING);

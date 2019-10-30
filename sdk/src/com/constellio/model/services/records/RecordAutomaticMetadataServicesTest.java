@@ -174,7 +174,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		MetadataSchema schema = mock(MetadataSchema.class);
 
 		when(schemasManager.getSchemaTypes(zeCollection)).thenReturn(types);
-		when(types.getSchema(zeSchema.code())).thenReturn(schema);
+		when(types.getSchemaOf(record)).thenReturn(schema);
 		when(schema.getAutomaticMetadatas()).thenReturn(sortedAutomaticMetadatas);
 
 		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);

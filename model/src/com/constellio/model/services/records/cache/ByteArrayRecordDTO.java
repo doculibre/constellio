@@ -7,10 +7,10 @@ import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.CacheRecordDTOUtils.CacheRecordDTOBytesArray;
 import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import com.constellio.model.services.schemas.SchemaUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +31,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	MetadataSchemaProvider schemaProvider;
 	long version;
 	boolean summary;
+	short tenantId;
 	byte collectionId;
 	String collectionCode;
 	short schemaId;
@@ -41,11 +42,13 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	//private Map<String, Object> map;
 
 	private ByteArrayRecordDTO(MetadataSchemaProvider schemaProvider, long version, boolean summary,
-							   String collectionCode, byte collectionId, String typeCode, short typeId,
+							   short tenantId, String collectionCode, byte collectionId, String typeCode,
+							   short typeId,
 							   String schemacode, short schemaId, byte[] data) {
 		this.schemaProvider = schemaProvider;
 		this.version = version;
 		this.data = data;
+		this.tenantId = tenantId;
 		this.collectionCode = collectionCode;
 		this.collectionId = collectionId;
 		this.typeCode = typeCode;
@@ -68,7 +71,6 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		return schemaId;
 	}
 
-
 	public static ByteArrayRecordDTO create(ModelLayerFactory modelLayerFactory, RecordDTO dto) {
 
 		if (dto.getLoadingMode() == RecordDTOMode.CUSTOM) {
@@ -77,37 +79,38 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 
 		String collection = (String) dto.getFields().get("collection_s");
 		String schemaCode = (String) dto.getFields().get("schema_s");
+		short instanceId = modelLayerFactory.getInstanceId();
 		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
 				.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
 
 		MetadataSchemaProvider schemaProvider = modelLayerFactory.getMetadataSchemasManager();
 
-		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(schemaCode);
+		MetadataSchema schema = type.getSchema(schemaCode);
 		CollectionInfo collectionInfo = schema.getCollectionInfo();
 
 		//TODO Handle Holder
 		CacheRecordDTOBytesArray bytesArray = convertDTOToByteArrays(dto, schema);
 
-		int intId = CacheRecordDTOUtils.toIntKey(dto.getId());
+		int intId = RecordUtils.toIntKey(dto.getId());
 
-		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
-				SummaryCacheSingletons.dataStore.saveStringKey(dto.getId(), bytesArray.bytesToPersist);
+				SummaryCacheSingletons.dataStore.get(instanceId).saveStringKey(dto.getId(), bytesArray.bytesToPersist);
 			} else {
 				//SummaryCacheSingletons.dataStore.removeStringKey(dto.getId());
 			}
 			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
-					collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
+					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
 					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
 		} else {
 			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
-				SummaryCacheSingletons.dataStore.saveIntKey(intId, bytesArray.bytesToPersist);
+				SummaryCacheSingletons.dataStore.get(instanceId).saveIntKey(intId, bytesArray.bytesToPersist);
 			} else {
 				//SummaryCacheSingletons.dataStore.removeIntKey(intId);
 			}
 			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
-					collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
-					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),
+					type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
 		}
 
 	}
@@ -119,21 +122,21 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 
 		public ByteArrayRecordDTOWithIntegerId(
 				int id, MetadataSchemaProvider schemaProvider, long version, boolean summary,
-				String collectionCode, byte collectionId, String typeCode, short typeId,
+				short tenantId, String collectionCode, byte collectionId, String typeCode, short typeId,
 				String schemaCode, short schemaId, byte[] data) {
-			super(schemaProvider, version, summary, collectionCode, collectionId, typeCode, typeId,
+			super(schemaProvider, version, summary, tenantId, collectionCode, collectionId, typeCode, typeId,
 					schemaCode, schemaId, data);
 			this.id = id;
 		}
 
 		@Override
 		public String getId() {
-			return StringUtils.leftPad("" + id, 11, '0');
+			return RecordUtils.toStringId(id);
 		}
 
 		@Override
 		public byte[] get() {
-			return SummaryCacheSingletons.dataStore.loadIntKey(id);
+			return SummaryCacheSingletons.dataStore.get(tenantId).loadIntKey(id);
 		}
 
 		@Override
@@ -173,9 +176,9 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 
 		public ByteArrayRecordDTOWithStringId(
 				String id, MetadataSchemaProvider schemaProvider, long version, boolean summary,
-				String collectionCode, byte collectionId, String typeCode, short typeId,
+				short instanceId, String collectionCode, byte collectionId, String typeCode, short typeId,
 				String schemaCode, short schemaId, byte[] data) {
-			super(schemaProvider, version, summary, collectionCode, collectionId, typeCode, typeId,
+			super(schemaProvider, version, summary, instanceId, collectionCode, collectionId, typeCode, typeId,
 					schemaCode, schemaId, data);
 			this.id = id;
 		}
@@ -187,7 +190,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 
 		@Override
 		public byte[] get() {
-			return SummaryCacheSingletons.dataStore.loadStringKey(id);
+			return SummaryCacheSingletons.dataStore.get(tenantId).loadStringKey(id);
 		}
 	}
 

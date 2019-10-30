@@ -10,12 +10,14 @@ import com.constellio.app.modules.rm.model.calculators.folder.FolderActualTransf
 import com.constellio.app.modules.rm.model.calculators.folder.FolderOpeningDateCalculator;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.configs.MarkForPreviewConversionFlagEnabler;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -60,6 +62,8 @@ public class RMMigrationTo9_0 implements MigrationScript {
 		Role adminRole = rolesManager.getRole(collection, CoreRoles.ADMINISTRATOR);
 		adminRole = adminRole.withTitle(migrationResourcesProvider.getValuesOfAllLanguagesWithSeparator("init.roles.ADM", " / "));
 		rolesManager.updateRole(adminRole);
+
+		new MarkForPreviewConversionFlagEnabler(collection, modelLayerFactory).enable();
 	}
 
 	private class SchemaAlterationFor9_0 extends MetadataSchemasAlterationHelper {
@@ -70,6 +74,11 @@ public class RMMigrationTo9_0 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder builder) {
+			MetadataSchemaBuilder printLabelDefaultSchema = typesBuilder.getSchemaType(PrintableLabel.SCHEMA_TYPE).getSchema(PrintableLabel.SCHEMA_LABEL);
+
+			printLabelDefaultSchema.getMetadata(PrintableLabel.COLONNE).setDefaultRequirement(true);
+			printLabelDefaultSchema.getMetadata(PrintableLabel.LIGNE).setDefaultRequirement(true);
+
 			MetadataSchemaBuilder defaultFolderSchema = builder.getDefaultSchema(Folder.SCHEMA_TYPE);
 
 			defaultFolderSchema.get(Folder.OPENING_DATE).defineDataEntry()

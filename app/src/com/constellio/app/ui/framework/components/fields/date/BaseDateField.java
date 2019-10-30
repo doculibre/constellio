@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components.fields.date;
 
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Strings;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.ui.DateField;
@@ -54,7 +55,10 @@ public class BaseDateField extends DateField {
 			variables.remove("year");
 			variables.remove("month");
 			variables.remove("day");
-			variables.put("dateString", "[INVALID]");
+			String dateString = (String) variables.get("dateString");
+			if (!Strings.isNullOrEmpty(dateString)) {
+				variables.put("dateString", "[INVALID]");
+			}
 		}
 		super.changeVariables(source, variables);
 	}

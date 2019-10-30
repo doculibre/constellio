@@ -147,7 +147,7 @@ public class DefaultFavoritesTable extends BaseTable {
 
 	@Override
 	public boolean isSelectColumn() {
-		return true;
+		return false;
 	}
 
 }

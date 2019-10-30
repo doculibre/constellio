@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -30,7 +27,6 @@ import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +35,13 @@ import static java.util.Arrays.asList;
 
 public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEditSchemaMetadataView, ClickListener {
 
+	public static final String PROPERTY_ID_LOCAL_CODE = "localCode";
+	public static final String PROPERTY_ID_CAPTION = "caption";
+	public static final String PROPERTY_ID_ENABLED_CAPTION = "enabledCaption";
+	public static final String PROPERTY_ID_VALUE_CAPTION = "valueCaption";
+	public static final String PROPERTY_ID_INPUT_CAPTION = "inputCaption";
+	public static final String PROPERTY_ID_REQUIRED_CAPTION = "requiredCaption";
+	public static final String PROPERTY_ID_BUTTONS = "buttons";
 	AddEditSchemaMetadataPresenter presenter;
 	private final int batchSize = 100;
 
@@ -132,13 +135,13 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 			Table table = new BaseTable(getClass().getName(), $("AddEditSchemaMetadataView.tableTitle", recordsContainer.size()), buttonsContainer);
 			table.setSizeFull();
 			table.setPageLength(Math.min(12, dataProvider.size()));
-			table.setColumnHeader("localCode", $("AddEditSchemaMetadataView.code"));
-			table.setColumnHeader("caption", $("AddEditSchemaMetadataView.caption"));
-			table.setColumnHeader("enabledCaption", $("AddEditSchemaMetadataView.enabledCaption"));
-			table.setColumnHeader("valueCaption", $("AddEditSchemaMetadataView.valueCaption"));
-			table.setColumnHeader("inputCaption", $("AddEditSchemaMetadataView.inputCaption"));
-			table.setColumnHeader("requiredCaption", $("AddEditSchemaMetadataView.requiredCaption"));
-			table.setColumnHeader("buttons", "");
+			table.setColumnHeader(PROPERTY_ID_LOCAL_CODE, $("AddEditSchemaMetadataView.code"));
+			table.setColumnHeader(PROPERTY_ID_CAPTION, $("AddEditSchemaMetadataView.caption"));
+			table.setColumnHeader(PROPERTY_ID_ENABLED_CAPTION, $("AddEditSchemaMetadataView.enabledCaption"));
+			table.setColumnHeader(PROPERTY_ID_VALUE_CAPTION, $("AddEditSchemaMetadataView.valueCaption"));
+			table.setColumnHeader(PROPERTY_ID_INPUT_CAPTION, $("AddEditSchemaMetadataView.inputCaption"));
+			table.setColumnHeader(PROPERTY_ID_REQUIRED_CAPTION, $("AddEditSchemaMetadataView.requiredCaption"));
+			table.setColumnHeader(PROPERTY_ID_BUTTONS, "");
 			table.setColumnWidth("buttons", 80);
 
 			tabSheet.addTab(table, tabCaption);

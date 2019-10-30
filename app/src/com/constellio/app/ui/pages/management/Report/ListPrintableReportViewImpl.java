@@ -257,7 +257,11 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
 		@Override
 		public boolean isVisible() {
-			return report.get(Printable.ISDELETABLE).equals(true);
+			if (report == null) {
+				return false;
+			} else {
+				return report.get(Printable.ISDELETABLE).equals(true);
+			}
 		}
 	}
 
@@ -288,7 +292,11 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
 		@Override
 		public boolean isVisible() {
-			return report.get(Printable.ISDELETABLE).equals(true);
+			if (report == null) {
+				return false;
+			} else {
+				return report.get(Printable.ISDELETABLE).equals(true);
+			}
 		}
 	}
 

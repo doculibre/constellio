@@ -1,8 +1,8 @@
 package com.constellio.model.services.search.query.logical.condition;
 
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchConditionRuntimeException;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
@@ -187,7 +187,7 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 	}
 
 	@Override
-	public boolean test(Record record) {
+	public boolean test(TestedQueryRecord record) {
 
 		if (valueCondition == null) {
 			return true;
@@ -216,13 +216,14 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 		if (queryingTypesInSummaryCache) {
 			for (DataStoreField queriedField : dataStoreFields) {
 				Metadata metadata = (Metadata) queriedField;
-				if (!isSummary(metadata) && !metadata.isSameLocalCodeThanAny(MARKED_FOR_REINDEXING, MARKED_FOR_PREVIEW_CONVERSION, MARKED_FOR_PARSING)) {
+				if (!isSummary(metadata) && !metadata.isSameLocalCodeThanAny(MARKED_FOR_REINDEXING, MARKED_FOR_PREVIEW_CONVERSION, MARKED_FOR_PARSING) && !metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
 					if (requiringExecutionMethod) {
 						throw new IllegalArgumentException("Query is using a metadata which is not supported with execution in cache : " + metadata.getCode());
 					} else {
 						return false;
 					}
 				}
+
 			}
 		}
 

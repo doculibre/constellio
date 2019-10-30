@@ -22,6 +22,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
@@ -195,5 +196,15 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
 		for (MetadataSchema schema : manager.getSchemaTypes(getCollection()).getSchemaType(TemporaryRecord.SCHEMA_TYPE).getCustomSchemas()) {
 			tabsSchemasAndLabel.put(schema.getCode(), schema.getLabel(getLanguage()));
 		}
+	}
+
+	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return true;
+	}
+
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return (ClickListener) event -> presenter.backButtonClicked();
 	}
 }

@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.services.records.cache.CacheRecordDTOUtils.toIntKey;
+import static com.constellio.model.services.records.RecordUtils.toIntKey;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioTest {

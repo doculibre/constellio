@@ -69,15 +69,14 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 
 		List<String> idsMarkedForReindexing = new ArrayList<>();
 		Transaction transaction = new Transaction().setOptimisticLockingResolution(EXCEPTION);
-		for (int i = 0; i < 4000; i++) {
+		for (int i = 0; i < 400; i++) {
 			Record record = new TestRecord(zeSchema).set(zeSchema.stringMetadata(), "pomme");
 			transaction.add(record);
-			if (i != 42) {
+			if (i != 17) {
 				idsMarkedForReindexing.add(record.getId());
 			}
 		}
 		recordServices.execute(transaction);
-
 
 
 		checkCache();
@@ -92,19 +91,19 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 		RecordsReindexingBackgroundAction command = new RecordsReindexingBackgroundAction(getModelLayerFactory());
 
 		command.run();
-		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(1000);
+		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(100);
 
 		command.run();
-		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(2000);
+		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(200);
 
 		command.run();
-		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(3000);
+		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(300);
 
 		command.run();
-		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(3999);
+		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(399);
 
 		command.run();
-		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(3999);
+		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(399);
 	}
 
 	@Test

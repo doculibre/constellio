@@ -1,12 +1,19 @@
 package com.constellio.app.ui.framework.buttons;
 
+import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.server.Extension;
+import com.vaadin.server.Page;
+import com.vaadin.server.Page.BrowserWindowResizeEvent;
+import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
-public abstract class BaseButton extends Button implements Clickable {
+public abstract class BaseButton extends Button implements Clickable, BrowserWindowResizeListener {
+
+	public static final String RESPONSIVE_BUTTON_STYLE = "responsive-button";
 
 	private String textCaption;
 
@@ -16,6 +23,8 @@ public abstract class BaseButton extends Button implements Clickable {
 
 	private boolean badgeVisibleWhenZero = true;
 
+	private NiceTitle responsiveNiceTitle;
+	
 	public BaseButton() {
 		this(null, null);
 	}
@@ -42,6 +51,19 @@ public abstract class BaseButton extends Button implements Clickable {
 				BaseButton.this.buttonClick(event);
 			}
 		});
+	}
+
+	@Override
+	public void attach() {
+		super.attach();
+		Page.getCurrent().addBrowserWindowResizeListener(this);
+		computeResponsive();
+	}
+
+	@Override
+	public void detach() {
+		Page.getCurrent().removeBrowserWindowResizeListener(this);
+		super.detach();
 	}
 
 	public int getBadgeCount() {
@@ -71,11 +93,32 @@ public abstract class BaseButton extends Button implements Clickable {
 		adjustCaption();
 	}
 
+	public boolean isCaptionVisibleOnMobile() {
+		return !getStyleName().contains(RESPONSIVE_BUTTON_STYLE);
+	}
+
+	public void setCaptionVisibleOnMobile(boolean captionVisibleOnMobile) {
+		setResponsive(!captionVisibleOnMobile);
+		if (captionVisibleOnMobile) {
+			removeStyleName(RESPONSIVE_BUTTON_STYLE);
+		} else {
+			addStyleName(RESPONSIVE_BUTTON_STYLE);
+		}
+	}
+
 	private void adjustCaption() {
 		if (badgeVisible && (badgeCount > 0 || badgeVisibleWhenZero)) {
-			super.setCaption("<span class=\"button-badge\" data-badge=\"" + badgeCount + "\">" + textCaption + "</span>");
+			StringBuilder sb = new StringBuilder();
+			sb.append("<span class=\"button-badge\" data-badge=\"" + badgeCount + "\">");
+			if (isCaptionVisibleOnMobile() || getIcon() == null || ResponsiveUtils.isDesktop()) {
+				sb.append(textCaption);
+			}
+			sb.append("</span>");
+			super.setCaption(sb.toString());
 		} else {
-			super.setCaption(textCaption);
+			if (isCaptionVisibleOnMobile() || getIcon() == null || ResponsiveUtils.isDesktop()) {
+				super.setCaption(textCaption);
+			}
 		}
 	}
 
@@ -84,11 +127,31 @@ public abstract class BaseButton extends Button implements Clickable {
 		super.setCaption(caption);
 		this.textCaption = caption;
 		adjustCaption();
+		if (responsiveNiceTitle != null && getExtensions().contains(responsiveNiceTitle)) {
+			removeExtension(responsiveNiceTitle);
+		}
+		responsiveNiceTitle = new NiceTitle(textCaption);
 	}
 
 	@Override
 	public void addExtension(Extension extension) {
 		super.addExtension(extension);
+	}
+
+	private void computeResponsive() {
+		if (getIcon() != null && textCaption != null && !isCaptionVisibleOnMobile()) {
+			if (!ResponsiveUtils.isDesktop() && responsiveNiceTitle != null && !getExtensions().contains(responsiveNiceTitle)) {
+				addExtension(responsiveNiceTitle);
+			} else if (ResponsiveUtils.isDesktop() && responsiveNiceTitle != null && getExtensions().contains(responsiveNiceTitle)) {
+				removeExtension(responsiveNiceTitle);
+				responsiveNiceTitle = new NiceTitle(textCaption);
+			}
+		}
+	}
+
+	@Override
+	public void browserWindowResized(BrowserWindowResizeEvent event) {
+		computeResponsive();
 	}
 
 	protected abstract void buttonClick(ClickEvent event);

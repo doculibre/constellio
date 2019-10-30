@@ -40,7 +40,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.aggregations.GetMetadatasUsedToCalculateParams;
 import com.constellio.model.services.records.aggregations.MetadataAggregationHandler;
 import com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory;
-import com.constellio.model.services.records.utils.RecordDTOIterator;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -48,7 +47,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.VisibilityStatusFilter;
-import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
@@ -108,9 +106,6 @@ public class ReindexingServices {
 		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
 			this.mainThreadQueryRows = 100;
 
-			//		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == NORMAL) {
-			//			this.mainThreadQueryRows = 1000;
-
 		} else {
 			this.mainThreadQueryRows = modelLayerFactory.getConfiguration().getReindexingQueryBatchSize();
 		}
@@ -130,6 +125,7 @@ public class ReindexingServices {
 
 	public void reindexCollections(ReindexationParams params) {
 
+		modelLayerFactory.getRecordsCaches().disableVolatileCache();
 		dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(false);
 		try {
 			if (params.isBackground()) {
@@ -170,6 +166,7 @@ public class ReindexingServices {
 
 				for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
 					reindexCollection(collection, params);
+					modelLayerFactory.getSecurityModelCache().invalidate(collection);
 				}
 
 				if (logManager != null && params.getReindexationMode().isFullRewrite()) {
@@ -201,7 +198,9 @@ public class ReindexingServices {
 			REINDEXING_INFOS = null;
 
 			dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(true);
+			modelLayerFactory.getRecordsCaches().enableVolatileCache();
 		}
+
 
 	}
 
@@ -261,7 +260,8 @@ public class ReindexingServices {
 		RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
 		transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
 				.setCatchExtensionsExceptions(true).setCatchBrokenReferenceErrors(true)
-				.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false);
+				.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false)
+				.setRepopulate(params.isRepopulate());
 		if (params.getReindexationMode().isFullRecalculation()) {
 			transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		}
@@ -286,10 +286,6 @@ public class ReindexingServices {
 	private void reindexCollection(String collection, ReindexationParams params,
 								   RecordUpdateOptions transactionOptions) {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-
-		if (params.getReindexationMode().isFullRewrite()) {
-			recreateIndexes(collection);
-		}
 
 		ReindexingRecordsProvider recordsProvider = new ReindexingRecordsProvider(modelLayerFactory, mainThreadQueryRows);
 		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage = newReindexingAggregatedValuesTempStorage();
@@ -405,18 +401,6 @@ public class ReindexingServices {
 			}
 		}
 		return false;
-	}
-
-	private void recreateIndexes(String collection) {
-		RecordDao recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
-
-		LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(fromAllSchemasIn(collection).returnAll())
-				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.PATH))
-				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL);
-
-		Iterator<Record> idsIterator = modelLayerFactory.newSearchServices().recordsIterator(query, 50000);
-		recordDao.recreateZeroCounterIndexesIn(collection, new RecordDTOIterator(idsIterator));
 	}
 
 	private void reindexCollectionType(BulkRecordTransactionHandler bulkTransactionHandler, MetadataSchemaTypes types,

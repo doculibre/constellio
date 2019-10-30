@@ -1,13 +1,10 @@
 var isScrolling;
 
-var lastScrollTop;
-
 var lastKnownActiveElement;
 
 function constellio_registerScrollListener() {
 	var contentFooterWrapper = document.getElementById("content-footer-wrapper");
 	if (contentFooterWrapper) {
-		lastScrollTop = contentFooterWrapper.scrollTop;
 		contentFooterWrapper.addEventListener('scroll', function ( event ) {
 			// Clear our timeout throughout the scroll
 			window.clearTimeout(isScrolling);
@@ -16,53 +13,59 @@ function constellio_registerScrollListener() {
 			isScrolling = setTimeout(function() {
 				// Run the callback
 				//console.log("Scrolling has stopped.");
-				//var closeViewerButton = document.getElementById("close-viewer-button");
 				var closableViewerLayout = document.getElementById("close-button-viewer-metadata-layout");
 				var newScrollTop = contentFooterWrapper.scrollTop;
-				var scrollingUp = lastScrollTop > newScrollTop;
-				if (closableViewerLayout && (scrollingUp || !constellio_isVisible(closableViewerLayout))) {
-					var mainComponent = document.getElementById("main-component");
+				
+				if (closableViewerLayout) {
+					var viewerContainer = document.getElementsByClassName("main-component-wrapper")[0];
+					var constellioHeader = document.getElementsByClassName("header")[0];
 					
-					var mainComponentHeight = constellio_getHeight(mainComponent);
-					var closableViewerLayoutHeight = constellio_getHeight(closableViewerLayout);
-					if ((newScrollTop + closableViewerLayoutHeight) > mainComponentHeight) {
-						newScrollTop = mainComponentHeight - closableViewerLayoutHeight - 30;
-					} else if (newScrollTop > 80) {
-						newScrollTop -= 70; // Remove white space where table mode buttons are
+					var headerHeight = constellio_getHeight(constellioHeader);
+					var viewerHeight = constellio_getHeight(closableViewerLayout);
+					var viewerContainerHeight = constellio_getHeight(viewerContainer);
+					var maxViewerScrollTop = viewerContainerHeight - viewerHeight;
+					if (maxViewerScrollTop < 0) {
+						maxViewerScrollTop = 0;
 					}
-					closableViewerLayout.style.top = newScrollTop + "px";
+					
+					var newViewerScrollTop;
+					if (newScrollTop == 0) {
+						newViewerScrollTop = newScrollTop;
+					} else if (newScrollTop <= headerHeight) {
+						newViewerScrollTop = newScrollTop;
+					} else {
+						newViewerScrollTop = newScrollTop - headerHeight;
+					}
+					
+					var adjustViewerPosition;
+					if (newViewerScrollTop > maxViewerScrollTop) {
+						adjustViewerPosition = true;
+						newViewerScrollTop = maxViewerScrollTop;
+					} else {
+						var lastViewerScrollTop = closableViewerLayout.style.top;
+						if (!lastViewerScrollTop) {
+							lastViewerScrollTop = 0;
+						} else {
+							lastViewerScrollTop = parseInt(lastViewerScrollTop, 10);
+						}
+						var outOfSightScrollTop = lastViewerScrollTop + viewerHeight;
+						if (newScrollTop < lastViewerScrollTop) {
+							// Scrolling up
+							adjustViewerPosition = true;
+						} else if (newScrollTop > outOfSightScrollTop) {
+							adjustViewerPosition = true;
+						} else {
+							adjustViewerPosition = false;
+						}
+					}
+					if (adjustViewerPosition) {
+						closableViewerLayout.style.top = newViewerScrollTop + "px";
+					}
 				}
-				lastScrollTop = contentFooterWrapper.scrollTop;
 			}, 66);
 
 		}, false);
 	}
-}
-
-// https://stackoverflow.com/questions/19669786/check-if-element-is-visible-in-dom
-function constellio_isVisible(elem) {
-    if (!(elem instanceof Element)) throw Error('DomUtil: elem is not an element.');
-    const style = getComputedStyle(elem);
-    if (style.display === 'none') return false;
-    if (style.visibility !== 'visible') return false;
-    if (style.opacity < 0.1) return false;
-    if (elem.offsetWidth + elem.offsetHeight + elem.getBoundingClientRect().height +
-        elem.getBoundingClientRect().width === 0) {
-        return false;
-    }
-    const elemCenter   = {
-        x: elem.getBoundingClientRect().left + elem.offsetWidth / 2,
-        y: elem.getBoundingClientRect().top + elem.offsetHeight / 2
-    };
-    if (elemCenter.x < 0) return false;
-    if (elemCenter.x > (document.documentElement.clientWidth || window.innerWidth)) return false;
-    if (elemCenter.y < 0) return false;
-    if (elemCenter.y > (document.documentElement.clientHeight || window.innerHeight)) return false;
-    let pointContainer = document.elementFromPoint(elemCenter.x, elemCenter.y);
-    do {
-        if (pointContainer === elem) return true;
-    } while (pointContainer = pointContainer.parentNode);
-    return false;
 }
 
 function constellio_getHeight(elem) {

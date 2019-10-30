@@ -1,9 +1,9 @@
 package com.constellio.model.services.search.query.logical;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.search.query.logical.condition.TestedQueryRecord;
 import com.constellio.model.services.search.query.logical.criteria.CompositeLogicalSearchValueOperator;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -35,7 +35,7 @@ public abstract class LogicalSearchValueCondition {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 
-	public boolean testConditionOnField(Metadata metadata, Record record) {
+	public boolean testConditionOnField(Metadata metadata, TestedQueryRecord record) {
 		throw new ImpossibleRuntimeException("Unsupported condition on condition " + getClass().getName());
 	}
 

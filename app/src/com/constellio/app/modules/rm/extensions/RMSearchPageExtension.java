@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.SearchPageExtension;
+import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
@@ -17,19 +18,23 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
+import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.data.utils.LangUtils.StringReplacer;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.navigator.View;
 import com.vaadin.ui.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.CHECKED_OUT_DOCUMENTS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
@@ -79,7 +84,7 @@ public class RMSearchPageExtension extends SearchPageExtension {
 		} else {
 			if (typeCode.equals(ContainerRecord.SCHEMA_TYPE) &&
 				DisplayContainerPresenter.hasRestrictedRecordAccess(rm, param.getUser(), recordVO.getRecord())) {
-				DisplayContainerViewImpl view = new DisplayContainerViewImpl(recordVO, true);
+				DisplayContainerViewImpl view = new DisplayContainerViewImpl(recordVO, true, false);
 				view.enter(null);
 				result = view;
 			} else {
@@ -109,5 +114,19 @@ public class RMSearchPageExtension extends SearchPageExtension {
 			}
 		}
 		return logicalSearchCondition;
+	}
+
+	@Override
+	public List<? extends Component> addComponentToSearchResult(
+			AddComponentToSearchResultParams addComponentToSearchResultParams) {
+		View currentView = ConstellioUI.getCurrent().getCurrentView();
+
+		ArrayList<Component> componentsToAdd = new ArrayList<>();
+
+		if (currentView instanceof HomeViewImpl && ((HomeViewImpl) currentView).getSelectedTabCode().equals(CHECKED_OUT_DOCUMENTS)) {
+			addComponentToSearchResultParams.getSearchResultVO().getRecordVO().addExtraSearchDisplayCode(Document.CONTENT_CHECKED_OUT_BY);
+		}
+
+		return componentsToAdd;
 	}
 }

@@ -2,9 +2,11 @@ package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -42,6 +44,8 @@ import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUEN
 import static java.util.Arrays.asList;
 
 public class RecordUtils {
+
+	public static final byte KEY_IS_NOT_AN_INT = 0;
 
 	private static Logger LOGGER = LoggerFactory.getLogger(RecordUtils.class);
 
@@ -449,7 +453,7 @@ public class RecordUtils {
 
 	public static void changeSchemaTypeAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
 																   RecordProvider recordProvider) {
-		MetadataSchema recordSchema = schemaTypes.getSchema(record.getSchemaCode());
+		MetadataSchema recordSchema = schemaTypes.getSchemaOf(record);
 
 		for (Metadata metadata : recordSchema.getMetadatas()) {
 
@@ -462,7 +466,7 @@ public class RecordUtils {
 	public static void changeSchemaTypeAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
 																   RecordProvider recordProvider,
 																   Metadata typeMetadata) {
-		MetadataSchema recordSchema = schemaTypes.getSchema(record.getSchemaCode());
+		MetadataSchema recordSchema = schemaTypes.getSchemaOf(record);
 		String newSchemaCode = getSchemaAccordingToTypeLinkedSchema(record, schemaTypes, recordProvider, typeMetadata);
 		if (!record.getSchemaCode().equals(newSchemaCode)) {
 			MetadataSchema newSchema = schemaTypes.getSchema(newSchemaCode);
@@ -473,7 +477,7 @@ public class RecordUtils {
 
 	public static String getSchemaAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
 															  RecordProvider recordProvider, Metadata typeMetadata) {
-		MetadataSchema recordSchema = schemaTypes.getSchema(record.getSchemaCode());
+		MetadataSchema recordSchema = schemaTypes.getSchemaOf(record);
 		MetadataSchema referencedSchema = schemaTypes.getDefaultSchema(typeMetadata.getReferencedSchemaType());
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		String typeId = record.get(typeMetadata);
@@ -517,7 +521,7 @@ public class RecordUtils {
 		boolean hasInterdependency = false;
 
 		for (Record record : records) {
-			MetadataSchema schema = types.getSchema(record.getSchemaCode());
+			MetadataSchema schema = types.getSchemaOf(record);
 			Set<String> dependentIds = new HashSet<>();
 			recordMap.put(record.getId(), record);
 			for (Metadata metadata : schema.getMetadatas()) {
@@ -571,6 +575,11 @@ public class RecordUtils {
 	public static void invalidateTaxonomiesCache(List<Record> records, MetadataSchemaTypes types,
 												 RecordProvider recordProvider,
 												 TaxonomiesSearchServicesCache cache) {
+
+		if (Toggle.NO_TAXONOMIES_CACHE_INVALIDATION.isEnabled()) {
+			return;
+		}
+
 
 		Set<String> idsWithPossibleNewChildren = new HashSet<>();
 		Set<String> idsWithPossibleRemovedChildren = new HashSet<>();
@@ -660,7 +669,7 @@ public class RecordUtils {
 		Record record = recordProvider.getRecord(newReference);
 		if (record.isSaved()) {
 			ids.add(record.getId());
-			List<Metadata> metadatas = types.getSchema(record.getSchemaCode()).getMetadatas().only(new MetadataListFilter() {
+			List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
 				@Override
 				public boolean isReturned(Metadata metadata) {
 					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
@@ -746,5 +755,69 @@ public class RecordUtils {
 
 	}
 
+	public static int toIntKey(Object key) {
+		if (key instanceof Integer) {
+			return ((Integer) key);
+		}
+
+		if (key instanceof Long) {
+			return KEY_IS_NOT_AN_INT;
+		}
+
+		if (key instanceof String) {
+			long value = LangUtils.tryParseLong((String) key, 0);
+
+			if (((String) key).length() == 11 && value < Integer.MAX_VALUE) {
+				return (int) value;
+			} else {
+				return KEY_IS_NOT_AN_INT;
+			}
+		}
+
+		throw new ImpossibleRuntimeException("Invalid key : " + key);
+	}
+
+	public static String toStringId(int intId) {
+
+		//Since this transformation is done very often, we are using this faster approach instead of StringUtils.leftPad
+
+		if (intId < 10_000) {
+			if (intId < 0) {
+				throw new IllegalArgumentException("Negative ids are not supported");
+
+			} else if (intId < 10) {
+				return "0000000000" + intId;
+
+			} else if (intId < 100) {
+				return "000000000" + intId;
+
+			} else if (intId < 1000) {
+				return "00000000" + intId;
+
+			} else {
+				return "0000000" + intId;
+			}
+		} else {
+			if (intId < 100_000) {
+				return "000000" + intId;
+
+			} else if (intId < 1_000_000) {
+				return "00000" + intId;
+
+			} else if (intId < 10_000_000) {
+				return "0000" + intId;
+
+			} else if (intId < 100_000_000) {
+				return "000" + intId;
+
+			} else if (intId < 1_000_000_000) {
+				return "00" + intId;
+
+			} else {
+				return "0" + intId;
+			}
+		}
+
+	}
 
 }

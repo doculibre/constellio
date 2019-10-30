@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.menu.behaviors.ui.CartBatchProcessingPresenter;
 import com.constellio.app.modules.rm.services.menu.behaviors.ui.CartBatchProcessingViewImpl;
+import com.constellio.app.modules.rm.services.menu.behaviors.util.RMMessageUtil;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -45,12 +46,12 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupFieldWithIgnoreOneRecord;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
+import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -80,6 +81,7 @@ import com.jgoodies.common.base.Strings;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource.StreamSource;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
@@ -294,7 +296,7 @@ public class CartMenuItemActionBehaviors {
 		};
 		SessionContext sessionContext = params.getView().getSessionContext();
 		LabelButtonV2 labelsButton = new LabelButtonV2(
-				$("SearchView.labels"),
+				$("SearchView.printLabels"),
 				$("SearchView.printLabels"),
 				customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory,
@@ -311,7 +313,7 @@ public class CartMenuItemActionBehaviors {
 
 	public void batchDelete(Cart cart, MenuItemActionBehaviorParams params) {
 		Button button;
-		if(!isNeedingAReasonToDeleteRecords()) {
+		if (!isNeedingAReasonToDeleteRecords()) {
 			button = new DeleteButton(false) {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -320,18 +322,8 @@ public class CartMenuItemActionBehaviors {
 
 				@Override
 				protected String getConfirmDialogMessage() {
-					List<String> cartFolderIds = cartUtil.getCartFolderIds(cart.getId());
-					List<String> cartDocumentIds = cartUtil.getCartDocumentIds(cart.getId());
+					StringBuilder stringBuilder = getRecordCountByTypeAsText(cart);
 
-					StringBuilder stringBuilder = new StringBuilder();
-					String prefix = "";
-					if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
-						stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
-						prefix = " " + $("CartView.andAll") + " ";
-					}
-					if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
-						stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
-					}
 					return $("CartView.deleteConfirmationMessageWithoutJustification", stringBuilder.toString());
 				}
 			};
@@ -344,24 +336,21 @@ public class CartMenuItemActionBehaviors {
 
 				@Override
 				protected String getConfirmDialogMessage() {
-					List<String> cartFolderIds = cartUtil.getCartFolderIds(cart.getId());
-					List<String> cartDocumentIds = cartUtil.getCartDocumentIds(cart.getId());
+					StringBuilder stringBuilder = getRecordCountByTypeAsText(cart);
 
-					StringBuilder stringBuilder = new StringBuilder();
-					String prefix = "";
-					if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
-						stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
-						prefix = " " + $("CartView.andAll") + " ";
-					}
-					if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
-						stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
-					}
 					return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
 				}
 			};
+
+			((DeleteWithJustificationButton) button).setMessageContentMode(ContentMode.HTML);
 		}
 
 		button.click();
+	}
+
+	private StringBuilder getRecordCountByTypeAsText(Cart cart) {
+		return RMMessageUtil.getRecordCountByTypeAsText(cartUtil.getCartFolderIds(cart.getId()).size(),
+				cartUtil.getCartDocumentIds(cart.getId()).size(), cartUtil.getCartContainersIds(cart.getId()).size());
 	}
 
 	public void deletionRequested(String reason, Cart cart, MenuItemActionBehaviorParams params) {
@@ -378,7 +367,7 @@ public class CartMenuItemActionBehaviors {
 		}
 
 		for (Record record : recordServices.getRecordsById(params.getView().getCollection(), getAllCartItems(cart.getId()))) {
-			delete(record, reason,params);
+			delete(record, reason, params);
 		}
 		cartEmptyingRequested(cart.getId(), params.getView());
 	}
@@ -415,12 +404,14 @@ public class CartMenuItemActionBehaviors {
 		}
 	}
 
-	protected final void delete(Record record, String reason, MenuItemActionBehaviorParams menuItemActionBehaviorParams) {
+	protected final void delete(Record record, String reason,
+								MenuItemActionBehaviorParams menuItemActionBehaviorParams) {
 		delete(record, reason, true, false, menuItemActionBehaviorParams);
 	}
 
 
-	protected final void delete(Record record, String reason, boolean physically, boolean throwException, MenuItemActionBehaviorParams params) {
+	protected final void delete(Record record, String reason, boolean physically, boolean throwException,
+								MenuItemActionBehaviorParams params) {
 		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
 				params.getView().getConstellioFactories(), params.getView().getSessionContext());
 		presenterUtils.delete(record, null, true, 1);
@@ -571,7 +562,7 @@ public class CartMenuItemActionBehaviors {
 						}
 						buildDecommissioningListRequested(titleField.getValue(), (DecommissioningListType)
 										decomTypeField.getValue(),
-										cart.getId(), params.getUser(), params.getView());
+								cart.getId(), params.getUser(), params.getView());
 						getWindow().close();
 					}
 				};
@@ -585,7 +576,8 @@ public class CartMenuItemActionBehaviors {
 		windowButton.click();
 	}
 
-	public void buildDecommissioningListRequested(String title, DecommissioningListType decomType, String cartId, User user, BaseView view) {
+	public void buildDecommissioningListRequested(String title, DecommissioningListType decomType, String cartId,
+												  User user, BaseView view) {
 		DecommissioningList list = rm.newDecommissioningList();
 		list.setTitle(title);
 		list.setAdministrativeUnit(getCommonAdministrativeUnit(cartUtil.getCartFolders(cartId)));
@@ -728,6 +720,8 @@ public class CartMenuItemActionBehaviors {
 				super.buttonClick(event);
 			}
 		};
+
+		reportGeneratorButton.click();
 	}
 
 	private class CartNewReportPresenter implements NewReportPresenter {

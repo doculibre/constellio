@@ -1,6 +1,7 @@
 package com.constellio.app.ui.entities;
 
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
@@ -9,6 +10,7 @@ import com.constellio.model.entities.schemas.Schemas;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -29,6 +31,8 @@ public class RecordVO implements Serializable {
 	private String niceTitle;
 
 	private boolean saved;
+
+	private List<String> extraSearchDisplayCode = new ArrayList<>();
 
 	private List<String> excludedMetadataCodeList;
 	private Set<String> excludedFormMetadataCodes;
@@ -51,6 +55,18 @@ public class RecordVO implements Serializable {
 		LangUtils.ensureNoNullItems(metadataValues);
 		this.metadataValues = metadataValues;
 		this.viewMode = viewMode;
+	}
+
+	public void addExtraSearchDisplayCode(String extraDisplayMetadata) {
+		if (getMetadataOrNull(extraDisplayMetadata) != null) {
+			extraSearchDisplayCode.add(extraDisplayMetadata);
+		} else {
+			throw new ImpossibleRuntimeException("metadata code invalid");
+		}
+	}
+
+	public List<String> getExtraSearchDisplayCode() {
+		return Collections.unmodifiableList(extraSearchDisplayCode);
 	}
 
 	public Record getRecord() {
@@ -199,6 +215,15 @@ public class RecordVO implements Serializable {
 		if (searchMetadataCodes == null) {
 			searchMetadataCodes = getMetadataCodes();
 		}
+
+		for (String extraSearchDisplayCode : extraSearchDisplayCode) {
+			if (searchMetadataCodes.contains(extraSearchDisplayCode)) {
+				searchMetadataCodes.remove(extraSearchDisplayCode);
+			}
+
+			searchMetadataCodes.add(0, extraSearchDisplayCode);
+		}
+
 		for (String tableMetadataCode : searchMetadataCodes) {
 			if (excludedMetadataCodeList.contains(tableMetadataCode)) {
 				continue;
@@ -243,7 +268,20 @@ public class RecordVO implements Serializable {
 	}
 
 	public List<MetadataVO> getFormMetadatas() {
-		List<MetadataVO> formMetadatas = getSchema().getFormMetadatas();
+		List<MetadataVO> formMetadatas = getFormShownMetadatas();
+		formMetadatas.addAll(getFormHiddenMetadatas());
+		return formMetadatas;
+	}
+
+	public List<MetadataVO> getFormShownMetadatas() {
+		return filterFormMetadatas(getSchema().getFormMetadatas());
+	}
+
+	public List<MetadataVO> getFormHiddenMetadatas() {
+		return filterFormMetadatas(getSchema().getHiddenFormMetadatas());
+	}
+
+	private List<MetadataVO> filterFormMetadatas(List<MetadataVO> formMetadatas) {
 		List<MetadataVO> filteredFormMetadatas = new ArrayList<>();
 		for (MetadataVO formMetadata : formMetadatas) {
 			if (excludedFormMetadataCodes == null || !excludedFormMetadataCodes.contains(formMetadata.code)) {
@@ -266,12 +304,15 @@ public class RecordVO implements Serializable {
 	}
 
 	public MetadataVO getMetadataOrNull(String code) {
-		String codeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(code);
+		String searchedLocalCode = MetadataVO.getCodeWithoutPrefix(code);
 		for (MetadataValueVO metadataValue : metadataValues) {
 			MetadataVO metadata = metadataValue.getMetadata();
 			String metadataCode = metadata.getCode();
-			String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
-			if (code.equals(metadataCode) || codeWithoutPrefix.equals(metadataCodeWithoutPrefix)) {
+			String localCode = metadata.getLocalCode();
+			if (localCode == null) {
+				localCode = MetadataVO.getCodeWithoutPrefix(metadataCode);
+			}
+			if (searchedLocalCode.equals(localCode)) {
 				return metadataValue.getMetadata();
 			}
 		}

@@ -139,8 +139,8 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 		view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList().getId());
 	}
 
-	public String getLabelForCode(FolderDetailVO folderDetailVO) {
-		return recordServices().getDocumentById(folderDetailVO.getFolderId()).getTitle();
+	public String getLabelForCode(String folderId) {
+		return recordServices().getDocumentById(folderId).getTitle();
 	}
 
 	public Record toRecord(RecordVO recordVO) {

@@ -45,9 +45,11 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleRuntimeException;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -63,6 +65,7 @@ import com.constellio.sdk.tests.concurrent.OngoingConcurrentExecution;
 import com.constellio.sdk.tests.schemas.SchemaTestFeatures;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import com.constellio.sdk.tests.setups.TestsSpeedStats;
 import com.constellio.sdk.tests.setups.Users;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -808,16 +811,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getSchemaTestFeatures().useWithMockedSchemaManager(metadataSchemaManager);
 	}
 
-	protected ModulesAndMigrationsTestFeatures givenCollectionInVersion(String collection, List<String> languages,
-																		String version) {
-		ensureNotUnitTest();
-		try {
-			getAppLayerFactory().getCollectionsManager().createCollectionInVersion(collection, languages, version);
-		} catch (NoMoreCollectionAvalibleException noMoreCollectionAvalibleException) {
-			noMoreCollectionAvalibleException.printStackTrace();
-		}
-		return new ModulesAndMigrationsTestFeatures(getCurrentTestSession().getFactoriesTestFeatures(), collection);
-	}
 
 	protected ModulesAndMigrationsTestFeatures givenCollectionWithTitle(String collection, String collectionTitle) {
 		ModulesAndMigrationsTestFeatures features = givenCollection(collection);
@@ -866,8 +859,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		ensureNotUnitTest();
 		try {
 			getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(collection, languages);
+		} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
+			throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
+
 		} catch (NoMoreCollectionAvalibleException noMoreCollectionAvalibleException) {
 			throw new NoMoreCollectionAvalibleRuntimeException();
+
 		}
 		return new ModulesAndMigrationsTestFeatures(getCurrentTestSession().getFactoriesTestFeatures(), collection);
 	}
@@ -1047,6 +1044,16 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected Record record(String id) {
 		ensureNotUnitTest();
 		return getModelLayerFactory().newRecordServices().getDocumentById(id);
+	}
+
+	protected Record newRecord(MetadataSchema schema) {
+		ensureNotUnitTest();
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schema);
+	}
+
+	protected Record newRecord(SchemaShortcuts schema) {
+		ensureNotUnitTest();
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schema.instance());
 	}
 
 	protected Record withId(String id) {

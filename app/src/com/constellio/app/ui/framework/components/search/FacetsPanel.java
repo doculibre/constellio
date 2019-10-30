@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.components.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -18,30 +12,37 @@ import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
 public abstract class FacetsPanel extends VerticalLayout {
-	
+
 	public FacetsPanel() {
 		addStyleName("search-result-facets");
-//		setWidth("300px");
+		setWidth("250px");
 		setSpacing(true);
 	}
-	
-	public void refresh(List<FacetVO> facets, KeySetMap<String, String> facetSelections, List<MetadataVO> sortableMetadata, String sortCriterionValue, SortOrder sortOrder) {
+
+	public void refresh(List<FacetVO> facets, KeySetMap<String, String> facetSelections,
+						List<MetadataVO> sortableMetadata, String sortCriterionValue, SortOrder sortOrder) {
 		removeAllComponents();
 		addComponent(buildSortComponent(sortableMetadata, sortCriterionValue, sortOrder));
 
@@ -50,7 +51,9 @@ public abstract class FacetsPanel extends VerticalLayout {
 		}
 	}
 
-	private Component buildSortComponent(List<MetadataVO> sortableMetadata, String sortCriterionValue, SortOrder sortOrder) {
+	private Component buildSortComponent(List<MetadataVO> sortableMetadata, String sortCriterionValue,
+										 SortOrder sortOrder) {
+
 		Label sortBy = new Label($("SearchView.sortBy"));
 		sortBy.addStyleName(ValoTheme.LABEL_BOLD);
 		sortBy.addStyleName("sort-title");

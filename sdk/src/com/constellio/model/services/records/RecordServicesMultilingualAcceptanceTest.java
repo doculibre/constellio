@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.params.GetCaptionForRecordParams;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
@@ -570,7 +571,7 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenSchemaAutocompleteMultilingualMetadataThenAutocompletionBasedOnLanguage()
+	public void givenFullyCachedSchemaAutocompleteMultilingualMetadataThenAutocompletionBasedOnLanguage()
 			throws Exception {
 
 		givenFrenchSystemWithOneMonolingualAndOneMultilingualCollection();
@@ -612,6 +613,25 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 				.set(multilingualSchema.anotherStringMetadata(), "Autre"));
 
 		recordServices.execute(tx);
+
+		RecordsCaches recordsCaches = getModelLayerFactory().getRecordsCaches();
+		assertThat(recordsCaches.getRecord("r1").<String>get(multilingualSchema.stringMetadata(), Locale.FRENCH))
+				.isEqualTo("pomme");
+
+		assertThat(recordsCaches.getRecord("r1").<String>get(multilingualSchema.stringMetadata(), ENGLISH))
+				.isEqualTo("Apple");
+
+		assertThat(recordsCaches.getRecord("r1").<String>get(multilingualSchema.anotherStringMetadata()))
+				.isEqualTo("Fruit");
+
+		assertThat(recordsCaches.getRecord("r4").<String>get(multilingualSchema.stringMetadata(), Locale.FRENCH))
+				.isEqualTo("Quick aux fraises");
+
+		assertThat(recordsCaches.getRecord("r4").<String>get(multilingualSchema.stringMetadata(), ENGLISH))
+				.isEqualTo("Strawberry quick");
+
+		assertThat(recordsCaches.getRecord("r4").<String>get(multilingualSchema.anotherStringMetadata()))
+				.isEqualTo("Fruit");
 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(multilingualSchema.type()).returnAll());
 		query.sortAsc(multilingualSchema.stringMetadata());

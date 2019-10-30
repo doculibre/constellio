@@ -2,6 +2,8 @@ package com.constellio.model.services.contents.icap;
 
 import com.constellio.data.threads.ConstellioJob;
 import com.constellio.data.threads.ConstellioJobManager;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
@@ -112,8 +114,10 @@ public class IcapService {
 	}
 
 	public void scan(final String filename, final InputStream fileContent) {
-		if (modelLayerFactory.getSystemConfigs().getIcapScanActivated()) {
-			icapServerUrl = modelLayerFactory.getSystemConfigs().getIcapServerUrl();
+		icapServerUrl = modelLayerFactory.getSystemConfigs().getIcapServerUrl();
+		if (modelLayerFactory.getSystemConfigs().getIcapScanActivated()
+			&& (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER
+				|| (StringUtils.isNotBlank(icapServerUrl) && icapServerUrl.contains("localhost")))) {
 
 			if (StringUtils.isBlank(icapServerUrl)) {
 				LOGGER.error("ICAP is activated while its server URL is missing");

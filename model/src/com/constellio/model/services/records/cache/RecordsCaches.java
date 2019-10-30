@@ -98,4 +98,15 @@ public interface RecordsCaches {
 	void onPostLayerInitialization();
 
 	void markAsInitialized(MetadataSchemaType schemaType);
+
+	default int estimateMaxResultSizeUsingIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata,
+														  String value) {
+		return -1;
+	}
+
+	CacheLoadingProgression getLoadingProgression();
+
+	void enableVolatileCache();
+
+	void disableVolatileCache();
 }

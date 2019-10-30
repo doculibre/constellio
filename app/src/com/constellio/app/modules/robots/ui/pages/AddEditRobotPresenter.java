@@ -22,7 +22,6 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.Choice;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.FieldOverridePresenter;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.OverrideMode;
-import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
@@ -286,6 +285,11 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		return extensions.getComponentForCriterion(criterion);
 	}
 
+	@Override
+	public void showErrorMessage(String message) {
+		view.showErrorMessage(message);
+	}
+
 	public boolean isAddMode() {
 		return ADD.equals(pageMode);
 	}
@@ -413,7 +417,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 
 	public SearchResultVODataProvider getSearchResults(final List<Criterion> searchCriteria) {
 		SearchPageLength defaultPageLength = getCurrentUser().getDefaultPageLength();
-		int providerPageLength = defaultPageLength != null ? defaultPageLength.getValue() : SearchResultDetailedTable.DEFAULT_PAGE_LENGTH;
+		int providerPageLength = defaultPageLength != null ? defaultPageLength.getValue() : 10;
 		return new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory, view.getSessionContext(), providerPageLength) {
 			@Override
 			public LogicalSearchQuery getQuery() {

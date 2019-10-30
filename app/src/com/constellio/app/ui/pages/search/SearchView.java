@@ -24,7 +24,7 @@ public interface SearchView extends BaseView {
 
 	Boolean computeStatistics();
 
-    void fireSomeRecordsSelected();
+	void fireSomeRecordsSelected();
 
 	void fireNoRecordSelected();
 
@@ -33,5 +33,7 @@ public interface SearchView extends BaseView {
 	Integer getReturnIndex();
 
 	RecordVO getReturnRecordVO();
-	
+
+	void setLazyLoadedSearchResults(boolean lazyLoadSearchResults);
+
 }

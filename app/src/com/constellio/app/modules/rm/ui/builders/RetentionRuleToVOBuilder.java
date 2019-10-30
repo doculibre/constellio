@@ -98,12 +98,12 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	private List<String> getCategories(String id) {
-		LogicalSearchCondition condition = from(rm.category.schemaType()).where(rm.category.retentionRules())
-				.isEqualTo(id);
-		List<Record> categoryRecords = searchServices.cachedSearch(new LogicalSearchQuery(condition));
+		List<Category> allCategories = rm.getAllCategories();
 		List<Category> categories = new ArrayList<>();
-		for (Record categoryRecord : categoryRecords) {
-			categories.add(rm.wrapCategory(categoryRecord));
+		for (Category category : allCategories) {
+			if (category.getList(rm.category.retentionRules()).contains(id)) {
+				categories.add(category);
+			}
 		}
 		Collections.sort(categories, new AbstractTextComparator<Category>() {
 			@Override
@@ -153,10 +153,10 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		putMetadataAtTheEnd(label, schema.getDisplayMetadataCodes());
 		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getFormMetadataCodes());
 
-		return new MetadataVO(label, MetadataVO.getCodeWithoutPrefix(label), MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
+		return new MetadataVO((short) 0, label, MetadataVO.getCodeWithoutPrefix(label), MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
 				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP, MetadataDisplayType.VERTICAL,
 				new AllowedReferences(referencedSchemaType, references), groupLabel, null, false, new HashSet<String>(), false, null,
-				new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
+				new HashMap<String, Object>(), schema.getCollectionInfoVO(), false, true);
 	}
 
 	private void insertMetadataCodeBefore(String codeToInsert, String codeToSearch, List<String> codes) {

@@ -7,6 +7,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -134,6 +135,11 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 
 	public void addItemClickListener(final ItemClickListener listener) {
 		adaptee.addItemClickListener(listener);
+	}
+
+	@Override
+	public void addSelectionChangeListener(BaseTable.SelectionChangeListener selectionChangeListener) {
+		adaptee.addSelectionChangeListener(selectionChangeListener);
 	}
 
 	public List<String> getSelectedRecordIds() {

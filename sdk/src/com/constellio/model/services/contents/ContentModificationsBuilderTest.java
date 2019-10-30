@@ -29,6 +29,7 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 public class ContentModificationsBuilderTest extends ConstellioTest {
@@ -73,6 +74,7 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 		when(singleValueContentMetadata.getDataStoreCode()).thenReturn("singleValue_s");
 		when(multiValueContentMetadata.getDataStoreCode()).thenReturn("multivalueValue_ss");
 		when(types.getSchema(schemaCode)).thenReturn(schema);
+		when(types.getSchemaOf(any(Record.class))).thenReturn(schema);
 		MetadataList metadatas = new MetadataList(textMetadata, singleValueContentMetadata, multiValueContentMetadata);
 		when(schema.getMetadatas()).thenReturn(
 				metadatas);

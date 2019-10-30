@@ -24,6 +24,7 @@ import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_ADD_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_AVAILABLE_ALERT;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_BORROW;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_COPY;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_DELETE;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_DISPLAY;
@@ -61,7 +62,7 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_ADD_DOCUMENT.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_DOCUMENT.name(),
 					isMenuItemActionPossible(FOLDER_ADD_DOCUMENT.name(), folder, user, params),
-					$("DisplayFolderView.addDocument"), null, -1, 100,
+					$("DisplayFolderView.addDocument"), FontAwesome.FILE_O, -1, 100,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToDocument(folder, params)));
 		}
 
@@ -71,6 +72,7 @@ public class FolderMenuItemServices {
 					$("DisplayFolderView.parentFolder"), null, -1, 200,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).move(folder, params)));
 		}
+
 
 		if (!filteredActionTypes.contains(FOLDER_ADD_SUBFOLDER.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_SUBFOLDER.name(),
@@ -91,6 +93,14 @@ public class FolderMenuItemServices {
 					isMenuItemActionPossible(FOLDER_EDIT.name(), folder, user, params),
 					$("DisplayFolderView.editFolder"), FontAwesome.EDIT, -1, 500,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).edit(folder, params)));
+		}
+
+		if (!filteredActionTypes.contains(FOLDER_CONSULT_LINK.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(FOLDER_CONSULT_LINK.name(),
+					isMenuItemActionPossible(FOLDER_CONSULT_LINK.name(), folder, user, params),
+					$("consultationLink"), FontAwesome.LINK, -1, 510,
+					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).getConsultationLink(folder, params));
+			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_DELETE.name())) {
@@ -124,7 +134,7 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_ADD_TO_CART.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_TO_CART.name(),
 					isMenuItemActionPossible(FOLDER_ADD_TO_CART.name(), folder, user, params),
-					$("DisplayFolderView.addToCart"), null, -1, 1000,
+					$("DisplayFolderView.addToCart"), FontAwesome.STAR, -1, 1000,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToCart(folder, params)));
 		}
 
@@ -159,7 +169,7 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_PRINT_LABEL.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_PRINT_LABEL.name(),
 					isMenuItemActionPossible(FOLDER_PRINT_LABEL.name(), folder, user, params),
-					$("DisplayFolderView.printLabel"), null, -1, 1500,
+					$("DisplayFolderView.printLabel"), FontAwesome.PRINT, -1, 1500,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).printLabel(folder, params)));
 		}
 
@@ -196,6 +206,8 @@ public class FolderMenuItemServices {
 				return folderRecordActionsServices.isDisplayActionPossible(record, user);
 			case FOLDER_ADD_DOCUMENT:
 				return folderRecordActionsServices.isAddDocumentActionPossible(record, user);
+			case FOLDER_CONSULT_LINK:
+				return folderRecordActionsServices.isConsultLinkActionPossible(record, user);
 			case FOLDER_MOVE:
 				return folderRecordActionsServices.isMoveActionPossible(record, user);
 			case FOLDER_ADD_SUBFOLDER:
@@ -257,6 +269,7 @@ public class FolderMenuItemServices {
 		FOLDER_DISPLAY,
 		FOLDER_ADD_DOCUMENT,
 		FOLDER_MOVE,
+		FOLDER_CONSULT_LINK,
 		FOLDER_ADD_SUBFOLDER,
 		FOLDER_EDIT,
 		FOLDER_DELETE,

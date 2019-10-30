@@ -49,7 +49,7 @@ public class IdsReallocationUtilsAcceptanceTest extends ConstellioTest {
 				tuple("ddvContainerRecordType", 1), tuple("ddvDocumentType", 10), tuple("decommissioningList", 24),
 				tuple("document", 5), tuple("folder", 105), tuple("retentionRule", 5), tuple("storageSpace", 6),
 				tuple("uniformSubdivision", 3));
-		assertThat(results2.get(0).getIdsToReallocateToSequential()).isEqualTo(results.get(0).getIdsToReallocateToSequential());
+		assertThat(results2.get(0).getIdsToReallocateToSequential()).containsOnly(results.get(0).getIdsToReallocateToSequential().toArray(new String[0]));
 		assertThat(results2.get(0).getOldAndNewIdMapping()).isEqualTo(results.get(0).getOldAndNewIdMapping());
 
 

@@ -7,6 +7,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.extensions.behaviors.RecordExtension;
@@ -130,6 +131,9 @@ public class SecurityModelCache implements EventBusListener {
 					case Group.SCHEMA_TYPE:
 						fullInvalidateRequired = true;
 						break;
+					case User.SCHEMA_TYPE:
+						fullInvalidateRequired = true;
+						break;
 
 					case Authorization.SCHEMA_TYPE:
 						authCreated.add(newRecord.getId());
@@ -145,6 +149,10 @@ public class SecurityModelCache implements EventBusListener {
 
 					case GlobalGroup.SCHEMA_TYPE:
 						allCollectionInvalidateRequired = event.getModifiedMetadataListOf(modifiedRecord).containsMetadataWithLocalCode(GlobalGroup.STATUS);
+						break;
+
+					case User.SCHEMA_TYPE:
+						allCollectionInvalidateRequired = event.getModifiedMetadataListOf(modifiedRecord).containsMetadataWithLocalCode(User.GROUPS);
 						break;
 
 					case Authorization.SCHEMA_TYPE:

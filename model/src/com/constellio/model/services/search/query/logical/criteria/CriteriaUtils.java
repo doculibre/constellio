@@ -9,6 +9,7 @@ import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordImpl;
+import com.constellio.model.services.search.query.logical.condition.TestedQueryRecord;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
@@ -18,6 +19,9 @@ import org.joda.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.constellio.data.utils.LangUtils.isEmptyList;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
 
 public class CriteriaUtils {
 
@@ -56,7 +60,8 @@ public class CriteriaUtils {
 		}
 	}
 
-	public static Object convertMetadataValue(Metadata metadata, Record record) {
+
+	public static Object convertMetadataValue(Metadata metadata, TestedQueryRecord testedRecord) {
 		Object recordValue;
 
 		//Same behavior than solr
@@ -64,6 +69,7 @@ public class CriteriaUtils {
 			return metadata.isMultivalue() ? Collections.emptyList() : null;
 		}
 
+		Record record = testedRecord.getRecord();
 		if (metadata.isEncrypted()) {
 			recordValue = ((RecordImpl) record).getRecordDTO().getFields().get(metadata.getDataStoreCode());
 
@@ -72,13 +78,18 @@ public class CriteriaUtils {
 			//No conversion, since it is losing precision
 			return record.getVersion();
 		} else {
-			recordValue = record.get(metadata);
+			recordValue = record.get(metadata, testedRecord.getLocale());
+			if ((recordValue == null || isEmptyList(recordValue)) && testedRecord.getMetadataRetrieval() == PREFERRING) {
+				recordValue = record.get(metadata);
+			}
+
 		}
 
 		return convertMetadataValue(metadata, recordValue);
 	}
 
-	public static Object convertMetadataValue(Metadata metadata, Object recordValue) {
+
+	private static Object convertMetadataValue(Metadata metadata, Object recordValue) {
 
 		if (recordValue == null) {
 			return null;

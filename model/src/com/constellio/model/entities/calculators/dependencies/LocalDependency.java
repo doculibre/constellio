@@ -63,6 +63,10 @@ public class LocalDependency<T> implements Dependency {
 		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.REFERENCE, false);
 	}
 
+	public static LocalDependency<List<String>> toAReferenceList(String metadataCode) {
+		return new LocalDependency<>(metadataCode, false, true, MetadataValueType.REFERENCE, false);
+	}
+
 	public static LocalDependency<Boolean> toABoolean(String metadataCode) {
 		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.BOOLEAN, false);
 	}

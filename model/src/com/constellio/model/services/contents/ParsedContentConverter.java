@@ -70,7 +70,12 @@ public class ParsedContentConverter {
 			}
 		}
 		String parsedContent = decodeString(string.substring(separatorIndex + SEPARATOR.length()));
-		return new ParsedContent(parsedContent, lang, mime, length, parameters, styles.getNestedMap());
+		ParsedContent parsedContentToReturn = new ParsedContent(parsedContent, lang, mime, length, parameters, styles.getNestedMap());
+		if (parameters.get("Title") instanceof String) {
+			parsedContentToReturn.setTitle((String) parameters.get("Title"));
+		}
+
+		return parsedContentToReturn;
 	}
 
 	private void putStringListInHashMap(Map<String, Object> parameters, String key, String value) {

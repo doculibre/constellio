@@ -73,7 +73,7 @@ public class BagInfoSIPForm extends BaseViewImpl {
 
 			@Override
 			protected void cancelButtonClick(RecordVO viewObject) {
-				navigateTo().previousView();
+				presenter.cancelButtonClicked();
 			}
 		};
 	}

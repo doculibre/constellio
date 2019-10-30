@@ -8,11 +8,10 @@ import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
-import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
+import com.constellio.app.modules.tasks.services.menu.behaviors.TaskMenuItemActionBehaviors.TaskMenuItemPresenter;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
-import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -62,11 +61,11 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 	private SessionContext sessionContext;
 	private String collection;
 	private BaseView view;
-	private TaskTable.TaskPresenter presenter;
+	private TaskMenuItemPresenter presenter;
 	private RMModuleExtensions rmModuleExtensions;
 
 	public TaskCompleteWindowButton(Task task, String caption, AppLayerFactory appLayerFactory,
-									TaskTable.TaskPresenter presenter) {
+									TaskMenuItemPresenter presenter) {
 		super(caption, caption, WindowConfiguration.modalDialog("1000px", "800px"));
 
 		this.task = task;
@@ -252,7 +251,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			throw new RuntimeException();
 		}
 		presenter.afterCompletionActions();
-		presenter.reloadTaskModified(task);
+		presenter.reloadTaskModified(task.getId());
 		return !validationException;
 	}
 
@@ -400,6 +399,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		if (tasksSchemas.isRequestTask(task)) {
 			reasonField = fieldFactory.build(recordVO.getMetadata(RequestTask.REASON));
+			reasonField.setWidth("100%");
 			fieldLayout.addComponent(reasonField);
 		}
 		return reasonField;

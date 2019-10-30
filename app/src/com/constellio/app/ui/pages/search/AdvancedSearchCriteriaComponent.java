@@ -23,6 +23,7 @@ import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
@@ -88,6 +89,32 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			criterion.setSchemaType(schemaType);
 		}
 		refreshRowCache();
+	}
+
+	public void setSchemaSelected(String schemaCode) {
+		for (Criterion criterion : container.getItemIds()) {
+			criterion.setSchemaSelected(schemaCode);
+		}
+		refreshRowCache();
+	}
+
+	public void setShowDeactivatedMetadatas(boolean shown) {
+		refreshRowCache();
+
+		List<Criterion> itemToRemove = new ArrayList<>();
+		for (Criterion criterion : container.getItemIds()) {
+			if (criterion.getMetadataCode() == null) {
+				itemToRemove.add(criterion);
+			}
+		}
+
+		for (Criterion criterion : itemToRemove) {
+			removeItem(criterion);
+		}
+
+		for (int i = container.getItemIds().size(); i < 2; i++) {
+			addEmptyCriterion();
+		}
 	}
 
 	public AdvancedSearchCriteriaComponent addEmptyCriterion() {
@@ -159,6 +186,11 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			});
 			//			comboBox.setPageLength(comboBox.size());
 			comboBox.setPageLength(20);
+
+			if (!comboBox.containsId(metadataVO)) {
+				criterion.clear();
+			}
+
 			return comboBox;
 		}
 	}
@@ -502,7 +534,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			value.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
-					criterion.setValue(value.getConvertedValue());
+					verifyNewValue(value, criterion);
 				}
 			});
 			value.setVisible(true);
@@ -515,7 +547,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			endValue.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
-					criterion.setEndValue(endValue.getConvertedValue());
+					verifyNewValue(value, criterion);
 				}
 			});
 
@@ -535,6 +567,15 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			component.setSpacing(true);
 
 			return component;
+		}
+
+		private void verifyNewValue(TextField newValue, Criterion criterion) {
+			try {
+				criterion.setValue(newValue.getConvertedValue());
+			} catch (ConversionException e) {
+				criterion.setValue(null);
+				presenter.showErrorMessage($("AdvancedSearchView.invalidDoubleFormat"));
+			}
 		}
 
 		private ComboBox buildComparisonComboBox(final Criterion criterion, final Component firstComponent,
@@ -829,5 +870,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		MetadataVO getMetadataVO(String metadataCode);
 
 		Component getExtensionComponentForCriterion(Criterion criterion);
+
+		void showErrorMessage(String message);
 	}
 }

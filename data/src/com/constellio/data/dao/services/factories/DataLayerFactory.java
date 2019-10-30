@@ -430,7 +430,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	public void updateContentDao() {
 		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
-			contentDao = add(new FileSystemContentDao(ioServicesFactory.newIOServices(), dataLayerConfiguration));
+			contentDao = add(new FileSystemContentDao(this));
 		} else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
 			String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
 			String hadoopUser = dataLayerConfiguration.getContentDaoHadoopUser();

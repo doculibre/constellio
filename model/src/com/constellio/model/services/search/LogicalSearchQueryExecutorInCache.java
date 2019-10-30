@@ -25,6 +25,7 @@ import com.constellio.model.services.search.query.logical.condition.CompositeLog
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
+import com.constellio.model.services.search.query.logical.condition.TestedQueryRecord;
 import com.constellio.model.services.search.query.logical.criteria.IsEqualCriterion;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_CACHE;
 import static java.util.Arrays.asList;
 
 public class LogicalSearchQueryExecutorInCache {
@@ -53,9 +55,11 @@ public class LogicalSearchQueryExecutorInCache {
 	MetadataSchemasManager schemasManager;
 	ModelLayerSystemExtensions modelLayerExtensions;
 	String mainDataLanguage;
+	SearchConfigurationsManager searchConfigurationsManager;
 
 	public LogicalSearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
 											 MetadataSchemasManager schemasManager,
+											 SearchConfigurationsManager searchConfigurationsManager,
 											 ModelLayerSystemExtensions modelLayerExtensions,
 											 String mainDataLanguage) {
 		this.searchServices = searchServices;
@@ -63,36 +67,47 @@ public class LogicalSearchQueryExecutorInCache {
 		this.schemasManager = schemasManager;
 		this.modelLayerExtensions = modelLayerExtensions;
 		this.mainDataLanguage = mainDataLanguage;
+		this.searchConfigurationsManager = searchConfigurationsManager;
 	}
 
 	public Stream<Record> stream(LogicalSearchQuery query) {
 		MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
 
-		Predicate<Record> filter = toStreamFilter(query);
+		Locale locale = query.getLanguage() == null ? null : Language.withCode(query.getLanguage()).getLocale();
+		final Predicate<TestedQueryRecord> filter = toStreamFilter(query, schemaType);
+		Predicate<Record> recordFilter = new Predicate<Record>() {
+			@Override
+			public boolean test(Record record) {
+				return filter.test(new TestedQueryRecord(record, locale, PREFERRING));
+			}
+		};
 
-		Stream<Record> stream = newBaseRecordStream(query, schemaType, filter);
+		Stream<Record> stream = newBaseRecordStream(query, schemaType, recordFilter);
 
 		if (!query.getSortFields().isEmpty()) {
 			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
 		} else {
-			return stream;//.sorted(newIdComparator());
+			return stream;
 		}
 	}
 
-	private Predicate<Record> toStreamFilter(LogicalSearchQuery query) {
-		Predicate<Record> filter = new Predicate<Record>() {
+	private Predicate<TestedQueryRecord> toStreamFilter(LogicalSearchQuery query, MetadataSchemaType schemaType) {
+
+		final List<String> excludedDocs = searchConfigurationsManager.getDocExlusions(schemaType.getCollection());
+
+		Predicate<TestedQueryRecord> filter = new Predicate<TestedQueryRecord>() {
 			@Override
-			public boolean test(Record record) {
+			public boolean test(TestedQueryRecord record) {
 
 				boolean result = true;
 
 				switch (query.getVisibilityStatusFilter()) {
 
 					case HIDDENS:
-						result = Boolean.TRUE.equals(record.get(Schemas.HIDDEN));
+						result = Boolean.TRUE.equals(record.getRecord().get(Schemas.HIDDEN));
 						break;
 					case VISIBLES:
-						result = !Boolean.TRUE.equals(record.get(Schemas.HIDDEN));
+						result = !Boolean.TRUE.equals(record.getRecord().get(Schemas.HIDDEN));
 						break;
 				}
 
@@ -103,26 +118,28 @@ public class LogicalSearchQueryExecutorInCache {
 				switch (query.getStatusFilter()) {
 
 					case DELETED:
-						result = Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS));
+						result = Boolean.TRUE.equals(record.getRecord().get(Schemas.LOGICALLY_DELETED_STATUS));
 						break;
 					case ACTIVES:
-						result = !Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS));
+						result = !Boolean.TRUE.equals(record.getRecord().get(Schemas.LOGICALLY_DELETED_STATUS));
 						break;
 				}
 
+				result &= !excludedDocs.contains(record.getRecord().getId());
+
 				return result;
 			}
-		}.and(query.getCondition());
+		}.and(testedQueryRecord -> query.getCondition().test(testedQueryRecord));
 
 
 		if (query.getCondition().getFilters() instanceof SchemaFilters) {
 			SchemaFilters schemaFilters = (SchemaFilters) query.getCondition().getFilters();
 
 			if (schemaFilters.getSchemaFilter() != null && schemaFilters.getSchemaTypeFilter() == null) {
-				filter = new Predicate<Record>() {
+				filter = new Predicate<TestedQueryRecord>() {
 					@Override
-					public boolean test(Record record) {
-						return schemaFilters.getSchemaFilter().getCode().equals(record.getSchemaCode());
+					public boolean test(TestedQueryRecord record) {
+						return schemaFilters.getSchemaFilter().getCode().equals(record.getRecord().getSchemaCode());
 					}
 				}.and(filter);
 			}
@@ -141,12 +158,13 @@ public class LogicalSearchQueryExecutorInCache {
 		//		}
 
 		if (query.getUserFilters() != null && !query.getUserFilters().isEmpty()) {
-			filter = filter.and(record -> isRecordAccessibleForUser(query.getUserFilters(), record));
+			filter = filter.and(record -> isRecordAccessibleForUser(query.getUserFilters(), record.getRecord()));
 		}
 		return filter;
 	}
 
-	private DataStoreFieldLogicalSearchCondition findRequiredFieldEqualCondition(LogicalSearchCondition condition) {
+	private DataStoreFieldLogicalSearchCondition findRequiredFieldEqualCondition(LogicalSearchCondition condition,
+																				 MetadataSchemaType schemaType) {
 		if (condition instanceof DataStoreFieldLogicalSearchCondition) {
 			DataStoreFieldLogicalSearchCondition fieldCondition = (DataStoreFieldLogicalSearchCondition) condition;
 			LogicalSearchValueCondition logicalSearchValueCondition = fieldCondition.getValueCondition();
@@ -157,6 +175,9 @@ public class LogicalSearchQueryExecutorInCache {
 				if (dataStoreFields != null && dataStoreFields.size() == 1) {
 					Object value = isEqualCriterion.getMemoryQueryValue();
 					DataStoreField dataStoreField = dataStoreFields.get(0);
+					if (((Metadata) dataStoreField).getCode().startsWith("global")) {
+						dataStoreField = schemaType.getDefaultSchema().getMetadata(dataStoreField.getLocalCode());
+					}
 					if (canDataGetByMetadata(dataStoreField, value)) {
 						return (DataStoreFieldLogicalSearchCondition) condition;
 					}
@@ -167,7 +188,7 @@ public class LogicalSearchQueryExecutorInCache {
 			LogicalOperator logicalOperator = compositeCondition.getLogicalOperator();
 			if (logicalOperator == LogicalOperator.AND) {
 				for (LogicalSearchCondition childCondition : compositeCondition.getNestedSearchConditions()) {
-					DataStoreFieldLogicalSearchCondition requiredFieldEqualCondition = findRequiredFieldEqualCondition(childCondition);
+					DataStoreFieldLogicalSearchCondition requiredFieldEqualCondition = findRequiredFieldEqualCondition(childCondition, schemaType);
 					if (requiredFieldEqualCondition != null) {
 						return requiredFieldEqualCondition;
 					}
@@ -184,13 +205,18 @@ public class LogicalSearchQueryExecutorInCache {
 		final long startOfStreaming = new Date().getTime();
 
 		DataStoreFieldLogicalSearchCondition requiredFieldEqualCondition
-				= findRequiredFieldEqualCondition(query.getCondition());
+				= findRequiredFieldEqualCondition(query.getCondition(), schemaType);
 
 		Stream<Record> stream;
 		if (requiredFieldEqualCondition == null) {
 			stream = recordsCaches.stream(schemaType);
 		} else {
 			Metadata metadata = (Metadata) requiredFieldEqualCondition.getDataStoreFields().get(0);
+
+			if ((metadata).getCode().startsWith("global")) {
+				metadata = schemaType.getDefaultSchema().getMetadata(metadata.getLocalCode());
+			}
+
 			Object value = ((IsEqualCriterion) requiredFieldEqualCondition.getValueCondition()).getMemoryQueryValue();
 			if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()) {
 				stream = recordsCaches.getRecordsSummaryByIndexedMetadata(schemaType, metadata, (String) value);
@@ -311,10 +337,11 @@ public class LogicalSearchQueryExecutorInCache {
 			return false;
 		}
 
-		return hasNoUnsupportedFeatureOrFilter(query) && isConditionExecutableInCache(query.getCondition(),
-				query.getReturnedMetadatas(), query.getQueryExecutionMethod().requiringCacheExecution());
+		return hasNoUnsupportedFeatureOrFilter(query)
+			   && isConditionExecutableInCache(query.getCondition(), query.getReturnedMetadatas(), query.getQueryExecutionMethod());
 
 	}
+
 
 	private static List<Predicate<LogicalSearchQuery>> requirements = asList(
 			(query) -> query.getQueryExecutionMethod() != QueryExecutionMethod.USE_SOLR,
@@ -391,13 +418,16 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 
-	public boolean isConditionExecutableInCache(LogicalSearchCondition condition, boolean requiringExecutionInCache) {
-		return isConditionExecutableInCache(condition, ReturnedMetadatasFilter.all(), requiringExecutionInCache);
+	public boolean isConditionExecutableInCache(LogicalSearchCondition condition,
+												QueryExecutionMethod queryExecutionMethod) {
+		return isConditionExecutableInCache(condition, ReturnedMetadatasFilter.all(), queryExecutionMethod);
 	}
+
 
 	public boolean isConditionExecutableInCache(LogicalSearchCondition condition,
 												ReturnedMetadatasFilter returnedMetadatasFilter,
-												boolean requiringExecutionInCache) {
+												QueryExecutionMethod queryExecutionMethod) {
+
 		MetadataSchemaType schemaType = getQueriedSchemaType(condition);
 
 		if (recordsCaches == null || schemaType == null || !recordsCaches.isCacheInitialized(schemaType)) {
@@ -408,12 +438,14 @@ public class LogicalSearchQueryExecutorInCache {
 			return false;
 
 		} else if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			return condition.isSupportingMemoryExecution(false, requiringExecutionInCache);
+			return condition.isSupportingMemoryExecution(false, queryExecutionMethod == USE_CACHE)
+				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
 
 		} else if (schemaType.getCacheType().hasPermanentCache()) {
 			//Verify that schemaType is loaded
 			return (returnedMetadatasFilter.isOnlySummary() || returnedMetadatasFilter.isOnlyId()) &&
-				   condition.isSupportingMemoryExecution(true, requiringExecutionInCache);
+				   condition.isSupportingMemoryExecution(true, queryExecutionMethod == USE_CACHE)
+				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
 
 		} else {
 			return false;
@@ -435,5 +467,27 @@ public class LogicalSearchQueryExecutorInCache {
 		} else {
 			return null;
 		}
+	}
+
+	public int estimateMaxResultSize(LogicalSearchQuery query) {
+		if (isQueryExecutableInCache(query)) {
+
+			MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
+
+			DataStoreFieldLogicalSearchCondition requiredFieldEqualCondition =
+					findRequiredFieldEqualCondition(query.getCondition(), schemaType);
+
+			Metadata metadata = (Metadata) requiredFieldEqualCondition.getDataStoreFields().get(0);
+
+			if ((metadata).getCode().startsWith("global")) {
+				metadata = schemaType.getDefaultSchema().getMetadata(metadata.getLocalCode());
+			}
+
+			Object value = ((IsEqualCriterion) requiredFieldEqualCondition.getValueCondition()).getMemoryQueryValue();
+			return recordsCaches.estimateMaxResultSizeUsingIndexedMetadata(schemaType, metadata, (String) value);
+		} else {
+			return -1;
+		}
+
 	}
 }

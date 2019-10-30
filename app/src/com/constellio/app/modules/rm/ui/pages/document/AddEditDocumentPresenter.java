@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.ui.components.document.fields.DocumentFolde
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeField;
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -59,6 +60,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -71,7 +73,7 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
+public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> implements SecurityWithNoUrlParamSupport {
 
 	private transient ContentVersionToVOBuilder contentVersionToVOBuilder;
 
@@ -88,12 +90,15 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	ConstellioEIMConfigs eimConfigs;
 	private Map<String, String> params;
 	private Document documentOriginalCopy = null;
+	private boolean isFromUserDocument;
+	private String copyId = null;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view, RecordVO recordVO) {
 		super(view, Document.DEFAULT_SCHEMA);
 		initTransientObjects();
 		eimConfigs = modelLayerFactory.getSystemConfigs();
 		this.id = recordVO != null ? recordVO.getId() : null;
+		addView = recordVO == null;
 	}
 
 	@Override
@@ -148,7 +153,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			}
 			addView = true;
 		}
-
+		this.isFromUserDocument = false;
+		this.copyId = null;
 		documentVO = voBuilder.build(document.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 		if (userDocumentId != null) {
 			populateFromUserDocument(userDocumentId);
@@ -188,6 +194,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 		documentVO.setTitle(document.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")");
 		documentVO.setFolder(document.getFolder());
+		copyId = existingDocumentId;
 	}
 
 	@Override
@@ -293,6 +300,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			documentVO.setTitle(userDocument.getTitle());
 		}
 		documentVO.setContent(contentVersionVO);
+
+		isFromUserDocument = true;
 	}
 
 	public boolean isAddView() {
@@ -350,6 +359,24 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			document.setContent(contentBeforeChange);
 		} finally {
 			IOUtils.closeQuietly(in);
+		}
+	}
+
+	public RecordVO getUserDocumentRecordVO() {
+		if (isFromUserDocument && userDocumentId != null) {
+			UserDocument userDocument = rmSchemasRecordsServices.getUserDocument(userDocumentId);
+			return voBuilder.build(userDocument.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
+		} else {
+			return null;
+		}
+	}
+
+	public RecordVO getDuplicateDocumentRecordVO() {
+		if (copyId != null) {
+			Document document = rmSchemasRecordsServices.getDocument(copyId);
+			return voBuilder.build(document.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
+		} else {
+			return null;
 		}
 	}
 
@@ -502,7 +529,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if (isAddView() && valueChangeField instanceof DocumentContentField) {
 			DocumentContentField contentField = getContentField();
 			ContentVersionVO contentVersionVO = contentField.getFieldValue();
-			if (Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
+			if (contentVersionVO != null && Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 				LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
 						.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
@@ -722,6 +749,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			contentField.addContentUploadedListener(new ContentUploadedListener() {
 				@Override
 				public void newContentUploaded() {
+					isFromUserDocument = false;
+					copyId = null;
 					ContentVersionVO contentVersionVO = contentField.getFieldValue();
 					if (contentVersionVO != null) {
 						if (Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
@@ -794,6 +823,9 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 							documentVO.setContent(null);
 							getContentField().setFieldValue(null);
 						}
+					} else {
+						documentVO.setContent(null);
+						view.getForm().reload();
 					}
 				}
 			});
@@ -855,5 +887,15 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
 		String url = constellioUrl + "#!" + displayURL + "/" + document.getId();
 		return "<a href=\"" + url + "\">" + url + "</a>";
+	}
+
+
+	@Override
+	public boolean hasPageAccess(User user) {
+		if (addView) {
+			throw new NotImplementedException("Dans le moment les fenetre supporte seulement le mode modifier");
+		} else {
+			return hasRestrictedRecordAccess(id, getCurrentUser(), recordServices().getDocumentById(id));
+		}
 	}
 }

@@ -11,6 +11,7 @@ public class ReindexationParams {
 	private ReindexationMode reindexationMode;
 	private int batchSize = 0;
 	private List<MetadataSchemaType> reindexedSchemaTypes = Collections.emptyList();
+	private boolean repopulate = true;
 
 	public ReindexationParams(ReindexationMode reindexationMode) {
 		this.reindexationMode = reindexationMode;
@@ -55,4 +56,12 @@ public class ReindexationParams {
 		return params;
 	}
 
+	public boolean isRepopulate() {
+		return repopulate;
+	}
+
+	public ReindexationParams setRepopulate(boolean repopulate) {
+		this.repopulate = repopulate;
+		return this;
+	}
 }

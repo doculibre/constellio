@@ -25,8 +25,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
-
 public class ConstellioPingServlet extends HttpServlet {
 
 	public static boolean systemRestarting;
@@ -61,7 +59,7 @@ public class ConstellioPingServlet extends HttpServlet {
 						online = changeOnlineStatus(online, testHttpSolr(constellioFactories, testSolr, pw));
 					} else if (SolrServerType.CLOUD == solrServerType) {
 
-						SolrClient solrClient = newSolrCloudServerFactory(constellioFactories).newSolrServer(SYSTEM_COLLECTION);
+						SolrClient solrClient = constellioFactories.getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer();
 
 						online = changeOnlineStatus(online, testSolrCloudNodes(pw, solrClient));
 					} else {
@@ -73,7 +71,6 @@ public class ConstellioPingServlet extends HttpServlet {
 				pw.append("\n");
 				online = changeOnlineStatus(online, true);
 			}
-
 		}
 
 		if (online) {
@@ -109,7 +106,8 @@ public class ConstellioPingServlet extends HttpServlet {
 				ZookeeperClient zookeeperClient = new ZookeeperClient(domain, port);
 				try {
 					String stat = zookeeperClient.stat();
-					if (stat.contains("Mode: leader") || stat.contains("Mode: follower")) {
+					if (stat.contains("Mode: leader") || stat.contains("Mode: follower") ||
+						(zooKeeperAddr.size() == 1 && stat.contains("Mode: standalone"))) {
 						online = changeOnlineStatus(online, true);
 						pw.append("ZooKeeper : " + domain + ":" + port + " is up and running");
 						pw.append("\n");

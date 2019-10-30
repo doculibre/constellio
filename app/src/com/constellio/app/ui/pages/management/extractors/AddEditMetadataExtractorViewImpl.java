@@ -16,6 +16,7 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.dd.DropHandler;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -23,6 +24,7 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.DragAndDropWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -246,9 +248,20 @@ public class AddEditMetadataExtractorViewImpl extends BaseViewImpl implements Ad
 						stylesField.addValue((String) event.getItemId());
 						showMessage($("AddEditMetadataExtractorView.styleAdded"));
 					}
+
+					@Override
+					protected boolean isBreadcrumbsVisible() {
+						return false;
+					}
+				};
+				DragAndDropWrapper wrapper = new DragAndDropWrapper(view) {
+					@Override
+					public DropHandler getDropHandler() {
+						return view;
+					}
 				};
 				view.enter(null);
-				return view;
+				return wrapper;
 			}
 		};
 		buttons.add(analyserButton);

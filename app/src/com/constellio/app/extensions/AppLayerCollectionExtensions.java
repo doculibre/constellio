@@ -68,6 +68,10 @@ import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
 import com.constellio.app.extensions.api.SchemaRecordExtention;
 import com.constellio.app.extensions.api.SchemaRecordExtention.SchemaRecordExtensionActionPossibleParams;
+import com.constellio.app.extensions.api.UserDocumentExtension;
+import com.constellio.app.extensions.api.UserDocumentExtension.UserDocumentExtensionActionPossibleParams;
+import com.constellio.app.extensions.api.UserFolderExtension;
+import com.constellio.app.extensions.api.UserFolderExtension.UserFolderExtensionActionPossibleParams;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
 import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
@@ -80,15 +84,19 @@ import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams
 import com.constellio.app.extensions.menu.MenuItemActionsExtension;
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
+import com.constellio.app.extensions.records.UserHavePermissionOnRecordExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
+import com.constellio.app.extensions.records.params.HasUserReadAccessParams;
 import com.constellio.app.extensions.records.params.IsMetadataSpecialCaseToNotBeShownParams;
 import com.constellio.app.extensions.records.params.IsMetadataVisibleInRecordFormParams;
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
 import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
 import com.constellio.app.extensions.treenode.TreeNodeExtension;
+import com.constellio.app.extensions.ui.TabSheetInDisplayAndFormExtention;
+import com.constellio.app.extensions.ui.TabSheetInDisplayAndFormExtention.TabSheetInDisplayAndFormExtentionParams;
 import com.constellio.app.modules.rm.extensions.params.RMSchemaTypesPageExtensionExclusionByPropertyParams;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -109,6 +117,8 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataFilter;
@@ -151,6 +161,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<SearchPageExtension> searchPageExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<RecordAppExtension> recordAppExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<UserHavePermissionOnRecordExtension> userHavePermissionOnRecordExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<TreeNodeExtension> treeNodeAppExtension = new VaultBehaviorsList<>();
 
@@ -203,6 +215,13 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<XmlGeneratorExtension> xmlGeneratorExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<SchemaRecordExtention> schemaRecordExtentions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<UserFolderExtension> userFolderExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<UserDocumentExtension> userDocumentExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<TabSheetInDisplayAndFormExtention> tabSheetCaptionToHide = new VaultBehaviorsList<>();
+
 
 	//Key : schema type code
 	//Values : record's code
@@ -687,6 +706,15 @@ public class AppLayerCollectionExtensions {
 		return values;
 	}
 
+	public boolean doesUserHaveReadAcessToRecord(boolean defaultValue, User user, Record record) {
+		return ExtensionUtils.getBooleanValue(userHavePermissionOnRecordExtensions, defaultValue, new BooleanCaller<UserHavePermissionOnRecordExtension>() {
+			@Override
+			public ExtensionBooleanResult call(UserHavePermissionOnRecordExtension behavior) {
+				return behavior.hasUserReadAccess(new HasUserReadAccessParams(user, record));
+			}
+		});
+	}
+
 	public boolean isMetadataEnabledInRecordForm(final RecordVO recordVO, final MetadataVO metadataVO) {
 		return ExtensionUtils.getBooleanValue(recordAppExtensions, true, new BooleanCaller<RecordAppExtension>() {
 			@Override
@@ -924,6 +952,7 @@ public class AppLayerCollectionExtensions {
 		return result;
 	}
 
+
 	public boolean isEditActionPossibleOnSchemaRecord(final Record record, final User user) {
 		return schemaRecordExtentions.getBooleanValue(true,
 				(behavior) -> behavior.isEditActionPossible(
@@ -934,5 +963,23 @@ public class AppLayerCollectionExtensions {
 		return schemaRecordExtentions.getBooleanValue(true,
 				(behavior) -> behavior.isDeleteActionPossible(
 						new SchemaRecordExtensionActionPossibleParams(record, user)));
+	}
+
+	public boolean isClassifyActionPossibleOnUserDocument(final UserDocument userDocument, User user) {
+		return userDocumentExtensions.getBooleanValue(true, (behavior) -> behavior.isFileActionPossible(new UserDocumentExtensionActionPossibleParams(userDocument, user)));
+	}
+
+	public boolean isClassifyActionPossibleOnUserFolder(final UserFolder userFolder, User user) {
+		return userFolderExtensions.getBooleanValue(true, (behavior -> behavior.isFileActionPossible(new UserFolderExtensionActionPossibleParams(userFolder, user))));
+	}
+
+	public List<String> getTabSheetCaptionToHideInDisplayAndForm() {
+		List<String> actionTabToIgnore = new ArrayList<>();
+
+		for (TabSheetInDisplayAndFormExtention tabSheetInDisplayAndFormExtention : tabSheetCaptionToHide) {
+			actionTabToIgnore.addAll(tabSheetInDisplayAndFormExtention.getTabSheetCaptionToHide(new TabSheetInDisplayAndFormExtentionParams()));
+		}
+
+		return actionTabToIgnore;
 	}
 }

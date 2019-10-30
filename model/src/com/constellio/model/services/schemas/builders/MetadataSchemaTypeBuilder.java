@@ -4,17 +4,23 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaComparators;
+import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.MultilingualMetadatasNotSupportedWithPermanentSummaryCache;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.CannotDeleteSchema;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotDeleteSchemaSinceItHasRecords;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.ClassProvider;
 import com.google.common.base.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,6 +34,8 @@ import java.util.Set;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class MetadataSchemaTypeBuilder {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataSchemaTypeBuilder.class);
 
 	private static final String DEFAULT = "default";
 	private static final String UNDERSCORE = "_";
@@ -222,7 +230,8 @@ public class MetadataSchemaTypeBuilder {
 	}
 
 	public MetadataSchemaType build(DataStoreTypesFactory typesFactory, MetadataSchemaTypesBuilder typesBuilder,
-									ModelLayerFactory modelLayerFactory) {
+									ModelLayerFactory modelLayerFactory)
+			throws MultilingualMetadatasNotSupportedWithPermanentSummaryCache {
 
 
 		if (id == 0) {
@@ -237,8 +246,15 @@ public class MetadataSchemaTypeBuilder {
 			schemas.add(metadataSchemaBuilder.buildCustom(defaultSchema, this, typesBuilder, id, typesFactory, modelLayerFactory));
 		}
 
+
 		if (labels == null || labels.isEmpty()) {
-			throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined(code);
+			String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+			if (!defaultSchema.getCollection().equals(Collection.SYSTEM_COLLECTION)) {
+				throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined(code);
+			} else {
+				LOGGER.warn("Schema '" + defaultSchema.getCode() + "' of collection '" + defaultSchema.getCollection()
+							+ "' do not have labels in main data language '" + mainDataLanguage + "'");
+			}
 		} else {
 			for (Entry<Language, String> entry : labels.entrySet()) {
 				if (collectionInfo.getCollectionLocales().contains(entry.getKey().getLocale())) {
@@ -250,6 +266,24 @@ public class MetadataSchemaTypeBuilder {
 		}
 
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
+
+		if (recordCacheType.isSummaryCache()) {
+
+			for (Metadata metadata : defaultSchema.getMetadatas()) {
+				if (metadata.isMultiLingual() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+					throw new MetadataBuilderRuntimeException.MultilingualMetadatasNotSupportedWithPermanentSummaryCache(metadata);
+				}
+			}
+
+			for (MetadataSchema aSchema : schemas) {
+				for (Metadata metadata : aSchema.getMetadatas()) {
+					if (metadata.isMultiLingual() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+						throw new MetadataBuilderRuntimeException.MultilingualMetadatasNotSupportedWithPermanentSummaryCache(metadata);
+					}
+				}
+			}
+		}
+
 		return new MetadataSchemaType(id, code, smallCode, collectionInfo, labels, schemas, defaultSchema, undeletable, security,
 				recordCacheType, inTransactionLog,
 				readOnlyLocked, dataStore);

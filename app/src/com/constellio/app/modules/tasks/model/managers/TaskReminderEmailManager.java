@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -48,10 +49,12 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPTION;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE_TITLE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_GROUPS_CANDIDATES;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_EN;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_FR;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_USERS_CANDIDATES;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -171,6 +174,8 @@ public class TaskReminderEmailManager implements StatefulService {
 		String status = taskSchemas.getTaskStatus(task.getStatus()).getTitle();
 		String status_fr = taskSchemas.getTaskStatus(task.getStatus()).getTitle(Locale.FRENCH);
 		String status_en = taskSchemas.getTaskStatus(task.getStatus()).getTitle(Locale.ENGLISH);
+		List<String> assigneeGroupsCandidatesTitles = getGroupsTitlesNamesByIds(task.getAssigneeGroupsCandidates());
+		List<String> assigneeUsersCandidatesFullNames = getUsersFullNamesByIds(task.getAssigneeUsersCandidates());
 
 		boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
 		if (isAddingRecordIdInEmails) {
@@ -182,6 +187,8 @@ public class TaskReminderEmailManager implements StatefulService {
 		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assignerFullName)));
 		newParameters.add(TASK_ASSIGNED_ON + ":" + formatToParameter(task.getAssignedOn()));
 		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assigneeFullName)));
+		newParameters.add(TASK_GROUPS_CANDIDATES + ":" + formatListToParameter(escapeHtml4List(assigneeGroupsCandidatesTitles)));
+		newParameters.add(TASK_USERS_CANDIDATES + ":" + formatListToParameter(escapeHtml4List(assigneeUsersCandidatesFullNames)));
 		if (task.getDueDate() != null) {
 			newParameters.add(TASK_DUE_DATE_TITLE + ":" + "(" + formatToParameter(task.getDueDate()) + ")");
 		}
@@ -203,6 +210,27 @@ public class TaskReminderEmailManager implements StatefulService {
 		emailToSend.setParameters(newParameters);
 	}
 
+	private List<String> escapeHtml4List(List<String> inputs) {
+		List<String> parameters = new ArrayList<>();
+		for (String input : inputs) {
+			parameters.add(StringEscapeUtils.escapeHtml4(input));
+		}
+
+		return parameters;
+	}
+
+	private Object formatListToParameter(List<String> parameters) {
+		StringBuffer finalParameter = new StringBuffer();
+		for (Iterator<String> iterator = parameters.iterator(); iterator.hasNext(); ) {
+			finalParameter.append(formatToParameter(iterator.next()));
+			if (iterator.hasNext()) {
+				finalParameter.append(", ");
+			}
+		}
+
+		return finalParameter;
+	}
+
 	private Object formatToParameter(Object parameter) {
 		if (parameter == null) {
 			return "";
@@ -215,6 +243,24 @@ public class TaskReminderEmailManager implements StatefulService {
 			return "";
 		}
 		return taskSchemas.wrapUser(recordServices.getDocumentById(userId)).getUsername();
+	}
+
+	private List<String> getGroupsTitlesNamesByIds(List<String> groupsIds) {
+		List<String> fullNames = new ArrayList<>();
+		for (String groupId : groupsIds) {
+			fullNames.add(taskSchemas.wrapGroup(recordServices.getDocumentById(groupId)).getTitle());
+		}
+
+		return fullNames;
+	}
+
+	private List<String> getUsersFullNamesByIds(List<String> usersIds) {
+		List<String> fullNames = new ArrayList<>();
+		for (String userId : usersIds) {
+			fullNames.add(getUserFullNameById(userId));
+		}
+
+		return fullNames;
 	}
 
 	private String getUserFullNameById(String userId) {

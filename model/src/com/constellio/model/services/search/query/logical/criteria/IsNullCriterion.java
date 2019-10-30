@@ -1,9 +1,9 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+import com.constellio.model.services.search.query.logical.condition.TestedQueryRecord;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -51,9 +51,9 @@ public class IsNullCriterion extends LogicalSearchValueCondition {
 	}
 
 	@Override
-	public boolean testConditionOnField(Metadata metadata, Record record) {
+	public boolean testConditionOnField(Metadata metadata, TestedQueryRecord record) {
 
-		Object recordValue = record.get(metadata);
+		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
 
 		if (recordValue instanceof List) {
 			return ((List) recordValue).isEmpty();

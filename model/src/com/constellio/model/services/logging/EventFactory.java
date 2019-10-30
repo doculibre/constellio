@@ -46,6 +46,7 @@ public class EventFactory {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
 		Event event = schemasRecords.newEvent();
 		setDefaultMetadata(event, user);
+		event.setIp(user.getLastIPAddress());
 		event.setType(EventType.OPEN_SESSION);
 		return event;
 	}

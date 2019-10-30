@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleRuntimeException;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -54,6 +55,9 @@ public abstract class SchemasSetup {
 			if (collectionsManager != null && !collectionsManager.getCollectionCodes().contains(setup.collection)) {
 				try {
 					collectionsManager.createCollectionInCurrentVersion(setup.collection, setup.languages);
+				} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
+					throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
+
 				} catch (NoMoreCollectionAvalibleException e) {
 					throw new NoMoreCollectionAvalibleRuntimeException();
 				}

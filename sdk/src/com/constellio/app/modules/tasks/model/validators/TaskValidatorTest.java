@@ -1,6 +1,5 @@
 package com.constellio.app.modules.tasks.model.validators;
 
-import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.ConfigProvider;
@@ -36,9 +35,6 @@ public class TaskValidatorTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
-		when(configProvider.get(RMConfigs.WORKFLOWS_ENABLED)).thenReturn(false);
-
 		when(record.getSchemaCode()).thenReturn("userTask_default");
 		when(task.getWrappedRecord()).thenReturn(record);
 		when(task.getMetadataSchemaTypes()).thenReturn(types);

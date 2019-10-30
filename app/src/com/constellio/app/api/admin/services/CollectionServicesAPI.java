@@ -4,6 +4,7 @@ import com.constellio.app.client.entities.CollectionResource;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -27,6 +28,8 @@ public class CollectionServicesAPI {
 		} catch (NoMoreCollectionAvalibleException noMoreCollectionAvalibleException) {
 			noMoreCollectionAvalibleException.printStackTrace();
 			return "Not created, maximum number of collection is reached";
+		} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
+			throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
 		}
 
 	}

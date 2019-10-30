@@ -8,6 +8,7 @@ import java.io.InputStream;
 
 public class JavascriptUtils {
 
+	@SuppressWarnings("deprecation")
 	public static void loadScript(String themeResourcePath) {
 		try (InputStream in = ThemeUtils.getResource(themeResourcePath)) {
 			String resourceContent = IOUtils.toString(in);

@@ -4,8 +4,9 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -19,6 +20,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,6 +58,45 @@ public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenFileToIgnoreDuringScanThenSaidFileAreIgnored() throws HashingServiceException {
+		givenTimeIs(new LocalDateTime(System.currentTimeMillis() + (1000l * 60l * 60l * 24l * 100l)));
+		VaultScanResults vaultScanResults = new VaultScanResults();
+
+		Record document = recordServices.getDocumentById(records.document_A19);
+		Content content = document.get(rmSchemasRecordsServices.document.content());
+
+		String referencedFilehash = content.getCurrentVersion().getHash();
+		contentManager.getContentDao().getFileOf(referencedFilehash);
+
+		File fileToUse = newTempFileWithContent("documentToUse", ".jpegConversion"); // Document with an old modification date.
+
+		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".todelete");
+		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".jpegConversion");
+		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".icapscan");
+		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".thumbnail");
+
+		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
+		assertThat(vaultScanResults.getReportMessage()).contains(referencedFilehash + ".todelete");
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(referencedFilehash + ".jpegConversion");
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(referencedFilehash + ".icapscan");
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(referencedFilehash + ".thumbnail");
+
+		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".jpegConversion").exists()).isTrue();
+		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".icapscan").exists()).isTrue();
+		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".thumbnail").exists()).isTrue();
+
+		recordServices.physicallyDeleteNoMatterTheStatus(document, User.GOD, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+
+		VaultScanResults vaultScanResults2 = new VaultScanResults();
+		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults2);
+
+		assertThat(vaultScanResults2.getReportMessage()).contains(content.getCurrentVersion().getHash());
+		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".jpegConversion").exists()).isFalse();
+		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".icapscan").exists()).isFalse();
+		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".thumbnail").exists()).isFalse();
+	}
+
+	@Test
 	public void givenContentManagement() throws Exception {
 		givenOneUnlinkedFileAndOneLinkedFileWhichAreNewlyCreated();
 
@@ -73,9 +114,9 @@ public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenOneUnlinkedFileAndOneLinkedFileWhichAreNewlyCreated() throws Exception {
-		Document documentToBeDeleted = rmSchemasRecordsServices.newDocument().setTitle("documentToBeDeleted").setFolder(records.getFolder_A01())
+		documentToBeDeleted = rmSchemasRecordsServices.newDocument().setTitle("documentToBeDeleted").setFolder(records.getFolder_A01())
 				.setContent(createContent("documentToBeDeleted.txt"));
-		Document documentToBeKept = rmSchemasRecordsServices.newDocument().setTitle("documentToBeDeleted").setFolder(records.getFolder_A01())
+		documentToBeKept = rmSchemasRecordsServices.newDocument().setTitle("documentToBeDeleted").setFolder(records.getFolder_A01())
 				.setContent(createContent("documentToBeKept.txt"));
 
 		Transaction transaction = new Transaction(documentToBeDeleted, documentToBeKept);
@@ -89,23 +130,6 @@ public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeDeleted.getContent().getCurrentVersion().getHash());
 		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeKept.getContent().getCurrentVersion().getHash());
 
-		givenTimeIs(TimeProvider.getLocalDateTime().plusHours(35));
-
-		vaultScanResults = new VaultScanResults();
-		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
-		assertThat(vaultScanResults.getNumberOfDeletedContents()).isEqualTo(0);
-		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeDeleted.getContent().getCurrentVersion().getHash());
-		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeKept.getContent().getCurrentVersion().getHash());
-
-		givenTimeIs(TimeProvider.getLocalDateTime().plusDays(3));
-
-		vaultScanResults = new VaultScanResults();
-		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
-
-
-		assertThat(vaultScanResults.getNumberOfDeletedContents()).isEqualTo(1);
-		assertThat(vaultScanResults.getReportMessage()).contains(documentToBeDeleted.getContent().getCurrentVersion().getHash());
-		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeKept.getContent().getCurrentVersion().getHash());
 	}
 
 	@Test

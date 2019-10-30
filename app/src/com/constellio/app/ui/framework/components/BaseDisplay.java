@@ -1,31 +1,40 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.server.Page;
+import com.vaadin.server.Page.BrowserWindowResizeEvent;
+import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
+import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
-public class BaseDisplay extends CustomComponent {
+public class BaseDisplay extends CustomComponent implements BrowserWindowResizeListener {
 
 	public static final String STYLE_NAME = "base-display";
 	public static final String STYLE_CAPTION = "display-caption";
 	public static final String STYLE_VALUE = "display-value";
+	public static final String STYLE_FULL_WIDTH = "display-value-full-width";
 
 	private boolean useTabSheet;
 
@@ -35,6 +44,10 @@ public class BaseDisplay extends CustomComponent {
 
 	private Map<String, Panel> tabs = new LinkedHashMap<>();
 
+	private List<CaptionAndComponent> captionsAndDisplayComponents;
+
+	private Boolean lastModeDesktop;
+
 	public BaseDisplay(List<CaptionAndComponent> captionsAndDisplayComponents) {
 		this(captionsAndDisplayComponents, false);
 	}
@@ -42,8 +55,9 @@ public class BaseDisplay extends CustomComponent {
 	public BaseDisplay(List<CaptionAndComponent> captionsAndDisplayComponents, boolean useTabSheet) {
 		this.useTabSheet = useTabSheet;
 		addStyleName(STYLE_NAME);
-
-		setSizeFull();
+		//		setSizeFull();
+		setWidth("100%");
+		setResponsive(true);
 
 		tabSheet = new TabSheet();
 
@@ -51,20 +65,21 @@ public class BaseDisplay extends CustomComponent {
 
 		if (isUseTabsheet()) {
 			int tabCaptionCount = 0;
-	
-			for (CaptionAndComponent captionAndComponent :captionsAndDisplayComponents){
+
+			Set<String> tabCaptions = new HashSet<>();
+			for (CaptionAndComponent captionAndComponent : captionsAndDisplayComponents) {
 				String tabCaption = captionAndComponent.tabCaption;
-				if (StringUtils.isNotBlank(tabCaption)) {
+				if (StringUtils.isNotBlank(tabCaption) && !tabCaptions.contains(tabCaption)) {
+					tabCaptions.add(tabCaption);
 					tabCaptionCount++;
-					break;
 				}
 			}
-			useTabSheet = tabCaptionCount > 0;
+			this.useTabSheet = tabCaptionCount > 1;
 		} else {
-			useTabSheet = false;
+			this.useTabSheet = false;
 		}
 
-		if (useTabSheet) {
+		if (this.useTabSheet) {
 			setCompositionRoot(tabSheet);
 		} else {
 			setCompositionRoot(mainLayout);
@@ -73,7 +88,40 @@ public class BaseDisplay extends CustomComponent {
 		setCaptionsAndComponents(captionsAndDisplayComponents);
 	}
 
+	@Override
+	public void attach() {
+		super.attach();
+		Page.getCurrent().addBrowserWindowResizeListener(this);
+		computeResponsive();
+	}
+
+	@Override
+	public void detach() {
+		Page.getCurrent().removeBrowserWindowResizeListener(this);
+		super.detach();
+	}
+
+	@Override
+	public void browserWindowResized(BrowserWindowResizeEvent event) {
+		computeResponsive();
+	}
+
+	private void computeResponsive() {
+		if (lastModeDesktop == null) {
+			lastModeDesktop = ResponsiveUtils.isDesktop();
+		}
+		if ((lastModeDesktop && !ResponsiveUtils.isDesktop()) || (!lastModeDesktop && ResponsiveUtils.isDesktop())) {
+			refresh();
+		}
+		lastModeDesktop = ResponsiveUtils.isDesktop();
+	}
+
 	protected void setCaptionsAndComponents(List<CaptionAndComponent> captionsAndDisplayComponents) {
+		this.captionsAndDisplayComponents = captionsAndDisplayComponents;
+		refresh();
+	}
+
+	private void refresh() {
 		if (mainLayout.iterator().hasNext()) {
 			mainLayout.removeAllComponents();
 		}
@@ -93,8 +141,8 @@ public class BaseDisplay extends CustomComponent {
 	
 	private VerticalLayout newMainLayout() {
 		VerticalLayout mainLayout = new VerticalLayout();
-		mainLayout.setSizeUndefined();
-		mainLayout.setSpacing(true);
+		// mainLayout.setSizeUndefined();
+		mainLayout.setSizeFull();
 		mainLayout.addStyleName(STYLE_NAME + "-main-layout");
 		return mainLayout;
 	}
@@ -111,7 +159,6 @@ public class BaseDisplay extends CustomComponent {
 				layout = new VerticalLayout();
 				layout.addStyleName("base-display-tab-layout");
 				layout.setWidth("100%");
-				layout.setSpacing(true);
 
 				panel = new Panel(layout);
 				panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
@@ -121,6 +168,18 @@ public class BaseDisplay extends CustomComponent {
 				panel.setHeight((Page.getCurrent().getBrowserWindowHeight() -250) + "px");
 				tabs.put(tabCaption, panel);
 				addTab(tabSheet, panel, tabCaption, tabIcon);
+
+				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+
+				List<String> tabCaptionToIgnore = appLayerFactory.getExtensions().
+						forCollection(ConstellioUI.getCurrentSessionContext()
+								.getCurrentCollection()).getTabSheetCaptionToHideInDisplayAndForm();
+
+				if (tabCaptionToIgnore.contains(tabCaption)) {
+					Tab tab = tabSheet.getTab(panel);
+					tab.setVisible(false);
+					tab.setEnabled(false);
+				}
 			} else {
 				layout = (VerticalLayout) panel.getContent();
 			}
@@ -140,16 +199,7 @@ public class BaseDisplay extends CustomComponent {
 	
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent, VerticalLayout layout) {
 		if (displayComponent.isVisible()) {
-			I18NHorizontalLayout captionAndComponentLayout = new I18NHorizontalLayout();
-			if (isCaptionAndDisplayComponentWidthUndefined()) {
-				captionAndComponentLayout.setWidthUndefined();
-			} else {
-				captionAndComponentLayout.setSizeFull();
-			}
-
-			layout.addComponent(captionAndComponentLayout);
-			captionAndComponentLayout.addComponent(captionLabel);
-			captionAndComponentLayout.addComponent(displayComponent);
+			layout.addComponents(captionLabel, displayComponent);
 		}
 	}
 
@@ -159,6 +209,14 @@ public class BaseDisplay extends CustomComponent {
 	
 	protected boolean isUseTabsheet() {
 		return useTabSheet;
+	}
+
+	public void addSelectedTabChangeListener(SelectedTabChangeListener listener) {
+		tabSheet.addSelectedTabChangeListener(listener);
+	}
+
+	public void removeSelectedTabChangeListener(SelectedTabChangeListener listener) {
+		tabSheet.removeSelectedTabChangeListener(listener);
 	}
 	
 	public static class CaptionAndComponent implements Serializable {

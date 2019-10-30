@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.model.entities.CollectionInfo;
+import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -17,11 +18,14 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
+import static com.constellio.model.services.records.cache.MetadataIndexCacheDataStoreAcceptanceTest.TestEnumClassWithSmallCode.VALUE1;
+import static com.constellio.model.services.records.cache.MetadataIndexCacheDataStoreAcceptanceTest.TestEnumClassWithSmallCode.VALUE2;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 	Metadata cacheIndex;
+	Metadata cacheEnumIndex;
 	Metadata notCacheIndex;
 	Metadata unique;
 	Metadata cacheIndexMultiValue;
@@ -38,6 +42,22 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 	Record record4;
 	Record record1Update;
 
+
+	public enum TestEnumClassWithSmallCode implements EnumWithSmallCode {
+		VALUE1("1"), VALUE2("2");
+
+		private String code;
+
+		TestEnumClassWithSmallCode(String code) {
+			this.code = code;
+		}
+
+		@Override
+		public String getCode() {
+			return code;
+		}
+	}
+
 	@Before
 	public void setup() throws Exception {
 		prepareSystem(withZeCollection(), withCollection("secondCollection"));
@@ -51,6 +71,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 			MetadataSchemaBuilder defaultTestSchemaBuilder = testSchemaBuilder.getDefaultSchema();
 
 			defaultTestSchemaBuilder.create("cacheIndex").setType(MetadataValueType.STRING).setCacheIndex(true);
+			defaultTestSchemaBuilder.create("cacheEnumIndex").defineAsEnum(TestEnumClassWithSmallCode.class).setCacheIndex(true);
 			defaultTestSchemaBuilder.create("notCacheIndex").setType(MetadataValueType.STRING);
 			defaultTestSchemaBuilder.create("cacheIndexMultiValue").setType(MetadataValueType.STRING).setCacheIndex(true)
 					.setMultivalue(true);
@@ -63,22 +84,26 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		cacheIndex = testsSchemaDefault.getMetadata("cacheIndex");
+		cacheEnumIndex = testsSchemaDefault.getMetadata("cacheEnumIndex");
 		notCacheIndex = testsSchemaDefault.getMetadata("notCacheIndex");
 		unique = testsSchemaDefault.getMetadata("unique");
 		cacheIndexMultiValue = testsSchemaDefault.getMetadata("cacheIndexMultiValue");
 
 		record1 = recordServices.newRecordWithSchema(testsSchemaDefault);
 		record1.set(cacheIndex, "toBeFound1");
+		record1.set(cacheEnumIndex, VALUE1);
 		record1.set(notCacheIndex, "notCached");
 		recordServices.add(record1);
 
 		record2 = recordServices.newRecordWithSchema(testsSchemaDefault);
 		record2.set(cacheIndex, "toBeFound2");
+		record2.set(cacheEnumIndex, VALUE1);
 		record2.set(notCacheIndex, "notCached2");
 		recordServices.add(record2);
 
 		record3 = recordServices.newRecordWithSchema(testsSchemaDefault);
 		record3.set(cacheIndex, "toBeFound3");
+		record3.set(cacheEnumIndex, VALUE2);
 		record3.set(notCacheIndex, "notCached3");
 		recordServices.add(record3);
 
@@ -89,6 +114,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 		record1Update = recordServices.newRecordWithSchema(testsSchemaDefault, record1.getId());
 		record1Update.set(cacheIndex, "updatedValue");
+		record1Update.set(cacheEnumIndex, VALUE2);
 		record1Update.set(notCacheIndex, "updatedValue");
 
 	}
@@ -102,7 +128,6 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 		areAllZeCollectionInitialTestRecordThere(metadataIndexCacheDataStore);
 
-		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(4);
 	}
 
 	private void setInitialRecordsWithUniqueValues() {
@@ -215,6 +240,8 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, "toBeFound1")).containsAll(Arrays.asList(record1.getId()));
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, "toBeFound2")).containsAll(Arrays.asList(record2.getId()));
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, "toBeFound3")).containsAll(Arrays.asList(record3.getId(), record4.getId()));
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheEnumIndex, VALUE1)).containsOnly(record1.getId(), record2.getId());
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheEnumIndex, VALUE2)).containsOnly(record3.getId());
 	}
 
 	private void addRecordsToData(MetadataIndexCacheDataStore metadataIndexCacheDataStore) {
@@ -255,14 +282,10 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		metadataIndexCacheDataStore.addUpdate(null, recordSecondSchemaType1, testsSchemaTypeDefault, testsSchemaDefaultSecond);
 		metadataIndexCacheDataStore.addUpdate(null, recordSecondSchemaType2, testsSchemaTypeDefault, testsSchemaDefaultSecond);
 
-		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(6);
-
 		metadataIndexCacheDataStore.addUpdate(record1, null, testsSchemaTypeDefault, testsSchemaDefault);
 		metadataIndexCacheDataStore.addUpdate(record2, null, testsSchemaTypeDefault, testsSchemaDefault);
 		metadataIndexCacheDataStore.addUpdate(record3, null, testsSchemaTypeDefault, testsSchemaDefault);
 		metadataIndexCacheDataStore.addUpdate(record4, null, testsSchemaTypeDefault, testsSchemaDefault);
-
-		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(2);
 	}
 
 	@Test
@@ -273,10 +296,15 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 		metadataIndexCacheDataStore.addUpdate(record1, record1Update, testsSchemaTypeDefault, testsSchemaDefault);
 
+		System.out.println("toBeFound1".hashCode());
+		System.out.println("updatedValue".hashCode());
+
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, "toBeFound1")).isEmpty();
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, "updatedValue")).containsAll(Arrays.asList(record1.getId()));
 
-		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(4);
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheEnumIndex, VALUE1)).containsOnly(record2.getId());
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheEnumIndex, VALUE2)).containsOnly(record1.getId(), record3.getId());
+
 	}
 
 	@Test
@@ -285,23 +313,24 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 		addRecordsToData(metadataIndexCacheDataStore);
 
-		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(4);
-
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, "toBeFound1")).containsAll(Arrays.asList(record1.getId()));
 
 		metadataIndexCacheDataStore.addUpdate(record1, null, testsSchemaTypeDefault, testsSchemaDefault);
-
-		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(3);
 
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, "toBeFound1")).isEmpty();
 
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, "toBeFound3")).containsAll(Arrays.asList(record3.getId(), record4.getId()));
 
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheEnumIndex, VALUE1)).containsOnly(record2.getId());
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheEnumIndex, VALUE2)).containsOnly(record3.getId());
+
 		metadataIndexCacheDataStore.addUpdate(record3, null, testsSchemaTypeDefault, testsSchemaDefault);
 
-		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(2);
-
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, "toBeFound3")).containsAll(Arrays.asList(record4.getId()));
+
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheEnumIndex, VALUE1)).containsOnly(record2.getId());
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheEnumIndex, VALUE2)).isEmpty();
+
 	}
 
 	@Test
@@ -335,8 +364,6 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		metadataIndexCacheDataStore.addUpdate(null, recordSecondCollection1, testsSchemaTypeSecondCollection, testsSchemaDefaultSecondCollection);
 		metadataIndexCacheDataStore.addUpdate(null, recordSecondCollection2, testsSchemaTypeSecondCollection, testsSchemaDefaultSecondCollection);
 
-		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(6);
-
 		// Test before clear state
 		areAllZeCollectionInitialTestRecordThere(metadataIndexCacheDataStore);
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeSecondCollection, cacheIndexSecondCollection, "toBeFound1")).containsAll(Arrays.asList(recordSecondCollection1.getId()));
@@ -350,8 +377,6 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		areAllZeCollectionInitialTestRecordThere(metadataIndexCacheDataStore);
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeSecondCollection, cacheIndexSecondCollection, "toBeFound1")).isEmpty();
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeSecondCollection, cacheIndexSecondCollection, "toBeFound2")).isEmpty();
-
-		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(4);
 	}
 
 
@@ -371,8 +396,6 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 		addRecordsToData(metadataIndexCacheDataStore);
 
-		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(4);
-
 		MetadataSchemaType secondTestSchemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("testSecondSchema");
 		MetadataSchema testsSchemaDefaultSecond = secondTestSchemaType.getDefaultSchema();
 
@@ -388,8 +411,6 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		metadataIndexCacheDataStore.addUpdate(null, recordSecondSchemaType1, secondTestSchemaType, testsSchemaDefaultSecond);
 		metadataIndexCacheDataStore.addUpdate(null, recordSecondSchemaType2, secondTestSchemaType, testsSchemaDefaultSecond);
 
-		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(6);
-
 		// Test before remove state.
 		areAllZeCollectionInitialTestRecordThere(metadataIndexCacheDataStore);
 
@@ -402,8 +423,6 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		areAllZeCollectionInitialTestRecordThere(metadataIndexCacheDataStore);
 		assertThat(metadataIndexCacheDataStore.search(secondTestSchemaType, cacheIndexSecond, "lalala1")).isEmpty();
 		assertThat(metadataIndexCacheDataStore.search(secondTestSchemaType, cacheIndexSecond, "lalala2")).isEmpty();
-
-		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(4);
 	}
 
 	@Test(expected = IllegalArgumentException.class)

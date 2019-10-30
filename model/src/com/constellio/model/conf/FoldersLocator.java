@@ -20,6 +20,10 @@ public class FoldersLocator {
 	public FoldersLocator() {
 	}
 
+	public static boolean usingAppWrapper() {
+		return new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER;
+	}
+
 
 	public File getJavaRootFolder() {
 		String fullPath = getCurrentClassPath();

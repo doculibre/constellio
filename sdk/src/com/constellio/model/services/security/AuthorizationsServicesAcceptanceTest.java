@@ -571,6 +571,21 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithHierarchyWriteAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithHierarchyWriteAccess().containsOnly(bob, alice, charles, dakota, chuck, robin, gandalf);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER1)) {
+			verifyRecord.usersWithHierarchyWriteAccess().containsOnly(sasquatch, chuck);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
 	}
 
 	@Test
@@ -3936,6 +3951,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		auth3 = add(authorizationForUser(charles).on(FOLDER3).givingNegativeReadWriteAccess());
 
+		//Donne accès en lecture au dossier 2
 		auth4 = add(authorizationForGroupInAnotherCollection(heroes).on(otherCollectionRecords.taxo2_station2_1()).givingReadWriteDeleteAccess());
 		auth5 = add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder4()).givingReadWriteDeleteAccess());
 
@@ -3943,6 +3959,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth7 = add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder2_1()).givingNegativeReadWriteDeleteAccess());
 
 		waitForBatchProcess();
+
+		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		SecurityModel securityModel = getModelLayerFactory().newRecordServices().getSecurityModel(zeCollection);
 		assertThat(securityModel.getAuthorizationsToPrincipal(users.charlesIn(zeCollection).getId(), false))
@@ -4327,7 +4345,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationWithId(auth1)).isNull();
 
 	}
-
 
 	private void createAFolderOnInstance1() {
 

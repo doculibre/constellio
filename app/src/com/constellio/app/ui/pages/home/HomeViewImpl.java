@@ -14,11 +14,8 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
-import com.constellio.app.ui.framework.components.table.BaseTable.ValueSelectionManager;
-import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAdapter;
-import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
 import com.constellio.app.ui.framework.components.tree.TreeItemClickListener;
@@ -31,6 +28,7 @@ import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorat
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.app.ui.util.PlatformDetectionUtils;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -54,8 +52,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -177,64 +177,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	private Component buildTable(RecordVODataProvider dataProvider) {
-		RecordVOLazyContainer container = new RecordVOLazyContainer(dataProvider);
-		final RecordVOTable table = new RecordVOTable(container);
+		final ViewableRecordVOTablePanel table = new ViewableRecordItemTablePanel(dataProvider);
 		table.addStyleName("record-table");
 		table.setSizeFull();
-		for (Object item : table.getContainerPropertyIds()) {
-			if (item instanceof MetadataVO) {
-				MetadataVO property = (MetadataVO) item;
-				if (property.getCode() != null && property.getCode().contains(Schemas.MODIFIED_ON.getLocalCode())) {
-					table.setColumnWidth(property, 180);
-				}
-			}
-		}
-		table.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				if (event.getButton() == MouseButton.LEFT) {
-					RecordVOItem recordItem = (RecordVOItem) event.getItem();
-					RecordVO recordVO = recordItem.getRecord();
-					presenter.recordClicked(recordVO.getId(), null, false);
-				}
-			}
-		});
-		return new RecordVOSelectionTableAdapter(table) {
-			@Override
-			public void selectAll() {
-				selectAllByItemId();
-			}
-
-			@Override
-			public void deselectAll() {
-				deselectAllByItemId();
-			}
-
-			@Override
-			public boolean isAllItemsSelected() {
-				return isAllItemsSelectedByItemId();
-			}
-
-			@Override
-			public boolean isAllItemsDeselected() {
-				return isAllItemsDeselectedByItemId();
-			}
-
-			@Override
-			public boolean isSelected(Object itemId) {
-				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-				String recordId = item.getRecord().getId();
-				return presenter.isSelected(recordId);
-			}
-
-			@Override
-			public void setSelected(Object itemId, boolean selected) {
-				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-				String recordId = item.getRecord().getId();
-				presenter.selectionChanged(recordId, selected);
-				adjustSelectAllButton(selected);
-			}
-		};
+		table.setAllItemsVisible(true);
+		return table;
 	}
 
 	private Component buildRecordTreeOrRecordMultiTree(RecordTree recordTree) {
@@ -293,7 +240,12 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			tree.setContextMenu(menu);
 		}
 
-		tree.setDragMode(TreeDragMode.NONE);
+		if (PlatformDetectionUtils.isDesktop()) {
+			tree.setDragMode(TreeDragMode.NODE);
+		} else {
+			tree.setDragMode(TreeDragMode.NONE);
+		}
+
 		tree.setDropHandler(new RMTreeDropHandlerImpl() {
 			@Override
 			public void showErrorMessage(String errorMessage) {
@@ -408,7 +360,28 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	}
 
-	private class ViewableRecentItemTablePanel extends ViewableRecordVOTablePanel {
+	private class ViewableRecordItemTablePanel extends HomeViewViewableItemTablePanel {
+
+		public ViewableRecordItemTablePanel(RecordVODataProvider dataProvider) {
+			super(new RecordVOLazyContainer(dataProvider) {
+			});
+
+			addItemClickListener(new ItemClickListener() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					if (event.getButton() == MouseButton.LEFT) {
+						RecordVOItem item = (RecordVOItem) event.getItem();
+						presenter.recordClicked(item.getRecord().getId(), null, true);
+					}
+				}
+			});
+			setVisibleColumns();
+			setSelectionActionButtons();
+		}
+	}
+
+	private class ViewableRecentItemTablePanel extends HomeViewViewableItemTablePanel {
 
 		public ViewableRecentItemTablePanel(String schemaTypeCode, String tableId, List<RecentItem> recentItems) {
 			super(new RecentItemContainer(schemaTypeCode, tableId, recentItems));
@@ -433,7 +406,30 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					}
 				}
 			});
-			setDefaultSelectionActionButtons();
+			setSelectionActionButtons();
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		protected RecordVO getRecordVOForTitleColumn(Item item) {
+			BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) item;
+			return recordVOItem.getBean().getRecord();
+		}
+
+	}
+
+	private class HomeViewViewableItemTablePanel extends ViewableRecordVOTablePanel {
+		protected Set<Object> selectedItemIds;
+
+		public HomeViewViewableItemTablePanel(RecordVOContainer container) {
+			super(container);
+			setAllItemsVisible(true);
+		}
+
+		public void initSelectedItemCache() {
+			if (selectedItemIds == null) {
+				selectedItemIds = new HashSet<>();
+			}
 		}
 
 		@Override
@@ -443,44 +439,42 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 		@Override
 		protected SelectionManager newSelectionManager() {
-			return new ValueSelectionManager() {
+			return new SelectionManager() {
 				@Override
 				public void selectionChanged(SelectionChangeEvent event) {
-					super.selectionChanged(event);
+					initSelectedItemCache();
 
-					List<Object> selectedItemIds = event.getSelectedItemIds();
-					List<Object> deselectedItemIds = event.getDeselectedItemIds();
-					boolean allItemsSelected = event.isAllItemsSelected();
-					boolean allItemsDeselected = event.isAllItemsDeselected();
-					if (selectedItemIds != null) {
-						for (Object selectedItemId : selectedItemIds) {
-							RecordVO recordVO = getRecordVO(selectedItemId);
-							String recordId = recordVO.getId();
-							presenter.selectionChanged(recordId, true);
-						}
-					} else if (deselectedItemIds != null) {
-						for (Object deselectedItemId : deselectedItemIds) {
-							RecordVO recordVO = getRecordVO(deselectedItemId);
-							String recordId = recordVO.getId();
-							presenter.selectionChanged(recordId, false);
-						}
-					} else if (allItemsSelected) {
-						for (Object itemId : getItemIds()) {
-							if (!isSelected(itemId)) {
-								RecordVO recordVO = getRecordVO(itemId);
-								String recordId = recordVO.getId();
-								presenter.selectionChanged(recordId, true);
-							}
-						}
-					} else if (allItemsDeselected) {
-						for (Object itemId : getItemIds()) {
-							if (isSelected(itemId)) {
-								RecordVO recordVO = getRecordVO(itemId);
-								String recordId = recordVO.getId();
-								presenter.selectionChanged(recordId, false);
-							}
+					List<Object> selectedItemIdsFromEvent = event.getSelectedItemIds();
+					List<Object> deselectedItemIdsFromEvent = event.getDeselectedItemIds();
+
+					if (deselectedItemIdsFromEvent != null && !deselectedItemIdsFromEvent.isEmpty()) {
+						for (Object currentDeselectedItem : deselectedItemIdsFromEvent) {
+							selectedItemIds.remove(currentDeselectedItem);
 						}
 					}
+
+					if (selectedItemIdsFromEvent != null && !selectedItemIdsFromEvent.isEmpty()) {
+						for (Object currentselectedItem : selectedItemIdsFromEvent) {
+							selectedItemIds.add(currentselectedItem);
+						}
+					}
+
+
+					boolean allItemsSelected = event.isAllItemsSelected();
+					boolean allItemsDeselected = event.isAllItemsDeselected();
+					if (allItemsSelected) {
+						Collection<?> itemIds = getItemIds();
+
+						selectedItemIds.addAll(itemIds);
+					} else if (allItemsDeselected) {
+						selectedItemIds.clear();
+					}
+				}
+
+				@Override
+				public List<Object> getAllSelectedItemIds() {
+					initSelectedItemCache();
+					return new ArrayList<>(selectedItemIds);
 				}
 
 				@Override
@@ -509,35 +503,16 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 				@Override
 				public boolean isSelected(Object itemId) {
-					RecordVO recordVO = getRecordVO(itemId);
-					String recordId = recordVO.getId();
-					return presenter.isSelected(recordId);
+					initSelectedItemCache();
+
+
+					return selectedItemIds.contains(itemId);
 				}
 
-				@Override
-				protected Object getValue() {
-					return getActualTable().getValue();
-				}
-
-				@Override
-				protected void setValue(Object newValue) {
-					getActualTable().setValue(newValue);
-				}
-
-				@Override
 				protected Collection<?> getItemIds() {
 					return getActualTable().getItemIds();
 				}
 			};
 		}
-
-		@SuppressWarnings("unchecked")
-		@Override
-		protected RecordVO getRecordVOForTitleColumn(Item item) {
-			BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) item;
-			return recordVOItem.getBean().getRecord();
-		}
-			
 	}
-
 }

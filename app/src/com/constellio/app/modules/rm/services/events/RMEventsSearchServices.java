@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.model.entities.records.wrappers.Event.EVENT_PRINCIPAL_PATH;
@@ -124,7 +125,7 @@ public class RMEventsSearchServices {
 
 	public LogicalSearchQuery newFindBorrowedFoldersByDateRangeQuery(User currentUser, LocalDateTime startDate,
 																	 LocalDateTime endDate) {
-		return newFindEventByDateRangeQuery(currentUser, EventType.BORROW_FOLDER, startDate, endDate);
+		return newFindEventsByDateRangeQuery(currentUser, startDate, endDate, EventType.BORROW_FOLDER, EventType.CONSULTATION_FOLDER);
 	}
 
 	public LogicalSearchQuery newFindReturnedFoldersByDateRangeQuery(User currentUser, LocalDateTime startDate,
@@ -213,6 +214,16 @@ public class RMEventsSearchServices {
 
 		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser)
 				.andWhere(type).isEqualTo(eventType).andWhere(timestamp).isValueInRange(startDate, endDate);
+		return new LogicalSearchQuery(condition).sortDesc(timestamp);
+	}
+
+	public LogicalSearchQuery newFindEventsByDateRangeQuery(User currentUser, LocalDateTime startDate,
+															LocalDateTime endDate, String... eventType) {
+		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
+		Metadata timestamp = Schemas.CREATED_ON;
+
+		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser)
+				.andWhere(type).isIn(Arrays.asList(eventType)).andWhere(timestamp).isValueInRange(startDate, endDate);
 		return new LogicalSearchQuery(condition).sortDesc(timestamp);
 	}
 

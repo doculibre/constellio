@@ -5,6 +5,9 @@ import com.constellio.data.events.Event;
 import com.constellio.data.events.EventBusManagerExtension;
 import com.constellio.data.events.ReceivedEventParams;
 import com.constellio.data.events.SentEventParams;
+import com.constellio.data.extensions.contentDao.ContentDaoExtension;
+import com.constellio.data.extensions.contentDao.ContentDaoInputStreamOpenedParams;
+import com.constellio.data.extensions.contentDao.ContentDaoUploadParams;
 import com.constellio.data.extensions.extensions.configManager.AddUpdateConfigParams;
 import com.constellio.data.extensions.extensions.configManager.ConfigManagerExtension;
 import com.constellio.data.extensions.extensions.configManager.DeleteConfigParams;
@@ -31,6 +34,7 @@ public class DataLayerSystemExtensions {
 	public VaultBehaviorsList<BigVaultServerExtension> bigVaultServerExtension = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<TransactionLogExtension> transactionLogExtensions = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<ConfigManagerExtension> configManagerExtensions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<ContentDaoExtension> contentDaoExtensions = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<SupportedExtensionExtension> supportedExtensionExtensions = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<EventBusManagerExtension> eventBusManagerExtensions = new VaultBehaviorsList<>();
 
@@ -40,10 +44,42 @@ public class DataLayerSystemExtensions {
 
 	//----------------- Callers ---------------
 
+	public void onVaultInputStreamOpened(ContentDaoInputStreamOpenedParams params) {
+		contentDaoExtensions.forEach(e -> e.onInputStreamOpened(params));
+	}
+
+	public void onVaultUpload(ContentDaoUploadParams params) {
+		contentDaoExtensions.forEach(e -> e.onUpload(params));
+	}
+
+
+	public void afterRealtimeGetById(final long qtime, final String id, boolean found) {
+		AfterGetByIdParams params = new AfterGetByIdParams() {
+			@Override
+			public String getId() {
+				return id;
+			}
+
+			@Override
+			public long getQtime() {
+				return qtime;
+			}
+
+			@Override
+			public boolean found() {
+				return found;
+			}
+		};
+		for (BigVaultServerExtension extension : bigVaultServerExtension) {
+			extension.afterRealtimeGetById(params);
+		}
+	}
+
 	public void afterQuery(final SolrParams params, final String name, final long qtime, final int resultsSize) {
 		for (BigVaultServerExtension extension : bigVaultServerExtension) {
 			try {
 				extension.afterQuery(params, qtime);
+				final boolean getById = name != null && name.startsWith("getById:");
 				extension.afterQuery(new AfterQueryParams() {
 					@Override
 					public SolrParams getSolrParams() {
@@ -65,7 +101,32 @@ public class DataLayerSystemExtensions {
 						return name;
 					}
 
+					@Override
+					public boolean isGetByIdQuery() {
+						return getById;
+					}
+
 				});
+				if (getById) {
+					String id = name.substring(name.indexOf(":") + 1);
+					extension.afterGetById(new AfterGetByIdParams() {
+
+						@Override
+						public long getQtime() {
+							return qtime;
+						}
+
+						@Override
+						public boolean found() {
+							return resultsSize > 0;
+						}
+
+						@Override
+						public String getId() {
+							return id;
+						}
+					});
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

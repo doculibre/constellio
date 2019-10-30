@@ -3,6 +3,7 @@ package com.constellio.app.services.menu;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.google.common.base.Strings;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.MenuBar.Command;
@@ -52,7 +53,7 @@ public class MenuItemFactory {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
 							menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
-							callback.actionExecuted(menuItemAction);
+							callback.actionExecuted(menuItemAction, selectedItem);
 						}
 					});
 			menuItem.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);
@@ -62,15 +63,18 @@ public class MenuItemFactory {
 	}
 
 	public List<Button> buildActionButtons(List<MenuItemAction> menuItemActions,
-										   final MenuItemRecordProvider recordProvider) {
+										   final MenuItemRecordProvider recordProvider,
+										   final CommandCallback callback) {
 		List<Button> actionButtons = new ArrayList<>();
 		for (MenuItemAction menuItemAction : menuItemActions) {
-			BaseButton actionButton = new BaseButton(menuItemAction.getCaption(), menuItemAction.getIcon()) {
+			final BaseButton actionButton = new BaseButton(menuItemAction.getCaption(), menuItemAction.getIcon()) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
+					callback.actionExecuted(menuItemAction, event.getComponent());
 				}
 			};
+			actionButton.setId(menuItemAction.getType());
 			actionButton.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);
 			actionButton.setVisible(menuItemAction.getState().getStatus() != HIDDEN);
 			actionButton.setDescription(menuItemAction.getState().getReason());
@@ -89,13 +93,16 @@ public class MenuItemFactory {
 
 	public static interface MenuItemRecordProvider {
 
+		LogicalSearchQuery getQuery();
+
 		List<Record> getRecords();
 
 	}
 
 	public static interface CommandCallback {
 
-		void actionExecuted(MenuItemAction menuItemAction);
+		void actionExecuted(MenuItemAction menuItemAction, Object component);
 
 	}
+
 }

@@ -145,6 +145,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private FolderVO folderVO;
 
+	private MetadataSchemaVO tasksSchemaVO;
+
 	private transient RMConfigs rmConfigs;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient BorrowingServices borrowingServices;
@@ -269,7 +271,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		//			}
 		//		};
 
-		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder
+		tasksSchemaVO = schemaVOBuilder
 				.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, folderVOBuilder, modelLayerFactory, view.getSessionContext()) {
@@ -291,8 +293,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.setFolderContent(folderContentDataProvider);
 		view.setTasks(tasksDataProvider);
 
-		eventsDataProvider = getEventsDataProvider();
-		view.setEvents(eventsDataProvider);
+		if (hasCurrentUserPermissionToViewEvents()) {
+			eventsDataProvider = getEventsDataProvider();
+			view.setEvents(eventsDataProvider);
+		}
 	}
 
 	public Map<String, String> getParams() {
@@ -1075,20 +1079,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
-	public void createNewCartAndAddToItRequested(String title) {
+	public void createNewCartAndAddToItRequested(String title) throws RecordServicesException {
 		Cart cart = rmSchemasRecordsServices.newCart();
 		Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
-		try {
-			folder.addFavorite(cart.getId());
-			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
-			recordServices().update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-			view.showMessage($("DisplayFolderView.addedToCart"));
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+
+		folder.addFavorite(cart.getId());
+		recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+		recordServices().update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
+		view.showMessage($("DisplayFolderView.addedToCart"));
 	}
 
 	public RecordVODataProvider getEventsDataProvider() {
@@ -1116,6 +1116,26 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	void tasksTabSelected() {
+		if (tasksDataProvider == null) {
+			tasksDataProvider = new RecordVODataProvider(
+					tasksSchemaVO, folderVOBuilder, modelLayerFactory, view.getSessionContext()) {
+				@Override
+				public LogicalSearchQuery getQuery() {
+					LogicalSearchQuery query = getTasksQuery();
+					addStarredSortToQuery(query);
+					query.sortDesc(Schemas.MODIFIED_ON);
+					return query;
+				}
+
+				@Override
+				protected void clearSort(LogicalSearchQuery query) {
+					super.clearSort(query);
+					addStarredSortToQuery(query);
+				}
+			};
+			view.setTasks(tasksDataProvider);
+		}
+
 		view.selectTasksTab();
 	}
 

@@ -1,11 +1,13 @@
 package com.constellio.model.entities.records;
 
+import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataList;
 
 import java.io.Serializable;
@@ -106,5 +108,11 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 	void markAsSaved(long version, MetadataSchema schema);
 
 	RecordDTOMode getRecordDTOMode();
+
+	default boolean isLogicallyDeleted() {
+		return Boolean.TRUE.equals(get(Schemas.LOGICALLY_DELETED_STATUS));
+	}
+
+	RecordDTO getRecordDTO();
 
 }
