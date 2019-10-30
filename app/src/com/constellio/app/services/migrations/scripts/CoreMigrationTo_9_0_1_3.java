@@ -23,7 +23,7 @@ public class CoreMigrationTo_9_0_1_3 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.0.1.2";
+		return "9.0.1.3";
 	}
 
 	@Override

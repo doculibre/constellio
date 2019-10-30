@@ -11,11 +11,11 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class RMMigrationTo9_1_0_33 implements MigrationScript {
+public class RMMigrationTo9_0_0_33 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.1.0.33";
+		return "9.0.0.33";
 	}
 
 	@Override
@@ -33,18 +33,23 @@ public class RMMigrationTo9_1_0_33 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder builder) {
-			MetadataSchemaBuilder defaultAdminUnitSchema = builder.getDefaultSchema(AdministrativeUnit.SCHEMA_TYPE);
-			defaultAdminUnitSchema.createUndeletable(AdministrativeUnit.ABBREVIATION).setType(MetadataValueType.STRING);
-
 			SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
-			displayManager.saveSchema(displayManager.getSchema(collection, AdministrativeUnit.DEFAULT_SCHEMA)
-					.withNewFormAndDisplayMetadatas(AdministrativeUnit.DEFAULT_SCHEMA + "_" + AdministrativeUnit.ABBREVIATION));
+
+			MetadataSchemaBuilder defaultAdminUnitSchema = builder.getDefaultSchema(AdministrativeUnit.SCHEMA_TYPE);
+			if (!defaultAdminUnitSchema.hasMetadata(AdministrativeUnit.ABBREVIATION)) {
+				defaultAdminUnitSchema.createUndeletable(AdministrativeUnit.ABBREVIATION).setType(MetadataValueType.STRING);
+
+				displayManager.saveSchema(displayManager.getSchema(collection, AdministrativeUnit.DEFAULT_SCHEMA)
+						.withNewFormAndDisplayMetadatas(AdministrativeUnit.DEFAULT_SCHEMA + "_" + AdministrativeUnit.ABBREVIATION));
+			}
 
 			MetadataSchemaBuilder defaultCategorySchema = builder.getDefaultSchema(Category.SCHEMA_TYPE);
-			defaultCategorySchema.createUndeletable(Category.ABBREVIATION).setType(MetadataValueType.STRING);
+			if (!defaultCategorySchema.hasMetadata(Category.ABBREVIATION)) {
+				defaultCategorySchema.createUndeletable(Category.ABBREVIATION).setType(MetadataValueType.STRING);
 
-			displayManager.saveSchema(displayManager.getSchema(collection, Category.DEFAULT_SCHEMA)
-					.withNewFormAndDisplayMetadatas(Category.DEFAULT_SCHEMA + "_" + Category.ABBREVIATION));
+				displayManager.saveSchema(displayManager.getSchema(collection, Category.DEFAULT_SCHEMA)
+						.withNewFormAndDisplayMetadatas(Category.DEFAULT_SCHEMA + "_" + Category.ABBREVIATION));
+			}
 		}
 
 	}
