@@ -1,10 +1,9 @@
-package com.constellio.app.modules.rm.ui.components.document.fields;
+package com.constellio.app.modules.rm.ui.components.folder.fields;
 
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -18,25 +17,22 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
 
-public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvider {
+public class FolderTypeTextInputDataProvider extends RecordTextInputDataProvider {
 
-	private String folderId;
-	private String currentType;
+	private String parent;
 	private transient RMConfigs rmConfigs;
 	private transient RMSchemasRecordsServices rm;
 
-	public DocumentTypeTextInputDataProvider(ConstellioFactories constellioFactories,
-											 SessionContext sessionContext, String folderId, String currentType) {
-		super(constellioFactories, sessionContext, DocumentType.SCHEMA_TYPE, false);
-		this.folderId = folderId;
-		this.currentType = currentType;
+	public FolderTypeTextInputDataProvider(ConstellioFactories constellioFactories,
+										   SessionContext sessionContext, String parent) {
+		super(constellioFactories, sessionContext, FolderType.SCHEMA_TYPE, false);
+		this.parent = parent;
 		init();
 	}
 
@@ -55,7 +51,7 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 	@Override
 	public SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(getCurrentCollection()).getSchemaType(DocumentType.SCHEMA_TYPE);
+				.getSchemaTypes(getCurrentCollection()).getSchemaType(FolderType.SCHEMA_TYPE);
 
 		LogicalSearchCondition condition;
 		if (StringUtils.isNotBlank(text)) {
@@ -64,18 +60,15 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 			condition = from(type).returnAll();
 		}
 
-		if (folderId != null) {
-			List<String> newDocumentTypes = Collections.EMPTY_LIST;
+		if (parent != null) {
+			Folder parentFolder = rm.getFolder(parent);
+			List<String> newFolderTypes = Collections.EMPTY_LIST;
 			if (rmConfigs.isTypeRestrictionEnabledInFolder()) {
-				newDocumentTypes = rm.getFolder(folderId).getAllowedDocumentTypes();
+				newFolderTypes = parentFolder.getAllowedFolderTypes();
 			}
 
-			if (newDocumentTypes.isEmpty()) {
-				newDocumentTypes = getDocumentTypesFilteredByRetentionRule();
-			}
-
-			if (!newDocumentTypes.isEmpty()) {
-				condition = condition.andWhere(Schemas.IDENTIFIER).isIn(newDocumentTypes);
+			if (!newFolderTypes.isEmpty()) {
+				condition = condition.andWhere(Schemas.IDENTIFIER).isIn(newFolderTypes);
 			}
 		}
 		if (onlyLinkables) {
@@ -94,21 +87,5 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 			}
 		}
 		return getModelLayerFactory().newSearchServices().query(query);
-	}
-
-	private List<String> getDocumentTypesFilteredByRetentionRule() {
-		List<String> newDocumentTypes = new ArrayList<>();
-		if (rmConfigs.getDocumentsTypesChoice()
-			== DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
-			|| rmConfigs.getDocumentsTypesChoice()
-			   == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
-			RetentionRule retentionRule = rm.getRetentionRule(rm.getFolder(folderId).getRetentionRule());
-			List<String> documentTypes = retentionRule.getDocumentTypes();
-			if (currentType != null && !documentTypes.contains(currentType)) {
-				newDocumentTypes.add(currentType);
-			}
-			newDocumentTypes.addAll(documentTypes);
-		}
-		return newDocumentTypes;
 	}
 }

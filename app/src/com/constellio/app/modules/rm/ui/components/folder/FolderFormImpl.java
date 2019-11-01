@@ -1,8 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.folder;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -13,6 +10,9 @@ import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.vaadin.ui.Field;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public abstract class FolderFormImpl extends RecordForm implements FolderForm {
 
 	private Map<String, Field> extraField;
@@ -20,7 +20,9 @@ public abstract class FolderFormImpl extends RecordForm implements FolderForm {
 	public FolderFormImpl(RecordVO record) {
 		super(record, new FolderFieldFactory(
 				record.getSchema().getCollection(),
-				record.<CopyRetentionRule>getList(Folder.APPLICABLE_COPY_RULES)));
+				record.<CopyRetentionRule>getList(Folder.APPLICABLE_COPY_RULES),
+				record.getMetadataValue(record.getMetadata(Folder.RETENTION_RULE_ENTERED)).<String>getValue(),
+				record.getMetadataValue(record.getMetadata(Folder.PARENT_FOLDER)).<String>getValue()));
 
 		extraField = new HashMap<>();
 	}
