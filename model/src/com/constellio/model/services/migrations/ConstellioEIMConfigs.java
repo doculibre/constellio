@@ -130,6 +130,7 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration SEIZE_MULTILANGUAL_VALUES;
 	public static final SystemConfiguration ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY;
+	public static final SystemConfiguration ENABLE_ESSENTIAL_METADATA_HIDING;
 
 	public static final SystemConfiguration ENABLE_INACTIF_SCHEMAS_IN_SEARCH;
 
@@ -290,6 +291,8 @@ public class ConstellioEIMConfigs {
 				.createBooleanTrueByDefault("removeTabAndNewLineOnDeltaFieldInEditReport"));
 
 		add(ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY = advanced.createBooleanFalseByDefault("areMultiLangualValuesMandatory"));
+
+		add(ENABLE_ESSENTIAL_METADATA_HIDING = advanced.createBooleanFalseByDefault("enableEssentialMetadataHiding").whichIsHidden());
 
 		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
 				.whichIsHidden());
