@@ -81,11 +81,13 @@ public class RecordImpl implements Record {
 
 	private RecordDTO lastCreatedRecordDTO;
 	private RecordDeltaDTO lastCreatedDeltaDTO;
+	private short typeId;
 
 	public RecordImpl(MetadataSchema schema, String id) {
 		if (schema == null) {
 			throw new IllegalArgumentException("Require schema");
 		}
+		this.typeId = schema.getTypeId();
 		this.collection = schema.getCollection();
 
 		this.id = id;
@@ -96,14 +98,15 @@ public class RecordImpl implements Record {
 		this.collectionInfo = schema.getCollectionInfo();
 	}
 
-	private RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, Map<String, Object> eagerTransientValues) {
-		this(recordDTO, collectionInfo);
+	private RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, Map<String, Object> eagerTransientValues,
+					   short typeId) {
+		this(recordDTO, collectionInfo, typeId);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 	}
 
 	private RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, Map<String, Object> eagerTransientValues,
-					   boolean unmodifiable) {
-		this(recordDTO, collectionInfo);
+					   boolean unmodifiable, short typeId) {
+		this(recordDTO, collectionInfo, typeId);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 		this.unmodifiable = unmodifiable;
 		if (unmodifiable) {
@@ -111,12 +114,13 @@ public class RecordImpl implements Record {
 		}
 	}
 
-	public RecordImpl(MetadataSchema schema, RecordDTO recordDTO) {
-		this(recordDTO, schema.getCollectionInfo());
+	public RecordImpl(MetadataSchema schema, RecordDTO recordDTO, short typeId) {
+		this(recordDTO, schema.getCollectionInfo(), typeId);
 	}
 
-	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo) {
+	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, short typeId) {
 		this.id = recordDTO.getId();
+		this.typeId = typeId;
 		this.version = recordDTO.getVersion();
 		this.schemaCode = (String) recordDTO.getFields().get("schema_s");
 		this.collection = (String) recordDTO.getFields().get("collection_s");
@@ -131,6 +135,10 @@ public class RecordImpl implements Record {
 
 	public boolean isSummary() {
 		return recordDTO.getLoadingMode() == RecordDTOMode.SUMMARY;
+	}
+
+	public short getTypeId() {
+		return typeId;
 	}
 
 	@Override
@@ -1098,7 +1106,7 @@ public class RecordImpl implements Record {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
-		return new RecordImpl(recordDTO, collectionInfo, eagerTransientValues);
+		return new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, typeId);
 	}
 
 	@Override
@@ -1108,7 +1116,7 @@ public class RecordImpl implements Record {
 		}
 
 		if (unmodifiableCopyOfOriginalRecord == null) {
-			unmodifiableCopyOfOriginalRecord = new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, true);
+			unmodifiableCopyOfOriginalRecord = new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, true, typeId);
 		}
 		return unmodifiableCopyOfOriginalRecord;
 	}
@@ -1136,7 +1144,7 @@ public class RecordImpl implements Record {
 		}
 
 		return new RecordImpl(recordDTO.createCopyOnlyKeeping(metadatasDataStoreCodes), collectionInfo, newEagerTransientValues,
-				false);
+				false, typeId);
 	}
 
 	@Override

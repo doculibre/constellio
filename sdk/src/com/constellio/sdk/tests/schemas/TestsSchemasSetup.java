@@ -256,6 +256,15 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	};
 
+	public static MetadataBuilderConfigurator whichIsIndexed = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setCacheIndex(true);
+		}
+
+	};
+
 	public static MetadataBuilderConfigurator whichIsSearchable = new MetadataBuilderConfigurator() {
 
 		@Override

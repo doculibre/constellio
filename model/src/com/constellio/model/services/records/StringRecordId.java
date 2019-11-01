@@ -1,5 +1,6 @@
 package com.constellio.model.services.records;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -15,6 +16,11 @@ public class StringRecordId implements RecordId {
 	@Override
 	public String stringValue() {
 		return id;
+	}
+
+	@Override
+	public int intValue() {
+		throw new ImpossibleRuntimeException("This id is not an integer : " + id);
 	}
 
 	@Override

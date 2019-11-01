@@ -19,7 +19,7 @@ public class FixedIdsStreamerTest {
 		FixedIdsStreamer streamer = FixedIdsStreamer.createFromStringValues(
 				asList(toStringId(3), toStringId(1), toStringId(2), "1", "2", "42", toStringId(666)));
 
-		assertThat(stream(streamer.iterator(null)).collect(Collectors.toList())).containsExactly(
+		assertThat(stream(streamer.iterator()).collect(Collectors.toList())).containsExactly(
 				new IntegerRecordId(1),
 				new IntegerRecordId(2),
 				new IntegerRecordId(3),
@@ -37,7 +37,7 @@ public class FixedIdsStreamerTest {
 				asList(new IntegerRecordId(3), new IntegerRecordId(1), new IntegerRecordId(2), new StringRecordId("1"),
 						new StringRecordId("2"), new StringRecordId("42"), new IntegerRecordId(666)));
 
-		assertThat(stream(streamer.iterator(null)).collect(Collectors.toList())).containsExactly(
+		assertThat(stream(streamer.iterator()).collect(Collectors.toList())).containsExactly(
 				new IntegerRecordId(1),
 				new IntegerRecordId(2),
 				new IntegerRecordId(3),

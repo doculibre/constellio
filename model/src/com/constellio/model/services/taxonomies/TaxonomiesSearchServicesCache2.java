@@ -1,10 +1,8 @@
 package com.constellio.model.services.taxonomies;
 
-import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
+public interface TaxonomiesSearchServicesCache2 {
 
-public interface TaxonomiesSearchServicesCache {
-
-	void insert(String username, String recordId, String mode, Boolean value);
+	void insert(String username, String principalConcept, String secondaryConcept);
 
 	void invalidateAll();
 
@@ -22,7 +20,4 @@ public interface TaxonomiesSearchServicesCache {
 
 	Boolean getCachedValue(String username, String recordId, String mode);
 
-	void add(String collection, TaxonomyRecordsHookRetriever retriever);
-
-	TaxonomyRecordsHookRetriever getRetriever(String collection);
 }

@@ -1,5 +1,7 @@
 package com.constellio.model.services.taxonomies;
 
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -76,6 +78,7 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 		}
 	}
 
+
 	/**
 	 * For test purposes
 	 */
@@ -143,5 +146,18 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 		public void invalidateUser(String username) {
 			userModesCache.remove(username);
 		}
+	}
+
+
+	Map<String, TaxonomyRecordsHookRetriever> retrieverMap = new HashMap<>();
+
+	@Override
+	public void add(String collection, TaxonomyRecordsHookRetriever retriever) {
+		retrieverMap.put(collection, retriever);
+	}
+
+	@Override
+	public TaxonomyRecordsHookRetriever getRetriever(String collection) {
+		return retrieverMap.get(collection);
 	}
 }

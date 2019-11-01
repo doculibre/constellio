@@ -10,9 +10,9 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
 import com.constellio.model.services.taxonomies.queryHandlers.GetChildrenContext;
-import com.constellio.model.services.taxonomies.queryHandlers.TaxonomiesSearchServicesDefaultQueryHandler;
 import com.constellio.model.services.taxonomies.queryHandlers.TaxonomiesSearchServicesLegacyQueryHandler;
 import com.constellio.model.services.taxonomies.queryHandlers.TaxonomiesSearchServicesQueryHandler;
+import com.constellio.model.services.taxonomies.queryHandlers.TaxonomiesSearchServicesRewrittenQueryHandler;
 
 import java.util.Date;
 import java.util.List;
@@ -33,7 +33,8 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 			|| !Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.isEnabled()) {
 			return new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory);
 		} else {
-			return new TaxonomiesSearchServicesDefaultQueryHandler(modelLayerFactory);
+			//return new TaxonomiesSearchServicesDefaultQueryHandler(modelLayerFactory);
+			return new TaxonomiesSearchServicesRewrittenQueryHandler(modelLayerFactory);
 		}
 	}
 
@@ -122,12 +123,10 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 		GetChildrenContext ctx = new GetChildrenContext(user, null, options, schemaType, taxonomy, modelLayerFactory);
 		if (!ctx.hasPermanentCache()) {
 			//Given new cache in v9.0, it is very weird for a taxonomy to not be cached
-			return new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory)
-					.getVisibleRootConceptResponse(ctx);
+			return new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory).getVisibleRootConceptResponse(ctx);
 
 		} else {
-			return handler(options)
-					.getVisibleRootConceptResponse(ctx);
+			return handler(options).getVisibleRootConceptResponse(ctx);
 		}
 	}
 

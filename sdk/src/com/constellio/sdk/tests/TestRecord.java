@@ -54,8 +54,8 @@ public class TestRecord extends RecordImpl {
 		return schema;
 	}
 
-	public TestRecord(RecordDTO recordDTO, CollectionInfo collectionInfo) {
-		super(recordDTO, collectionInfo);
+	public TestRecord(RecordDTO recordDTO, CollectionInfo collectionInfo, short typeId) {
+		super(recordDTO, collectionInfo, typeId);
 	}
 
 	public void markAsModified(Metadata metadata) {

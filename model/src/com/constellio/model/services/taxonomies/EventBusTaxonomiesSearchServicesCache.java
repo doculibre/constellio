@@ -5,6 +5,7 @@ import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusListener;
 import com.constellio.data.events.EventBusManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
 
 import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
 
@@ -36,6 +37,16 @@ public class EventBusTaxonomiesSearchServicesCache implements TaxonomiesSearchSe
 	@Override
 	public Boolean getCachedValue(String username, String recordId, String mode) {
 		return nestedCache.getCachedValue(username, recordId, mode);
+	}
+
+	@Override
+	public void add(String collection, TaxonomyRecordsHookRetriever retriever) {
+		nestedCache.add(collection, retriever);
+	}
+
+	@Override
+	public TaxonomyRecordsHookRetriever getRetriever(String collection) {
+		return nestedCache.getRetriever(collection);
 	}
 
 	@Override
@@ -91,4 +102,6 @@ public class EventBusTaxonomiesSearchServicesCache implements TaxonomiesSearchSe
 
 		}
 	}
+
+
 }

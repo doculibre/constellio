@@ -80,7 +80,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 		List<Taxonomy> taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema((short) 1, "default", "second_default", zeCollectionInfo, labels, metadatas, false,
+		MetadataSchema schema = new MetadataSchema((short) 1, (short) 1, "default", "second_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 
 		MetadataSchemaType schemaType = new MetadataSchemaType((short) 0, "second", null, zeCollectionInfo, asMap(Language.French, "titre"),
@@ -115,7 +115,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 						textMetadata);
 
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema((short) 1, "default", "zeType_default", zeCollectionInfo, labels, metadatas, false,
+		MetadataSchema schema = new MetadataSchema((short) 1, (short) 1, "default", "zeType_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
@@ -148,7 +148,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 				.asList(relationToT4, taxonomyRelationToT4, relationToT3Custom, taxonomyRelationToT3Custom, relationToOtherSchema,
 						textMetadata, relationToT1, relationToT2);
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema((short) 1, "default", "t2_default", zeCollectionInfo, labels, metadatas, false,
+		MetadataSchema schema = new MetadataSchema((short) 1, (short) 1, "default", "t2_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);

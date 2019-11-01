@@ -574,7 +574,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public Record toRecord(MetadataSchemaType schemaType, RecordDTO recordDTO, boolean allFields) {
 		String collection = (String) recordDTO.getFields().get("collection_s");
 		CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
-		Record record = new RecordImpl(recordDTO, collectionInfo);
+		Record record = new RecordImpl(recordDTO, collectionInfo, schemaType.getId());
 
 		if (schemaType.hasEagerTransientMetadata()) {
 			Transaction tx = new Transaction("temp");
@@ -589,7 +589,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public Record toRecord(MetadataSchema schema, RecordDTO recordDTO, boolean allFields) {
 		String collection = (String) recordDTO.getFields().get("collection_s");
 		CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
-		Record record = new RecordImpl(recordDTO, collectionInfo);
+		Record record = new RecordImpl(recordDTO, collectionInfo, schema.getTypeId());
 
 		if (schema.hasEagerTransientMetadata()) {
 			Transaction tx = new Transaction("temp");
@@ -674,7 +674,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			Record record = searchServices.searchSingleResult(condition);
 			if (record != null) {
 				RecordDTO recordDTO = toPersistedSummaryRecordDTO(record, schemaType.getSchema(record.getSchemaCode()));
-				returnedRecord = new RecordImpl(recordDTO, schemaType.getCollectionInfo());
+				returnedRecord = new RecordImpl(recordDTO, schemaType.getCollectionInfo(), schemaType.getId());
 			}
 		}
 
@@ -686,7 +686,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 			RecordDTO recordDTO = dao(dataStore).get(id, callExtensions);
 			String collection = (String) recordDTO.getFields().get("collection_s");
 			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
-			Record record = new RecordImpl(recordDTO, collectionInfo);
+			short typeId = metadataSchemasManager.getSchemaTypes(collectionInfo.getCollectionId()).getSchema(recordDTO.getSchemaCode()).getTypeId();
+			Record record = new RecordImpl(recordDTO, collectionInfo, typeId);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -703,8 +704,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 			RecordDTO recordDTO = dao(dataStore).realGet(id, callExtensions);
 			String collection = (String) recordDTO.getFields().get("collection_s");
 			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
-
-			Record record = new RecordImpl(recordDTO, collectionInfo);
+			short typeId = metadataSchemasManager.getSchemaTypes(collectionInfo.getCollectionId()).getSchema(recordDTO.getSchemaCode()).getTypeId();
+			Record record = new RecordImpl(recordDTO, collectionInfo, typeId);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -724,7 +725,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 			String collection = (String) recordDTO.getFields().get("collection_s");
 			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
 
-			Record record = new RecordImpl(recordDTO, collectionInfo);
+			short typeId = metadataSchemasManager.getSchemaTypes(collectionInfo.getCollectionId()).getSchema(recordDTO.getSchemaCode()).getTypeId();
+			Record record = new RecordImpl(recordDTO, collectionInfo, typeId);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -757,13 +759,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public List<Record> realtimeGetRecordById(List<String> ids, boolean callExtensions) {
-		String mainDataLanguage = modelLayerFactory.getCollectionsListManager().getMainDataLanguage();
 		List<Record> records = new ArrayList<>();
 		for (RecordDTO recordDTO : recordDao.realGet(ids, callExtensions)) {
 			String collection = (String) recordDTO.getFields().get("collection_s");
 			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
-
-			Record record = new RecordImpl(recordDTO, collectionInfo);
+			short typeId = metadataSchemasManager.getSchemaTypes(collectionInfo.getCollectionId()).getSchema(recordDTO.getSchemaCode()).getTypeId();
+			Record record = new RecordImpl(recordDTO, collectionInfo, typeId);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));

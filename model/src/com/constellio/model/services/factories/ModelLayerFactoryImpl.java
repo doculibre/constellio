@@ -225,7 +225,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 				dataLayerFactory.getEventBusManager());
 
 		this.synonymsConfigurationsManager = add(new SynonymsConfigurationsManager(configManager, collectionsListManager, cacheManager));
-
 	}
 
 

@@ -10,6 +10,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.hooks.DeterminedHookCacheInsertion;
@@ -529,8 +530,8 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
-		public Record getById(String id) {
-			return cache.get(id);
+		public Record getById(RecordId id) {
+			return cache.get(id.stringValue());
 		}
 
 		@Override

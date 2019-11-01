@@ -2,7 +2,6 @@ package com.constellio.model.services.records.cache.cacheIndexConditions;
 
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.services.records.RecordId;
-import com.constellio.model.services.records.cache.MetadataIndexCacheDataStore;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -22,17 +21,17 @@ public class IntersectionSortedIdsStreamer implements SortedIdsStreamer {
 	static int counter;
 
 	@Override
-	public Iterator<RecordId> iterator(MetadataIndexCacheDataStore dataStore) {
+	public Iterator<RecordId> iterator() {
 
 		if (streamers.isEmpty()) {
 			return Collections.emptyIterator();
 		}
 
-		final Iterator<RecordId> mainIterator = streamers.get(0).iterator(dataStore);
+		final Iterator<RecordId> mainIterator = streamers.get(0).iterator();
 		final RecordIdsListIteratorConsumerAgregator otherIteratorsAgregator = new RecordIdsListIteratorConsumerAgregator();
 		for (int i = 1; i < streamers.size(); i++) {
 			SortedIdsStreamer streamer = streamers.get(i);
-			otherIteratorsAgregator.add(streamer.iterator(dataStore));
+			otherIteratorsAgregator.add(streamer.iterator());
 		}
 
 		return new IntersectionIterator(mainIterator, otherIteratorsAgregator);

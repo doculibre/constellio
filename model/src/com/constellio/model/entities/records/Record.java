@@ -8,6 +8,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.schemas.MetadataList;
 
 import java.io.Serializable;
@@ -20,6 +21,12 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 	String PUBLIC_TOKEN = "__public__";
 
 	String getId();
+
+	short getTypeId();
+
+	default RecordId getRecordId() {
+		return RecordId.toId(getId());
+	}
 
 	String getTitle();
 

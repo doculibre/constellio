@@ -25,6 +25,17 @@ public class SortedIntIdsList implements SortedIdsList {
 
 	short capacity;
 
+
+	@Override
+	public synchronized void add(RecordId id) {
+		if (id.isInteger()) {
+			add(id.intValue());
+
+		} else {
+			throw new UnsupportedOperationException("List does not support legacy String ids");
+		}
+	}
+
 	@Override
 	public synchronized void add(String id) {
 
@@ -80,6 +91,13 @@ public class SortedIntIdsList implements SortedIdsList {
 
 
 	@Override
+	public synchronized void remove(RecordId id) {
+		if (id.isInteger()) {
+			remove(id.intValue());
+		}
+	}
+
+	@Override
 	public synchronized void remove(String id) {
 		int intId = RecordUtils.toIntKey(id);
 		if (intId != RecordUtils.KEY_IS_NOT_AN_INT) {
@@ -111,6 +129,11 @@ public class SortedIntIdsList implements SortedIdsList {
 		address = 0;
 		size = 0;
 		capacity = 0;
+	}
+
+	@Override
+	public boolean isSupportingLegacyId() {
+		return false;
 	}
 
 	@Override

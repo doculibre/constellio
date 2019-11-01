@@ -2,7 +2,6 @@ package com.constellio.model.services.records.cache.cacheIndexConditions;
 
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.services.records.RecordId;
-import com.constellio.model.services.records.cache.MetadataIndexCacheDataStore;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -20,9 +19,9 @@ public class UnionSortedIdsStreamer implements SortedIdsStreamer {
 	}
 
 	@Override
-	public Iterator<RecordId> iterator(MetadataIndexCacheDataStore dataStore) {
+	public Iterator<RecordId> iterator() {
 		return new RecordIdsListIteratorConsumerLazyIterator(streamers.stream()
-				.map(s -> new RecordIdsIteratorConsumer(s.iterator(dataStore)))
+				.map(s -> new RecordIdsIteratorConsumer(s.iterator()))
 				.collect(Collectors.toList()));
 
 	}

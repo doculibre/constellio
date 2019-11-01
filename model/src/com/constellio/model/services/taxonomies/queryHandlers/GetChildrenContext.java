@@ -7,6 +7,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.HasChildrenQueryHandler;
@@ -31,6 +32,7 @@ public class GetChildrenContext {
 	private boolean hasPermanentCache;
 	ModelLayerFactory modelLayerFactory;
 	boolean principalTaxonomy;
+	List<MetadataSchemaType> classifiedSchemaTypes;
 
 	public GetChildrenContext(User user, Record record, TaxonomiesSearchOptions options,
 							  MetadataSchemaType forSelectionOfSchemaType, ModelLayerFactory modelLayerFactory) {
@@ -40,6 +42,7 @@ public class GetChildrenContext {
 		this.forSelectionOfSchemaType = forSelectionOfSchemaType;
 		this.modelLayerFactory = modelLayerFactory;
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 
 		this.taxonomy = taxonomiesManager.getTaxonomyOf(record);
 		if (taxonomy == null) {
@@ -52,12 +55,14 @@ public class GetChildrenContext {
 				hasPermanentCache = cacheConfig != null && cacheConfig.isPermanent();
 			}
 			principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(getCollection()).hasSameCode(taxonomy);
+			classifiedSchemaTypes = schemasManager.getSchemaTypes(taxonomy.getCollection())
+					.getClassifiedSchemaTypesIn(taxonomy.getSchemaTypes().get(0));
 		}
 
 		if (record == null) {
-			fromType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(taxonomy.getCollection()).getSchemaType(taxonomy.getSchemaTypes().get(0));
+			fromType = schemasManager.getSchemaTypes(taxonomy.getCollection()).getSchemaType(taxonomy.getSchemaTypes().get(0));
 		} else {
-			fromType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(record);
+			fromType = schemasManager.getSchemaTypeOf(record);
 		}
 	}
 
@@ -284,5 +289,22 @@ public class GetChildrenContext {
 
 	public boolean isPrincipalTaxonomy() {
 		return principalTaxonomy;
+	}
+
+	public List<MetadataSchemaType> getClassifiedSchemaTypes() {
+		return classifiedSchemaTypes;
+	}
+
+	public Metadata getTaxonomyClassificationMetadata(MetadataSchemaType classifiedType) {
+
+
+		for (Metadata metadata : classifiedType.getDefaultSchema().getMetadatas()) {
+			if ((metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship())
+				&& classifiedType.equals(metadata.getReferencedSchemaType())) {
+				return metadata;
+			}
+		}
+
+		return null;
 	}
 }

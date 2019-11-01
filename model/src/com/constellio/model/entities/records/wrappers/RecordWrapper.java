@@ -12,6 +12,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -226,6 +227,10 @@ public class RecordWrapper implements Serializable, CollectionObject, Supplier<R
 
 	public String getId() {
 		return wrappedRecord.getId();
+	}
+
+	public RecordId getWrappedRecordId() {
+		return wrappedRecord.getRecordId();
 	}
 
 	public String getSchemaCode() {

@@ -62,12 +62,15 @@ public class MetadataSchema implements Serializable {
 
 	private boolean hasEagerTransientMetadata;
 
-	public MetadataSchema(short id, String localCode, String code, CollectionInfo collectionInfo,
+	private final short typeId;
+
+	public MetadataSchema(short typeId, short id, String localCode, String code, CollectionInfo collectionInfo,
 						  Map<Language, String> labels,
 						  List<Metadata> metadatas,
 						  Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
 						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active) {
 		super();
+		this.typeId = typeId;
 		this.id = id;
 		this.localCode = localCode;
 		this.code = code;
@@ -92,6 +95,10 @@ public class MetadataSchema implements Serializable {
 		this.cacheIndexMetadatas = new SchemaUtils().buildListOfCacheIndexMetadatas(metadatas);
 		this.hasEagerTransientMetadata = metadatas.stream().anyMatch((m) -> m.getTransiency() == MetadataTransiency.TRANSIENT_EAGER);
 
+	}
+
+	public short getTypeId() {
+		return typeId;
 	}
 
 	public List<Metadata> getSummaryMetadatas() {
