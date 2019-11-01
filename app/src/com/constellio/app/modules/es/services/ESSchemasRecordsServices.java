@@ -313,7 +313,7 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 					return services.wrapConnectorInstance(record);
 				}
 			}
-			LOGGER.warn("Unsupported connector instance '" + record.getSchemaCode() + "'");
+			LOGGER.warn("Unsupported connector instance '" + record.getSchemaCode() + "'", new Exception());
 			return new ConnectorInstance(record, getTypes());
 		}
 	}
