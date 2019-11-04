@@ -158,8 +158,8 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 
 		//1. Creating records with empty values
 
-		assertThat(record("merge1").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
-		assertThat(record("merge2").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+		assertThat((Object) record("merge1").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+		assertThat((Object) record("merge2").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
 
 		TestRecord r1 = new TestRecord(zeSchema, "r1").set("stringValue1", null).set("ref", "merge1");
 		TestRecord r2 = new TestRecord(zeSchema, "r2").set("stringValue2", new ArrayList<>()).set("ref", "merge1");
@@ -168,8 +168,8 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 
 		getModelLayerFactory().newRecordServices().execute(new Transaction(r1, r2, r3));
 
-		assertThat(record("merge1").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
-		assertThat(record("merge2").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+		assertThat((Object) record("merge1").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+		assertThat((Object) record("merge2").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
 		waitForBatchProcess();
 		assertThat(record("merge1").getList(anotherSchema_stringValuesUnion)).isEmpty();
 		assertThat(record("merge2").getList(anotherSchema_stringValuesUnion)).isEmpty();
@@ -181,8 +181,8 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 		r3.set("stringValue1", null).set("stringValue2", null).set("ref", "merge2");
 		getModelLayerFactory().newRecordServices().execute(new Transaction(r1, r2, r3));
 
-		assertThat(record("merge1").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
-		assertThat(record("merge2").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+		assertThat((Object) record("merge1").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+		assertThat((Object) record("merge2").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
 		waitForBatchProcess();
 		assertThat(record("merge1").getList(anotherSchema_stringValuesUnion)).isEmpty();
 		assertThat(record("merge2").getList(anotherSchema_stringValuesUnion)).isEmpty();

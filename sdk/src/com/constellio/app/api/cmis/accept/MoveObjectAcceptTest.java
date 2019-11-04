@@ -154,7 +154,7 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 
 		for (Metadata referenceMetadata : allReferencesMetadatas) {
 			if (record.get(referenceMetadata) != null) {
-				assertThat(record.get(referenceMetadata)).isEqualTo(parentTargetId);
+				assertThat((Object) record.get(referenceMetadata)).isEqualTo(parentTargetId);
 				assertThat(((String) record.get(Schemas.PRINCIPAL_PATH)).contains(parentTargetId)).isTrue();
 				flag = true;
 			}

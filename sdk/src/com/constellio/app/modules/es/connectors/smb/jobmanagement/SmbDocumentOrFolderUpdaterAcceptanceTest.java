@@ -116,11 +116,11 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.isNotNull();
 		assertThat(document.getManualTokens()).isEqualTo(smbFileDTO.getAllowTokens())
 				.isNotNull();
-		assertThat(document.get(Schemas.SHARE_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getAllowShareTokens())
+		assertThat(document.<List<String>>get(Schemas.SHARE_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getAllowShareTokens())
 				.isNotNull();
-		assertThat(document.get(Schemas.DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyTokens())
+		assertThat(document.<List<String>>get(Schemas.DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyTokens())
 				.isNotNull();
-		assertThat(document.get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyShareTokens())
+		assertThat(document.<List<String>>get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyShareTokens())
 				.isNotNull();
 
 		assertThat(document.getLastFetchAttemptStatus()).isEqualTo(LastFetchedStatus.OK);
@@ -203,11 +203,11 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.isNotNull();
 		assertThat(document.getManualTokens()).isEqualTo(smbFileDTO.getAllowTokens())
 				.isNotNull();
-		assertThat(document.get(Schemas.SHARE_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getAllowShareTokens())
+		assertThat(document.<List<String>>get(Schemas.SHARE_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getAllowShareTokens())
 				.isNotNull();
-		assertThat(document.get(Schemas.DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyTokens())
+		assertThat(document.<List<String>>get(Schemas.DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyTokens())
 				.isNotNull();
-		assertThat(document.get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyShareTokens())
+		assertThat(document.<List<String>>get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyShareTokens())
 				.isNotNull();
 
 		assertThat(document.getLastFetchAttemptStatus()).isEqualTo(LastFetchedStatus.OK);
@@ -279,9 +279,9 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.getLanguage()).isEqualTo(LANGUAGE);
 		assertThat(document.getExtension()).isEqualTo(EXTENSION);
 		assertThat(document.getManualTokens()).isEqualTo(TOKENS);
-		assertThat(document.get(Schemas.SHARE_TOKENS.getLocalCode())).isEqualTo(TOKENS);
-		assertThat(document.get(Schemas.DENY_TOKENS.getLocalCode())).isEqualTo(TOKENS);
-		assertThat(document.get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(TOKENS);
+		assertThat(document.<List<String>>get(Schemas.SHARE_TOKENS.getLocalCode())).isEqualTo(TOKENS);
+		assertThat(document.<List<String>>get(Schemas.DENY_TOKENS.getLocalCode())).isEqualTo(TOKENS);
+		assertThat(document.<List<String>>get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(TOKENS);
 
 		// Changed
 		assertThat(document.getUrl()).isEqualTo(FILE_URL);
@@ -592,11 +592,11 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.isNotNull();
 		assertThat(document.getManualTokens()).isEqualTo(smbFileDTO.getAllowTokens())
 				.isNotNull();
-		assertThat(document.get(Schemas.SHARE_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getAllowShareTokens())
+		assertThat(document.<List<String>>get(Schemas.SHARE_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getAllowShareTokens())
 				.isNotNull();
-		assertThat(document.get(Schemas.DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyTokens())
+		assertThat(document.<List<String>>get(Schemas.DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyTokens())
 				.isNotNull();
-		assertThat(document.get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyShareTokens())
+		assertThat(document.<List<String>>get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyShareTokens())
 				.isNotNull();
 
 		assertThat(document.getLastFetchAttemptStatus()).isEqualTo(LastFetchedStatus.PARTIAL);

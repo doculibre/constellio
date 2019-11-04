@@ -5,14 +5,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.extensions.AfterQueryParams;
@@ -746,7 +739,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.setActualTransferDate(LocalDate.now());
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
 
-		assertThat(subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+		assertThat((Object) subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
 
 		givenUserHasReadAccessTo(subFolder1.getId(), subFolder2.getId(), records.folder_C01);
 
@@ -808,7 +801,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.setActualTransferDate(LocalDate.now());
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
 
-		assertThat(subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+		assertThat((Object) subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
 
 		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
 
@@ -880,7 +873,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(records.getFolder_A20()
 				.setActualTransferDate(LocalDate.now())));
 
-		assertThat(records.getFolder_A20().get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+		assertThat((Object) records.getFolder_A20().get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
 
 		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
 

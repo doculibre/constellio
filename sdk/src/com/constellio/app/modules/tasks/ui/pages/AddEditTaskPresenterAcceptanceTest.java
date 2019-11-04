@@ -73,7 +73,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 		params.put("parentId", parentTaskId);
 		String viewPath = ParamUtils.addParams(TasksNavigationConfiguration.ADD_TASK, params);
 		presenter.initTaskVO(viewPath);
-		assertThat(presenter.getTask().get(Task.PARENT_TASK)).isEqualTo(parentTaskId);
+		assertThat(presenter.getTask().<String>get(Task.PARENT_TASK)).isEqualTo(parentTaskId);
 	}
 
 	@Test

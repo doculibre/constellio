@@ -34,14 +34,7 @@ import java.util.Locale;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 
@@ -254,14 +247,16 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 			}
 		});
 		getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.DATE_FORMAT, "yyyy-MM-dd");
-		recordServices.update(records.getFolder_A01().set("test", asList(new LocalDate("2018-02-11"))));
+		Folder folder1 = records.getFolder_A01().set("test", asList(new LocalDate("2018-02-11")));
+		recordServices.update(folder1);
 		reindex();
 		waitForBatchProcess();
 
 		List<String> queriesWithResults = getQueriesWithResults(asList("2018-02-11", "11-02-2018", "2018-02", "2018-11", "2018", "02", "11", "2", "1", "asdf"));
 		assertThat(queriesWithResults).containsOnly("2018-02-11", "2018");
 
-		recordServices.update(records.getFolder_A01().set("test", asList(new LocalDate("2019-03-12"), new LocalDate("2020-04-13"))));
+		Folder folder2 = records.getFolder_A01().set("test", asList(new LocalDate("2019-03-12"), new LocalDate("2020-04-13")));
+		recordServices.update(folder2);
 		getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.DATE_FORMAT, "dd-MM-yyyy");
 		reindex();
 		waitForBatchProcess();

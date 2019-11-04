@@ -17,7 +17,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
@@ -32,12 +31,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotExcuteTransaction;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveAdmin;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUserNameOrPassword;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
+import com.constellio.model.services.users.UserServicesRuntimeException.*;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.annotations.LoadTest;
@@ -51,12 +45,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.security.Key;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.usernamesOf;
@@ -112,7 +101,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@After
 	public void tearDown()
 			throws Exception {
-		ConstellioFactories.getInstance().onRequestEnded();
+		if (ConstellioFactories.isInitialized()) {
+			ConstellioFactories.getInstance().onRequestEnded();
+		}
 	}
 
 	@Test
@@ -891,7 +882,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.removeGroupFromCollections(admin, "group1", Arrays.asList("collection1"));
 
 		assertThat(userServices.getGroupInCollection("group1", "collection1").getWrappedRecord()
-				.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
+				.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 		assertThat(userServices.getChildrenOfGroupInCollection("group1", "collection1")).isEmpty();
 		assertThat(userServices.getChildrenOfGroupInCollection("group1_1", "collection1")).isEmpty();
 		assertThat(userServices.getChildrenOfGroupInCollection("group1_1_1", "collection1")).isEmpty();

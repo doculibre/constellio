@@ -53,8 +53,8 @@ public class AddEditTaxonomyConceptPresenterAcceptTest extends ConstellioTest {
 
 		assertThat(record.getId()).isEqualTo(records.categoryId_X);
 		assertThat(record.getSchema().getCode()).isEqualTo(records.getCategory_X().getSchema().getCode());
-		assertThat(record.get(Category.CODE)).isEqualTo(records.getCategory_X().getCode());
-		assertThat(record.get(Category.DESCRIPTION)).isEqualTo(records.getCategory_X().getDescription());
+		assertThat(record.<String>get(Category.CODE)).isEqualTo(records.getCategory_X().getCode());
+		assertThat(record.<String>get(Category.DESCRIPTION)).isEqualTo(records.getCategory_X().getDescription());
 	}
 
 	// SaveButtonClicked doesn't work when called directly, don't know why

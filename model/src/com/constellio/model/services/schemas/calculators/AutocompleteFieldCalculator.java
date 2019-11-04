@@ -41,7 +41,7 @@ public class AutocompleteFieldCalculator implements MetadataValueCalculator<List
 															 DynamicDependencyValues autocompleteMetadatasValues,
 															 AutocompleteSplitCriteria autocompleteSplitCriteria) {
 		for (Metadata metadata : autocompleteMetadatasValues.getAvailableMetadatasWithAValue().onlySchemaAutocomplete()) {
-			splitInLowerCasedTermsRemovingAccents(words, autocompleteMetadatasValues.getValue(metadata),
+			splitInLowerCasedTermsRemovingAccents(words, (Object) autocompleteMetadatasValues.getValue(metadata),
 					autocompleteSplitCriteria);
 		}
 	}

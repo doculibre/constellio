@@ -5,14 +5,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -61,17 +54,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.STORAGES;
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.*;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
-import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
-import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.createFoldersAndDocumentsWithNegativeAuths;
-import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.createFoldersAndSubFoldersWithNegativeAuths;
+import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.*;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -1150,7 +1139,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.setActualTransferDate(LocalDate.now());
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
 
-		assertThat(subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+		assertThat((Object) subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
 
 		givenUserHasReadAccessTo(subFolder1.getId(), subFolder2.getId(), records.folder_C01);
 
@@ -1229,7 +1218,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.setActualTransferDate(LocalDate.now());
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
 
-		assertThat(subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+		assertThat((Object) subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
 
 		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
 
@@ -1307,7 +1296,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(records.getFolder_A20()
 				.setActualTransferDate(LocalDate.now())));
 
-		assertThat(records.getFolder_A20().get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+		assertThat((Object) records.getFolder_A20().get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
 
 		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
 

@@ -7,11 +7,7 @@ import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordRuntimeException;
 import com.constellio.model.entities.records.RecordRuntimeException.CannotMerge;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
@@ -34,18 +30,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
-import static com.constellio.sdk.tests.TestUtils.mockMetadata;
-import static com.constellio.sdk.tests.TestUtils.unmodifiableCollection;
+import static com.constellio.sdk.tests.TestUtils.*;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class RecordImplTest extends ConstellioTest {
 
@@ -206,7 +195,7 @@ public class RecordImplTest extends ConstellioTest {
 		try {
 			record.set(textMetadata, "thisValueCannotBeSet");
 		} finally {
-			assertThat(record.get(textMetadata)).isEqualTo("theValue");
+			assertThat((Object) record.get(textMetadata)).isEqualTo("theValue");
 		}
 	}
 
@@ -245,11 +234,11 @@ public class RecordImplTest extends ConstellioTest {
 		when(initialState.getId()).thenReturn(record.getId());
 
 		record.set(textMetadata, "value");
-		assertThat(record.get(textMetadata)).isEqualTo("value");
+		assertThat((Object) record.get(textMetadata)).isEqualTo("value");
 		assertThat(record.isDirty()).isTrue();
 
 		record.refresh(1, initialState);
-		assertThat(record.get(textMetadata)).isNull();
+		assertThat((Object) record.get(textMetadata)).isNull();
 		assertThat(record.isDirty()).isFalse();
 	}
 
@@ -334,7 +323,7 @@ public class RecordImplTest extends ConstellioTest {
 		record.set(multipleTextMetadata, asList("firstValue"));
 		assertThat(record.isDirty()).isFalse();
 		assertThat(record.getModifiedValues()).isEmpty();
-		assertThat(record.get(multipleTextMetadata)).isEqualTo(asList("firstValue"));
+		assertThat((Object) record.get(multipleTextMetadata)).isEqualTo(asList("firstValue"));
 	}
 
 	@Test
@@ -351,7 +340,7 @@ public class RecordImplTest extends ConstellioTest {
 		record.set(multipleTextMetadata, asList("otherValueValue"));
 		assertThat(record.isDirty()).isTrue();
 		assertThat(record.getModifiedValues()).hasSize(1);
-		assertThat(record.get(multipleTextMetadata)).isEqualTo(asList("otherValueValue"));
+		assertThat((Object) record.get(multipleTextMetadata)).isEqualTo(asList("otherValueValue"));
 	}
 
 	@Test
@@ -369,7 +358,7 @@ public class RecordImplTest extends ConstellioTest {
 		record.set(multipleTextMetadata, asList("firstValue"));
 		assertThat(record.isDirty()).isFalse();
 		assertThat(record.getModifiedValues()).isEmpty();
-		assertThat(record.get(multipleTextMetadata)).isEqualTo(asList("firstValue"));
+		assertThat((Object) record.get(multipleTextMetadata)).isEqualTo(asList("firstValue"));
 	}
 
 	@Test
@@ -460,8 +449,8 @@ public class RecordImplTest extends ConstellioTest {
 		Record record = new TestRecord("a_b", "zeCollection");
 		record.set(multipleTextMetadata, null);
 
-		assertThat(record.get(multipleTextMetadata)).isEqualTo(new ArrayList<>());
-		assertThat(record.get(multipleTextMetadata)).is(unmodifiableCollection());
+		assertThat((Object) record.get(multipleTextMetadata)).isEqualTo(new ArrayList<>());
+		assertThat((Object) record.get(multipleTextMetadata)).is(unmodifiableCollection());
 		assertThat(record.getList(multipleTextMetadata)).isEqualTo(new ArrayList<>());
 		assertThat(record.getList(multipleTextMetadata)).is(unmodifiableCollection());
 	}
@@ -472,8 +461,8 @@ public class RecordImplTest extends ConstellioTest {
 		Record record = new TestRecord("a_b", "zeCollection");
 		record.set(multipleTextMetadata, new ArrayList<>(asList("a", "b")));
 
-		assertThat(record.get(multipleTextMetadata)).isEqualTo(asList("a", "b"));
-		assertThat(record.get(multipleTextMetadata)).is(unmodifiableCollection());
+		assertThat((Object) record.get(multipleTextMetadata)).isEqualTo(asList("a", "b"));
+		assertThat((Object) record.get(multipleTextMetadata)).is(unmodifiableCollection());
 		assertThat(record.getList(multipleTextMetadata)).isEqualTo(asList("a", "b"));
 		assertThat(record.getList(multipleTextMetadata)).is(unmodifiableCollection());
 	}
@@ -484,7 +473,7 @@ public class RecordImplTest extends ConstellioTest {
 		Record record = new TestRecord("a_b", "zeCollection");
 		record.set(multipleTextMetadata, new ArrayList<>());
 
-		assertThat(record.get(multipleTextMetadata));
+		assertThat((Object) record.get(multipleTextMetadata));
 		assertThat(record.getList(multipleTextMetadata)).isEqualTo(new ArrayList<>());
 	}
 
@@ -511,7 +500,7 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(record.getRecordDTO()).isEqualTo(currentState);
 		assertThat(record.isDirty()).isFalse();
 		assertThat(record.getModifiedValues()).doesNotContainKey(textMetadataCodeAndType);
-		assertThat(record.get(textMetadata)).isEqualTo("differentValue");
+		assertThat((Object) record.get(textMetadata)).isEqualTo("differentValue");
 	}
 
 	@Test(expected = CannotMerge.class)
@@ -560,8 +549,8 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(record.getModifiedValues()).doesNotContainKey(textMetadataCodeAndType);
 		assertThat(record.getModifiedValues()).doesNotContainKey(dateMetadataCodeAndType);
 		assertThat(record.isDirty()).isFalse();
-		assertThat(record.get(textMetadata)).isEqualTo("differentValue");
-		assertThat(record.get(dateMetadata)).isEqualTo(new LocalDateTime(2014, 8, 15, 11, 2));
+		assertThat((Object) record.get(textMetadata)).isEqualTo("differentValue");
+		assertThat((Object) record.get(dateMetadata)).isEqualTo(new LocalDateTime(2014, 8, 15, 11, 2));
 
 	}
 
@@ -592,8 +581,8 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(record.getModifiedValues()).doesNotContainKey(dateMetadataCodeAndType);
 		assertThat(record.getModifiedValues()).containsEntry(numberMetadataCodeAndType, 42.0);
 		assertThat(record.isDirty()).isTrue();
-		assertThat(record.get(textMetadata)).isEqualTo("modifiedValue");
-		assertThat(record.get(dateMetadata)).isEqualTo(new LocalDateTime(2013, 8, 15, 11, 2));
+		assertThat((Object) record.get(textMetadata)).isEqualTo("modifiedValue");
+		assertThat((Object) record.get(dateMetadata)).isEqualTo(new LocalDateTime(2013, 8, 15, 11, 2));
 
 	}
 
@@ -666,7 +655,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(initialState.getFields()).thenReturn(initialStateFields);
 		RecordImpl record = new TestRecord(initialState, collectionInfo);
 
-		assertThat(record.get(textMetadata)).isEqualTo("aValue");
+		assertThat((Object) record.get(textMetadata)).isEqualTo("aValue");
 
 		Map<String, Object> currentStateFields = new HashMap<>();
 		currentStateFields.put("schema_s", "zeSchemaType_default");
@@ -679,7 +668,7 @@ public class RecordImplTest extends ConstellioTest {
 		record.merge(newRecord, zeSchema);
 
 		assertThat(record.getRecordDTO()).isEqualTo(currentState);
-		assertThat(record.get(textMetadata)).isEqualTo("aValue");
+		assertThat((Object) record.get(textMetadata)).isEqualTo("aValue");
 		assertThat(record.isDirty()).isFalse();
 		assertThat(record.getModifiedValues()).hasSize(0);
 	}
@@ -706,8 +695,8 @@ public class RecordImplTest extends ConstellioTest {
 		record.merge(newRecord, zeSchema);
 
 		assertThat(record.getRecordDTO()).isEqualTo(currentState);
-		assertThat(record.get(numberMetadata)).isEqualTo(20);
-		assertThat(record.get(otherNumberMetadata)).isEqualTo(10.0);
+		assertThat((Object) record.get(numberMetadata)).isEqualTo(20);
+		assertThat((Object) record.get(otherNumberMetadata)).isEqualTo(10.0);
 		assertThat(record.isDirty()).isFalse();
 		assertThat(record.getModifiedValues()).hasSize(0);
 	}
@@ -734,8 +723,8 @@ public class RecordImplTest extends ConstellioTest {
 		record.merge(newRecord, zeSchema);
 
 		assertThat(record.getRecordDTO()).isEqualTo(currentState);
-		assertThat(record.get(numberMetadata)).isEqualTo(20.0);
-		assertThat(record.get(otherNumberMetadata)).isEqualTo(10.0);
+		assertThat((Object) record.get(numberMetadata)).isEqualTo(20.0);
+		assertThat((Object) record.get(otherNumberMetadata)).isEqualTo(10.0);
 		assertThat(record.isDirty()).isFalse();
 		assertThat(record.getModifiedValues()).hasSize(0);
 	}
@@ -762,7 +751,7 @@ public class RecordImplTest extends ConstellioTest {
 		record.merge(newRecord, zeSchema);
 
 		assertThat(record.getRecordDTO()).isEqualTo(currentState);
-		assertThat(record.get(numberMetadata)).isEqualTo(20.0);
+		assertThat((Object) record.get(numberMetadata)).isEqualTo(20.0);
 		assertThat(record.isDirty()).isFalse();
 		assertThat(record.getModifiedValues()).hasSize(0);
 	}
@@ -775,7 +764,7 @@ public class RecordImplTest extends ConstellioTest {
 		record.set(dateMetadata, null);
 		record.set(numberMetadata, 5.0);
 
-		assertThat(record.getNonNullValueIn(asList(textMetadata, dateMetadata, numberMetadata))).isEqualTo(5.0);
+		assertThat((Object) record.getNonNullValueIn(asList(textMetadata, dateMetadata, numberMetadata))).isEqualTo(5.0);
 	}
 
 	@Test(expected = RuntimeException.class)
@@ -786,7 +775,7 @@ public class RecordImplTest extends ConstellioTest {
 		record.set(dateMetadata, null);
 		record.set(numberMetadata, 5.0);
 
-		assertThat(record.getNonNullValueIn(asList(textMetadata, dateMetadata, numberMetadata))).isEqualTo(5.0);
+		assertThat((Object) record.getNonNullValueIn(asList(textMetadata, dateMetadata, numberMetadata))).isEqualTo(5.0);
 	}
 
 	@Test
@@ -797,7 +786,7 @@ public class RecordImplTest extends ConstellioTest {
 		record.set(dateMetadata, null);
 		record.set(numberMetadata, null);
 
-		assertThat(record.getNonNullValueIn(asList(textMetadata, dateMetadata, numberMetadata))).isNull();
+		assertThat((Object) record.getNonNullValueIn(asList(textMetadata, dateMetadata, numberMetadata))).isNull();
 	}
 
 	@Test
@@ -837,8 +826,8 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(record.isModified(multipleTextMetadata)).isFalse();
 		assertThat(record.isModified(numberMetadata)).isFalse();
 		assertThat(record.getVersion()).isEqualTo(42L);
-		assertThat(record.get(multipleTextMetadata)).isEqualTo(asList("value1", "value2", "value3"));
-		assertThat(record.get(numberMetadata)).isEqualTo(123.0);
+		assertThat((Object) record.get(multipleTextMetadata)).isEqualTo(asList("value1", "value2", "value3"));
+		assertThat((Object) record.get(numberMetadata)).isEqualTo(123.0);
 		assertThat(record.getModifiedValues()).isEmpty();
 	}
 
@@ -865,9 +854,9 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(record.isModified(multipleTextMetadata)).isFalse();
 		assertThat(record.isModified(numberMetadata)).isFalse();
 		assertThat(record.getVersion()).isEqualTo(42L);
-		assertThat(record.get(multipleTextMetadata)).isEqualTo(asList("value4", "value5", "value6"));
-		assertThat(record.get(numberMetadata)).isEqualTo(456.0);
-		assertThat(record.get(dateMetadata)).isEqualTo(date);
+		assertThat((Object) record.get(multipleTextMetadata)).isEqualTo(asList("value4", "value5", "value6"));
+		assertThat((Object) record.get(numberMetadata)).isEqualTo(456.0);
+		assertThat((Object) record.get(dateMetadata)).isEqualTo(date);
 		assertThat(record.getModifiedValues()).isEmpty();
 		assertThat(record.getRecordDTO().getLoadedFields()).isEqualTo(loadedFields);
 	}
@@ -885,8 +874,8 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(record.isDirty()).isFalse();
 		assertThat(record.getModifiedValues()).isEmpty();
 		verify(stringStructureFactory, never()).build(zeStructureInitialValue);
-		assertThat(record.get(factoredMetadata)).isSameAs(zeStructure);
-		assertThat(record.get(factoredMetadata)).isSameAs(zeStructure);
+		assertThat((Object) record.get(factoredMetadata)).isSameAs(zeStructure);
+		assertThat((Object) record.get(factoredMetadata)).isSameAs(zeStructure);
 		verify(stringStructureFactory, times(1)).build(zeStructureInitialValue);
 	}
 
@@ -905,7 +894,7 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(record.getModifiedValues()).isEmpty();
 		verify(stringStructureFactory, never()).build(zeStructureInitialValue);
 		verify(stringStructureFactory, never()).build(anotherStructureInitialValue);
-		assertThat(record.get(factoredMetadata)).isSameAs(record.get(factoredMetadata))
+		assertThat((Object) record.get(factoredMetadata)).isSameAs(record.get(factoredMetadata))
 				.isEqualTo(asList(zeStructure, anotherStructure));
 		verify(stringStructureFactory, times(1)).build(zeStructureInitialValue);
 		verify(stringStructureFactory, times(1)).build(anotherStructureInitialValue);
@@ -921,7 +910,7 @@ public class RecordImplTest extends ConstellioTest {
 		fieldValues.put(factoredMetadataCodeAndType, zeStructureInitialValue);
 		RecordImpl record = new TestRecord(new RecordDTO("id", 4, null, fieldValues), collectionInfo);
 
-		assertThat(record.get(factoredMetadata)).isSameAs(zeStructure);
+		assertThat((Object) record.get(factoredMetadata)).isSameAs(zeStructure);
 		when(zeStructure.isDirty()).thenReturn(true);
 
 		assertThat(record.isDirty()).isTrue();
@@ -949,7 +938,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(anotherStructure.isDirty()).thenReturn(true);
 		record.set(factoredMetadata, anotherStructure);
 
-		assertThat(record.get(factoredMetadata)).isSameAs(anotherStructure);
+		assertThat((Object) record.get(factoredMetadata)).isSameAs(anotherStructure);
 
 		assertThat(record.isDirty()).isTrue();
 		assertThat(record.getModifiedValues()).containsEntry(factoredMetadataCodeAndType, anotherStructure).hasSize(1);
@@ -972,7 +961,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(anotherStructure.isDirty()).thenReturn(true);
 		record.set(factoredMetadata, anotherStructure);
 
-		assertThat(record.get(factoredMetadata)).isSameAs(anotherStructure);
+		assertThat((Object) record.get(factoredMetadata)).isSameAs(anotherStructure);
 
 		assertThat(record.isDirty()).isTrue();
 		assertThat(record.getModifiedValues()).containsEntry(factoredMetadataCodeAndType, anotherStructure).hasSize(1);
@@ -1143,8 +1132,8 @@ public class RecordImplTest extends ConstellioTest {
 		byte[] bytes = SerializationUtils.serialize(record);
 		RecordImpl unserializedRecord = (RecordImpl) SerializationUtils.deserialize(bytes);
 
-		assertThat(unserializedRecord.get(Schemas.TITLE)).isEqualTo("zeTitle");
-		assertThat(unserializedRecord.get(Schemas.MODIFIED_BY)).isEqualTo(shishOClock);
+		assertThat((Object) unserializedRecord.get(Schemas.TITLE)).isEqualTo("zeTitle");
+		assertThat((Object) unserializedRecord.get(Schemas.MODIFIED_BY)).isEqualTo(shishOClock);
 		assertThat(unserializedRecord.getSchemaCode()).isEqualTo("folder_default");
 		assertThat(unserializedRecord.getCollection()).isEqualTo("zeUltimateCollection");
 		assertThat(unserializedRecord.getId()).isEqualTo("42");
@@ -1172,8 +1161,8 @@ public class RecordImplTest extends ConstellioTest {
 		byte[] bytes = SerializationUtils.serialize(record);
 		RecordImpl unserializedRecord = (RecordImpl) SerializationUtils.deserialize(bytes);
 
-		assertThat(unserializedRecord.get(Schemas.TITLE)).isEqualTo("zeTitle");
-		assertThat(unserializedRecord.get(Schemas.MODIFIED_BY)).isEqualTo(shishOClock);
+		assertThat((Object) unserializedRecord.get(Schemas.TITLE)).isEqualTo("zeTitle");
+		assertThat((Object) unserializedRecord.get(Schemas.MODIFIED_BY)).isEqualTo(shishOClock);
 		assertThat(unserializedRecord.getSchemaCode()).isEqualTo("folder_default");
 		assertThat(unserializedRecord.getCollection()).isEqualTo("zeUltimateCollection");
 		assertThat(unserializedRecord.getId()).isEqualTo("id42");
@@ -1200,13 +1189,13 @@ public class RecordImplTest extends ConstellioTest {
 
 		record.set(telephoneNumber, "4183533390");
 		record.set(postalCode, "G1N2C9");
-		assertThat(record.get(telephoneNumber)).isEqualTo("(418) 353-3390");
-		assertThat(record.get(postalCode)).isEqualTo("G1N 2C9");
+		assertThat((Object) record.get(telephoneNumber)).isEqualTo("(418) 353-3390");
+		assertThat((Object) record.get(postalCode)).isEqualTo("G1N 2C9");
 
 		record.set(telephoneNumber, "4186664242");
 		record.set(postalCode, "H0H0H0");
-		assertThat(record.get(telephoneNumber)).isEqualTo("(418) 666-4242");
-		assertThat(record.get(postalCode)).isEqualTo("H0H 0H0");
+		assertThat((Object) record.get(telephoneNumber)).isEqualTo("(418) 666-4242");
+		assertThat((Object) record.get(postalCode)).isEqualTo("H0H 0H0");
 
 	}
 
@@ -1224,13 +1213,13 @@ public class RecordImplTest extends ConstellioTest {
 
 		record.set(telephoneNumber, "418-353-3390");
 		record.set(postalCode, "G1Nyyy2C9");
-		assertThat(record.get(telephoneNumber)).isEqualTo("418-353-3390");
-		assertThat(record.get(postalCode)).isEqualTo("G1Nyyy2C9");
+		assertThat((Object) record.get(telephoneNumber)).isEqualTo("418-353-3390");
+		assertThat((Object) record.get(postalCode)).isEqualTo("G1Nyyy2C9");
 
 		record.set(telephoneNumber, "(418y 666-4242");
 		record.set(postalCode, "H0H:0H0");
-		assertThat(record.get(telephoneNumber)).isEqualTo("(418y 666-4242");
-		assertThat(record.get(postalCode)).isEqualTo("H0H:0H0");
+		assertThat((Object) record.get(telephoneNumber)).isEqualTo("(418y 666-4242");
+		assertThat((Object) record.get(postalCode)).isEqualTo("H0H:0H0");
 
 	}
 
@@ -1248,13 +1237,13 @@ public class RecordImplTest extends ConstellioTest {
 
 		record.set(telephoneNumber, "(418) 353-3390");
 		record.set(postalCode, "G1N 2C9");
-		assertThat(record.get(telephoneNumber)).isEqualTo("(418) 353-3390");
-		assertThat(record.get(postalCode)).isEqualTo("G1N 2C9");
+		assertThat((Object) record.get(telephoneNumber)).isEqualTo("(418) 353-3390");
+		assertThat((Object) record.get(postalCode)).isEqualTo("G1N 2C9");
 
 		record.set(telephoneNumber, "(418) 666-4242");
 		record.set(postalCode, "H0H 0H0");
-		assertThat(record.get(telephoneNumber)).isEqualTo("(418) 666-4242");
-		assertThat(record.get(postalCode)).isEqualTo("H0H 0H0");
+		assertThat((Object) record.get(telephoneNumber)).isEqualTo("(418) 666-4242");
+		assertThat((Object) record.get(postalCode)).isEqualTo("H0H 0H0");
 
 	}
 

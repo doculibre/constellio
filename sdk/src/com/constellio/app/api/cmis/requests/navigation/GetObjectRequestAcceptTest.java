@@ -126,38 +126,38 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 				Action.CAN_GET_PROPERTIES
 		);
 
-		assertThat(rootFolder.getPropertyValue(PropertyIds.NAME)).isEqualTo("Collection de test");
+		assertThat(rootFolder.<String>getPropertyValue(PropertyIds.NAME)).isEqualTo("Collection de test");
 	}
 
 	private void thenFolderOneObjectHasCorrectFields(CmisObject object) {
 		assertThat(object).isNotNull();
 		assertThat(object.getId()).isEqualTo("folder1");
-		assertThat(object.getProperty("id").getValue()).isEqualTo("folder1");
-		assertThat(object.getProperty("title").getValue()).isEqualTo("folder1");
-		assertThat(object.getProperty("schema").getValue()).isEqualTo("folder_default");
+		assertThat(object.getProperty("id").<String>getValue()).isEqualTo("folder1");
+		assertThat(object.getProperty("title").<String>getValue()).isEqualTo("folder1");
+		assertThat(object.getProperty("schema").<String>getValue()).isEqualTo("folder_default");
 		assertThat(object.getProperty("path").getFirstValue()).isEqualTo(
 				"/taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1");
-		assertThat(object.getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo("zetaxo1_category1");
-		assertThat(object.getProperty(PropertyIds.PATH).getValue()).isNotNull();
+		assertThat(object.getProperty(PropertyIds.PARENT_ID).<String>getValue()).isEqualTo("zetaxo1_category1");
+		assertThat(object.getProperty(PropertyIds.PATH).<String>getValue()).isNotNull();
 	}
 
 	private void thenCategoryTwoObjectHasCorrectFields(CmisObject object) {
 		assertThat(object).isNotNull();
 		assertThat(object.getId()).isEqualTo("zetaxo1_category2");
 		//assertThat(object.getProperty("id").getValue()).isEqualTo("taxo1_category2");
-		assertThat(object.getProperty("title").getValue()).isEqualTo("zetaxo1_category2");
-		assertThat(object.getProperty("schema").getValue()).isEqualTo("category_default");
+		assertThat(object.getProperty("title").<String>getValue()).isEqualTo("zetaxo1_category2");
+		assertThat(object.getProperty("schema").<String>getValue()).isEqualTo("category_default");
 		assertThat(object.getProperty("path").getFirstValue())
 				.isEqualTo("/taxo1/zetaxo1_fond1/zetaxo1_category2");
-		assertThat(object.getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo("zetaxo1_fond1");
+		assertThat(object.getProperty(PropertyIds.PARENT_ID).<String>getValue()).isEqualTo("zetaxo1_fond1");
 	}
 
 	private void thenTaxoOneObjectHasCorrectFields(CmisObject object) {
 		assertThat(object).isNotNull();
 		assertThat(object.getId()).isEqualTo("taxo_taxo1");
 		assertThat(object.getName()).isEqualTo("zeTaxo");
-		assertThat(object.getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo(zeCollection);
-		assertThat(object.getProperty(PropertyIds.PATH).getValue()).isEqualTo("/taxo_taxo1");
+		assertThat(object.getProperty(PropertyIds.PARENT_ID).<String>getValue()).isEqualTo(zeCollection);
+		assertThat(object.getProperty(PropertyIds.PATH).<String>getValue()).isEqualTo("/taxo_taxo1");
 	}
 
 	private Session givenAdminSessionOnZeCollection()

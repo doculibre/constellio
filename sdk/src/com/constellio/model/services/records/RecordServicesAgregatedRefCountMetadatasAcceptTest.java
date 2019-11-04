@@ -76,32 +76,32 @@ public class RecordServicesAgregatedRefCountMetadatasAcceptTest extends Constell
 		TestRecord r5 = new TestRecord(zeSchema, "r5").set("ref", "merge2");
 		getModelLayerFactory().newRecordServices().execute(tx.addAll(r1, r2, r3, r4, r5));
 		waitForBatchProcess();
-		assertThat(record("merge1").get(anotherSchema_refCount)).isEqualTo(2.0);
-		assertThat(record("merge2").get(anotherSchema_refCount)).isEqualTo(3.0);
-		assertThat(record("merge3").get(thirdSchema_refCount)).isEqualTo(2.0);
+		assertThat(record("merge1").<Double>get(anotherSchema_refCount)).isEqualTo(2.0);
+		assertThat(record("merge2").<Double>get(anotherSchema_refCount)).isEqualTo(3.0);
+		assertThat(record("merge3").<Double>get(thirdSchema_refCount)).isEqualTo(2.0);
 
 		tx = new Transaction();
 		tx.add(r3.set("ref", "merge1"));
 		getModelLayerFactory().newRecordServices().execute(tx);
 		waitForBatchProcess();
-		assertThat(record("merge1").get(anotherSchema_refCount)).isEqualTo(3.0);
-		assertThat(record("merge2").get(anotherSchema_refCount)).isEqualTo(2.0);
-		assertThat(record("merge3").get(thirdSchema_refCount)).isEqualTo(2.0);
+		assertThat(record("merge1").<Double>get(anotherSchema_refCount)).isEqualTo(3.0);
+		assertThat(record("merge2").<Double>get(anotherSchema_refCount)).isEqualTo(2.0);
+		assertThat(record("merge3").<Double>get(thirdSchema_refCount)).isEqualTo(2.0);
 
 		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
-		assertThat(record("merge1").get(anotherSchema_refCount)).isEqualTo(3.0);
-		assertThat(record("merge2").get(anotherSchema_refCount)).isEqualTo(2.0);
-		assertThat(record("merge3").get(thirdSchema_refCount)).isEqualTo(2.0);
-		assertThat(nbQueries).isEqualTo(10);
+		assertThat(record("merge1").<Double>get(anotherSchema_refCount)).isEqualTo(3.0);
+		assertThat(record("merge2").<Double>get(anotherSchema_refCount)).isEqualTo(2.0);
+		assertThat(record("merge3").<Double>get(thirdSchema_refCount)).isEqualTo(2.0);
+		assertThat(nbQueries).isEqualTo(2);
 
 		tx = new Transaction();
 		tx.add(r4.set("ref", "merge1"));
 		tx.add(r5.set("ref", "merge1"));
 		getModelLayerFactory().newRecordServices().execute(tx);
 		waitForBatchProcess();
-		assertThat(record("merge1").get(anotherSchema_refCount)).isEqualTo(5.0);
-		assertThat(record("merge2").get(anotherSchema_refCount)).isEqualTo(0.0);
-		assertThat(record("merge3").get(thirdSchema_refCount)).isEqualTo(2.0);
+		assertThat(record("merge1").<Double>get(anotherSchema_refCount)).isEqualTo(5.0);
+		assertThat(record("merge2").<Double>get(anotherSchema_refCount)).isEqualTo(0.0);
+		assertThat(record("merge3").<Double>get(thirdSchema_refCount)).isEqualTo(2.0);
 
 	}
 

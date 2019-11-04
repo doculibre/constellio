@@ -32,12 +32,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
@@ -176,12 +171,12 @@ public class CmisMultivalueContentManagementAcceptTest extends ConstellioTest {
 		assertThatContentStreamIsSameAs(cmisContents.get(0), pdf1ContentStream(), pdf1Hash);
 		assertThatVersionCreationInfoAre(cmisContents.get(0), aliceId, documentCreationOClock);
 		assertThat(cmisContents.get(0).getId()).isEqualTo("content_" + zeRecord + "_contentMetadata_" + firstContentId + "_1.0");
-		assertThat(cmisContents.get(0).getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo(zeRecord);
+		assertThat(cmisContents.get(0).getProperty(PropertyIds.PARENT_ID).<String>getValue()).isEqualTo(zeRecord);
 
 		assertThatContentStreamIsSameAs(cmisContents.get(1), docx1ContentStream(), docx1Hash);
 		assertThatVersionCreationInfoAre(cmisContents.get(1), aliceId, documentCreationOClock);
 		assertThat(cmisContents.get(1).getId()).isEqualTo("content_" + zeRecord + "_contentMetadata_" + secondContentId + "_1.0");
-		assertThat(cmisContents.get(1).getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo(zeRecord);
+		assertThat(cmisContents.get(1).getProperty(PropertyIds.PARENT_ID).<String>getValue()).isEqualTo(zeRecord);
 
 	}
 
@@ -202,7 +197,7 @@ public class CmisMultivalueContentManagementAcceptTest extends ConstellioTest {
 		assertThatVersionCreationInfoAre(cmisContents.get(2), bobId, firstDocumentModificationOClock);
 		assertThat(cmisContents.get(2).getId()).isEqualTo(
 				"content_" + zeRecord + "_contentMetadata_" + zeRecordContentId + "_1.0");
-		assertThat(cmisContents.get(2).getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo(zeRecord);
+		assertThat(cmisContents.get(2).getProperty(PropertyIds.PARENT_ID).<String>getValue()).isEqualTo(zeRecord);
 	}
 
 	private void _3_firstDocumentCheckOut()
@@ -218,7 +213,7 @@ public class CmisMultivalueContentManagementAcceptTest extends ConstellioTest {
 		assertThatContentStreamIsSameAs(cmisContent, pdf2ContentStream(), pdf2Hash);
 		assertThatVersionCreationInfoAre(cmisContent, bobId, firstDocumentModificationOClock);
 		assertThat(cmisContent.getId()).isEqualTo(privateWorkingCopyId);
-		assertThat(cmisContent.getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo(zeRecord);
+		assertThat(cmisContent.getProperty(PropertyIds.PARENT_ID).<String>getValue()).isEqualTo(zeRecord);
 		assertThat(cmisContent.getVersionLabel()).isEqualTo("1.0");
 		assertThat(cmisContent.getVersionSeriesCheckedOutBy()).isEqualTo(aliceId);
 		assertThat(cmisContent.getVersionSeriesCheckedOutId()).isEqualTo(privateWorkingCopyId);
@@ -228,7 +223,7 @@ public class CmisMultivalueContentManagementAcceptTest extends ConstellioTest {
 		assertThat(cmisContent.isMajorVersion()).isFalse();
 		//assertThat(cmisContent.isPrivateWorkingCopy()).isTrue();
 		assertThat(cmisContent.isVersionSeriesCheckedOut()).isTrue();
-		assertThat(cmisContent.getPropertyValue("metadata")).isEqualTo("contentMetadata");
+		assertThat(cmisContent.<String>getPropertyValue("metadata")).isEqualTo("contentMetadata");
 
 		List<Document> allVersions = cmisContent.getAllVersions();
 		assertThat(allVersions).hasSize(2);
@@ -236,7 +231,7 @@ public class CmisMultivalueContentManagementAcceptTest extends ConstellioTest {
 		assertThatContentStreamIsSameAs(allVersions.get(0), pdf2ContentStream(), pdf2Hash);
 		assertThatVersionCreationInfoAre(allVersions.get(0), bobId, firstDocumentModificationOClock);
 		assertThat(allVersions.get(0).getId()).isEqualTo(privateWorkingCopyId);
-		assertThat(allVersions.get(0).getPropertyValue(PropertyIds.PARENT_ID)).isEqualTo(zeRecord);
+		assertThat(allVersions.get(0).<String>getPropertyValue(PropertyIds.PARENT_ID)).isEqualTo(zeRecord);
 
 		try {
 			cmisContent.checkOut();
@@ -256,7 +251,7 @@ public class CmisMultivalueContentManagementAcceptTest extends ConstellioTest {
 		assertThatContentStreamIsSameAs(cmisContent, pdf2ContentStream(), pdf2Hash);
 		assertThatVersionCreationInfoAre(cmisContent, bobId, firstDocumentModificationOClock);
 		assertThat(cmisContent.getId()).isEqualTo("content_" + zeRecord + "_contentMetadata_" + zeRecordContentId + "_1.0");
-		assertThat(cmisContent.getPropertyValue(PropertyIds.PARENT_ID)).isEqualTo(zeRecord);
+		assertThat(cmisContent.<String>getPropertyValue(PropertyIds.PARENT_ID)).isEqualTo(zeRecord);
 		assertThat(cmisContent.getVersionLabel()).isEqualTo("1.0");
 		assertThat(cmisContent.getVersionSeriesCheckedOutBy()).isNull();
 		assertThat(cmisContent.getVersionSeriesCheckedOutId()).isNull();
@@ -266,7 +261,7 @@ public class CmisMultivalueContentManagementAcceptTest extends ConstellioTest {
 		assertThat(cmisContent.isMajorVersion()).isTrue();
 		//assertThat(cmisContent.isPrivateWorkingCopy()).isFalse();
 		assertThat(cmisContent.isVersionSeriesCheckedOut()).isFalse();
-		assertThat(cmisContent.getPropertyValue("metadata")).isEqualTo("contentMetadata");
+		assertThat(cmisContent.<String>getPropertyValue("metadata")).isEqualTo("contentMetadata");
 	}
 
 	private void _9_deleteOneContent() {

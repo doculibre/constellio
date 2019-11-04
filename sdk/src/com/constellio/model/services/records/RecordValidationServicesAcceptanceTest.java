@@ -14,16 +14,10 @@ import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.schemas.validators.AllowedReferencesValidator;
-import com.constellio.model.services.schemas.validators.CyclicHierarchyValidator;
-import com.constellio.model.services.schemas.validators.MaskedMetadataValidator;
-import com.constellio.model.services.schemas.validators.MetadataValueTypeValidator;
-import com.constellio.model.services.schemas.validators.ValueRequirementValidator;
+import com.constellio.model.services.schemas.validators.*;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDateTime;
@@ -33,27 +27,12 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.mockito.MockitoAnnotations.Mock;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator.MAX_SIZE;
-import static com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator.VALUE_LENGTH_TOO_LONG;
-import static com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator.WAS_SIZE;
+import static com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator.*;
 import static com.constellio.model.services.schemas.validators.MaskedMetadataValidator.VALUE_INCOMPATIBLE_WITH_SPECIFIED_MASK;
-import static com.constellio.model.services.schemas.validators.MetadataValueTypeValidator.EXPECTED_TYPE_MESSAGE_PARAM;
-import static com.constellio.model.services.schemas.validators.MetadataValueTypeValidator.INVALID_VALUE_FOR_METADATA;
-import static com.constellio.model.services.schemas.validators.MetadataValueTypeValidator.METADATA_CODE_MESSAGE_PARAM;
-import static com.constellio.model.services.schemas.validators.MetadataValueTypeValidator.WAS_VALUE_CLASS_MESSAGE_PARAM;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasLabel;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivaluesAndLimitedTo50Characters;
+import static com.constellio.model.services.schemas.validators.MetadataValueTypeValidator.*;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
 import static com.thoughtworks.selenium.SeleneseTestBase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
@@ -620,7 +599,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record = recordServices.newRecordWithSchema(zeSchema.instance());
 		record.set(Schemas.TITLE, "4156664242");
-		assertThat(record.get(zeSchema.metadata(Schemas.TITLE_CODE))).isEqualTo("4156664242");
+		assertThat((Object) record.get(zeSchema.metadata(Schemas.TITLE_CODE))).isEqualTo("4156664242");
 
 		recordServices.add(record);
 

@@ -61,10 +61,10 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		Record record = recordServices.newRecordWithSchema(schemas.zeDefaultSchema());
 		recordServices.execute(new Transaction(record).setUser(alice));
 
-		assertThat(record.get(Schemas.CREATED_BY)).isEqualTo(alice.getId());
-		assertThat(record.get(Schemas.CREATED_ON)).isEqualTo(now);
-		assertThat(record.get(Schemas.MODIFIED_BY)).isEqualTo(alice.getId());
-		assertThat(record.get(Schemas.MODIFIED_ON)).isEqualTo(now);
+		assertThat(record.<String>get(Schemas.CREATED_BY)).isEqualTo(alice.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.CREATED_ON)).isEqualTo(now);
+		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isEqualTo(alice.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(now);
 
 	}
 
@@ -79,11 +79,11 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		record.set(Schemas.TITLE, "firstTitle");
 		recordServices.execute(new Transaction(record).setUser(alice));
 
-		assertThat(record.get(Schemas.CREATED_BY)).isEqualTo(bob.getId());
-		assertThat(record.get(Schemas.CREATED_ON)).isEqualTo(shishOClock);
-		assertThat(record.get(Schemas.MODIFIED_BY)).isEqualTo(bob.getId());
-		assertThat(record.get(Schemas.MODIFIED_ON)).isEqualTo(shishOClock);
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("firstTitle");
+		assertThat(record.<String>get(Schemas.CREATED_BY)).isEqualTo(bob.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.CREATED_ON)).isEqualTo(shishOClock);
+		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isEqualTo(bob.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(shishOClock);
+		assertThat(record.<String>get(Schemas.TITLE)).isEqualTo("firstTitle");
 	}
 
 	@Test
@@ -98,10 +98,10 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		record.set(Schemas.MODIFIED_ON, tockOClock);
 		recordServices.execute(new Transaction(record).setUser(alice));
 
-		assertThat(record.get(Schemas.CREATED_BY)).isEqualTo(bob.getId());
-		assertThat(record.get(Schemas.CREATED_ON)).isEqualTo(shishOClock);
-		assertThat(record.get(Schemas.MODIFIED_BY)).isEqualTo(dakota.getId());
-		assertThat(record.get(Schemas.MODIFIED_ON)).isEqualTo(tockOClock);
+		assertThat(record.<String>get(Schemas.CREATED_BY)).isEqualTo(bob.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.CREATED_ON)).isEqualTo(shishOClock);
+		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isEqualTo(dakota.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(tockOClock);
 
 	}
 
@@ -118,11 +118,11 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		record.set(Schemas.TITLE, "newTitle");
 		recordServices.execute(new Transaction(record).setUser(bob));
 
-		assertThat(record.get(Schemas.CREATED_BY)).isEqualTo(alice.getId());
-		assertThat(record.get(Schemas.CREATED_ON)).isEqualTo(now);
-		assertThat(record.get(Schemas.MODIFIED_BY)).isEqualTo(bob.getId());
-		assertThat(record.get(Schemas.MODIFIED_ON)).isEqualTo(shishOClock);
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("newTitle");
+		assertThat(record.<String>get(Schemas.CREATED_BY)).isEqualTo(alice.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.CREATED_ON)).isEqualTo(now);
+		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isEqualTo(bob.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(shishOClock);
+		assertThat(record.<String>get(Schemas.TITLE)).isEqualTo("newTitle");
 
 	}
 
@@ -140,10 +140,10 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		record.set(Schemas.MODIFIED_ON, tockOClock);
 		recordServices.execute(new Transaction(record).setUser(alice));
 
-		assertThat(record.get(Schemas.CREATED_BY)).isEqualTo(bob.getId());
-		assertThat(record.get(Schemas.CREATED_ON)).isEqualTo(shishOClock);
-		assertThat(record.get(Schemas.MODIFIED_BY)).isEqualTo(dakota.getId());
-		assertThat(record.get(Schemas.MODIFIED_ON)).isEqualTo(tockOClock);
+		assertThat(record.<String>get(Schemas.CREATED_BY)).isEqualTo(bob.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.CREATED_ON)).isEqualTo(shishOClock);
+		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isEqualTo(dakota.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(tockOClock);
 	}
 
 	@Test
@@ -160,10 +160,10 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		record.set(Schemas.MODIFIED_ON, tockOClock);
 		recordServices.executeHandlingImpactsAsync(new Transaction(record).setUser(alice));
 
-		assertThat(record.get(Schemas.CREATED_BY)).isEqualTo(bob.getId());
-		assertThat(record.get(Schemas.CREATED_ON)).isEqualTo(shishOClock);
-		assertThat(record.get(Schemas.MODIFIED_BY)).isEqualTo(dakota.getId());
-		assertThat(record.get(Schemas.MODIFIED_ON)).isEqualTo(tockOClock);
+		assertThat(record.<String>get(Schemas.CREATED_BY)).isEqualTo(bob.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.CREATED_ON)).isEqualTo(shishOClock);
+		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isEqualTo(dakota.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(tockOClock);
 	}
 
 	@Test
@@ -175,10 +175,10 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		record.set(Schemas.TITLE, "firstTitle");
 		recordServices.execute(new Transaction(record));
 
-		assertThat(record.get(Schemas.MODIFIED_BY)).isNull();
-		assertThat(record.get(Schemas.CREATED_ON)).isEqualTo(now);
-		assertThat(record.get(Schemas.MODIFIED_BY)).isNull();
-		assertThat(record.get(Schemas.MODIFIED_ON)).isEqualTo(now);
+		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isNull();
+		assertThat(record.<LocalDateTime>get(Schemas.CREATED_ON)).isEqualTo(now);
+		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isNull();
+		assertThat(record.<LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(now);
 	}
 
 	@Test
@@ -194,10 +194,10 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		record.set(Schemas.TITLE, "newTitle");
 		recordServices.update(record);
 
-		assertThat(record.get(Schemas.MODIFIED_BY)).isNull();
-		assertThat(record.get(Schemas.CREATED_ON)).isEqualTo(now);
-		assertThat(record.get(Schemas.MODIFIED_BY)).isNull();
-		assertThat(record.get(Schemas.MODIFIED_ON)).isEqualTo(shishOClock);
+		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isNull();
+		assertThat(record.<LocalDateTime>get(Schemas.CREATED_ON)).isEqualTo(now);
+		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isNull();
+		assertThat(record.<LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(shishOClock);
 	}
 
 	@Test
@@ -213,10 +213,10 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		record.set(Schemas.TITLE, "newTitle");
 		recordServices.execute(new Transaction(record));
 
-		assertThat(record.get(Schemas.CREATED_BY)).isEqualTo(alice.getId());
-		assertThat(record.get(Schemas.CREATED_ON)).isEqualTo(now);
-		assertThat(record.get(Schemas.MODIFIED_BY)).isNull();
-		assertThat(record.get(Schemas.MODIFIED_ON)).isEqualTo(shishOClock);
+		assertThat(record.<String>get(Schemas.CREATED_BY)).isEqualTo(alice.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.CREATED_ON)).isEqualTo(now);
+		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isNull();
+		assertThat(record.<LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(shishOClock);
 	}
 
 	@Test
@@ -237,12 +237,12 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		record.set(zeSchema.dateTimeMetadata(), now);
 		recordServices.execute(new Transaction(record).setUser(dakota));
 
-		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(now);
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("newTitle");
-		assertThat(record.get(Schemas.CREATED_BY)).isEqualTo(alice.getId());
-		assertThat(record.get(Schemas.CREATED_ON)).isEqualTo(now);
-		assertThat(record.get(Schemas.MODIFIED_BY)).isEqualTo(dakota.getId());
-		assertThat(record.get(Schemas.MODIFIED_ON)).isEqualTo(tockOClock);
+		assertThat(record.<LocalDateTime>get(zeSchema.dateTimeMetadata())).isEqualTo(now);
+		assertThat(record.<String>get(Schemas.TITLE)).isEqualTo("newTitle");
+		assertThat(record.<String>get(Schemas.CREATED_BY)).isEqualTo(alice.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.CREATED_ON)).isEqualTo(now);
+		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isEqualTo(dakota.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(tockOClock);
 	}
 
 	@Test
@@ -258,11 +258,11 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		recordServices.execute(new Transaction(record).setUser(bob));
 
 		recordServices.refresh(record);
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("firstTitle");
-		assertThat(record.get(Schemas.CREATED_BY)).isEqualTo(alice.getId());
-		assertThat(record.get(Schemas.CREATED_ON)).isEqualTo(now);
-		assertThat(record.get(Schemas.MODIFIED_BY)).isEqualTo(alice.getId());
-		assertThat(record.get(Schemas.MODIFIED_ON)).isEqualTo(now);
+		assertThat(record.<String>get(Schemas.TITLE)).isEqualTo("firstTitle");
+		assertThat(record.<String>get(Schemas.CREATED_BY)).isEqualTo(alice.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.CREATED_ON)).isEqualTo(now);
+		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isEqualTo(alice.getId());
+		assertThat(record.<LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(now);
 	}
 
 	@Test

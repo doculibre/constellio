@@ -36,9 +36,7 @@ import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static java.util.Arrays.asList;
@@ -183,14 +181,14 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		record.set(TITLE, "modified title");
 		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(TITLE, "modified title");
 
-		assertThat(recordsCaches.getRecord(record.getId()).get(TITLE)).isEqualTo("original title");
-		assertThat(recordsCaches.getCache(record.getCollection())
+		assertThat((Object) recordsCaches.getRecord(record.getId()).get(TITLE)).isEqualTo("original title");
+		assertThat((Object) recordsCaches.getCache(record.getCollection())
 				.getByMetadata(zeCollectionSchemaWithPermanentCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
 				.get(TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
-		assertThat(record.get(TITLE)).isEqualTo("modified title");
+		assertThat((Object) record.get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
-		assertThat(record.get(TITLE)).isEqualTo("modified title");
+		assertThat((Object) record.get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
 
 		String type = zeCollectionSchemaWithPermanentCache.typeCode();
@@ -224,13 +222,13 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		record.set(TITLE, "modified title");
 		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(TITLE, "modified title");
 
-		assertThat(recordsCaches.getRecord(record.getId()).get(TITLE)).isEqualTo("original title");
-		assertThat(recordsCaches.getCache(record.getCollection())
+		assertThat((Object) recordsCaches.getRecord(record.getId()).get(TITLE)).isEqualTo("original title");
+		assertThat((Object) recordsCaches.getCache(record.getCollection())
 				.getByMetadata(zeCollectionSchemaWithVolatileCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
 				.get(TITLE)).isEqualTo("original title");
-		assertThat(record.get(TITLE)).isEqualTo("modified title");
+		assertThat((Object) record.get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
-		assertThat(record.get(TITLE)).isEqualTo("modified title");
+		assertThat((Object) record.get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
 
 	}
@@ -252,11 +250,11 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		record.set(TITLE, "modified title");
 		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(TITLE, "modified title");
 
-		assertThat(recordsCaches.getRecord(record.getId()).get(TITLE)).isEqualTo("original title");
-		assertThat(recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
-		assertThat(record.get(TITLE)).isEqualTo("modified title");
+		assertThat((Object) recordsCaches.getRecord(record.getId()).get(TITLE)).isEqualTo("original title");
+		assertThat((Boolean) recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
+		assertThat((Object) record.get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
-		assertThat(record.get(TITLE)).isEqualTo("modified title");
+		assertThat((Object) record.get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
 
 	}
@@ -400,11 +398,11 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThatRecords("un1", "un2").areNotIn(recordsCaches);
 		assertThatRecords("un1", "un2").areNotIn(otherInstanceRecordsCaches);
 
-		assertThat(recordsCaches.getRecord("p2").get(zeCollectionSchemaWithPermanentCache.stringMetadata())).isEqualTo("p2Code");
-		assertThat(otherInstanceRecordsCaches.getRecord("p2").get(zeCollectionSchemaWithPermanentCache.stringMetadata()))
+		assertThat((Object) recordsCaches.getRecord("p2").get(zeCollectionSchemaWithPermanentCache.stringMetadata())).isEqualTo("p2Code");
+		assertThat((Object) otherInstanceRecordsCaches.getRecord("p2").get(zeCollectionSchemaWithPermanentCache.stringMetadata()))
 				.isEqualTo("p2Code");
-		assertThat(recordsCaches.getRecord("p2").get(TITLE)).isEqualTo("test");
-		assertThat(otherInstanceRecordsCaches.getRecord("p2").get(TITLE)).isEqualTo("test");
+		assertThat((Object) recordsCaches.getRecord("p2").get(TITLE)).isEqualTo("test");
+		assertThat((Object) otherInstanceRecordsCaches.getRecord("p2").get(TITLE)).isEqualTo("test");
 		assertThat(otherInstanceRecordsCaches.getRecord("p2").getVersion())
 				.isEqualTo(recordsCaches.getRecord("p2").getVersion())
 				.isNotEqualTo(versionBeforeModification);
@@ -652,7 +650,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		cachelessRecordServices.execute(transaction);
 
 		Record record = getModelLayerFactory().newRecordServices().getDocumentById("zeUltimateRecordWithEmptyValue");
-		assertThat(record.get(zeCollectionSchemaWithVolatileCache.anotherStringMetadata())).isNull();
+		assertThat((Object) record.get(zeCollectionSchemaWithVolatileCache.anotherStringMetadata())).isNull();
 
 	}
 

@@ -5,16 +5,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.rm.wrappers.RMUserFolder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -23,12 +14,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -260,7 +246,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		SystemConfigurationsManager manager = getModelLayerFactory().getSystemConfigurationsManager();
-		assertThat(manager.getValue(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT)).isEqualTo(Boolean.FALSE);
+		assertThat(manager.<Boolean>getValue(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT)).isEqualTo(Boolean.FALSE);
 	}
 
 	private void whenMigratingToCurrentVersionThenHasEssentialMetadatas()

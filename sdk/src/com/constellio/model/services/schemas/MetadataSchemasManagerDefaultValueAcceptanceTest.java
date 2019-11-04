@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultValue;
@@ -65,7 +66,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue()).isEqualTo(record1Id);
-		assertThat(newAnotherSchemaRecord().get(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema")))
+		assertThat(newAnotherSchemaRecord().<String>get(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema")))
 				.isEqualTo(record1Id);
 
 		schemas.modify(new MetadataSchemaTypesAlteration() {
@@ -76,7 +77,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue()).isEqualTo(record2Id);
-		assertThat(newAnotherSchemaRecord().get(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema")))
+		assertThat(newAnotherSchemaRecord().<String>get(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema")))
 				.isEqualTo(record2Id);
 
 	}
@@ -147,7 +148,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue())
 				.isEqualTo(asList(record1Id, record2Id));
-		assertThat(newAnotherSchemaRecord().get(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema")))
+		assertThat(newAnotherSchemaRecord().<List<String>>get(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema")))
 				.isEqualTo(asList(record1Id, record2Id));
 
 		schemas.modify(new MetadataSchemaTypesAlteration() {
@@ -159,7 +160,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue())
 				.isEqualTo(asList(record1Id, record3Id));
-		assertThat(newAnotherSchemaRecord().get(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema")))
+		assertThat(newAnotherSchemaRecord().<List<String>>get(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema")))
 				.isEqualTo(asList(record1Id, record3Id));
 
 	}
@@ -226,7 +227,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas.withAStringMetadata(whichHasDefaultValue("<?Ze default valué:;&>")));
 
 		assertThat(zeSchema.stringMetadata().getDefaultValue()).isEqualTo("<?Ze default valué:;&>");
-		assertThat(newZeSchemaRecord().get(zeSchema.stringMetadata())).isEqualTo("<?Ze default valué:;&>");
+		assertThat(newZeSchemaRecord().<String>get(zeSchema.stringMetadata())).isEqualTo("<?Ze default valué:;&>");
 	}
 
 	@Test
@@ -236,7 +237,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 				whichHasDefaultValue(asList("value1", "value2"))));
 
 		assertThat(zeSchema.stringMetadata().getDefaultValue()).isEqualTo(asList("value1", "value2"));
-		assertThat(newZeSchemaRecord().get(zeSchema.stringMetadata())).isEqualTo(asList("value1", "value2"));
+		assertThat(newZeSchemaRecord().<List<String>>get(zeSchema.stringMetadata())).isEqualTo(asList("value1", "value2"));
 	}
 
 	@Test
@@ -245,7 +246,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas.withALargeTextMetadata(whichHasDefaultValue("<?Ze default valué:;&>")));
 
 		assertThat(zeSchema.largeTextMetadata().getDefaultValue()).isEqualTo("<?Ze default valué:;&>");
-		assertThat(newZeSchemaRecord().get(zeSchema.largeTextMetadata())).isEqualTo("<?Ze default valué:;&>");
+		assertThat(newZeSchemaRecord().<String>get(zeSchema.largeTextMetadata())).isEqualTo("<?Ze default valué:;&>");
 	}
 
 	@Test
@@ -255,7 +256,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 				whichHasDefaultValue(asList("value1", "value2"))));
 
 		assertThat(zeSchema.largeTextMetadata().getDefaultValue()).isEqualTo(asList("value1", "value2"));
-		assertThat(newZeSchemaRecord().get(zeSchema.largeTextMetadata())).isEqualTo(asList("value1", "value2"));
+		assertThat(newZeSchemaRecord().<List<String>>get(zeSchema.largeTextMetadata())).isEqualTo(asList("value1", "value2"));
 	}
 
 	@Test
@@ -264,7 +265,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas.withADateMetadata(whichHasDefaultValue(zeUltimateDate)));
 
 		assertThat(zeSchema.dateMetadata().getDefaultValue()).isEqualTo(zeUltimateDate);
-		assertThat(newZeSchemaRecord().get(zeSchema.dateMetadata())).isEqualTo(zeUltimateDate);
+		assertThat(newZeSchemaRecord().<LocalDate>get(zeSchema.dateMetadata())).isEqualTo(zeUltimateDate);
 	}
 
 	@Test
@@ -274,7 +275,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 				whichHasDefaultValue(asList(zeUltimateDate, anotherDate))));
 
 		assertThat(zeSchema.dateMetadata().getDefaultValue()).isEqualTo(asList(zeUltimateDate, anotherDate));
-		assertThat(newZeSchemaRecord().get(zeSchema.dateMetadata())).isEqualTo(asList(zeUltimateDate, anotherDate));
+		assertThat(newZeSchemaRecord().<List<LocalDate>>get(zeSchema.dateMetadata())).isEqualTo(asList(zeUltimateDate, anotherDate));
 	}
 
 	@Test
@@ -283,7 +284,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas.withADateTimeMetadata(whichHasDefaultValue(shishOClock)));
 
 		assertThat(zeSchema.dateTimeMetadata().getDefaultValue()).isEqualTo(shishOClock);
-		assertThat(newZeSchemaRecord().get(zeSchema.dateTimeMetadata())).isEqualTo(shishOClock);
+		assertThat(newZeSchemaRecord().<LocalDateTime>get(zeSchema.dateTimeMetadata())).isEqualTo(shishOClock);
 	}
 
 	@Test
@@ -293,7 +294,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 				whichHasDefaultValue(asList(shishOClock, tockOClock))));
 
 		assertThat(zeSchema.dateTimeMetadata().getDefaultValue()).isEqualTo(asList(shishOClock, tockOClock));
-		assertThat(newZeSchemaRecord().get(zeSchema.dateTimeMetadata())).isEqualTo(asList(shishOClock, tockOClock));
+		assertThat(newZeSchemaRecord().<List<LocalDateTime>>get(zeSchema.dateTimeMetadata())).isEqualTo(asList(shishOClock, tockOClock));
 	}
 
 	@Test
@@ -302,7 +303,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas.withABooleanMetadata(whichHasDefaultValue(false)));
 
 		assertThat(zeSchema.booleanMetadata().getDefaultValue()).isEqualTo(Boolean.FALSE);
-		assertThat(newZeSchemaRecord().get(zeSchema.booleanMetadata())).isEqualTo(Boolean.FALSE);
+		assertThat(newZeSchemaRecord().<Boolean>get(zeSchema.booleanMetadata())).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test
@@ -311,7 +312,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas.withABooleanMetadata(whichHasDefaultValue(true)));
 
 		assertThat(zeSchema.booleanMetadata().getDefaultValue()).isEqualTo(Boolean.TRUE);
-		assertThat(newZeSchemaRecord().get(zeSchema.booleanMetadata())).isEqualTo(Boolean.TRUE);
+		assertThat(newZeSchemaRecord().<Boolean>get(zeSchema.booleanMetadata())).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
@@ -320,7 +321,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas.withABooleanMetadata(whichHasDefaultValue(null)));
 
 		assertThat(zeSchema.booleanMetadata().getDefaultValue()).isNull();
-		assertThat(newZeSchemaRecord().get(zeSchema.booleanMetadata())).isNull();
+		assertThat(newZeSchemaRecord().<Boolean>get(zeSchema.booleanMetadata())).isNull();
 	}
 
 	@Test
@@ -330,7 +331,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 				whichHasDefaultValue(asList(true, false, true))));
 
 		assertThat(zeSchema.booleanMetadata().getDefaultValue()).isEqualTo(asList(true, false, true));
-		assertThat(newZeSchemaRecord().get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false, true));
+		assertThat(newZeSchemaRecord().<List<Boolean>>get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false, true));
 	}
 
 	//@Test
@@ -339,7 +340,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas.withAnIntegerMetadata(whichHasDefaultValue(12)));
 
 		assertThat(zeSchema.integerMetadata().getDefaultValue()).isEqualTo(12);
-		assertThat(newZeSchemaRecord().get(zeSchema.integerMetadata())).isEqualTo(12);
+		assertThat(newZeSchemaRecord().<Integer>get(zeSchema.integerMetadata())).isEqualTo(12);
 
 	}
 
@@ -350,7 +351,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 				whichHasDefaultValue(asList(12, 34, 56))));
 
 		assertThat(zeSchema.integerMetadata().getDefaultValue()).isEqualTo(asList(12, 34, 56));
-		assertThat(newZeSchemaRecord().get(zeSchema.integerMetadata())).isEqualTo(asList(12, 34, 56));
+		assertThat(newZeSchemaRecord().<List<Integer>>get(zeSchema.integerMetadata())).isEqualTo(asList(12, 34, 56));
 	}
 
 	@Test
@@ -359,7 +360,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas.withANumberMetadata(whichHasDefaultValue(12.34)));
 
 		assertThat(zeSchema.numberMetadata().getDefaultValue()).isEqualTo(12.34);
-		assertThat(newZeSchemaRecord().get(zeSchema.numberMetadata())).isEqualTo(12.34);
+		assertThat(newZeSchemaRecord().<Double>get(zeSchema.numberMetadata())).isEqualTo(12.34);
 	}
 
 	@Test
@@ -368,7 +369,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas.withANumberMetadata(whichHasDefaultValue(0.0)));
 
 		assertThat(zeSchema.numberMetadata().getDefaultValue()).isEqualTo(0.0);
-		assertThat(newZeSchemaRecord().get(zeSchema.numberMetadata())).isEqualTo(0.0);
+		assertThat(newZeSchemaRecord().<Double>get(zeSchema.numberMetadata())).isEqualTo(0.0);
 		assertThat(newZeSchemaRecord().isModified(zeSchema.numberMetadata())).isTrue();
 	}
 
@@ -379,7 +380,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 				whichHasDefaultValue(asList(12.34, 34.56, 56.78))));
 
 		assertThat(zeSchema.numberMetadata().getDefaultValue()).isEqualTo(asList(12.34, 34.56, 56.78));
-		assertThat(newZeSchemaRecord().get(zeSchema.numberMetadata())).isEqualTo(asList(12.34, 34.56, 56.78));
+		assertThat(newZeSchemaRecord().<List<Double>>get(zeSchema.numberMetadata())).isEqualTo(asList(12.34, 34.56, 56.78));
 	}
 
 	@Test
@@ -388,7 +389,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas.withAnEnumMetadata(AValidEnum.class, whichHasDefaultValue(AValidEnum.SECOND_VALUE)));
 
 		assertThat(zeSchema.enumMetadata().getDefaultValue()).isEqualTo(AValidEnum.SECOND_VALUE);
-		assertThat(newZeSchemaRecord().get(zeSchema.enumMetadata())).isEqualTo(AValidEnum.SECOND_VALUE);
+		assertThat(newZeSchemaRecord().<Object>get(zeSchema.enumMetadata())).isEqualTo(AValidEnum.SECOND_VALUE);
 	}
 
 	@Test
@@ -399,7 +400,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 
 		assertThat(zeSchema.enumMetadata().getDefaultValue())
 				.isEqualTo(asList(AValidEnum.SECOND_VALUE, AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE));
-		assertThat(newZeSchemaRecord().get(zeSchema.enumMetadata()))
+		assertThat(newZeSchemaRecord().<Object>get(zeSchema.enumMetadata()))
 				.isEqualTo(asList(AValidEnum.SECOND_VALUE, AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE));
 	}
 

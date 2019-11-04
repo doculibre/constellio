@@ -14,12 +14,7 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataAccessRestriction;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -55,15 +50,8 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Random;
-import java.util.Set;
 
 import static com.constellio.data.dao.services.records.DataStore.EVENTS;
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
@@ -72,28 +60,14 @@ import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.search.entities.SearchBoost.createRegexBoost;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollectionInDataStore;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.ids;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_TYPE_CODE;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasTransiency;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsing;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @SlowTest
 public class SearchServiceAcceptanceTest extends ConstellioTest {
@@ -703,9 +677,9 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		List<Record> records = searchServices.search(query);
 
 		assertThat(ids(records)).containsOnly(TestUtils.idsArray(expectedRecord, expectedRecord2));
-		assertThat(records.get(0).get(zeSchema.stringMetadata())).isNull();
+		assertThat((Object) records.get(0).get(zeSchema.stringMetadata())).isNull();
 		assertThat((boolean) records.get(0).get(zeSchema.booleanMetadata())).isTrue();
-		assertThat(records.get(1).get(zeSchema.stringMetadata())).isNull();
+		assertThat((Object) records.get(1).get(zeSchema.stringMetadata())).isNull();
 		assertThat((boolean) records.get(1).get(zeSchema.booleanMetadata())).isTrue();
 
 	}
@@ -731,16 +705,16 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		List<Record> records = searchServices.search(query);
 
 		assertThat(ids(records)).containsOnly(TestUtils.idsArray(expectedRecord, expectedRecord2));
-		assertThat(records.get(0).get(zeSchema.stringMetadata())).isNotNull();
+		assertThat((Object) records.get(0).get(zeSchema.stringMetadata())).isNotNull();
 		assertThat(records.get(0).getId()).isNotNull();
 		assertThat(records.get(0).getVersion()).isNotNull();
 		assertThat(records.get(0).getSchemaCode()).isNotNull();
-		assertThat(records.get(0).get(zeSchema.booleanMetadata())).isNull();
-		assertThat(records.get(1).get(zeSchema.stringMetadata())).isNotNull();
+		assertThat((Object) records.get(0).get(zeSchema.booleanMetadata())).isNull();
+		assertThat((Object) records.get(1).get(zeSchema.stringMetadata())).isNotNull();
 		assertThat(records.get(1).getId()).isNotNull();
 		assertThat(records.get(1).getVersion()).isNotNull();
 		assertThat(records.get(1).getSchemaCode()).isNotNull();
-		assertThat(records.get(1).get(zeSchema.booleanMetadata())).isNull();
+		assertThat((Object) records.get(1).get(zeSchema.booleanMetadata())).isNull();
 	}
 
 	@Test
@@ -1090,8 +1064,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		List<Record> records = searchServices.search(query);
 
 		assertThat(records).hasSize(2);
-		assertThat(records.get(0).get(zeSchema.stringMetadata())).isEqualTo("Chuck Norris");
-		assertThat(records.get(1).get(zeSchema.stringMetadata())).isEqualTo("Chuck Lechat Norris");
+		assertThat((Object) records.get(0).get(zeSchema.stringMetadata())).isEqualTo("Chuck Norris");
+		assertThat((Object) records.get(1).get(zeSchema.stringMetadata())).isEqualTo("Chuck Lechat Norris");
 	}
 
 	@Test
@@ -2762,7 +2736,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 				"Folder");
 		Record record = searchServices.searchSingleResult(condition);
 
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("Folder 1");
+		assertThat((Object) record.get(Schemas.TITLE)).isEqualTo("Folder 1");
 	}
 
 	@Test
@@ -2960,13 +2934,13 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		assertThat(searchServices.hasResults(from(zeSchema.type()).where(zeSchema.numberMetadata()).isNotNull())).isFalse();
 
-		assertThat(searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).get(zeSchema.numberMetadata())).isNull();
+		assertThat((Object) searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).get(zeSchema.numberMetadata())).isNull();
 
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
 
 		searchServices.searchSingleResult(from(zeSchema.type()).returnAll());
 		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
-		assertThat(recordInCache.get(zeSchema.numberMetadata())).isNull();
+		assertThat((Object) recordInCache.get(zeSchema.numberMetadata())).isNull();
 	}
 
 	@Test
@@ -2982,14 +2956,14 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		assertThat(searchServices.hasResults(from(zeSchema.type()).where(zeSchema.numberMetadata()).isNotNull())).isFalse();
 
-		assertThat(searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).get(zeSchema.numberMetadata()))
+		assertThat((Object) searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).get(zeSchema.numberMetadata()))
 				.isEqualTo(15.0);
 
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
 
 		searchServices.searchSingleResult(from(zeSchema.type()).returnAll());
 		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
-		assertThat(recordInCache.get(zeSchema.numberMetadata())).isEqualTo(15.0);
+		assertThat((Object) recordInCache.get(zeSchema.numberMetadata())).isEqualTo(15.0);
 
 	}
 

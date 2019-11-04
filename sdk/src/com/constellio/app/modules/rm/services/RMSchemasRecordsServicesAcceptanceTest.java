@@ -72,10 +72,10 @@ public class RMSchemasRecordsServicesAcceptanceTest extends ConstellioTest {
 		categoryIdX.set(Schemas.TITLE, Locale.ENGLISH, "{en} Xe category");
 		recordServices.update(categoryIdX);
 
-		assertThat(recordServices.getDocumentById(records.categoryId_X).get(Schemas.TITLE)).isEqualTo("{fr} Xe category");
-		assertThat(recordServices.getDocumentById(records.categoryId_X).get(Schemas.TITLE, Locale.CANADA_FRENCH))
+		assertThat((Object) recordServices.getDocumentById(records.categoryId_X).get(Schemas.TITLE)).isEqualTo("{fr} Xe category");
+		assertThat((Object) recordServices.getDocumentById(records.categoryId_X).get(Schemas.TITLE, Locale.CANADA_FRENCH))
 				.isEqualTo("{fr} Xe category");
-		assertThat(recordServices.getDocumentById(records.categoryId_X).get(Schemas.TITLE, Locale.ENGLISH))
+		assertThat((Object) recordServices.getDocumentById(records.categoryId_X).get(Schemas.TITLE, Locale.ENGLISH))
 				.isEqualTo("{en} Xe category");
 
 		RMSchemasRecordsServices defaultRM = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());

@@ -17,19 +17,11 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
-import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
+import com.constellio.model.services.taxonomies.*;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Document;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.ObjectId;
-import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.ObjectIdImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Ace;
@@ -53,11 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
@@ -1196,7 +1184,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		return new Condition<CmisObject>() {
 			@Override
 			public boolean matches(CmisObject objectData) {
-				assertThat(objectData.getPropertyValue(key)).describedAs(key).isEqualTo(value);
+				assertThat((Object) objectData.getPropertyValue(key)).describedAs(key).isEqualTo(value);
 				return true;
 			}
 		};

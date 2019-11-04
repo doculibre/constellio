@@ -121,9 +121,9 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 		transactionModifyingSecondNumber.setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE);
 		recordServices.execute(transactionModifyingSecondNumber);
 
-		assertThat(getRecord1().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
-		assertThat(getRecord2().get(zeSchema.calculatedNumber())).isEqualTo(222.0);
-		assertThat(getRecord3().get(zeSchema.calculatedNumber())).isEqualTo(212.0);
+		assertThat((Object) getRecord1().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
+		assertThat((Object) getRecord2().get(zeSchema.calculatedNumber())).isEqualTo(222.0);
+		assertThat((Object) getRecord3().get(zeSchema.calculatedNumber())).isEqualTo(212.0);
 
 	}
 
@@ -169,9 +169,9 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 		transactionModifyingSecondNumber.setOptimisticLockingResolution(OptimisticLockingResolution.KEEP_OLDER);
 		recordServices.execute(transactionModifyingSecondNumber);
 
-		assertThat(getRecord1().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
-		assertThat(getRecord2().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
-		assertThat(getRecord3().get(zeSchema.calculatedNumber())).isEqualTo(211.0);
+		assertThat((Object) getRecord1().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
+		assertThat((Object) getRecord2().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
+		assertThat((Object) getRecord3().get(zeSchema.calculatedNumber())).isEqualTo(211.0);
 
 	}
 
@@ -223,9 +223,9 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 			// OK
 		}
 
-		assertThat(getRecord1().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
-		assertThat(getRecord2().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
-		assertThat(getRecord3().get(zeSchema.calculatedNumber())).isEqualTo(211.0);
+		assertThat((Object) getRecord1().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
+		assertThat((Object) getRecord2().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
+		assertThat((Object) getRecord3().get(zeSchema.calculatedNumber())).isEqualTo(211.0);
 
 	}
 
@@ -496,9 +496,9 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 			// OK
 		}
 
-		assertThat(getRecord1().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
-		assertThat(getRecord2().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
-		assertThat(getRecord3().get(zeSchema.calculatedNumber())).isEqualTo(211.0);
+		assertThat((Object) getRecord1().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
+		assertThat((Object) getRecord2().get(zeSchema.calculatedNumber())).isEqualTo(221.0);
+		assertThat((Object) getRecord3().get(zeSchema.calculatedNumber())).isEqualTo(211.0);
 	}
 
 	private Transaction modifySecondNumber() {

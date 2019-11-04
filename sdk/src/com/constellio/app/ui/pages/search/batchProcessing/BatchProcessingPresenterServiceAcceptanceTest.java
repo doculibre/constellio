@@ -42,20 +42,10 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
@@ -970,8 +960,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		transaction.add(rm.setType(records.getFolder_A02(), records.folderTypeEmploye())).setTitle("zetest");
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
-		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Dossier d'employé général");
+		assertThat(records.getFolder_A01().<String>get("subType")).isEqualTo("customSubType");
+		assertThat(records.getFolder_A02().<String>get("subType")).isEqualTo("Dossier d'employé général");
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
@@ -985,8 +975,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				records.getAdmin().getUsername(), "Edit records");
 
 		waitForBatchProcess();
-		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
-		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
+		assertThat(records.getFolder_A01().<String>get("subType")).isEqualTo("customSubType");
+		assertThat(records.getFolder_A02().<String>get("subType")).isEqualTo("Meeting important");
 
 		request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
@@ -1011,8 +1001,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("folder_employe_hireDate", null, "2010-12-20")
 		);
 
-		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
-		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
+		assertThat(records.getFolder_A01().<String>get("subType")).isEqualTo("customSubType");
+		assertThat(records.getFolder_A02().<String>get("subType")).isEqualTo("Meeting important");
 
 	}
 
@@ -1026,8 +1016,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		transaction.add(rm.setType(records.getFolder_A02(), records.folderTypeEmploye())).setTitle("zetest");
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
-		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Dossier d'employé général");
+		assertThat(records.getFolder_A01().<String>get("subType")).isEqualTo("customSubType");
+		assertThat(records.getFolder_A02().<String>get("subType")).isEqualTo("Dossier d'employé général");
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setIds(asList(records.folder_A01, records.folder_A02))
@@ -1039,8 +1029,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				records.getAdmin().getUsername(), "Edit records");
 
 		waitForBatchProcess();
-		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
-		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
+		assertThat(records.getFolder_A01().<String>get("subType")).isEqualTo("customSubType");
+		assertThat(records.getFolder_A02().<String>get("subType")).isEqualTo("Meeting important");
 
 		request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setIds(asList(records.folder_A01, records.folder_A02))
@@ -1064,8 +1054,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("folder_employe_hireDate", null, "2010-12-20")
 		);
 
-		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
-		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
+		assertThat(records.getFolder_A01().<String>get("subType")).isEqualTo("customSubType");
+		assertThat(records.getFolder_A02().<String>get("subType")).isEqualTo("Meeting important");
 	}
 
 	public void whenBatchProcessingThenOriginalTypeIsNonNullIfEachRecordsHaveTheSameType()

@@ -10,6 +10,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -73,9 +74,9 @@ public class ContainersInAdministrativeUnitPresenterAcceptTest extends Constelli
 		RecordVO adminUnit = presenter.getAdministrativeUnit();
 
 		assertThat(adminUnit.getId()).isEqualTo(records.unitId_10);
-		assertThat(adminUnit.get(AdministrativeUnit.CODE)).isEqualTo(records.getUnit10().getCode());
-		assertThat(adminUnit.get(Schemas.TITLE.getLocalCode())).isEqualTo(records.getUnit10().getTitle());
-		assertThat(adminUnit.get(Schemas.CREATED_ON.getLocalCode())).isEqualTo(records.getUnit10().getCreatedOn());
+		assertThat(adminUnit.<String>get(AdministrativeUnit.CODE)).isEqualTo(records.getUnit10().getCode());
+		assertThat(adminUnit.<String>get(Schemas.TITLE.getLocalCode())).isEqualTo(records.getUnit10().getTitle());
+		assertThat(adminUnit.<LocalDateTime>get(Schemas.CREATED_ON.getLocalCode())).isEqualTo(records.getUnit10().getCreatedOn());
 	}
 
 	@Test

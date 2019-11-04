@@ -107,10 +107,10 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		transaction2.add(record666.set(zeSchema.metadata("referenceToZeSchema"), null));
 		transaction2.setRecordFlushing(RecordsFlushing.LATER());
 		recordServices.execute(transaction2);
-		assertThat(recordServices.getDocumentById("000666").get(zeSchema.metadata("referenceToZeSchema"))).isEqualTo("000042");
+		assertThat((Object) recordServices.getDocumentById("000666").get(zeSchema.metadata("referenceToZeSchema"))).isEqualTo("000042");
 
 		reindexingServices.reindexCollection(zeCollection, ReindexationMode.RECALCULATE);
-		assertThat(recordServices.getDocumentById("000666").get(zeSchema.metadata("referenceToZeSchema"))).isNull();
+		assertThat((Object) recordServices.getDocumentById("000666").get(zeSchema.metadata("referenceToZeSchema"))).isNull();
 	}
 
 	@Test

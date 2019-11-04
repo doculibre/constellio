@@ -15,7 +15,7 @@ import java.util.UUID;
 
 import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPDocumentType.USER;
 import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.DISTINGUISHED_NAME;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConnectorLDAPCrawlerHelperAcceptanceTest extends ConstellioTest {
@@ -88,7 +88,7 @@ public class ConnectorLDAPCrawlerHelperAcceptanceTest extends ConstellioTest {
 		Entry<String, LDAPObjectAttributes> entry = new TestEntry();
 		ConnectorDocument document = crawlerHelper.wrapDocument(connectorInstance, entry, USER, "zUrl");
 		assertThat(document.getURL()).isEqualTo("zUrl");
-		assertThat(document.get(DISTINGUISHED_NAME)).isEqualTo("DN");
+		assertThat(document.<String>get(DISTINGUISHED_NAME)).isEqualTo("DN");
 	}
 
 	private class TestEntry implements Entry<String, LDAPObjectAttributes> {

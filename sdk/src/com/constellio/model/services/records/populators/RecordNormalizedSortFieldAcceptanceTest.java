@@ -53,8 +53,8 @@ public class RecordNormalizedSortFieldAcceptanceTest extends ConstellioTest {
 		transaction.add(new TestRecord(zeSchema, "r2").set(zeSchema.stringMetadata(), "A100"));
 		recordServices.execute(transaction);
 
-		assertThat(recordServices.getDocumentById("r1").get(zeSchema.stringMetadata().getSortField())).isNull();
-		assertThat(recordServices.getDocumentById("r2").get(zeSchema.stringMetadata().getSortField())).isNull();
+		assertThat((Object) recordServices.getDocumentById("r1").get(zeSchema.stringMetadata().getSortField())).isNull();
+		assertThat((Object) recordServices.getDocumentById("r2").get(zeSchema.stringMetadata().getSortField())).isNull();
 
 		String datastoreCode = zeSchema.stringMetadata().getSortField().getDataStoreCode();
 		assertThat(recordDao.get("r1").getFields().get(datastoreCode)).isNull();

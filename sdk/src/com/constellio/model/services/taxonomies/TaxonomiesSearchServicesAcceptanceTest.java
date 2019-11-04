@@ -3,17 +3,14 @@ package com.constellio.model.services.taxonomies;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
@@ -24,14 +21,7 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.DocumentSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.FolderSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy1FirstSchemaType;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy1SecondSchemaType;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy2CustomSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy2DefaultSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.TaxonomyRecords;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.UserSchema;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,7 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -91,12 +80,6 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		batchProcessesManager.initialize();
 
 		defineSchemasManager().using(schemas);
-
-		RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
-		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		cache.configureCache(permanentCache(types.getSchemaType(Authorization.SCHEMA_TYPE)));
-		cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
-		cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
 
 		userSchema = schemas.getUserSchema();
 		Transaction transaction = new Transaction();
@@ -399,7 +382,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		Record recordToDelete = records.taxo1_firstTypeItem2_secondTypeItem2;
 		givenAuthorizationsToChuck(recordToDelete);
 		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
+		assertThat(recordToDelete.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 
 		options = new TaxonomiesSearchOptions();
 		assertThat(services.getVisibleChildConcept(chuck, TAXO1, records.taxo1_firstTypeItem2, options)).isEmpty();
@@ -413,7 +396,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		Record recordToDelete = records.taxo1_firstTypeItem2_secondTypeItem2;
 		givenAuthorizationsToChuck(recordToDelete);
 		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
+		assertThat(recordToDelete.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 
 		options = new TaxonomiesSearchOptions(StatusFilter.ALL);
 		assertThat(services.getVisibleChildConcept(chuck, TAXO1, records.taxo1_firstTypeItem2, options)).isNotEmpty();
@@ -427,7 +410,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		Record recordToDelete = records.taxo1_firstTypeItem2_secondTypeItem2;
 		givenAuthorizationsToChuck(recordToDelete);
 		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
+		assertThat(recordToDelete.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 
 		options = new TaxonomiesSearchOptions(StatusFilter.ACTIVES);
 		assertThat(services.getVisibleChildConcept(chuck, TAXO1, records.taxo1_firstTypeItem2, options)).isEmpty();
@@ -441,7 +424,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		Record recordToDelete = records.taxo1_firstTypeItem2_secondTypeItem2;
 		givenAuthorizationsToChuck(recordToDelete);
 		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
+		assertThat(recordToDelete.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 
 		addAuthorizationWithoutDetaching(asList(Role.READ), asList(bob.getId()),
 				asList(records.taxo1_firstTypeItem2_secondTypeItem2.getId(), folder.getId()));
@@ -462,7 +445,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		Record recordToDelete = records.taxo1_firstTypeItem2_secondTypeItem2;
 		givenAuthorizationsToChuck(recordToDelete);
 		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
+		assertThat(recordToDelete.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 
 		addAuthorizationWithoutDetaching(asList(Role.READ), asList(bob.getId()),
 				asList(records.taxo1_firstTypeItem2_secondTypeItem2.getId(), folder.getId()));
@@ -486,7 +469,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		Record recordToDelete = records.taxo1_firstTypeItem2;
 		givenAuthorizationsToChuck(recordToDelete);
 		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
+		assertThat(recordToDelete.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 
 		addAuthorizationWithoutDetaching(asList(Role.READ), asList(bob.getId()),
 				asList(records.taxo1_firstTypeItem2.getId(), folder.getId()));
@@ -509,7 +492,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		Record recordToDelete = records.taxo1_firstTypeItem2;
 		givenAuthorizationsToChuck(recordToDelete);
 		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
+		assertThat(recordToDelete.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 
 		addAuthorizationWithoutDetaching(asList(Role.READ), asList(bob.getId()),
 				asList(records.taxo1_firstTypeItem2.getId(), folder.getId()));

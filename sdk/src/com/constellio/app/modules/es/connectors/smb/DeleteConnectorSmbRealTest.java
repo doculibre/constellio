@@ -97,10 +97,10 @@ public class DeleteConnectorSmbRealTest extends ConstellioTest {
 		assertThat(connectorSmb.exists(connectorSmbFolder)).isFalse();
 		es.getRecordServices().flush();
 
-		assertThat(recordServices.getDocumentById(connectorSmbDocument.getId()).get(Schemas.LOGICALLY_DELETED_STATUS))
+		assertThat(recordServices.getDocumentById(connectorSmbDocument.getId()).<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS))
 				.isEqualTo(
 						true);
-		assertThat(recordServices.getDocumentById(connectorSmbFolder.getId()).get(Schemas.LOGICALLY_DELETED_STATUS))
+		assertThat(recordServices.getDocumentById(connectorSmbFolder.getId()).<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS))
 				.isEqualTo(
 						true);
 	}

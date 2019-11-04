@@ -56,7 +56,7 @@ public class UpdateFoldersActualDestructionDateScript {
 					transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 
 					for (Folder folder : folders) {
-						System.out.println(folder.get(rm.folderSchemaType().getMetadata("legacyId")));
+						System.out.println(folder.<String>get(rm.folderSchemaType().getMetadata("legacyId")));
 						//if (targetObjectIds.contains(folder.get(rm.folderSchemaType().getMetadata("legacyId")))) {
 
 						System.out.println(folder.getId() + ":" + folder.getTitle());

@@ -101,8 +101,8 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 		recordService.add(folderOk);
 		recordService.flush();
 
-		assertThat(smbRecordService.getFolders(SmbTestParams.EXISTING_SHARE + "/testPartial/").get(0).get(CommonMetadataBuilder.PATH_PARTS)).isEqualTo(Arrays.asList());
-		assertThat(smbRecordService.getFolders(SmbTestParams.EXISTING_SHARE + "/testFailed/").get(0).get(CommonMetadataBuilder.PATH_PARTS)).isEqualTo(Arrays.asList());
+		assertThat(smbRecordService.getFolders(SmbTestParams.EXISTING_SHARE + "/testPartial/").get(0).<List<String>>get(CommonMetadataBuilder.PATH_PARTS)).isEqualTo(Arrays.asList());
+		assertThat(smbRecordService.getFolders(SmbTestParams.EXISTING_SHARE + "/testFailed/").get(0).<List<String>>get(CommonMetadataBuilder.PATH_PARTS)).isEqualTo(Arrays.asList());
 		assertThat((List<String>) smbRecordService.getFolders(SmbTestParams.EXISTING_SHARE + "/testOk/").get(0).get(CommonMetadataBuilder.PATH_PARTS)).has(new Condition<List<String>>() {
 			@Override
 			public boolean matches(List<String> value) {

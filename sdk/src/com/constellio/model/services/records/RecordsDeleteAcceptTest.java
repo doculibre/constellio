@@ -5,11 +5,7 @@ import com.carrotsearch.junitbenchmarks.annotation.LabelType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.behaviors.RecordExtension;
@@ -55,9 +51,7 @@ import static com.constellio.model.entities.security.global.AuthorizationAddRequ
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static com.constellio.sdk.tests.TestUtils.idsArray;
-import static com.constellio.sdk.tests.TestUtils.recordsIds;
+import static com.constellio.sdk.tests.TestUtils.*;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -478,9 +472,9 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		when(bob).logicallyDelete(valueListItem1);
 		when(bob).physicallyDelete(valueListItem1, withMostReferencesRemoved);
 		assertThat(valueListItem1).is(physicallyDeleted());
-		assertThat(records.folder3().get(metadata)).isNull();
-		assertThat(records.folder4().get(metadata)).isNull();
-		assertThat(records.folder1().get(metadata)).isEqualTo("value2ListItem");
+		assertThat(records.folder3().<String>get(metadata)).isNull();
+		assertThat(records.folder4().<String>get(metadata)).isNull();
+		assertThat(records.folder1().<String>get(metadata)).isEqualTo("value2ListItem");
 
 	}
 
@@ -1813,7 +1807,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			public boolean matches(Record record) {
 				try {
 					Record refreshedRecord = recordServices.getDocumentById(record.getId());
-					return Boolean.TRUE == refreshedRecord.get(Schemas.LOGICALLY_DELETED_STATUS);
+					return Boolean.TRUE.equals(refreshedRecord.get(Schemas.LOGICALLY_DELETED_STATUS));
 				} catch (NoSuchRecordWithId e) {
 					return false;
 				}

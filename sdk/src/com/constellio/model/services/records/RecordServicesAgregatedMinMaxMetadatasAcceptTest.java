@@ -24,9 +24,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
 import static com.constellio.model.services.records.RecordServicesAgregatedMetadatasMechanicAcceptTest.clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -87,33 +85,33 @@ public class RecordServicesAgregatedMinMaxMetadatasAcceptTest extends Constellio
 		TestRecord r5 = new TestRecord(zeSchema, "r5").set("numberValue", asList(0.3, 1.4)).set("ref", "merge2");
 		getModelLayerFactory().newRecordServices().execute(tx.addAll(r1, r2, r3, r4, r5));
 		waitForBatchProcess();
-		assertThat(record("merge1").get(anotherSchema_minValue)).isEqualTo(0.5);
-		assertThat(record("merge2").get(anotherSchema_minValue)).isEqualTo(0.1);
-		assertThat(record("merge3").get(thirdSchema_minValue)).isEqualTo(0.1);
-		assertThat(record("merge1").get(anotherSchema_maxValue)).isEqualTo(1.4);
-		assertThat(record("merge2").get(anotherSchema_maxValue)).isEqualTo(1.6);
-		assertThat(record("merge3").get(thirdSchema_maxValue)).isEqualTo(1.6);
+		assertThat(record("merge1").<Double>get(anotherSchema_minValue)).isEqualTo(0.5);
+		assertThat(record("merge2").<Double>get(anotherSchema_minValue)).isEqualTo(0.1);
+		assertThat(record("merge3").<Double>get(thirdSchema_minValue)).isEqualTo(0.1);
+		assertThat(record("merge1").<Double>get(anotherSchema_maxValue)).isEqualTo(1.4);
+		assertThat(record("merge2").<Double>get(anotherSchema_maxValue)).isEqualTo(1.6);
+		assertThat(record("merge3").<Double>get(thirdSchema_maxValue)).isEqualTo(1.6);
 
 		tx = new Transaction();
 		tx.add(r1.set("numberValue", asList(0.7, 0.05)));
 		tx.add(r3.set("ref", "merge1"));
 		getModelLayerFactory().newRecordServices().execute(tx);
 		waitForBatchProcess();
-		assertThat(record("merge1").get(anotherSchema_minValue)).isEqualTo(0.05);
-		assertThat(record("merge2").get(anotherSchema_minValue)).isEqualTo(0.2);
-		assertThat(record("merge3").get(thirdSchema_minValue)).isEqualTo(0.05);
-		assertThat(record("merge1").get(anotherSchema_maxValue)).isEqualTo(1.6);
-		assertThat(record("merge2").get(anotherSchema_maxValue)).isEqualTo(1.5);
-		assertThat(record("merge3").get(thirdSchema_maxValue)).isEqualTo(1.6);
+		assertThat(record("merge1").<Double>get(anotherSchema_minValue)).isEqualTo(0.05);
+		assertThat(record("merge2").<Double>get(anotherSchema_minValue)).isEqualTo(0.2);
+		assertThat(record("merge3").<Double>get(thirdSchema_minValue)).isEqualTo(0.05);
+		assertThat(record("merge1").<Double>get(anotherSchema_maxValue)).isEqualTo(1.6);
+		assertThat(record("merge2").<Double>get(anotherSchema_maxValue)).isEqualTo(1.5);
+		assertThat(record("merge3").<Double>get(thirdSchema_maxValue)).isEqualTo(1.6);
 
 		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
-		assertThat(record("merge1").get(anotherSchema_minValue)).isEqualTo(0.05);
-		assertThat(record("merge2").get(anotherSchema_minValue)).isEqualTo(0.2);
-		assertThat(record("merge3").get(thirdSchema_minValue)).isEqualTo(0.05);
-		assertThat(record("merge1").get(anotherSchema_maxValue)).isEqualTo(1.6);
-		assertThat(record("merge2").get(anotherSchema_maxValue)).isEqualTo(1.5);
-		assertThat(record("merge3").get(thirdSchema_maxValue)).isEqualTo(1.6);
-		assertThat(nbQueries).isEqualTo(10);
+		assertThat(record("merge1").<Double>get(anotherSchema_minValue)).isEqualTo(0.05);
+		assertThat(record("merge2").<Double>get(anotherSchema_minValue)).isEqualTo(0.2);
+		assertThat(record("merge3").<Double>get(thirdSchema_minValue)).isEqualTo(0.05);
+		assertThat(record("merge1").<Double>get(anotherSchema_maxValue)).isEqualTo(1.6);
+		assertThat(record("merge2").<Double>get(anotherSchema_maxValue)).isEqualTo(1.5);
+		assertThat(record("merge3").<Double>get(thirdSchema_maxValue)).isEqualTo(1.6);
+		assertThat(nbQueries).isEqualTo(2);
 	}
 
 	@Test
@@ -168,30 +166,30 @@ public class RecordServicesAgregatedMinMaxMetadatasAcceptTest extends Constellio
 				.set("dateValue", asList(date(2010, 4, 1), date(2011, 5, 1))).set("ref", "merge2");
 		getModelLayerFactory().newRecordServices().execute(tx.addAll(r1, r2, r3, r4, r5));
 		waitForBatchProcess();
-		assertThat(record("merge1").get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 6, 1, 0, 0, 0));
-		assertThat(record("merge2").get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 2, 1, 0, 0, 0));
-		assertThat(record("merge3").get(thirdSchema_minValue)).isEqualTo(date(2010, 2, 1));
+		assertThat(record("merge1").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 6, 1, 0, 0, 0));
+		assertThat(record("merge2").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 2, 1, 0, 0, 0));
+		assertThat(record("merge3").<LocalDate>get(thirdSchema_minValue)).isEqualTo(date(2010, 2, 1));
 
 		tx = new Transaction();
 		tx.add(r1.set("dateValue", asList(date(2010, 8, 1), date(2010, 1, 6))));
 		tx.add(r3.set("ref", "merge1"));
 		getModelLayerFactory().newRecordServices().execute(tx);
 		waitForBatchProcess();
-		assertThat(record("merge1").get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 1, 6, 0, 0, 0));
-		assertThat(record("merge2").get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 3, 1, 0, 0, 0));
-		assertThat(record("merge3").get(thirdSchema_minValue)).isEqualTo(date(2010, 1, 6));
-		assertThat(record("merge1").get(anotherSchema_maxValue)).isEqualTo(date(2011, 7, 1));
-		assertThat(record("merge2").get(anotherSchema_maxValue)).isEqualTo(date(2011, 6, 1));
-		assertThat(record("merge3").get(thirdSchema_maxValue)).isEqualTo(dateTime(2011, 7, 1, 0, 0, 0));
+		assertThat(record("merge1").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 1, 6, 0, 0, 0));
+		assertThat(record("merge2").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 3, 1, 0, 0, 0));
+		assertThat(record("merge3").<LocalDate>get(thirdSchema_minValue)).isEqualTo(date(2010, 1, 6));
+		assertThat(record("merge1").<LocalDate>get(anotherSchema_maxValue)).isEqualTo(date(2011, 7, 1));
+		assertThat(record("merge2").<LocalDate>get(anotherSchema_maxValue)).isEqualTo(date(2011, 6, 1));
+		assertThat(record("merge3").<LocalDateTime>get(thirdSchema_maxValue)).isEqualTo(dateTime(2011, 7, 1, 0, 0, 0));
 
 		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
-		assertThat(record("merge1").get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 1, 6, 0, 0, 0));
-		assertThat(record("merge2").get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 3, 1, 0, 0, 0));
-		assertThat(record("merge3").get(thirdSchema_minValue)).isEqualTo(date(2010, 1, 6));
-		assertThat(record("merge1").get(anotherSchema_maxValue)).isEqualTo(date(2011, 7, 1));
-		assertThat(record("merge2").get(anotherSchema_maxValue)).isEqualTo(date(2011, 6, 1));
-		assertThat(record("merge3").get(thirdSchema_maxValue)).isEqualTo(dateTime(2011, 7, 1, 0, 0, 0));
-		assertThat(nbQueries).isEqualTo(10);
+		assertThat(record("merge1").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 1, 6, 0, 0, 0));
+		assertThat(record("merge2").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 3, 1, 0, 0, 0));
+		assertThat(record("merge3").<LocalDate>get(thirdSchema_minValue)).isEqualTo(date(2010, 1, 6));
+		assertThat(record("merge1").<LocalDate>get(anotherSchema_maxValue)).isEqualTo(date(2011, 7, 1));
+		assertThat(record("merge2").<LocalDate>get(anotherSchema_maxValue)).isEqualTo(date(2011, 6, 1));
+		assertThat(record("merge3").<LocalDateTime>get(thirdSchema_maxValue)).isEqualTo(dateTime(2011, 7, 1, 0, 0, 0));
+		assertThat(nbQueries).isEqualTo(2);
 	}
 
 	@Test

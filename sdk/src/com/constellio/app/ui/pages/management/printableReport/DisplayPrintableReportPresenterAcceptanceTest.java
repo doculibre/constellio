@@ -91,8 +91,8 @@ public class DisplayPrintableReportPresenterAcceptanceTest extends ConstellioTes
 			assertThat(recordVO.getTitle()).isEqualTo(report.getTitle());
 			assertThat(((ContentVersionVO) recordVO.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
-			assertThat(recordVO.get(PrintableReport.RECORD_TYPE)).isEqualTo(report.get(PrintableReport.RECORD_TYPE));
-			assertThat(recordVO.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(report.get(PrintableReport.RECORD_SCHEMA));
+			assertThat(recordVO.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(report.get(PrintableReport.RECORD_TYPE));
+			assertThat(recordVO.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(report.get(PrintableReport.RECORD_SCHEMA));
 			assertThat(recordVO.getId()).isEqualTo(report.getId());
 		} finally {
 			ioServices.closeQuietly(jasperInputStream);

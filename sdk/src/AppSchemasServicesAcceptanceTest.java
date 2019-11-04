@@ -92,9 +92,9 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 
 		//Validate initial state
 		assertThat(recordServices.getDocumentById("r1").getSchemaCode()).isEqualTo("zeSchemaType_custom");
-		assertThat(recordServices.getDocumentById("r1").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 1");
+		assertThat(recordServices.getDocumentById("r1").<String>get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 1");
 		assertThat(recordServices.getDocumentById("r2").getSchemaCode()).isEqualTo("zeSchemaType_custom");
-		assertThat(recordServices.getDocumentById("r2").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
+		assertThat(recordServices.getDocumentById("r2").<String>get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
 		assertThat(recordServices.getDocumentById("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
 				.containsOnly("zeSchemaType_default", "zeSchemaType_custom");
@@ -131,15 +131,15 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		assertThat(recordServices.getDocumentById("r0").getSchemaCode()).isEqualTo("zeSchemaType_default");
 
 		assertThat(recordServices.getDocumentById("r1").getSchemaCode()).isEqualTo("zeSchemaType_custom");
-		assertThat(recordServices.getDocumentById("r1").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 1");
+		assertThat(recordServices.getDocumentById("r1").<String>get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 1");
 		assertThat(recordServices.getDocumentById("r2").getSchemaCode()).isEqualTo("zeSchemaType_custom");
-		assertThat(recordServices.getDocumentById("r2").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
+		assertThat(recordServices.getDocumentById("r2").<String>get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
 
 		assertThat(recordServices.getDocumentById("r1998").getSchemaCode()).isEqualTo("zeSchemaType_custom");
-		assertThat(recordServices.getDocumentById("r1998").get(zeCustomSchema.customStringMetadata()))
+		assertThat(recordServices.getDocumentById("r1998").<String>get(zeCustomSchema.customStringMetadata()))
 				.isEqualTo("custom value 1998");
 		assertThat(recordServices.getDocumentById("r1999").getSchemaCode()).isEqualTo("zeSchemaType_custom");
-		assertThat(recordServices.getDocumentById("r1999").get(zeCustomSchema.customStringMetadata()))
+		assertThat(recordServices.getDocumentById("r1999").<String>get(zeCustomSchema.customStringMetadata()))
 				.isEqualTo("custom value 1999");
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas())
@@ -195,11 +195,11 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		recordServices.add(new TestRecord(thirdSchemas, "zeRecordWithLinkedSchema").set(LINKED_SCHEMA, "zeSchemaType_custom"));
 
 		appSchemasServices.modifySchemaCode(zeCollection, "zeSchemaType_custom", "zeSchemaType_custom2");
-		assertThat(recordServices.getDocumentById("zeRecordWithLinkedSchema").get(LINKED_SCHEMA))
+		assertThat(recordServices.getDocumentById("zeRecordWithLinkedSchema").<String>get(LINKED_SCHEMA))
 				.isEqualTo("zeSchemaType_custom2");
 
 		appSchemasServices.deleteSchemaCode(zeCollection, "zeSchemaType_custom2");
-		assertThat(recordServices.getDocumentById("zeRecordWithLinkedSchema").get(LINKED_SCHEMA)).isNull();
+		assertThat(recordServices.getDocumentById("zeRecordWithLinkedSchema").<String>get(LINKED_SCHEMA)).isNull();
 	}
 
 	@Test
@@ -239,9 +239,9 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 
 		//Validate state after code modification
 		assertThat(recordServices.getDocumentById("r1").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
-		assertThat(recordServices.getDocumentById("r1").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 1");
+		assertThat(recordServices.getDocumentById("r1").<String>get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 1");
 		assertThat(recordServices.getDocumentById("r2").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
-		assertThat(recordServices.getDocumentById("r2").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
+		assertThat(recordServices.getDocumentById("r2").<String>get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
 		assertThat(recordServices.getDocumentById("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
 				.containsOnly("zeSchemaType_default", "zeSchemaType_custom2");
@@ -278,15 +278,15 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(recordServices.getDocumentById("r0").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(recordServices.getDocumentById("r1").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
-		assertThat(recordServices.getDocumentById("r1").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 1");
+		assertThat(recordServices.getDocumentById("r1").<String>get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 1");
 		assertThat(recordServices.getDocumentById("r2").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
-		assertThat(recordServices.getDocumentById("r2").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
+		assertThat(recordServices.getDocumentById("r2").<String>get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
 
 		assertThat(recordServices.getDocumentById("r1998").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
-		assertThat(recordServices.getDocumentById("r1998").get(zeCustomSchema.customStringMetadata()))
+		assertThat(recordServices.getDocumentById("r1998").<String>get(zeCustomSchema.customStringMetadata()))
 				.isEqualTo("custom value 1998");
 		assertThat(recordServices.getDocumentById("r1999").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
-		assertThat(recordServices.getDocumentById("r1999").get(zeCustomSchema.customStringMetadata()))
+		assertThat(recordServices.getDocumentById("r1999").<String>get(zeCustomSchema.customStringMetadata()))
 				.isEqualTo("custom value 1999");
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")

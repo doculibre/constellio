@@ -13,7 +13,6 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
-import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
@@ -25,9 +24,7 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -47,21 +44,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
@@ -291,82 +281,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 				"Dossier emprunté par " + chuck.getTitle() + " le " + nowDate);
 	}
 
-	@Test
-	public void givenSemiACtiveBorrowedFolderAndRemovedPermissionToModifySemiActiveBorrwedFolderAndGivenBackThenOk()
-			throws Exception {
 
-		givenRemovedPermissionToModifyBorrowedFolder(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
-		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
-		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
-
-		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
-		assertThat(presenter.getDeleteButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isFalse();
-		assertThat(presenter.getEditButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isFalse();
-		assertThat(presenter.getAddFolderButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible())
-				.isFalse();
-		assertThat(presenter.getAddDocumentButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible())
-				.isFalse();
-		assertThat(presenter.getPrintButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isFalse();
-
-		givenNoRemovedPermissionsToModifyBorrowedFolder();
-		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
-
-		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
-		assertThat(presenter.getDeleteButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isTrue();
-		assertThat(presenter.getEditButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isTrue();
-		assertThat(presenter.getAddFolderButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isTrue();
-		assertThat(presenter.getAddDocumentButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible())
-				.isTrue();
-		assertThat(presenter.getPrintButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isTrue();
-	}
-
-	@Test
-	public void givenInactiveBorrowedFolderAndRemovedPermissionToModifyInactiveBorrwedFolderAndGivenBackThenOk()
-			throws Exception {
-
-		presenter.forParams("C50");
-		givenRemovedPermissionToModifyBorrowedFolder(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
-		displayFolderView.navigate().to(RMViews.class).displayFolder("C50");
-		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
-
-		displayFolderView.navigate().to(RMViews.class).displayFolder("C50");
-		assertThat(presenter.getDeleteButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isFalse();
-		assertThat(presenter.getEditButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isFalse();
-		assertThat(presenter.getAddFolderButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible())
-				.isFalse();
-		assertThat(presenter.getAddDocumentButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible())
-				.isFalse();
-		assertThat(presenter.getPrintButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isFalse();
-
-		givenNoRemovedPermissionsToModifyBorrowedFolder();
-		displayFolderView.navigate().to(RMViews.class).displayFolder("C50");
-
-		displayFolderView.navigate().to(RMViews.class).displayFolder("C50");
-		assertThat(presenter.getDeleteButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isTrue();
-		assertThat(presenter.getEditButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isTrue();
-		assertThat(presenter.getAddFolderButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isTrue();
-		assertThat(presenter.getAddDocumentButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible())
-				.isTrue();
-		assertThat(presenter.getPrintButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isTrue();
-	}
-
-	@Test
-	public void givenImportedFolderAndRemovedPermissionToShareImportedFolderAndGivenBackThenOk()
-			throws Exception {
-		recordServices.update(record("A16").set(Schemas.LEGACY_ID, "ChatLegacy"));
-
-		Map<String, String> params = new HashMap<>();
-		params.put("id", "A16");
-		presenter.forParams("A16");//ParamUtils.addParams("", params));
-
-		givenRemovedPermissionToShareImportedFolder();
-		displayFolderView.navigate().to(RMViews.class).displayFolder("A16");
-		assertThat(presenter.getShareButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_A16()).isVisible()).isFalse();
-
-		givenNoRemovedPermissionsToShareImportedFolder();
-		displayFolderView.navigate().to(RMViews.class).displayFolder("A16");
-		assertThat(presenter.getShareButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_A16()).isVisible()).isTrue();
-	}
 
 	@Test
 	public void givenFolderWhenAddToDefaultFavoritesThenIsAdded() {
@@ -452,87 +367,6 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		);
 		assertThat(emailToSend.getFrom()).isEqualTo(null);
 		verify(displayFolderView).showMessage($("DisplayFolderView.reminderEmailSent"));
-	}
-
-	//
-	@Test
-	public void givenNoBorrowedFolderThenRemiderButtonIsNotVisible()
-			throws Exception {
-
-		User currentUser = rmRecords.getChuckNorris();
-
-		presenter.forParams("C30");
-		assertThat(presenter.getReminderReturnFolderButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isFalse();
-	}
-
-	@Test
-	public void givenBorrowedFolderAndBorrowerThenReminderButtonIsNotVisible()
-			throws Exception {
-
-		User currentUser = rmRecords.getChuckNorris();
-
-		presenter.forParams("C30");
-		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
-		assertThat(presenter.getReminderReturnFolderButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isFalse();
-	}
-
-	@Test
-	public void givenBorrowedFolderAndAnotherUserThenReminderButtonIsVisible()
-			throws Exception {
-
-		User currentUser = rmRecords.getChuckNorris();
-		presenter.forParams("C30");
-		presenter.borrowFolder(nowDate, nowDate, currentUser.getId(), BorrowingType.BORROW, null);
-
-		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
-		sessionContext.setCurrentLocale(Locale.FRENCH);
-		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
-		currentUser = rmRecords.getBob_userInAC();
-
-		presenter = displayFolderPresenterCreation(displayFolderView, null, false);
-		presenter.forParams("C30");
-
-		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isTrue();
-	}
-	//
-
-	@Test
-	public void givenNoBorrowedFolderThenAlertButtonIsNotVisible()
-			throws Exception {
-
-		User currentUser = rmRecords.getChuckNorris();
-
-		presenter.forParams("C30");
-		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isFalse();
-	}
-
-	@Test
-	public void givenBorrowedFolderAndBorrowerThenAlertButtonIsNotVisible()
-			throws Exception {
-
-		User currentUser = rmRecords.getChuckNorris();
-
-		presenter.forParams("C30");
-		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
-		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isFalse();
-	}
-
-	@Test
-	public void givenBorrowedFolderAndAnotherUserThenAlertButtonIsVisible()
-			throws Exception {
-
-		User currentUser = rmRecords.getChuckNorris();
-		presenter.forParams("C30");
-		presenter.borrowFolder(nowDate, nowDate, currentUser.getId(), BorrowingType.BORROW, null);
-
-		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
-		sessionContext.setCurrentLocale(Locale.FRENCH);
-		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
-		currentUser = rmRecords.getBob_userInAC();
-		presenter = displayFolderPresenterCreation(displayFolderView, null, false);
-		presenter.forParams("C30");
-
-		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isTrue();
 	}
 
 	@Test
@@ -708,25 +542,6 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenFolderInDecommissioningListThenCannotBorrow()
-			throws Exception {
-
-		presenter.forParams(rmRecords.folder_A48);
-		assertThat(presenter.getBorrowButtonState(rmRecords.getAdmin(), rmRecords.getFolder_A48()))
-				.isEqualTo(ComponentState.INVISIBLE);
-
-		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-		recordServices.physicallyDeleteNoMatterTheStatus(rmRecords.getList10().getWrappedRecord(), User.GOD,
-				new RecordPhysicalDeleteOptions());
-		recordServices.physicallyDeleteNoMatterTheStatus(rmRecords.getList17().getWrappedRecord(), User.GOD,
-				new RecordPhysicalDeleteOptions());
-
-		presenter.forParams(rmRecords.folder_A48);
-		assertThat(presenter.getBorrowButtonState(rmRecords.getAdmin(), rmRecords.getFolder_A48()))
-				.isEqualTo(ComponentState.ENABLED);
-	}
-
-	@Test
 	public void givenFolderWithChildDocumentsAndReferencingOtherDocumentsThenAllReturnedByQuery()
 			throws Exception {
 
@@ -749,8 +564,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		tx.add(rm.newDocumentWithId("documentInA53").setTitle("Document in folder A53").setFolder(rmRecords.folder_A53));
 		tx.add(rm.newDocumentWithId("documentInA54").setTitle("Document in folder A54").setFolder(rmRecords.folder_A54));
 		tx.add(rm.newDocumentWithId("documentInA55").setTitle("Document in folder A55").setFolder(rmRecords.folder_A55));
-		tx.add(rmRecords.getFolder_A49().set("refToDocument", "documentInA51")
-				.set("refToDocuments", asList("documentInA53", "documentInA54")));
+		Folder folder = rmRecords.getFolder_A49().set("refToDocument", "documentInA51")
+				.set("refToDocuments", asList("documentInA53", "documentInA54"));
+		tx.add(folder);
 		recordServices.execute(tx);
 
 		presenter.forParams(rmRecords.folder_A49);
@@ -763,60 +579,6 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 	}
 
-	//
-	private void givenRemovedPermissionToModifyBorrowedFolder(String permission) {
-
-		for (Role role : rolesManager.getAllRoles(zeCollection)) {
-			List<String> roles = role.getOperationPermissions();
-			List<String> newRoles = new ArrayList<>(roles);
-			newRoles.remove(permission);
-			role = role.withPermissions(newRoles);
-			rolesManager.updateRole(role);
-			Role updatedRole = rolesManager.getRole(zeCollection, role.getCode());
-			assertThat(updatedRole.getOperationPermissions()).doesNotContain(permission);
-		}
-	}
-
-	private void givenNoRemovedPermissionsToModifyBorrowedFolder() {
-
-		for (Role role : rolesManager.getAllRoles(zeCollection)) {
-			List<String> roles = role.getOperationPermissions();
-			List<String> newRoles = new ArrayList<>(roles);
-			newRoles.add(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
-			newRoles.add(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
-			role = role.withPermissions(newRoles);
-			rolesManager.updateRole(role);
-			Role updatedRole = rolesManager.getRole(zeCollection, role.getCode());
-			assertThat(updatedRole.getOperationPermissions()).contains(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
-			assertThat(updatedRole.getOperationPermissions()).contains(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
-		}
-	}
-
-	private void givenRemovedPermissionToShareImportedFolder() {
-
-		for (Role role : rolesManager.getAllRoles(zeCollection)) {
-			List<String> roles = role.getOperationPermissions();
-			List<String> newRoles = new ArrayList<>(roles);
-			newRoles.remove(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER);
-			role = role.withPermissions(newRoles);
-			rolesManager.updateRole(role);
-			Role updatedRole = rolesManager.getRole(zeCollection, role.getCode());
-			assertThat(updatedRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER);
-		}
-	}
-
-	private void givenNoRemovedPermissionsToShareImportedFolder() {
-
-		for (Role role : rolesManager.getAllRoles(zeCollection)) {
-			List<String> roles = role.getOperationPermissions();
-			List<String> newRoles = new ArrayList<>(roles);
-			newRoles.add(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER);
-			role = role.withPermissions(newRoles);
-			rolesManager.updateRole(role);
-			Role updatedRole = rolesManager.getRole(zeCollection, role.getCode());
-			assertThat(updatedRole.getOperationPermissions()).contains(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER);
-		}
-	}
 
 	private MetadataSchemaTypes getSchemaTypes() {
 		return getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);

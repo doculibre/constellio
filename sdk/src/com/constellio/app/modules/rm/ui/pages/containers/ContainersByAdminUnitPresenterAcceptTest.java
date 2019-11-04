@@ -124,7 +124,7 @@ public class ContainersByAdminUnitPresenterAcceptTest extends ConstellioTest {
 				.setCode("deletedAdministrativeUnit").setTitle("deletedAdministrativeUnit");
 		recordServices.add(administrativeUnit);
 		recordServices.logicallyDelete(administrativeUnit.getWrappedRecord(), User.GOD);
-		assertThat(administrativeUnit.getWrappedRecord().get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
+		assertThat(administrativeUnit.getWrappedRecord().<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 
 		presenter.forParams(ContainersByAdministrativeUnitsPresenter.TAB_DEPOSIT_NO_STORAGE_SPACE);
 

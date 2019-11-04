@@ -18,22 +18,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.DocumentSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.FolderSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy1FirstSchemaType;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy1SecondSchemaType;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy2CustomSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy2DefaultSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.TaxonomyRecords;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -158,7 +148,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		services.calculateValueInRecord(context, (RecordImpl) rootFolderWithTaxonomy, calculatedMetadata,
 				recordProvider, schemas.getTypes(), new Transaction(options));
 
-		assertThat(records.taxo1_firstTypeItem1.get(calculatedMetadata)).isEqualTo("calculatedValue");
+		assertThat((Object) records.taxo1_firstTypeItem1.get(calculatedMetadata)).isEqualTo("calculatedValue");
 	}
 
 	@Test
@@ -297,12 +287,12 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 
 	private void assertThatPathIsEqualTo(Record record, String path) {
 		Metadata pathMetadata = schemas.getMetadata(record.getSchemaCode() + "_path");
-		assertThat(record.get(pathMetadata)).isEqualTo(Arrays.asList(path));
+		assertThat((Object) record.get(pathMetadata)).isEqualTo(Arrays.asList(path));
 	}
 
 	private void assertThatPathIsEqualTo(Record record, List<String> paths) {
 		Metadata pathMetadata = schemas.getMetadata(record.getSchemaCode() + "_path");
-		assertThat(record.get(pathMetadata)).isEqualTo(paths);
+		assertThat((Object) record.get(pathMetadata)).isEqualTo(paths);
 	}
 
 	public static class DummyCalculatorWithTaxonomyDependency implements MetadataValueCalculator<String> {

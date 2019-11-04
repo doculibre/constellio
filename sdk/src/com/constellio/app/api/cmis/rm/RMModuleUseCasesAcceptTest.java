@@ -20,11 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Calendar.MARCH;
 import static java.util.Calendar.NOVEMBER;
@@ -105,13 +101,13 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 
 		//
 		//-- Validate new folder
-		assertThat(newFolder.getPropertyValue("title")).isEqualTo("My folder");
-		assertThat(newFolder.getPropertyValue("categoryEntered")).isEqualTo(records.categoryId_ZE42);
-		assertThat(newFolder.getPropertyValue("retentionRuleEntered")).isEqualTo(records.ruleId_1);
-		assertThat(newFolder.getPropertyValue("copyStatusEntered")).isNull();
-		assertThat(newFolder.getPropertyValue("copyStatus")).isEqualTo("P");
-		assertThat(newFolder.getPropertyValue("administrativeUnitEntered")).isEqualTo(records.unitId_10a);
-		assertThat(newFolder.getPropertyValue("openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
+		assertThat(newFolder.<String>getPropertyValue("title")).isEqualTo("My folder");
+		assertThat(newFolder.<String>getPropertyValue("categoryEntered")).isEqualTo(records.categoryId_ZE42);
+		assertThat(newFolder.<String>getPropertyValue("retentionRuleEntered")).isEqualTo(records.ruleId_1);
+		assertThat(newFolder.<String>getPropertyValue("copyStatusEntered")).isNull();
+		assertThat(newFolder.<String>getPropertyValue("copyStatus")).isEqualTo("P");
+		assertThat(newFolder.<String>getPropertyValue("administrativeUnitEntered")).isEqualTo(records.unitId_10a);
+		assertThat(newFolder.<GregorianCalendar>getPropertyValue("openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
 	}
 
 	@Test
@@ -151,33 +147,33 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		//
 		//-- Validate new root category
 		Folder newRootCategory = (Folder) cmisSession.getObject(newRootCategoryId);
-		assertThat(newRootCategory.getPropertyValue("code")).isEqualTo("A");
-		assertThat(newRootCategory.getPropertyValue("title")).isEqualTo("My root category");
-		assertThat(newRootCategory.getPropertyValue("description"))
+		assertThat(newRootCategory.<String>getPropertyValue("code")).isEqualTo("A");
+		assertThat(newRootCategory.<String>getPropertyValue("title")).isEqualTo("My root category");
+		assertThat(newRootCategory.<String>getPropertyValue("description"))
 				.isEqualTo("The description of the root category");
-		assertThat(newRootCategory.getPropertyValue("parent")).isNull();
+		assertThat(newRootCategory.<String>getPropertyValue("parent")).isNull();
 
 		//
 		//-- Validate new child category
 		Folder newChildCategory = (Folder) cmisSession.getObject(newChildCategoryId);
-		assertThat(newChildCategory.getPropertyValue("code")).isEqualTo("A100");
-		assertThat(newChildCategory.getPropertyValue("title")).isEqualTo("My child category");
-		assertThat(newChildCategory.getPropertyValue("description"))
+		assertThat(newChildCategory.<String>getPropertyValue("code")).isEqualTo("A100");
+		assertThat(newChildCategory.<String>getPropertyValue("title")).isEqualTo("My child category");
+		assertThat(newChildCategory.<String>getPropertyValue("description"))
 				.isEqualTo("The description of the child category");
-		assertThat(newChildCategory.getPropertyValue("parent")).isEqualTo(newRootCategoryId.getId());
-		assertThat(newChildCategory.getPropertyValue("retentionRules"))
+		assertThat(newChildCategory.<String>getPropertyValue("parent")).isEqualTo(newRootCategoryId.getId());
+		assertThat(newChildCategory.<List<String>>getPropertyValue("retentionRules"))
 				.isEqualTo(Arrays.asList(records.ruleId_1, records.ruleId_2));
 
 		//
 		//-- Validate new folder
 		Folder folder = (Folder) cmisSession.getObject(newFolderId);
-		assertThat(folder.getPropertyValue("title")).isEqualTo("My folder");
-		assertThat(folder.getPropertyValue("categoryEntered")).isEqualTo(newChildCategoryId.getId());
-		assertThat(folder.getPropertyValue("retentionRuleEntered")).isEqualTo(records.ruleId_1);
-		assertThat(folder.getPropertyValue("copyStatusEntered")).isNull();
-		assertThat(folder.getPropertyValue("copyStatus")).isEqualTo("P");
-		assertThat(folder.getPropertyValue("administrativeUnitEntered")).isEqualTo(records.unitId_10a);
-		assertThat(folder.getPropertyValue("openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
+		assertThat(folder.<String>getPropertyValue("title")).isEqualTo("My folder");
+		assertThat(folder.<String>getPropertyValue("categoryEntered")).isEqualTo(newChildCategoryId.getId());
+		assertThat(folder.<String>getPropertyValue("retentionRuleEntered")).isEqualTo(records.ruleId_1);
+		assertThat(folder.<String>getPropertyValue("copyStatusEntered")).isNull();
+		assertThat(folder.<String>getPropertyValue("copyStatus")).isEqualTo("P");
+		assertThat(folder.<String>getPropertyValue("administrativeUnitEntered")).isEqualTo(records.unitId_10a);
+		assertThat(folder.<GregorianCalendar>getPropertyValue("openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
 
 	}
 
@@ -225,28 +221,28 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		//
 		//-- Validate new folder
 		Folder folder = (Folder) cmisSession.getObject(newFolderId);
-		assertThat(folder.getPropertyValue("title")).isEqualTo("My folder");
-		assertThat(folder.getPropertyValue("categoryEntered")).isEqualTo(records.categoryId_X100);
-		assertThat(folder.getPropertyValue("retentionRuleEntered")).isEqualTo(records.ruleId_1);
-		assertThat(folder.getPropertyValue("copyStatusEntered")).isNull();
-		assertThat(folder.getPropertyValue("copyStatus")).isEqualTo("P");
-		assertThat(folder.getPropertyValue("administrativeUnitEntered")).isEqualTo(records.unitId_10a);
-		assertThat(folder.getPropertyValue("openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
-		assertThat(folder.getPropertyValue("formCreatedOn")).is(sameDayThan(new LocalDate(2015, 11, 4)));
+		assertThat(folder.<String>getPropertyValue("title")).isEqualTo("My folder");
+		assertThat(folder.<String>getPropertyValue("categoryEntered")).isEqualTo(records.categoryId_X100);
+		assertThat(folder.<String>getPropertyValue("retentionRuleEntered")).isEqualTo(records.ruleId_1);
+		assertThat(folder.<String>getPropertyValue("copyStatusEntered")).isNull();
+		assertThat(folder.<String>getPropertyValue("copyStatus")).isEqualTo("P");
+		assertThat(folder.<String>getPropertyValue("administrativeUnitEntered")).isEqualTo(records.unitId_10a);
+		assertThat(folder.<GregorianCalendar>getPropertyValue("openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
+		assertThat(folder.<GregorianCalendar>getPropertyValue("formCreatedOn")).is(sameDayThan(new LocalDate(2015, 11, 4)));
 		assertThat(folder.getCreationDate()).is(sameDayThan(new LocalDate(2015, 11, 4)));
-		assertThat(folder.getPropertyValue("formModifiedOn")).is(sameDayThan(new LocalDate(2016, 11, 4)));
+		assertThat(folder.<GregorianCalendar>getPropertyValue("formModifiedOn")).is(sameDayThan(new LocalDate(2016, 11, 4)));
 		assertThat(folder.getLastModificationDate()).is(sameDayThan(new LocalDate(2016, 11, 4)));
 		//
 		//-- Validate new document
 		Folder document = (Folder) cmisSession.getObject(newDocumentId);
-		assertThat(document.getPropertyValue("title")).isEqualTo("My document");
-		assertThat(document.getPropertyValue("folder")).isEqualTo(newFolderId.getId());
-		assertThat(document.getPropertyValue("category")).isEqualTo(records.categoryId_X100);
-		assertThat(document.getPropertyValue("retentionRule")).isEqualTo(records.ruleId_1);
-		assertThat(document.getPropertyValue("administrativeUnit")).isEqualTo(records.unitId_10a);
-		assertThat(document.getPropertyValue("formCreatedOn")).is(sameDayThan(new LocalDate(2014, 11, 4)));
+		assertThat(document.<String>getPropertyValue("title")).isEqualTo("My document");
+		assertThat(document.<String>getPropertyValue("folder")).isEqualTo(newFolderId.getId());
+		assertThat(document.<String>getPropertyValue("category")).isEqualTo(records.categoryId_X100);
+		assertThat(document.<String>getPropertyValue("retentionRule")).isEqualTo(records.ruleId_1);
+		assertThat(document.<String>getPropertyValue("administrativeUnit")).isEqualTo(records.unitId_10a);
+		assertThat(document.<GregorianCalendar>getPropertyValue("formCreatedOn")).is(sameDayThan(new LocalDate(2014, 11, 4)));
 		assertThat(document.getCreationDate()).is(sameDayThan(new LocalDate(2014, 11, 4)));
-		assertThat(document.getPropertyValue("formModifiedOn")).is(sameDayThan(new LocalDate(2014, 11, 4)));
+		assertThat(document.<GregorianCalendar>getPropertyValue("formModifiedOn")).is(sameDayThan(new LocalDate(2014, 11, 4)));
 		assertThat(document.getLastModificationDate()).is(sameDayThan(new LocalDate(2014, 11, 4)));
 
 		//
@@ -270,22 +266,22 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		//
 		//-- Validate new folder
 		folder = (Folder) cmisSession.getObject(newFolderId);
-		assertThat(folder.getPropertyValue("title")).isEqualTo("My folder");
-		assertThat(folder.getPropertyValue("categoryEntered")).isEqualTo(records.categoryId_X110);
-		assertThat(folder.getPropertyValue("retentionRuleEntered")).isEqualTo(records.ruleId_2);
-		assertThat(folder.getPropertyValue("copyStatusEntered")).isEqualTo("P");
-		assertThat(folder.getPropertyValue("copyStatus")).isEqualTo("P");
-		assertThat(folder.getPropertyValue("administrativeUnitEntered")).isEqualTo(records.unitId_10a);
-		assertThat(folder.getPropertyValue("openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
+		assertThat(folder.<String>getPropertyValue("title")).isEqualTo("My folder");
+		assertThat(folder.<String>getPropertyValue("categoryEntered")).isEqualTo(records.categoryId_X110);
+		assertThat(folder.<String>getPropertyValue("retentionRuleEntered")).isEqualTo(records.ruleId_2);
+		assertThat(folder.<String>getPropertyValue("copyStatusEntered")).isEqualTo("P");
+		assertThat(folder.<String>getPropertyValue("copyStatus")).isEqualTo("P");
+		assertThat(folder.<String>getPropertyValue("administrativeUnitEntered")).isEqualTo(records.unitId_10a);
+		assertThat(folder.<GregorianCalendar>getPropertyValue("openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
 
 		//
 		//-- Validate new document
 		document = (Folder) cmisSession.getObject(newDocumentId);
-		assertThat(document.getPropertyValue("title")).isEqualTo("My document");
-		assertThat(document.getPropertyValue("folder")).isEqualTo(newFolderId.getId());
-		assertThat(document.getPropertyValue("category")).isEqualTo(records.categoryId_X110);
-		assertThat(document.getPropertyValue("retentionRule")).isEqualTo(records.ruleId_2);
-		assertThat(document.getPropertyValue("administrativeUnit")).isEqualTo(records.unitId_10a);
+		assertThat(document.<String>getPropertyValue("title")).isEqualTo("My document");
+		assertThat(document.<String>getPropertyValue("folder")).isEqualTo(newFolderId.getId());
+		assertThat(document.<String>getPropertyValue("category")).isEqualTo(records.categoryId_X110);
+		assertThat(document.<String>getPropertyValue("retentionRule")).isEqualTo(records.ruleId_2);
+		assertThat(document.<String>getPropertyValue("administrativeUnit")).isEqualTo(records.unitId_10a);
 
 	}
 

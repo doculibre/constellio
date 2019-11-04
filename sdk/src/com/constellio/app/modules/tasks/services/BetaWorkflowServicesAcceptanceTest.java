@@ -3,12 +3,7 @@ package com.constellio.app.modules.tasks.services;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
-import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
-import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
-import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
+import com.constellio.app.modules.tasks.model.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServicesRuntimeException.WorkflowServicesRuntimeException_UnsupportedAddAtPosition;
 import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskProgressionVO;
@@ -301,14 +296,14 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 
 		List<Task> tasks = services.getWorkflowInstanceTasks(approvalWorkflowInstance);
 		assertThat(tasks).hasSize(1);
-		assertThat(tasks.get(0).get(RMTask.LINKED_FOLDERS)).isEqualTo(asList(records.folder_A04, records.folder_A08));
+		assertThat((Object) tasks.get(0).get(RMTask.LINKED_FOLDERS)).isEqualTo(asList(records.folder_A04, records.folder_A08));
 
 		recordServices.update(services.getCurrentWorkflowInstanceTask(approvalWorkflowInstance).setStatus(closedStatus));
 
 		tasks = services.getWorkflowInstanceTasks(approvalWorkflowInstance);
 		assertThat(tasks).hasSize(2);
-		assertThat(tasks.get(0).get(RMTask.LINKED_FOLDERS)).isEqualTo(asList(records.folder_A04, records.folder_A08));
-		assertThat(tasks.get(1).get(RMTask.LINKED_FOLDERS)).isEqualTo(asList(records.folder_A04, records.folder_A08));
+		assertThat((Object) tasks.get(0).get(RMTask.LINKED_FOLDERS)).isEqualTo(asList(records.folder_A04, records.folder_A08));
+		assertThat((Object) tasks.get(1).get(RMTask.LINKED_FOLDERS)).isEqualTo(asList(records.folder_A04, records.folder_A08));
 
 	}
 

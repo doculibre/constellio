@@ -1290,15 +1290,15 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		ConnectorHttpDocument singesWikiPdf = es.getConnectorHttpDocumentByUrl(WEBSITE + "singes-wiki.pdf");
 		ConnectorHttpDocument singesTxt = es.getConnectorHttpDocumentByUrl(WEBSITE + "singes.txt");
 
-		assertThat(singe.get(language)).isEqualTo("fr");
+		assertThat(singe.<String>get(language)).isEqualTo("fr");
 		assertThat(singe.getList(encoding)).containsOnly("ISO-8859-1");
 		//assertThat(girafe.getList(lastModification)).containsOnly(TIME1);
 
-		assertThat(singesWikiPdf.get(language)).isEqualTo("fr");
+		assertThat(singesWikiPdf.<String>get(language)).isEqualTo("fr");
 		assertThat(singesWikiPdf.getList(encoding)).containsOnly("ISO-8859-1");
 		//		assertThat(singesWikiPdf.getList(lastModification)).containsOnly(TIME1);
 
-		assertThat(singesTxt.get(language)).isEqualTo("fr");
+		assertThat(singesTxt.<String>get(language)).isEqualTo("fr");
 		assertThat(singesTxt.getList(encoding)).containsOnly("ISO-8859-1");
 		//		assertThat(singesTxt.getList(lastModification)).containsOnly(TIME1);
 

@@ -190,7 +190,7 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		return new Condition<CmisObject>() {
 			@Override
 			public boolean matches(CmisObject objectData) {
-				assertThat(objectData.getPropertyValue(key)).describedAs(key).isEqualTo(value);
+				assertThat(objectData.<Object>getPropertyValue(key)).describedAs(key).isEqualTo(value);
 				return true;
 			}
 		};

@@ -10,17 +10,7 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
+import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileReader;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -31,16 +21,8 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.entries.*;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -59,12 +41,7 @@ import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.modules.rm.wrappers.Folder.DESCRIPTION;
 import static com.constellio.model.entities.Language.English;
@@ -77,9 +54,7 @@ import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static java.util.Arrays.asList;
 import static java.util.Locale.ENGLISH;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
@@ -443,20 +418,20 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		importSettings();
 
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.DOCUMENT_RETENTION_RULES)).isEqualTo(true);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER))
+		assertThat(systemConfigurationsManager.<Boolean>getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
+		assertThat(systemConfigurationsManager.<Boolean>getValue(RMConfigs.DOCUMENT_RETENTION_RULES)).isEqualTo(true);
+		assertThat(systemConfigurationsManager.<Boolean>getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER))
 				.isEqualTo(false);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
+		assertThat(systemConfigurationsManager.<Boolean>getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
 
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE))
+		assertThat(systemConfigurationsManager.<Integer>getValue(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE))
 				.isEqualTo(2015);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR))
+		assertThat(systemConfigurationsManager.<Integer>getValue(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR))
 				.isEqualTo(15);
 
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.YEAR_END_DATE)).isEqualTo("02/28");
+		assertThat(systemConfigurationsManager.<String>getValue(RMConfigs.YEAR_END_DATE)).isEqualTo("02/28");
 
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.DECOMMISSIONING_DATE_BASED_ON))
+		assertThat(systemConfigurationsManager.<DecommissioningDateBasedOn>getValue(RMConfigs.DECOMMISSIONING_DATE_BASED_ON))
 				.isEqualTo(DecommissioningDateBasedOn.OPEN_DATE);
 	}
 
@@ -1779,19 +1754,22 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		defaultSchema.newMetadata("m8").setType(STRING);
 
 		defaultSchema.setFormMetadatas(asList(
-				"administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m2", "m1", "type", "title", "container"))
+				"administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m2", "m1", "type", "title", "container", "openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"))
 				.setDisplayMetadatas(asList("m3"))
 				.setSearchMetadatas(asList("m4", "m5", "m1"))
 				.setTableMetadatas(asList("m3", "m5"));
 
 		customSchema1.setFormMetadatas(asList(
-				"m1", "type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered"))
+				"m1", "type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"))
 				.setDisplayMetadatas(asList("m3", "m2"))
 				.setSearchMetadatas(asList("m3", "m4"))
 				.setTableMetadatas(asList("m4", "m5"));
 
 		customSchema2.setFormMetadatas(asList(
-				"type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m3"))
+				"type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "actualDepositDate", "copyStatusEntered", "m3", "openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"))
 				.setDisplayMetadatas(asList("folder_custom2_m4", "folder_default_m5"))
 				.setSearchMetadatas(asList("m1", "m3", "m2"))
 				.setTableMetadatas(asList("m1", "folder_custom2_m4"));
@@ -1800,7 +1778,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("default").getFormMetadataCodes())).isEqualTo(asList(
 				"administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m2", "m1", "type", "title", "container",
 				"openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
-				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "mainCopyRuleIdEntered"));
 		assertThat(localCodes(folderSchemaDisplay("default").getDisplayMetadataCodes())).containsExactly("m3");
 		assertThat(localCodes(folderSchemaDisplay("default").getSearchResultsMetadataCodes())).containsExactly("m4", "m5", "m1");
 		assertThat(localCodes(folderSchemaDisplay("default").getTableMetadataCodes())).containsExactly("m3", "m5");
@@ -1808,7 +1786,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("custom1").getFormMetadataCodes())).isEqualTo(asList(
 				"m1", "type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered",
 				"openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
-				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "mainCopyRuleIdEntered"));
 		assertThat(localCodes(folderSchemaDisplay("custom1").getDisplayMetadataCodes())).containsExactly("m3", "m2");
 		assertThat(localCodes(folderSchemaDisplay("custom1").getSearchResultsMetadataCodes())).containsExactly("m3", "m4");
 		assertThat(localCodes(folderSchemaDisplay("custom1").getTableMetadataCodes())).containsExactly("m4", "m5");
@@ -1816,7 +1794,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("custom2").getFormMetadataCodes())).isEqualTo(asList(
 				"type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m3",
 				"openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
-				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "mainCopyRuleIdEntered"));
 		assertThat(localCodes(folderSchemaDisplay("custom2").getDisplayMetadataCodes())).containsExactly("m4", "m5");
 		assertThat(localCodes(folderSchemaDisplay("custom2").getSearchResultsMetadataCodes())).containsExactly("m1", "m3", "m2");
 		assertThat(localCodes(folderSchemaDisplay("custom2").getTableMetadataCodes())).containsExactly("m1", "m4");
@@ -1837,12 +1815,16 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		defaultSchema.newMetadata("m7").setType(STRING);
 		defaultSchema.newMetadata("m8").setType(STRING);
 
-		defaultSchema.setFormMetadatas(asList("m1", "m2"))
+		defaultSchema.setFormMetadatas(asList("m1", "m2", "openingDate", "title", "actualDepositDate", "actualDestructionDate", "actualTransferDate",
+				"administrativeUnitEntered", "categoryEntered", "container", "copyStatusEntered", "enteredClosingDate",
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered"))
 				.setDisplayMetadatas(asList("m5"))
 				.setSearchMetadatas(asList("m1", "m2", "m5"))
 				.setTableMetadatas(asList("m3", "m5"));
 
-		customSchema1.setFormMetadatas(asList("m2", "m1"))
+		customSchema1.setFormMetadatas(asList("m2", "m1", "openingDate", "title", "actualDepositDate", "actualDestructionDate", "actualTransferDate",
+				"administrativeUnitEntered", "categoryEntered", "container", "copyStatusEntered", "enteredClosingDate",
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered"))
 				.setDisplayMetadatas(asList("m2", "m3"))
 				.setSearchMetadatas(asList("m1"))
 				.setTableMetadatas(new ArrayList<String>());
@@ -1856,7 +1838,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("default").getFormMetadataCodes())).isEqualTo(asList(
 				"m1", "m2", "openingDate", "title", "actualDepositDate", "actualDestructionDate", "actualTransferDate",
 				"administrativeUnitEntered", "categoryEntered", "container", "copyStatusEntered", "enteredClosingDate",
-				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered", "mainCopyRuleIdEntered"));
 		assertThat(localCodes(folderSchemaDisplay("default").getDisplayMetadataCodes())).containsExactly("m5");
 		assertThat(localCodes(folderSchemaDisplay("default").getSearchResultsMetadataCodes())).containsExactly("m1", "m2", "m5");
 		assertThat(localCodes(folderSchemaDisplay("default").getTableMetadataCodes())).containsExactly("m3", "m5");
@@ -1864,7 +1846,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("custom1").getFormMetadataCodes())).isEqualTo(asList(
 				"m2", "m1", "openingDate", "title", "actualDepositDate", "actualDestructionDate", "actualTransferDate",
 				"administrativeUnitEntered", "categoryEntered", "container", "copyStatusEntered", "enteredClosingDate",
-				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered", "mainCopyRuleIdEntered"));
 		assertThat(localCodes(folderSchemaDisplay("custom1").getDisplayMetadataCodes())).containsExactly("m2", "m3");
 		assertThat(localCodes(folderSchemaDisplay("custom1").getSearchResultsMetadataCodes())).containsExactly("m1");
 		assertThat(localCodes(folderSchemaDisplay("custom1").getTableMetadataCodes())).containsExactly("m4", "m5");
@@ -1872,7 +1854,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("custom2").getFormMetadataCodes())).isEqualTo(asList(
 				"type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m3",
 				"openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
-				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "m1", "m4",
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "mainCopyRuleIdEntered", "m1", "m4",
 				"m5", "m6", "m7", "m8"));
 		assertThat(localCodes(folderSchemaDisplay("custom2").getDisplayMetadataCodes()))
 				.isEqualTo(asList("m4", "m5", "m1", "m2", "m3", "m6", "m7", "m8"));
