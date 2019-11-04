@@ -494,7 +494,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 	}
 
 	public void setItemConverter(Converter<String, T> itemConverter) {
-		if (itemConverter != null) {
+		if (itemConverter != null && suggestInputDataProvider != null) {
 			this.itemConverter = new ConverterWithCache<>(itemConverter);
 			suggestInputDataProvider.setConverterWithCache(this.itemConverter);
 		}

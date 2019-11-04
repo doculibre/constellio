@@ -71,7 +71,9 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 
 	@Override
 	protected LookupRecordField newAddEditField() {
-		final LookupRecordField field = new LookupRecordField(schemaTypeCode, schemaCode, false, recordTextInputDataProvider) {
+		final LookupRecordField field = recordTextInputDataProvider == null ?
+										new LookupRecordField(schemaTypeCode, schemaCode)
+																			: new LookupRecordField(schemaTypeCode, schemaCode, false, recordTextInputDataProvider) {
 			@Override
 			protected String getReadOnlyMessage() {
 				String readOnlyMessage = ListAddRemoveRecordLookupField.this.getReadOnlyMessage();
