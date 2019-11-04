@@ -83,7 +83,8 @@ public class RMConfigs {
 			ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING,
 			CREATE_MISSING_AUTHORIZATIONS_FOR_TASK,
 			SUB_FOLDER_DECOMMISSIONING,
-			IGNORE_VALIDATIONS_IN_BATCH_PROCESSING;
+			IGNORE_VALIDATIONS_IN_BATCH_PROCESSING,
+			ADD_COMMENTS_WHEN_READ_AUTHORIZATION;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -322,6 +323,9 @@ public class RMConfigs {
 
 		add(IGNORE_VALIDATIONS_IN_BATCH_PROCESSING = others.createBooleanFalseByDefault("ignoreValidationsInBatchProcessing")
 				.whichIsHidden());
+
+		add(ADD_COMMENTS_WHEN_READ_AUTHORIZATION = others.createBooleanTrueByDefault("addCommentsWhenReadAuthorization"));
+
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -600,6 +604,10 @@ public class RMConfigs {
 
 	public boolean isIgnoreValidationsInBatchProcessing() {
 		return manager.getValue(IGNORE_VALIDATIONS_IN_BATCH_PROCESSING);
+	}
+
+	public boolean isAddCommentsWhenReadAuthorization() {
+		return manager.getValue(ADD_COMMENTS_WHEN_READ_AUTHORIZATION);
 	}
 
 }

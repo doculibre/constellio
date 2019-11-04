@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -32,9 +33,13 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 
 	private boolean currentUserIsCollaborator;
 
-	public ListAddRemoveCollaboratorsGroupsField(RecordVO taskVO, boolean currentUserIsCollaborator) {
+	private boolean writeButtonVisible;
+
+	public ListAddRemoveCollaboratorsGroupsField(RecordVO taskVO, boolean currentUserIsCollaborator,
+												 boolean writeButtonVisible) {
 		this.taskVO = taskVO;
 		this.currentUserIsCollaborator = currentUserIsCollaborator;
+		this.writeButtonVisible = writeButtonVisible;
 		init();
 	}
 
@@ -52,7 +57,7 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 
 	@Override
 	protected TaskAssignationListCollaboratorsGoupsField newAddEditField() {
-		return new TaskAssignationListCollaboratorsGoupsField();
+		return new TaskAssignationListCollaboratorsGoupsField(writeButtonVisible);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -101,6 +106,22 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 	@Override
 	protected void setValuesContainer() {
 		valuesContainer = new CollaboratorValuesContainer(new ArrayList<>());
+	}
+
+	@Override
+	protected void addValue(TaskCollaboratorsGroupItem value) {
+		if (value != null) {
+			Iterator<TaskCollaboratorsGroupItem> iterator = (Iterator<TaskCollaboratorsGroupItem>) valuesAndButtonsContainer.getItemIds().iterator();
+			while (iterator.hasNext()) {
+				TaskCollaboratorsGroupItem taskCollaboratorsGroupItem = iterator.next();
+				if (value.getTaskCollaboratorGroup().equals(taskCollaboratorsGroupItem.getTaskCollaboratorGroup())) {
+					super.addValue(value);
+					removeValue(taskCollaboratorsGroupItem);
+					return;
+				}
+			}
+			super.addValue(value);
+		}
 	}
 
 	private String getCaption(String collaboratorId) {

@@ -184,7 +184,7 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		
 		Task task = rm.getRMTask(taskVO.getId());
 		List<Comment> newComments = new ArrayList<>(task.getComments());
-		newComments.add(newComment);
+		newComments.add(0, newComment);
 		task.setComments(newComments);
 		try {
 			recordServices.update(task.getWrappedRecord());

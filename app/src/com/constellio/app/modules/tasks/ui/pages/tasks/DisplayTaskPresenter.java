@@ -158,6 +158,11 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 		return taskPresenterServices.currentUserIsCollaborator(recordVO, getCurrentUserId());
 	}
 
+	@Override
+	public boolean currentUserHasWriteAuthorization(RecordVO taskVO) {
+		return getCurrentUser().hasWriteAccess().on(taskVO.getRecord());
+	}
+
 	public RecordVO getTaskVO() {
 		return taskVO;
 	}

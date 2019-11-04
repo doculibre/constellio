@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -32,9 +33,13 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 
 	private boolean currentUserIsCollaborator;
 
-	public ListAddRemoveCollaboratorsField(RecordVO taskVO, boolean currentUserIsCollaborator) {
+	private boolean writeButtonVisible;
+
+	public ListAddRemoveCollaboratorsField(RecordVO taskVO, boolean currentUserIsCollaborator,
+										   boolean writeButtonVisible) {
 		this.taskVO = taskVO;
 		this.currentUserIsCollaborator = currentUserIsCollaborator;
+		this.writeButtonVisible = writeButtonVisible;
 		init();
 	}
 
@@ -52,7 +57,7 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 
 	@Override
 	protected TaskAssignationListCollaboratorsField newAddEditField() {
-		return new TaskAssignationListCollaboratorsField();
+		return new TaskAssignationListCollaboratorsField(writeButtonVisible);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -101,6 +106,22 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 	@Override
 	protected void setValuesContainer() {
 		valuesContainer = new CollaboratorValuesContainer(new ArrayList<>());
+	}
+
+	@Override
+	protected void addValue(TaskCollaboratorItem value) {
+		if (value != null) {
+			Iterator<TaskCollaboratorItem> iterator = (Iterator<TaskCollaboratorItem>) valuesAndButtonsContainer.getItemIds().iterator();
+			while (iterator.hasNext()) {
+				TaskCollaboratorItem taskCollaboratorItem = iterator.next();
+				if (value.getTaskCollaborator().equals(taskCollaboratorItem.getTaskCollaborator())) {
+					super.addValue(value);
+					removeValue(taskCollaboratorItem);
+					return;
+				}
+			}
+			super.addValue(value);
+		}
 	}
 
 	private String getCaption(String collaboratorId) {

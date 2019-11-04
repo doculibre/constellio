@@ -171,8 +171,8 @@ public class TaskMenuItemActionBehaviors {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
-				ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
-				ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+				ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()), false);
+				ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()), false);
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {

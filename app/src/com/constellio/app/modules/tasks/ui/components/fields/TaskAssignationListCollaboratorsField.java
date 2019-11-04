@@ -25,6 +25,12 @@ public class TaskAssignationListCollaboratorsField extends CustomField<TaskColla
 
 	private OptionGroup authorizationField;
 
+	private boolean writeButtonVisible;
+
+	public TaskAssignationListCollaboratorsField(boolean writeButtonVisible) {
+		this.writeButtonVisible = writeButtonVisible;
+	}
+
 	@Override
 	protected Component initContent() {
 		mainLayout = new I18NHorizontalLayout();
@@ -36,8 +42,11 @@ public class TaskAssignationListCollaboratorsField extends CustomField<TaskColla
 		authorizationField.setItemCaption(true, $("TaskAssignationListCollaboratorsField.collaboratorWriteAuthorization"));
 		authorizationField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 
+		if (!writeButtonVisible) {
+			authorizationField.removeItem(true);
+		}
+
 		lookupUserField = new LookupRecordField(User.SCHEMA_TYPE);
-		lookupUserField.setCaption($("TaskAssignationListCollaboratorsField.taskCollaborators"));
 
 		if (taskCollaboratorItem != null) {
 			authorizationField.setValue(taskCollaboratorItem.isTaskCollaboratorsWriteAuthorization());

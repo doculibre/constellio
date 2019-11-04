@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.ui.components;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
@@ -456,8 +457,8 @@ public class TaskTable extends VerticalLayout {
 						@Override
 						protected Component buildWindowContent() {
 							VerticalLayout mainLayout = new VerticalLayout();
-							ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(taskVO, presenter.currentUserIsCollaborator(taskVO));
-							ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(taskVO, presenter.currentUserIsCollaborator(taskVO));
+							ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(taskVO, presenter.currentUserIsCollaborator(taskVO), presenter.currentUserHasWriteAuthorization(taskVO));
+							ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(taskVO, presenter.currentUserIsCollaborator(taskVO), false);
 							BaseButton saveButton = new BaseButton($("save")) {
 								@Override
 								protected void buttonClick(ClickEvent event) {
@@ -973,9 +974,13 @@ public class TaskTable extends VerticalLayout {
 			commentsLayout.setSpacing(true);
 			commentsLayout.addStyleName("task-details-comments");
 
-			Component addCommentsComponent = newAddCommentComponent(commentsLayout);
-			commentsLayout.addComponent(addCommentsComponent);
-			commentsLayout.setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
+			RMConfigs rmConfigs = new RMConfigs(presenter.getView().getConstellioFactories().getAppLayerFactory());
+
+			if (rmConfigs.isAddCommentsWhenReadAuthorization() || presenter.currentUserHasWriteAuthorization(taskVO)) {
+				Component addCommentsComponent = newAddCommentComponent(commentsLayout);
+				commentsLayout.addComponent(addCommentsComponent);
+				commentsLayout.setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
+			}
 
 			final Label noCommentLabel = new Label($("TaskTable.details.noComment"));
 			noCommentLabel.addStyleName("task-details-no-comment");
@@ -1111,6 +1116,8 @@ public class TaskTable extends VerticalLayout {
 							  List<TaskCollaboratorsGroupItem> taskCollaboratorsGroupItems, RecordVO taskVO);
 
 		boolean currentUserIsCollaborator(RecordVO recordVO);
+
+		boolean currentUserHasWriteAuthorization(RecordVO taskVO);
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {

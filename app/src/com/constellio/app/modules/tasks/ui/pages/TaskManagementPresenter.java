@@ -85,10 +85,10 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 
 		tasksTabs = new ArrayList<>();
 		tasksTabs.add(TaskManagementView.TASKS_ASSIGNED_TO_CURRENT_USER);
+		tasksTabs.add(TaskManagementView.SHARED_TASKS);
 		tasksTabs.add(TaskManagementView.TASKS_ASSIGNED_BY_CURRENT_USER);
 		tasksTabs.add(TaskManagementView.TASKS_NOT_ASSIGNED);
 		tasksTabs.add(TaskManagementView.TASKS_RECENTLY_COMPLETED);
-		tasksTabs.add(TaskManagementView.SHARED_TASKS);
 
 		view.setTasksTabs(tasksTabs);
 	}
@@ -518,6 +518,11 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 	@Override
 	public boolean currentUserIsCollaborator(RecordVO recordVO) {
 		return taskPresenterServices.currentUserIsCollaborator(recordVO, getCurrentUserId());
+	}
+
+	@Override
+	public boolean currentUserHasWriteAuthorization(RecordVO taskVO) {
+		return getCurrentUser().hasWriteAccess().on(taskVO.getRecord());
 	}
 
 	@Override
