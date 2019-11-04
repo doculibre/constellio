@@ -13,7 +13,6 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.themes.ValoTheme;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 public class TaskAssignationListCollaboratorsField extends CustomField<TaskCollaboratorItem> {
 
@@ -37,14 +36,14 @@ public class TaskAssignationListCollaboratorsField extends CustomField<TaskColla
 		mainLayout.setWidth("100%");
 		mainLayout.setSpacing(true);
 
-		authorizationField = new OptionGroup("", asList(false, true));
+		authorizationField = new OptionGroup();
+		authorizationField.addItem(false);
 		authorizationField.setItemCaption(false, $("TaskAssignationListCollaboratorsField.collaboratorReadAuthorization"));
-		authorizationField.setItemCaption(true, $("TaskAssignationListCollaboratorsField.collaboratorWriteAuthorization"));
-		authorizationField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
-
-		if (!writeButtonVisible) {
-			authorizationField.removeItem(true);
+		if (writeButtonVisible) {
+			authorizationField.addItem(true);
+			authorizationField.setItemCaption(true, $("TaskAssignationListCollaboratorsField.collaboratorWriteAuthorization"));
 		}
+		authorizationField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 
 		lookupUserField = new LookupRecordField(User.SCHEMA_TYPE);
 

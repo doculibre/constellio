@@ -458,7 +458,7 @@ public class TaskTable extends VerticalLayout {
 						protected Component buildWindowContent() {
 							VerticalLayout mainLayout = new VerticalLayout();
 							ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(taskVO, presenter.currentUserIsCollaborator(taskVO), presenter.currentUserHasWriteAuthorization(taskVO));
-							ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(taskVO, presenter.currentUserIsCollaborator(taskVO), false);
+							ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(taskVO, presenter.currentUserIsCollaborator(taskVO), presenter.currentUserHasWriteAuthorization(taskVO));
 							BaseButton saveButton = new BaseButton($("save")) {
 								@Override
 								protected void buttonClick(ClickEvent event) {
@@ -467,7 +467,7 @@ public class TaskTable extends VerticalLayout {
 								}
 							};
 							saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-							mainLayout.addComponents(collaboratorsField, collaboratorGroupsField, saveButton);
+							mainLayout.addComponents(new Label($("TaskAssignationListCollaboratorsField.taskCollaborators")), collaboratorsField, new Label($("TaskAssignationListCollaboratorsField.taskCollaboratorsGroups")), collaboratorGroupsField, saveButton);
 							getWindow().setHeight(collaboratorsField.getHeight() * 80 + "px");
 							return mainLayout;
 						}

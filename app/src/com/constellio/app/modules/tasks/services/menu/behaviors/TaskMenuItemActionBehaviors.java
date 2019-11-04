@@ -30,6 +30,7 @@ import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -171,8 +172,9 @@ public class TaskMenuItemActionBehaviors {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
-				ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()), false);
-				ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()), false);
+				boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
+				ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()), userHasWriteAuthorization);
+				ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()), userHasWriteAuthorization);
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -182,7 +184,7 @@ public class TaskMenuItemActionBehaviors {
 					}
 				};
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-				mainLayout.addComponents(collaboratorsField, collaboratorGroupsField, saveButton);
+				mainLayout.addComponents(new Label($("TaskAssignationListCollaboratorsField.taskCollaborators")), collaboratorsField, new Label($("TaskAssignationListCollaboratorsField.taskCollaboratorsGroups")), collaboratorGroupsField, saveButton);
 				getWindow().setHeight(collaboratorsField.getHeight() * 80 + "px");
 				return mainLayout;
 			}
