@@ -12,6 +12,8 @@ import com.vaadin.ui.CustomField;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.themes.ValoTheme;
 
+import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.READ;
+import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.WRITE;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaskAssignationListCollaboratorsField extends CustomField<TaskCollaboratorItem> {
@@ -37,18 +39,20 @@ public class TaskAssignationListCollaboratorsField extends CustomField<TaskColla
 		mainLayout.setSpacing(true);
 
 		authorizationField = new OptionGroup();
-		authorizationField.addItem(false);
-		authorizationField.setItemCaption(false, $("TaskAssignationListCollaboratorsField.collaboratorReadAuthorization"));
+		authorizationField.addItem(READ);
+		authorizationField.setItemCaption(READ, $("TaskAssignationListCollaboratorsField.collaboratorReadAuthorization"));
 		if (writeButtonVisible) {
-			authorizationField.addItem(true);
-			authorizationField.setItemCaption(true, $("TaskAssignationListCollaboratorsField.collaboratorWriteAuthorization"));
+			authorizationField.addItem(WRITE);
+			authorizationField.setItemCaption(WRITE, $("TaskAssignationListCollaboratorsField.collaboratorWriteAuthorization"));
+		} else {
+			authorizationField.setValue(READ);
 		}
 		authorizationField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 
 		lookupUserField = new LookupRecordField(User.SCHEMA_TYPE);
 
 		if (taskCollaboratorItem != null) {
-			authorizationField.setValue(taskCollaboratorItem.isTaskCollaboratorsWriteAuthorization());
+			authorizationField.setValue(taskCollaboratorItem.isTaskCollaboratorsWriteAuthorization() ? WRITE : READ);
 			lookupUserField.setValue(taskCollaboratorItem.getTaskCollaborator());
 			taskCollaboratorItem = null;
 		}
@@ -61,7 +65,7 @@ public class TaskAssignationListCollaboratorsField extends CustomField<TaskColla
 	@Override
 	public Object getConvertedValue() {
 		Object convertedValue;
-		Boolean writeAuthorization = (Boolean) authorizationField.getValue();
+		Boolean writeAuthorization = WRITE.equals(authorizationField.getValue());
 		String userId = (String) lookupUserField.getValue();
 		if (writeAuthorization != null && userId != null) {
 			convertedValue = new TaskCollaboratorItem(userId, writeAuthorization);
@@ -84,7 +88,12 @@ public class TaskAssignationListCollaboratorsField extends CustomField<TaskColla
 				newWriteAuthorization = null;
 				newUserId = null;
 			}
-			authorizationField.setValue(newWriteAuthorization);
+			if (newWriteAuthorization != null) {
+				authorizationField.setValue(newWriteAuthorization ? WRITE : READ);
+			} else {
+				authorizationField.setValue(null);
+			}
+
 			lookupUserField.setValue(newUserId);
 		} else {
 			taskCollaboratorItem = newFieldValue;

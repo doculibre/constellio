@@ -120,8 +120,7 @@ public class MetadataDisplayFactory implements Serializable {
 						User user = getConstellioFactories().getModelLayerFactory().newUserServices().getUserInCollection(currentUsername, currentCollection);
 						Record record = getConstellioFactories().getModelLayerFactory().newRecordServices().getDocumentById(recordVO.getId());
 						if (!user.hasWriteAccess().on(record)) {
-							rmConfigs = new RMConfigs(getConstellioFactories().getModelLayerFactory().getSystemConfigurationsManager());
-							return rmConfigs.isAddCommentsWhenReadAuthorization() && comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
+							return comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
 						} else {
 							return comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
 						}
@@ -134,8 +133,7 @@ public class MetadataDisplayFactory implements Serializable {
 						User user = getConstellioFactories().getModelLayerFactory().newUserServices().getUserInCollection(currentUsername, currentCollection);
 						Record record = getConstellioFactories().getModelLayerFactory().newRecordServices().getDocumentById(recordVO.getId());
 						if (!user.hasWriteAccess().on(record)) {
-							rmConfigs = new RMConfigs(getConstellioFactories().getModelLayerFactory().getSystemConfigurationsManager());
-							return rmConfigs.isAddCommentsWhenReadAuthorization() && comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
+							return comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
 						} else {
 							return super.isDeleteButtonVisible(comment);
 						}

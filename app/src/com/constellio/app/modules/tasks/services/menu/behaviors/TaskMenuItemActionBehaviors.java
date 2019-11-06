@@ -29,7 +29,9 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
@@ -172,6 +174,7 @@ public class TaskMenuItemActionBehaviors {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
+				mainLayout.setSpacing(true);
 				boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
 				ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()), userHasWriteAuthorization);
 				ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()), userHasWriteAuthorization);
@@ -184,7 +187,14 @@ public class TaskMenuItemActionBehaviors {
 					}
 				};
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-				mainLayout.addComponents(new Label($("TaskAssignationListCollaboratorsField.taskCollaborators")), collaboratorsField, new Label($("TaskAssignationListCollaboratorsField.taskCollaboratorsGroups")), collaboratorGroupsField, saveButton);
+
+				HorizontalLayout buttonLayout = new HorizontalLayout();
+				buttonLayout.addComponent(saveButton);
+				buttonLayout.setSpacing(true);
+				buttonLayout.setHeight("40px");
+
+				mainLayout.addComponents(new Label($("TaskAssignationListCollaboratorsField.taskCollaborators")), collaboratorsField, new Label($("TaskAssignationListCollaboratorsField.taskCollaboratorsGroups")), collaboratorGroupsField, buttonLayout);
+				mainLayout.setComponentAlignment(buttonLayout, Alignment.MIDDLE_CENTER);
 				getWindow().setHeight(collaboratorsField.getHeight() * 80 + "px");
 				return mainLayout;
 			}

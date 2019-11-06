@@ -12,6 +12,8 @@ import com.vaadin.ui.CustomField;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.themes.ValoTheme;
 
+import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.READ;
+import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.WRITE;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaskAssignationListCollaboratorsGoupsField extends CustomField<TaskCollaboratorsGroupItem> {
@@ -37,19 +39,21 @@ public class TaskAssignationListCollaboratorsGoupsField extends CustomField<Task
 		mainLayout.setSpacing(true);
 
 		authorizationField = new OptionGroup();
-		authorizationField.addItem(false);
-		authorizationField.setItemCaption(false, $("TaskAssignationListCollaboratorsField.collaboratorReadAuthorization"));
+		authorizationField.addItem(READ);
+		authorizationField.setItemCaption(READ, $("TaskAssignationListCollaboratorsField.collaboratorReadAuthorization"));
 
 		if (writeButtonVisible) {
-			authorizationField.addItem(true);
-			authorizationField.setItemCaption(true, $("TaskAssignationListCollaboratorsField.collaboratorWriteAuthorization"));
+			authorizationField.addItem(WRITE);
+			authorizationField.setItemCaption(WRITE, $("TaskAssignationListCollaboratorsField.collaboratorWriteAuthorization"));
+		} else {
+			authorizationField.setValue(READ);
 		}
 		authorizationField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 
 		lookupGroupField = new LookupRecordField(Group.SCHEMA_TYPE);
 
 		if (taskCollaboratorsGroupItem != null) {
-			authorizationField.setValue(taskCollaboratorsGroupItem.isTaskCollaboratorGroupWriteAuthorization());
+			authorizationField.setValue(taskCollaboratorsGroupItem.isTaskCollaboratorGroupWriteAuthorization() ? WRITE : READ);
 			lookupGroupField.setValue(taskCollaboratorsGroupItem.getTaskCollaboratorGroup());
 			taskCollaboratorsGroupItem = null;
 		}
@@ -62,7 +66,7 @@ public class TaskAssignationListCollaboratorsGoupsField extends CustomField<Task
 	@Override
 	public Object getConvertedValue() {
 		Object convertedValue;
-		Boolean writeAuthorization = (Boolean) authorizationField.getValue();
+		Boolean writeAuthorization = WRITE.equals(authorizationField.getValue());
 		String groupId = (String) lookupGroupField.getValue();
 		if (writeAuthorization != null && groupId != null) {
 			convertedValue = new TaskCollaboratorsGroupItem(groupId, writeAuthorization);
@@ -86,7 +90,11 @@ public class TaskAssignationListCollaboratorsGoupsField extends CustomField<Task
 				newWriteAuthorization = null;
 				newGroupId = null;
 			}
-			authorizationField.setValue(newWriteAuthorization);
+			if (newWriteAuthorization != null) {
+				authorizationField.setValue(newWriteAuthorization ? WRITE : READ);
+			} else {
+				authorizationField.setValue(null);
+			}
 			lookupGroupField.setValue(newGroupId);
 		} else {
 			taskCollaboratorsGroupItem = newFieldValue;

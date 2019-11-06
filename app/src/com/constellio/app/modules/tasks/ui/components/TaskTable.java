@@ -72,6 +72,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.Panel;
@@ -449,7 +450,6 @@ public class TaskTable extends VerticalLayout {
 					}
 				});
 			}
-
 			rootItem.addItem($("DisplayTaskView.share"), null, new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
@@ -457,6 +457,7 @@ public class TaskTable extends VerticalLayout {
 						@Override
 						protected Component buildWindowContent() {
 							VerticalLayout mainLayout = new VerticalLayout();
+							mainLayout.setSpacing(true);
 							ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(taskVO, presenter.currentUserIsCollaborator(taskVO), presenter.currentUserHasWriteAuthorization(taskVO));
 							ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(taskVO, presenter.currentUserIsCollaborator(taskVO), presenter.currentUserHasWriteAuthorization(taskVO));
 							BaseButton saveButton = new BaseButton($("save")) {
@@ -467,7 +468,14 @@ public class TaskTable extends VerticalLayout {
 								}
 							};
 							saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-							mainLayout.addComponents(new Label($("TaskAssignationListCollaboratorsField.taskCollaborators")), collaboratorsField, new Label($("TaskAssignationListCollaboratorsField.taskCollaboratorsGroups")), collaboratorGroupsField, saveButton);
+
+							HorizontalLayout buttonLayout = new HorizontalLayout();
+							buttonLayout.addComponent(saveButton);
+							buttonLayout.setSpacing(true);
+							buttonLayout.setHeight("40px");
+
+							mainLayout.addComponents(new Label($("TaskAssignationListCollaboratorsField.taskCollaborators")), collaboratorsField, new Label($("TaskAssignationListCollaboratorsField.taskCollaboratorsGroups")), collaboratorGroupsField, buttonLayout);
+							mainLayout.setComponentAlignment(buttonLayout, Alignment.MIDDLE_CENTER);
 							getWindow().setHeight(collaboratorsField.getHeight() * 80 + "px");
 							return mainLayout;
 						}
