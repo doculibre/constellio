@@ -121,6 +121,12 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 				}
 			}
 			super.addValue(value);
+			if (!writeButtonVisible) {
+				TaskCollaboratorsGroupItem taskCollaboratorsGroupItem = new TaskCollaboratorsGroupItem();
+				taskCollaboratorsGroupItem.setCollaboratorReadAuthorization(false);
+				addEditField.setValue(taskCollaboratorsGroupItem);
+				notifyValueChange();
+			}
 		}
 	}
 

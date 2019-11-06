@@ -34,12 +34,13 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.vaadin.ui.themes.ValoTheme.BUTTON_PRIMARY;
+import static com.vaadin.ui.themes.ValoTheme.LABEL_BOLD;
 import static java.util.Arrays.asList;
 
 public class TaskMenuItemActionBehaviors {
@@ -186,14 +187,19 @@ public class TaskMenuItemActionBehaviors {
 						getWindow().close();
 					}
 				};
-				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				saveButton.addStyleName(BUTTON_PRIMARY);
 
 				HorizontalLayout buttonLayout = new HorizontalLayout();
 				buttonLayout.addComponent(saveButton);
 				buttonLayout.setSpacing(true);
 				buttonLayout.setHeight("40px");
 
-				mainLayout.addComponents(new Label($("TaskAssignationListCollaboratorsField.taskCollaborators")), collaboratorsField, new Label($("TaskAssignationListCollaboratorsField.taskCollaboratorsGroups")), collaboratorGroupsField, buttonLayout);
+				Label collaboratorsLabel = new Label($("TaskAssignationListCollaboratorsField.taskCollaborators"));
+				collaboratorsLabel.setStyleName(LABEL_BOLD);
+				Label collaboratorsGroupsLabel = new Label($("TaskAssignationListCollaboratorsField.taskCollaboratorsGroups"));
+				collaboratorsGroupsLabel.setStyleName(LABEL_BOLD);
+
+				mainLayout.addComponents(collaboratorsLabel, collaboratorsField, collaboratorsGroupsLabel, collaboratorGroupsField, buttonLayout);
 				mainLayout.setComponentAlignment(buttonLayout, Alignment.MIDDLE_CENTER);
 				getWindow().setHeight(collaboratorsField.getHeight() * 80 + "px");
 				return mainLayout;

@@ -99,6 +99,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.vaadin.ui.themes.ValoTheme.LABEL_BOLD;
 
 public class TaskTable extends VerticalLayout {
 
@@ -474,7 +475,12 @@ public class TaskTable extends VerticalLayout {
 							buttonLayout.setSpacing(true);
 							buttonLayout.setHeight("40px");
 
-							mainLayout.addComponents(new Label($("TaskAssignationListCollaboratorsField.taskCollaborators")), collaboratorsField, new Label($("TaskAssignationListCollaboratorsField.taskCollaboratorsGroups")), collaboratorGroupsField, buttonLayout);
+							Label collaboratorsLabel = new Label($("TaskAssignationListCollaboratorsField.taskCollaborators"));
+							collaboratorsLabel.setStyleName(LABEL_BOLD);
+							Label collaboratorsGroupsLabel = new Label($("TaskAssignationListCollaboratorsField.taskCollaboratorsGroups"));
+							collaboratorsGroupsLabel.setStyleName(LABEL_BOLD);
+
+							mainLayout.addComponents(collaboratorsLabel, collaboratorsField, collaboratorsGroupsLabel, collaboratorGroupsField, buttonLayout);
 							mainLayout.setComponentAlignment(buttonLayout, Alignment.MIDDLE_CENTER);
 							getWindow().setHeight(collaboratorsField.getHeight() * 80 + "px");
 							return mainLayout;
