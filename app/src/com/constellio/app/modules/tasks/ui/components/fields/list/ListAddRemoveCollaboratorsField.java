@@ -121,11 +121,6 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 				}
 			}
 			super.addValue(value);
-			if (writeButtonVisible) {
-				TaskCollaboratorItem taskCollaboratorItem = new TaskCollaboratorItem();
-				taskCollaboratorItem.setCollaboratorReadAuthorization(false);
-				addEditField.setValue(taskCollaboratorItem);
-			}
 		}
 	}
 
