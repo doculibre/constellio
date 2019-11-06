@@ -1,6 +1,5 @@
 package com.constellio.app.modules.tasks.services.actions;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
@@ -19,7 +18,7 @@ import java.util.List;
 
 public class TaskRecordActionsServices {
 
-	private RMSchemasRecordsServices rm;
+	private TasksSchemasRecordsServices task;
 	private TaskModuleExtensions taskModuleExtensions;
 	private AppLayerFactory appLayerFactory;
 	private ModelLayerFactory modelLayerFactory;
@@ -31,7 +30,7 @@ public class TaskRecordActionsServices {
 	private TasksSearchServices tasksSearchServices;
 
 	public TaskRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
-		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.task = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -77,19 +76,19 @@ public class TaskRecordActionsServices {
 	public boolean isAutoAssignActionPossible(Record record, User user) {
 		return isNotLogicallyDeleted(record)
 			   && taskPresenterServices.isAutoAssignButtonEnabled(record, user)
-			   && taskModuleExtensions.isAutoAssignActionPossibleOnTask(rm.wrapRMTask(record), user);
+			   && taskModuleExtensions.isAutoAssignActionPossibleOnTask(task.wrapTask(record), user);
 	}
 
 	public boolean isCompleteTaskActionPossible(Record record, User user) {
 		return isNotLogicallyDeleted(record)
 			   && taskPresenterServices.isCompleteTaskButtonVisible(record, user)
-			   && taskModuleExtensions.isCompleteTaskActionPossibleOnTask(rm.wrapRMTask(record), user);
+			   && taskModuleExtensions.isCompleteTaskActionPossibleOnTask(task.wrapTask(record), user);
 	}
 
 	public boolean isCloseTaskActionPossible(Record record, User user) {
 		return isNotLogicallyDeleted(record)
 			   && taskPresenterServices.isCloseTaskButtonVisible(record, user)
-			   && taskModuleExtensions.isCloseTaskActionPossibleOnTask(rm.wrapRMTask(record), user);
+			   && taskModuleExtensions.isCloseTaskActionPossibleOnTask(task.wrapTask(record), user);
 	}
 
 
@@ -97,22 +96,22 @@ public class TaskRecordActionsServices {
 		return isNotLogicallyDeleted(record)
 			   && user.hasWriteAccess().on(record)
 			   && !isClosedOrTerminated(tasksSchemas.wrapTask(record))
-			   && taskModuleExtensions.isCreateSubTaskActionPossibleOnTask(rm.wrapRMTask(record), user);
+			   && taskModuleExtensions.isCreateSubTaskActionPossibleOnTask(task.wrapTask(record), user);
 	}
 
 	public boolean isDeleteActionPossible(Record record, User user) {
 		return isNotLogicallyDeleted(record)
 			   && taskPresenterServices.isDeleteTaskButtonVisible(record, user)
-			   && taskModuleExtensions.isDeleteActionPossibleOnTask(rm.wrapRMTask(record), user);
+			   && taskModuleExtensions.isDeleteActionPossibleOnTask(task.wrapTask(record), user);
 	}
 
 	public boolean isGenerateReportActionPossible(Record record, User user) {
 		return isNotLogicallyDeleted(record) &&
-			   taskModuleExtensions.isGenerateReportActionPossibleOnTask(rm.wrapRMTask(record), user);
+			   taskModuleExtensions.isGenerateReportActionPossibleOnTask(task.wrapTask(record), user);
 	}
 
 	public boolean isConsultLinkActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record)
-			   && taskModuleExtensions.isConsultLinkActionPossibleOnTask(rm.wrapRMTask(record), user);
+			   && taskModuleExtensions.isConsultLinkActionPossibleOnTask(task.wrapTask(record), user);
 	}
 }
