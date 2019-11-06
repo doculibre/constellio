@@ -2,7 +2,6 @@ package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.api.extensions.params.MetadataDisplayCustomValueExtentionParams;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
-import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
@@ -29,8 +28,6 @@ import com.constellio.app.ui.framework.components.resource.ConstellioResourceHan
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -96,39 +93,7 @@ public class MetadataDisplayFactory implements Serializable {
 			if (Boolean.TRUE.equals(recordVO.getMetadataValue(recordVO.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode())).getValue())) {
 				displayComponent = new RecordCommentsDisplayImpl(recordVO, metadataCode);
 			} else {
-				displayComponent = new RecordCommentsEditorImpl(recordVO, metadataCode) {
-					RMConfigs rmConfigs;
-
-					@Override
-					public boolean isAddButtonVisible() {
-						String currentUsername = getSessionContext().getCurrentUser().getUsername();
-						String currentCollection = getSessionContext().getCurrentCollection();
-						User user = getConstellioFactories().getModelLayerFactory().newUserServices().getUserInCollection(currentUsername, currentCollection);
-						Record record = getConstellioFactories().getModelLayerFactory().newRecordServices().getDocumentById(recordVO.getId());
-						if (!user.hasWriteAccess().on(record)) {
-							rmConfigs = new RMConfigs(getConstellioFactories().getModelLayerFactory().getSystemConfigurationsManager());
-							return rmConfigs.isAddCommentsWhenReadAuthorization();
-						} else {
-							return super.isAddButtonVisible();
-						}
-					}
-
-					@Override
-					public boolean isEditButtonVisible(Comment comment) {
-						return comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
-					}
-
-					@Override
-					public boolean isDeleteButtonVisible(Comment comment) {
-						return comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
-					}
-
-					@Override
-					public boolean isUserHasToHaveWriteAuthorization() {
-						rmConfigs = new RMConfigs(getConstellioFactories().getModelLayerFactory().getSystemConfigurationsManager());
-						return !rmConfigs.isAddCommentsWhenReadAuthorization();
-					}
-				};
+				displayComponent = new RecordCommentsEditorImpl(recordVO, metadataCode);
 			}
 
 			displayComponent.setWidthUndefined();

@@ -5,7 +5,7 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.modules.tasks.model.calculators.TaskCollaboratorsTokensCalculator;
+import com.constellio.app.modules.tasks.model.calculators.TaskTokensCalculator2;
 import com.constellio.app.modules.tasks.model.validators.TaskValidator;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -56,7 +56,7 @@ public class TasksMigrationTo9_0 extends MigrationHelper implements MigrationScr
 			defaultSchema.createUndeletable(Task.TASK_COLLABORATORS_GROUPS).setType(REFERENCE).setMultivalue(true)
 					.defineReferencesTo(typesBuilder.getSchemaType(Group.SCHEMA_TYPE));
 			defaultSchema.createUndeletable(Task.TASK_COLLABORATORS_GROUPS_WRITE_AUTHORIZATIONS).setType(BOOLEAN).setMultivalue(true);
-			defaultSchema.get(Schemas.TOKENS.getLocalCode()).defineDataEntry().asCalculated(TaskCollaboratorsTokensCalculator.class);
+			defaultSchema.get(Schemas.TOKENS.getLocalCode()).defineDataEntry().asCalculated(TaskTokensCalculator2.class);
 		}
 	}
 

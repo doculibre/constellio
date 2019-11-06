@@ -1,6 +1,5 @@
 package com.constellio.app.modules.tasks.services;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
@@ -308,14 +307,17 @@ public class TaskPresenterServices {
 
 	public boolean currentUserIsCollaborator(RecordVO recordVO, String currentUserId) {
 		Record currentUserRecord = tasksSchemas.getAppLayerFactory().getModelLayerFactory().newRecordServices().getDocumentById(currentUserId);
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(tasksSchemas.getCollection(), tasksSchemas.getAppLayerFactory());
-		boolean userInGroupCollaborator = !Collections.disjoint(rm.wrapUser(currentUserRecord).getUserGroups(), recordVO.get(TASK_COLLABORATORS_GROUPS));
-		return ((List) recordVO.get(TASK_COLLABORATORS)).contains(currentUserId) || userInGroupCollaborator;
+		boolean userInGroupCollaborator = !Collections.disjoint(tasksSchemas.wrapUser(currentUserRecord).getUserGroups(), recordVO.get(TASK_COLLABORATORS_GROUPS));
+		if (((List) recordVO.get(TASK_COLLABORATORS)).contains(currentUserId)) {
+			return true;
+		} else {
+			return userInGroupCollaborator;
+		}
 	}
 
-	public void addCollaborators(List<TaskCollaboratorItem> taskCollaboratorItems,
-								 List<TaskCollaboratorsGroupItem> taskCollaboratorsGroupItems, RecordVO recordVO,
-								 SchemaPresenterUtils schemaPresenterUtils) {
+	public void modifyCollaborators(List<TaskCollaboratorItem> taskCollaboratorItems,
+									List<TaskCollaboratorsGroupItem> taskCollaboratorsGroupItems, RecordVO recordVO,
+									SchemaPresenterUtils schemaPresenterUtils) {
 		List<String> taskCollaborators = new ArrayList<>();
 		List<Boolean> taskCollaboratorsWriteAuthorizations = new ArrayList<>();
 		List<String> taskCollaboratorsGroups = new ArrayList<>();
@@ -339,7 +341,7 @@ public class TaskPresenterServices {
 		try {
 			recordServices.update(task);
 		} catch (RecordServicesException e) {
-			e.printStackTrace();
+			throw new RuntimeException();
 		}
 	}
 }

@@ -74,7 +74,7 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 			field.addValueChangeListener(listener);
 		}
 		field.setIgnoreLinkability(ignoreLinkability);
-		//		field.setMultiValue(true);
+		field.setMultiValue(true);
 		field.setItemInformation(itemInformation);
 		field.addSelectionChangeListener(new SelectionChangeListener() {
 			@Override

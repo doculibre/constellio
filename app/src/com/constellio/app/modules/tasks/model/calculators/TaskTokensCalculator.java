@@ -13,7 +13,9 @@ import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
@@ -32,7 +34,7 @@ public class TaskTokensCalculator extends AbstractMetadataValueCalculator<List<S
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		List<String> tokens = new ArrayList<>(parameters.get(manualTokensParam));
+		Set<String> tokens = new HashSet<>(parameters.get(manualTokensParam));
 
 		String assignee = parameters.get(assigneeParam);
 		List<String> assigneeUsers = parameters.get(assigneeUsersParam);
@@ -71,8 +73,10 @@ public class TaskTokensCalculator extends AbstractMetadataValueCalculator<List<S
 		if (parentTokens != null) {
 			tokens.addAll(parentTokens);
 		}
+		List<String> tokensList = new ArrayList<>();
+		tokensList.addAll(tokens);
 
-		return tokens;
+		return tokensList;
 	}
 
 	@Override

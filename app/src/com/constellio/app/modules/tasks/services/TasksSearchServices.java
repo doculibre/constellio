@@ -24,7 +24,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static org.apache.ignite.internal.util.lang.GridFunc.asList;
+import static java.util.Arrays.asList;
 
 public class TasksSearchServices {
 	TasksSchemasRecordsServices tasksSchemas;
@@ -84,7 +84,7 @@ public class TasksSearchServices {
 				where(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS),
 				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
 				anyConditions(
-						where(tasksSchemas.userTask.taskCollabortaorsGroups()).isIn(user.getUserGroups()),
+						where(tasksSchemas.userTask.taskCollaboratorsGroups()).isIn(user.getUserGroups()),
 						where(tasksSchemas.userTask.taskCollaborators()).isContaining(asList(user))
 				));
 		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());

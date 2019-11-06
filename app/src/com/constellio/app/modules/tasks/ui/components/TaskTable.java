@@ -1,6 +1,5 @@
 package com.constellio.app.modules.tasks.ui.components;
 
-import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
@@ -53,6 +52,7 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -988,9 +988,9 @@ public class TaskTable extends VerticalLayout {
 			commentsLayout.setSpacing(true);
 			commentsLayout.addStyleName("task-details-comments");
 
-			RMConfigs rmConfigs = new RMConfigs(presenter.getView().getConstellioFactories().getAppLayerFactory());
+			ConstellioEIMConfigs eimConfigs = new ConstellioEIMConfigs(presenter.getView().getConstellioFactories().getAppLayerFactory().getModelLayerFactory());
 
-			if (rmConfigs.isAddCommentsWhenReadAuthorization() || presenter.currentUserHasWriteAuthorization(taskVO)) {
+			if (eimConfigs.isAddCommentsWhenReadAuthorization() || presenter.currentUserHasWriteAuthorization(taskVO)) {
 				Component addCommentsComponent = newAddCommentComponent(commentsLayout);
 				commentsLayout.addComponent(addCommentsComponent);
 				commentsLayout.setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);

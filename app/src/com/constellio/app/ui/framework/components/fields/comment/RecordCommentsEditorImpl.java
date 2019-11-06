@@ -6,6 +6,9 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveCommentField;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.Property;
 import com.vaadin.ui.Component;
 
@@ -24,15 +27,19 @@ public class RecordCommentsEditorImpl extends ListAddRemoveCommentField implemen
 
 	private RecordCommentsEditorPresenter presenter;
 
+	private ConstellioEIMConfigs eimConfigs;
+
 	public RecordCommentsEditorImpl(RecordVO recordVO, String metadataCode) {
 		this.recordVO = recordVO;
 		this.metadataCode = metadataCode;
+		eimConfigs = new ConstellioEIMConfigs(getConstellioFactories().getModelLayerFactory().getSystemConfigurationsManager());
 		init();
 	}
 
 	public RecordCommentsEditorImpl(String recordId, String metadataCode) {
 		this.recordId = recordId;
 		this.metadataCode = metadataCode;
+		eimConfigs = new ConstellioEIMConfigs(getConstellioFactories().getModelLayerFactory().getSystemConfigurationsManager());
 		init();
 	}
 
@@ -95,12 +102,12 @@ public class RecordCommentsEditorImpl extends ListAddRemoveCommentField implemen
 
 	@Override
 	protected boolean isEditButtonVisible(Comment item) {
-		return presenter.isAddEditButtonEnabled();
+		return presenter.isEditDeleteButtonEnabled(item);
 	}
 
 	@Override
 	protected boolean isDeleteButtonVisible(Comment item) {
-		return presenter.isAddEditButtonEnabled();
+		return presenter.isEditDeleteButtonEnabled(item);
 	}
 
 	@Override
@@ -109,11 +116,20 @@ public class RecordCommentsEditorImpl extends ListAddRemoveCommentField implemen
 	}
 
 	public boolean isAddButtonVisible() {
-		return presenter.isAddEditButtonEnabled();
+		String currentUsername = getSessionContext().getCurrentUser().getUsername();
+		String currentCollection = getSessionContext().getCurrentCollection();
+		User user = getConstellioFactories().getModelLayerFactory().newUserServices().getUserInCollection(currentUsername, currentCollection);
+		Record record = getConstellioFactories().getModelLayerFactory().newRecordServices().getDocumentById(recordVO.getId());
+		if (!user.hasWriteAccess().on(record)) {
+			return eimConfigs.isAddCommentsWhenReadAuthorization();
+		} else {
+			return presenter.isAddButtonEnabled();
+		}
 	}
 
 	public boolean isUserHasToHaveWriteAuthorization() {
-		return true;
+		eimConfigs = new ConstellioEIMConfigs(getConstellioFactories().getModelLayerFactory().getSystemConfigurationsManager());
+		return !eimConfigs.isAddCommentsWhenReadAuthorization();
 	}
 }
 

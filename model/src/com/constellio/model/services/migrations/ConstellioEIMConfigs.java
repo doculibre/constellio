@@ -90,6 +90,9 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration UPDATE_SERVER_CONNECTION_ENABLED;
 
+	public static final SystemConfiguration ADD_COMMENTS_WHEN_READ_AUTHORIZATION;
+	;
+
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
 																 "   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
 																 "	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" +
@@ -311,10 +314,9 @@ public class ConstellioEIMConfigs {
 
 		add(ADD_RECORD_ID_IN_EMAILS = others.createBooleanFalseByDefault("addRecordIdInEmails"));
 		add(GENERATED_EMAIL_FORMAT = others.createEnum("generatedEmailFormat", EmailTextFormat.class).withDefaultValue(EmailTextFormat.PLAIN_TEXT));
-
-
 		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanFalseByDefault("enableThumbnailGeneration")
 				.scriptedBy(EnableThumbnailsScript.class));
+		add(ADD_COMMENTS_WHEN_READ_AUTHORIZATION = others.createBooleanTrueByDefault("addCommentsWhenReadAuthorization"));
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
@@ -642,5 +644,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isLearnToRankFeatureActivated() {
 		return manager.getValue(ENABLE_LEARN_TO_RANK_FEATURE);
+	}
+
+	public boolean isAddCommentsWhenReadAuthorization() {
+		return manager.getValue(ADD_COMMENTS_WHEN_READ_AUTHORIZATION);
 	}
 }

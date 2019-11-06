@@ -68,9 +68,13 @@ public class RecordCommentsEditorPresenter implements Serializable {
 	}
 
 
-	public boolean isAddEditButtonEnabled() {
+	public boolean isAddButtonEnabled() {
 		User currentUser = presenterUtils.getCurrentUser();
 		return currentUser.hasWriteAccess().on(record);
+	}
+
+	public boolean isEditDeleteButtonEnabled(Comment comment) {
+		return comment.getUserId().equals(presenterUtils.getCurrentUser().getId());
 	}
 
 	public void commentsChanged(List<Comment> newComments, boolean userHasToHaveWriteAuthorization) {

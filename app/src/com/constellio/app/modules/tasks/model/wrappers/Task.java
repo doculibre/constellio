@@ -168,7 +168,7 @@ public class Task extends RecordWrapper {
 
 	public Task removeTaskCollaborator(String taskCollaborator, Boolean taskCollaboratorWriteAuthorization) {
 		int index;
-		while ((index = getCollaboratorIndex(taskCollaborator, taskCollaboratorWriteAuthorization)) != -1) {
+		if ((index = getCollaboratorIndex(taskCollaborator, taskCollaboratorWriteAuthorization)) != -1) {
 			List<String> taskCollaborators = new ArrayList<>(getTaskCollaborators());
 			List<Boolean> taskCollaboratorWriteAuthorizations = new ArrayList<>(getTaskCollaboratorsWriteAuthorizations());
 

@@ -134,7 +134,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	@Override
 	public void addCollaborators(List<TaskCollaboratorItem> taskCollaboratorItems,
 								 List<TaskCollaboratorsGroupItem> taskCollaboratorsGroupItems, RecordVO taskVO) {
-		taskPresenterServices.addCollaborators(taskCollaboratorItems, taskCollaboratorsGroupItems, taskVO, schemaPresenterUtils);
+		taskPresenterServices.modifyCollaborators(taskCollaboratorItems, taskCollaboratorsGroupItems, taskVO, schemaPresenterUtils);
 	}
 
 	public void afterCompletionActions() {

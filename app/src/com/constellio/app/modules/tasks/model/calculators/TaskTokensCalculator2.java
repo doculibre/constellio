@@ -7,9 +7,11 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-public class TaskCollaboratorsTokensCalculator extends TaskTokensCalculator {
+public class TaskTokensCalculator2 extends TaskTokensCalculator {
 	LocalDependency<List<String>> collaboratorsParam = LocalDependency.toAReferenceList(Task.TASK_COLLABORATORS);
 	LocalDependency<List<String>> collaboratorsGroupsParam = LocalDependency.toAReferenceList(Task.TASK_COLLABORATORS_GROUPS);
 	LocalDependency<List<Boolean>> authorizationTypeParam = LocalDependency.toABooleanList(Task.TASK_COLLABORATORS_WRITE_AUTHORIZATIONS);
@@ -17,7 +19,7 @@ public class TaskCollaboratorsTokensCalculator extends TaskTokensCalculator {
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		List<String> tokens = super.calculate(parameters);
+		Set<String> tokens = new HashSet<>();
 		List<String> collaborators = parameters.get(collaboratorsParam);
 		List<Boolean> writeAuthorizations = parameters.get(authorizationTypeParam);
 		List<String> collaboratorsGroups = parameters.get(collaboratorsGroupsParam);
@@ -70,7 +72,10 @@ public class TaskCollaboratorsTokensCalculator extends TaskTokensCalculator {
 			}
 		}
 
-		return tokens;
+		List<String> tokensList = super.calculate(parameters);
+		tokensList.addAll(tokens);
+
+		return tokensList;
 	}
 
 	@Override

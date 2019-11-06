@@ -182,7 +182,7 @@ public class TaskMenuItemActionBehaviors {
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						taskPresenterServices.addCollaborators(collaboratorsField.getValue(), collaboratorGroupsField.getValue(), params.getRecordVO(),
+						taskPresenterServices.modifyCollaborators(collaboratorsField.getValue(), collaboratorGroupsField.getValue(), params.getRecordVO(),
 								new SchemaPresenterUtils(Task.DEFAULT_SCHEMA, params.getView().getConstellioFactories(), params.getView().getSessionContext()));
 						getWindow().close();
 					}

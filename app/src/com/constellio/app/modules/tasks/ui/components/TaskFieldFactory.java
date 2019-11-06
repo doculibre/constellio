@@ -5,6 +5,7 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskAcceptedFieldImpl;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationEnumField;
@@ -207,13 +208,13 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 
 	private boolean currentUserHasWriteAuthorisation(AppLayerFactory appLayerFactory) {
 		String userId = baseView.getSessionContext().getCurrentUser().getId();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(baseView.getSessionContext().getCurrentCollection(), appLayerFactory);
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
-		Record record = searchServices.searchSingleResult(from(rm.schemaType(Task.SCHEMA_TYPE)).where(Schemas.IDENTIFIER).isEqualTo(recordVO.getId()));
+		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(baseView.getSessionContext().getCurrentCollection(), appLayerFactory);
+		Record record = searchServices.searchSingleResult(from(tasksSchemas.schemaType(Task.SCHEMA_TYPE)).where(Schemas.IDENTIFIER).isEqualTo(recordVO.getId()));
 		if (record != null) {
-			return rm.getUser(userId).hasWriteAccess().on(record);
+			return tasksSchemas.getUser(userId).hasWriteAccess().on(record);
 		} else {
-			return true;
+			return false;
 		}
 	}
 }
