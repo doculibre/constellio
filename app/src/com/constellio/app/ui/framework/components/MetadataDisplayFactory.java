@@ -122,7 +122,7 @@ public class MetadataDisplayFactory implements Serializable {
 						if (!user.hasWriteAccess().on(record)) {
 							return comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
 						} else {
-							return comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
+							return super.isEditButtonVisible(comment);
 						}
 					}
 
