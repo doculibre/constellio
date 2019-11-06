@@ -115,28 +115,12 @@ public class MetadataDisplayFactory implements Serializable {
 
 					@Override
 					public boolean isEditButtonVisible(Comment comment) {
-						String currentUsername = getSessionContext().getCurrentUser().getUsername();
-						String currentCollection = getSessionContext().getCurrentCollection();
-						User user = getConstellioFactories().getModelLayerFactory().newUserServices().getUserInCollection(currentUsername, currentCollection);
-						Record record = getConstellioFactories().getModelLayerFactory().newRecordServices().getDocumentById(recordVO.getId());
-						if (!user.hasWriteAccess().on(record)) {
-							return comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
-						} else {
-							return super.isEditButtonVisible(comment);
-						}
+						return comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
 					}
 
 					@Override
 					public boolean isDeleteButtonVisible(Comment comment) {
-						String currentUsername = getSessionContext().getCurrentUser().getUsername();
-						String currentCollection = getSessionContext().getCurrentCollection();
-						User user = getConstellioFactories().getModelLayerFactory().newUserServices().getUserInCollection(currentUsername, currentCollection);
-						Record record = getConstellioFactories().getModelLayerFactory().newRecordServices().getDocumentById(recordVO.getId());
-						if (!user.hasWriteAccess().on(record)) {
-							return comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
-						} else {
-							return super.isDeleteButtonVisible(comment);
-						}
+						return comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
 					}
 
 					@Override
