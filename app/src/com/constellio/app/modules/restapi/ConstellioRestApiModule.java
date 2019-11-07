@@ -102,6 +102,7 @@ public class ConstellioRestApiModule extends InstallableSystemModuleExcludedFrom
 		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS");
 		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM,
 				"X-Requested-With,Content-Type,Accept,Origin,Constellio-Flushing-Mode,Host,If-Match,ETag");
+		filterHolder.setInitParameter(CrossOriginFilter.EXPOSED_HEADERS_PARAM, "ETag");
 		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
 
 		String allowedOrigins = new RestApiConfigs(appLayerFactory).getCorsAllowedOrigins();
