@@ -307,11 +307,10 @@ public class TaskPresenterServices {
 
 	public boolean currentUserIsCollaborator(RecordVO recordVO, String currentUserId) {
 		Record currentUserRecord = tasksSchemas.getAppLayerFactory().getModelLayerFactory().newRecordServices().getDocumentById(currentUserId);
-		boolean userInGroupCollaborator = !Collections.disjoint(tasksSchemas.wrapUser(currentUserRecord).getUserGroups(), recordVO.get(TASK_COLLABORATORS_GROUPS));
 		if (((List) recordVO.get(TASK_COLLABORATORS)).contains(currentUserId)) {
 			return true;
 		} else {
-			return userInGroupCollaborator;
+			return !Collections.disjoint(tasksSchemas.wrapUser(currentUserRecord).getUserGroups(), recordVO.get(TASK_COLLABORATORS_GROUPS));
 		}
 	}
 
@@ -341,7 +340,7 @@ public class TaskPresenterServices {
 		try {
 			recordServices.update(task);
 		} catch (RecordServicesException e) {
-			throw new RuntimeException();
+			throw new RuntimeException(e);
 		}
 	}
 }

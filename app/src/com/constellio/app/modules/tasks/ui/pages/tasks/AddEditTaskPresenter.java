@@ -29,12 +29,16 @@ import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationEnumField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListRecordLookupField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskFormImpl;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskProgressPercentageField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskQuestionFieldImpl;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskRelativeDueDateField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsGroupsField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
@@ -44,6 +48,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.ErrorDisplayUtil;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
@@ -66,6 +71,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.jgoodies.common.base.Strings;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.OptionGroup;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -74,11 +80,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
+import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.READ;
+import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.WRITE;
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -425,6 +437,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustAssignerField();
 		adjustFollowersField();
 		adjustRequiredUSRMetadatasFields();
+		adjustFieldsForCollaborators();
 	}
 
 	private void adjustRequiredUSRMetadatasFields() {
@@ -645,6 +658,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustRelativeDueDate();
 		adjustReasonField();
 		adjustRequiredUSRMetadatasFields();
+		adjustFieldsForCollaborators();
 	}
 
 	void commitForm() {
@@ -795,5 +809,74 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		return !tasksSchemas.isRequestTask(getTask()) ? searchServices().searchRecordIds(
 				LogicalSearchQueryOperators.from(tasksSchemas.taskTypeSchemaType()).where(Schemas.CODE)
 						.isIn(asList(BorrowRequest.SCHEMA_NAME, ReturnRequest.SCHEMA_NAME, ExtensionRequest.SCHEMA_NAME, ReactivationRequest.SCHEMA_NAME))) : null;
+	}
+
+	private boolean currentUserIsCollaborator() {
+		if (((List) taskVO.get(TASK_COLLABORATORS)).contains(getCurrentUser().getId())) {
+			return true;
+		} else {
+			return !Collections.disjoint(getCurrentUser().getUserGroups(), taskVO.get(TASK_COLLABORATORS_GROUPS));
+		}
+	}
+
+	private boolean currentUserHasWriteAuthorisation() {
+		return getCurrentUser().hasWriteAccess().on(recordServices().getDocumentById(taskVO.getId()));
+	}
+
+	private void adjustFieldsForCollaborators() {
+		boolean currentUserIsCollaborator = currentUserIsCollaborator();
+
+		TaskAssignationListRecordLookupField assigneeGroupCandidatesField = (TaskAssignationListRecordLookupField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
+		if (assigneeGroupCandidatesField != null) {
+			assigneeGroupCandidatesField.setVisible(!currentUserIsCollaborator);
+		}
+
+		TaskAssignationListRecordLookupField assigneeUserCandidatesField = (TaskAssignationListRecordLookupField) view.getForm().getField(Task.ASSIGNEE_USERS_CANDIDATES);
+		if (assigneeUserCandidatesField != null) {
+			assigneeUserCandidatesField.setVisible(!currentUserIsCollaborator);
+		}
+
+		LookupRecordField assignerField = (LookupRecordField) view.getForm().getField(Task.ASSIGNER);
+		if (assignerField != null) {
+			assignerField.setVisible(!currentUserIsCollaborator);
+		}
+
+		LookupRecordField assigneeField = (LookupRecordField) view.getForm().getField(Task.ASSIGNEE);
+		if (assigneeField != null) {
+			assigneeField.setVisible(!currentUserIsCollaborator);
+		}
+
+		TaskAssignationEnumField assignationModesField = (TaskAssignationEnumField) view.getForm().getField(ASSIGNATION_MODES);
+		if (assignationModesField != null) {
+			assignationModesField.setVisible(!currentUserIsCollaborator);
+		}
+
+		Field<?> statusField = view.getForm().getField(STATUS);
+		if (statusField != null) {
+			statusField.setVisible(!currentUserIsCollaborator);
+		}
+
+		boolean currentUserHasWriteAuthorisation = currentUserHasWriteAuthorisation();
+		ListAddRemoveCollaboratorsField taskCollaboratorsField = (ListAddRemoveCollaboratorsField) view.getForm().getField(Task.TASK_COLLABORATORS);
+		if (taskCollaboratorsField != null) {
+			taskCollaboratorsField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
+			taskCollaboratorsField.setCurrentUserIsCollaborator(currentUserIsCollaborator());
+			OptionGroup authorizationField = taskCollaboratorsField.getAddEditField().getAuthorizationField();
+			if (authorizationField != null && !currentUserHasWriteAuthorisation) {
+				authorizationField.removeItem(WRITE);
+				authorizationField.setValue(READ);
+			}
+		}
+
+		ListAddRemoveCollaboratorsGroupsField taskCollaboratorGroupsField = (ListAddRemoveCollaboratorsGroupsField) view.getForm().getField(Task.TASK_COLLABORATORS_GROUPS);
+		if (taskCollaboratorGroupsField != null) {
+			taskCollaboratorGroupsField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
+			taskCollaboratorGroupsField.setCurrentUserIsCollaborator(currentUserIsCollaborator);
+			OptionGroup authorizationField = taskCollaboratorGroupsField.getAddEditField().getAuthorizationField();
+			if (authorizationField != null && !currentUserHasWriteAuthorisation) {
+				authorizationField.removeItem(WRITE);
+				authorizationField.setValue(READ);
+			}
+		}
 	}
 }

@@ -412,7 +412,4 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			presenter.addTaskButtonClicked();
 		}
 	}
-
-	;
-
 }

@@ -31,15 +31,12 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 
 	private List<TaskCollaboratorItem> taskCollaboratorItem;
 
-	private boolean currentUserIsCollaborator;
+	private boolean currentUserIsCollaborator = false;
 
-	private boolean writeButtonVisible;
+	private boolean writeButtonVisible = true;
 
-	public ListAddRemoveCollaboratorsField(RecordVO taskVO, boolean currentUserIsCollaborator,
-										   boolean writeButtonVisible) {
+	public ListAddRemoveCollaboratorsField(RecordVO taskVO) {
 		this.taskVO = taskVO;
-		this.currentUserIsCollaborator = currentUserIsCollaborator;
-		this.writeButtonVisible = writeButtonVisible;
 		init();
 	}
 
@@ -164,6 +161,14 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 				return new ObjectProperty<>(null);
 			}
 		}
+	}
+
+	public void setCurrentUserIsCollaborator(boolean currentUserIsCollaborator) {
+		this.currentUserIsCollaborator = currentUserIsCollaborator;
+	}
+
+	public void writeButtonIsVisible(boolean writeButtonIsVisible) {
+		this.writeButtonVisible = writeButtonIsVisible;
 	}
 
 	@Override

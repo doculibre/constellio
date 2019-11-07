@@ -176,9 +176,10 @@ public class TaskMenuItemActionBehaviors {
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
 				mainLayout.setSpacing(true);
-				boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
-				ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()), userHasWriteAuthorization);
-				ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()), userHasWriteAuthorization);
+
+				ListAddRemoveCollaboratorsField collaboratorsField = buildCollaboratorField(params, task);
+				ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = buildCollaboratorGroupsField(params, task);
+
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -206,6 +207,23 @@ public class TaskMenuItemActionBehaviors {
 			}
 		};
 		shareButton.click();
+	}
+
+	private ListAddRemoveCollaboratorsGroupsField buildCollaboratorGroupsField(MenuItemActionBehaviorParams params,
+																			   Task task) {
+		boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
+		ListAddRemoveCollaboratorsGroupsField collaboratorsGroupField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO());
+		collaboratorsGroupField.writeButtonIsVisible(userHasWriteAuthorization);
+		collaboratorsGroupField.setCurrentUserIsCollaborator(taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+		return collaboratorsGroupField;
+	}
+
+	private ListAddRemoveCollaboratorsField buildCollaboratorField(MenuItemActionBehaviorParams params, Task task) {
+		boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
+		ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(params.getRecordVO());
+		collaboratorsField.writeButtonIsVisible(userHasWriteAuthorization);
+		collaboratorsField.setCurrentUserIsCollaborator(taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+		return collaboratorsField;
 	}
 
 	public interface TaskMenuItemPresenter {

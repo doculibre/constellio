@@ -72,7 +72,8 @@ public class TaskTokensCalculator2 extends TaskTokensCalculator {
 			}
 		}
 
-		List<String> tokensList = super.calculate(parameters);
+		List<String> tokensList = new ArrayList<>();
+		tokens.addAll(super.calculate(parameters));
 		tokensList.addAll(tokens);
 
 		return tokensList;

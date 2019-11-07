@@ -459,8 +459,10 @@ public class TaskTable extends VerticalLayout {
 						protected Component buildWindowContent() {
 							VerticalLayout mainLayout = new VerticalLayout();
 							mainLayout.setSpacing(true);
-							ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(taskVO, presenter.currentUserIsCollaborator(taskVO), presenter.currentUserHasWriteAuthorization(taskVO));
-							ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(taskVO, presenter.currentUserIsCollaborator(taskVO), presenter.currentUserHasWriteAuthorization(taskVO));
+
+							ListAddRemoveCollaboratorsField collaboratorsField = buildCollaboratorField(taskVO);
+							ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = buildCollaboratorGroupsField(taskVO);
+
 							BaseButton saveButton = new BaseButton($("save")) {
 								@Override
 								protected void buttonClick(ClickEvent event) {
@@ -535,6 +537,22 @@ public class TaskTable extends VerticalLayout {
 				});
 			}
 		}
+	}
+
+	private ListAddRemoveCollaboratorsGroupsField buildCollaboratorGroupsField(RecordVO taskVO) {
+		boolean currentUserHasWriteAuthorisation = presenter.currentUserHasWriteAuthorization(taskVO);
+		ListAddRemoveCollaboratorsGroupsField collaboratorsGroupField = new ListAddRemoveCollaboratorsGroupsField(taskVO);
+		collaboratorsGroupField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
+		collaboratorsGroupField.setCurrentUserIsCollaborator(presenter.currentUserIsCollaborator(taskVO));
+		return collaboratorsGroupField;
+	}
+
+	private ListAddRemoveCollaboratorsField buildCollaboratorField(RecordVO taskVO) {
+		boolean currentUserHasWriteAuthorisation = presenter.currentUserHasWriteAuthorization(taskVO);
+		ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(taskVO);
+		collaboratorsField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
+		collaboratorsField.setCurrentUserIsCollaborator(presenter.currentUserIsCollaborator(taskVO));
+		return collaboratorsField;
 	}
 
 	public TaskDetailsComponentFactory getTaskDetailsComponentFactory() {

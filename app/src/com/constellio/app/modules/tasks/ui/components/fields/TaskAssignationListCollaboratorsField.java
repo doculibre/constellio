@@ -105,4 +105,7 @@ public class TaskAssignationListCollaboratorsField extends CustomField<TaskColla
 		return TaskCollaboratorItem.class;
 	}
 
+	public OptionGroup getAuthorizationField() {
+		return authorizationField;
+	}
 }

@@ -31,15 +31,12 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 
 	private List<TaskCollaboratorsGroupItem> taskCollaboratorGroupItem;
 
-	private boolean currentUserIsCollaborator;
+	private boolean currentUserIsCollaborator = false;
 
-	private boolean writeButtonVisible;
+	private boolean writeButtonVisible = true;
 
-	public ListAddRemoveCollaboratorsGroupsField(RecordVO taskVO, boolean currentUserIsCollaborator,
-												 boolean writeButtonVisible) {
+	public ListAddRemoveCollaboratorsGroupsField(RecordVO taskVO) {
 		this.taskVO = taskVO;
-		this.currentUserIsCollaborator = currentUserIsCollaborator;
-		this.writeButtonVisible = writeButtonVisible;
 		init();
 	}
 
@@ -134,6 +131,14 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 		RecordIdToCaptionConverter itemConverter = new RecordIdToCaptionConverter();
 		Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 		return itemConverter.convertToPresentation(collaboratorId, String.class, locale);
+	}
+
+	public void writeButtonIsVisible(boolean writeButtonIsVisible) {
+		this.writeButtonVisible = writeButtonIsVisible;
+	}
+
+	public void setCurrentUserIsCollaborator(boolean currentUserIsCollaborator) {
+		this.currentUserIsCollaborator = currentUserIsCollaborator;
 	}
 
 	private class CollaboratorValuesContainer extends ValuesContainer {
