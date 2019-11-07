@@ -149,7 +149,7 @@ public class TaskMenuItemServices {
 			case TASK_GENERATE_REPORT:
 				return taskRecordActionsServices.isGenerateReportActionPossible(record, user);
 			case TASK_SHARE:
-				return taskActionsServices.isShareActionPossible(record, user);
+				return taskRecordActionsServices.isShareActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}

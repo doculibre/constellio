@@ -820,7 +820,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private boolean currentUserHasWriteAuthorisation() {
-		return getCurrentUser().hasWriteAccess().on(recordServices().getDocumentById(taskVO.getId()));
+		return getCurrentUser().hasWriteAccess().on(toRecord(taskVO));
 	}
 
 	private void adjustFieldsForCollaborators() {

@@ -58,6 +58,7 @@ public class TaskAssignationListCollaboratorsField extends CustomField<TaskColla
 		}
 
 		mainLayout.addComponents(lookupUserField, authorizationField);
+		mainLayout.setExpandRatio(lookupUserField, 1);
 
 		return mainLayout;
 	}

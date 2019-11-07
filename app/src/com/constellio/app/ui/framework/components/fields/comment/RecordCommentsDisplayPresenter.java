@@ -84,7 +84,7 @@ public class RecordCommentsDisplayPresenter implements Serializable {
 		newComment.setDateTime(new LocalDateTime());
 
 		List<Comment> newComments = new ArrayList<>(comments);
-		newComments.add(newComment);
+		newComments.add(0, newComment);
 
 		updateComments(newComments);
 	}

@@ -59,6 +59,7 @@ public class TaskAssignationListCollaboratorsGoupsField extends CustomField<Task
 		}
 
 		mainLayout.addComponents(lookupGroupField, authorizationField);
+		mainLayout.setExpandRatio(lookupGroupField, 1);
 
 		return mainLayout;
 	}
