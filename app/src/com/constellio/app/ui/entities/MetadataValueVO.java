@@ -20,9 +20,9 @@ public class MetadataValueVO implements Serializable {
 	}
 
 	private void setMetadataValue(MetadataVO metadata, Object value) {
-		if (metadata.getCode().toLowerCase().endsWith("_id")) {
-			value = removeLeftZeros((String) value);
-		}
+		//		if (metadata.getCode().toLowerCase().endsWith("_id")) {
+		//			value = removeLeftZeros((String) value);
+		//		}
 		this.value = value;
 	}
 

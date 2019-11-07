@@ -7,7 +7,9 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.MenuItemFactory;
+import com.constellio.app.services.menu.MenuItemFactory.CommandCallback;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -17,7 +19,6 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
@@ -39,6 +40,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.google.common.base.Strings;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
@@ -81,7 +83,6 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	private BaseTextField documentFilterField;
 	private BaseTextField containerFilterField;
 	private String currentSchemaType;
-	private ReportSelector reportSelector;
 	private VerticalLayout mainLayout;
 
 	public CartViewImpl() {
@@ -109,28 +110,22 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		//		List<Button> buttons = super.buildActionMenuButtons(event);
-		//		buttons.add(buildRenameButton());
-		//		buttons.add(buildPrepareEmailButton());
-		//		buttons.add(buildBatchDuplicateButton());
-		//		buttons.add(buildDocumentsBatchProcessingButton());
-		//		buttons.add(buildFoldersBatchProcessingButton());
-		//		buttons.add(buildContainersBatchProcessingButton());
-		//		buttons.add(buildFoldersLabelsButton());
-		//		buttons.add(buildDocumentLabelsButton());
-		//		buttons.add(buildContainersLabelsButton());
-		//		buttons.add(buildBatchDeleteButton());
-		//		buttons.add(buildEmptyButton());
-		//		if (!presenter.isDefaultCart()) {
-		//			buttons.add(buildShareButton());
-		//		}
-		//		buttons.add(buildDecommissionButton());
-		//		buttons.add(buildPrintMetadataReportButton());
-		//		buttons.add(buildCreateSIPArchivesButton());
-		//		buttons.add(buildConsolidatedPdfButton());
-		//		return buttons;
+	protected String getActionMenuBarCaption() {
+		return $("CartView.recordsActions");
+	}
 
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		Cart cart = presenter.getCart();
 		Record record = null;
 		if (cart != null) {
@@ -172,6 +167,25 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			public List<Record> getRecords() {
 				return presenter.getAllCartItemRecords();
 			}
+
+			@Override
+			public LogicalSearchQuery getQuery() {
+				return null;
+			}
+		}, new CommandCallback() {
+			@Override
+			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
+				Button button = (Button) component;
+				button.setEnabled(menuItemAction.getState().getStatus() != MenuItemActionStateStatus.DISABLED);
+				button.setEnabled(menuItemAction.getState().getStatus() == MenuItemActionStateStatus.VISIBLE);
+				//				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				//				// No point in refreshing menu if we left the original page
+				//				if (currentView == originalView) {
+				//					// Recursive call
+				//					buildMenuItems();
+				//				}
+			}
+
 		});
 	}
 
@@ -264,23 +278,20 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		containerTab.setCaption($("CartView.containersTab"));
 		containerLayout.setSchemaType(ContainerRecord.SCHEMA_TYPE);
 		containerTab.setVisible(!containerTable.getContainerDataSource().getItemIds().isEmpty());
-		mainLayout = new VerticalLayout(reportSelector = new ReportSelector(presenter));
+		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
 			@Override
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
 				Component selectedTab = event.getTabSheet().getSelectedTab();
 				if (selectedTab instanceof CartTabLayout) {
+
 					currentSchemaType = ((CartTabLayout) selectedTab).getSchemaType();
 				}
-				ReportSelector newReportSelector = new ReportSelector(presenter);
-				mainLayout.replaceComponent(reportSelector, newReportSelector);
-				reportSelector = newReportSelector;
 			}
 		});
 		if (!folderTab.isVisible() && !documentTab.isVisible() && !containerTab.isVisible()) {
 			mainLayout.addComponent(new Label($("CartView.emptyCart")));
-			reportSelector.setVisible(false);
 		} else {
 			mainLayout.addComponent(tabSheet);
 			tabSheet.fireTabSelectionChanged();

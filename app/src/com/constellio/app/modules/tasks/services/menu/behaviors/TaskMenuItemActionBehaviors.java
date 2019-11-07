@@ -9,6 +9,7 @@ import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
+import com.constellio.app.modules.tasks.services.menu.behaviors.util.TaskUrlUtil;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsGroupsField;
 import com.constellio.app.modules.tasks.ui.pages.tasks.TaskCompleteWindowButton;
@@ -20,6 +21,8 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.util.MessageUtils;
@@ -29,6 +32,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -39,6 +43,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 import static com.vaadin.ui.themes.ValoTheme.BUTTON_PRIMARY;
 import static com.vaadin.ui.themes.ValoTheme.LABEL_BOLD;
 import static java.util.Arrays.asList;
@@ -66,6 +71,14 @@ public class TaskMenuItemActionBehaviors {
 		this.tasksSearchServices = new TasksSearchServices(tasksSchemas);
 		this.taskPresenterServices = new TaskPresenterServices(tasksSchemas, recordServices, tasksSearchServices, loggingServices);
 
+	}
+
+	public void getConsultationLink(Task task, MenuItemActionBehaviorParams params) {
+		String constellioURL = getConstellioUrl(modelLayerFactory);
+		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(
+				new ConsultLinkParams(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(task.getId()),
+						task.getTitle())));
+		UI.getCurrent().addWindow(consultLinkWindow);
 	}
 
 	public void display(Task task, MenuItemActionBehaviorParams params) {

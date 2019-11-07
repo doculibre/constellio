@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components.contextmenu;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Record;
@@ -10,10 +11,10 @@ import java.io.IOException;
 
 public abstract class AbstractRecordContextMenuHandler implements RecordContextMenuHandler {
 
-	protected transient ConstellioFactories constellioFactories;
+	protected transient AppLayerFactory appLayerFactory;
 
-	public AbstractRecordContextMenuHandler(ConstellioFactories constellioFactories) {
-		this.constellioFactories = constellioFactories;
+	public AbstractRecordContextMenuHandler(AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
 		initTransientObjects();
 	}
 
@@ -24,14 +25,14 @@ public abstract class AbstractRecordContextMenuHandler implements RecordContextM
 	}
 
 	private void initTransientObjects() {
-		if (constellioFactories == null) {
-			constellioFactories = ConstellioFactories.getInstance();
+		if (appLayerFactory == null) {
+			appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		}
 	}
 
 	@Override
 	public boolean isContextMenuForRecordId(String recordId) {
-		RecordServices recordServices = constellioFactories.getModelLayerFactory().newRecordServices();
+		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		Record record = recordServices.getDocumentById(recordId);
 		String schemaCode = record.getSchemaCode();
 		return isContextMenuForSchemaCode(schemaCode);
@@ -62,7 +63,7 @@ public abstract class AbstractRecordContextMenuHandler implements RecordContextM
 
 	@Override
 	public RecordContextMenu getForRecordId(String recordId) {
-		RecordServices recordServices = constellioFactories.getModelLayerFactory().newRecordServices();
+		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		Record record = recordServices.getDocumentById(recordId);
 		String schemaCode = record.getSchemaCode();
 		String schemaTypeCode = getSchemaTypeCodeForSchemaCode(schemaCode);

@@ -57,6 +57,7 @@ import com.constellio.model.services.extensions.ConstellioModulesManagerExceptio
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexationParams;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.slf4j.Logger;
@@ -134,7 +135,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		this.setDefaultLocale();
 		this.metadataSchemasDisplayManager = add(new SchemasDisplayManager(dataLayerFactory.getConfigManager(),
 				modelLayerFactory.getCollectionsListManager(), modelLayerFactory.getMetadataSchemasManager(),
-				dataLayerFactory.getLocalCacheManager()));
+				dataLayerFactory.getLocalCacheManager(), modelLayerFactory.getSystemConfigurationsManager()));
 
 		String warVersion = newApplicationService().getWarVersion();
 		dataLayerFactory.setConstellioVersion(warVersion);
@@ -370,7 +371,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 			try {
 				modelLayerFactory.newReindexingServices().createLockFile();
-				modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+				modelLayerFactory.newReindexingServices().reindexCollections(
+						new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setRepopulate(false));
 				modelLayerFactory.newReindexingServices().removeLockFile();
 
 				systemGlobalConfigsManager.setReindexingRequired(false);

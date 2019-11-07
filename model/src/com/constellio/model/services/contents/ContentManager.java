@@ -23,7 +23,6 @@ import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
 import com.constellio.data.io.streamFactories.services.one.StreamOperationThrowingException;
-import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.BatchBuilderIterator;
@@ -31,6 +30,7 @@ import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImageUtils;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.conf.ModelLayerConfiguration;
@@ -68,6 +68,7 @@ import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.utils.MimeTypes;
 import lombok.AllArgsConstructor;
@@ -96,7 +97,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_SIZE;
+import static com.constellio.model.conf.FoldersLocator.usingAppWrapper;
+import static com.constellio.model.entities.enums.ParsingBehavior.ASYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -115,9 +119,11 @@ public class ContentManager implements StatefulService {
 
 	static final String CONTENT_IMPORT_THREAD = "ContentImportThread";
 
-	static final String BACKGROUND_THREAD = "DeleteUnreferencedContent";
+	static final String DEPRECATED_DAILY_DELETE_UNREFERENCED_CONTENT_BACKGROUND_THREAD = "DeprecatedDailyDeleteUnreferencedContent";
 
-	static final String SCAN_VAULT_CONTENTS = "ScanVaultContents";
+	static final String PARSING_BACKGROUND_THREAD = "ParsingContent";
+
+	static final String WEEKLY_DELETE_UNREFERENCED_CONTENT_BACKGROUND_THREAD = "ScanVaultContents";
 
 	static final String PREVIEW_BACKGROUND_THREAD = "GeneratePreviewContent";
 
@@ -170,20 +176,40 @@ public class ContentManager implements StatefulService {
 
 	@Override
 	public void initialize() {
-		Runnable contentActionsInBackgroundRunnable = new Runnable() {
+		Runnable deprecatedDailyDeleteUnreferencedContentRunnable = new Runnable() {
 			@Override
 			public void run() {
-				if (serviceThreadEnabled
+				if (Toggle.OLD_DELETE_UNUSED_CONTENT_METHOD.isEnabled() && serviceThreadEnabled
 					&& ReindexingServices.getReindexingInfos() == null
+					&& modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()
 					&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
-					if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
-						deleteUnreferencedContents();
-					}
+					deleteUnreferencedContents();
 
-					handleRecordsMarkedForParsing();
 				}
 			}
 		};
+
+		Runnable handleRecordsMarkedForParsingRunnable = new Runnable() {
+			@Override
+			public void run() {
+				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null && modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+					boolean converted = handleRecordsMarkedForParsing();
+
+					if (!converted && usingAppWrapper()) {
+						long waitedMinutes = 10;
+						if (new ConstellioEIMConfigs(modelLayerFactory).getDefaultParsingBehavior() == ASYNC_PARSING_FOR_ALL_CONTENTS) {
+							waitedMinutes = 1;
+						}
+						try {
+							Thread.sleep(waitedMinutes * 60_000);
+						} catch (InterruptedException e) {
+							throw new RuntimeException(e);
+						}
+					}
+				}
+			}
+		};
+
 		Runnable generatePreviewsInBackgroundRunnable = new Runnable() {
 			@Override
 			public void run() {
@@ -194,7 +220,7 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		};
-		Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
+		Runnable weeklyDeleteUnreferencedContentRunnable = new Runnable() {
 			@Override
 			public void run() {
 				boolean isDeleteUnusedContentEnabled = modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled();
@@ -218,25 +244,30 @@ public class ContentManager implements StatefulService {
 				} else if (!isInScanVaultContentsSchedule && doesContentScanLockFileExist()) {
 					deleteContentScanLockFile();
 				}
+
 			}
 		};
 
 		backgroundThreadsManager.configure(
-				BackgroundThreadConfiguration.repeatingAction(BACKGROUND_THREAD, contentActionsInBackgroundRunnable)
+				repeatingAction(DEPRECATED_DAILY_DELETE_UNREFERENCED_CONTENT_BACKGROUND_THREAD, deprecatedDailyDeleteUnreferencedContentRunnable)
 						.executedEvery(
-								configuration.getUnreferencedContentsThreadDelayBetweenChecks())
+								configuration.getParsingContentsThreadDelayBetweenChecks())
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		backgroundThreadsManager.configure(
-				BackgroundThreadConfiguration.repeatingAction(PREVIEW_BACKGROUND_THREAD, generatePreviewsInBackgroundRunnable)
+				repeatingAction(PARSING_BACKGROUND_THREAD, handleRecordsMarkedForParsingRunnable)
+						.executedEvery(configuration.getParsingContentsThreadDelayBetweenChecks())
+						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+
+		backgroundThreadsManager.configure(
+				repeatingAction(PREVIEW_BACKGROUND_THREAD, generatePreviewsInBackgroundRunnable)
 						.executedEvery(
 								configuration.getGeneratePreviewsThreadDelayBetweenChecks())
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		backgroundThreadsManager.configure(
-				BackgroundThreadConfiguration.repeatingAction(SCAN_VAULT_CONTENTS, scanVaultContentsInBackgroundRunnable)
+				repeatingAction(WEEKLY_DELETE_UNREFERENCED_CONTENT_BACKGROUND_THREAD, weeklyDeleteUnreferencedContentRunnable)
 						.executedEvery(Duration.standardHours(2))
-						//						.executedEvery(Duration.standardSeconds(10))
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		if (configuration.getContentImportThreadFolder() != null) {
@@ -248,7 +279,7 @@ public class ContentManager implements StatefulService {
 				}
 			};
 			backgroundThreadsManager.configure(
-					BackgroundThreadConfiguration.repeatingAction(CONTENT_IMPORT_THREAD, contentImportAction)
+					repeatingAction(CONTENT_IMPORT_THREAD, contentImportAction)
 							.executedEvery(Duration.standardSeconds(30))
 							.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 		}
@@ -804,7 +835,8 @@ public class ContentManager implements StatefulService {
 		return new ContentManagerImportThreadServices(modelLayerFactory).readFileNameSHA1Index();
 	}
 
-	public void convertPendingContentForPreview() {
+	public boolean convertPendingContentForPreview() {
+		boolean converted = false;
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			if (!closing.get()) {
 				List<Record> records = searchServices.search(new LogicalSearchQuery()
@@ -813,6 +845,7 @@ public class ContentManager implements StatefulService {
 						.setName("ContentManager:BackgroundThread:convertPendingContentForPreview()"));
 
 				if (!records.isEmpty()) {
+					converted = true;
 					final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
 					try {
 						Transaction transaction = new Transaction();
@@ -830,9 +863,13 @@ public class ContentManager implements StatefulService {
 							}
 						}
 						try {
-							transaction.setRecordFlushing(RecordsFlushing.LATER());
+							transaction.setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(5));
 							transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+							transaction.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
 							recordServices.executeWithoutImpactHandling(transaction);
+						} catch (RecordServicesException.OptimisticLocking e) {
+							LOGGER.trace("Optimistic locking occured with record " + e.getId());
+
 						} catch (RecordServicesException e) {
 							throw new RuntimeException(e);
 						}
@@ -843,6 +880,8 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		}
+
+		return converted;
 	}
 
 	private boolean tryConvertRecordContents(Record record, File tempFolder) {
@@ -929,14 +968,10 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	public void handleRecordsMarkedForParsing() {
-		if (new ConstellioEIMConfigs(modelLayerFactory).isInContentParsingSchedule()) {
-			handleRecordsMarkedForParsing(RecordsFlushing.NOW());
-		}
-	}
 
-	public void handleRecordsMarkedForParsing(RecordsFlushing recordsFlushing) {
+	public boolean handleRecordsMarkedForParsing() {
 		Set<String> collections = getCollectionsWithFlag(Schemas.MARKED_FOR_PARSING);
+		boolean converted = false;
 		for (String collection : collections) {
 			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 			LogicalSearchQuery query = new LogicalSearchQuery();
@@ -944,43 +979,47 @@ public class ContentManager implements StatefulService {
 			query.setNumberOfRows(50);
 			query.sortDesc(Schemas.MODIFIED_ON);
 			query.sortDesc(Schemas.CREATED_ON);
+			query.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR);
 			query.setName("ContentManager:BackgroundThread:getRecordsWithFlag(markedForParsing_s)");
 
 			List<Record> records = searchServices.search(query);
 
-			Transaction tx = new Transaction();
-			tx.addAll(records);
-			for (Record record : records) {
-				MetadataSchema schema = types.getSchema(record.getSchemaCode());
-				for (Metadata metadata : schema.getContentMetadatasForPopulate()) {
+			if (!records.isEmpty()) {
+				Transaction tx = new Transaction();
+				tx.addAll(records);
+				for (Record record : records) {
+					MetadataSchema schema = types.getSchemaOf(record);
+					for (Metadata metadata : schema.getContentMetadatasForPopulate()) {
 
-					for (Content content : record.<Content>getValues(metadata)) {
-						String hash = content.getCurrentVersion().getHash();
-						if (!isParsed(hash)) {
-							try {
-								parseAndSave(hash, getContentInputStreamFactory(hash), new ParseOptions());
-							} catch (IOException e) {
-								//TODO
+						for (Content content : record.<Content>getValues(metadata)) {
+							String hash = content.getCurrentVersion().getHash();
+							if (!isParsed(hash)) {
+								try {
+									parseAndSave(hash, getContentInputStreamFactory(hash), new ParseOptions());
+								} catch (IOException | ContentManagerRuntimeException_NoSuchContent e) {
+									//TODO
+								}
 							}
+
 						}
 
 					}
-
+					record.set(Schemas.MARKED_FOR_PARSING, null);
 				}
-				record.set(Schemas.MARKED_FOR_PARSING, null);
 
+				tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
+				tx.getRecordUpdateOptions().setFullRewrite(true);
+				try {
+					recordServices.execute(tx);
+				} catch (RecordServicesException e) {
+					//TODO
+					throw new RuntimeException(e);
+				}
+				converted = true;
 			}
-			tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
-			tx.getRecordUpdateOptions().setFullRewrite(true);
-			try {
-				recordServices.execute(tx);
-			} catch (RecordServicesException e) {
-				//TODO
-				throw new RuntimeException(e);
-			}
-
 		}
 
+		return converted;
 	}
 
 	private Set<String> getCollectionsWithFlag(Metadata... flags) {
@@ -1139,7 +1178,7 @@ public class ContentManager implements StatefulService {
 				while (recordsListToReindexIterator.hasNext()) {
 					List<Record> batch = recordsListToReindexIterator.next();
 					for (Record record : batch) {
-						MetadataSchema schema = types.getSchema(record.getSchemaCode());
+						MetadataSchema schema = types.getSchemaOf(record);
 						for (Metadata contentMetadata : contentMetadatas) {
 							if (schema.hasMetadataWithCode(contentMetadata.getLocalCode())) {
 								record.markAsModified(contentMetadata);
@@ -1213,7 +1252,7 @@ public class ContentManager implements StatefulService {
 		}
 
 		public boolean isHandleDeletionOfUnreferencedHashes() {
-			return handleDeletionOfUnreferencedHashes;
+			return handleDeletionOfUnreferencedHashes && Toggle.OLD_DELETE_UNUSED_CONTENT_METHOD.isEnabled();
 		}
 
 		public boolean isParse(boolean defaultBehavior) {

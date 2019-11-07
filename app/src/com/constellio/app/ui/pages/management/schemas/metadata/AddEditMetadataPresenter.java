@@ -58,6 +58,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.jgoodies.common.base.Strings;
 import com.vaadin.ui.UI;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -76,6 +77,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 
+@Slf4j
 public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditMetadataView> {
 
 	private String schemaCode;
@@ -137,7 +139,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		List<MetadataFilter> metadataThatDontSupportRoleAccessRetValueList = view.getConstellioFactories().getAppLayerFactory()
 				.getExtensions().forCollection(view.getCollection()).getMetadataAccessExclusionFilters();
 
-		if(metadata == null) {
+		if (metadata == null) {
 			return false;
 		}
 
@@ -174,7 +176,6 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 		return result;
 	}
-
 
 	public FormMetadataVO getParentFormMetadataVO() {
 		return getFormMetadataVO().getInheritance();
@@ -662,10 +663,10 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			Class<? extends Enum<?>> enumClass = null;
 			if (formMetadataVO.getValueType() == REFERENCE) {
 				inputType = MetadataInputType.LOOKUP;
-			} else if (formMetadataVO.getValueType() == BOOLEAN){
+			} else if (formMetadataVO.getValueType() == BOOLEAN) {
 				inputType = MetadataInputType.FIELD;
 			}
-			if (!inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)) {
+			if (inputType != null && !inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)) {
 				displayType = MetadataDisplayType.VERTICAL;
 			}
 			if (formMetadataVO.getValueType() == ENUM && editMode) {
@@ -676,7 +677,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			CollectionInfoVO collectionInfoVO = new CollectionInfoVO(collectionInfo.getMainSystemLanguage(), collectionInfo.getCode(), collectionInfo.getCollectionLanguages(),
 					collectionInfo.getMainSystemLocale(), collectionInfo.getSecondaryCollectionLanguesCodes(), collectionInfo.getCollectionLanguesCodes(), collectionInfo.getCollectionLocales());
 
-			MetadataVO metadataVO = new MetadataVO(formMetadataVO.getCode(), formMetadataVO.getLocalcode(), formMetadataVO.getValueType(), collection,
+			MetadataVO metadataVO = new MetadataVO(formMetadataVO.getId(), formMetadataVO.getCode(), formMetadataVO.getLocalcode(), formMetadataVO.getValueType(), collection,
 					formMetadataVO.getSchema(), formMetadataVO.isRequired(), formMetadataVO.isMultivalue(), false,
 					new HashMap<Locale, String>(), enumClass, new String[]{}, formMetadataVO.getReference(), inputType, displayType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),
@@ -684,8 +685,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), collectionInfoVO, formMetadataVO.isSortable());
 			return metadataVO;
 		} catch (Exception ex) {
-
-
+			log.error("error", ex);
 			return null;
 		}
 	}

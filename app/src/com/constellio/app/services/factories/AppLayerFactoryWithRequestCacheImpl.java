@@ -190,10 +190,10 @@ public class AppLayerFactoryWithRequestCacheImpl implements AppLayerFactory {
 		return appLayerFactory.getLabelTemplateManager();
 	}
 
-	@Override
-	public String toString() {
-		return id;
-	}
+	//	@Override
+	//	public String toString() {
+	//		return id;
+	//	}
 
 	public void disconnect() {
 		//requestCache.disconnect();

@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.metadata.MetadataDeletionException;
 import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CalculatedMetadataSource;
 import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CopiedMetadataReference;
@@ -18,14 +19,17 @@ import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -37,7 +41,7 @@ import static com.constellio.model.entities.schemas.Schemas.MODIFIED_BY;
 import static com.constellio.model.entities.schemas.Schemas.MODIFIED_ON;
 import static com.constellio.model.entities.schemas.Schemas.PATH;
 
-public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<AddEditSchemaMetadataView> {
+public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<AddEditSchemaMetadataView> implements MetadataValueForProperty {
 	private transient MetadataDeletionService metadataDeletionService;
 
 	public AddEditSchemaMetadataPresenter(AddEditSchemaMetadataView view) {
@@ -55,12 +59,36 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 		this.parameters = params;
 	}
 
+	public Object getValue(Object propertyIdObj, MetadataVO metadata) {
+		String propertyId = (String) propertyIdObj;
+
+		if (AddEditSchemaMetadataViewImpl.PROPERTY_ID_CAPTION.equals(propertyId)) {
+			return metadata.getLabel();
+		} else if (AddEditSchemaMetadataViewImpl.PROPERTY_ID_ENABLED_CAPTION.equals(propertyId)) {
+			return $("AddEditSchemaMetadataView." + metadata.isEnabled());
+		} else if (AddEditSchemaMetadataViewImpl.PROPERTY_ID_INPUT_CAPTION.equals(propertyId)) {
+			return $(MetadataInputType.getCaptionFor(metadata.getMetadataInputType()));
+		} else if (AddEditSchemaMetadataViewImpl.PROPERTY_ID_LOCAL_CODE.equals(propertyId)) {
+			return StringUtils.defaultIfBlank(metadata.getCode(), "");
+		} else if (AddEditSchemaMetadataViewImpl.PROPERTY_ID_REQUIRED_CAPTION.equals(propertyId)) {
+			return $("AddEditSchemaMetadataView." + metadata.isRequired());
+		} else if (AddEditSchemaMetadataViewImpl.PROPERTY_ID_VALUE_CAPTION.equals(propertyId)) {
+			return $(MetadataValueType.getCaptionFor(metadata.getType()));
+		} else {
+			throw new ImpossibleRuntimeException("not implemented");
+		}
+	}
+
+	public Locale getCurrentLocale() {
+		return view.getSessionContext().getCurrentLocale();
+	}
+
 	public Map<String, MetadataVODataProvider> getDataProviders() {
 		Map<String, MetadataVODataProvider> dataProviders = new LinkedHashMap<>();
 		String schemaCode = getSchemaCode();
 
 		MetadataVODataProvider custom = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection,
-				schemaCode) {
+				schemaCode, this) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
 				return metadata.getLocalCode().startsWith("USR")
@@ -71,7 +99,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 		};
 
 		MetadataVODataProvider system = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection,
-				schemaCode) {
+				schemaCode, this) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
 				return !metadata.getLocalCode().startsWith("USR")
@@ -82,7 +110,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 		};
 
 		MetadataVODataProvider ddvTaxonomies = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory,
-				collection, schemaCode) {
+				collection, schemaCode, this) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
 				return metadata.isEnabled()
@@ -92,7 +120,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 		};
 
 		MetadataVODataProvider disabled = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection,
-				schemaCode) {
+				schemaCode, this) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
 				return !metadata.isEnabled()

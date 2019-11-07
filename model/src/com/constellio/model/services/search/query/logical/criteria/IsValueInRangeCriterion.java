@@ -1,10 +1,10 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+import com.constellio.model.services.search.query.logical.condition.TestedQueryRecord;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -37,11 +37,11 @@ public class IsValueInRangeCriterion extends LogicalSearchValueCondition {
 
 	@Override
 	public String getSolrQuery(DataStoreField dataStoreField) {
-		if(beginValue == null && endValue == null) {
+		if (beginValue == null && endValue == null) {
 			return dataStoreField.getDataStoreCode() + ":*";
-		} else if(beginValue == null) {
+		} else if (beginValue == null) {
 			return new IsLessOrEqualThanCriterion(endValue).getSolrQuery(dataStoreField);
-		} else if(endValue == null) {
+		} else if (endValue == null) {
 			return new IsGreaterOrEqualThanCriterion(beginValue).getSolrQuery(dataStoreField);
 		} else if (beginValue instanceof Number && endValue instanceof Number) {
 			return dataStoreField.getDataStoreCode() + ":[" + beginValue + " TO " + endValue + "]";
@@ -65,7 +65,7 @@ public class IsValueInRangeCriterion extends LogicalSearchValueCondition {
 	}
 
 	@Override
-	public boolean testConditionOnField(Metadata metadata, Record record) {
+	public boolean testConditionOnField(Metadata metadata, TestedQueryRecord record) {
 		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
 
 		throw new NotImplementedException("Not implemented yet");

@@ -23,7 +23,7 @@ public class CmisContentUtils {
 		String contentVersion = idParts[4];
 
 		Record record = recordServices.getDocumentById(recordId);
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 		Metadata metadata = schema.getMetadata(metadataLocalCode);
 
 		Content content = null;

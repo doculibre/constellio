@@ -3,8 +3,8 @@ package com.constellio.app.ui.framework.buttons;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportParameters;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListPresenter;
 import com.constellio.app.modules.rm.ui.pages.reports.RMNewReportsPresenter;
+import com.constellio.app.ui.framework.components.DecommissioningListReportSelector;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
-import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
@@ -93,10 +93,7 @@ public class DecommissioningListReportButton extends WindowButton {
 		if (newPresenter.getSupportedReports().isEmpty()) {
 			verticalLayout.addComponent(createErrorTab());
 		} else {
-			Label label = new Label($("ReportTabButton.selectTemplate"));
-			label.addStyleName(ValoTheme.LABEL_BOLD);
-			verticalLayout.addComponent(label);
-			verticalLayout.addComponent(new ReportSelector(newPresenter, false));
+			verticalLayout.addComponent(new DecommissioningListReportSelector((DecommissioningListPresenter) newPresenter));
 		}
 
 		return verticalLayout;

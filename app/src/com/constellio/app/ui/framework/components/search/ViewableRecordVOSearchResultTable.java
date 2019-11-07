@@ -3,12 +3,13 @@ package com.constellio.app.ui.framework.components.search;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.search.SearchPresenter;
 import com.constellio.app.ui.pages.search.SearchView;
 import com.vaadin.ui.Component;
@@ -19,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -27,6 +29,8 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 	public static final String TABLE_STYLE = "viewable-record-search-result-table-panel";
 
 	private Set<Object> selectedItemIds = new HashSet<>();
+	// Optimisation parce que sinon sa prend beaucoup de temps quand on a beaucoup d'élément de sélectionner.
+	private Set<String> selectedItemRecordId = new HashSet<>();
 	private Set<Object> deselectedItemIds = new HashSet<>();
 	private boolean allItemsSelected;
 
@@ -69,12 +73,19 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 					for (Object selectedItemId : selectedItemIds) {
 						ViewableRecordVOSearchResultTable.this.selectedItemIds.add(selectedItemId);
 						ViewableRecordVOSearchResultTable.this.deselectedItemIds.remove(selectedItemId);
+						ViewableRecordVOSearchResultTable.this.selectedItemRecordId.add(getRecordVO(selectedItemId).getId());
 					}
 					presenter.fireSomeRecordsSelected();
 				} else if (event.getDeselectedItemIds() != null) {
 					List<Object> deselectedItemIds = event.getDeselectedItemIds();
+
+					if (!deselectedItemIds.isEmpty()) {
+						allItemsSelected = false;
+					}
+
 					for (Object deselectedItemId : deselectedItemIds) {
 						ViewableRecordVOSearchResultTable.this.selectedItemIds.remove(deselectedItemId);
+						ViewableRecordVOSearchResultTable.this.selectedItemRecordId.remove(getRecordVO(deselectedItemId).getId());
 						ViewableRecordVOSearchResultTable.this.deselectedItemIds.add(deselectedItemId);
 					}
 					if (selectedItemIds.isEmpty()) {
@@ -83,8 +94,12 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 						presenter.fireSomeRecordsSelected();
 					}
 				} else if (event.isAllItemsSelected()) {
+
+					List lRecordIdList = recordVOContainer.getItemIds().stream().map(itemId -> getRecordVO(itemId).getId()).collect(Collectors.toList());
+
 					ViewableRecordVOSearchResultTable.this.allItemsSelected = true;
 					ViewableRecordVOSearchResultTable.this.selectedItemIds.addAll(recordVOContainer.getItemIds());
+					ViewableRecordVOSearchResultTable.this.selectedItemRecordId.addAll(lRecordIdList);
 					ViewableRecordVOSearchResultTable.this.deselectedItemIds.clear();
 					presenter.fireSomeRecordsSelected();
 				} else if (event.isAllItemsDeselected()) {
@@ -121,7 +136,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 			public boolean isSelected(Object itemId) {
 				RecordVO recordVO = getRecordVO(itemId);
 				String recordId = recordVO.getId();
-				return ViewableRecordVOSearchResultTable.this.isSelectAll() || ViewableRecordVOSearchResultTable.this.getSelectedRecordIds().contains(recordId);
+				return ViewableRecordVOSearchResultTable.this.isSelectAll() || selectedItemRecordId.contains(recordId);
 			}
 		};
 	}
@@ -167,8 +182,6 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 		String totalCount = $(key, size, qtime);
 		setCountCaption(totalCount);
 
-		setViewActionButtonsLayoutComponents(alwaysActive);
-
 		return null;
 	}
 
@@ -185,4 +198,9 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 		return lastCallQTime;
 	}
 
+
+	@Override
+	public BaseView getMainView() {
+		return presenter.getView();
+	}
 }

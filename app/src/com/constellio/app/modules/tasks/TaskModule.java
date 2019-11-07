@@ -2,15 +2,16 @@ package com.constellio.app.modules.tasks;
 
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
-import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.AppLayerSystemExtensions;
 import com.constellio.app.extensions.core.LockedRecordsExtension;
 import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
 import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
+import com.constellio.app.modules.tasks.extensions.TaskAdvancedSearchMenuItemActionsExtension;
 import com.constellio.app.modules.tasks.extensions.TaskMenuItemActionsExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordExtension;
@@ -22,6 +23,7 @@ import com.constellio.app.modules.tasks.extensions.TasksRecordExportExtension;
 import com.constellio.app.modules.tasks.extensions.WorkflowRecordExtension;
 import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.extensions.schema.TaskTrashSchemaExtension;
+import com.constellio.app.modules.tasks.extensions.ui.TaskConstellioUIExtention;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationCombo;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_0_7;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_2;
@@ -42,10 +44,9 @@ import com.constellio.app.modules.tasks.migrations.TasksMigrationTo7_7_4;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo7_7_4_1;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_2;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_4;
-import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_3_1;
-import com.constellio.app.modules.tasks.migrations.records.TaskVisibilityInTreesMigrationTo8_3_1;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_5;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_2_42;
+import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_3_1;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo9_0;
 import com.constellio.app.modules.tasks.model.TaskRecordsCachesHook;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
@@ -53,7 +54,6 @@ import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.background.AlertOverdueTasksBackgroundAction;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
 
@@ -65,8 +65,7 @@ import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatin
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
 import static org.joda.time.Duration.standardHours;
 
-public class TaskModule implements InstallableSystemModule, ModuleWithComboMigration,
-		InstallableSystemModuleWithRecordMigrations {
+public class TaskModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "tasks";
 	public static final String NAME = "Tasks";
 
@@ -103,15 +102,6 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 	}
 
 	@Override
-	public List<RecordMigrationScript> getRecordMigrationScripts(String collection, AppLayerFactory appLayerFactory) {
-		List<RecordMigrationScript> scripts = new ArrayList<>();
-
-		scripts.add(new TaskVisibilityInTreesMigrationTo8_3_1(collection, appLayerFactory));
-
-		return scripts;
-	}
-
-	@Override
 	public void configureNavigation(NavigationConfig config) {
 		TasksNavigationConfiguration.configureNavigation(config);
 	}
@@ -132,6 +122,11 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 				.executedEvery(standardHours(2)).handlingExceptionWith(CONTINUE));
 	}
 
+	private void setupAppLayerSystemExtensions(AppLayerFactory appLayerFactory) {
+		AppLayerSystemExtensions extensions = appLayerFactory.getExtensions().getSystemWideExtensions();
+		extensions.constellioUIExtentions.add(new TaskConstellioUIExtention(appLayerFactory));
+	}
+
 	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 		extensions.recordAppExtensions.add(new TaskRecordAppExtension(collection, appLayerFactory));
@@ -140,10 +135,12 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		extensions.pagesComponentsExtensions.add(new TaskUserProfileFieldsExtension(collection, appLayerFactory));
 		extensions.recordExportExtensions.add(new TasksRecordExportExtension(collection, appLayerFactory));
 
+
 		extensions.registerModuleExtensionsPoint(ID, new TaskModuleExtensions(appLayerFactory));
 
 		// after register because it need it in the extension constructor.
 		extensions.menuItemActionsExtensions.add(new TaskMenuItemActionsExtension(collection, appLayerFactory));
+		extensions.menuItemActionsExtensions.add(new TaskAdvancedSearchMenuItemActionsExtension(collection, appLayerFactory));
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -154,6 +151,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		extensions.recordExtensions.add(new TaskStatusSchemasExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new WorkflowRecordExtension(collection, appLayerFactory));
 		extensions.schemaExtensions.add(new TaskTrashSchemaExtension());
+
 
 		//TODO Francis : Move in Constellio core's init
 		extensions.recordExtensions.add(new LockedRecordsExtension(collection, appLayerFactory));
@@ -222,6 +220,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		appLayerFactory.getModelLayerFactory().getCachesManager().register(new UnreadTasksUserCache(appLayerFactory));
 		appLayerFactory.getModelLayerFactory().getCachesManager().register(new IncompleteTasksUserCache(appLayerFactory));
 		appLayerFactory.getModelLayerFactory().getRecordsCaches().register(new TaskRecordsCachesHook());
+		setupAppLayerSystemExtensions(appLayerFactory);
 	}
 
 	@Override

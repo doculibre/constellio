@@ -4,6 +4,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNot
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
@@ -118,6 +119,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		Toggle.OLD_DELETE_UNUSED_CONTENT_METHOD.enable();
 		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		withSpiedServices(ContentManager.class);
 
@@ -355,18 +357,29 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.ASYNC_PARSING_FOR_ALL_CONTENTS);
 
 		Content content = contentManager.createMinor(alice, "ZePdf1.pdf", uploadPdf1InputStream());
-
 		Record record = givenRecord().withSingleValueContent(content).isSaved();
 		assertThat(contentManager.isParsed(pdf1Hash)).isFalse();
 		assertThat(record.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isTrue();
-		assertThat(contentMetadataParsedContentOf("zeRecord")).isNull();
+		assertThat(contentMetadataParsedContentOf(record.getId())).isNull();
 
+		Content contentThatWillBeDeleted = contentManager.createMinor(alice, "ZePdf2.pdf", uploadPdf2InputStream());
+		Record record2 = givenAnotherRecord().withSingleValueContent(contentThatWillBeDeleted).isSaved();
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
+		assertThat(record2.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isTrue();
+		assertThat(contentMetadataParsedContentOf(record2.getId())).isNull();
+
+		contentManager.getContentDao().delete(asList(pdf2Hash));
 		contentManager.handleRecordsMarkedForParsing();
+
 		recordServices.refresh(record);
+		recordServices.refresh(record2);
 
 		assertThat(contentManager.isParsed(pdf1Hash)).isTrue();
 		assertThat(record.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isNull();
 		assertThat(contentMetadataParsedContentOf("zeRecord")).contains("Forage de texte");
+
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
+		assertThat(record2.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isNull();
 
 	}
 
@@ -1345,7 +1358,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 				org.joda.time.Duration.standardMinutes(42)
 		);
 
-		assertThat(getModelLayerFactory().getConfiguration().getUnreferencedContentsThreadDelayBetweenChecks()).isEqualTo(
+		assertThat(getModelLayerFactory().getConfiguration().getParsingContentsThreadDelayBetweenChecks()).isEqualTo(
 				org.joda.time.Duration.standardHours(10)
 		);
 
@@ -1529,6 +1542,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	@Test
 	public void givenARecordHasAParsedContentHigherThanTheLimitThenTrimmed()
 			throws Exception {
+		givenConfig(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS, 3000);
 		SystemConfigurationsManager manager = getModelLayerFactory().getSystemConfigurationsManager();
 		givenSingleValueContentMetadataIsSearchable();
 

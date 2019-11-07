@@ -106,9 +106,6 @@ public class ReindexingServices {
 		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
 			this.mainThreadQueryRows = 100;
 
-			//		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == NORMAL) {
-			//			this.mainThreadQueryRows = 1000;
-
 		} else {
 			this.mainThreadQueryRows = modelLayerFactory.getConfiguration().getReindexingQueryBatchSize();
 		}
@@ -128,6 +125,7 @@ public class ReindexingServices {
 
 	public void reindexCollections(ReindexationParams params) {
 
+		modelLayerFactory.getRecordsCaches().disableVolatileCache();
 		dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(false);
 		try {
 			if (params.isBackground()) {
@@ -200,6 +198,7 @@ public class ReindexingServices {
 			REINDEXING_INFOS = null;
 
 			dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(true);
+			modelLayerFactory.getRecordsCaches().enableVolatileCache();
 		}
 
 
@@ -261,7 +260,8 @@ public class ReindexingServices {
 		RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
 		transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
 				.setCatchExtensionsExceptions(true).setCatchBrokenReferenceErrors(true)
-				.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false);
+				.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false)
+				.setRepopulate(params.isRepopulate());
 		if (params.getReindexationMode().isFullRecalculation()) {
 			transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		}
@@ -286,7 +286,6 @@ public class ReindexingServices {
 	private void reindexCollection(String collection, ReindexationParams params,
 								   RecordUpdateOptions transactionOptions) {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-
 
 		ReindexingRecordsProvider recordsProvider = new ReindexingRecordsProvider(modelLayerFactory, mainThreadQueryRows);
 		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage = newReindexingAggregatedValuesTempStorage();

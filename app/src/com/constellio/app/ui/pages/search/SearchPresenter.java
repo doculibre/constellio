@@ -25,13 +25,12 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
-import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
-import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.util.CapsuleUtils;
@@ -120,11 +119,15 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public int getDefaultPageLength() {
 		SearchPageLength defaultPageLength = getCurrentUser().getDefaultPageLength();
-		return defaultPageLength != null ? defaultPageLength.getValue() : SearchResultDetailedTable.DEFAULT_PAGE_LENGTH;
+		return defaultPageLength != null ? defaultPageLength.getValue() : 10;
 	}
 
 	public boolean isShowNumberingColumn(SearchResultVODataProvider dataProvider) {
-		return modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView() || dataProvider.size() > BaseTable.MAX_SELECTION_LENGTH;
+		return modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView() || dataProvider.size() > getMaxSelectableResults();
+	}
+
+	private int getMaxSelectableResults() {
+		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
 	}
 
 	public boolean isLazyLoadedSearchResults() {
@@ -393,29 +396,14 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		//Call #4
 
 		final SearchResultVODataProvider dataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
-				view.getSessionContext(), getSelectedPageLength()) {
+				view.getSessionContext(), this::getSelectedPageLength) {
 			@Override
 			public LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getSearchQuery().setHighlighting(highlighter).setOverridedQueryParams(extraSolrParams);
 				if (facets) {
 					service.configureQueryToComputeFacets(query);
 				}
-				if (sortCriterion == null) {
-					if (StringUtils.isNotBlank(getUserSearchExpression())) {
-						query.setFieldBoosts(searchBoostManager().getAllSearchBoostsByMetadataType(view.getCollection()));
-						query.setQueryBoosts(searchBoostManager().getAllSearchBoostsByQueryType(view.getCollection()));
-					}
-					if (new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isAddingSecondarySortWhenSortingByScore()) {
-						return sortOrder == SortOrder.ASCENDING ?
-							   query.sortFirstOn(new ScoreLogicalSearchQuerySort(true)).sortAsc(Schemas.IDENTIFIER) :
-							   query.sortFirstOn(new ScoreLogicalSearchQuerySort(false)).sortDesc(Schemas.IDENTIFIER);
-					} else {
-						return query;
-					}
-				}
-
-				Metadata metadata = getMetadata(sortCriterion);
-				return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
+				return query;
 			}
 
 			boolean hasExtensionsBeenNotified = false;
@@ -450,7 +438,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache,
 						true);
 				if (size == null) {
-					SPEQueryResponse response = searchServices.query(query, resultsPerPage);
+					SPEQueryResponse response = searchServices.query(query, getResultsPerPage());
 					logSearchEvent(this, response);
 					size = response.getRecords().size();
 				}
@@ -726,7 +714,23 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				LOGGER.warn("Facet '" + id + "' has been deleted");
 			}
 		}
-		return query;
+
+		if (sortCriterion == null) {
+			if (StringUtils.isNotBlank(getUserSearchExpression())) {
+				query.setFieldBoosts(searchBoostManager().getAllSearchBoostsByMetadataType(view.getCollection()));
+				query.setQueryBoosts(searchBoostManager().getAllSearchBoostsByQueryType(view.getCollection()));
+			}
+			if (new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isAddingSecondarySortWhenSortingByScore()) {
+				return sortOrder == SortOrder.ASCENDING ?
+					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(true)).sortAsc(Schemas.IDENTIFIER) :
+					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(false)).sortDesc(Schemas.IDENTIFIER);
+			} else {
+				return query;
+			}
+		}
+
+		Metadata metadata = getMetadata(sortCriterion);
+		return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 	}
 
 	public void setHighlighter(boolean highlighter) {
@@ -1012,45 +1016,47 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public void searchNavigationButtonClicked() {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-			SearchEvent searchEvent = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
 					appLayerFactory.getModelLayerFactory());
 
-			List<String> params = new ArrayList<>(searchEvent.getParams());
+			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
+			SearchEvent searchEvent = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			if (searchEvent != null) {
+				List<String> params = new ArrayList<>(searchEvent.getParams());
 
-			int pageNumber = getPageNumber();
-			int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
-			int start = (pageNumber > 0 ? pageNumber - 1 : 0) * rows;
+				int pageNumber = getPageNumber();
+				int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
+				int start = (pageNumber > 0 ? pageNumber - 1 : 0) * rows;
 
-			ListIterator<String> listIterator = params.listIterator();
-			while (listIterator.hasNext()) {
-				String param = listIterator.next();
+				ListIterator<String> listIterator = params.listIterator();
+				while (listIterator.hasNext()) {
+					String param = listIterator.next();
 
-				if (StringUtils.startsWith(param, "start=")) {
-					listIterator.set("start=" + start);
+					if (StringUtils.startsWith(param, "start=")) {
+						listIterator.set("start=" + start);
+					}
+
+					if (StringUtils.startsWith(param, "rows=")) {
+						listIterator.set("rows=" + rows);
+					}
 				}
 
-				if (StringUtils.startsWith(param, "rows=")) {
-					listIterator.set("rows=" + rows);
+				SearchEvent newSearchEvent = schemasRecordsServices.newSearchEvent();
+				newSearchEvent.setParams(params);
+				newSearchEvent.setClickCount(searchEvent.getClickCount());
+				newSearchEvent.setPageNavigationCount(searchEvent.getPageNavigationCount() + 1);
+				newSearchEvent.setOriginalQuery(searchEvent.getOriginalQuery());
+				newSearchEvent.setQuery(searchEvent.getQuery());
+				newSearchEvent.setNumFound(searchEvent.getNumFound());
+				newSearchEvent.setQTime(searchEvent.getQTime());
+				newSearchEvent.setCapsule(searchEvent.getCapsule());
+
+				if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
+					view.getSessionContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
+					searchEventServices.save(newSearchEvent);
+				} else {
+					searchEventServices.setLastPageNavigation(searchEvent.getId(), pageNumber);
 				}
-			}
-
-			SearchEvent newSearchEvent = schemasRecordsServices.newSearchEvent();
-			newSearchEvent.setParams(params);
-			newSearchEvent.setClickCount(searchEvent.getClickCount());
-			newSearchEvent.setPageNavigationCount(searchEvent.getPageNavigationCount() + 1);
-			newSearchEvent.setOriginalQuery(searchEvent.getOriginalQuery());
-			newSearchEvent.setQuery(searchEvent.getQuery());
-			newSearchEvent.setNumFound(searchEvent.getNumFound());
-			newSearchEvent.setQTime(searchEvent.getQTime());
-			newSearchEvent.setCapsule(searchEvent.getCapsule());
-
-			if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
-				view.getSessionContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
-				searchEventServices.save(newSearchEvent);
-			} else {
-				searchEventServices.setLastPageNavigation(searchEvent.getId(), pageNumber);
 			}
 		}
 	}
@@ -1116,5 +1122,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public RecordVO getReturnRecordVO() {
 		return returnRecordVO;
+	}
+
+	public BaseView getView() {
+		return view;
 	}
 }

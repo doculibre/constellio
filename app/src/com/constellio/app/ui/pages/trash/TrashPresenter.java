@@ -212,4 +212,7 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 		view.enableOrDisableActionButtons();
 	}
 
+	public void backButtonClicked() {
+		view.navigate().to().previousView();
+	}
 }

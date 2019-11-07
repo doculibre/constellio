@@ -22,6 +22,8 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerListener;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
@@ -53,16 +55,20 @@ public class SchemasDisplayManager
 
 	private ConstellioCacheManager cacheManager;
 
+	private SystemConfigurationsManager systemConfigManager;
+
 	private OneXMLConfigPerCollectionManager<SchemasDisplayManagerCache> oneXMLConfigPerCollectionManager;
 
 	private MetadataSchemasManager metadataSchemasManager;
 
 	public SchemasDisplayManager(ConfigManager configManager, CollectionsListManager collectionsListManager,
-								 MetadataSchemasManager metadataSchemasManager, ConstellioCacheManager cacheManager) {
+								 MetadataSchemasManager metadataSchemasManager, ConstellioCacheManager cacheManager,
+								 SystemConfigurationsManager systemConfigManager) {
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
 		this.metadataSchemasManager = metadataSchemasManager;
 		this.cacheManager = cacheManager;
+		this.systemConfigManager = systemConfigManager;
 	}
 
 	public Set<String> getReturnedFieldsForSearch(String collection) {
@@ -144,7 +150,9 @@ public class SchemasDisplayManager
 	private void validate(ValidationErrors errors, SchemaDisplayConfig config) {
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(config.getCollection()).getSchema(config.getSchemaCode());
 		for (Metadata metadata : SchemaDisplayUtils.getRequiredMetadatasInSchemaForm(schema)) {
-			if (!config.getFormMetadataCodes().contains(metadata.getCode())) {
+			if (!config.getFormMetadataCodes().contains(metadata.getCode())
+				&& (!systemConfigManager.<Boolean>getValue(ConstellioEIMConfigs.ENABLE_ESSENTIAL_METADATA_HIDING)
+					|| !metadata.isEssential() || metadata.getDefaultValue() == null)) {
 				Map<String, Object> params = new HashMap<>();
 				params.put("code", metadata.getCode());
 				params.put("label", metadata.getLabelsByLanguageCodes());
@@ -212,9 +220,9 @@ public class SchemasDisplayManager
 	}
 
 	public MetadataDisplayConfig getMetadata(String collection, String metadataCode) {
-		if (metadataCode.split("_").length != 3) {
-			throw new RuntimeException("Invalid code : " + metadataCode);
-		}
+		//		if (metadataCode.split("_").length != 3) {
+		//			throw new RuntimeException("Invalid code : " + metadataCode);
+		//		}
 		return getCacheForCollection(collection).getMetadata(metadataCode, metadataSchemasManager);
 	}
 
@@ -290,10 +298,10 @@ public class SchemasDisplayManager
 						.withCodes(collectionsListManager.getCollectionLanguages(types.getCollection()));
 				if (formatVersion == null) {
 					SchemasDisplayReader1 reader = new SchemasDisplayReader1(document, types, languages);
-					return reader.readSchemaTypesDisplay(collection);
+					return reader.readSchemaTypesDisplay(collection, systemConfigManager.<Boolean>getValue(ConstellioEIMConfigs.ENABLE_ESSENTIAL_METADATA_HIDING));
 				} else if (SchemasDisplayReader2.FORMAT_VERSION.equals(formatVersion)) {
 					SchemasDisplayReader2 reader = new SchemasDisplayReader2(document, types, languages);
-					return reader.readSchemaTypesDisplay(collection);
+					return reader.readSchemaTypesDisplay(collection, systemConfigManager.<Boolean>getValue(ConstellioEIMConfigs.ENABLE_ESSENTIAL_METADATA_HIDING));
 				} else {
 					throw new ImpossibleRuntimeException("Invalid format version '" + formatVersion + "'");
 				}

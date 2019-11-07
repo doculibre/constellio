@@ -144,7 +144,9 @@ public class SearchServices {
 		this.disconnectableRecordsCaches = recordsCaches;
 		this.modelLayerFactory = modelLayerFactory;
 		this.logicalSearchQueryExecutorInCache = new LogicalSearchQueryExecutorInCache(this, recordsCaches,
-				metadataSchemasManager, modelLayerFactory.getExtensions().getSystemWideExtensions(), mainDataLanguage);
+				metadataSchemasManager,
+				modelLayerFactory.getSearchConfigurationsManager(),
+				modelLayerFactory.getExtensions().getSystemWideExtensions(), mainDataLanguage);
 	}
 
 	public LogicalSearchQueryExecutorInCache getQueryExecutorInCache() {
@@ -271,8 +273,19 @@ public class SearchServices {
 		}
 
 		Number maxRecordSize = (Number) queryResponseDTO.getResults().get(0).getFields().get(ESTIMATED_SIZE.getDataStoreCode());
-		int batchSize = (maxRecordSize == null || maxRecordSize.intValue() == 0) ? 1000 : (100_000_1000 / maxRecordSize.intValue());
+
+		int batchSize;
+
+		batchSize = (maxRecordSize == null || maxRecordSize.intValue() == 0) ? 1000 : (100_000_1000 / maxRecordSize.intValue());
 		LOGGER.info("Streaming schema type '" + schemaType.getCode() + "' with batches of " + batchSize + ". Max record size is " + maxRecordSize);
+
+		if (summary && queryResponseDTO.getNumFound() > 1_000_000) {
+			batchSize = Math.max(batchSize, 20_000);
+
+		} else if (summary && queryResponseDTO.getNumFound() > 100_000) {
+			batchSize = Math.max(batchSize, 2_000);
+
+		}
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(schemaType).returnAll());

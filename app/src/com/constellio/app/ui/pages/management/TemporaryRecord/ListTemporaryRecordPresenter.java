@@ -43,6 +43,10 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 		return user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally();
 	}
 
+	public void backButtonClicked() {
+		view.navigate().to().previousView();
+	}
+
 	public void deleteButtonClick(String index, String schema) {
 		RecordVO currentTemporaryRecord = getDataProviderFromType(schema).getRecordVO(Integer.parseInt(index));
 		RecordServices recordServices = recordServices();

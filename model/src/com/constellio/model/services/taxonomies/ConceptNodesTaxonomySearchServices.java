@@ -20,6 +20,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
@@ -156,20 +157,37 @@ public class ConceptNodesTaxonomySearchServices {
 	}
 
 	public List<Record> getChildConcept(Record record, TaxonomiesSearchOptions options) {
-		return getChildNodesResponse(record, options).getRecords();
+		return getChildNodesResponse(record, options, true).getRecords();
 	}
 
-	public SPEQueryResponse getChildNodesResponse(Record record, TaxonomiesSearchOptions options) {
+	public List<Record> getChildConcept(Record record, TaxonomiesSearchOptions options, boolean onlyConcepts) {
+		return getChildNodesResponse(record, options, onlyConcepts).getRecords();
+	}
+
+	private SPEQueryResponse getChildNodesResponse(Record record, TaxonomiesSearchOptions options,
+												   boolean onlyConcepts) {
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record);
-		return searchServices.query(childNodesQuery(record, options, types));
+		return searchServices.query(childNodesQuery(record, options, types, onlyConcepts));
 	}
 
 	public LogicalSearchQuery childNodesQuery(Record record, TaxonomiesSearchOptions options,
-											  MetadataSchemaTypes types) {
-		String dataStore = types.getSchema(record.getSchemaCode()).getDataStore();
-		LogicalSearchCondition condition = fromTypesInCollectionOf(record, dataStore)
-				.where(directChildOf(record).andWhere(visibleInTrees));
+											  MetadataSchemaTypes types, boolean onlyConcepts) {
+		String dataStore = types.getSchemaOf(record).getDataStore();
+		LogicalSearchCondition condition;
 
+		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(record.getCollection(), record.getTypeCode());
+		if (onlyConcepts) {
+			if (taxonomy != null) {
+				condition = from(types.getSchemaTypesWithCode(taxonomy.getSchemaTypes()))
+						.where(directChildOf(record).andWhere(visibleInTrees));
+
+			} else {
+				condition = LogicalSearchQueryOperators.impossibleCondition(record.getCollection());
+			}
+		} else {
+			condition = fromTypesInCollectionOf(record, dataStore)
+					.where(directChildOf(record).andWhere(visibleInTrees));
+		}
 		return new LogicalSearchQuery(condition)
 				.filteredByStatus(options.getIncludeStatus())
 				.setStartRow(options.getStartRow())

@@ -72,10 +72,10 @@ public class ContentDaoRealTest extends ConstellioTest {
 
 		} else if (testCase.equals(givenContentDaoIsTheFileSystemImpl)) {
 			getDataLayerFactory().getDataLayerConfiguration().setContentDaoFileSystemFolder(newTempFolder());
-			vaultDao = new FileSystemContentDao(getIOLayerFactory().newIOServices(), getDataLayerFactory().getDataLayerConfiguration());
+			vaultDao = new FileSystemContentDao(getDataLayerFactory());
 		} else if (testCase.equals(givenContentDaoWithReplication)) {
 			getDataLayerFactory().getDataLayerConfiguration().setContentDaoReplicatedVaultMountPoint(newTempFolder().getAbsolutePath());
-			vaultDao = new FileSystemContentDao(getIOLayerFactory().newIOServices(), getDataLayerFactory().getDataLayerConfiguration());
+			vaultDao = new FileSystemContentDao(getDataLayerFactory());
 		}
 	}
 

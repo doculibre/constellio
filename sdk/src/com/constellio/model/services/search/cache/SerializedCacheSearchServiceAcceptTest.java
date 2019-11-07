@@ -583,8 +583,8 @@ public class SerializedCacheSearchServiceAcceptTest extends ConstellioTest {
 		assertThat(response.getQueryFacetsValues()).isNotEmpty();
 		assertThat(queriesListener.queries).hasSize(1);
 
-		assertThat(searchServices.getFieldFacetValues()).isNotEmpty();
-		assertThat(searchServices.getQueryFacetsValues()).isNotEmpty();
+		assertThat(searchServices.getFieldFacetValues(null)).isNotEmpty();
+		assertThat(searchServices.getQueryFacetsValues(null)).isNotEmpty();
 		assertThat(queriesListener.queries).hasSize(1);
 
 		assertThat(response.getRecords().get(0)).isNotNull();
@@ -595,6 +595,52 @@ public class SerializedCacheSearchServiceAcceptTest extends ConstellioTest {
 
 		assertThat(response.getRecords().get(9)).isNotNull();
 		assertThat(queriesListener.queries).hasSize(3);
+
+		ensureThatOnlyOneQueryExecutedFacets();
+	}
+
+
+	@Test
+	public void givenQueryWithoutFacetsThenRetrievedUponFirstQueryCallButNotOnTheSecond()
+			throws Exception {
+
+		queriesListener.clear();
+
+		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemas).sortAsc(Schemas.TITLE);
+
+		SPEQueryResponse response = searchServices.query(query, 3);
+		assertThat(response.getRecords()).hasSize(12);
+		assertThat(response.getFieldFacetValues()).isEmpty();
+		assertThat(response.getQueryFacetsValues()).isNull();
+		assertThat(queriesListener.queries).hasSize(1);
+
+		LogicalSearchQuery queryWithFacets = new LogicalSearchQuery(fromAllSchemas).sortAsc(Schemas.TITLE);
+		queryWithFacets.addFieldFacet(zeSchema.numberMetadata().getDataStoreCode());
+		queryWithFacets.addQueryFacet("zeQueryFacet", "numberMetadata_d:[0 TO 10]");
+		queryWithFacets.addQueryFacet("zeQueryFacet", "numberMetadata_d:[10 TO 20]");
+		queryWithFacets.addQueryFacet("zeQueryFacet", "numberMetadata_d:[20 TO 30]");
+
+
+		assertThat(searchServices.getFieldFacetValues(query)).isEmpty();
+		assertThat(searchServices.getQueryFacetsValues(query)).isEmpty();
+		assertThat(queriesListener.queries).hasSize(1);
+
+		assertThat(searchServices.getFieldFacetValues(queryWithFacets)).isNotEmpty();
+		assertThat(searchServices.getQueryFacetsValues(queryWithFacets)).isNotEmpty();
+		assertThat(queriesListener.queries).hasSize(2);
+
+		assertThat(searchServices.getFieldFacetValues(query)).isNotEmpty();
+		assertThat(searchServices.getQueryFacetsValues(query)).isNotEmpty();
+		assertThat(queriesListener.queries).hasSize(2);
+
+		assertThat(response.getRecords().get(0)).isNotNull();
+		assertThat(queriesListener.queries).hasSize(2);
+
+		assertThat(response.getRecords().get(5)).isNotNull();
+		assertThat(queriesListener.queries).hasSize(3);
+
+		assertThat(response.getRecords().get(9)).isNotNull();
+		assertThat(queriesListener.queries).hasSize(4);
 
 		ensureThatOnlyOneQueryExecutedFacets();
 	}

@@ -23,7 +23,9 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -238,22 +240,56 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 		return new TitleBreadcrumbTrail(view, title) {
 			@Override
 			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
-				return Collections.singletonList(new IntermediateBreadCrumbTailItem() {
-					@Override
-					public boolean isEnabled() {
-						return true;
-					}
+				return Collections.singletonList(getSearchConfigurationIntermediateBreadCrumb());
+			}
+		};
+	}
 
-					@Override
-					public String getTitle() {
-						return $("SearchConfigurationView.title");
-					}
+	public static TitleBreadcrumbTrail getFacetListBreadCrumbTrail(BaseView view, String title) {
+		return new TitleBreadcrumbTrail(view, title) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+				return Arrays.asList(getSearchConfigurationIntermediateBreadCrumb(),
+						getFacetListIntermediateBreadCrumb());
+			}
+		};
+	}
 
-					@Override
-					public void activate(Navigation navigate) {
-						navigate.to().searchConfiguration();
-					}
-				});
+	private static IntermediateBreadCrumbTailItem getFacetListIntermediateBreadCrumb() {
+		return new IntermediateBreadCrumbTailItem() {
+			@Override
+			public String getTitle() {
+				return $("ListFacetConfigurationView.viewTitle");
+			}
+
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().listFacetConfiguration();
+			}
+
+			@Override
+			public boolean isEnabled() {
+				return true;
+			}
+		};
+	}
+
+	@NotNull
+	private static IntermediateBreadCrumbTailItem getSearchConfigurationIntermediateBreadCrumb() {
+		return new IntermediateBreadCrumbTailItem() {
+			@Override
+			public boolean isEnabled() {
+				return true;
+			}
+
+			@Override
+			public String getTitle() {
+				return $("SearchConfigurationView.title");
+			}
+
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().searchConfiguration();
 			}
 		};
 	}

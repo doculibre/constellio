@@ -34,8 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("serial")
-public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddEditSchemaRecordView>
-		implements FieldOverridePresenter {
+public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddEditSchemaRecordView> implements FieldOverridePresenter {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AddEditSchemaRecordPresenter.class);
 
@@ -45,9 +44,10 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 
 	private RecordVO recordVO;
 
-	public AddEditSchemaRecordPresenter(AddEditSchemaRecordView view, RecordVO recordVO) {
+	public AddEditSchemaRecordPresenter(AddEditSchemaRecordView view, RecordVO recordVO, String schemaCode) {
 		super(view);
 		this.recordVO = recordVO;
+		this.schemaCode = schemaCode;
 	}
 
 	public void forParams(String params) {

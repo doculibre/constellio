@@ -145,7 +145,7 @@ public class TaskRecordExtension extends RecordExtension {
 				invalidateOldAndNewAssigneesForUnreadTasksCache(task, event);
 			}
 			if (hasModifiedMetadataRequiringInvalidationForIncompleteTasksCache(event)) {
-				invalidateOldANdNewAssigneeForIncompleteTaskCache(task, event);
+				invalidateOldAndNewAssigneesForIncompleteTasksCache(task, event);
 			}
 		}
 	}
@@ -153,7 +153,8 @@ public class TaskRecordExtension extends RecordExtension {
 	private boolean hasModifiedMetadataRequiringInvalidationForIncompleteTasksCache(RecordModificationEvent event) {
 		List<String> modifiedMetadatas = event.getModifiedMetadatas().toLocalCodesList();
 
-		return modifiedMetadatas.contains(Task.ASSIGNEE) || modifiedMetadatas.contains(Task.STATUS);
+		return modifiedMetadatas.contains(Task.ASSIGNEE) || modifiedMetadatas.contains(Task.ASSIGNEE_USERS_CANDIDATES)
+			   || modifiedMetadatas.contains(Task.ASSIGNEE_GROUPS_CANDIDATES) || modifiedMetadatas.contains(Task.STATUS);
 	}
 
 	private boolean hasModifiedMetadataRequiringInvalidationForUnreadTasksCache(RecordModificationEvent event) {
@@ -228,6 +229,18 @@ public class TaskRecordExtension extends RecordExtension {
 		}
 	}
 
+	private void invalidateAssigneeForIncompleteTaskCache(Task task) {
+		for (User user : userServices.getAllUsersInCollection(collection)) {
+			if (user.getId().equals(task.getAssignee()) || task.getAssigneeUsersCandidates().contains(user.getId())) {
+				incompleteTasksUserCache.invalidateUser(user);
+			}
+		}
+		for (Group group : userServices.getAllGroupsInCollections(collection)) {
+			if (task.getAssigneeGroupsCandidates().contains(group.getId())) {
+				incompleteTasksUserCache.invalidateGroup(group);
+			}
+		}
+	}
 	private void invalidateOldAndNewAssigneesForUnreadTasksCache(Task task, RecordModificationEvent event) {
 		Boolean assigneeModified = event.hasModifiedMetadata(Task.ASSIGNEE);
 		Boolean assigneeUserCandidatesModified = event.hasModifiedMetadata(Task.ASSIGNEE_USERS_CANDIDATES);
@@ -267,9 +280,11 @@ public class TaskRecordExtension extends RecordExtension {
 		}
 	}
 
-
-	private void invalidateOldANdNewAssigneeForIncompleteTaskCache(Task task, RecordModificationEvent event) {
+	private void invalidateOldAndNewAssigneesForIncompleteTasksCache(Task task, RecordModificationEvent event) {
 		Boolean assigneeModified = event.hasModifiedMetadata(Task.ASSIGNEE);
+		Boolean assigneeUserCandidatesModified = event.hasModifiedMetadata(Task.ASSIGNEE_USERS_CANDIDATES);
+		Boolean assigneeGroupsCandidatesModified = event.hasModifiedMetadata(Task.ASSIGNEE_GROUPS_CANDIDATES);
+
 		for (User user : userServices.getAllUsersInCollection(collection)) {
 			if (assigneeModified) {
 				if (user.getId().equals(event.getPreviousValue(Task.ASSIGNEE))) {
@@ -279,17 +294,30 @@ public class TaskRecordExtension extends RecordExtension {
 			if (user.getId().equals(task.getAssignee())) {
 				incompleteTasksUserCache.invalidateUser(user);
 			}
-		}
-	}
 
-	private void invalidateAssigneeForIncompleteTaskCache(Task task) {
-		for (User user : userServices.getAllUsersInCollection(collection)) {
-			if (user.getId().equals(task.getAssignee())) {
+			if (assigneeUserCandidatesModified) {
+				List<String> previousUserCandidates = event.getPreviousValue(Task.ASSIGNEE_USERS_CANDIDATES);
+				if (previousUserCandidates.contains(user.getId())) {
+					incompleteTasksUserCache.invalidateUser(user);
+				}
+			}
+			if (task.getAssigneeUsersCandidates().contains(user.getId())) {
 				incompleteTasksUserCache.invalidateUser(user);
 			}
 		}
-	}
 
+		for (Group group : userServices.getAllGroupsInCollections(collection)) {
+			if (assigneeGroupsCandidatesModified) {
+				List<String> previousUserCandidates = event.getPreviousValue(Task.ASSIGNEE_GROUPS_CANDIDATES);
+				if (previousUserCandidates.contains(group.getId())) {
+					incompleteTasksUserCache.invalidateGroup(group);
+				}
+			}
+			if (task.getAssigneeGroupsCandidates().contains(group.getId())) {
+				incompleteTasksUserCache.invalidateGroup(group);
+			}
+		}
+	}
 
 	public void taskInCreation(Task task, RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
 		sendEmailToAssignee(task);

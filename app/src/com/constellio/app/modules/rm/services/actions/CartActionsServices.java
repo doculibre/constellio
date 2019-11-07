@@ -14,11 +14,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.SearchServices;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -27,25 +23,13 @@ import java.util.List;
 public class CartActionsServices {
 	private RMSchemasRecordsServices rm;
 	private RMModuleExtensions rmModuleExtensions;
-	private AppLayerFactory appLayerFactory;
 	private ModelLayerFactory modelLayerFactory;
-	private RecordServices recordServices;
-	private transient ModelLayerCollectionExtensions modelLayerCollectionExtensions;
-	private MetadataSchemasManager metadataSchemasManager;
-	private String collection;
-	private SearchServices searchServices;
 	private CartUtil cartUtil;
 
 	public CartActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		this.collection = collection;
-		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-		this.modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
-		this.recordServices = modelLayerFactory.newRecordServices();
-		this.searchServices = modelLayerFactory.newSearchServices();
 		this.cartUtil = new CartUtil(collection, appLayerFactory);
 	}
 
@@ -213,7 +197,7 @@ public class CartActionsServices {
 
 		return hasCartPermission(cart.getId(), user)
 			   && cartUtil.cartHasRecords(cart.getId())
-			   && cartUtil.cartContainerIsEmpty(cart.getId())
+			   && canDeleteContainers(user, cart.getId())
 			   && canDeleteFolders(user, cart.getId())
 			   && canDeleteDocuments(user, cart.getId())
 			   && hasCartBatchDeletePermission(user)
@@ -237,6 +221,15 @@ public class CartActionsServices {
 						return false;
 					}
 					break;
+			}
+		}
+		return true;
+	}
+
+	private boolean canDeleteContainers(User user, String cartId) {
+		for (ContainerRecord container : cartUtil.getCartContainers(cartId)) {
+			if (!user.has(RMPermissionsTo.DELETE_CONTAINERS).on(container)) {
+				return false;
 			}
 		}
 		return true;

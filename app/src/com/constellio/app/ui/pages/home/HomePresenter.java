@@ -24,14 +24,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -244,24 +241,4 @@ public class HomePresenter extends BasePresenter<HomeView> {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		return recordServices.getDocumentById(id);
 	}
-
-	boolean isSelected(String recordId) {
-		SessionContext sessionContext = view.getSessionContext();
-		return sessionContext.getSelectedRecordIds().contains(recordId);
-	}
-
-	void selectionChanged(String recordId, Boolean selected) {
-		SessionContext sessionContext = view.getSessionContext();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		Record record = searchServices
-				.searchSingleResult(LogicalSearchQueryOperators.fromAllSchemasIn(sessionContext.getCurrentCollection())
-						.where(Schemas.IDENTIFIER).isEqualTo(recordId));
-		String schemaTypeCode = record == null ? null : record.getTypeCode();
-		if (selected) {
-			sessionContext.addSelectedRecordId(recordId, schemaTypeCode);
-		} else {
-			sessionContext.removeSelectedRecordId(recordId, schemaTypeCode);
-		}
-	}
-
 }

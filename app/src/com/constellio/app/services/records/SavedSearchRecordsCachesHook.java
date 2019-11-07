@@ -49,12 +49,20 @@ public class SavedSearchRecordsCachesHook implements RecordsCachesHook {
 
 		Integer index = recordsIndex.get(record.getId());
 
-		if (current >= lastSavedSearches.length) {
-			current = 0;
+		if (index == null) {
+			if (current >= lastSavedSearches.length) {
+				current = 0;
+			}
+			index = current++;
+
+			if (lastSavedSearches[index] != null) {
+				recordsIndex.remove(lastSavedSearches[index].getId());
+			}
+
+			recordsIndex.put(record.getId(), index);
 		}
 
-		lastSavedSearches[current] = record.getUnmodifiableCopyOfOriginalRecord();
-		current++;
+		lastSavedSearches[index] = record.getUnmodifiableCopyOfOriginalRecord();
 
 		return new HookCacheInsertionResponse(CacheInsertionStatus.ACCEPTED, RemoteCacheAction.DO_NOTHING);
 	}

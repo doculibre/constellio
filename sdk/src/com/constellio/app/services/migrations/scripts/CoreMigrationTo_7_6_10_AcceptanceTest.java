@@ -30,17 +30,19 @@ public class CoreMigrationTo_7_6_10_AcceptanceTest extends ConstellioTest {
 		reindex();
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		assertThatRecords(rm.searchDocuments(ALL)).extractingMetadatas(IDENTIFIER, MARKED_FOR_PREVIEW_CONVERSION).containsOnly(
-				tuple("00000000099", null),
-				tuple("00000000105", null),
-				tuple("00000000102", true)
-		);
+
 
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
-		contentManager.convertPendingContentForPreview();
+		while (contentManager.convertPendingContentForPreview()) {
+			getModelLayerFactory().newRecordServices().flushRecords();
+		}
 
 		assertThat(contentDao.getContentLength("DVWQVPBPGDRIYQWFTEEU2X6EO6KQ5EXR.preview")).isGreaterThan(0L);
 		assertThat(contentDao.getContentLength("BJKNYGROLCWIFSE3DWRBR4DELZQBWBUT.preview")).isEqualTo(438516L);
-
+		assertThatRecords(rm.searchDocuments(ALL)).extractingMetadatas(IDENTIFIER, MARKED_FOR_PREVIEW_CONVERSION).containsOnly(
+				tuple("00000000099", null),
+				tuple("00000000105", null),
+				tuple("00000000102", null)
+		);
 	}
 }

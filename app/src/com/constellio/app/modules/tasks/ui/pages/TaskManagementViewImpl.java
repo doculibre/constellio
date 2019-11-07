@@ -3,6 +3,7 @@ package com.constellio.app.modules.tasks.ui.pages;
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskDetailsComponentFactory;
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.tabs.IdTabSheet;
@@ -11,6 +12,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
@@ -19,6 +21,7 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tepi.filtertable.FilterGenerator;
@@ -50,7 +53,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	// Key: primary tab, value: sub tabs
 	private Map<String, List<String>> extraTabs = new HashMap<>();
 
-	private List<? extends Button> extraActionButtons = new ArrayList<>();
+	private List<? extends BaseButton> extraActionButtons = new ArrayList<>();
 
 	private IdTabSheet primaryTabSheet;
 	private IdTabSheet tasksTabSheet;
@@ -115,9 +118,10 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 
 		primaryTabSheet = new IdTabSheet();
 		primaryTabSheet.setSizeFull();
-		primaryTabSheet.addTab(buildEmptyTab(TASKS_TAB));
+
 
 		if (tasksInSubTabSheet) {
+			primaryTabSheet.addTab(buildEmptyTab(TASKS_TAB));
 			tasksTabSheet = new IdTabSheet();
 			tasksTabSheet.addStyleName("tabsheet-secondary");
 			tasksTabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
@@ -214,7 +218,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 
 	@Override
 	public void displayTasks(RecordVODataProvider provider) {
-		List<Button> newActionButtons = new ArrayList<>();
+		List<BaseButton> newActionButtons = new ArrayList<>();
 		newActionButtons.add(new AddTaskButton());
 		newActionButtons.addAll(extraActionButtons);
 		setActionButtons(newActionButtons);
@@ -376,9 +380,12 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		return actionButtons;
 	}
 
-	public void setActionButtons(List<? extends Button> actionButtons) {
+	public void setActionButtons(List<? extends BaseButton> actionButtons) {
 		actionButtonsLayout.removeAllComponents();
-		for (Button actionButton : actionButtons) {
+		for (BaseButton actionButton : actionButtons) {
+			if (actionButton.getIcon() != null && StringUtils.isNotBlank(actionButton.getCaption())) {
+				actionButton.setCaptionVisibleOnMobile(false);
+			}
 			actionButton.addStyleName(ValoTheme.BUTTON_LINK);
 			actionButtonsLayout.addComponent(actionButton);
 		}
@@ -389,7 +396,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		return extraActionButtons;
 	}
 
-	public void setExtraActionButtons(List<? extends Button> extraActionButtons) {
+	public void setExtraActionButtons(List<? extends BaseButton> extraActionButtons) {
 		this.extraActionButtons = extraActionButtons;
 	}
 
@@ -403,6 +410,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 
 		public AddTaskButton() {
 			super($("TasksManagementView.add"));
+			setIcon(FontAwesome.TASKS);
 			addStyleName("add-task-button");
 			addStyleName(ValoTheme.BUTTON_LINK);
 		}

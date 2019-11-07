@@ -3,10 +3,14 @@ package com.constellio.app.ui.pages.profile;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
+import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.wrappers.User;
@@ -135,6 +139,15 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		}
 
 		userServices.addUpdateUserCredential(userCredential);
+
+		SessionContext sessionContext = view.getSessionContext();
+		String collection = view.getCollection();
+		User user = userServices.getUserInCollection(username, collection);
+
+		UserToVOBuilder voBuilder = new UserToVOBuilder();
+		UserVO userVO = voBuilder
+				.build(user.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
+		sessionContext.setCurrentUser(userVO);
 	}
 
 	private String getDefaultStartTab() {
@@ -253,6 +266,12 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public boolean hasCurrentUserPhoto() {
+		UserVO currentUser = view.getSessionContext().getCurrentUser();
+		UserPhotosServices photosServices = ConstellioFactories.getInstance().getModelLayerFactory().newUserPhotosServices();
+		return photosServices.hasPhoto(currentUser.getUsername());
 	}
 
 	public void setParameters(String parameters) {

@@ -2,6 +2,7 @@ package com.constellio.app.modules.restapi.resource.service;
 
 import com.constellio.app.modules.restapi.core.exception.InvalidMetadataValueException;
 import com.constellio.app.modules.restapi.core.exception.MetadataNotFoundException;
+import com.constellio.app.modules.restapi.core.exception.MetadataNotManualException;
 import com.constellio.app.modules.restapi.core.exception.MetadataNotMultivalueException;
 import com.constellio.app.modules.restapi.core.exception.MetadataReferenceNotAllowedException;
 import com.constellio.app.modules.restapi.core.exception.UnsupportedMetadataTypeException;
@@ -19,6 +20,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -86,6 +88,10 @@ public abstract class ResourceService extends BaseService {
 
 			if (!metadata.isMultivalue() && attribute.getValues().size() != 1) {
 				throw new MetadataNotMultivalueException(attribute.getKey());
+			}
+
+			if (metadata.getDataEntry().getType() != DataEntryType.MANUAL) {
+				throw new MetadataNotManualException(attribute.getKey());
 			}
 
 			for (String value : attribute.getValues()) {

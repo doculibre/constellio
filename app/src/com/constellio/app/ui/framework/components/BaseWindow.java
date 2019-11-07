@@ -18,6 +18,7 @@ public class BaseWindow extends Window {
 	public static final String WINDOW_STYLE_NAME = "base-window";
 	public static final String WINDOW_CONTENT_STYLE_NAME = WINDOW_STYLE_NAME + "-content";
 	public static final String WINDOW_CONTENT_SCROLL_STYLE_NAME = WINDOW_STYLE_NAME + "-content-scroll";
+	public static final String WINDOW_CONTENT_WITH_BOTTOM_MARGIN = WINDOW_CONTENT_STYLE_NAME + "-with-bottom-margin";
 
 	public static final int OVER_ADVANCED_SEARCH_FORM_Z_INDEX = 20001;
 
@@ -109,6 +110,7 @@ public class BaseWindow extends Window {
 	}
 
 	private void init() {
+		setResponsive(true);
 		addStyleName(WINDOW_STYLE_NAME);
 		addStyleName(WINDOW_CONTENT_SCROLL_STYLE_NAME);
 		if (isRightToLeft()) {
@@ -192,5 +194,4 @@ public class BaseWindow extends Window {
 	public ConstellioFactories getConstellioFactories() {
 		return ConstellioFactories.getInstance();
 	}
-
 }

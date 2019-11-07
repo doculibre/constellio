@@ -10,11 +10,11 @@ import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.app.ui.pages.viewGroups.TrashViewGroup;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
@@ -114,17 +114,7 @@ public class CoreNavigationConfiguration implements Serializable {
 	}
 
 	private static void configureHeaderActionMenu(NavigationConfig config) {
-		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(BATCH_PROCESSES) {
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to().batchProcesses();
-			}
 
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return ComponentState.visibleIf(user.has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).onSomething());
-			}
-		});
 	}
 
 	private void configureSystemAdmin(NavigationConfig config) {
@@ -605,7 +595,7 @@ public class CoreNavigationConfiguration implements Serializable {
 						UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 						boolean canManageSystem = userServices.has(user.getUsername())
 								.anyGlobalPermissionInAnyCollection(CorePermissions.SYSTEM_MANAGEMENT_PERMISSIONS);
-						return visibleIf(canManageCollection || canManageSystem);
+						return visibleIf((canManageCollection || canManageSystem) && !ResponsiveUtils.isPhone());
 					}
 				});
 
@@ -623,7 +613,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 					@Override
 					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-						return visibleIf(user.has(CorePermissions.MANAGE_TRASH).globally());
+						return visibleIf(user.has(CorePermissions.MANAGE_TRASH).globally() && !ResponsiveUtils.isPhone());
 					}
 				});
 	}

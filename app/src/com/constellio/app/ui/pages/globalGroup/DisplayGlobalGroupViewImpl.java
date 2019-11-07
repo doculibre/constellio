@@ -210,6 +210,13 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		table.addStyleName(title);
 		table.setColumnHeader(PROPERTY_BUTTONS, "");
 		table.setColumnWidth(PROPERTY_BUTTONS, 120);
+
+		table.setColumnHeader("code", $("DisplayGlobalGroupView.codeColumn"));
+		table.setColumnHeader("name", $("DisplayGlobalGroupView.nameColumn"));
+		table.setColumnHeader("username", $("DisplayGlobalGroupView.usernameColumn"));
+		table.setColumnHeader("firstName", $("DisplayGlobalGroupView.firstNameColumn"));
+		table.setColumnHeader("lastName", $("DisplayGlobalGroupView.lastNameColumn"));
+		table.setColumnHeader("email", $("DisplayGlobalGroupView.emailColumn"));
 		return table;
 	}
 

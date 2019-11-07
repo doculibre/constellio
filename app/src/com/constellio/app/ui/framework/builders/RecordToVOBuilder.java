@@ -1,10 +1,5 @@
 package com.constellio.app.ui.framework.builders;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.IsMetadataSpecialCaseToNotBeShownParams;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -28,15 +23,21 @@ import com.constellio.model.services.users.UserServices;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
 
 @SuppressWarnings("serial")
 public class RecordToVOBuilder implements Serializable {
+
+	Map<String, MetadataSchemaVO> cachedSchemaVOs = new HashMap<>(1);
+	Map<String, User> cachedUsers = new HashMap<>(1);
+
 
 	public RecordVO build(Record record, VIEW_MODE viewMode, SessionContext sessionContext) {
 		return build(record, viewMode, null, sessionContext);
@@ -56,18 +57,31 @@ public class RecordToVOBuilder implements Serializable {
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(collection).getSchema(schemaCode);
-		UserServices userServices = modelLayerFactory.newUserServices();
+
 		RecordAutomaticMetadataServices recordAutomaticMetadataServices =
 				new RecordAutomaticMetadataServices(modelLayerFactory);
 
 
 		User user = null;
 		if (sessionContext.getCurrentUser() != null && sessionContext.getCurrentCollection() != null) {
-			user = userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
+			String userCacheKey = sessionContext.getCurrentUser() + "@" + sessionContext.getCurrentCollection();
+			user = cachedUsers.get(userCacheKey);
+
+			if (user == null) {
+				UserServices userServices = modelLayerFactory.newUserServices();
+				user = userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
+				cachedUsers.put(userCacheKey, user);
+			}
+		}
+
+		String cacheKey = record.getCollection() + ":" + record.getSchemaCode() + ":" + viewMode.name();
+		if (schemaVO == null) {
+			schemaVO = cachedSchemaVOs.get(cacheKey);
 		}
 
 		if (schemaVO == null) {
 			schemaVO = new MetadataSchemaToVOBuilder().build(schema, viewMode, sessionContext);
+			cachedSchemaVOs.put(cacheKey, schemaVO);
 		}
 
 		ContentVersionToVOBuilder contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
@@ -76,7 +90,19 @@ public class RecordToVOBuilder implements Serializable {
 		List<MetadataVO> metadatas = schemaVO.getMetadatas();
 		for (MetadataVO metadataVO : metadatas) {
 			String metadataCode = metadataVO.getCode();
-			Metadata metadata = schema.getMetadata(metadataCode);
+
+			// Recreated in newRecordVO override
+			if (metadataVO.isSynthetic()) {
+				continue;
+			}
+
+			Metadata metadata;
+			if (metadataVO.getId() != 0) {
+				metadata = schema.getMetadataById(metadataVO.getId());
+
+			} else {
+				metadata = schema.getMetadata(metadataCode);
+			}
 
 			Object recordVOValue;
 
@@ -134,7 +160,7 @@ public class RecordToVOBuilder implements Serializable {
 	}
 
 	private boolean isMetadataSpecialCaseToNotBeShown(AppLayerFactory appLayerFactory, final MetadataVO metadataVO,
-			final Record record) {
+													  final Record record) {
 		return appLayerFactory.getExtensions()
 				.forCollection(record.getCollection())
 				.isMetadataSpecialCaseToNotBeShown(new IsMetadataSpecialCaseToNotBeShownParams() {

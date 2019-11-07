@@ -69,7 +69,7 @@ import com.constellio.app.ui.pages.home.TaxonomyTabSheet;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.app.ui.pages.viewGroups.CartViewGroup;
 import com.constellio.app.ui.pages.viewGroups.LogsViewGroup;
-import com.constellio.app.ui.pages.viewGroups.UserDocumentsViewGroup;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AgentStatus;
@@ -442,24 +442,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 	private static void configureMainLayoutNavigation(NavigationConfig config) {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(USER_DOCUMENTS, FontAwesome.SUITCASE, UserDocumentsViewGroup.class) {
-					@Override
-					public void activate(Navigation navigate) {
-						navigate.to(RMViews.class).listUserDocuments();
-					}
-
-					@Override
-					public int getOrderValue() {
-						return 30;
-					}
-
-					@Override
-					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-						return ComponentState.ENABLED;
-					}
-				});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(MY_CART, FontAwesome.LIST_ALT, CartViewGroup.class) {
+				new NavigationItem.Active(MY_CART, FontAwesome.STAR, CartViewGroup.class) {
 					@Override
 					public void activate(Navigation navigate) {
 						String userId = ConstellioUI.getCurrentSessionContext().getCurrentUser().getId();
@@ -477,7 +460,7 @@ public class RMNavigationConfiguration implements Serializable {
 					}
 				});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(LIST_CARTS, FontAwesome.LIST_ALT, CartViewGroup.class) {
+				new NavigationItem.Active(LIST_CARTS, FontAwesome.STAR, CartViewGroup.class) {
 					@Override
 					public void activate(Navigation navigate) {
 						navigate.to(RMViews.class).listCarts();
@@ -509,12 +492,12 @@ public class RMNavigationConfiguration implements Serializable {
 					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 						DecommissioningSecurityService service = new DecommissioningSecurityService(
 								user.getCollection(), appLayerFactory);
-						return visibleIf(service.hasAccessToDecommissioningMainPage(user) ||
-										 user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally() ||
-										 user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
+						return visibleIf((service.hasAccessToDecommissioningMainPage(user) ||
+										  user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally() ||
+										  user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething()) && !ResponsiveUtils.isPhone());
 					}
 				});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, FontAwesome.BOOK, LogsViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, FontAwesome.AREA_CHART, LogsViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
 				navigate.to(RMViews.class).eventAudit();
@@ -527,7 +510,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(CorePermissions.VIEW_EVENTS).onSomething());
+				return visibleIf(user.has(CorePermissions.VIEW_EVENTS).onSomething() && !ResponsiveUtils.isPhone());
 			}
 		});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(AGENT, FontAwesome.LAPTOP, AgentViewGroup.class) {
@@ -557,7 +540,7 @@ public class RMNavigationConfiguration implements Serializable {
 				}
 
 				return visibleIf(rmConfigs.isAgentEnabled() && ConstellioAgentUtils.isAgentSupported()
-								 && agentStatus == AgentStatus.DISABLED);
+								 && agentStatus == AgentStatus.DISABLED && !ResponsiveUtils.isDesktop());
 			}
 		});
 	}

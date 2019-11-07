@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -21,6 +22,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.util.converter.Converter;
 import com.vaadin.server.Page;
@@ -104,12 +106,43 @@ public class ReferenceDisplay extends Button {
 		return locale;
 	}
 
+	private boolean isLinkForCurrentUser() {
+		ConstellioUI ui = ConstellioUI.getCurrent();
+		AppLayerFactory appLayerFactory = ui.getConstellioFactories().getAppLayerFactory();
+		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+
+		Record record = null;
+
+		if (recordVO != null) {
+			record = recordVO.getRecord();
+		} else if (recordId != null) {
+			record = recordServices.getDocumentById(recordId);
+		}
+		SessionContext sessionContext = ui.getSessionContext();
+
+		if (record != null) {
+			User user = appLayerFactory.getModelLayerFactory().newUserServices()
+					.getUserInCollection(sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
+
+			MetadataSchemasManager metadataSchemaManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+			if (metadataSchemaManager.getSchemaTypeOf(record).hasSecurity()) {
+				return user.hasReadAccess().on(record);
+			} else {
+				AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(sessionContext.getCurrentCollection());
+				return extensions.doesUserHaveReadAcessToRecord(true, user, record);
+			}
+		} else {
+			return true;
+		}
+	}
+
 	private void init(RecordVO recordVO, boolean link) {
-		setSizeFull();
+		//		setSizeFull();
+		setWidth("100%");
 		addStyleName(STYLE_NAME);
 		addStyleName(ValoTheme.BUTTON_LINK);
 		setEnabled(false);
-		if (link) {
+		if (link && isLinkForCurrentUser()) {
 			prepareLink();
 		}
 
@@ -124,15 +157,18 @@ public class ReferenceDisplay extends Button {
 		addStyleName(STYLE_NAME);
 		addStyleName(ValoTheme.BUTTON_LINK);
 		setEnabled(false);
-		if (link) {
+
+		if (link && isLinkForCurrentUser()) {
 			prepareLink();
 		}
 		//		addContextMenu();
 
 		if (recordId != null) {
 			ConstellioUI ui = ConstellioUI.getCurrent();
-			String collection = ui.getSessionContext().getCurrentCollection();
-			ModelLayerFactory modelLayerFactory = ui.getConstellioFactories().getModelLayerFactory();
+			AppLayerFactory appLayerFactory = ui.getConstellioFactories().getAppLayerFactory();
+			SessionContext sessionContext = ui.getSessionContext();
+			String collection = sessionContext.getCurrentCollection();
+			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 			RecordServices recordServices = modelLayerFactory.newRecordServices();
 
@@ -143,11 +179,10 @@ public class ReferenceDisplay extends Button {
 				e.printStackTrace();
 			}
 		}
-
 	}
 
 	protected String getNiceTitle(Record record, MetadataSchemaTypes types) {
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 		String description = null;
 		if (schema.hasMetadataWithCode("description")) {
 			Metadata descriptionMetadata = schema.getMetadata("description");

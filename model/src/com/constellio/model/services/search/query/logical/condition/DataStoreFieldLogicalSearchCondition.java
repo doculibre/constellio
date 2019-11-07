@@ -1,6 +1,5 @@
 package com.constellio.model.services.search.query.logical.condition;
 
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
@@ -188,7 +187,7 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 	}
 
 	@Override
-	public boolean test(Record record) {
+	public boolean test(TestedQueryRecord record) {
 
 		if (valueCondition == null) {
 			return true;
@@ -224,6 +223,7 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 						return false;
 					}
 				}
+
 			}
 		}
 

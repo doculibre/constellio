@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.ui.components.document.fields.DocumentFolde
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeField;
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -59,6 +60,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -71,7 +73,7 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
+public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> implements SecurityWithNoUrlParamSupport {
 
 	private transient ContentVersionToVOBuilder contentVersionToVOBuilder;
 
@@ -96,6 +98,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		initTransientObjects();
 		eimConfigs = modelLayerFactory.getSystemConfigs();
 		this.id = recordVO != null ? recordVO.getId() : null;
+		addView = recordVO == null;
 	}
 
 	@Override
@@ -884,5 +887,15 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
 		String url = constellioUrl + "#!" + displayURL + "/" + document.getId();
 		return "<a href=\"" + url + "\">" + url + "</a>";
+	}
+
+
+	@Override
+	public boolean hasPageAccess(User user) {
+		if (addView) {
+			throw new NotImplementedException("Dans le moment les fenetre supporte seulement le mode modifier");
+		} else {
+			return hasRestrictedRecordAccess(id, getCurrentUser(), recordServices().getDocumentById(id));
+		}
 	}
 }

@@ -7,8 +7,14 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserDocumentVO;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.components.ContentVersionDisplay;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.upload.BaseMultiFileUpload;
 import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAdapter;
@@ -26,10 +32,14 @@ import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Resource;
 import com.vaadin.server.StreamVariable;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.Label;
@@ -61,6 +71,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	private RecordVOTable userContentTable;
 	private Button deleteAllButton;
 	private Builder<ContainerButton> classifyButtonFactory;
+	private List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
 
 	private RecordIdToCaptionConverter recordIdToCaptionConverter = new RecordIdToCaptionConverter();
 
@@ -136,6 +147,22 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		userContentContainer = new RecordVOLazyContainer(dataProviders);
 		buttonsContainer = new ButtonsContainer<RecordVOLazyContainer>(userContentContainer);
 
+		if (presenter.isDisplayButtonVisible()) {
+			buttonsContainer.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
+					final RecordVO recordVO = ((RecordVOItem) buttonsContainer.getItem(itemId)).getRecord();
+					BaseButton displayButton = new DisplayButton() {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							presenter.displayButtonClicked(recordVO);
+						}
+					};
+					displayButton.setVisible(presenter.isDisplayButtonVisible(recordVO));
+					return displayButton;
+				}
+			});
+		}
 		buttonsContainer.addButton(classifyButtonFactory.build());
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
@@ -268,6 +295,10 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		return dragAndDropWrapper;
 	}
 
+	protected boolean isBreadcrumbsVisible() {
+		return !inWindow;
+	}
+
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		String parameters = event != null ? event.getParameters() : null;
@@ -350,6 +381,20 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		return inWindow;
 	}
 
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		if (!inWindow) {
+			return new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					presenter.backButtonClicked();
+				}
+			};
+		} else {
+			return null;
+		}
+	}
+
 	private void refreshAvailableSpace() {
 		if (presenter.isQuotaSpaceConfigActivated()) {
 			Label quotaSpaceInfoAferRefresh = new Label(
@@ -361,4 +406,66 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		}
 	}
 
+	@Override
+	public void setBreadcrumbs(List<BreadcrumbItem> items) {
+		this.breadcrumbs = items;
+
+		BaseBreadcrumbTrail breadcrumbTrail = getBreadcrumbTrail();
+		if (breadcrumbTrail != null) {
+			replaceBreadcrumbTrail(buildBreadcrumbTrail());
+		}
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new UserDocumentBreadcrumbTrail();
+	}
+
+	class UserDocumentBreadcrumbTrail extends TitleBreadcrumbTrail {
+
+		public UserDocumentBreadcrumbTrail() {
+			super(ListUserDocumentsViewImpl.this, getTitle());
+			for (BreadcrumbItem item : ListUserDocumentsViewImpl.this.breadcrumbs) {
+				addItem(item);
+			}
+		}
+
+		@Override
+		protected CurrentViewItem newCurrentViewItem(String viewTitle) {
+			CurrentViewItem currentViewItem = super.newCurrentViewItem(viewTitle);
+			boolean currentViewItemEnabled = !ListUserDocumentsViewImpl.this.breadcrumbs.isEmpty();
+			currentViewItem.setEnabled(currentViewItemEnabled);
+			return currentViewItem;
+		}
+
+		@Override
+		protected Button newButton(BreadcrumbItem item) {
+			Button button = super.newButton(item);
+			String recordId;
+			if (item instanceof UserFolderBreadcrumbItem) {
+				recordId = ((UserFolderBreadcrumbItem) item).getFolderId();
+			} else if (item instanceof CollectionBreadcrumbItem) {
+				recordId = null;
+			} else if (item instanceof CurrentViewItem) {
+				recordId = null;
+			} else if (item instanceof ViewGroupBreadcrumbItem) {
+				recordId = null;
+			} else {
+				throw new RuntimeException("Unrecognized breadcrumb item type : " + item.getClass());
+			}
+			if (recordId != null) {
+				Resource icon = new ThemeResource("images/icons/folder/folder.png");
+				button.setIcon(icon);
+			}
+			return button;
+		}
+
+		@Override
+		protected void itemClick(BreadcrumbItem item) {
+			if (!presenter.breadcrumbItemClicked(item)) {
+				super.itemClick(item);
+			}
+		}
+
+	}
 }

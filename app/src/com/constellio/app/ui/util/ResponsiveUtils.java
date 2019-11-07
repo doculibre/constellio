@@ -8,6 +8,10 @@ public class ResponsiveUtils {
 	public static boolean isPhone() {
 		boolean phone;
 		Page page = Page.getCurrent();
+		if (page == null) {
+			return false;
+		}
+
 		WebBrowser webBrowser = page.getWebBrowser();
 		if (webBrowser.isIPhone()) {
 			phone = true;
@@ -20,6 +24,11 @@ public class ResponsiveUtils {
 	public static boolean isTablet() {
 		boolean tablet;
 		Page page = Page.getCurrent();
+
+		if (page == null) {
+			return false;
+		}
+
 		WebBrowser webBrowser = page.getWebBrowser();
 		if (webBrowser.isIPad()) {
 			tablet = true;
@@ -34,6 +43,9 @@ public class ResponsiveUtils {
 		if (isPhone() || isTablet()) {
 			desktop = false;
 		} else {
+			if (Page.getCurrent() == null) {
+				return false;
+			}
 			desktop = Page.getCurrent().getBrowserWindowWidth() > 1100;
 		}
 		return desktop;

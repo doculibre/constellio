@@ -199,19 +199,20 @@ public class ValueListServices {
 		return createTaxonomy(code, title, isMultiLingual);
 	}
 
-	public Taxonomy createTaxonomy(Map<Language, String> title, List<String> userIds, List<String> groupIds,
+	public Taxonomy createTaxonomy(Map<Language, String> title, Map<Language, String> abbreviation,
+								   List<String> userIds, List<String> groupIds,
 								   boolean isVisibleInHomePage, boolean isMultiLingual) {
 		String code = generateCode("");
-		return createTaxonomy(code, title, userIds, groupIds, isVisibleInHomePage, isMultiLingual);
+		return createTaxonomy(code, title, abbreviation, userIds, groupIds, isVisibleInHomePage, isMultiLingual);
 	}
 
-	public Taxonomy createTaxonomy(String code, Map<Language, String> title, List<String> userIds,
-								   List<String> groupIds,
+	public Taxonomy createTaxonomy(String code, Map<Language, String> title, Map<Language, String> abbreviation,
+								   List<String> userIds, List<String> groupIds,
 								   boolean isVisibleInHomePage, boolean isMultiLingual) {
 		MetadataSchemaType type = createTaxonomyType("taxo" + code + "Type", title, isMultiLingual);
 		Taxonomy taxonomy = Taxonomy
-				.createPublic("taxo" + code, title, collection, userIds, groupIds, Arrays.asList(type.getCode()),
-						isVisibleInHomePage);
+				.createPublic("taxo" + code, title, abbreviation, collection, userIds, groupIds,
+						Arrays.asList(type.getCode()), isVisibleInHomePage);
 
 		taxonomiesManager.addTaxonomy(taxonomy, schemasManager);
 

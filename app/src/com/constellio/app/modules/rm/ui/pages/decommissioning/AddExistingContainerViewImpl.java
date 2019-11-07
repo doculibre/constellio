@@ -1,27 +1,21 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import com.constellio.app.modules.rm.ui.pages.decommissioning.component.AddExistingContainerRecordListMenuBar;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.component.AddExistingContainerRecordListMenuBar.MenuBarItemAdder;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.ui.framework.components.SearchResultTable;
-import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
 import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
-import com.constellio.model.entities.records.Record;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.MenuBar.Command;
-import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -105,8 +99,8 @@ public class AddExistingContainerViewImpl extends SearchViewImpl<AddExistingCont
 		return searchUI;
 	}
 
-	@Override
-	protected Component buildSummary(SearchResultTable results) {
+	@NotNull
+	private Button buildAddExistingContainerButton() {
 		Button addContainers = new Button($("AddExistingContainerView.addContainers"));
 		addContainers.addStyleName(ValoTheme.BUTTON_LINK);
 		addContainers.addClickListener(new ClickListener() {
@@ -116,32 +110,33 @@ public class AddExistingContainerViewImpl extends SearchViewImpl<AddExistingCont
 			}
 		});
 
-		return results.createSummary(buildSelectAllButton(), buildAddToSelectionButton(), addContainers);
+		this.addSelectionChangeListener(new SelectionChangeListener() {
+			@Override
+			public void selectionChanged(SelectionChangeEvent event) {
+				addContainers.setEnabled(event.isAllItemsSelected() || (event != null && !event.getSelectedItemIds().isEmpty()));
+			}
+		});
+
+		return addContainers;
+	}
+
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> listButton = new ArrayList<>(super.getQuickActionMenuButtons());
+
+		Button addContainerButton = buildAddExistingContainerButton();
+		addContainerButton.setEnabled(!this.getSelectedRecordIds().isEmpty());
+		listButton.add(0, addContainerButton);
+		return listButton;
+	}
+
+	@Override
+	public boolean isSelectionActionMenuBar() {
+		return false;
 	}
 
 	@Override
 	public Boolean computeStatistics() {
 		return false;
-	}
-
-	public RecordListMenuBar getRecordListMenuBar() {
-		return new AddExistingContainerRecordListMenuBar($("ViewableRecordVOTablePanel.selectionActions"), new MenuBarItemAdder() {
-			@Override
-			public void addMenuBarItems(MenuItem rootItem, List<Record> selectedRecords) {
-				MenuBar.MenuItem menuItem = rootItem.addItem($("AddExistingContainerView.addContainers"), new Command() {
-					@Override
-					public void menuSelected(MenuItem selectedItem) {
-						presenter.containerAdditionRequested(selectedRecords.stream().map(record -> record.getId()).collect(Collectors.toList()));
-					}
-				});
-				menuItem.setVisible(selectedRecords == null || selectedRecords.isEmpty() || allRecordAreContainers(selectedRecords));
-				menuItem.setEnabled(selectedRecords != null && selectedRecords.size() > 0);
-			}
-
-		});
-	}
-
-	private boolean allRecordAreContainers(List<Record> records) {
-		return records.stream().allMatch(record -> record.getSchemaCode().startsWith(ContainerRecord.SCHEMA_TYPE));
 	}
 }

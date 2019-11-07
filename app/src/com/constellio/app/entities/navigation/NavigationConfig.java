@@ -76,7 +76,11 @@ public class NavigationConfig implements Serializable {
 			throw new Error("Item already in configuration: " + code);
 		}
 		codes.add(code);
-		map.get(group).add(index, value);
+		if (map.get(group).size() == 0) {
+			map.add(group, value);
+		} else {
+			map.get(group).add(index, value);
+		}
 	}
 
 	private <V extends CodedItem> void replace(String group, V value, KeyListMap<String, V> map) {

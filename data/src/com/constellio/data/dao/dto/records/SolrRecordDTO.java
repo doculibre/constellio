@@ -29,6 +29,10 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 		this(id, 0, fields, new HashMap<String, Object>(), mode);
 	}
 
+	public SolrRecordDTO(RecordDTO recordDTO) {
+		this(recordDTO.getId(), recordDTO.getVersion(), new HashMap<>(recordDTO.getFields()), new HashMap<>(recordDTO.getCopyFields()), recordDTO.getLoadingMode());
+	}
+
 	public SolrRecordDTO(String id, long version, Map<String, Object> fields,
 						 RecordDTOMode mode) {
 		this(id, version, fields, new HashMap<String, Object>(), mode);

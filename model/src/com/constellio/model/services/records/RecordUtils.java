@@ -453,7 +453,7 @@ public class RecordUtils {
 
 	public static void changeSchemaTypeAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
 																   RecordProvider recordProvider) {
-		MetadataSchema recordSchema = schemaTypes.getSchema(record.getSchemaCode());
+		MetadataSchema recordSchema = schemaTypes.getSchemaOf(record);
 
 		for (Metadata metadata : recordSchema.getMetadatas()) {
 
@@ -466,7 +466,7 @@ public class RecordUtils {
 	public static void changeSchemaTypeAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
 																   RecordProvider recordProvider,
 																   Metadata typeMetadata) {
-		MetadataSchema recordSchema = schemaTypes.getSchema(record.getSchemaCode());
+		MetadataSchema recordSchema = schemaTypes.getSchemaOf(record);
 		String newSchemaCode = getSchemaAccordingToTypeLinkedSchema(record, schemaTypes, recordProvider, typeMetadata);
 		if (!record.getSchemaCode().equals(newSchemaCode)) {
 			MetadataSchema newSchema = schemaTypes.getSchema(newSchemaCode);
@@ -477,7 +477,7 @@ public class RecordUtils {
 
 	public static String getSchemaAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
 															  RecordProvider recordProvider, Metadata typeMetadata) {
-		MetadataSchema recordSchema = schemaTypes.getSchema(record.getSchemaCode());
+		MetadataSchema recordSchema = schemaTypes.getSchemaOf(record);
 		MetadataSchema referencedSchema = schemaTypes.getDefaultSchema(typeMetadata.getReferencedSchemaType());
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		String typeId = record.get(typeMetadata);
@@ -521,7 +521,7 @@ public class RecordUtils {
 		boolean hasInterdependency = false;
 
 		for (Record record : records) {
-			MetadataSchema schema = types.getSchema(record.getSchemaCode());
+			MetadataSchema schema = types.getSchemaOf(record);
 			Set<String> dependentIds = new HashSet<>();
 			recordMap.put(record.getId(), record);
 			for (Metadata metadata : schema.getMetadatas()) {
@@ -669,7 +669,7 @@ public class RecordUtils {
 		Record record = recordProvider.getRecord(newReference);
 		if (record.isSaved()) {
 			ids.add(record.getId());
-			List<Metadata> metadatas = types.getSchema(record.getSchemaCode()).getMetadatas().only(new MetadataListFilter() {
+			List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
 				@Override
 				public boolean isReturned(Metadata metadata) {
 					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();

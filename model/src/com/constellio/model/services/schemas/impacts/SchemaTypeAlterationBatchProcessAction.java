@@ -39,7 +39,7 @@ public class SchemaTypeAlterationBatchProcessAction implements BatchProcessActio
 		transaction.getRecordUpdateOptions().setFullRewrite(true);
 
 		for (Record record : batch) {
-			MetadataSchema schema = schemaTypes.getSchema(record.getSchemaCode());
+			MetadataSchema schema = schemaTypes.getSchemaOf(record);
 			for (Metadata metadata : schema.getMetadatas()) {
 				if (convertedToMultiValue.contains(metadata.getLocalCode())) {
 					Metadata singleValueMetadata = Schemas.dummySingleValueMetadata(metadata);

@@ -1,4 +1,4 @@
-97DA0C587716DD663406C477DDF07792.cache.js
+192703AB824D491D8EAC91081273DF5D.cache.js
 ClientBundle.enableInlining true
 audioElementSupport maybe
 canvasElementSupport maybe
@@ -6,7 +6,7 @@ compiler.emulatedStack false
 compiler.predeclare.cross.fragment.references false
 compiler.stackMode native
 compiler.useSourceMaps false
-compiler.useSymbolMaps true
+compiler.useSymbolMaps false
 dragEventSupport maybe
 gwt.enableDebugId false
 gwt.forceBidi false
@@ -24,11 +24,11 @@ rpc.XserializeFinalFields false
 superdevmode off
 touchEventSupport maybe
 user.agent gecko1_8
-vaadin.profiler true
+vaadin.profiler false
 videoElementSupport maybe
 webApiUsage modern
 
-97DA0C587716DD663406C477DDF07792.cache.js
+192703AB824D491D8EAC91081273DF5D.cache.js
 ClientBundle.enableInlining true
 audioElementSupport maybe
 canvasElementSupport maybe
@@ -36,7 +36,7 @@ compiler.emulatedStack false
 compiler.predeclare.cross.fragment.references false
 compiler.stackMode native
 compiler.useSourceMaps false
-compiler.useSymbolMaps true
+compiler.useSymbolMaps false
 dragEventSupport maybe
 gwt.enableDebugId false
 gwt.forceBidi false
@@ -54,11 +54,11 @@ rpc.XserializeFinalFields false
 superdevmode off
 touchEventSupport maybe
 user.agent gecko1_8
-vaadin.profiler true
+vaadin.profiler false
 videoElementSupport maybe
 webApiUsage modern
 
-97DA0C587716DD663406C477DDF07792.cache.js
+192703AB824D491D8EAC91081273DF5D.cache.js
 ClientBundle.enableInlining true
 audioElementSupport maybe
 canvasElementSupport maybe
@@ -66,7 +66,7 @@ compiler.emulatedStack false
 compiler.predeclare.cross.fragment.references false
 compiler.stackMode native
 compiler.useSourceMaps false
-compiler.useSymbolMaps true
+compiler.useSymbolMaps false
 dragEventSupport maybe
 gwt.enableDebugId false
 gwt.forceBidi false
@@ -84,11 +84,11 @@ rpc.XserializeFinalFields false
 superdevmode off
 touchEventSupport no
 user.agent ie10
-vaadin.profiler true
+vaadin.profiler false
 videoElementSupport maybe
 webApiUsage modern
 
-97DA0C587716DD663406C477DDF07792.cache.js
+192703AB824D491D8EAC91081273DF5D.cache.js
 ClientBundle.enableInlining true
 audioElementSupport no
 canvasElementSupport no
@@ -96,7 +96,7 @@ compiler.emulatedStack false
 compiler.predeclare.cross.fragment.references false
 compiler.stackMode native
 compiler.useSourceMaps false
-compiler.useSymbolMaps true
+compiler.useSymbolMaps false
 dragEventSupport no
 gwt.enableDebugId false
 gwt.forceBidi false
@@ -114,11 +114,11 @@ rpc.XserializeFinalFields false
 superdevmode off
 touchEventSupport no
 user.agent ie8
-vaadin.profiler true
+vaadin.profiler false
 videoElementSupport no
 webApiUsage modern
 
-97DA0C587716DD663406C477DDF07792.cache.js
+192703AB824D491D8EAC91081273DF5D.cache.js
 ClientBundle.enableInlining true
 audioElementSupport maybe
 canvasElementSupport maybe
@@ -126,7 +126,7 @@ compiler.emulatedStack false
 compiler.predeclare.cross.fragment.references false
 compiler.stackMode native
 compiler.useSourceMaps false
-compiler.useSymbolMaps true
+compiler.useSymbolMaps false
 dragEventSupport maybe
 gwt.enableDebugId false
 gwt.forceBidi false
@@ -144,11 +144,11 @@ rpc.XserializeFinalFields false
 superdevmode off
 touchEventSupport no
 user.agent ie9
-vaadin.profiler true
+vaadin.profiler false
 videoElementSupport maybe
 webApiUsage modern
 
-97DA0C587716DD663406C477DDF07792.cache.js
+192703AB824D491D8EAC91081273DF5D.cache.js
 ClientBundle.enableInlining true
 audioElementSupport maybe
 canvasElementSupport maybe
@@ -156,7 +156,7 @@ compiler.emulatedStack false
 compiler.predeclare.cross.fragment.references false
 compiler.stackMode native
 compiler.useSourceMaps false
-compiler.useSymbolMaps true
+compiler.useSymbolMaps false
 dragEventSupport maybe
 gwt.enableDebugId false
 gwt.forceBidi false
@@ -174,7 +174,7 @@ rpc.XserializeFinalFields false
 superdevmode off
 touchEventSupport maybe
 user.agent safari
-vaadin.profiler true
+vaadin.profiler false
 videoElementSupport maybe
 webApiUsage modern
 

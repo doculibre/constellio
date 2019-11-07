@@ -99,6 +99,10 @@ public abstract class DocumentExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+	public ExtensionBooleanResult isConsultLinkActionPossible(Document document, User user) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public static class DocumentExtensionActionPossibleParams {
 		private Document document;
 		private User user;

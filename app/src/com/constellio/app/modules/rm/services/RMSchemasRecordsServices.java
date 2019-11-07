@@ -57,6 +57,7 @@ import org.apache.log4j.Logger;
 import org.apache.poi.ss.formula.functions.T;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -935,9 +936,12 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 
-	public List<Folder> getFolderByUnicity(String unicity) {
+	public List<Folder> getFolderByUnicity(String uniqueKey) {
+		if (uniqueKey == null) {
+			return Collections.emptyList();
+		}
 		List<Folder> resultListFolder = wrapFolders(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(
-				from(folder.schemaType()).where(folder.uniqueKey()).isEqualTo(unicity))));
+				from(folder.schemaType()).where(folder.uniqueKey()).isEqualTo(uniqueKey))));
 
 		return resultListFolder;
 	}

@@ -26,8 +26,6 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxBinary;
-import org.openqa.selenium.phantomjs.PhantomJSDriver;
-import org.openqa.selenium.remote.DesiredCapabilities;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -452,5 +450,13 @@ public class SeleniumTestFeatures {
 
 	public ConstellioWebDriver getLastWebDriver() {
 		return openedWebDriver;
+	}
+
+	public String getHttpApplicationRootUrl() {
+		return "http://localhost:" + port + "/constellio/";
+	}
+
+	public String getHttpsApplicationRootUrl() {
+		return "http://localhost:" + portSSL + "/constellio/";
 	}
 }

@@ -10,10 +10,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class OffHeapLongListAcceptanceTest extends ConstellioTest {
 
-//	@Before
-//	public void validateNotWritingOutsideOfReservedMemory() {
-//		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
-//	}
+	//	@Before
+	//	public void validateNotWritingOutsideOfReservedMemory() {
+	//		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
+	//	}
 
 	@Test
 	public void whenSavingValuesThenRetrievable() {

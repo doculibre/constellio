@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components;
 
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.Component;
 
@@ -21,4 +22,6 @@ public interface SearchResultTable extends Component {
 
 	Component createSummary(List<Component> alwaysActive, final List<Component> extra);
 	void addItemClickListener(final ItemClickListener listener);
+
+	void addSelectionChangeListener(SelectionChangeListener selectionChangeListener);
 }

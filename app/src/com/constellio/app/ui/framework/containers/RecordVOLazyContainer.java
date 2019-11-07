@@ -52,7 +52,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements RecordV
 	}
 
 	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders, int batchSize,
-			boolean isOnlyTableMetadatasShown) {
+								 boolean isOnlyTableMetadatasShown) {
 		super(new RecordVOLazyQueryDefinition(dataProviders, isOnlyTableMetadatasShown, batchSize),
 				new RecordVOLazyQueryFactory(dataProviders));
 		this.dataProviders = dataProviders;

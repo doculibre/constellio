@@ -268,7 +268,20 @@ public class RecordVO implements Serializable {
 	}
 
 	public List<MetadataVO> getFormMetadatas() {
-		List<MetadataVO> formMetadatas = getSchema().getFormMetadatas();
+		List<MetadataVO> formMetadatas = getFormShownMetadatas();
+		formMetadatas.addAll(getFormHiddenMetadatas());
+		return formMetadatas;
+	}
+
+	public List<MetadataVO> getFormShownMetadatas() {
+		return filterFormMetadatas(getSchema().getFormMetadatas());
+	}
+
+	public List<MetadataVO> getFormHiddenMetadatas() {
+		return filterFormMetadatas(getSchema().getHiddenFormMetadatas());
+	}
+
+	private List<MetadataVO> filterFormMetadatas(List<MetadataVO> formMetadatas) {
 		List<MetadataVO> filteredFormMetadatas = new ArrayList<>();
 		for (MetadataVO formMetadata : formMetadatas) {
 			if (excludedFormMetadataCodes == null || !excludedFormMetadataCodes.contains(formMetadata.code)) {
@@ -291,12 +304,15 @@ public class RecordVO implements Serializable {
 	}
 
 	public MetadataVO getMetadataOrNull(String code) {
-		String codeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(code);
+		String searchedLocalCode = MetadataVO.getCodeWithoutPrefix(code);
 		for (MetadataValueVO metadataValue : metadataValues) {
 			MetadataVO metadata = metadataValue.getMetadata();
 			String metadataCode = metadata.getCode();
-			String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
-			if (code.equals(metadataCode) || codeWithoutPrefix.equals(metadataCodeWithoutPrefix)) {
+			String localCode = metadata.getLocalCode();
+			if (localCode == null) {
+				localCode = MetadataVO.getCodeWithoutPrefix(metadataCode);
+			}
+			if (searchedLocalCode.equals(localCode)) {
 				return metadataValue.getMetadata();
 			}
 		}

@@ -55,6 +55,10 @@ public interface RecordServices {
 
 	Record toRecord(RecordDTO recordDTO, boolean fullyLoaded);
 
+	Record toRecord(MetadataSchema schema, RecordDTO recordDTO, boolean fullyLoaded);
+
+	Record toRecord(MetadataSchemaType schema, RecordDTO recordDTO, boolean fullyLoaded);
+
 	List<Record> toRecords(List<RecordDTO> recordDTOs, boolean fullyLoaded);
 
 	long documentsCount();

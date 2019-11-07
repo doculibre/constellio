@@ -71,27 +71,46 @@ public class DecommissioningListQueryFactory {
 		if (hasProcessOrCreateDecomissioningPerm(user) ||
 			user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).onSomething()) {
 
+			boolean hasGlobalAdminUnitsProcessOrCreateDecomlist = false;
 			List<String> adminUnitsProcessOrCreateDecomlist = new ArrayList<>();
 			for (String permission : asList(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)) {
-				adminUnitsProcessOrCreateDecomlist
-						.addAll(authorizationsServices.getConceptsForWhichUserHasPermission(permission, user));
+				if (user.hasAll(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).globally()) {
+					hasGlobalAdminUnitsProcessOrCreateDecomlist = true;
+				} else {
+					adminUnitsProcessOrCreateDecomlist
+							.addAll(authorizationsServices.getConceptsForWhichUserHasPermission(permission, user));
+				}
 			}
 
-			List<String> approveDecomList =
-					authorizationsServices.getConceptsForWhichUserHasPermission(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, user);
+			boolean hasApproveDecomList = false;
+			List<String> approveDecomList = new ArrayList<>();
+			if (user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally()) {
+				hasApproveDecomList = true;
+			} else {
+				approveDecomList =
+						authorizationsServices.getConceptsForWhichUserHasPermission(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, user);
+			}
 
 			return new LogicalSearchQuery(from(rm.decommissioningList.schemaType()).whereAllConditions(
 					where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.IN_VALIDATION),
 					where(rm.decommissioningList.pendingValidations()).isNotEqual(user),
 
 					anyConditions(
-							allConditions(
-									where(rm.decommissioningList.approvalRequest()).isNull(),
-									where(rm.decommissioningList.administrativeUnit()).isIn(adminUnitsProcessOrCreateDecomlist)
+							hasGlobalAdminUnitsProcessOrCreateDecomlist ? (
+									where(rm.decommissioningList.approvalRequest()).isNull()
+							) : (
+									allConditions(
+											where(rm.decommissioningList.approvalRequest()).isNull(),
+											where(rm.decommissioningList.administrativeUnit()).isIn(adminUnitsProcessOrCreateDecomlist)
+									)
 							),
-							allConditions(
-									where(rm.decommissioningList.approvalRequest()).isNotNull(),
-									where(rm.decommissioningList.administrativeUnit()).isIn(approveDecomList)
+							hasApproveDecomList ? (
+									where(rm.decommissioningList.approvalRequest()).isNotNull()
+							) : (
+									allConditions(
+											where(rm.decommissioningList.approvalRequest()).isNotNull(),
+											where(rm.decommissioningList.administrativeUnit()).isIn(approveDecomList)
+									)
 							)
 					)
 			));

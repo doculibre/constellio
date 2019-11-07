@@ -17,10 +17,10 @@ public class OffHeapMemoryAllocatorTest extends ConstellioTest {
 	long adr;
 	private List<Long> allocatedAddresses = new ArrayList<>();
 
-//	@Before
-//	public void validateNotWritingOutsideOfReservedMemory() {
-//		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
-//	}
+	//	@Before
+	//	public void validateNotWritingOutsideOfReservedMemory() {
+	//		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
+	//	}
 
 
 	@Test

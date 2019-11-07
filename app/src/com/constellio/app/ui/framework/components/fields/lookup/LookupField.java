@@ -494,7 +494,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 	}
 
 	public void setItemConverter(Converter<String, T> itemConverter) {
-		if (itemConverter != null) {
+		if (itemConverter != null && suggestInputDataProvider != null) {
 			this.itemConverter = new ConverterWithCache<>(itemConverter);
 			suggestInputDataProvider.setConverterWithCache(this.itemConverter);
 		}
@@ -667,7 +667,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 			setSpacing(true);
 
 			searchFieldLayout = new I18NHorizontalLayout();
-			searchFieldLayout.setWidthUndefined();
+			//			searchFieldLayout.setWidthUndefined();
 			searchFieldLayout.setSpacing(true);
 
 			searchField = new BaseTextField();
@@ -891,7 +891,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 						replaceComponent(searchResultsTable, lookupTreeComponent);
 						setExpandRatio(lookupTreeComponent, 1);
 					}
-					selectButton.setVisible(true);
+					selectButton.setVisible(multiValue);
 				}
 			} else {
 				Container searchResultsContainer = new LookupSearchResultContainer(geSuggestInputDataProvider(), searchField);

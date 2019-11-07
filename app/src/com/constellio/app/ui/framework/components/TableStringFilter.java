@@ -6,8 +6,6 @@ import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.vaadin.data.Container.Filterable;
 import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
@@ -35,14 +33,12 @@ public class TableStringFilter extends HorizontalLayout {
 			}
 		}.installOn(filterField);
 
-		filterButton = new SearchButton();
-		filterButton.addClickListener(new ClickListener() {
+		filterButton = new SearchButton() {
 			@Override
-			public void buttonClick(ClickEvent event) {
+			protected void buttonClick(ClickEvent event) {
 				addFilter();
 			}
-		});
-
+		};
 		addComponents(filterField, filterButton);
 	}
 

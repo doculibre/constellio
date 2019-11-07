@@ -189,7 +189,6 @@ public class UpdateContentVersionPresenter implements Serializable {
 						}
 					} catch (final IcapException e) {
 						window.showErrorMessage(e.getMessage());
-
 						return;
 					}
 				} else {
@@ -209,8 +208,7 @@ public class UpdateContentVersionPresenter implements Serializable {
 							updateOptions.setOverwriteModificationDateAndUser(false);
 						}
 					} else {
-						// TODO Throw appropriate exception
-						throw new RuntimeException("A new version must be specified if no new content is uploaded");
+						content.checkIn();
 					}
 					modelLayerFactory.newLoggingServices().returnRecord(record, currentUser);
 				}

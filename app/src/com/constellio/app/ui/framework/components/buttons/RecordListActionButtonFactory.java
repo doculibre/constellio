@@ -3,7 +3,9 @@ package com.constellio.app.ui.framework.components.buttons;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.MenuItemFactory;
+import com.constellio.app.services.menu.MenuItemFactory.CommandCallback;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -73,7 +75,21 @@ public class RecordListActionButtonFactory {
 						return userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(), collection);
 					}
 				});
-		return menuItemFactory.buildActionButtons(menuItemActions, recordProvider);
+		return menuItemFactory.buildActionButtons(menuItemActions, recordProvider, new CommandCallback() {
+			@Override
+			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
+				Button button = (Button) component;
+				button.setEnabled(menuItemAction.getState().getStatus() != MenuItemActionStateStatus.DISABLED);
+				button.setEnabled(menuItemAction.getState().getStatus() == MenuItemActionStateStatus.VISIBLE);
+				//				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				//				// No point in refreshing menu if we left the original page
+				//				if (currentView == originalView) {
+				//					// Recursive call
+				//					buildMenuItems();
+				//				}
+			}
+
+		});
 	}
 
 }

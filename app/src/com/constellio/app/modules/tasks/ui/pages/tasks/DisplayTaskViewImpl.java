@@ -126,7 +126,9 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		return new RecordVOActionButtonFactory(presenter.getTaskVO(), Arrays.asList(TaskItemActionType.TASK_CONSULT.name())).build();
+		return new RecordVOActionButtonFactory(
+				presenter.getTaskVO(),
+				Arrays.asList(TaskItemActionType.TASK_CONSULT.name(), TaskItemActionType.TASK_EDIT.name())).build();
 	}
 
 	@Override
@@ -163,14 +165,8 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	protected List<Button> getQuickActionMenuButtons() {
-		List<Button> buttons = getConsultButton();
-
-		return buttons;
-	}
-
-	private List<Button> getConsultButton() {
 		List<TaskItemActionType> taskItemsToExclude = new ArrayList(Arrays.asList(TaskItemActionType.values()));
-		taskItemsToExclude.remove(TaskItemActionType.TASK_CONSULT);
+		taskItemsToExclude.remove(TaskItemActionType.TASK_EDIT);
 
 		return new RecordVOActionButtonFactory(presenter.getTaskVO(),
 				taskItemsToExclude.stream().map((item) -> item.name()).collect(Collectors.toList())).build();

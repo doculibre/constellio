@@ -106,7 +106,8 @@ public class ConstellioPingServlet extends HttpServlet {
 				ZookeeperClient zookeeperClient = new ZookeeperClient(domain, port);
 				try {
 					String stat = zookeeperClient.stat();
-					if (stat.contains("Mode: leader") || stat.contains("Mode: follower")) {
+					if (stat.contains("Mode: leader") || stat.contains("Mode: follower") ||
+						(zooKeeperAddr.size() == 1 && stat.contains("Mode: standalone"))) {
 						online = changeOnlineStatus(online, true);
 						pw.append("ZooKeeper : " + domain + ":" + port + " is up and running");
 						pw.append("\n");

@@ -42,6 +42,12 @@ public class RecordUpdateOptions {
 
 	boolean updateAggregatedMetadatas = false;
 
+	boolean updateCalculatedMetadatas = true;
+
+	private boolean repopulate = true;
+
+	private boolean markIdsForReindexing = true;
+
 	boolean skipUserAccessValidation = false;
 
 	public RecordUpdateOptions() {
@@ -81,6 +87,29 @@ public class RecordUpdateOptions {
 		this.overwriteModificationDateAndUser = copy.overwriteModificationDateAndUser;
 
 		this.updateAggregatedMetadatas = copy.updateAggregatedMetadatas;
+		this.updateCalculatedMetadatas = copy.updateCalculatedMetadatas;
+
+		this.repopulate = copy.repopulate;
+
+		this.markIdsForReindexing = copy.markIdsForReindexing;
+	}
+
+	public boolean isMarkIdsForReindexing() {
+		return markIdsForReindexing;
+	}
+
+	public RecordUpdateOptions setMarkIdsForReindexing(boolean markIdsForReindexing) {
+		this.markIdsForReindexing = markIdsForReindexing;
+		return this;
+	}
+
+	public boolean isUpdateCalculatedMetadatas() {
+		return updateCalculatedMetadatas;
+	}
+
+	public RecordUpdateOptions setUpdateCalculatedMetadatas(boolean updateCalculatedMetadatas) {
+		this.updateCalculatedMetadatas = updateCalculatedMetadatas;
+		return this;
 	}
 
 	public boolean isUpdateAggregatedMetadatas() {
@@ -280,6 +309,16 @@ public class RecordUpdateOptions {
 
 	public RecordUpdateOptions setOverwriteModificationDateAndUser(boolean overwriteModificationDateAndUser) {
 		this.overwriteModificationDateAndUser = overwriteModificationDateAndUser;
+		return this;
+	}
+
+
+	public boolean isRepopulate() {
+		return repopulate;
+	}
+
+	public RecordUpdateOptions setRepopulate(boolean repopulate) {
+		this.repopulate = repopulate;
 		return this;
 	}
 }

@@ -94,20 +94,11 @@ public class ConstellioEIMConfigs {
 	;
 
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
-																 "   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
-																 "	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" +
-																 "	{ name: 'editing', items: [ 'Find', 'Replace', '-', 'SelectAll', '-' ] },\n" +
-																 "	'/',\n" +
-																 "	{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },\n"
-																 +
-																 "	{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl'] },\n"
-																 +
-																 "	{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },\n" +
-																 "	{ name: 'insert', items: [ 'Image', 'Table', 'HorizontalRule', 'SpecialChar', 'PageBreak' ] },\n" +
-																 "	'/',\n" +
-																 "	{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },\n" +
-																 "	{ name: 'colors', items: [ 'TextColor', 'BGColor' ] },\n" +
-																 "	{ name: 'tools', items: [ 'Maximize', 'ShowBlocks' ] }";
+																 "  { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat' ] },\r\n" +
+																 "	{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },\r\n" +
+																 "	{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },\r\n" +
+																 "	{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },\r\n" +
+																 "	{ name: 'colors', items: [ 'TextColor', 'BGColor' ] }";
 
 	public static final SystemConfiguration DEFAULT_START_TAB;
 
@@ -142,6 +133,7 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration SEIZE_MULTILANGUAL_VALUES;
 	public static final SystemConfiguration ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY;
+	public static final SystemConfiguration ENABLE_ESSENTIAL_METADATA_HIDING;
 
 	public static final SystemConfiguration ENABLE_INACTIF_SCHEMAS_IN_SEARCH;
 
@@ -199,8 +191,8 @@ public class ConstellioEIMConfigs {
 		add(DATE_TIME_FORMAT = others.createString("dateTimeFormat").withDefaultValue("yyyy-MM-dd HH:mm:ss"));
 
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
-		add(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS = advanced.createInteger("parsedContentMaxLengthInKilooctets")
-				.withDefaultValue(3000));
+		add(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS = advanced.createInteger("parsedContentMaxLengthInKilooctets").whichIsHidden()
+				.withDefaultValue(1024));
 		add(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS = advanced.createInteger("contentMaxLengthForParsingInMegaoctets")
 				.withDefaultValue(30));
 		add(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING = advanced.createString("fileExtensionsExcludedFromParsing").withReIndexationRequired());
@@ -233,7 +225,7 @@ public class ConstellioEIMConfigs {
 		add(AUTOCOMPLETE_SPLIT_CRITERIA = search.createEnum("autocompleteSplitCriteria", AutocompleteSplitCriteria.class)
 				.withDefaultValue(AutocompleteSplitCriteria.SPACE).withReIndexationRequired());
 
-		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
+		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(1000));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
 				.scriptedBy(WriteZZRecordsScript.class));
 		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));
@@ -303,6 +295,8 @@ public class ConstellioEIMConfigs {
 
 		add(ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY = advanced.createBooleanFalseByDefault("areMultiLangualValuesMandatory"));
 
+		add(ENABLE_ESSENTIAL_METADATA_HIDING = advanced.createBooleanFalseByDefault("enableEssentialMetadataHiding").whichIsHidden());
+
 		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
 				.whichIsHidden());
 
@@ -315,6 +309,9 @@ public class ConstellioEIMConfigs {
 		add(ADD_RECORD_ID_IN_EMAILS = others.createBooleanFalseByDefault("addRecordIdInEmails"));
 		add(GENERATED_EMAIL_FORMAT = others.createEnum("generatedEmailFormat", EmailTextFormat.class).withDefaultValue(EmailTextFormat.PLAIN_TEXT));
 		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanFalseByDefault("enableThumbnailGeneration")
+
+
+		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanTrueByDefault("enableThumbnailGeneration")
 				.scriptedBy(EnableThumbnailsScript.class));
 		add(ADD_COMMENTS_WHEN_READ_AUTHORIZATION = others.createBooleanTrueByDefault("addCommentsWhenReadAuthorization"));
 

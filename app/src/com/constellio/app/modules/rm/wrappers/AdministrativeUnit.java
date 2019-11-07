@@ -29,6 +29,7 @@ public class AdministrativeUnit extends RecordWrapper {
 	public static final String ANCESTORS = "unitAncestors";
 	public static final String FUNCTIONS = "functions";
 	public static final String FUNCTIONS_USERS = "functionUsers";
+	public static final String ABBREVIATION = "abbreviation";
 
 	@Deprecated
 	public AdministrativeUnit(Record record,
@@ -256,5 +257,9 @@ public class AdministrativeUnit extends RecordWrapper {
 
 	public List<String> getFilingSpacesAdministrators() {
 		return getList(FILING_SPACES_ADMINISTRATORS);
+	}
+
+	public String getAbbreviation() {
+		return get(ABBREVIATION);
 	}
 }

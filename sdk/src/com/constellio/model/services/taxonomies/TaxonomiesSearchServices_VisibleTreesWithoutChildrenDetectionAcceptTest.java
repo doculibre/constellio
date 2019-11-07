@@ -9,9 +9,7 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.data.extensions.AfterQueryParams;
-import com.constellio.data.extensions.BigVaultServerExtension;
-import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -27,9 +25,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
-import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ObjectAssert;
 import org.joda.time.LocalDate;
@@ -40,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
@@ -48,14 +43,10 @@ import static com.constellio.model.entities.security.global.AuthorizationAddRequ
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.CONCEPTS_ONLY;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
-import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
 import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAcceptTest extends ConstellioTest {
-
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAcceptTest extends AbstractTaxonomiesSearchServicesAcceptanceTest {
 
 	String subFolderId;
 
@@ -70,10 +61,6 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 	String document1InA16, document2InA16, document3InA16;
 	AuthorizationsServices authServices;
 
-	AtomicInteger queriesCount = new AtomicInteger();
-	AtomicInteger facetsCount = new AtomicInteger();
-	AtomicInteger returnedDocumentsCount = new AtomicInteger();
-
 	@Before
 	public void setUp()
 			throws Exception {
@@ -82,6 +69,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
+		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.enable();
 
 		inCollection(zeCollection).giveReadAccessTo(admin);
 
@@ -119,29 +107,8 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		}
 		waitForBatchProcess();
 		authServices = getModelLayerFactory().newAuthorizationsServices();
-		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
-				.add(new BigVaultServerExtension() {
-					@Override
-					public void afterQuery(AfterQueryParams params) {
 
-						String stacktrace = substringAfter(substringAfter(ExceptionUtils.getStackTrace(new Exception()), "\n"), "\n");
-
-						if (stacktrace.contains(TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAcceptTest.class.getSimpleName())) {
-
-							queriesCount.incrementAndGet();
-							String[] facetQuery = params.getSolrParams().getParams("facet.query");
-							if (facetQuery != null) {
-								facetsCount.addAndGet(facetQuery.length);
-							}
-
-							returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
-
-							System.out.println((params.getQueryName() == null ? "Unnamed query" : params.getQueryName()) + " 1-" + (facetQuery == null ? 0 : facetQuery.length) + "-" + params.getReturnedResultsCount()
-											   + "\n" + stacktrace);
-						}
-					}
-				});
-
+		configureQueryCounter();
 	}
 
 	private List<String> getFolderDocuments(String id) {
@@ -164,7 +131,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder(records.categoryId_X100))
 				.has(recordsWithChildren(records.categoryId_X100))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(2, 0, 1))
+				.has(solrQueryCounts(2, 0, 2))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X100)
@@ -173,7 +140,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsWithChildren(records.categoryId_X110, records.categoryId_X120, records.folder_A16, records.folder_A17,
 						records.folder_A18, records.folder_B06, records.folder_B32))
 				.has(numFoundAndListSize(7))
-				.has(solrQueryCounts(1, 5, 0))
+				.has(solrQueryCounts(2, 5, 2))
 				.has(secondSolrQueryCounts(1, 5, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.folder_A16)
@@ -204,28 +171,28 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(numFoundAndListSize(9))
-				.has(solrQueryCounts(1, 7, 0))
+				.has(solrQueryCounts(2, 7, 2))
 				.has(secondSolrQueryCounts(1, 7, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z)
 				.has(recordsInOrder(records.categoryId_Z100))
 				.has(recordsWithChildren(records.categoryId_Z100))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(1, 0, 0))
+				.has(solrQueryCounts(2, 0, 4))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100)
 				.has(recordsInOrder(records.categoryId_Z110, records.categoryId_Z120))
 				.has(recordsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(1, 0, 0))
+				.has(solrQueryCounts(2, 0, 2))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110)
 				.has(recordsInOrder(records.categoryId_Z112))
 				.has(recordsWithChildren(records.categoryId_Z112))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(1, 0, 0))
+				.has(solrQueryCounts(2, 0, 2))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 	}
@@ -244,7 +211,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(numFoundAndListSize(3))
-				.has(solrQueryCounts(1, 0, 2))
+				.has(solrQueryCounts(1, 0, 3))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X, options)
@@ -608,7 +575,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(listSize(9)).has(numFound(9))
-				.has(solrQueryCounts(1, 7, 0))
+				.has(solrQueryCounts(2, 7, 2))
 				.has(secondSolrQueryCounts(1, 7, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 10)
@@ -1173,123 +1140,4 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		});
 	}
 
-	private abstract class LinkableTaxonomySearchResponseCaller {
-
-		private LinkableTaxonomySearchResponse firstCallAnswer;
-
-		private LinkableTaxonomySearchResponse secondCallAnswer;
-
-		private String firstCallSolrQueries;
-
-		private String secondCallSolrQueries;
-
-		public LinkableTaxonomySearchResponse firstAnswer() {
-			if (firstCallAnswer == null) {
-				queriesCount.set(0);
-				returnedDocumentsCount.set(0);
-				facetsCount.set(0);
-				firstCallAnswer = call();
-				firstCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
-				queriesCount.set(0);
-				returnedDocumentsCount.set(0);
-				facetsCount.set(0);
-			}
-			return firstCallAnswer;
-		}
-
-		public LinkableTaxonomySearchResponse secondAnswer() {
-			firstAnswer();
-			if (secondCallAnswer == null) {
-				queriesCount.set(0);
-				returnedDocumentsCount.set(0);
-				facetsCount.set(0);
-				secondCallAnswer = call();
-				secondCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
-				queriesCount.set(0);
-				returnedDocumentsCount.set(0);
-				facetsCount.set(0);
-			}
-			return secondCallAnswer;
-		}
-
-		protected abstract LinkableTaxonomySearchResponse call();
-
-		public String firstAnswerSolrQueries() {
-			firstAnswer();
-			return firstCallSolrQueries;
-		}
-
-		public String secondAnswerSolrQueries() {
-			secondAnswer();
-			return secondCallSolrQueries;
-		}
-
-	}
-
-	private Condition<? super LinkableTaxonomySearchResponseCaller> solrQueryCounts(final int queries,
-																					final int queryResults,
-																					final int facets) {
-
-		final Exception exception = new Exception();
-		return new Condition<LinkableTaxonomySearchResponseCaller>() {
-			@Override
-			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-				String expected = queries + "-" + queryResults + "-" + facets;
-				String current = value.firstAnswerSolrQueries();
-
-				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
-					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
-							.isEqualTo(expected);
-				}
-				queriesCount.set(0);
-				facetsCount.set(0);
-				returnedDocumentsCount.set(0);
-
-				System.out.println("--------------------------------------------------------------------------------");
-
-				return true;
-			}
-		};
-	}
-
-	private Condition<? super LinkableTaxonomySearchResponseCaller> secondSolrQueryCounts(final int queries,
-																						  final int queryResults,
-																						  final int facets) {
-
-		final Exception exception = new Exception();
-		return new Condition<LinkableTaxonomySearchResponseCaller>() {
-			@Override
-			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-				String expected = queries + "-" + queryResults + "-" + facets;
-				String current = value.secondAnswerSolrQueries();
-
-				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
-					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
-							.isEqualTo(expected);
-				}
-				queriesCount.set(0);
-				facetsCount.set(0);
-				returnedDocumentsCount.set(0);
-				System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-
-
-				return true;
-			}
-		};
-	}
-
-	@Override
-	protected void givenConfig(SystemConfiguration config, Object value) {
-		super.givenConfig(config, value);
-		try {
-			waitForBatchProcess();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-		queriesCount.set(0);
-		facetsCount.set(0);
-		returnedDocumentsCount.set(0);
-
-	}
 }

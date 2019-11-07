@@ -14,6 +14,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.google.common.base.Strings;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.AbstractField;
@@ -34,7 +35,8 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 
 	private TaxonomyVO taxonomyVO;
 
-	private HashMap<Language, BaseTextField> baseTextFieldMap = null;
+	private HashMap<Language, BaseTextField> baseTextFieldTitleMap = null;
+	private HashMap<Language, BaseTextField> baseTextFieldAbbreviationMap = null;
 
 	private String originalStyleName;
 
@@ -94,29 +96,39 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		baseTextFieldMap = new HashMap<>();
+		baseTextFieldTitleMap = new HashMap<>();
+		baseTextFieldAbbreviationMap = new HashMap<>();
 
 		for (String languageCode : presenter.getCollectionLanguage()) {
-			BaseTextField baseTextField = new BaseTextField();
+			BaseTextField titleBaseTextField = new BaseTextField();
+			BaseTextField abbreviationBaseTextField = new BaseTextField();
 
-			int numberOfLangauge = getConstellioFactories().getAppLayerFactory().getCollectionsManager().getCollectionLanguages(getCollection()).size();
+			int numberOfLanguage = getConstellioFactories().getAppLayerFactory().getCollectionsManager().getCollectionLanguages(getCollection()).size();
 
-			if(numberOfLangauge > 1) {
-				baseTextField.setCaption($("title") + " (" + languageCode.toUpperCase() + ")");
+			if (numberOfLanguage > 1) {
+				titleBaseTextField.setCaption($("title") + " (" + languageCode.toUpperCase() + ")");
+				abbreviationBaseTextField.setCaption($("abbreviation") + " (" + languageCode.toUpperCase() + ")");
 			} else {
-				baseTextField.setCaption($("title"));
+				titleBaseTextField.setCaption($("title"));
+				abbreviationBaseTextField.setCaption($("abbreviation"));
 			}
 
-			baseTextField.setRequired(true);
+			titleBaseTextField.setRequired(true);
 			if (presenter.isActionEdit()) {
-				baseTextField.setValue(taxonomyVO.getTitle(Language.withCode(languageCode)));
+				titleBaseTextField.setValue(taxonomyVO.getTitle(Language.withCode(languageCode)));
+				abbreviationBaseTextField.setValue(taxonomyVO.getAbbreviation(Language.withCode(languageCode)));
 			}
-			baseTextField.addStyleName("title");
-			baseTextFieldMap.put(Language.withCode(languageCode), baseTextField);
+
+			titleBaseTextField.addStyleName("title");
+			baseTextFieldTitleMap.put(Language.withCode(languageCode), titleBaseTextField);
+
+			abbreviationBaseTextField.addStyleName("title");
+			baseTextFieldAbbreviationMap.put(Language.withCode(languageCode), abbreviationBaseTextField);
 		}
 
 
-		final AbstractField[] fieldArray = new AbstractField[1 + baseTextFieldMap.size() + 4];
+		final AbstractField[] fieldArray =
+				new AbstractField[1 + baseTextFieldTitleMap.size() + baseTextFieldAbbreviationMap.size() + 4];
 
 		final CheckBox isMultiLingualCheckBox = new CheckBox($("ListValueDomainViewImpl.multilingual"));
 		isMultiLingualCheckBox.setValue(true);
@@ -126,14 +138,24 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 		Language currentLanguage = Language.withCode(getSessionContext().getCurrentLocale().getLanguage());
 
 		fieldArray[0] = isMultiLingualCheckBox;
-		fieldArray[1] = baseTextFieldMap.get(currentLanguage);
+		fieldArray[1] = baseTextFieldTitleMap.get(currentLanguage);
 
 		int i = 2;
-		for (Language language : baseTextFieldMap.keySet()) {
+		for (Language language : baseTextFieldTitleMap.keySet()) {
 			if (currentLanguage.getCode().equals(language.getCode())) {
 				continue;
 			} else {
-				fieldArray[i] = baseTextFieldMap.get(language);
+				fieldArray[i] = baseTextFieldTitleMap.get(language);
+				i++;
+			}
+		}
+
+		fieldArray[i++] = baseTextFieldAbbreviationMap.get(currentLanguage);
+		for (Language language : baseTextFieldAbbreviationMap.keySet()) {
+			if (currentLanguage.getCode().equals(language.getCode())) {
+				continue;
+			} else {
+				fieldArray[i] = baseTextFieldAbbreviationMap.get(language);
 				i++;
 			}
 		}
@@ -144,7 +166,7 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 		userIdsField.setId("userIds");
 		userIdsField.addStyleName("userIds");
 
-		fieldArray[1 + baseTextFieldMap.size()] = userIdsField;
+		fieldArray[1 + baseTextFieldTitleMap.size() + baseTextFieldAbbreviationMap.size()] = userIdsField;
 
 		groupIdsField = new ListAddRemoveRecordLookupField(Group.SCHEMA_TYPE);
 		groupIdsField.setCaption($("AddEditTaxonomyView.groups"));
@@ -152,7 +174,7 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 		groupIdsField.setId("groupIds");
 		groupIdsField.addStyleName("groupIds");
 
-		fieldArray[1 + baseTextFieldMap.size() + 1] = groupIdsField;
+		fieldArray[1 + baseTextFieldTitleMap.size() + baseTextFieldAbbreviationMap.size() + 1] = groupIdsField;
 
 		visibleInHomePageField = new CheckBox($("AddEditTaxonomyView.visibleInHomePageField"));
 		visibleInHomePageField.setCaption($("AddEditTaxonomyView.visibleInHomePageField"));
@@ -160,7 +182,7 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 		visibleInHomePageField.setId("visibleInHomePageField");
 		visibleInHomePageField.addStyleName("visibleInHomePageField");
 
-		fieldArray[1 + baseTextFieldMap.size() + 2] = visibleInHomePageField;
+		fieldArray[1 + baseTextFieldTitleMap.size() + baseTextFieldAbbreviationMap.size() + 2] = visibleInHomePageField;
 
 		classifiedObjectsField = new ListOptionGroup($("AddEditTaxonomyView.classifiedObjectsField"));
 		classifiedObjectsField.setEnabled(presenter.canEditClassifiedObjects(taxonomyVO));
@@ -174,25 +196,34 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 		classifiedObjectsField.addItem(DOCUMENT);
 		classifiedObjectsField.setItemCaption(DOCUMENT, $("AddEditTaxonomyView.classifiedObject.document"));
 
-		fieldArray[1 + baseTextFieldMap.size() + 3] = classifiedObjectsField;
+		fieldArray[1 + baseTextFieldTitleMap.size() + baseTextFieldAbbreviationMap.size() + 3] = classifiedObjectsField;
 
 		BaseForm<TaxonomyVO> baseForm = new BaseForm<TaxonomyVO>(taxonomyVO, this, fieldArray) {
 			@Override
 			protected void saveButtonClick(TaxonomyVO taxonomyVO)
 					throws ValidationException {
 
-				java.util.Map<Language, String> titleMap = new HashMap<>();
-
-				for (Language language : baseTextFieldMap.keySet()) {
-					BaseTextField baseTextField = baseTextFieldMap.get(language);
+				Map<Language, String> titleMap = new HashMap<>();
+				for (Language language : baseTextFieldTitleMap.keySet()) {
+					BaseTextField baseTextField = baseTextFieldTitleMap.get(language);
 					String value = baseTextField.getValue();
 					titleMap.put(language, value);
 				}
 
 				taxonomyVO.setTitle(titleMap);
-				if (!ViewErrorDisplay.validateFieldsContent(baseTextFieldMap, AddEditTaxonomyViewImpl.this)) {
+				if (!ViewErrorDisplay.validateFieldsContent(baseTextFieldTitleMap, AddEditTaxonomyViewImpl.this)) {
 					return;
 				}
+
+				Map<Language, String> abbreviationMap = new HashMap<>();
+				for (Language language : baseTextFieldAbbreviationMap.keySet()) {
+					BaseTextField baseTextField = baseTextFieldAbbreviationMap.get(language);
+					String value = baseTextField.getValue();
+					if (!Strings.isNullOrEmpty(value)) {
+						abbreviationMap.put(language, value);
+					}
+				}
+				taxonomyVO.setAbbreviation(abbreviationMap);
 
 				boolean isMultiValue = false;
 
@@ -203,7 +234,7 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 				List<Language> languageList = presenter.saveButtonClicked(taxonomyVO, isMultiValue);
 				if (languageList.size() > 0) {
 					showExistingError(languageList);
-					ViewErrorDisplay.setFieldErrors(languageList, baseTextFieldMap, originalStyleName);
+					ViewErrorDisplay.setFieldErrors(languageList, baseTextFieldTitleMap, originalStyleName);
 				}
 			}
 

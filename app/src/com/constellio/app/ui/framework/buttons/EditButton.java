@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.buttons;
 
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 
@@ -23,7 +24,7 @@ public abstract class EditButton extends IconButton {
 	}
 
 	public EditButton(String caption) {
-		super(null, computeCaption(caption, false), false);
+		super(FontAwesome.EDIT, caption, false);
 		init();
 	}
 

@@ -209,20 +209,21 @@ public class MenuItemServices {
 		return new MenuItemActionState(DISABLED, reason);
 	}
 
-	public List<MenuItemAction> getActionsForRecords(LogicalSearchQuery query, MenuItemActionBehaviorParams params) {
-		return getActionsForRecords(query, Collections.emptyList(), params);
+	public List<MenuItemAction> getActionsForRecords(LogicalSearchQuery query, MenuItemActionBehaviorParams params,
+													 boolean hasResults) {
+		return getActionsForRecords(query, Collections.emptyList(), params, hasResults);
 	}
 
 	public List<MenuItemAction> getActionsForRecords(LogicalSearchQuery query, List<String> excludedActionTypes,
-													 MenuItemActionBehaviorParams params) {
-		if (params.getView() == null) {
+													 MenuItemActionBehaviorParams params, boolean hasResults) {
+		if (params.getView() == null || query == null) {
 			return Collections.emptyList();
 		}
 
 		// only used by extensions for now
 
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
-		addMenuItemActionsFromExtensions(query, excludedActionTypes, params, menuItemActions);
+		addMenuItemActionsFromExtensions(query, excludedActionTypes, params, menuItemActions, hasResults);
 
 		return menuItemActions;
 	}
@@ -289,11 +290,11 @@ public class MenuItemServices {
 
 	private void addMenuItemActionsFromExtensions(LogicalSearchQuery query, List<String> excludedActionTypes,
 												  MenuItemActionBehaviorParams params,
-												  List<MenuItemAction> menuItemActions) {
+												  List<MenuItemAction> menuItemActions, boolean hasResults) {
 		for (MenuItemActionsExtension menuItemActionsExtension : menuItemActionsExtensions) {
 			menuItemActionsExtension.addMenuItemActionsForQuery(
 					new MenuItemActionExtensionAddMenuItemActionsForQueryParams(query, menuItemActions,
-							excludedActionTypes, params));
+							excludedActionTypes, params, hasResults));
 		}
 	}
 

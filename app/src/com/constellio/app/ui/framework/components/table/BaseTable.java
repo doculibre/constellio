@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components.table;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -8,16 +9,25 @@ import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuTab
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEvent;
+import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
+import com.constellio.app.ui.framework.containers.ContainerAdapter;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.jensjansson.pagedtable.PagedTableContainer;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.data.util.converter.Converter.ConversionException;
+import com.vaadin.server.Page;
+import com.vaadin.server.Page.BrowserWindowResizeEvent;
+import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -48,9 +58,7 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
-public class BaseTable extends Table {
-
-	public static final int MAX_SELECTION_LENGTH = 1000;
+public class BaseTable extends Table implements SelectionComponent {
 
 	public static final int DEFAULT_PAGE_LENGTH = 10;
 
@@ -78,11 +86,20 @@ public class BaseTable extends Table {
 
 	private SelectionManager selectionManager;
 
-	private PagedTableContainer pagedTableContainer;
+	private PagedBaseTableContainer pagedTableContainer;
 
 	private List<PageChangeListener> pageChangeListeners = new ArrayList<>();
 
+	private List<RefreshRenderedCellsEvent> refreshRenderedCellsEventListenerList = new ArrayList<>();
+
+	private List<Object> selectedItem;
+	private boolean areAllItemSelected;
+
+	private List<ItemsPerPageChangeListener> itemsPerPageChangeListeners = new ArrayList<>();
+
 	private ContextMenu contextMenu;
+
+	private int customPageLength = DEFAULT_PAGE_LENGTH;
 
 	public BaseTable(String tableId) {
 		super();
@@ -123,7 +140,7 @@ public class BaseTable extends Table {
 			setColumnWidth(INDEX_PROPERTY_ID, INDEX_PROPERTY_WIDTH);
 			setColumnCollapsible(INDEX_PROPERTY_ID, false);
 		}
-		
+
 		addAttachListener(new AttachListener() {
 			@Override
 			public void attach(AttachEvent event) {
@@ -160,7 +177,7 @@ public class BaseTable extends Table {
 				}
 
 				scrollToFirstPagingItem();
-				
+
 				String tableId = getTableId();
 				if (tableId != null && columnsManager == null) {
 					columnsManager = newColumnsManager();
@@ -170,6 +187,12 @@ public class BaseTable extends Table {
 		});
 	}
 
+	@Override
+	public void setPageLength(int pageLength) {
+		this.customPageLength = pageLength;
+		super.setPageLength(pageLength);
+	}
+
 	// Wait until attach to set to make sure that the page length hasn't changed
 	private Integer pagingCurrentPageFirstItemIndex;
 	private Object pagingCurrentPageFirstItemId;
@@ -177,22 +200,53 @@ public class BaseTable extends Table {
 	private void scrollToFirstPagingItem() {
 		if (isPaged()) {
 			if (pagingCurrentPageFirstItemId != null && getCurrentPageFirstItemId() != pagingCurrentPageFirstItemId) {
-				int indexOfItemId = pagedTableContainer.getContainer().indexOfId(pagingCurrentPageFirstItemId);
-				int currentPage = getCurrentPage();
-				int pageOfIndex = getPageOfIndex(indexOfItemId);
+				int indexOfItemId = ((Indexed) pagedTableContainer.getNestedContainer()).indexOfId(pagingCurrentPageFirstItemId);
+				int currentPage = pagedTableContainer.getCurrentPage();
+				int pageOfIndex = pagedTableContainer.getPageOfIndex(indexOfItemId);
 				if (currentPage != pageOfIndex) {
 					setCurrentPage(pageOfIndex);
 				}
 				super.setCurrentPageFirstItemId(pagingCurrentPageFirstItemId);
 			} else if (pagingCurrentPageFirstItemIndex != null && getCurrentPageFirstItemIndex() != pagingCurrentPageFirstItemIndex) {
-				int currentPage = getCurrentPage();
-				int pageOfIndex = getPageOfIndex(pagingCurrentPageFirstItemIndex);
+				int currentPage = pagedTableContainer.getCurrentPage();
+				int pageOfIndex = pagedTableContainer.getPageOfIndex(pagingCurrentPageFirstItemIndex);
 				if (currentPage != pageOfIndex) {
 					setCurrentPage(pageOfIndex);
 				}
+				//				int adjustedFirstIndex = pagingCurrentPageFirstItemIndex - ((currentPage - 1) * getPageLength());
 				super.setCurrentPageFirstItemIndex(pagingCurrentPageFirstItemIndex);
 			}
 		}
+	}
+
+	public void addRefreshRenderedCellsEventListener(RefreshRenderedCellsEvent refreshRenderedCellsEvent) {
+		refreshRenderedCellsEventListenerList.add(refreshRenderedCellsEvent);
+	}
+
+	public void fireAddRefreshRenderedCellsEvent(List<Object> selectedId, boolean areAllItemSelected) {
+		if (refreshRenderedCellsEventListenerList == null) {
+			return;
+		}
+
+		for (RefreshRenderedCellsEvent currentRefreshRenderedCellsEvent : refreshRenderedCellsEventListenerList) {
+			currentRefreshRenderedCellsEvent.refreshRenderedCellsEvent(new RefreshRenderedCellsEventParams(selectedId, areAllItemSelected));
+		}
+	}
+
+	public void setCurrentPage(int currentPage) {
+		if (isPaged()) {
+			pagedTableContainer.setCurrentPage(currentPage);
+			firePageChangedEvent();
+		}
+	}
+
+	public int getItemsPerPage() {
+		return pagedTableContainer.getItemsPerPage();
+	}
+
+	public void setItemsPerPage(int itemsPerPage) {
+		pagedTableContainer.setItemsPerPage(itemsPerPage);
+		adjustPageLengthBasedOnItemsPerPage();
 	}
 
 	@Override
@@ -211,7 +265,7 @@ public class BaseTable extends Table {
 	public void setCurrentPageFirstItemIndex(int newIndex) {
 		if (isPaged()) {
 			pagingCurrentPageFirstItemIndex = newIndex;
-			if (isAttached()) {
+			if (isAttached() && newIndex % getPageLength() != 0) {
 				scrollToFirstPagingItem();
 			}
 		} else {
@@ -408,7 +462,7 @@ public class BaseTable extends Table {
 
 	public void selectCurrentPage() {
 		if (isPaged()) {
-			List<?> itemIds = pagedTableContainer.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength());
+			List<?> itemIds = pagedTableContainer.getCurrentPageItemIds();
 			for (Object itemId : itemIds) {
 				select(itemId);
 			}
@@ -419,7 +473,7 @@ public class BaseTable extends Table {
 
 	public void deselectCurrentPage() {
 		if (isPaged()) {
-			List<?> itemIds = pagedTableContainer.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength());
+			List<?> itemIds = pagedTableContainer.getCurrentPageItemIds();
 			for (Object itemId : itemIds) {
 				deselect(itemId);
 			}
@@ -476,6 +530,7 @@ public class BaseTable extends Table {
 		cellProperties.clear();
 		clearCheckBoxSelectionChangeListeners();
 		super.containerItemSetChange(event);
+		adjustPageLengthBasedOnItemsPerPage();
 	}
 
 	private void clearCheckBoxSelectionChangeListeners() {
@@ -513,7 +568,21 @@ public class BaseTable extends Table {
 
 	@Override
 	public void refreshRenderedCells() {
+		// Optimisation pour pas que chacun des composantes de sélection (checkbox)
+		// est à appeler les écouteur d'événement de la sélection et de valeur changé. C'est fait une fois après le
+		// rendu des cullules du tableau.
+		if (selectedItem == null) {
+			selectedItem = new ArrayList<>();
+		} else {
+			selectedItem.clear();
+		}
+
+		areAllItemSelected = true;
 		super.refreshRenderedCells();
+
+		if (!selectedItem.isEmpty()) {
+			fireAddRefreshRenderedCellsEvent(selectedItem, areAllItemSelected);
+		}
 	}
 
 	@Override
@@ -528,14 +597,14 @@ public class BaseTable extends Table {
 				throw new IllegalArgumentException(
 						"PagedTable can only use containers that implement Container.Indexed");
 			}
-			PagedTableContainer pagedTableContainer = new PagedBaseTableContainer(
-					(Container.Indexed) newDataSource);
-			pagedTableContainer.setPageLength(getPageLength());
+			int itemsPerPage = getPageLength();
+			PagedBaseTableContainer pagedTableContainer = new PagedBaseTableContainer((Container.Indexed) newDataSource, itemsPerPage);
 			super.setContainerDataSource(pagedTableContainer);
 			this.pagedTableContainer = pagedTableContainer;
-			firePagedChangedEvent();
+			firePageChangedEvent();
 		} else {
 			super.setContainerDataSource(newDataSource);
+			adjustPageLengthBasedOnItemsPerPage();
 		}
 	}
 
@@ -566,81 +635,59 @@ public class BaseTable extends Table {
 					setColumnWidth(columnId, -1);
 				}
 			}
-			firePagedChangedEvent();
+			firePageChangedEvent();
 		}
 	}
 
-	private void firePagedChangedEvent() {
-		if (pageChangeListeners != null) {
-			PagedTableChangeEvent event = new PagedTableChangeEvent();
+	private void firePageChangedEvent() {
+		if (isPaged() && pageChangeListeners != null) {
+			int currentPage = pagedTableContainer.getCurrentPage();
+			int numberOfPages = pagedTableContainer.getNumberOfPages();
+			PageChangeEvent event = new PageChangeEvent(currentPage, numberOfPages);
 			for (PageChangeListener listener : pageChangeListeners) {
 				listener.pageChanged(event);
 			}
 		}
 	}
 
-	@Override
-	public void setPageLength(int pageLength) {
-		if (isPaged()) {
-			if (pageLength >= 0 && getPageLength() != pageLength) {
-				pagedTableContainer.setPageLength(pageLength);
-				super.setPageLength(pageLength);
-				firePagedChangedEvent();
+	private void fireItemsPerPageChangedEvent(int oldItemsPerPage, int newItemsPerPage) {
+		if (isPaged() && itemsPerPageChangeListeners != null) {
+			ItemsPerPageChangeEvent event = new ItemsPerPageChangeEvent(oldItemsPerPage, newItemsPerPage);
+			for (ItemsPerPageChangeListener listener : itemsPerPageChangeListeners) {
+				listener.itemsPerPageChanged(event);
 			}
-		} else {
-			super.setPageLength(pageLength);
 		}
 	}
 
 	public void nextPage() {
-		setPageFirstIndex(pagedTableContainer.getStartIndex() + getPageLength());
+		int currentPage = pagedTableContainer.getCurrentPage();
+		int newPage = currentPage + 1;
+		pagedTableContainer.setCurrentPage(newPage);
+		adjustPageLengthBasedOnItemsPerPage();
+		firePageChangedEvent();
 	}
 
 	public void previousPage() {
-		setPageFirstIndex(pagedTableContainer.getStartIndex() - getPageLength());
+		int currentPage = pagedTableContainer.getCurrentPage();
+		int newPage = currentPage - 1;
+		pagedTableContainer.setCurrentPage(newPage);
+		adjustPageLengthBasedOnItemsPerPage();
+		firePageChangedEvent();
 	}
 
-	public int getPageOfIndex(int index) {
-		int pageOfIndex;
-		if (index == 0) {
-			pageOfIndex = 1;
-		} else if (isPaged()) {
-			double pageLength = getPageLength();
-			pageOfIndex = (int) (index / pageLength) + 1;
-		} else {
-			pageOfIndex = 1;
+	protected void adjustPageLengthBasedOnItemsPerPage() {
+		if (isPaged()) {
+			int itemsPerPage = pagedTableContainer.getItemsPerPage();
+			int currentPageSize = pagedTableContainer.getCurrentPageSize();
+			if (currentPageSize < itemsPerPage) {
+				super.setPageLength(currentPageSize);
+			} else {
+				super.setPageLength(itemsPerPage);
+			}
+			//		} else if (customPageLength > 0 && super.size() > 0) {
+			//			int newPageLength = Math.min(super.size(), customPageLength);
+			//			super.setPageLength(newPageLength);
 		}
-		return pageOfIndex;
-	}
-
-	public int getCurrentPage() {
-		double pageLength = getPageLength();
-		int page = (int) Math.floor((double) pagedTableContainer.getStartIndex()
-									/ pageLength) + 1;
-		if (page < 1) {
-			page = 1;
-		}
-		return page;
-	}
-
-	public void setCurrentPage(int page) {
-		int newIndex = (page - 1) * getPageLength();
-		if (newIndex < 0) {
-			newIndex = 0;
-		}
-		if (newIndex >= 0 && newIndex != pagedTableContainer.getStartIndex()) {
-			setPageFirstIndex(newIndex);
-		}
-	}
-
-	public int getTotalAmountOfPages() {
-		int size = pagedTableContainer.getContainer().size();
-		double pageLength = getPageLength();
-		int pageCount = (int) Math.ceil(size / pageLength);
-		if (pageCount < 1) {
-			pageCount = 1;
-		}
-		return pageCount;
 	}
 
 	public List<PageChangeListener> getPageChangeListeners() {
@@ -657,6 +704,16 @@ public class BaseTable extends Table {
 		pageChangeListeners.remove(listener);
 	}
 
+	public void addItemsPerPageChangeListener(ItemsPerPageChangeListener listener) {
+		if (!itemsPerPageChangeListeners.contains(listener)) {
+			itemsPerPageChangeListeners.add(listener);
+		}
+	}
+
+	public void removeItemsPerPageChangeListener(ItemsPerPageChangeListener listener) {
+		itemsPerPageChangeListeners.remove(listener);
+	}
+	
 	public void setAlwaysRecalculateColumnWidths(
 			boolean alwaysRecalculateColumnWidths) {
 		this.alwaysRecalculateColumnWidths = alwaysRecalculateColumnWidths;
@@ -675,40 +732,110 @@ public class BaseTable extends Table {
 	}
 
 	protected void onSetPageButtonClicked(int page) {
-		setCurrentPage(page);
+		pagedTableContainer.setCurrentPage(page);
+		adjustPageLengthBasedOnItemsPerPage();
+		firePageChangedEvent();
 	}
 
-	private static class PagedBaseTableContainer extends PagedTableContainer implements ItemSetChangeNotifier {
+	private static class PagedBaseTableContainer extends ContainerAdapter implements ItemSetChangeNotifier {
 
-		public PagedBaseTableContainer(Indexed container) {
+		private int startIndex;
+
+		private int itemsPerPage;
+
+		@SuppressWarnings("unchecked")
+		public PagedBaseTableContainer(Indexed container, int itemsPerPage) {
 			super(container);
+			this.itemsPerPage = itemsPerPage;
+		}
+
+		public int getStartIndex() {
+			return startIndex;
+		}
+
+		public void setStartIndex(int startIndex) {
+			this.startIndex = startIndex;
+		}
+
+		public int getItemsPerPage() {
+			return itemsPerPage;
+		}
+
+		public void setItemsPerPage(int itemsPerPage) {
+			boolean changed = this.itemsPerPage != itemsPerPage;
+			this.itemsPerPage = itemsPerPage;
+			if (changed) {
+				fireItemSetChange();
+			}
+		}
+
+		public int getNumberOfPages() {
+			int size = getNestedContainer().size();
+			double pageLength = itemsPerPage;
+			int pageCount = (int) Math.ceil(size / pageLength);
+			if (pageCount < 1) {
+				pageCount = 1;
+			}
+			return pageCount;
+		}
+
+		/**
+		 * @return Index starts at 1
+		 */
+		public int getCurrentPage() {
+			int page = (int) Math.floor((double) getStartIndex() / getItemsPerPage()) + 1;
+			if (page < 1) {
+				page = 1;
+			}
+			return page;
+		}
+
+		public void setCurrentPage(int page) {
+			boolean changed = getCurrentPage() != page;
+			this.startIndex = (page - 1) * itemsPerPage;
+			if (changed) {
+				fireItemSetChange();
+			}
+		}
+
+		public int getCurrentPageSize() {
+			int rowsLeft = getNestedContainer().size() - startIndex;
+			if (rowsLeft > itemsPerPage) {
+				return itemsPerPage;
+			} else {
+				return rowsLeft;
+			}
+		}
+
+		public List<?> getCurrentPageItemIds() {
+			int numberOfItems = Math.min(startIndex + itemsPerPage, getRealSize());
+			return ((Indexed) getNestedContainer()).getItemIds(startIndex, numberOfItems);
 		}
 
 		@Override
-		public void addItemSetChangeListener(ItemSetChangeListener listener) {
-			((ItemSetChangeNotifier) getContainer()).addItemSetChangeListener(listener);
+		public List<?> getItemIds(int start, int numberOfItems) {
+			int adjustedStart = startIndex + start;
+			return ((Indexed) getNestedContainer()).getItemIds(adjustedStart, numberOfItems);
 		}
 
-		@SuppressWarnings("deprecation")
-		@Override
-		public void addListener(ItemSetChangeListener listener) {
-			((ItemSetChangeNotifier) getContainer()).addListener(listener);
-		}
-
-		@Override
-		public void removeItemSetChangeListener(ItemSetChangeListener listener) {
-			((ItemSetChangeNotifier) getContainer()).removeItemSetChangeListener(listener);
-		}
-
-		@SuppressWarnings("deprecation")
-		@Override
-		public void removeListener(ItemSetChangeListener listener) {
-			((ItemSetChangeNotifier) getContainer()).removeListener(listener);
+		public int getPageOfIndex(int index) {
+			int pageOfIndex;
+			if (index == 1) {
+				pageOfIndex = 1;
+			} else {
+				double pageLength = itemsPerPage;
+				pageOfIndex = (int) (index / pageLength) + 1;
+			}
+			return pageOfIndex;
 		}
 
 		@Override
-		public List<?> getItemIds(int startIndex, int numberOfItems) {
-			return this.getContainer().getItemIds(startIndex, numberOfItems);
+		public int size() {
+			return getCurrentPageSize();
+		}
+
+		public int getRealSize() {
+			return getNestedContainer().size();
 		}
 	}
 
@@ -718,7 +845,14 @@ public class BaseTable extends Table {
 
 		private SelectionCheckBox(final Object itemId) {
 			this.itemId = itemId;
-			setValue(selectionManager.isSelected(itemId));
+			boolean selected = selectionManager.isSelected(itemId);
+
+			if (selected) {
+				selectedItem.add(itemId);
+			} else {
+				areAllItemSelected = false;
+			}
+			setValue(selected);
 			addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(com.vaadin.data.Property.ValueChangeEvent event) {
@@ -761,192 +895,62 @@ public class BaseTable extends Table {
 
 	}
 
-	public static class SelectionChangeEvent {
-
-		private Component component;
-
-		private List<Object> selectedItemIds;
-
-		private List<Object> deselectedItemIds;
-
-		private boolean allItemsSelected;
-
-		private boolean allItemsDeselected;
-
-		public Component getComponent() {
-			return component;
-		}
-
-		public void setComponent(Component component) {
-			this.component = component;
-		}
-
-		public List<Object> getSelectedItemIds() {
-			return selectedItemIds;
-		}
-
-		public void setSelectedItemIds(List<Object> selectedItemIds) {
-			this.selectedItemIds = selectedItemIds;
-		}
-
-		@SuppressWarnings("unchecked")
-		public void setSelectedItemId(Object selectedItemId) {
-			if (selectedItemId instanceof List) {
-				setSelectedItemIds((List<Object>) selectedItemId);
-			} else if (selectedItemId != null) {
-				setSelectedItemIds(Arrays.asList(selectedItemId));
-			}
-		}
-
-		public List<Object> getDeselectedItemIds() {
-			return deselectedItemIds;
-		}
-
-		public void setDeselectedItemIds(List<Object> deselectedItemIds) {
-			this.deselectedItemIds = deselectedItemIds;
-		}
-
-		@SuppressWarnings("unchecked")
-		public void setDeselectedItemId(Object deselectedItemId) {
-			if (deselectedItemId instanceof List) {
-				setDeselectedItemIds((List<Object>) deselectedItemId);
-			} else if (deselectedItemId != null) {
-				setDeselectedItemIds(Arrays.asList(deselectedItemId));
-			}
-		}
-
-		public boolean isAllItemsSelected() {
-			return allItemsSelected;
-		}
-
-		public void setAllItemsSelected(boolean allItemsSelected) {
-			this.allItemsSelected = allItemsSelected;
-		}
-
-		public boolean isAllItemsDeselected() {
-			return allItemsDeselected;
-		}
-
-		public void setAllItemsDeselected(boolean allItemsDeselected) {
-			this.allItemsDeselected = allItemsDeselected;
-		}
-
-	}
-
-	public static interface SelectionChangeListener {
-
-		void selectionChanged(SelectionChangeEvent event);
-
-	}
-
-	public static interface SelectionManager extends SelectionChangeListener {
-
-		List<Object> getAllSelectedItemIds();
-
-		boolean isAllItemsSelected();
-
-		boolean isAllItemsDeselected();
-
-		boolean isSelected(Object itemId);
-
-	}
-
-	public static abstract class ValueSelectionManager implements SelectionManager {
-
-		@SuppressWarnings({"rawtypes", "unchecked"})
-		private List<Object> ensureListValue() {
-			List<Object> listValue;
-			Object objectValue = getValue();
-			if (objectValue instanceof List) {
-				listValue = (List) objectValue;
-			} else {
-				listValue = new ArrayList<>();
-			}
-			return listValue;
-		}
-
-		@Override
-		public List<Object> getAllSelectedItemIds() {
-			List<Object> allSelectedItemIds;
-			if (isAllItemsSelected()) {
-				allSelectedItemIds = new ArrayList<>(getItemIds());
-			} else {
-				allSelectedItemIds = ensureListValue();
-			}
-			return allSelectedItemIds;
-		}
-
-		@Override
-		public boolean isAllItemsSelected() {
-			List<Object> listValue = ensureListValue();
-			return listValue.containsAll(getItemIds());
-		}
-
-		@Override
-		public boolean isAllItemsDeselected() {
-			List<Object> listValue = ensureListValue();
-			return listValue.isEmpty();
-		}
-
-		@Override
-		public boolean isSelected(Object itemId) {
-			List<Object> listValue = ensureListValue();
-			return listValue.contains(itemId);
-		}
-
-		@Override
-		public void selectionChanged(SelectionChangeEvent event) {
-			if (event.isAllItemsSelected()) {
-				setValue(getItemIds());
-			} else if (event.isAllItemsDeselected()) {
-				setValue(new ArrayList<>());
-			} else {
-				List<Object> selectedItemIds = event.getSelectedItemIds();
-				List<Object> deselectedItemIds = event.getDeselectedItemIds();
-				List<Object> listValue = ensureListValue();
-				if (selectedItemIds != null) {
-					for (Object selectedItemId : selectedItemIds) {
-						if (!listValue.contains(selectedItemId)) {
-							listValue.add(selectedItemId);
-						}
-					}
-				} else if (deselectedItemIds != null) {
-					for (Object deselectedItemId : deselectedItemIds) {
-						listValue.remove(deselectedItemId);
-					}
-				}
-				setValue(listValue);
-			}
-		}
-
-		protected abstract Object getValue();
-
-		protected abstract void setValue(Object newValue);
-
-		protected abstract Collection<?> getItemIds();
-
-	}
-
 	public static interface PageChangeListener {
-		public void pageChanged(PagedTableChangeEvent event);
+		public void pageChanged(PageChangeEvent event);
 	}
 
-	public class PagedTableChangeEvent {
+	public class PageChangeEvent {
+
+		private int currentPage;
+		private int numberOfPages;
+
+		public PageChangeEvent(int currentPage, int numberOfPages) {
+			this.currentPage = currentPage;
+			this.numberOfPages = numberOfPages;
+		}
 
 		public BaseTable getTable() {
 			return BaseTable.this;
 		}
 
 		public int getCurrentPage() {
-			return BaseTable.this.getCurrentPage();
+			return currentPage;
 		}
 
-		public int getTotalAmountOfPages() {
-			return BaseTable.this.getTotalAmountOfPages();
+		public int getNumberOfPages() {
+			return numberOfPages;
 		}
 	}
 
-	public class PagingControls extends I18NHorizontalLayout {
+	public static interface ItemsPerPageChangeListener {
+		public void itemsPerPageChanged(ItemsPerPageChangeEvent event);
+	}
+
+	public class ItemsPerPageChangeEvent {
+
+		private int oldItemsPerPage;
+		private int newItemsPerPage;
+
+		public ItemsPerPageChangeEvent(int oldItemsPerPage, int newItemsPerPage) {
+			this.oldItemsPerPage = oldItemsPerPage;
+			this.newItemsPerPage = newItemsPerPage;
+		}
+
+		public BaseTable getTable() {
+			return BaseTable.this;
+		}
+
+		public int getOldItemsPerPage() {
+			return oldItemsPerPage;
+		}
+
+		public int getNewItemsPerPage() {
+			return newItemsPerPage;
+		}
+
+	}
+
+	public class PagingControls extends I18NHorizontalLayout implements BrowserWindowResizeListener {
 
 		private int itemsPerPageValue = getPageLength();
 
@@ -964,11 +968,13 @@ public class BaseTable extends Table {
 		private HorizontalLayout pageManagementLayout;
 
 		public PagingControls() {
+			addStyleName("paging-controls");
 			if (isPaged()) {
 				itemsPerPageField = new BaseComboBox();
 				itemsPerPageField.setValue(itemsPerPageValue);
 
-				int totalAmountOfPages = getTotalAmountOfPages();
+				int numberOfPages = pagedTableContainer.getNumberOfPages();
+				int currentPageFieldInitialValue = pagedTableContainer.getCurrentPage();
 
 				itemsPerPageLabel = new Label($("SearchResultTable.itemsPerPage"));
 				itemsPerPageField.addItem(DEFAULT_PAGE_LENGTH);
@@ -991,20 +997,25 @@ public class BaseTable extends Table {
 				itemsPerPageField.addValueChangeListener(new ValueChangeListener() {
 					@Override
 					public void valueChange(Property.ValueChangeEvent event) {
-						setPageLength((int) itemsPerPageField.getValue());
+						int newItemsPerPage = (int) itemsPerPageField.getValue();
+						int oldItemsPerPage = pagedTableContainer.getItemsPerPage();
+						pagedTableContainer.setItemsPerPage((int) itemsPerPageField.getValue());
+						adjustPageLengthBasedOnItemsPerPage();
+						fireItemsPerPageChangedEvent(oldItemsPerPage, newItemsPerPage);
 					}
 				});
 				itemsPerPageField.setEnabled(itemsPerPageField.size() > 1);
 
 				pageSizeLayout = new I18NHorizontalLayout(itemsPerPageLabel, itemsPerPageField);
+				pageSizeLayout.addStyleName("page-size-layout");
+				pageSizeLayout.setSpacing(true);
 				pageSizeLayout.setComponentAlignment(itemsPerPageLabel, Alignment.MIDDLE_LEFT);
 				pageSizeLayout.setComponentAlignment(itemsPerPageField, Alignment.MIDDLE_LEFT);
-				pageSizeLayout.setSpacing(true);
 
 				currentPageLabel = new Label($("SearchResultTable.page"));
 				currentPageField = new TextField();
 				currentPageField.setConverter(Integer.class);
-				currentPageField.setConvertedValue(getCurrentPage());
+				currentPageField.setConvertedValue(currentPageFieldInitialValue);
 				currentPageField.setWidth("45px");
 				currentPageField.addValueChangeListener(new ValueChangeListener() {
 					@Override
@@ -1014,7 +1025,7 @@ public class BaseTable extends Table {
 						if (StringUtils.isNotBlank(newValue)) {
 							try {
 								int newIntValue = Integer.parseInt(newValue);
-								valid = newIntValue > 0 && newIntValue < getTotalAmountOfPages();
+								valid = newIntValue > 0 && newIntValue < pagedTableContainer.getNumberOfPages();
 							} catch (NumberFormatException e) {
 								valid = false;
 							}
@@ -1022,22 +1033,24 @@ public class BaseTable extends Table {
 							valid = false;
 						}
 						if (valid) {
-							setCurrentPage((int) currentPageField.getConvertedValue());
+							int newPage = (int) currentPageField.getConvertedValue();
+							pagedTableContainer.setCurrentPage(newPage);
+							adjustPageLengthBasedOnItemsPerPage();
 						}
 					}
 				});
-				currentPageField.setEnabled(totalAmountOfPages > 1);
+				currentPageField.setEnabled(numberOfPages > 1);
 
 				separator = new Label($("SearchResultTable.of"));
-				totalPagesLabel = new Label(String.valueOf(totalAmountOfPages));
+				totalPagesLabel = new Label(String.valueOf(numberOfPages));
 
 				firstPageButton = new Button("\uF100", new ClickListener() {
 					public void buttonClick(ClickEvent event) {
-						onSetPageButtonClicked(0);
+						onSetPageButtonClicked(1);
 					}
 				});
 				firstPageButton.setStyleName(ValoTheme.BUTTON_LINK);
-				firstPageButton.setEnabled(getCurrentPage() > 1);
+				firstPageButton.setEnabled(currentPageFieldInitialValue > 1);
 
 				previousPageButton = new Button("\uF104", new ClickListener() {
 					public void buttonClick(ClickEvent event) {
@@ -1045,7 +1058,7 @@ public class BaseTable extends Table {
 					}
 				});
 				previousPageButton.setStyleName(ValoTheme.BUTTON_LINK);
-				previousPageButton.setEnabled(getCurrentPage() > 1);
+				previousPageButton.setEnabled(currentPageFieldInitialValue > 1);
 
 				nextPageButton = new Button("\uF105", new ClickListener() {
 					public void buttonClick(ClickEvent event) {
@@ -1053,15 +1066,16 @@ public class BaseTable extends Table {
 					}
 				});
 				nextPageButton.setStyleName(ValoTheme.BUTTON_LINK);
-				nextPageButton.setEnabled(getCurrentPage() < getTotalAmountOfPages());
+				nextPageButton.setEnabled(currentPageFieldInitialValue < numberOfPages);
 
 				lastPageButton = new Button("\uF101", new ClickListener() {
 					public void buttonClick(ClickEvent event) {
-						onSetPageButtonClicked(getTotalAmountOfPages());
+						int numberOfPages = pagedTableContainer.getNumberOfPages();
+						onSetPageButtonClicked(numberOfPages);
 					}
 				});
 				lastPageButton.setStyleName(ValoTheme.BUTTON_LINK);
-				lastPageButton.setEnabled(getCurrentPage() < getTotalAmountOfPages());
+				lastPageButton.setEnabled(currentPageFieldInitialValue < numberOfPages);
 
 				if (isRightToLeft()) {
 					String rtlFirstCaption = lastPageButton.getCaption();
@@ -1076,6 +1090,8 @@ public class BaseTable extends Table {
 
 				pageManagementLayout = new I18NHorizontalLayout(
 						firstPageButton, previousPageButton, currentPageLabel, currentPageField, separator, totalPagesLabel, nextPageButton, lastPageButton);
+				pageManagementLayout.addStyleName("page-management-layout");
+				pageManagementLayout.setSpacing(true);
 				pageManagementLayout.setComponentAlignment(firstPageButton, Alignment.MIDDLE_LEFT);
 				pageManagementLayout.setComponentAlignment(previousPageButton, Alignment.MIDDLE_LEFT);
 				pageManagementLayout.setComponentAlignment(currentPageLabel, Alignment.MIDDLE_LEFT);
@@ -1084,22 +1100,22 @@ public class BaseTable extends Table {
 				pageManagementLayout.setComponentAlignment(totalPagesLabel, Alignment.MIDDLE_LEFT);
 				pageManagementLayout.setComponentAlignment(nextPageButton, Alignment.MIDDLE_LEFT);
 				pageManagementLayout.setComponentAlignment(lastPageButton, Alignment.MIDDLE_LEFT);
-				pageManagementLayout.setSpacing(true);
 
 				addComponents(pageSizeLayout, pageManagementLayout);
-				setComponentAlignment(pageManagementLayout, Alignment.MIDDLE_CENTER);
-				setExpandRatio(pageSizeLayout, 1);
-				setWidth("100%");
+				setComponentAlignment(pageManagementLayout, Alignment.BOTTOM_CENTER);
+				//				setExpandRatio(pageSizeLayout, 1);
+				//				setWidth("100%");
+				setSpacing(true);
 
 				addPageChangeListener(new PageChangeListener() {
-					public void pageChanged(PagedTableChangeEvent event) {
-						firstPageButton.setEnabled(getCurrentPage() > 1);
-						previousPageButton.setEnabled(getCurrentPage() > 1);
-						nextPageButton.setEnabled(getCurrentPage() < getTotalAmountOfPages());
-						lastPageButton.setEnabled(getCurrentPage() < getTotalAmountOfPages());
-						currentPageField.setValue(String.valueOf(getCurrentPage()));
-						currentPageField.setEnabled(getTotalAmountOfPages() > 1);
-						totalPagesLabel.setValue(String.valueOf(getTotalAmountOfPages()));
+					public void pageChanged(PageChangeEvent event) {
+						updateControls();
+					}
+				});
+				addItemsPerPageChangeListener(new ItemsPerPageChangeListener() {
+					@Override
+					public void itemsPerPageChanged(ItemsPerPageChangeEvent event) {
+						updateControls();
 					}
 				});
 			} else {
@@ -1107,11 +1123,50 @@ public class BaseTable extends Table {
 			}
 		}
 
+		private void updateControls() {
+			int numberOfPages = pagedTableContainer.getNumberOfPages();
+			int currentPageFieldValue = pagedTableContainer.getCurrentPage();
+
+			firstPageButton.setEnabled(currentPageFieldValue > 1);
+			previousPageButton.setEnabled(currentPageFieldValue > 1);
+			nextPageButton.setEnabled(currentPageFieldValue < numberOfPages);
+			lastPageButton.setEnabled(currentPageFieldValue < numberOfPages);
+			currentPageField.setValue(String.valueOf(currentPageFieldValue));
+			currentPageField.setEnabled(numberOfPages > 1);
+			totalPagesLabel.setValue(String.valueOf(numberOfPages));
+		}
+
 		public void setItemsPerPageValue(int value) {
 			this.itemsPerPageValue = value;
 			if (itemsPerPageField != null) {
 				itemsPerPageField.setValue(value);
 			}
+		}
+
+		@Override
+		public void attach() {
+			super.attach();
+			Page.getCurrent().addBrowserWindowResizeListener(this);
+			computeResponsive();
+		}
+
+		@Override
+		public void detach() {
+			Page.getCurrent().removeBrowserWindowResizeListener(this);
+			super.detach();
+		}
+
+		private void computeResponsive() {
+			if (ResponsiveUtils.isPhone()) {
+				setHeight("85px");
+			} else {
+				setHeight(null);
+			}
+		}
+
+		@Override
+		public void browserWindowResized(BrowserWindowResizeEvent event) {
+			computeResponsive();
 		}
 
 	}
@@ -1167,6 +1222,11 @@ public class BaseTable extends Table {
 		protected void buttonClickCallBack(boolean selectAllMode) {
 		}
 
+		private int getMaxSelectableResults() {
+			ModelLayerFactory modelLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory();
+			return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
+		}
+
 		@SuppressWarnings({"rawtypes", "unchecked"})
 		@Override
 		protected void buttonClick(ClickEvent event) {
@@ -1176,14 +1236,15 @@ public class BaseTable extends Table {
 			} else {
 				realSize = size();
 			}
-			if (realSize <= MAX_SELECTION_LENGTH) {
+			int maxSelectableResults = getMaxSelectableResults();
+			if (realSize <= maxSelectableResults) {
 				super.buttonClick(event);
 			} else {
 				if (rangeStart == -1) {
 					rangeStart = 1;
 				}
-				if (rangeEnd == -1 || rangeEnd > (rangeStart + (MAX_SELECTION_LENGTH - 1))) {
-					rangeEnd = rangeStart + (MAX_SELECTION_LENGTH - 1);
+				if (rangeEnd == -1 || rangeEnd > (rangeStart + (maxSelectableResults - 1))) {
+					rangeEnd = rangeStart + (maxSelectableResults - 1);
 					if (rangeEnd > size() - 1) {
 						rangeEnd = size() - 1;
 					}
@@ -1205,7 +1266,7 @@ public class BaseTable extends Table {
 					public void valueChange(com.vaadin.data.Property.ValueChangeEvent event) {
 						try {
 							Integer newRangeStart = (Integer) rangeStartField.getConvertedValue();
-							Integer newRangeEnd = newRangeStart + (MAX_SELECTION_LENGTH - 1);
+							Integer newRangeEnd = newRangeStart + (maxSelectableResults - 1);
 							if (newRangeEnd > size() - 1) {
 								newRangeEnd = size() - 1;
 							}
@@ -1253,9 +1314,9 @@ public class BaseTable extends Table {
 							Map<String, Object> parameters = new HashMap<>();
 							parameters.put("rangeStart", rangeStart);
 							errors.add(BaseTable.class, "rangeStartMustBePositive", parameters);
-						} else if (realRangeEnd > (realRangeStart + MAX_SELECTION_LENGTH - 1) || realRangeEnd > realSize - 1 || realRangeEnd < realRangeStart) {
+						} else if (realRangeEnd > (realRangeStart + maxSelectableResults - 1) || realRangeEnd > realSize - 1 || realRangeEnd < realRangeStart) {
 							int rangeEndMin = rangeStart;
-							int rangeEndMax = rangeStart + MAX_SELECTION_LENGTH - 1;
+							int rangeEndMax = rangeStart + maxSelectableResults - 1;
 							if (rangeEndMax > realSize) {
 								rangeEndMax = realSize;
 							}

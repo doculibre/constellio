@@ -275,6 +275,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 
 		addEditFieldLayout = new HorizontalLayout();
 		addEditFieldLayout.addStyleName(ADD_EDIT_FIELD_LAYOUT_STYLE_NAME);
+		addEditFieldLayout.setWidth("100%");
 		addEditFieldLayout.setSpacing(true);
 
 		addEditField = newAddEditField();

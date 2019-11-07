@@ -100,7 +100,7 @@ public class RecordWrapper implements Serializable, CollectionObject, Supplier<R
 			localCode = StringUtils.substringAfterLast(localCode, "_");
 		}
 
-		Metadata metadata = types.getSchema(wrappedRecord.getSchemaCode()).getMetadata(localCode);
+		Metadata metadata = types.getSchemaOf(wrappedRecord).getMetadata(localCode);
 		return wrappedRecord.get(metadata);
 	}
 
@@ -115,7 +115,7 @@ public class RecordWrapper implements Serializable, CollectionObject, Supplier<R
 			localCode = StringUtils.substringAfterLast(localCode, "_");
 		}
 
-		Metadata metadata = types.getSchema(wrappedRecord.getSchemaCode()).getMetadata(localCode);
+		Metadata metadata = types.getSchemaOf(wrappedRecord).getMetadata(localCode);
 		return wrappedRecord.get(metadata, locale);
 	}
 
@@ -130,18 +130,18 @@ public class RecordWrapper implements Serializable, CollectionObject, Supplier<R
 			localCode = StringUtils.substringAfterLast(localCode, "_");
 		}
 
-		Metadata metadata = types.getSchema(wrappedRecord.getSchemaCode()).getMetadata(localCode);
+		Metadata metadata = types.getSchemaOf(wrappedRecord).getMetadata(localCode);
 		return wrappedRecord.get(metadata, locale, mode);
 	}
 
 	public <T> T getOriginal(String localCode) {
-		Metadata metadata = types.getSchema(wrappedRecord.getSchemaCode()).getMetadata(localCode);
+		Metadata metadata = types.getSchemaOf(wrappedRecord).getMetadata(localCode);
 		return wrappedRecord.getCopyOfOriginalRecord().get(metadata);
 	}
 
 	public boolean hasValue(String localCode) {
 		ensureConnected();
-		MetadataSchema schema = types.getSchema(wrappedRecord.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(wrappedRecord);
 
 		Metadata metadata = null;
 		if (!schema.hasMetadataWithCode(localCode)) {

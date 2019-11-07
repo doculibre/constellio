@@ -432,7 +432,7 @@ public class MetadataBuilder {
 	}
 
 	public boolean isCacheIndex() {
-		return inheritance == null ? isCacheIndex() : inheritance.isCacheIndex();
+		return inheritance == null ? Boolean.TRUE.equals(cacheIndex) : inheritance.isCacheIndex();
 	}
 
 	public boolean isMultiLingual() {

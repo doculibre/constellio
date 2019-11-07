@@ -300,7 +300,12 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				.setPageLength(selectedPageLength);
 		((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
 		modelLayerFactory.getRecordsCaches().getCache(collection).insert(search.getWrappedRecord(), WAS_MODIFIED);
+		//		try {
 		//			recordServices().update(search);
+		//		} catch (RecordServicesException e) {
+		//			LOGGER.error("Error while saving temporary search", e);
+		//		}
+		
 		updateUIContext(search);
 		if (refreshPage) {
 			view.navigate().to().simpleSearchReplay(search.getId());

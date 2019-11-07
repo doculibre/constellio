@@ -8,17 +8,21 @@ import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerR
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
+import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
@@ -33,11 +37,14 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.UI;
 import org.joda.time.LocalDate;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 import static java.util.Arrays.asList;
 
 public class ContainerRecordMenuItemActionBehaviors {
@@ -64,6 +71,14 @@ public class ContainerRecordMenuItemActionBehaviors {
 		this.loggingServices = modelLayerFactory.newLoggingServices();
 		this.extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
+	}
+
+	public void getConsultationLink(ContainerRecord containerRecord, MenuItemActionBehaviorParams params) {
+		String constellioURL = getConstellioUrl(modelLayerFactory);
+		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(
+				new ConsultLinkParams(constellioURL + RMUrlUtil.getPathToConsultLinkForContainerRecord(containerRecord.getId()),
+						containerRecord.getTitle())));
+		UI.getCurrent().addWindow(consultLinkWindow);
 	}
 
 	public void consult(ContainerRecord container, MenuItemActionBehaviorParams params) {
@@ -101,7 +116,7 @@ public class ContainerRecordMenuItemActionBehaviors {
 				() -> appLayerFactory.getLabelTemplateManager().listTemplates(ContainerRecord.SCHEMA_TYPE);
 
 		SessionContext sessionContext = params.getView().getSessionContext();
-		Button labels = new LabelButtonV2($("SearchView.labels"), $("SearchView.printLabels"), customLabelTemplatesFactory,
+		Button labels = new LabelButtonV2($("SearchView.printLabels"), $("SearchView.printLabels"), customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory, appLayerFactory,
 				sessionContext.getCurrentCollection(), sessionContext.getCurrentUser(), params.getRecordVO());
 
@@ -141,16 +156,27 @@ public class ContainerRecordMenuItemActionBehaviors {
 	}
 
 	public void delete(ContainerRecord container, MenuItemActionBehaviorParams params) {
-		try {
-			recordServices.logicallyDelete(container.getWrappedRecord(), params.getUser());
-			if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
-				return;
-			} else {
-				params.getView().navigate().to(CoreViews.class).home();
+		Button deleteButton = new DeleteButton($("delete"), false) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				try {
+					recordServices.logicallyDelete(container.getWrappedRecord(), params.getUser());
+					if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
+						return;
+					} else {
+						params.getView().navigate().to(CoreViews.class).home();
+					}
+				} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+					params.getView().showErrorMessage(MessageUtils.toMessage(e));
+				}
 			}
-		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-			params.getView().showErrorMessage(MessageUtils.toMessage(e));
-		}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ConfirmDialog.confirmDeleteWithRecord", container.getTitle());
+			}
+		};
+		deleteButton.click();
 	}
 
 	public void empty(ContainerRecord container, MenuItemActionBehaviorParams params) {

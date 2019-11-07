@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import static com.constellio.sdk.tests.FakeSessionContext.forRealUserIncollection;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.when;
 
 public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
@@ -77,24 +78,22 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 		assertThat(actions.stream().map(MenuItemAction::getType).collect(Collectors.toList()))
 				.containsAll(Arrays.stream(RMRecordsMenuItemActionType.values())
 						.map(RMRecordsMenuItemActionType::name).collect(Collectors.toList()));
-		assertThat(actions.get(0).getType()).isEqualTo(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name());
-		assertThat(actions.get(0).getState().getStatus()).isEqualTo(MenuItemActionStateStatus.VISIBLE);
-		assertThat(actions.get(1).getType()).isEqualTo(RMRecordsMenuItemActionType.RMRECORDS_MOVE.name());
-		assertThat(actions.get(1).getState().getStatus()).isEqualTo(MenuItemActionStateStatus.VISIBLE);
-		assertThat(actions.get(2).getType()).isEqualTo(RMRecordsMenuItemActionType.RMRECORDS_COPY.name());
-		assertThat(actions.get(2).getState().getStatus()).isEqualTo(MenuItemActionStateStatus.VISIBLE);
-		assertThat(actions.get(3).getType()).isEqualTo(RMRecordsMenuItemActionType.RMRECORDS_CREATE_SIP.name());
-		assertThat(actions.get(3).getState().getStatus()).isEqualTo(MenuItemActionStateStatus.VISIBLE);
-		assertThat(actions.get(4).getType()).isEqualTo(RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL.name());
-		assertThat(actions.get(4).getState().getStatus()).isEqualTo(MenuItemActionStateStatus.DISABLED);
-		assertThat(actions.get(5).getType()).isEqualTo(RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF.name());
-		assertThat(actions.get(5).getState().getStatus()).isEqualTo(MenuItemActionStateStatus.DISABLED);
-		assertThat(actions.get(6).getType()).isEqualTo(RMRecordsMenuItemActionType.RMRECORDS_PRINT_LABEL.name());
-		assertThat(actions.get(6).getState().getStatus()).isEqualTo(MenuItemActionStateStatus.VISIBLE);
-		assertThat(actions.get(7).getType()).isEqualTo(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name());
-		assertThat(actions.get(7).getState().getStatus()).isEqualTo(MenuItemActionStateStatus.VISIBLE);
-		assertThat(actions.get(8).getType()).isEqualTo(RMRecordsMenuItemActionType.RMRECORDS_DOWNLOAD_ZIP.name());
-		assertThat(actions.get(8).getState().getStatus()).isEqualTo(MenuItemActionStateStatus.DISABLED);
+
+		assertThat(actions).extracting("type", "state.status").containsExactly(
+				tuple("CONSULTATION_LINK", MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_MOVE.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_COPY.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_SIP.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_PRINT_LABEL.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_DOWNLOAD_ZIP.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK.name(), MenuItemActionStateStatus.VISIBLE)
+		);
+
 	}
 
 }
