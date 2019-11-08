@@ -54,7 +54,6 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 		this.configuration = configuration;
 		this.windowCaption = windowCaption;
 		addStyleName(STYLE_NAME);
-		addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		if (iconOnly) {
 			addStyleName(ValoTheme.BUTTON_ICON_ONLY);
 		}

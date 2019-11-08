@@ -508,7 +508,7 @@ $popup-view-z-index: 3;
 		.clickable-row {
 	    	.v-table-body {
 	    		tr, .reference-display {
-	    			cursor: default;
+    				cursor: pointer !important;
 	    		}
 
 				&:hover {
@@ -536,14 +536,14 @@ $popup-view-z-index: 3;
 	.nicetitle-link-disabled  {
 		text-decoration: none;
 		//color: rgb(71, 71, 71);
-	    opacity: 0.5;
-	    filter: alpha(opacity=50);
+	    //opacity: 0.5;
+	    //filter: alpha(opacity=50);
 	    cursor: default;
 	}
 
 	.nicetitle-link-disabled:hover {
 		//color: rgb(71, 71, 71);
-	    opacity: 0.5;
+	    //opacity: 0.5;
 	    cursor: default;
 	}
 
@@ -1255,11 +1255,6 @@ $popup-view-z-index: 3;
 			top: 4px;
 		}
 		
-    	.v-disabled {
-    		opacity: inherit;
-    		color: inherit;
-    	}
-		
 		.v-slot-display-value-full-width, .v-slot-record-comments, .v-caption-record-comments {
 			width: 100%;
 		}
@@ -1448,10 +1443,14 @@ $popup-view-z-index: 3;
 	.link:hover {
 		text-decoration: underline;
 	}
-
-    .v-disabled:hover {
-    	text-decoration: none;
-    }
+		
+	.v-button.v-disabled, .v-button-link.v-disabled {
+		opacity: inherit;
+		
+		&:hover {
+    		text-decoration: none;
+		}
+	}
     	
     .v-lazyloadingwrapper-loading {
 	    background-color: white;
@@ -2185,6 +2184,8 @@ $popup-view-z-index: 3;
 			border-left: none;
 			border-right: none;
 			border-radius: inherit;
+			padding-left: 10px;
+			padding-right: 10px;
 
 			.header-popup-content {
 				width: 97%;
@@ -2212,7 +2213,7 @@ $popup-view-z-index: 3;
 		.selection-panel-top-layout .v-menubar .v-icon {
 		    float: right;
 		    margin-right: -4px;
-		    margin-left: 4px;
+		    margin-left: 8px;
 		    margin-top: 2px;
 		}
 	}
@@ -2263,7 +2264,7 @@ $popup-view-z-index: 3;
 	.clickable-row {
     	.v-table-body {
     		tr, .reference-display {
-    			cursor: pointer;
+    			cursor: pointer !important;
 				color: #696969;
 
 				&:hover {
@@ -2280,8 +2281,6 @@ $popup-view-z-index: 3;
     	.v-table-body {
 			.v-disabled {
 				text-align: left;
-				opacity: 10%;
-				color: black;
 			}
 				
 			.v-slot-icon-only {
@@ -3089,10 +3088,6 @@ $popup-view-z-index: 3;
             					//height: inherit;
 							}
 
-						   	.reference-display-link {
-						   		color: #197de1;
-						   	}
-
 							.visited-link {
 								color: #551A8B;
 							}
@@ -3686,7 +3681,7 @@ $popup-view-z-index: 3;
 			}
 		}			
   		
-  		.search-result-record-folder, .search-result-record-task {
+  		.search-result-record-folder, .search-result-record-task, .search-result-record-containerRecord {
 	  		.search-result-title {
 	  			.v-icon {
 	  				display: none;
@@ -3816,7 +3811,7 @@ $popup-view-z-index: 3;
 			}
 		}				
   		
-  		.search-result-record-folder, .search-result-record-task {
+  		.search-result-record-folder, .search-result-record-task, .search-result-record-containerRecord {
 	  		.search-result-title {
 	  			.v-icon {
 	  				display: none;
