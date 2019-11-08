@@ -7,6 +7,8 @@ import java.util.Set;
 
 public interface MetadataIndexCacheDataStoreHook<K> {
 
+	String getCollection();
+
 	boolean isHooked(MetadataSchemaType schemaType);
 
 	boolean requiresDataUpdate(Record record);

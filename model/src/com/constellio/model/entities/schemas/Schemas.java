@@ -90,6 +90,9 @@ Schemas {
 	public static final Metadata SCHEMA_AUTOCOMPLETE_FIELD = add(new Metadata(-46, "autocomplete_ss", STRING, true));
 
 	public static final Metadata HIDDEN = add(new Metadata(-47, "hidden_s", BOOLEAN, false));
+	public static final Metadata SECONDARY_CONCEPTS_INT_IDS = add(new Metadata(-48, "secondaryConceptsIntIds_is", INTEGER, true));
+	public static final Metadata ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS = add(new Metadata(-49, "attachedPrincipalAncestorsIntIds_is", INTEGER, true));
+	public static final Metadata PRINCIPALS_ANCESTORS_INT_IDS = add(new Metadata(-50, "principalAncestorsIntIds_is", INTEGER, true));
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();

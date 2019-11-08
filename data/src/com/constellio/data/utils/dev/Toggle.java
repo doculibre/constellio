@@ -97,6 +97,8 @@ public class Toggle {
 
 	public static AvailableToggle TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(false);
 
+	public static AvailableToggle DEBUG_TAXONOMY_RECORDS_HOOK = newToggle(false);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

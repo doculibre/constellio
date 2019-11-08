@@ -69,6 +69,11 @@ public class RecordsCacheIndexCacheDataStoreHooksAcceptanceTest extends Constell
 		}
 
 		@Override
+		public String getCollection() {
+			return zeCollection;
+		}
+
+		@Override
 		public boolean isHooked(MetadataSchemaType schemaType) {
 			return schemaType.getCode().equals(hookedCollection1Schema.typeCode());
 		}

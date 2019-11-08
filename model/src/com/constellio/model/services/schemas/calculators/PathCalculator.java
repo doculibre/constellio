@@ -24,10 +24,6 @@ public class PathCalculator extends AbstractMetadataValueCalculator<List<String>
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
 
-		if (parameters.getId().equals("zeSubFolder")) {
-			System.out.println("!!");
-		}
-
 		List<String> calculatedValue = new ArrayList<>();
 
 		String id = parameters.get(idDependency);
