@@ -927,6 +927,7 @@ public class TaskTable extends VerticalLayout {
 			linkedContentLayout.setSpacing(true);
 
 			addDocumentsButton = newAddDocumentsButton();
+			addDocumentsButton.setVisible(presenter.currentUserHasWriteAuthorization(taskVO));
 			contentsComponent = newContentsComponent();
 			linkedDocumentsComponent = newLinkedDocumentsComponent();
 			linkedFoldersComponent = newLinkedFoldersComponent();
