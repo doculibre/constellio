@@ -98,7 +98,7 @@ public class TaxonomyRecordsHookKey {
 		}
 	}
 
-	public static TaxonomyRecordsHookKey recordInPrincipalConcept(RecordId conceptId, boolean visible) {
+	public static TaxonomyRecordsHookKey attachedRecordInPrincipalConcept(RecordId conceptId, boolean visible) {
 		if (Toggle.DEBUG_TAXONOMY_RECORDS_HOOK.isEnabled()) {
 			return new TaxonomyRecordsHookKey_Debug(conceptId, null, true, visible);
 		} else {

@@ -15,13 +15,18 @@ public class IntegerAttachedPrincipalConceptsAncestorsCalculator extends Abstrac
 
 		List<Integer> stillAttachedPrincipalConceptIds = new ArrayList<>();
 
-		LangUtils.findMatchesInSortedLists(pathParts, attachedAncestors,
-				(Integer value) -> stillAttachedPrincipalConceptIds.add(value),
-				null,
-				null
-		);
+		if (isTaxonomyNode(parameters)) {
+			return attachedAncestors;
+		} else {
+			LangUtils.findMatchesInSortedLists(pathParts, attachedAncestors,
+					(Integer value) -> stillAttachedPrincipalConceptIds.add(value),
+					null,
+					null
+			);
+		}
 
 		return stillAttachedPrincipalConceptIds;
 	}
+
 
 }

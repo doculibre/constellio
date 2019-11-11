@@ -22,7 +22,7 @@ import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
 import static com.constellio.model.services.records.RecordId.toId;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalAccessOnRecordInConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalConceptAuthGivingAccessToRecordInSecondaryConceptKey;
-import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.recordInPrincipalConcept;
+import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.attachedRecordInPrincipalConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.recordInSecondaryConcept;
 import static java.util.stream.Collectors.toList;
 
@@ -109,7 +109,7 @@ public class TaxonomyRecordsHook implements MetadataIndexCacheDataStoreHook<Taxo
 		}
 
 		for (RecordId principalRecordId : attachedPrincipalConcepts) {
-			keys.add(recordInPrincipalConcept(principalRecordId, visible));
+			keys.add(attachedRecordInPrincipalConcept(principalRecordId, visible));
 		}
 
 		return keys;

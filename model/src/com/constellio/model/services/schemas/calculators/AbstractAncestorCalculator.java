@@ -142,4 +142,7 @@ public abstract class AbstractAncestorCalculator extends AbstractMetadataValueCa
 		return true;
 	}
 
+	protected boolean isTaxonomyNode(CalculatorParameters parameters) {
+		return parameters.get(taxonomiesParam).getTaxonomy() != null;
+	}
 }
