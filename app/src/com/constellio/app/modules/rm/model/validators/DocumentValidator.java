@@ -39,7 +39,7 @@ public class DocumentValidator implements RecordValidator {
 					|| choice == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
 					if (folder.getRetentionRule() != null) {
 						RetentionRule retentionRule = RetentionRule.wrap(params.getRecord(folder.getRetentionRule()), params.getTypes());
-						if (!retentionRule.getDocumentTypes().isEmpty() && document.getType() != null) {
+						if (!retentionRule.getDocumentTypes().isEmpty() || document.getType() != null) {
 							if (!retentionRule.getDocumentTypes().contains(document.getType())) {
 								Map<String, Object> parameters = new HashMap<>();
 								parameters.put(RULE_CODE, retentionRule.getCode());
