@@ -129,9 +129,13 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 		commentsLayout.setSpacing(true);
 		commentsLayout.addStyleName("record-comments");
 
-		Component addCommentsComponent = newAddCommentComponent(commentsLayout);
-		commentsLayout.addComponent(addCommentsComponent);
-		commentsLayout.setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
+		if (presenter.addButtonVisible()) {
+			Component addCommentsComponent = newAddCommentComponent(commentsLayout);
+			commentsLayout.addComponent(addCommentsComponent);
+			commentsLayout.setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
+		} else {
+			commentsLayout.addComponent(new Label(" "));
+		}
 
 		final Label noCommentLabel = new Label($("TaskTable.details.noComment"));
 		noCommentLabel.addStyleName("record-no-comment");
@@ -203,7 +207,7 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 		};
 		deleteCommentButton.addStyleName("delete-record-comment-button");
 		deleteCommentButton.addStyleName(ValoTheme.BUTTON_LINK);
-		deleteCommentButton.setVisible(!isReadOnly());
+		deleteCommentButton.setVisible(!isReadOnly() && presenter.commentCreatedByCurrentUser(comment));
 
 		I18NHorizontalLayout userTimeLayout = new I18NHorizontalLayout(commentUserComponent, commentDateTimeLabel, deleteCommentButton);
 		userTimeLayout.addStyleName("record-comment-user-date-time");

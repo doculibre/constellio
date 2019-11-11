@@ -7,10 +7,12 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import org.joda.time.LocalDateTime;
@@ -30,6 +32,12 @@ public class RecordCommentsDisplayPresenter implements Serializable {
 	private SchemaPresenterUtils presenterUtils;
 
 	private List<Comment> comments = new ArrayList<>();
+
+	ConstellioEIMConfigs eimConfigs;
+
+	private AuthorizationsServices authorizationsServices;
+
+	private Record record;
 
 	public RecordCommentsDisplayPresenter(RecordCommentsDisplay editor) {
 		this.editor = editor;
@@ -53,9 +61,9 @@ public class RecordCommentsDisplayPresenter implements Serializable {
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
-		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 
-		Record record = recordServices.getDocumentById(recordId);
+		record = recordServices.getDocumentById(recordId);
 		String schemaCode = record.getSchemaCode();
 
 		presenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories, sessionContext);
@@ -69,10 +77,7 @@ public class RecordCommentsDisplayPresenter implements Serializable {
 		editor.setComments(comments);
 		editor.setCaption(caption);
 
-		User currentUser = presenterUtils.getCurrentUser();
-		if (!authorizationsServices.canWrite(currentUser, record)) {
-			editor.setVisible(false);
-		}
+		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory);
 		if (Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS))) {
 			editor.setReadOnly(true);
 		}
@@ -101,7 +106,21 @@ public class RecordCommentsDisplayPresenter implements Serializable {
 		Record record = presenterUtils.getRecord(recordId);
 
 		record.set(metadata, newComments);
-		presenterUtils.addOrUpdate(record);
+		if (eimConfigs.isAddCommentsWhenReadAuthorization()) {
+			RecordUpdateOptions recordUpdateOptions = new RecordUpdateOptions();
+			presenterUtils.addOrUpdate(record, recordUpdateOptions.setSkipUserAccessValidation(true));
+		} else {
+			presenterUtils.addOrUpdate(record);
+		}
 		editor.setComments(comments = newComments);
+	}
+
+	public boolean commentCreatedByCurrentUser(Comment comment) {
+		return presenterUtils.getCurrentUser().getId().equals(comment.getUserId());
+	}
+
+	public boolean addButtonVisible() {
+		User currentUser = presenterUtils.getCurrentUser();
+		return authorizationsServices.canWrite(currentUser, record) || eimConfigs.isAddCommentsWhenReadAuthorization();
 	}
 }
