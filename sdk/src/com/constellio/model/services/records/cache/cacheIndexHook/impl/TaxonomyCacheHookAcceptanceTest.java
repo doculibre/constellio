@@ -410,7 +410,7 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 					for (boolean writeAccess : asList(true, false)) {
 						boolean hasAccessToCategory = retriever.hasUserAccessToSomethingInSecondaryConcept(
 								user, category.getWrappedRecordId(), writeAccess, onlyVisible);
-						boolean expectedHasAccessToCategory = visibleRecordsUsingSolr(category, user, false, false);
+						boolean expectedHasAccessToCategory = visibleRecordsUsingSolr(category, user, writeAccess, onlyVisible);
 
 						System.out.println(hasAccessToCategory + " - " + expectedHasAccessToCategory);
 
@@ -448,12 +448,24 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 	}
 
 	boolean visibleRecordsUsingSolr(Category category, User user, boolean write, boolean visible) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(from(rm.folder.schemaType()).where(Schemas.PATH_PARTS).isEqualTo(category.getId()));
-		query.filteredWithUser(user);
+
+		if (visible) {
+			query.setCondition(from(rm.folder.schemaType()).where(Schemas.PATH_PARTS).isEqualTo(category.getId())
+					.andWhere(Schemas.VISIBLE_IN_TREES).isTrue());
+		} else {
+			query.setCondition(from(rm.folder.schemaType()).where(Schemas.PATH_PARTS).isEqualTo(category.getId()));
+		}
+		if (write) {
+			query.filteredWithUserWrite(user);
+		} else {
+			query.filteredWithUser(user);
+		}
+
 
 		return searchServices.hasResults(query);
 	}
