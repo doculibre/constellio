@@ -121,6 +121,9 @@ public final class RecordsCache2Impl implements RecordsCache {
 
 			case HOOK_ONLY:
 				break;
+
+			case ONLY_VOLATILE:
+				return CacheConfig.volatileCache(schemaType, 1000000);
 		}
 
 		return null;
