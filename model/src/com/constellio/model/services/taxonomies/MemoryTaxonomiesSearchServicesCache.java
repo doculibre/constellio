@@ -1,7 +1,5 @@
 package com.constellio.model.services.taxonomies;
 
-import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +8,11 @@ import java.util.Map;
 public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServicesCache {
 
 	Map<String, TaxonomyRecordCache> cache = new HashMap<>();
+
+	@Override
+	public void initialize(String collection) {
+
+	}
 
 	@Override
 	public synchronized void insert(String username, String recordId, String mode, Boolean value) {
@@ -148,16 +151,4 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 		}
 	}
 
-
-	Map<String, TaxonomyRecordsHookRetriever> retrieverMap = new HashMap<>();
-
-	@Override
-	public void add(String collection, TaxonomyRecordsHookRetriever retriever) {
-		retrieverMap.put(collection, retriever);
-	}
-
-	@Override
-	public TaxonomyRecordsHookRetriever getRetriever(String collection) {
-		return retrieverMap.get(collection);
-	}
 }
