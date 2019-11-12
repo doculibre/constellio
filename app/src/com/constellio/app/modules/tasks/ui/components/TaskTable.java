@@ -17,9 +17,6 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -397,7 +394,7 @@ public class TaskTable extends VerticalLayout {
 
 			MenuItem rootItem = addItem("", FontAwesome.ELLIPSIS_V, null);
 
-			rootItem.addItem($("display"), DisplayButton.ICON_RESOURCE, new Command() {
+			rootItem.addItem($("display"), FontAwesome.SEARCH, new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
 					displayTask(null, taskVO);
@@ -405,7 +402,7 @@ public class TaskTable extends VerticalLayout {
 			});
 
 			if (presenter.isEditButtonEnabled(taskVO)) {
-				rootItem.addItem($("edit"), EditButton.ICON_RESOURCE, new Command() {
+				rootItem.addItem($("edit"), FontAwesome.EDIT, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
 						editTask(taskVO);
@@ -414,14 +411,14 @@ public class TaskTable extends VerticalLayout {
 			}
 
 			if (presenter.isReadByUser(taskVO)) {
-				rootItem.addItem($("TaskTable.markAsUnread"), EditButton.ICON_RESOURCE, new Command() {
+				rootItem.addItem($("TaskTable.markAsUnread"), FontAwesome.EYE_SLASH, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
 						presenter.setReadByUser(taskVO, false);
 					}
 				});
 			} else {
-				rootItem.addItem($("TaskTable.markAsRead"), EditButton.ICON_RESOURCE, new Command() {
+				rootItem.addItem($("TaskTable.markAsRead"), FontAwesome.EYE, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
 						presenter.setReadByUser(taskVO, true);
@@ -430,7 +427,7 @@ public class TaskTable extends VerticalLayout {
 			}
 
 			if (presenter.isCompleteButtonEnabled(taskVO)) {
-				rootItem.addItem($("TaskTable.complete"), COMPLETE_ICON, new Command() {
+				rootItem.addItem($("TaskTable.complete"), FontAwesome.CHECK_CIRCLE_O, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
 						TaskCompleteWindowButton completeTaskButton = new TaskCompleteWindowButton(presenter.getTask(taskVO),
@@ -454,7 +451,7 @@ public class TaskTable extends VerticalLayout {
 					}
 				});
 			}
-			rootItem.addItem($("DisplayTaskView.share"), null, new Command() {
+			rootItem.addItem($("DisplayTaskView.share"), FontAwesome.PAPER_PLANE_O, new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
 					WindowButton shareButton = new WindowButton($("DisplayTaskView.share"), $("DisplayTaskView.shareWindowCaption")) {
@@ -514,7 +511,7 @@ public class TaskTable extends VerticalLayout {
 				}
 
 			if (presenter.isDeleteButtonVisible(taskVO)) {
-				rootItem.addItem($("delete"), DeleteButton.ICON_RESOURCE, new ConfirmDialogMenuBarItemCommand() {
+				rootItem.addItem($("delete"), FontAwesome.TRASH_O, new ConfirmDialogMenuBarItemCommand() {
 					@Override
 					protected String getConfirmDialogMessage() {
 						if (presenter.isSubTaskPresentAndHaveCertainStatus(taskVO)) {
