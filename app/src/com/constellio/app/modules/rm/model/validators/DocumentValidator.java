@@ -32,28 +32,26 @@ public class DocumentValidator implements RecordValidator {
 			Folder folder = Folder.wrap(params.getRecord(document.getFolder()), params.getTypes());
 			List<String> allowedDocumentTypes = folder.getAllowedDocumentTypes();
 
+			String documentType = document.getType();
 			if (!params.getConfigProvider().<Boolean>get(RMConfigs.ENABLE_TYPE_RESTRICTION_IN_FOLDER)
 				|| allowedDocumentTypes.isEmpty()) {
 				DocumentsTypeChoice choice = params.getConfigProvider().get(RMConfigs.DOCUMENTS_TYPES_CHOICE);
-				if (choice == DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
-					|| choice == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
-					if (folder.getRetentionRule() != null) {
-						RetentionRule retentionRule = RetentionRule.wrap(params.getRecord(folder.getRetentionRule()), params.getTypes());
-						if (!retentionRule.getDocumentTypes().isEmpty() || document.getType() != null) {
-							if (!retentionRule.getDocumentTypes().contains(document.getType())) {
-								Map<String, Object> parameters = new HashMap<>();
-								parameters.put(RULE_CODE, retentionRule.getCode());
-								parameters.put(ALLOWED_DOCUMENT_TYPES, retentionRule.getDocumentTypes().toString());
-								parameters.put(DOCUMENT_TYPE, document.getType());
-								params.getValidationErrors().add(DocumentValidator.class, TYPE_MUST_BE_RELATED_TO_ITS_RULE, parameters);
-							}
-						}
+				if (folder.getRetentionRule() != null && (choice == DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
+														  || choice == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES)) {
+					RetentionRule retentionRule = RetentionRule.wrap(params.getRecord(folder.getRetentionRule()), params.getTypes());
+					List<String> retentionRuleDocumentTypes = retentionRule.getDocumentTypes();
+					if (!retentionRuleDocumentTypes.isEmpty() && documentType != null && !retentionRuleDocumentTypes.contains(documentType)) {
+						Map<String, Object> parameters = new HashMap<>();
+						parameters.put(RULE_CODE, retentionRule.getCode());
+						parameters.put(ALLOWED_DOCUMENT_TYPES, retentionRuleDocumentTypes);
+						parameters.put(DOCUMENT_TYPE, documentType);
+						params.getValidationErrors().add(DocumentValidator.class, TYPE_MUST_BE_RELATED_TO_ITS_RULE, parameters);
 					}
 				}
-			} else if (!allowedDocumentTypes.contains(document.getType())) {
+			} else if (documentType != null && !allowedDocumentTypes.isEmpty() && !allowedDocumentTypes.contains(documentType)) {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(ALLOWED_DOCUMENT_TYPES, allowedDocumentTypes.toString());
-				parameters.put(DOCUMENT_TYPE, document.getType());
+				parameters.put(DOCUMENT_TYPE, documentType);
 				params.getValidationErrors().add(DocumentValidator.class, TYPE_MUST_BE_RELATED_TO_ITS_FOLDER, parameters);
 			}
 		}
