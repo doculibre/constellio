@@ -3,8 +3,6 @@ package com.constellio.model.services.records.cache.cacheIndexHook.impl;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.services.records.RecordId;
 
-import static com.constellio.model.services.records.cache.cacheIndexHook.MetadataIndexCacheDataStoreHookUtils.toIntKey;
-
 public class TaxonomyRecordsHookKey {
 
 	private int principalId;
@@ -14,8 +12,8 @@ public class TaxonomyRecordsHookKey {
 
 	private TaxonomyRecordsHookKey(RecordId principalId, RecordId secondaryConceptId, boolean write,
 								   boolean visible) {
-		this.principalId = principalId == null ? 0 : toIntKey(principalId);
-		this.secondaryConceptId = secondaryConceptId == null ? 0 : toIntKey(secondaryConceptId);
+		this.principalId = principalId == null ? 0 : principalId.intValue();
+		this.secondaryConceptId = secondaryConceptId == null ? 0 : secondaryConceptId.intValue();
 		this.write = write;
 		this.visible = visible;
 	}

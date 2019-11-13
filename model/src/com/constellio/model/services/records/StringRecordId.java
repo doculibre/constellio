@@ -1,16 +1,39 @@
 package com.constellio.model.services.records;
 
-import com.constellio.data.utils.ImpossibleRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class StringRecordId implements RecordId {
 
+	private static Map<Integer, String> mapping = new HashMap<>();
+
+	private int intValue;
 	private String id;
 
 	public StringRecordId(String id) {
 		this.id = id;
+		this.intValue = Math.abs(id.hashCode()) * -1;
+		//The first 100 ids are reserved to handle eventual conflicts
+		if (intValue > -100) {
+			//Handling the zero hashcode
+			intValue -= 101;
+		}
+		String currentStrValue = mapping.get(intValue);
+		if (currentStrValue == null) {
+			synchronized (mapping) {
+				mapping.put(intValue, id);
+			}
+		} else if (!id.equals(currentStrValue)) {
+			throw new IllegalArgumentException("Id '" + id + "' has same hashcode value than id '" + currentStrValue + "' : " + intValue);
+		}
+	}
+
+	public StringRecordId(int id) {
+		this.id = mapping.get(id);
+		this.intValue = id;
 	}
 
 	@Override
@@ -20,7 +43,7 @@ public class StringRecordId implements RecordId {
 
 	@Override
 	public int intValue() {
-		throw new ImpossibleRuntimeException("This id is not an integer : " + id);
+		return intValue;
 	}
 
 	@Override
@@ -73,12 +96,12 @@ public class StringRecordId implements RecordId {
 			return false;
 		}
 		StringRecordId that = (StringRecordId) o;
-		return Objects.equals(id, that.id);
+		return Objects.equals(intValue, that.intValue);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id);
+		return intValue;
 	}
 
 	@Override

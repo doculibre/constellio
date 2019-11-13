@@ -128,7 +128,8 @@ public class CollectionsManager implements StatefulService {
 		}
 	}
 
-	private void createSystemCollection() throws NoMoreCollectionAvalibleException, ConstellioModulesManagerException_ModuleInstallationFailed {
+	private void createSystemCollection()
+			throws NoMoreCollectionAvalibleException, ConstellioModulesManagerException_ModuleInstallationFailed {
 		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
 
 		if (NEW_SYSTEM_MAIN_DATA_LANGUAGE != null) {
@@ -360,6 +361,7 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	void initializeCollection(String collection) {
+		modelLayerFactory.onCollectionInitialized(collection);
 		ConstellioEIM.start(appLayerFactory, collection);
 	}
 

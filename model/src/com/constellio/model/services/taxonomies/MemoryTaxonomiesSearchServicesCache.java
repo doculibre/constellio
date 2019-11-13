@@ -1,5 +1,7 @@
 package com.constellio.model.services.taxonomies;
 
+import com.constellio.model.entities.records.Record;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,6 +72,17 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 	}
 
 	@Override
+	public synchronized Boolean getCachedValue(String username, Record record, String mode) {
+
+		if (username != null && record != null && mode != null) {
+
+			TaxonomyRecordCache taxonomyRecordCache = cache.get(record.getId());
+			return taxonomyRecordCache == null ? null : taxonomyRecordCache.get(username, mode);
+		} else {
+			return null;
+		}
+	}
+
 	public synchronized Boolean getCachedValue(String username, String recordId, String mode) {
 
 		if (username != null && recordId != null && mode != null) {

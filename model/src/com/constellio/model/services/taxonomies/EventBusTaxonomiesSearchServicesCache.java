@@ -5,6 +5,7 @@ import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusListener;
 import com.constellio.data.events.EventBusManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.records.Record;
 
 import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
 
@@ -39,8 +40,8 @@ public class EventBusTaxonomiesSearchServicesCache implements TaxonomiesSearchSe
 	}
 
 	@Override
-	public Boolean getCachedValue(String username, String recordId, String mode) {
-		return nestedCache.getCachedValue(username, recordId, mode);
+	public Boolean getCachedValue(String username, Record record, String mode) {
+		return nestedCache.getCachedValue(username, record, mode);
 	}
 
 	@Override

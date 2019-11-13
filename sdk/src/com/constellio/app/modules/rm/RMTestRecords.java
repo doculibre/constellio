@@ -370,6 +370,7 @@ public class RMTestRecords {
 		this.collection = collection;
 	}
 
+	@Deprecated
 	public RMTestRecords setDevelopperFriendlyIds(boolean developperFriendlyIds) {
 		this.developperFriendlyIds = developperFriendlyIds;
 		return this;

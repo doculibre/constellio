@@ -319,7 +319,7 @@ public class TaxonomiesSearchServicesRewrittenQueryHandler
 	}
 
 	public LinkableTaxonomySearchResponse getVisibleNodesResponse(GetChildrenContext ctx) {
-		boolean childrenOfTaxonomyRecords = ctx.record != null && ctx.isConceptOfNavigatedTaxonomy(ctx.record);
+		boolean childrenOfTaxonomyRecords = ctx.record == null || ctx.isConceptOfNavigatedTaxonomy(ctx.record);
 		List<TaxonomySearchRecord> returnedRecords = new ArrayList<>();
 		if (childrenOfTaxonomyRecords) {
 			//if (ctx.isNonSecurableTaxonomyRecord(ctx.record)) {
@@ -378,6 +378,7 @@ public class TaxonomiesSearchServicesRewrittenQueryHandler
 					null, !ctx.isHiddenInvisibleInTree());
 		}
 
+
 		List<Record> records = searchServices.search(query);
 
 		return records.stream().map(r -> new TaxonomySearchRecord(r, false, true)).collect(toList());
@@ -409,22 +410,19 @@ public class TaxonomiesSearchServicesRewrittenQueryHandler
 			query.setCondition(from(ctx.fromType).where(parentMetadata).isEqualTo(ctx.record));
 		}
 
-		List<Record> concepts = searchServices.search(query);
+		Iterator<Record> conceptsIterator = searchServices.search(query).iterator();
 
 		List<TaxonomySearchRecord> returnedConcepts = new ArrayList<>();
-
-		while (returnedConcepts.size() < ctx.getOptions().getEndRow() + 1) {
-
-			//TODO
+		while (returnedConcepts.size() < ctx.getOptions().getEndRow() + 1 && conceptsIterator.hasNext()) {
+			Record concept = conceptsIterator.next();
+			boolean hasChildren = ctx.hasUserAccessToSomethingInConcept(concept);
+			if (hasChildren) {
+				returnedConcepts.add(new TaxonomySearchRecord(concept, false, hasChildren));
+			}
 		}
 
 		return returnedConcepts;
 	}
-
-	//	private List<TaxonomySearchRecord> findVisibleChildrenOfPrincipalTaxonomyRecord(GetChildrenContext ctx) {
-	//		return null;//return findVisibleChildrenOfTaxonomyRecord(ctx);
-	//	}
-
 
 	protected GetConceptRecordsWithVisibleRecordsResponse getConceptRecordsWithVisibleRecords(
 			GetChildrenContext context) {

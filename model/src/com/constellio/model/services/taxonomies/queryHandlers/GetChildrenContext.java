@@ -5,9 +5,12 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.HasChildrenQueryHandler;
@@ -59,11 +62,12 @@ public class GetChildrenContext {
 					.getClassifiedSchemaTypesIn(taxonomy.getSchemaTypes().get(0));
 		}
 
-		if (record == null) {
-			fromType = schemasManager.getSchemaTypes(taxonomy.getCollection()).getSchemaType(taxonomy.getSchemaTypes().get(0));
-		} else {
-			fromType = schemasManager.getSchemaTypeOf(record);
-		}
+		fromType = schemasManager.getSchemaTypeOf(record);
+
+	}
+
+	public TaxonomyRecordsHookRetriever getTaxonomyHookRetriever() {
+		return getModelLayerFactory().getTaxonomyRecordsHookRetriever(getCollection());
 	}
 
 	public MetadataSchemaType getFromType() {
@@ -87,6 +91,24 @@ public class GetChildrenContext {
 			}
 			principalTaxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(getCollection()).hasSameCode(taxonomy);
 		}
+
+		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		if (record == null) {
+			fromType = schemasManager.getSchemaTypes(taxonomy.getCollection()).getSchemaType(taxonomy.getSchemaTypes().get(0));
+		} else {
+			fromType = schemasManager.getSchemaTypeOf(record);
+		}
+	}
+
+	public boolean hasUserAccessToSomethingInConcept(Record record) {
+		boolean write = Role.WRITE.equals(options.getRequiredAccess());
+		boolean onlyVisible = options.getIncludeStatus() == StatusFilter.ACTIVES;
+		if (taxonomy != null && taxonomy.getSchemaTypes().contains(record.getTypeCode())) {
+			return getTaxonomyHookRetriever().hasUserAccessToSomethingInPrincipalConcept(user, record, write, onlyVisible);
+		} else {
+			return getTaxonomyHookRetriever().hasUserAccessToSomethingInSecondaryConcept(user, record.getRecordId(), write, onlyVisible);
+		}
+
 	}
 
 	public boolean hasPermanentCache() {

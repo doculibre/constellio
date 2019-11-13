@@ -40,6 +40,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHook;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
 import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
 import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
 import com.constellio.model.services.records.cache.eventBus.EventsBusRecordsCachesImpl;
@@ -81,6 +83,8 @@ import java.io.IOException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64;
 
@@ -130,6 +134,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private ThesaurusManager thesaurusManager;
 
 	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
+	private final Map<String, TaxonomyRecordsHookRetriever> taxonomyRecordsHookRetrieverMap = new HashMap<>();
 
 	private final ModelLayerCachesManager modelLayerCachesManager;
 
@@ -227,6 +232,15 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.synonymsConfigurationsManager = add(new SynonymsConfigurationsManager(configManager, collectionsListManager, cacheManager));
 	}
 
+	public void onCollectionInitialized(String collection) {
+		taxonomyRecordsHookRetrieverMap.put(collection, new TaxonomyRecordsHookRetriever(
+				recordsCaches.registerRecordCountHook(collection, new TaxonomyRecordsHook(collection, this)), this));
+	}
+
+	@Override
+	public TaxonomyRecordsHookRetriever getTaxonomyRecordsHookRetriever(String collection) {
+		return taxonomyRecordsHookRetrieverMap.get(collection);
+	}
 
 	public RecordMigrationsManager getRecordMigrationsManager() {
 		return recordMigrationsManager;

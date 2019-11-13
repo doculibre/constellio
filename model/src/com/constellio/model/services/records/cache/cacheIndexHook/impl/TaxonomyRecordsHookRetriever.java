@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache.cacheIndexHook.impl;
 
+import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -23,7 +24,7 @@ import static com.constellio.model.services.records.cache.cacheIndexHook.impl.Ta
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.attachedRecordInPrincipalConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.recordInSecondaryConcept;
 
-public class TaxonomyRecordsHookRetriever {
+public class TaxonomyRecordsHookRetriever implements StatefulService {
 
 	RecordCountHookDataIndexRetriever<TaxonomyRecordsHookKey> retriever;
 	ModelLayerFactory modelLayerFactory;
@@ -115,7 +116,7 @@ public class TaxonomyRecordsHookRetriever {
 		for (SecurityModelAuthorization auth : securityModel.getAuthorizationsToPrincipal(user.getId(), true)) {
 			if (!auth.isSecurableRecord()) {
 				RecordId recordId = auth.getTargetRecordId();
-				if (recordId.isInteger() && ancestorsSelfAndChildren.contains(recordId.intValue())) {
+				if (ancestorsSelfAndChildren.contains(recordId.intValue())) {
 					boolean add = false;
 					ROLES:
 					for (String role : auth.getDetails().getRoles()) {
@@ -152,5 +153,14 @@ public class TaxonomyRecordsHookRetriever {
 		return hasAccessToSomethingClassifiedInConcept(user, principalConcept.getRecordId(), write, onlyVisible, securityModel);
 	}
 
+	@Override
+	public void initialize() {
+
+	}
+
+	@Override
+	public void close() {
+
+	}
 }
 

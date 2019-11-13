@@ -81,9 +81,6 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.cache.RecordsCaches;
-import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHook;
-import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -191,16 +188,13 @@ public class ConstellioEIM {
 	private static void configureBaseAppLayerExtensions(AppLayerFactory appLayerFactory, String collection) {
 		appLayerFactory.getExtensions().forCollection(collection)
 				.pagesComponentsExtensions.add(new CoreUserProfileFieldsExtension(collection, appLayerFactory));
+
 	}
 
 	private static void configureBaseModelLayerExtensions(AppLayerFactory appLayerFactory, String collection) {
 		ModelLayerFactory modelFactory = appLayerFactory.getModelLayerFactory();
 		modelFactory.getExtensions().forCollection(collection)
 				.schemaExtensions.add(new CoreSearchFieldExtension(collection, appLayerFactory));
-
-		RecordsCaches caches = modelFactory.getRecordsCaches();
-		modelFactory.getTaxonomiesSearchServicesCache().add(collection, new TaxonomyRecordsHookRetriever(
-				caches.registerRecordCountHook(collection, new TaxonomyRecordsHook(collection, modelFactory)), modelFactory));
 	}
 
 	private static void configureBaseDataLayerExtensions(AppLayerFactory appLayerFactory, String collection) {

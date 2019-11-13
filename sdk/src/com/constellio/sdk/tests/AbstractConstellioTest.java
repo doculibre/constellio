@@ -1198,10 +1198,18 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	private static Map<Integer, String> preparationNames = new HashMap<>();
 
-	public void prepareSystem(CollectionPreparator... collectionPreparator) {
+	public void prepareSystem(CollectionPreparator... collectionPreparators) {
 
 		HyperTurboMode mode = getHyperturboMode();
-		prepareSystem(mode, collectionPreparator);
+
+		for (CollectionPreparator collectionPreparator : collectionPreparators) {
+			if (collectionPreparator.standardIds) {
+				//Not yet supported - requires to keep mapping of first execution
+				mode = HyperTurboMode.OFF;
+			}
+		}
+
+		prepareSystem(mode, collectionPreparators);
 
 	}
 
@@ -1346,6 +1354,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		Users users;
 		RMTestRecords rmTestRecordsObject;
 		DemoTestRecords demoTestRecordsObject;
+		boolean standardIds;
 		boolean rmTestRecords;
 		boolean demoTestRecords;
 		boolean foldersAndContainersOfEveryStatus;
@@ -1430,6 +1439,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			return this;
 		}
 
+		public CollectionPreparator withRMTestSuingStandardIds(RMTestRecords records) {
+			rmTestRecordsObject = records;
+			records.setDevelopperFriendlyIds(false);
+			rmTestRecords = true;
+			standardIds = true;
+			return this;
+		}
+
 		public CollectionPreparator withRMTest(DemoTestRecords records) {
 			demoTestRecordsObject = records;
 			demoTestRecords = true;
@@ -1509,6 +1526,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		public int hashCode() {
 			int result = (rmTestRecords ? 1 : 0);
 			result = 31 * result + (demoTestRecords ? 1 : 0);
+			result = 31 * result + (standardIds ? 1 : 0);
 			result = 31 * result + (foldersAndContainersOfEveryStatus ? 1 : 0);
 			result = 31 * result + (documentsDecommissioningList ? 1 : 0);
 			result = 31 * result + (events ? 1 : 0);

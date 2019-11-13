@@ -20,6 +20,8 @@ import com.constellio.sdk.tests.setups.Users;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.constellio.model.services.records.RecordId.id;
@@ -33,15 +35,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.joda.time.LocalDate.now;
 
 public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	Users users = new Users();
-
 
 	@Test
 	public void givenUserWithAccessToAnAdministrativeUnitThenValidTokens() throws Exception {
 		Toggle.DEBUG_TAXONOMY_RECORDS_HOOK.enable();
-		records = new RMTestRecords(zeCollection).setDevelopperFriendlyIds(false);
-		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records).withFoldersAndContainersOfEveryStatus());
+		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTestSuingStandardIds(records)
+				.withFoldersAndContainersOfEveryStatus());
 
 		//Improved story telling
 		String abeille = records.folder_A01;
@@ -390,10 +391,19 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenUserWithAccessToAnAdministrativeUnit() throws Exception {
+	public void givenNonStandardIdsAndUserWithAccessToAnAdministrativeUnitThenValidTokens() throws Exception {
 		Toggle.DEBUG_TAXONOMY_RECORDS_HOOK.enable();
-		records = new RMTestRecords(zeCollection).setDevelopperFriendlyIds(false);
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records).withFoldersAndContainersOfEveryStatus());
+
+		Set<Integer> hashCodes = new HashSet<>();
+		getModelLayerFactory().getRecordsCaches().stream().forEach((r) -> {
+			if (!r.getRecordId().isInteger()) {
+				if (!hashCodes.add(r.getRecordId().hashCode())) {
+					System.out.println("Duplicate  : " + r.getRecordId().hashCode());
+				}
+			}
+		});
+
 
 		//Improved story telling
 		String abeille = records.folder_A01;
@@ -522,7 +532,6 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 				recordInSecondaryConcept(id(records.categoryId_X110), true),
 				recordInSecondaryConcept(id(records.categoryId_X100), true),
 				recordInSecondaryConcept(id(records.categoryId_X), true)
-
 		);
 
 		assertThat(hook.getKeys(gabriel.get())).containsOnly(
@@ -743,21 +752,23 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void validateForAllTestUsersOnAllTestConceptsWithStandardIds() throws Exception {
-		records = new RMTestRecords(zeCollection).setDevelopperFriendlyIds(false);
+		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTestSuingStandardIds(records)
+				.withFoldersAndContainersOfEveryStatus());
 		runTestRecordsValidation();
 
 	}
 
 	@Test
 	public void validateForAllTestUsersOnAllTestConceptsWithNonStandardIds() throws Exception {
-		records = new RMTestRecords(zeCollection).setDevelopperFriendlyIds(true);
+		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users)
+				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
 		runTestRecordsValidation();
 
 	}
 
 	private void runTestRecordsValidation() throws RecordServicesException {
-		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records).withFoldersAndContainersOfEveryStatus());
-		TaxonomyRecordsHookRetriever retriever = getModelLayerFactory().getTaxonomiesSearchServicesCache().getRetriever(zeCollection);
+
+		TaxonomyRecordsHookRetriever retriever = getModelLayerFactory().getTaxonomyRecordsHookRetriever(zeCollection);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 
 		getModelLayerFactory().getRecordsCaches().stream(rm.administrativeUnit.schemaType()).sorted(

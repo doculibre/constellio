@@ -44,9 +44,9 @@ public interface RecordId extends Comparable, Serializable {
 		return ids;
 	}
 
-	public static int toIntId(String stringValue) {
+	static int toIntId(String stringValue) {
 		RecordId recordId = toId(stringValue);
-		return recordId.isInteger() ? recordId.intValue() : recordId.hashCode();
+		return recordId.intValue();
 	}
 
 	static RecordId toId(String stringValue) {
@@ -67,6 +67,10 @@ public interface RecordId extends Comparable, Serializable {
 	}
 
 	static RecordId toId(int intValue) {
-		return new IntegerRecordId(intValue);
+		if (intValue < 0) {
+			return new StringRecordId(intValue);
+		} else {
+			return new IntegerRecordId(intValue);
+		}
 	}
 }

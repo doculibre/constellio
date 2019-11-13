@@ -79,11 +79,10 @@ public abstract class AbstractAncestorCalculator extends AbstractMetadataValueCa
 			for (String idToAdd : idsToAdd) {
 				extractIdsAndParentIdsUsingPaths(parameters, paths, intValuesSet, idToAdd);
 			}
-
 			intValues = new ArrayList<>(intValuesSet);
-			intValues.sort(null);
 		}
 
+		intValues.sort(null);
 		return intValues;
 	}
 
@@ -118,6 +117,8 @@ public abstract class AbstractAncestorCalculator extends AbstractMetadataValueCa
 				}
 			}
 		}
+
+		nodes.sort(null);
 
 		return nodes;
 	}

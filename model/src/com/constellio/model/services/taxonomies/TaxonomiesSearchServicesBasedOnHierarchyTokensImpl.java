@@ -121,7 +121,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 												.getSchemaTypes(collection).getSchemaType(forSelectionOfSchemaType);
 
 		GetChildrenContext ctx = new GetChildrenContext(user, null, options, schemaType, taxonomy, modelLayerFactory);
-		if (!ctx.hasPermanentCache()) {
+		if (!ctx.hasPermanentCache() || !modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
 			//Given new cache in v9.0, it is very weird for a taxonomy to not be cached
 			return new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory).getVisibleRootConceptResponse(ctx);
 
