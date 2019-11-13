@@ -502,7 +502,7 @@ public class TaskTable extends VerticalLayout {
 				}
 
 				if (presenter.isCloseButtonEnabled(taskVO)) {
-					rootItem.addItem($("TaskTable.close"), FontAwesome.CLOSE, new Command() {
+					rootItem.addItem($("TaskTable.close"), FontAwesome.TIMES_CIRCLE_O, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
 							presenter.closeButtonClicked(taskVO);
