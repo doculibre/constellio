@@ -1378,16 +1378,29 @@ $popup-view-z-index: 3;
 		margin-top: 7px;
 	}
 
+	.v-button.v-disabled, .v-button-link.v-disabled {
+		opacity: 1;
+    	color: inherit;
+		
+		&:hover {
+    		text-decoration: none;
+		}
+	}
+
 	.clickable-row {
     	.v-table-body {
     		tr, .reference-display {
-    			cursor: pointer;
+    			cursor: pointer !important;
 				color: #696969;
-
+    			
 				&:hover {
-    				color: white;
+    				color: white !important;
     				background-color: #197de1;
     				text-decoration: none;
+    				
+    				.v-button {
+    					color: white !important;
+    				}
     			}
     		}
     	}
@@ -1397,8 +1410,6 @@ $popup-view-z-index: 3;
     	.v-table-body {
 			.v-disabled {
 				text-align: left;
-				opacity: 10%;
-				color: black;
 			}
 				
 			.v-slot-icon-only {
