@@ -247,7 +247,7 @@ public class TaxonomiesTestsUtils {
 	public static boolean ajustIfBetterThanExpected(StackTraceElement[] stackTraceElements, String current,
 													String expected) {
 
-		String filePath = "/Users/francisbaril/Constellio/IdeaProjects/constellio-dev-2019/constellio/sdk/src/com/constellio/model/services/taxonomies";
+		String filePath = "/Users/francisbaril/IdeaProjects/constellio-2019/constellio/sdk/src/com/constellio/model/services/taxonomies";
 
 		boolean betterThanExpected = isBetterThanExpected(current, expected);
 		if (betterThanExpected) {

@@ -10,6 +10,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,6 +60,9 @@ public class TaxonomyRecordsHook implements MetadataIndexCacheDataStoreHook<Taxo
 	@Override
 	public Set<TaxonomyRecordsHookKey> getKeys(Record record) {
 
+		if (record.isLogicallyDeleted()) {
+			return Collections.emptySet();
+		}
 
 		boolean visible = !Boolean.FALSE.equals(record.get(VISIBLE_IN_TREES));
 

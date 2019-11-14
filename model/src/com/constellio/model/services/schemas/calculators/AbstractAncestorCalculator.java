@@ -92,12 +92,19 @@ public abstract class AbstractAncestorCalculator extends AbstractMetadataValueCa
 			String suffix = "/" + idToAdd + "/" + parameters.getId();
 			if (path.endsWith(suffix)) {
 				int secondSlash = path.indexOf("/", 1);
-				String parents = path.substring(secondSlash + 1, path.length() - suffix.length());
-				intValuesSet.add(RecordId.toIntId(idToAdd));
-				if (!parents.isEmpty()) {
-					for (String aParent : parents.split("/")) {
-						intValuesSet.add(RecordId.toIntId(aParent));
+				int from = secondSlash + 1;
+				int to = path.length() - suffix.length();
+
+				if (from < to) {
+					String parents = path.substring(from, to);
+					intValuesSet.add(RecordId.toIntId(idToAdd));
+					if (!parents.isEmpty()) {
+						for (String aParent : parents.split("/")) {
+							intValuesSet.add(RecordId.toIntId(aParent));
+						}
 					}
+				} else {
+					intValuesSet.add(RecordId.toIntId(idToAdd));
 				}
 			}
 		}

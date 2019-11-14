@@ -10,13 +10,17 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordId;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -24,6 +28,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.records.RecordId.id;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.attachedRecordInPrincipalConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalAccessOnRecordInConcept;
@@ -766,6 +771,79 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void test() throws Exception {
+		Toggle.DEBUG_TAXONOMY_RECORDS_HOOK.enable();
+		prepareSystem(
+				withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+
+		inCollection(zeCollection).giveReadAccessTo(admin);
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		UserCredential userCredential = userServices.getUserCredential(aliceWonderland);
+		userServices.addUserToCollection(userCredential, zeCollection);
+
+		AuthorizationsServices authsServices = getModelLayerFactory().newAuthorizationsServices();
+		authsServices = getModelLayerFactory().newAuthorizationsServices();
+		waitForBatchProcess();
+
+		User sasquatch = users.sasquatchIn(zeCollection);
+		User robin = users.robinIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+
+
+		authsServices.add(authorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
+
+		authsServices.add(authorizationForUsers(robin).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
+
+		recordServices.refresh(sasquatch);
+		recordServices.refresh(robin);
+
+		waitForBatchProcess();
+
+		TaxonomyRecordsHook hook = new TaxonomyRecordsHook(zeCollection, getModelLayerFactory());
+		assertThat(hook.getKeys(record("B06"))).containsOnly(
+
+				principalConceptAuthGivingAccessToRecordInSecondaryConceptKey(id(records.unitId_12b), id(records.categoryId_X100), true),
+				principalConceptAuthGivingAccessToRecordInSecondaryConceptKey(id(records.unitId_12b), id(records.categoryId_X), true),
+				principalConceptAuthGivingAccessToRecordInSecondaryConceptKey(id(records.unitId_12), id(records.categoryId_X100), true),
+				principalConceptAuthGivingAccessToRecordInSecondaryConceptKey(id(records.unitId_12), id(records.categoryId_X), true),
+				principalConceptAuthGivingAccessToRecordInSecondaryConceptKey(id(records.unitId_10), id(records.categoryId_X100), true),
+				principalConceptAuthGivingAccessToRecordInSecondaryConceptKey(id(records.unitId_10), id(records.categoryId_X), true),
+
+				principalAccessOnRecordInConcept(sasquatch.getWrappedRecordId(), id(records.unitId_12b), false, true),
+				principalAccessOnRecordInConcept(sasquatch.getWrappedRecordId(), id(records.unitId_12), false, true),
+				principalAccessOnRecordInConcept(sasquatch.getWrappedRecordId(), id(records.unitId_10), false, true),
+
+				principalAccessOnRecordInConcept(sasquatch.getWrappedRecordId(), id(records.categoryId_X100), false, true),
+				principalAccessOnRecordInConcept(sasquatch.getWrappedRecordId(), id(records.categoryId_X), false, true),
+
+				principalAccessOnRecordInConcept(robin.getWrappedRecordId(), id(records.unitId_12b), false, true),
+				principalAccessOnRecordInConcept(robin.getWrappedRecordId(), id(records.unitId_12), false, true),
+				principalAccessOnRecordInConcept(robin.getWrappedRecordId(), id(records.unitId_10), false, true),
+
+				principalAccessOnRecordInConcept(robin.getWrappedRecordId(), id(records.categoryId_X100), false, true),
+				principalAccessOnRecordInConcept(robin.getWrappedRecordId(), id(records.categoryId_X), false, true),
+
+				recordInSecondaryConcept(id(records.categoryId_X100), true),
+				recordInSecondaryConcept(id(records.categoryId_X), true),
+
+				attachedRecordInPrincipalConcept(id(records.unitId_12b), true),
+				attachedRecordInPrincipalConcept(id(records.unitId_12), true),
+				attachedRecordInPrincipalConcept(id(records.unitId_10), true)
+
+		);
+
+
+	}
+
 	private void runTestRecordsValidation() throws RecordServicesException {
 
 		TaxonomyRecordsHookRetriever retriever = getModelLayerFactory().getTaxonomyRecordsHookRetriever(zeCollection);
@@ -819,15 +897,24 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 		}
 
 		Transaction tx = new Transaction();
-		Category unusedCategory = tx.add(rm.newCategory().setCode("test").setTitle("test").setParent(records.categoryId_Z112).setRetentionRules(Arrays.asList(records.ruleId_2)));
-		AdministrativeUnit unusedAdministrativeUnit = tx.add(rm.newAdministrativeUnit().setCode("test").setTitle("test").setParent(records.unitId_10a));
+		Category childrenUnusedCategory = tx.add(rm.newCategory().setCode("1").setTitle("1").setParent(records.categoryId_Z112).setRetentionRules(Arrays.asList(records.ruleId_2)));
+		Category rootUnusedCategory = tx.add(rm.newCategory().setCode("2").setTitle("2").setRetentionRules(Arrays.asList(records.ruleId_1)));
+		Category rootCategoryWithFolder = tx.add(rm.newCategory().setCode("3").setTitle("3").setRetentionRules(Arrays.asList(records.ruleId_1)));
+		AdministrativeUnit childrenUnusedAdministrativeUnit = tx.add(rm.newAdministrativeUnit().setCode("1").setTitle("1").setParent(records.unitId_10a));
+		AdministrativeUnit rootUnusedAdministrativeUnit = tx.add(rm.newAdministrativeUnit().setCode("2").setTitle("2"));
+		AdministrativeUnit rootAdministrativeUnit = tx.add(rm.newAdministrativeUnit().setCode("3").setTitle("3"));
+		tx.add(rm.newFolder().setAdministrativeUnitEntered(rootAdministrativeUnit).setCategoryEntered(rootCategoryWithFolder)
+				.setRetentionRuleEntered(records.ruleId_1).setOpenDate(new LocalDate())).setTitle("Folder at root of taxonomies");
 		getModelLayerFactory().newRecordServices().execute(tx);
 
 		AuthorizationsServices authServices = getModelLayerFactory().newAuthorizationsServices();
-		authServices.add(AuthorizationAddRequest.authorizationForUsers(users.sasquatchIn(zeCollection)).on(unusedAdministrativeUnit).givingReadAccess());
+		authServices.add(AuthorizationAddRequest.authorizationForUsers(users.sasquatchIn(zeCollection)).on(childrenUnusedAdministrativeUnit).givingReadAccess());
+		authServices.add(AuthorizationAddRequest.authorizationForUsers(users.sasquatchIn(zeCollection)).on(rootUnusedAdministrativeUnit).givingReadAccess());
+		authServices.add(AuthorizationAddRequest.authorizationForUsers(users.sasquatchIn(zeCollection)).on(rootAdministrativeUnit).givingReadAccess());
 
 		assertThat(records.getUnit10a().<Integer>getList(Schemas.ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS))
 				.containsOnly(RecordId.toIntId(records.unitId_10), RecordId.toIntId(records.unitId_10a));
+
 
 		for (AdministrativeUnit administrativeUnit : rm.administrativeUnitStream().collect(Collectors.toList())) {
 			for (User user : rm.getAllUsers()) {

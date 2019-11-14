@@ -104,9 +104,14 @@ public class GetChildrenContext {
 		boolean write = Role.WRITE.equals(options.getRequiredAccess());
 		boolean onlyVisible = options.getIncludeStatus() == StatusFilter.ACTIVES;
 		if (taxonomy != null && taxonomy.getSchemaTypes().contains(record.getTypeCode())) {
-			return getTaxonomyHookRetriever().hasUserAccessToSomethingInPrincipalConcept(user, record, write, onlyVisible);
+			if (isPrincipalTaxonomy()) {
+				return getTaxonomyHookRetriever().hasUserAccessToSomethingInPrincipalConcept(user, record, write, onlyVisible);
+			} else {
+				return getTaxonomyHookRetriever().hasUserAccessToSomethingInSecondaryConcept(user, record.getRecordId(), write, onlyVisible);
+			}
 		} else {
-			return getTaxonomyHookRetriever().hasUserAccessToSomethingInSecondaryConcept(user, record.getRecordId(), write, onlyVisible);
+			//Maybe... not worth the calculations
+			return true;
 		}
 
 	}

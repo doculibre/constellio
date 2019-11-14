@@ -123,6 +123,9 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 		GetChildrenContext ctx = new GetChildrenContext(user, null, options, schemaType, taxonomy, modelLayerFactory);
 		if (!ctx.hasPermanentCache() || !modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
 			//Given new cache in v9.0, it is very weird for a taxonomy to not be cached
+			if (Toggle.FORCE_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.isEnabled()) {
+				throw new IllegalArgumentException("Operation not supported");
+			}
 			return new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory).getVisibleRootConceptResponse(ctx);
 
 		} else {
