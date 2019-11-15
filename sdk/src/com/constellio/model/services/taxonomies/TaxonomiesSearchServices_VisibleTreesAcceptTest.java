@@ -163,14 +163,14 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 				.has(recordsInOrder(records.categoryId_X110, records.categoryId_X120, records.folder_A16, records.folder_A17,
 						records.folder_A18, records.folder_B06, records.folder_B32))
 				.has(recordsWithChildren(records.categoryId_X110, records.categoryId_X120, records.folder_A16,
-						records.folder_B06, records.folder_B32))
+						records.folder_A17, records.folder_A18, records.folder_B06, records.folder_B32))
 				.has(numFoundAndListSize(7))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.folder_A16)
 				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
-				.has(noRecordsWithChildren())
+				.has(recordsWithChildren(subFolderId))
 				.has(numFoundAndListSize(4))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
@@ -198,7 +198,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
-				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06", "C32", "B32"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(numFoundAndListSize(9))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
@@ -251,7 +251,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, options)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
-				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06", "C32", "B32"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(numFoundAndListSize(9))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
@@ -292,7 +292,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
-				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
+				.has(recordsWithChildren(records.categoryId_X, "category_Y_id", records.categoryId_Z))
 				.has(numFoundAndListSize(3))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
@@ -719,21 +719,21 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
-				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06", "C32", "B32"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(listSize(9)).has(numFound(9))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 10)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
-				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06", "C32", "B32"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(listSize(9)).has(numFound(9))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 7)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06"))
-				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06"))
 				.has(listSize(7)).has(numFound(9))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
@@ -747,14 +747,14 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 1, 4)
 				.has(recordsInOrder("categoryId_X120", "A16", "A17", "A18"))
-				.has(recordsWithChildren("categoryId_X120", "A16"))
+				.has(recordsWithChildren("categoryId_X120", "A16", "A17", "A18"))
 				.has(listSize(4)).has(numFound(9))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 5)
 				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
-				.has(noRecordsWithChildren())
+				.has(recordsWithChildren(subFolderId))
 				.has(listSize(4)).has(numFound(4))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
@@ -762,7 +762,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 1)
 				.has(recordsInOrder(document1InA16))
 				.has(noRecordsWithChildren())
-				.has(listSize(1)).has(numFound(4))
+				.has(listSize(1)).has(numFoundGreaterThan(1))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
 
@@ -911,7 +911,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 		Folder subFolder1 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
 		Folder subFolder2 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
-
 		getModelLayerFactory().newRecordServices().logicallyDelete(subFolder1.getWrappedRecord(), User.GOD);
 		getModelLayerFactory().newRecordServices().logicallyDelete(subFolder2.getWrappedRecord(), User.GOD);
 
@@ -1039,7 +1038,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 	}
 
 	@Test
-	public void given10000FoldersAndUserHasOnlyAccessToTheLastOnesThenDoesNotIteratorOverAllNodesToFindThem()
+	public void given5000FoldersAndUserHasOnlyAccessToTheLastOnesThenDoesNotIteratorOverAllNodesToFindThemAndUseSolr()
 			throws Exception {
 
 		Folder folderNearEnd = null;
@@ -1047,6 +1046,54 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 		List<Folder> addedRecords = new ArrayList<>();
 
 		int size = 4999;
+		for (int i = 0; i < size; i++) {
+			String paddedIndex = ZeroPaddedSequentialUniqueIdGenerator.zeroPaddedNumber(i);
+			Folder folder = rm.newFolder().setTitle("Dossier #" + paddedIndex).setRetentionRuleEntered(records.ruleId_1)
+					.setCategoryEntered(records.categoryId_X13).setOpenDate(LocalDate.now())
+					.setAdministrativeUnitEntered(records.unitId_10a);
+			addedRecords.add(folder);
+			if (i == size - 2) {
+				folderNearEnd = folder;
+			}
+
+			if (i == size - 1) {
+				subFolderNearEnd = rm.newFolder().setTitle("Sub folder").setParentFolder(folder).setOpenDate(LocalDate.now());
+				addedRecords.add(subFolderNearEnd);
+			}
+		}
+		recordServices.execute(new Transaction().addAll(addedRecords).setOptimisticLockingResolution(EXCEPTION));
+
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(folderNearEnd));
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(subFolderNearEnd));
+		waitForBatchProcess();
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+
+		final AtomicInteger queryCount = new AtomicInteger();
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
+				.add(new BigVaultServerExtension() {
+					@Override
+					public void afterQuery(SolrParams solrParams, long qtime) {
+						queryCount.incrementAndGet();
+					}
+				});
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.sasquatchIn(zeCollection), records.categoryId_X13, withWriteAccess)
+				.has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
+				.has(solrQueryCounts(1, 2, 0))
+				.has(secondCallQueryCounts(1, 2, 0));
+
+	}
+
+
+	@Test
+	public void given1000FoldersAndUserHasOnlyAccessToTheLastOnesThenDoesNotIteratorOverAllNodesToFindThemAndUseCache()
+			throws Exception {
+
+		Folder folderNearEnd = null;
+		Folder subFolderNearEnd = null;
+		List<Folder> addedRecords = new ArrayList<>();
+
+		int size = 999;
 		for (int i = 0; i < size; i++) {
 			String paddedIndex = ZeroPaddedSequentialUniqueIdGenerator.zeroPaddedNumber(i);
 			Folder folder = rm.newFolder().setTitle("Dossier #" + paddedIndex).setRetentionRuleEntered(records.ruleId_1)
@@ -1207,84 +1254,37 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
 						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
 						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-				.has(numFound(40)).has(listSize(20))
-				.has(fastContinuationInfos(false, 20))
-				.has(solrQueryCounts(0, 0, 00))
-				.has(secondCallQueryCounts(0, 0, 0));
-
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
-				options.setStartRow(0).setRows(20).setFastContinueInfos(null))
-				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
-						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
-						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-				.has(numFound(40)).has(listSize(20))
-				.has(fastContinuationInfos(false, 20))
+				.has(numFoundGreaterThan(20)).has(listSize(20))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20))
 				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(40)).has(listSize(20))
-				.has(fastContinuationInfos(false, 30))
-				.has(solrQueryCounts(0, 0, 0))
-				.has(secondCallQueryCounts(0, 0, 0));
-
-		//Calling with an different fast continue (but don't cause any problem since using the cache)
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
-				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
-						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
-						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(40)).has(listSize(20))
-				.has(fastContinuationInfos(false, 30))
+				.has(numFoundGreaterThan(30)).has(listSize(20))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
-				options.setStartRow(0).setRows(30).setFastContinueInfos(null))
+				options.setStartRow(0).setRows(30))
 				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
 						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
 						"category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(60)).has(listSize(30))
-				.has(fastContinuationInfos(false, 30))
-				.has(solrQueryCounts(0, 0, 00))
-				.has(secondCallQueryCounts(0, 0, 0));
-
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(null))
-				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
-						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
-						"category_300"))
-				.has(numFound(300)).has(listSize(11))
-				.has(fastContinuationInfos(true, 0))
-				.has(solrQueryCounts(0, 0, 040))
-				.has(secondCallQueryCounts(0, 0, 0));
-
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
-				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
-						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
-						"category_300"))
-				.has(numFound(300)).has(listSize(11))
-				.has(fastContinuationInfos(true, 0))
+				.has(numFoundGreaterThan(30)).has(listSize(30))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
 
-		//Calling with an different fast continue (but don't cause any problem since using the cache)
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30))
 				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
 						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
 						"category_300"))
 				.has(numFound(300)).has(listSize(11))
-				.has(fastContinuationInfos(true, 0))
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
+
 	}
 
 	@Test
@@ -1390,7 +1390,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), records.categoryId_X13)
 				.has(recordsInOrder("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"))
-				.has(recordsWithChildren("f1", "f2", "f3", "f5", "f6", "f7", "f8"));
+				.has(recordsWithChildren("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"));
 
 		//				.has(solrQueryCounts(0, 0, 0))
 		//				.has(secondsolrQueryCounts(0, 0, 0));
@@ -1477,7 +1477,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), records.categoryId_X13)
 				.has(recordsInOrder("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"))
-				.has(recordsWithChildren("f1", "f2", "f3", "f5", "f6", "f7", "f8"));
+				.has(recordsWithChildren("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"));
 
 
 		//				.has(solrQueryCounts(0, 0, 0))
@@ -1905,7 +1905,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 
 			@Override
 			protected LinkableTaxonomySearchResponse call() {
-				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+				Record inRecord = getModelLayerFactory().newRecordServices().realtimeGetRecordSummaryById(category);
 				LinkableTaxonomySearchResponse response = service
 						.getVisibleChildConceptResponse(user, RMTaxonomies.ADMINISTRATIVE_UNITS, inRecord, options);
 

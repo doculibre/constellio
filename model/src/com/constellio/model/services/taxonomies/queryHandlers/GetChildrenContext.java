@@ -5,6 +5,8 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
@@ -58,11 +60,14 @@ public class GetChildrenContext {
 				hasPermanentCache = cacheConfig != null && cacheConfig.isPermanent();
 			}
 			principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(getCollection()).hasSameCode(taxonomy);
-			classifiedSchemaTypes = schemasManager.getSchemaTypes(taxonomy.getCollection())
-					.getClassifiedSchemaTypesIn(taxonomy.getSchemaTypes().get(0));
+//			classifiedSchemaTypes = schemasManager.getSchemaTypes(taxonomy.getCollection())
+			//					.getClassifiedSchemaTypesIn(taxonomy.getSchemaTypes().get(0));
+
 		}
 
 		fromType = schemasManager.getSchemaTypeOf(record);
+		classifiedSchemaTypes = schemasManager.getSchemaTypes(taxonomy.getCollection())
+				.getClassifiedSchemaTypesIn(fromType.getCode());
 
 	}
 
@@ -98,6 +103,7 @@ public class GetChildrenContext {
 		} else {
 			fromType = schemasManager.getSchemaTypeOf(record);
 		}
+
 	}
 
 	public boolean hasUserAccessToSomethingInConcept(Record record) {
@@ -326,8 +332,10 @@ public class GetChildrenContext {
 
 
 		for (Metadata metadata : classifiedType.getDefaultSchema().getMetadatas()) {
-			if ((metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship())
-				&& fromType.getCode().equals(metadata.getReferencedSchemaType())) {
+			if ((metadata.getType() == MetadataValueType.REFERENCE)
+				&& fromType.getCode().equals(metadata.getReferencedSchemaType())
+				&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
+			) {
 				return metadata;
 			}
 		}

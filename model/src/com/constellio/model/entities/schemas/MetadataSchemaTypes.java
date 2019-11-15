@@ -81,10 +81,22 @@ public class MetadataSchemaTypes implements Serializable {
 			for (MetadataSchemaType anotherType : schemaTypes) {
 				if (type != anotherType) {
 					for (Metadata metadata : anotherType.getDefaultSchema().getMetadatas()) {
-						if (metadata.isTaxonomyRelationship() && type.getCode().equals(metadata.getReferencedSchemaType())) {
+						if ((metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship())
+							&& type.getCode().equals(metadata.getReferencedSchemaType())) {
 							listMap.add(type.getCode(), anotherType);
 						}
 					}
+
+
+				} else {
+					//TODO Retirer cette passe de l'ours
+					for (Metadata metadata : anotherType.getDefaultSchema().getMetadatas()) {
+						if ((metadata.isChildOfRelationship()) && type.getCode().equals(metadata.getReferencedSchemaType())
+							&& type.getCode().equals("folder")) {
+							listMap.add(type.getCode(), anotherType);
+						}
+					}
+
 				}
 			}
 		}
@@ -103,7 +115,8 @@ public class MetadataSchemaTypes implements Serializable {
 	}
 
 	public List<MetadataSchemaType> getClassifiedSchemaTypesIn(String schemaTypeCode) {
-		return classifiedSchemaTypes.get(schemaTypeCode);
+		List<MetadataSchemaType> types = classifiedSchemaTypes.get(schemaTypeCode);
+		return types == null ? Collections.emptyList() : types;
 	}
 
 	public CollectionInfo getCollectionInfo() {

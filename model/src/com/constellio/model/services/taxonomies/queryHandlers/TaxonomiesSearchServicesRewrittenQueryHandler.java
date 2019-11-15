@@ -363,13 +363,33 @@ public class TaxonomiesSearchServicesRewrittenQueryHandler
 
 	private List<TaxonomySearchRecord> findChildrenUsingSolr(
 			GetChildrenContext ctx, MetadataSchemaType classifiedType, Metadata classificationMetadata, int rows) {
-		throw new UnsupportedOperationException("not supported yet");
+		LogicalSearchQuery query = findClassifiedChildrenQuery(ctx, classifiedType, classificationMetadata);
+		query.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR);
+		query.setNumberOfRows(rows);
+
+		List<Record> records = searchServices.search(query);
+
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(ctx.getCollection());
+		return records.stream().map(r -> new TaxonomySearchRecord(r, false, !types.getClassifiedSchemaTypesIn(r.getTypeCode()).isEmpty())).collect(toList());
 	}
 
 	private List<TaxonomySearchRecord> findClassifiedChildrenUsingCache(
 			GetChildrenContext ctx, MetadataSchemaType classifiedType, Metadata classificationMetadata, int rows) {
 
 
+		LogicalSearchQuery query = findClassifiedChildrenQuery(ctx, classifiedType, classificationMetadata);
+		query.setQueryExecutionMethod(QueryExecutionMethod.ENSURE_INDEXED_METADATA_USED);
+		query.setNumberOfRows(rows);
+
+		List<Record> records = searchServices.search(query);
+
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(ctx.getCollection());
+		return records.stream().map(r -> new TaxonomySearchRecord(r, false, !types.getClassifiedSchemaTypesIn(r.getTypeCode()).isEmpty())).collect(toList());
+	}
+
+	@NotNull
+	private LogicalSearchQuery findClassifiedChildrenQuery(GetChildrenContext ctx, MetadataSchemaType classifiedType,
+														   Metadata classificationMetadata) {
 		LogicalSearchCondition condition = from(classifiedType).where(classificationMetadata).isEqualTo(ctx.record);
 
 		if (ctx.isHiddenInvisibleInTree()) {
@@ -377,20 +397,14 @@ public class TaxonomiesSearchServicesRewrittenQueryHandler
 		}
 
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
 		query.filteredByStatus(ctx.getOptions().getIncludeStatus());
 		query.sortAsc(Schemas.TITLE);
-		query.setNumberOfRows(rows);
 		if (ctx.getOptions().getRequiredAccess() != null) {
 			query.filteredWithUserHierarchy(ctx.user, ctx.getOptions().getRequiredAccess(),
 					null, !ctx.isHiddenInvisibleInTree());
 		}
-
-
-		List<Record> records = searchServices.search(query);
-
-		return records.stream().map(r -> new TaxonomySearchRecord(r, false, true)).collect(toList());
+		return query;
 	}
 
 	private static int LIMIT_OF_RECORDS_IN_A_NODE_FOR_USING_CACHE = 2000;

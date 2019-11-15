@@ -15,7 +15,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 
 import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
 
-public class RMMigrationTo9_0_0_3 extends MigrationHelper implements MigrationScript {
+public class RMMigrationTo9_0_0_42 extends MigrationHelper implements MigrationScript {
 
 	@Override
 	public String getVersion() {
@@ -43,6 +43,8 @@ public class RMMigrationTo9_0_0_3 extends MigrationHelper implements MigrationSc
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.DOCUMENTS_TOKENS).setEssentialInSummary(true);
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Schemas.TOKENS_OF_HIERARCHY.getLocalCode()).setEssentialInSummary(true);
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.PARENT_FOLDER).setCacheIndex(true);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.CATEGORY_ENTERED).setCacheIndex(true);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.ADMINISTRATIVE_UNIT_ENTERED).setCacheIndex(true);
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Schemas.PATH_PARTS).setCacheIndex(true);
 
 			typesBuilder.getSchemaType(Document.SCHEMA_TYPE).setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
