@@ -286,9 +286,11 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 
 		VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setSpacing(true);
+		mainLayout.setHeight("100%");
 
-		VerticalLayout textLayout = new VerticalLayout();
-		textLayout.setSizeFull();
+		DocumentViewer documentViewer = new DocumentViewer(presenter.getLastAlertFile());
+		documentViewer.setHeight("100%");
+
 		HorizontalLayout buttonLayout = new HorizontalLayout();
 		buttonLayout.setSpacing(true);
 		buttonLayout.setHeight("50px");
@@ -304,16 +306,14 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 			}
 		};
 		continueButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-		DocumentViewer documentViewer = new DocumentViewer(presenter.getLastAlertFile());
-
-		textLayout.addComponent(documentViewer);
 		buttonLayout.addComponent(continueButton);
 
-		mainLayout.addComponents(textLayout, buttonLayout);
+		mainLayout.addComponents(documentViewer, buttonLayout);
+		mainLayout.setExpandRatio(documentViewer, 9);
+		mainLayout.setExpandRatio(buttonLayout, 1);
 		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
 
 		window.setContent(mainLayout);
-		window.setSizeUndefined();
 		window.center();
 		ConstellioUI.getCurrent().addWindow(window);
 	}
