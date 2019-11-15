@@ -2939,7 +2939,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Abst
 				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
 				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
-				.has(solrQueryCounts(1, 0, 4))
+				.has(solrQueryCounts(0, 0, 0))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z)

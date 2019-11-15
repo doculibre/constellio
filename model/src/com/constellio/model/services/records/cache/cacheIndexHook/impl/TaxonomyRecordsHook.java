@@ -29,10 +29,10 @@ import static java.util.stream.Collectors.toList;
 
 public class TaxonomyRecordsHook implements MetadataIndexCacheDataStoreHook<TaxonomyRecordsHookKey> {
 
-	ModelLayerFactory modelLayerFactory;
-	TaxonomiesManager taxonomiesManager;
-	MetadataSchemasManager schemasManager;
-	String collection;
+	private ModelLayerFactory modelLayerFactory;
+	private TaxonomiesManager taxonomiesManager;
+	private MetadataSchemasManager schemasManager;
+	private String collection;
 
 	public TaxonomyRecordsHook(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
@@ -125,27 +125,4 @@ public class TaxonomyRecordsHook implements MetadataIndexCacheDataStoreHook<Taxo
 		return TaxonomyRecordsHookKey.class;
 	}
 
-	//
-	//	public static void findMatchesInSortedLists(List<Integer> list1, List<Integer> list2, List<RecordId> matches,
-	//												List<RecordId> nonMatchesFromList1) {
-	//
-	//		int index1 = 0;
-	//		int index2 = 0;
-	//
-	//		while (index1 < list1.size() && index2 < list2.size()) {
-	//			Integer v1 = list1.get(index1);
-	//			int result = v1.compareTo(list2.get(index2));
-	//			RecordId id1 = RecordId.toId(v1);
-	//			if (result < 0) {
-	//				nonMatchesFromList1.add(id1);
-	//				index1++;
-	//			} else if (result > 0) {
-	//				index2++;
-	//			} else {
-	//				matches.add(id1);
-	//				index1++;
-	//				index2++;
-	//			}
-	//		}
-	//	}
 }
