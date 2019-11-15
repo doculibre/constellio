@@ -436,14 +436,7 @@ public class TaxonomiesSearchServicesRewrittenQueryHandler
 				showBecauseUseHasAccessToConceptInHierarchy = hasAccessToChildConceptInHierarchy(ctx, concept);
 			}
 
-			//			boolean hasChildren = true;
-			//			if (!showEvenIfNoChild) {
-			//				hasChildren = ctx.hasUserAccessToSomethingInConcept(concept);
-			//			}
-
-
 			boolean hasChildren = true;
-			//TODO Francis : pas sure pour cette condition la
 			if (!showBecauseUseHasAccessToConceptInHierarchy && (ctx.getOptions().getHasChildrenFlagCalculated() != NEVER || !showEvenIfNoChild)) {
 				hasChildren = ctx.hasUserAccessToSomethingInConcept(concept);
 			}
