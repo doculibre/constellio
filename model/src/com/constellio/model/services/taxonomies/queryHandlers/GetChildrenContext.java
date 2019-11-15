@@ -327,7 +327,7 @@ public class GetChildrenContext {
 
 		for (Metadata metadata : classifiedType.getDefaultSchema().getMetadatas()) {
 			if ((metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship())
-				&& classifiedType.equals(metadata.getReferencedSchemaType())) {
+				&& fromType.getCode().equals(metadata.getReferencedSchemaType())) {
 				return metadata;
 			}
 		}

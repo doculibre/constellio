@@ -590,6 +590,13 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
 
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_30, options)
+				.has(recordsInOrder(records.unitId_30c))
+				.has(recordsWithChildren(records.unitId_30c))
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0))
+				.has(secondCallQueryCounts(0, 0, 0));
+
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_12b, options)
 				.has(recordsInOrder("B06"))
 				.has(recordsWithChildren("B06"))

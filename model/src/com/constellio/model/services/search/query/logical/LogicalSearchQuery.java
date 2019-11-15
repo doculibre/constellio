@@ -223,7 +223,6 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 
-
 	public LogicalSearchQuery filteredWithUserHierarchyRead(User user) {
 		if (user == null) {
 			throw new IllegalArgumentException("user required");
@@ -262,7 +261,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 
 	public LogicalSearchQuery filteredWithUserHierarchy(User user, String access, MetadataSchemaType selectedType,
-															boolean includeInvisible) {
+														boolean includeInvisible) {
 		if (user == null) {
 			throw new IllegalArgumentException("user required");
 		}
@@ -699,6 +698,11 @@ public class LogicalSearchQuery implements SearchQuery {
 		public boolean hasUserAccessToRecord(Record record) {
 			SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
 					.newRecordServices().getSecurityModel(user.getCollection());
+
+//			if (!this.showInvisibleRecordsInLinkingMode && Boolean.FALSE.equals(record.get(Schemas.VISIBLE_IN_TREES))) {
+			//				return false;
+			//			}
+
 			String selectedTypeSmallCode = null;
 			if (forSelectionOfSchemaType != null) {
 				selectedTypeSmallCode = forSelectionOfSchemaType.getSmallCode();
@@ -750,6 +754,7 @@ public class LogicalSearchQuery implements SearchQuery {
 					}
 				}
 			}
+
 
 			if (user.isActiveUser()) {
 

@@ -41,7 +41,6 @@ import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCod
 import static com.constellio.model.services.search.StatusFilter.ACTIVES;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_CACHE;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsIn;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsNotIn;
 import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.notDirectChildOf;
@@ -370,9 +369,14 @@ public class TaxonomiesSearchServicesRewrittenQueryHandler
 	private List<TaxonomySearchRecord> findClassifiedChildrenUsingCache(
 			GetChildrenContext ctx, MetadataSchemaType classifiedType, Metadata classificationMetadata, int rows) {
 
-		//SortedIdsStreamer childrenStreamer = new MetadataValueIndexCacheIdsStreamer(classifiedType, classificationMetadata, ctx.record);
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(from(classifiedType).where(classificationMetadata).isEqualTo(ctx.record));
+
+		LogicalSearchCondition condition = from(classifiedType).where(classificationMetadata).isEqualTo(ctx.record);
+
+		if (ctx.isHiddenInvisibleInTree()) {
+			condition = condition.andWhere(VISIBLE_IN_TREES).isTrueOrNull();
+		}
+
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
 		query.filteredByStatus(ctx.getOptions().getIncludeStatus());
@@ -424,8 +428,11 @@ public class TaxonomiesSearchServicesRewrittenQueryHandler
 			//			}
 
 
-			boolean hasChildren = showBecauseUseHasAccessToConceptInHierarchy
-								  || ctx.hasUserAccessToSomethingInConcept(concept);
+			boolean hasChildren = true;
+			//TODO Francis : pas sure pour cette condition la
+			if (!showBecauseUseHasAccessToConceptInHierarchy && (ctx.getOptions().getHasChildrenFlagCalculated() != NEVER || !showEvenIfNoChild)) {
+				hasChildren = ctx.hasUserAccessToSomethingInConcept(concept);
+			}
 
 			if (showEvenIfNoChild || showBecauseUseHasAccessToConceptInHierarchy || hasChildren) {
 				returnedConcepts.add(new TaxonomySearchRecord(concept, false, hasChildren));
@@ -615,7 +622,8 @@ public class TaxonomiesSearchServicesRewrittenQueryHandler
 					ctx.forSelectionOfSchemaType, ctx.options.isShowInvisibleRecordsInLinkingMode()));
 			query.setName("TaxonomiesSearchServices:getNonTaxonomyRecords(" + ctx.username() + ", " + ctx.record.getId() + ")");
 			query.sortAsc(Schemas.TITLE);
-			query.setQueryExecutionMethod(USE_CACHE);
+			query.setQueryExecutionMethod(QueryExecutionMethod.ENSURE_INDEXED_METADATA_USED);
+			query.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
 			records.addAll(searchServices.search(query));
 
 			//			if (ctx.forSelectionOfSchemaType == null
