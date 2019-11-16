@@ -12,7 +12,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 
 	private final static String ALLOWED_HEADERS =
-			"X-Requested-With,Content-Type,Accept,Origin,Constellio-Flushing-Mode,Host,If-Match";
+			"X-Requested-With,Content-Type,Accept,Origin,Constellio-Flushing-Mode,Host,If-Match,ETag";
+	private final static String EXPOSED_HEADERS = "ETag";
 
 	@Test
 	public void givenNotNullCorsAllowedOriginsConfigThenOptionsRequestIsDenied() {
@@ -28,6 +29,7 @@ public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 		assertThat(response.getHeaderString("Access-Control-Allow-Origin")).isNull();
 		assertThat(response.getHeaderString("Access-Control-Allow-Methods")).isNull();
 		assertThat(response.getHeaderString("Access-Control-Allow-Headers")).isNull();
+		assertThat(response.getHeaderString("Access-Control-Expose-Headers")).isNull();
 	}
 
 	@Test
@@ -48,6 +50,7 @@ public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 				.isEqualTo("GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS");
 		assertThat(response.getHeaderString("Access-Control-Allow-Headers"))
 				.isEqualTo(ALLOWED_HEADERS);
+		assertThat(response.getHeaderString("Access-Control-Expose-Headers")).isNull();
 	}
 
 	@Test
@@ -58,6 +61,7 @@ public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 		Response response = newWebTarget("v1/health").request()
 				.header("Origin", "http://www.constellio.com")
 				.header("Access-Control-Request-Method", "HEAD")
+				.header("Access-Control-Request-Headers", "constellio-flushing-mode")
 				.options();
 
 		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
@@ -67,6 +71,31 @@ public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 				.isEqualTo("GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS");
 		assertThat(response.getHeaderString("Access-Control-Allow-Headers"))
 				.isEqualTo(ALLOWED_HEADERS);
+		assertThat(response.getHeaderString("Access-Control-Expose-Headers")).isNull();
+	}
+
+	@Test
+	public void givenNullCorsAllowedOriginsConfigThenSimpleRequestIsAccepted() {
+		givenConfig(RestApiConfigs.CORS_ALLOWED_ORIGINS, null);
+		prepareSystemWithoutHyperTurbo(withZeCollection().withConstellioRMModule().withConstellioRestApiModule());
+
+		Response response = newWebTarget("v1/health").request()
+				.header("Origin", "http://www.constellio.com")
+				.head();
+		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
+		assertThat(response.getHeaderString("Access-Control-Expose-Headers")).isEqualTo(EXPOSED_HEADERS);
+	}
+
+	@Test
+	public void givenWildcardCorsAllowedOriginsConfigThenSimpleRequestIsAccepted() {
+		givenConfig(RestApiConfigs.CORS_ALLOWED_ORIGINS, "*");
+		prepareSystemWithoutHyperTurbo(withZeCollection().withConstellioRMModule().withConstellioRestApiModule());
+
+		Response response = newWebTarget("v1/health").request()
+				.header("Origin", "http://www.constellio.com")
+				.head();
+		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
+		assertThat(response.getHeaderString("Access-Control-Expose-Headers")).isEqualTo(EXPOSED_HEADERS);
 	}
 
 	@Test
@@ -75,6 +104,7 @@ public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 
 		Response response = newWebTarget("v1/health").request().head();
 		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
+		assertThat(response.getHeaderString("Access-Control-Expose-Headers")).isNull();
 	}
 
 }

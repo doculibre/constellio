@@ -149,7 +149,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	public String getFavGroup() {
-		if(params != null) {
+		if (params != null) {
 			return params.get(RMViews.FAV_GROUP_ID_KEY);
 		} else {
 			return null;
@@ -235,22 +235,33 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			List<String> requiredPermissions = new ArrayList<>();
 			FolderStatus status = restrictedFolder.getPermissionStatus();
 			if (status != null && status.isSemiActive()) {
-				requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS);
-				if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
-					requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
+				if (isDuplicateAction) {
+					requiredPermissions.add(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER);
+				} else {
+					requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS);
+					if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
+						requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
+					}
 				}
 			}
 
 			if (status != null && status.isInactive()) {
-				requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS);
-				if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
-					requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
+				if (isDuplicateAction) {
+					requiredPermissions.add(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER);
+				} else {
+					requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS);
+					if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
+						requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
+					}
 				}
 			}
 
-			return user.hasAll(requiredPermissions).on(restrictedFolder) && user.hasWriteAccess().on(restrictedFolder);
+			if (isDuplicateAction) {
+				return user.hasAll(requiredPermissions).on(restrictedRecord) && user.hasReadAccess().on(restrictedFolder);
+			} else {
+				return user.hasAll(requiredPermissions).on(restrictedFolder) && user.hasWriteAccess().on(restrictedFolder);
+			}
 		}
-
 	}
 
 	@Override
@@ -459,7 +470,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	String getTypeFieldValue() {
 		CustomFolderField field = view.getForm().getCustomField(Folder.TYPE);
-		if(field == null) {
+		if (field == null) {
 			return "";
 		}
 		return (String) field.getFieldValue();
@@ -582,7 +593,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		FolderCategoryField categoryField = (FolderCategoryField) view.getForm().getCustomField(Folder.CATEGORY_ENTERED);
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
 		if (categoryField != null && parentFolderField != null) {
-			if(wasParentRemoved) {
+			if (wasParentRemoved) {
 				folderVO.setCategory((String) null);
 				categoryField.setFieldValue(null);
 			}
@@ -627,7 +638,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				Folder.UNIFORM_SUBDIVISION_ENTERED);
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
 		if (uniformSubdivisionField != null) {
-			if(wasParentRemoved) {
+			if (wasParentRemoved) {
 				folderVO.setUniformSubdivision((String) null);
 				uniformSubdivisionField.setFieldValue(null);
 			}
@@ -708,7 +719,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 					retentionRuleField.setVisible(false);
 				}
 
-				if(uniformSubdivisionField != null) {
+				if (uniformSubdivisionField != null) {
 					uniformSubdivisionField.setRequired(false);
 				}
 			}
@@ -774,7 +785,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			boolean validEnteredCopyRule = false;
 			for (CopyRetentionRule applicableCopyRule : applicableCopyRules) {
 				if (applicableCopyRule.getId().equals(folder.getMainCopyRule().getId())) {
-					if(StringUtils.isBlank(field.getFieldValue())) {
+					if (StringUtils.isBlank(field.getFieldValue())) {
 						field.setFieldValue(folder.getMainCopyRule().getId());
 					}
 					validEnteredCopyRule = true;
@@ -831,7 +842,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 															 CustomFolderField currentField) {
 		FolderContainerField containerField = (FolderContainerField) view.getForm().getCustomField(Folder.CONTAINER);
 
-		if(containerField == null) {
+		if (containerField == null) {
 			return;
 		}
 
