@@ -180,14 +180,19 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 					.setContent(minorContent("content2.doc"));
 
 		}
-
+		rm.executeTransaction(tx);
 		createAnInvalidFolder666();
 		movefolder1document2InAnotherCollection();
 
 		File tempFolder = newTempFolder();
 		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
 
-		builder.exportAllFoldersAndDocuments(new ProgressInfo(), getProvider());
+		builder.exportAllFoldersAndDocuments(new ProgressInfo(), new Provider<List<Record>, List<Record>>() {
+			@Override
+			public List<Record> get(List<Record> input) {
+				return input;
+			}
+		});
 
 		assertThat(tempFolder.list()).containsOnly("info", "foldersAndDocuments-001.zip");
 
