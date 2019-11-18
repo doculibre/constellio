@@ -102,17 +102,7 @@ public class TaxonomiesSearchServicesDefaultQueryHandler
 			boolean conceptIsLinkable = isTrueOrNull(child.get(Schemas.LINKABLE));
 
 			if (options.getFilter() != null && options.getFilter().getLinkableConceptsFilter() != null) {
-				conceptIsLinkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams() {
-					@Override
-					public Record getRecord() {
-						return child;
-					}
-
-					@Override
-					public Taxonomy getTaxonomy() {
-						return ctx.getTaxonomy();
-					}
-				});
+				conceptIsLinkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams(child, ctx.getTaxonomy()));
 			}
 
 			if ((readAuthorizationsOnConcept && conceptIsLinkable) || hasVisibleChildren.get()) {
@@ -697,17 +687,7 @@ public class TaxonomiesSearchServicesDefaultQueryHandler
 			if (record.getList(Schemas.PATH_PARTS).contains(concept.getId())) {
 				boolean linkableFlag = LangUtils.isTrueOrNull(record.get(Schemas.LINKABLE));
 				boolean linkableUsingFilter = options.getFilter().getLinkableConceptsFilter()
-						.isLinkable(new LinkableConceptFilterParams() {
-							@Override
-							public Record getRecord() {
-								return record;
-							}
-
-							@Override
-							public Taxonomy getTaxonomy() {
-								return taxonomy;
-							}
-						});
+						.isLinkable(new LinkableConceptFilterParams(record, taxonomy));
 
 				if (linkableFlag && linkableUsingFilter) {
 					return true;
@@ -725,18 +705,7 @@ public class TaxonomiesSearchServicesDefaultQueryHandler
 
 		boolean linkable = LangUtils.isTrueOrNull(record.<Boolean>get(Schemas.LINKABLE));
 		if (linkable && options.getFilter() != null && options.getFilter().getLinkableConceptsFilter() != null) {
-			linkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams() {
-				@Override
-				public Record getRecord() {
-					return record;
-				}
-
-				@Override
-				public Taxonomy getTaxonomy() {
-					return taxonomy;
-				}
-
-			});
+			linkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams(record, taxonomy));
 		}
 		return linkable;
 	}

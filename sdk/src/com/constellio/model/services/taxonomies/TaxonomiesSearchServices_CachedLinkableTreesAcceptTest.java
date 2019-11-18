@@ -1929,7 +1929,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Abst
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A18, withWriteAccess)
 				.is(empty())
-				.has(solrQueryCounts(1, 1, 0))
+				.has(solrQueryCounts(0, 0, 0))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		getModelLayerFactory().newRecordServices().logicallyDelete(records.getFolder_A16().getWrappedRecord(), User.GOD);
@@ -2209,7 +2209,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Abst
 
 	}
 
-	//@Test
+	@Test
 	//TODO FixMe or KillMe!
 	public void givenPlethoraOfFoldersInARubricThenValidGetChildrenResponse()
 			throws Exception {
@@ -2432,16 +2432,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Abst
 			assertThat(responseWithLastInfos.getRecords())
 					.usingElementComparatorOnFields("record.id", "linkable", "hasChildren")
 					.describedAs(desc).isEqualTo(responseWithoutLastInfos.getRecords());
-			assertThat(responseWithLastInfos.getFastContinueInfos().isFinishedConceptsIteration()).describedAs(desc)
-					.isEqualTo(responseWithoutLastInfos.getFastContinueInfos().isFinishedConceptsIteration());
-			assertThat(responseWithLastInfos.getFastContinueInfos().getLastReturnRecordIndex()).describedAs(desc)
-					.isEqualTo(responseWithoutLastInfos.getFastContinueInfos().getLastReturnRecordIndex());
-			assertThat(responseWithLastInfos.getFastContinueInfos().getShownRecordsWithVisibleChildren())
-					.usingElementComparatorOnFields("id").isEqualTo(
-					responseWithoutLastInfos.getFastContinueInfos().getShownRecordsWithVisibleChildren());
-			//			assertThat(utils.toIdList(responseWithLastInfos.getFastContinueInfos().getNotYetShownRecordsWithVisibleChildren()))
-			//					.describedAs(desc).isEqualTo(
-			//					utils.toIdList(responseWithoutLastInfos.getFastContinueInfos().getNotYetShownRecordsWithVisibleChildren()));
 			hasMore = responseWithLastInfos.getNumFound() > start + rows;
 			start += rows;
 		}
@@ -2844,9 +2834,9 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Abst
 		waitForBatchProcess();
 		//Sasquatch
 		assertThatRootWhenSelectingFolderUsingAdministrativeUnitsTaxonomy(sasquatch, options)
-				.has(resultsInOrder(records.unitId_10))
-				.has(itemsWithChildren(records.unitId_10))
-				.has(numFoundAndListSize(1))
+				.has(resultsInOrder(records.unitId_10, records.unitId_20))
+				.has(itemsWithChildren(records.unitId_10, records.unitId_20))
+				.has(numFoundAndListSize(2))
 				.has(solrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(sasquatch, records.unitId_10, options)
