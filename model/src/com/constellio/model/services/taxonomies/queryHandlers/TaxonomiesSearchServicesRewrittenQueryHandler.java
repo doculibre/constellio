@@ -170,22 +170,9 @@ public class TaxonomiesSearchServicesRewrittenQueryHandler
 			Record concept = conceptsIterator.next();
 
 			boolean showEvenIfNoChild = false;
-			boolean showBecauseUseHasAccessToConceptInHierarchy = false;
 			if (ctx.options.isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable()
 				|| ctx.isSelectingAConcept()) {
 				showEvenIfNoChild = hasAccessToConceptNode(ctx, concept);
-				showBecauseUseHasAccessToConceptInHierarchy = hasAccessToChildConceptInHierarchy(ctx, concept);
-			}
-
-			boolean hasChildren = true;
-			if (!showBecauseUseHasAccessToConceptInHierarchy
-				&& (ctx.getOptions().getHasChildrenFlagCalculated() != NEVER || !showEvenIfNoChild)) {
-				if (ctx.isShowingAllVisibleOrSelectingOtherSchemaType(concept.getTypeCode())) {
-					hasChildren = ctx.hasUserAccessToSomethingInConcept(concept);
-
-				} else {
-					hasChildren = showBecauseUseHasAccessToConceptInHierarchy;
-				}
 			}
 
 			boolean linkable = false;
@@ -193,7 +180,27 @@ public class TaxonomiesSearchServicesRewrittenQueryHandler
 				linkable = isLinkable(concept, ctx.taxonomy, ctx.options) && ctx.hasRequiredAccessOn(concept);
 			}
 
-			if (showEvenIfNoChild || showBecauseUseHasAccessToConceptInHierarchy || hasChildren || linkable) {
+			boolean hasChildren = true;
+			boolean calculateHasClassifiedChildren;
+			if (ctx.getOptions().getHasChildrenFlagCalculated() == NEVER) {
+				calculateHasClassifiedChildren = !(linkable || (showEvenIfNoChild && !selectingAConcept));
+
+			} else if (ctx.isSelectingAConcept()) {
+				//ctx.options.isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable() && showEvenIfNoChild &&
+				calculateHasClassifiedChildren = false;
+				hasChildren = hasAccessToChildConceptInHierarchy(ctx, concept);
+
+			} else {
+				calculateHasClassifiedChildren = true;
+			}
+
+
+			if (calculateHasClassifiedChildren) {
+				hasChildren = ctx.hasUserAccessToSomethingInConcept(concept);
+			}
+
+
+			if (hasChildren || linkable || (showEvenIfNoChild && !selectingAConcept)) {
 
 
 				//				boolean linkable = false;
@@ -250,13 +257,42 @@ public class TaxonomiesSearchServicesRewrittenQueryHandler
 
 	private boolean hasAccessToChildConceptInHierarchy(GetChildrenContext ctx, Record concept) {
 
-		LogicalSearchQuery query = queryReturningChildrenConcepts(ctx.getFromType(), concept);
+		//LogicalSearchQuery query = queryReturningChildrenConcepts(ctx.getFromType(), concept);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
+		//TODO Use better cache query
+		query.setCondition(from(ctx.getFromType()).where(Schemas.PATH_PARTS).isEqualTo(concept.getId()));
+
+
+		if (ctx.isSelectingAConcept() && !ctx.getOptions().isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable()) {
+			query.setCondition(query.getCondition().andWhere(Schemas.LINKABLE).isTrueOrNull());
+		}
 
 		if (ctx.isPrincipalTaxonomy()) {
 			query.filteredWithUser(ctx.getUser(), ctx.getOptions().getRequiredAccess());
 		}
 
-		return searchServices.hasResults(query);
+		if (ctx.getOptions().getFilter() != null && ctx.getOptions().getFilter().getLinkableConceptsFilter() != null) {
+			boolean hasLinkableConcept = false;
+			for (Record childConcept : searchServices.search(query)) {
+				hasLinkableConcept |= LangUtils.isTrueOrNull(childConcept.<Boolean>get(Schemas.LINKABLE)) && ctx.getOptions().getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams() {
+					@Override
+					public Record getRecord() {
+						return childConcept;
+					}
+
+					@Override
+					public Taxonomy getTaxonomy() {
+						return ctx.getTaxonomy();
+					}
+				});
+			}
+			return hasLinkableConcept;
+
+		} else {
+			return searchServices.hasResults(query);
+		}
+
 	}
 
 	/*
@@ -315,8 +351,9 @@ public class TaxonomiesSearchServicesRewrittenQueryHandler
 	}
 
 
-	public LinkableTaxonomySearchResponse getLinkableConceptsForSelectionOfAPrincipalTaxonomyConceptBasedOnAuthorizations(
-			GetChildrenContext ctx) {
+	public LinkableTaxonomySearchResponse getLinkableConceptsForSelectionOfAPrincipalTaxonomyConceptBasedOnAuthorizations
+			(
+					GetChildrenContext ctx) {
 		return getVisibleNodesResponse(ctx);
 		//		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(ctx.options);
 		//

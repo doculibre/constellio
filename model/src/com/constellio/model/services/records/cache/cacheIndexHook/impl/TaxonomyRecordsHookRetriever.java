@@ -19,9 +19,9 @@ import java.util.stream.Collectors;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.services.records.RecordId.toId;
+import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.attachedRecordInPrincipalConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalAccessOnRecordInConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalConceptAuthGivingAccessToRecordInSecondaryConceptKey;
-import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.attachedRecordInPrincipalConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.recordInSecondaryConcept;
 
 public class TaxonomyRecordsHookRetriever implements StatefulService {
@@ -74,14 +74,14 @@ public class TaxonomyRecordsHookRetriever implements StatefulService {
 
 	private boolean hasAccessToSomethingClassifiedInConcept(User user, RecordId conceptId, boolean write,
 															boolean onlyVisible, SecurityModel securityModel) {
-		if (retriever.hasRecordsWith(principalAccessOnRecordInConcept(
-				user.getWrappedRecordId(), conceptId, write, onlyVisible))) {
+		if (retriever.hasRecordsWith(principalAccessOnRecordInConcept(user.getWrappedRecordId(), conceptId, write, true))
+			|| (!onlyVisible && retriever.hasRecordsWith(principalAccessOnRecordInConcept(user.getWrappedRecordId(), conceptId, write, false)))) {
 			return true;
 		}
 
 		for (String groupId : securityModel.getGroupsGivingAccessToUser(user.getId())) {
-			if (retriever.hasRecordsWith(principalAccessOnRecordInConcept(
-					toId(groupId), conceptId, write, onlyVisible))) {
+			if (retriever.hasRecordsWith(principalAccessOnRecordInConcept(toId(groupId), conceptId, write, true))
+				|| (!onlyVisible && retriever.hasRecordsWith(principalAccessOnRecordInConcept(toId(groupId), conceptId, write, false)))) {
 				return true;
 			}
 		}
