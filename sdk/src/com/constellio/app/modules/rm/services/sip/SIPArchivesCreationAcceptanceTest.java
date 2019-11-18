@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
@@ -24,17 +25,22 @@ import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.Provider;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserFolder;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.event.EventTestUtil;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
@@ -67,6 +73,9 @@ import static org.assertj.core.api.Assertions.contentOf;
 public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 	public static final String DATE_1 = "10/01/2000 12:00:00";
+	private static final String INCLUDED_IN_SIP_EXPORT_METADATA = "USRincludedInSIPExport";
+	private static final String EXCLUDED_FROM_SIP_EXPORT_METADATA = "USRexcludedFromSIPExport";
+
 	private RMTestRecords records = new RMTestRecords(zeCollection);
 	private Users users = new Users();
 	private RMSchemasRecordsServices rm;
@@ -153,7 +162,6 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	public void whenExportingCollectionFoldersAndDocumentsThenAllExported()
 			throws Exception {
 
-
 		Transaction tx = new Transaction();
 
 		int folderIndex = 0;
@@ -172,15 +180,14 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 					.setContent(minorContent("content2.doc"));
 
 		}
-		rm.executeTransaction(tx);
+
 		createAnInvalidFolder666();
 		movefolder1document2InAnotherCollection();
 
 		File tempFolder = newTempFolder();
 		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
 
-
-		builder.exportAllFoldersAndDocuments(new ProgressInfo());
+		builder.exportAllFoldersAndDocuments(new ProgressInfo(), getProvider());
 
 		assertThat(tempFolder.list()).containsOnly("info", "foldersAndDocuments-001.zip");
 
@@ -210,6 +217,217 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 				"foldersAndDocuments-001.xml", "manifest-sha256.txt", "tagmanifest-sha256.txt"
 		);
 
+	}
+
+	@Test
+	public void givenAFolderNotIncludedInSIPExportWhenExportAllFoldersAndDocumentsThenNothingIsExported()
+			throws IOException, RecordServicesException {
+		File tempFolder = newTempFolder();
+		createSIPExportMetadatas();
+		createRandomFolder(false);
+
+		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
+
+		builder.exportAllFoldersAndDocuments(new ProgressInfo(), getProvider());
+
+		assertThat(new File(tempFolder, "info").list())
+				.containsOnly("failedFolderExport.txt", "exportedFolders.txt", "exportedDocuments.txt");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "failedFolderExport.txt"))).isEmpty();
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).isEmpty();
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt"))).isEmpty();
+	}
+
+	@Test
+	public void givenAFolderIncludedInSIPExportWhenExportAllFoldersAndDocumentsThenExportFolder()
+			throws IOException, RecordServicesException {
+		File tempFolder = newTempFolder();
+		createSIPExportMetadatas();
+		createRandomFolder(true);
+
+		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
+
+		builder.exportAllFoldersAndDocuments(new ProgressInfo(), getProvider());
+
+		assertThat(new File(tempFolder, "info").list())
+				.containsOnly("failedFolderExport.txt", "exportedFolders.txt", "exportedDocuments.txt");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "failedFolderExport.txt"))).isEmpty();
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).contains("zeFolderId");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt"))).isEmpty();
+	}
+
+	@Test
+	public void givenAFolderIncludedInSIPExportWithDocumentAndFolderNotExcludedFromSIPExportWhenExportAllFoldersAndDocumentThenExportAll()
+			throws IOException, RecordServicesException {
+		File tempFolder = newTempFolder();
+		createSIPExportMetadatas();
+		Folder folder = createRandomFolder(true);
+
+		Transaction tx = new Transaction();
+		tx.add(rm.newDocumentWithId("zeDocumentId").setTitle("zeDocumentTitle").setFolder(folder));
+		tx.add(rm.newFolderWithId("zeFolderChildId").setOpenDate(LocalDate.now())
+				.setTitle("Ze folder child")).setParentFolder(folder);
+		rm.executeTransaction(tx);
+
+		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
+
+		builder.exportAllFoldersAndDocuments(new ProgressInfo(), getProvider());
+
+		assertThat(new File(tempFolder, "info").list())
+				.containsOnly("failedFolderExport.txt", "exportedFolders.txt", "exportedDocuments.txt");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "failedFolderExport.txt"))).isEmpty();
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).contains("zeFolderId", "zeFolderChildId");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt"))).contains("zeDocumentId");
+	}
+
+	@Test
+	public void givenAFolderIncludedInSIPExportWithDocumentNotExcludedFromSIPExportAndFolderExcludedFromSIPExportWhenExportAllFoldersAndDocumentThenExporParentFolderAndDocument()
+			throws IOException, RecordServicesException {
+		File tempFolder = newTempFolder();
+		createSIPExportMetadatas();
+		Folder folder = createRandomFolder(true);
+
+		Transaction tx = new Transaction();
+		tx.add(rm.newDocumentWithId("zeDocumentId").setTitle("zeDocumentTitle").setFolder(folder)).set(EXCLUDED_FROM_SIP_EXPORT_METADATA, false);
+		;
+		tx.add(rm.newFolderWithId("zeFolderChildId").setOpenDate(LocalDate.now())
+				.setTitle("Ze folder child")).setParentFolder(folder).set(EXCLUDED_FROM_SIP_EXPORT_METADATA, true);
+		rm.executeTransaction(tx);
+
+		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
+
+		builder.exportAllFoldersAndDocuments(new ProgressInfo(), getProvider());
+
+		assertThat(new File(tempFolder, "info").list())
+				.containsOnly("failedFolderExport.txt", "exportedFolders.txt", "exportedDocuments.txt");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "failedFolderExport.txt"))).isEmpty();
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).contains("zeFolderId");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt"))).contains("zeDocumentId");
+	}
+
+	@Test
+	public void givenAFolderIncludedInSIPExportWithDocumentAndFolderExcludedFromSIPExportWhenExportAllFoldersAndDocumentThenExporJustParentFolder()
+			throws IOException, RecordServicesException {
+		File tempFolder = newTempFolder();
+		createSIPExportMetadatas();
+		Folder folder = createRandomFolder(true);
+
+		Transaction tx = new Transaction();
+		tx.add(rm.newDocumentWithId("zeDocumentId").setTitle("zeDocumentTitle").setFolder(folder)).set(EXCLUDED_FROM_SIP_EXPORT_METADATA, true);
+		;
+		tx.add(rm.newFolderWithId("zeFolderChildId").setOpenDate(LocalDate.now())
+				.setTitle("Ze folder child")).setParentFolder(folder).set(EXCLUDED_FROM_SIP_EXPORT_METADATA, true);
+		rm.executeTransaction(tx);
+
+		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
+
+		builder.exportAllFoldersAndDocuments(new ProgressInfo(), getProvider());
+
+		assertThat(new File(tempFolder, "info").list())
+				.containsOnly("failedFolderExport.txt", "exportedFolders.txt", "exportedDocuments.txt");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "failedFolderExport.txt"))).isEmpty();
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).contains("zeFolderId");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt"))).isEmpty();
+	}
+
+
+	@Test
+	public void givenAFolderNotIncludedInSIPExportWithDocumentAndFolderNotExcludedFromSIPExportWhenExportAllFoldersAndDocumentThenExportNothing()
+			throws IOException, RecordServicesException {
+		File tempFolder = newTempFolder();
+		createSIPExportMetadatas();
+		Folder folder = createRandomFolder(false);
+
+		Transaction tx = new Transaction();
+		tx.add(rm.newDocumentWithId("zeDocumentId").setTitle("zeDocumentTitle").setFolder(folder));
+		tx.add(rm.newFolderWithId("zeFolderChildId").setOpenDate(LocalDate.now())
+				.setTitle("Ze folder child")).setParentFolder(folder);
+		rm.executeTransaction(tx);
+
+		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
+
+		builder.exportAllFoldersAndDocuments(new ProgressInfo(), getProvider());
+
+		assertThat(new File(tempFolder, "info").list())
+				.containsOnly("failedFolderExport.txt", "exportedFolders.txt", "exportedDocuments.txt");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "failedFolderExport.txt"))).isEmpty();
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).isEmpty();
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt"))).isEmpty();
+	}
+
+	private Folder createRandomFolder(Object includedInSipExport) throws RecordServicesException {
+		Transaction tx = new Transaction();
+		Folder folder = rm.newFolderWithId("zeFolderId").setOpenDate(LocalDate.now())
+				.setTitle("Ze folder")
+				.setAdministrativeUnitEntered(records.unitId_10a).setCategoryEntered(records.categoryId_X13)
+				.setRetentionRuleEntered(records.ruleId_1).set(INCLUDED_IN_SIP_EXPORT_METADATA, includedInSipExport);
+		tx.add(folder);
+		rm.executeTransaction(tx);
+		return folder;
+	}
+
+	private void createSIPExportMetadatas() {
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).create(INCLUDED_IN_SIP_EXPORT_METADATA).setType(MetadataValueType.BOOLEAN);
+				types.getSchema(Folder.DEFAULT_SCHEMA).create(EXCLUDED_FROM_SIP_EXPORT_METADATA).setType(MetadataValueType.BOOLEAN);
+				types.getSchema(Document.DEFAULT_SCHEMA).create(EXCLUDED_FROM_SIP_EXPORT_METADATA).setType(MetadataValueType.BOOLEAN);
+			}
+		});
+	}
+
+	private Provider<List<Record>, List<Record>> getProvider() {
+		Provider<List<Record>, List<Record>> provider = new Provider<List<Record>, List<Record>>() {
+			@Override
+			public List<Record> get(List<Record> recordsToFilter) {
+				List<Record> filteredRecords = new ArrayList<>();
+				String includeInExportMetadataCode = INCLUDED_IN_SIP_EXPORT_METADATA;
+				String excludeFromExportMetadataCode = EXCLUDED_FROM_SIP_EXPORT_METADATA;
+				if (includeInExportMetadataCode != null && excludeFromExportMetadataCode != null) {
+					for (Record record : recordsToFilter) {
+						if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
+							Folder folder = rm.wrapFolder(record);
+							if (folder.getParentFolder() == null) {
+								if (folder.get(includeInExportMetadataCode) != null && (Boolean) folder.get(includeInExportMetadataCode) == true) {
+									filteredRecords.add(record);
+								}
+							} else {
+								if (folder.get(excludeFromExportMetadataCode) == null || (Boolean) folder.get(excludeFromExportMetadataCode) != true) {
+									filteredRecords.add(record);
+								}
+							}
+						}
+						if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
+							Document document = rm.wrapDocument(record);
+							if (document.get(excludeFromExportMetadataCode) == null || (Boolean) document.get(excludeFromExportMetadataCode) != true) {
+								filteredRecords.add(record);
+							}
+						}
+					}
+					return filteredRecords;
+				}
+				return recordsToFilter;
+			}
+		};
+		return provider;
 	}
 
 	private void createADocumentInAnInvalidFolder() throws Exception {

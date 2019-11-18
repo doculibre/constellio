@@ -18,6 +18,7 @@ import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.Provider;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -47,6 +48,7 @@ import java.util.zip.Deflater;
 import static com.constellio.app.modules.rm.services.sip.RMSIPUtils.buildCategoryDivisionInfos;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import static java.util.Arrays.asList;
 import static org.apache.commons.io.FileUtils.ONE_GB;
 
 public class RMCollectionExportSIPBuilder {
@@ -222,7 +224,9 @@ public class RMCollectionExportSIPBuilder {
 		}
 	}
 
-	public void exportAllFoldersAndDocuments(ProgressInfo progressInfo) throws IOException {
+	public void exportAllFoldersAndDocuments(ProgressInfo progressInfo,
+											 Provider<List<Record>, List<Record>> sipArchviveFilter)
+			throws IOException {
 
 		progressInfo.setTask("Exporting folders and documents of collection '" + collection + "'");
 		RecordSIPWriter writer = newRecordSIPWriter("foldersAndDocuments", buildCategoryDivisionInfos(rm), progressInfo, true);
@@ -242,29 +246,34 @@ public class RMCollectionExportSIPBuilder {
 				Record folder = folderIterator.next();
 				List<Record> records = new ArrayList<>();
 				records.add(folder);
-				try {
-					SearchResponseIterator<Record> subFoldersIterator = newChildrenIterator(folder);
 
-					while (subFoldersIterator.hasNext()) {
-						records.add(subFoldersIterator.next());
+				if (!sipArchviveFilter.get(asList(folder)).isEmpty()) {
+					try {
+						SearchResponseIterator<Record> subFoldersIterator = newChildrenIterator(folder);
+						List<Record> subFolders = new ArrayList<>();
+						while (subFoldersIterator.hasNext()) {
+							subFolders.add(subFoldersIterator.next());
+						}
+
+						records.addAll(sipArchviveFilter.get(subFolders));
+						writer.add(records);
+						for (Record record : records) {
+							if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
+								exportedFolders.add(record.getId());
+							}
+							if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
+								exportedDocuments.add(record.getId());
+							}
+						}
+
+					} catch (Throwable t) {
+						t.printStackTrace();
+						failedExports.addAll(new RecordUtils().toIdList(records));
 					}
 
-					writer.add(records);
-					for (Record record : records) {
-						if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
-							exportedFolders.add(record.getId());
-						}
-						if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
-							exportedDocuments.add(record.getId());
-						}
-					}
-
-				} catch (Throwable t) {
-					t.printStackTrace();
-					failedExports.addAll(new RecordUtils().toIdList(records));
+					progressInfo.setCurrentState(progressInfo.getCurrentState() + records.size());
 				}
 
-				progressInfo.setCurrentState(progressInfo.getCurrentState() + records.size());
 			}
 
 		} finally {
