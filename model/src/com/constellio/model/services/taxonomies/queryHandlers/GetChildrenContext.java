@@ -20,6 +20,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -37,7 +38,7 @@ public class GetChildrenContext {
 	private boolean hasPermanentCache;
 	ModelLayerFactory modelLayerFactory;
 	boolean principalTaxonomy;
-	List<MetadataSchemaType> classifiedSchemaTypes;
+	List<MetadataSchemaType> classifiedSchemaTypes = Collections.emptyList();
 
 	public GetChildrenContext(User user, Record record, TaxonomiesSearchOptions options,
 							  MetadataSchemaType forSelectionOfSchemaType, ModelLayerFactory modelLayerFactory) {
@@ -60,7 +61,7 @@ public class GetChildrenContext {
 				hasPermanentCache = cacheConfig != null && cacheConfig.isPermanent();
 			}
 			principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(getCollection()).hasSameCode(taxonomy);
-//			classifiedSchemaTypes = schemasManager.getSchemaTypes(taxonomy.getCollection())
+			//			classifiedSchemaTypes = schemasManager.getSchemaTypes(taxonomy.getCollection())
 			//					.getClassifiedSchemaTypesIn(taxonomy.getSchemaTypes().get(0));
 
 		}
@@ -103,12 +104,16 @@ public class GetChildrenContext {
 		} else {
 			fromType = schemasManager.getSchemaTypeOf(record);
 		}
+		classifiedSchemaTypes = schemasManager.getSchemaTypes(fromType.getCollection())
+				.getClassifiedSchemaTypesIn(fromType.getCode());
 
 	}
 
 	public boolean hasUserAccessToSomethingInConcept(Record record) {
 		boolean write = Role.WRITE.equals(options.getRequiredAccess());
-		boolean onlyVisible = options.getIncludeStatus() == StatusFilter.ACTIVES;
+		boolean onlyVisible = options.getIncludeStatus() == StatusFilter.ACTIVES
+							  && (this.forSelectionOfSchemaType == null || !this.getOptions().isShowInvisibleRecordsInLinkingMode());
+
 		if (taxonomy != null && taxonomy.getSchemaTypes().contains(record.getTypeCode())) {
 			if (isPrincipalTaxonomy()) {
 				return getTaxonomyHookRetriever().hasUserAccessToSomethingInPrincipalConcept(user, record, write, onlyVisible);
@@ -127,6 +132,9 @@ public class GetChildrenContext {
 	}
 
 	public boolean hasRequiredAccessOn(Record record) {
+		if (taxonomy != null && taxonomy.getSchemaTypes().contains(record.getTypeCode()) && !isPrincipalTaxonomy()) {
+			return true;
+		}
 		return user.hasRequiredAccess(options.getRequiredAccess()).on(record);
 	}
 
@@ -302,6 +310,27 @@ public class GetChildrenContext {
 
 	public TaxonomiesSearchOptions getOptions() {
 		return options;
+	}
+
+	public String getSelectedSchemaTypeCode() {
+		return forSelectionOfSchemaType == null ? null : forSelectionOfSchemaType.getCode();
+	}
+
+	public boolean isShowingAllVisibleOrSelectingSchemaType(MetadataSchemaType schemaType) {
+		return forSelectionOfSchemaType == null || forSelectionOfSchemaType.getCode().equals(schemaType.getCode());
+	}
+
+	public boolean isShowingAllVisibleOrSelectingSchemaType(String schemaTypeCode) {
+		return forSelectionOfSchemaType == null || forSelectionOfSchemaType.getCode().equals(schemaTypeCode);
+	}
+
+
+	public boolean isShowingAllVisibleOrSelectingOtherSchemaType(MetadataSchemaType schemaType) {
+		return forSelectionOfSchemaType == null || !forSelectionOfSchemaType.getCode().equals(schemaType.getCode());
+	}
+
+	public boolean isShowingAllVisibleOrSelectingOtherSchemaType(String schemaType) {
+		return forSelectionOfSchemaType == null || !forSelectionOfSchemaType.getCode().equals(schemaType);
 	}
 
 	public MetadataSchemaType getForSelectionOfSchemaType() {

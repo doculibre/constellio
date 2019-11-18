@@ -90,6 +90,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 				.withFoldersAndContainersOfEveryStatus()
 		);
 		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.enable();
+		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.enable();
 
 		authsServices = getModelLayerFactory().newAuthorizationsServices();
 		recordServices = getModelLayerFactory().newRecordServices();
