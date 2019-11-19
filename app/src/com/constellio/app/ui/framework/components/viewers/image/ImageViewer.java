@@ -154,7 +154,7 @@ public class ImageViewer extends CustomComponent {
 				setCompositionRoot(compositionRoot);
 
 				setWidth("100%");
-				
+
 				javascriptToExecute = "setTimeout(function() {" + js.toString() + "}, 1)";
 				show();
 			}

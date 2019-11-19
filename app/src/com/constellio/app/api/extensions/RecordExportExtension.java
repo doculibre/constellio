@@ -5,8 +5,8 @@ import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class RecordExportExtension {
 

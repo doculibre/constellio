@@ -4,8 +4,8 @@ import com.constellio.app.conf.PropertiesAppLayerConfiguration.InMemoryAppLayerC
 import com.constellio.data.conf.IdGeneratorType;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;

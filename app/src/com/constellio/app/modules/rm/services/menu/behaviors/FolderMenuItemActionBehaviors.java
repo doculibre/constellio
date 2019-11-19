@@ -408,7 +408,8 @@ public class FolderMenuItemActionBehaviors {
 
 	public void copy(Folder folder, MenuItemActionBehaviorParams params) {
 		Button duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
-				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
+				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy"),
+				WindowConfiguration.modalDialog("50%", "20%")) {
 			@Override
 			protected Component buildWindowContent() {
 				BaseButton folderButton = new BaseButton($("DisplayFolderView.folderOnly")) {
@@ -451,16 +452,11 @@ public class FolderMenuItemActionBehaviors {
 				cancel.addStyleName(ValoTheme.BUTTON_LINK);
 
 				HorizontalLayout layout = new HorizontalLayout(folderButton, structure, cancel);
-				layout.setComponentAlignment(folderButton, Alignment.TOP_LEFT);
-				layout.setComponentAlignment(structure, Alignment.TOP_LEFT);
-				layout.setComponentAlignment(cancel, Alignment.TOP_RIGHT);
-				layout.setExpandRatio(cancel, 1);
-
-				layout.setWidth("95%");
 				layout.setSpacing(true);
 
 				VerticalLayout wrapper = new VerticalLayout(layout);
 				wrapper.setSizeFull();
+				wrapper.setComponentAlignment(layout, Alignment.MIDDLE_CENTER);
 
 				return wrapper;
 			}

@@ -18,6 +18,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
@@ -119,8 +120,12 @@ public class SearchResultDisplay extends VerticalLayout {
 	}
 
 	private void init() {
-		addStyleName(RECORD_STYLE);
 		setWidth("50px");
+
+		addStyleName(RECORD_STYLE);
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(searchResultVO.getRecordVO().getSchema().getCode());
+		String schemaStyleName = RECORD_STYLE + "-" + schemaTypeCode;
+		addStyleName(schemaStyleName);
 
 		addTitleComponents();
 		addResultIndex();
@@ -157,9 +162,9 @@ public class SearchResultDisplay extends VerticalLayout {
 		if (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
 			&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
 			//			titleLink.setWidth("90%");
-			
+
 			addStyleName("search-result-with-elevation-buttons");
-			
+
 			boolean isElevated = searchConfigurationsManager.isElevated(currentSessionContext.getCurrentCollection(), query, record.getId());
 
 			Resource elevateIcon = isElevated ? FontAwesome.ARROW_CIRCLE_O_DOWN : FontAwesome.ARROW_CIRCLE_O_UP;

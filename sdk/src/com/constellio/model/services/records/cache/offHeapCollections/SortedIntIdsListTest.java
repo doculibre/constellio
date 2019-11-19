@@ -15,10 +15,10 @@ public class SortedIntIdsListTest extends ConstellioTest {
 	private static int smallTestedCapacity = (int) (SortedIntIdsList.INITIAL_SIZE * Math.pow(SortedIntIdsList.RESIZE_FACTOR, 5));
 	private static int largeTestedCapacity = (int) (SortedIntIdsList.INITIAL_SIZE * Math.pow(SortedIntIdsList.RESIZE_FACTOR, 7));
 
-//	@Before
-//	public void validateNotWritingOutsideOfReservedMemory() {
-//		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
-//	}
+	//	@Before
+	//	public void validateNotWritingOutsideOfReservedMemory() {
+	//		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
+	//	}
 
 	@Test
 	public void whenAddingItemsAtFirstIndexThenAlwaysValid() {

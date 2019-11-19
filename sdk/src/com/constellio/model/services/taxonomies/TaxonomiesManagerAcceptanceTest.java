@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
@@ -140,7 +141,7 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 		List<String> taxoGroups = asList("group1", "group2");
 
 		Taxonomy taxonomy1 = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
-		Taxonomy taxonomy2 = new Taxonomy("2", labelTitle2, "collection1", false, taxoUsers, taxoGroups, asList("anotherSchemaType"),
+		Taxonomy taxonomy2 = new Taxonomy("2", labelTitle2, emptyMap(), "collection1", false, taxoUsers, taxoGroups, asList("anotherSchemaType"),
 				true);
 
 		taxonomiesManager.addTaxonomy(taxonomy1, schemasManager);

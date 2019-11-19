@@ -51,12 +51,13 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 	public static final String REMOVE_BUTTON_STYLE_NAME = STYLE_NAME + "-remove-button";
 	public static final String TABLE_STYLE_NAME = STYLE_NAME + "-table";
 	public static final String VALUES_STYLE_NAME = STYLE_NAME + "-values";
-	private static final String CAPTION_PROPERTY_ID = "caption";
+	protected static final String CAPTION_PROPERTY_ID = "caption";
 	private VerticalLayout mainLayout;
 	private HorizontalLayout addEditFieldLayout;
 	protected F addEditField;
 	private Button addButton;
-	private ButtonsContainer<ValuesContainer> valuesAndButtonsContainer;
+	protected ButtonsContainer<ValuesContainer> valuesAndButtonsContainer;
+	protected ValuesContainer valuesContainer;
 	protected Table valuesTable;
 	private Converter<String, T> itemConverter;
 	private boolean delayedFocus = false;
@@ -220,7 +221,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 	}
 
 	@SuppressWarnings("unchecked")
-	private void notifyValueChange() {
+	protected void notifyValueChange() {
 		if (!isBuffered() && getPropertyDataSource() != null) {
 			getPropertyDataSource().setValue(getInternalValue());
 		} else {
@@ -308,7 +309,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		addButton.addStyleName(ADD_BUTTON_STYLE_NAME);
 		addButton.setVisible(isAddButtonVisible());
 
-		ValuesContainer valuesContainer = new ValuesContainer(new ArrayList<T>());
+		setValuesContainer();
 		valuesAndButtonsContainer = new ButtonsContainer(valuesContainer);
 
 		if (isEditPossible()) {
@@ -380,6 +381,10 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 			setValue(newFieldValue);
 		}
 		return mainLayout;
+	}
+
+	protected void setValuesContainer() {
+		valuesContainer = new ValuesContainer(new ArrayList<T>());
 	}
 
 	protected boolean isAddEditFieldVisible() {
@@ -538,7 +543,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		return caption;
 	}
 
-	private class ValuesContainer extends IndexedContainer {
+	protected class ValuesContainer extends IndexedContainer {
 
 		public ValuesContainer(List<T> values) {
 			super(values);

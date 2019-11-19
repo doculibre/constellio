@@ -46,7 +46,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	File rootFolder;
 
 	File vaultRecoveryFolder;
-	
+
 	@VisibleForTesting
 	File replicatedRootFolder;
 

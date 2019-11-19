@@ -323,6 +323,10 @@ public class Transaction {
 		return recordUpdateOptions.isSkippingReferenceToLogicallyDeletedValidation();
 	}
 
+	public boolean isSkippingUserAccessValidation() {
+		return recordUpdateOptions.isSkipUserAccessValidation();
+	}
+
 	public Transaction setSkippingRequiredValuesValidation(boolean skippingRequiredValuesValidation) {
 		recordUpdateOptions.setSkippingRequiredValuesValidation(skippingRequiredValuesValidation);
 		return this;

@@ -24,6 +24,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 public class TasksSearchServices {
 	TasksSchemasRecordsServices tasksSchemas;
@@ -69,9 +70,22 @@ public class TasksSearchServices {
 								where(tasksSchemas.userTask.assignee()).isNull(),
 								anyConditions(
 										where(tasksSchemas.userTask.assigneeGroupsCandidates()).isIn(user.getUserGroups()),
-										where(tasksSchemas.userTask.assigneeUsersCandidates()).isEqualTo(user)
+										where(tasksSchemas.userTask.assigneeUsersCandidates()).isContaining(asList(user))
 								)
 						)
+				));
+		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
+	}
+
+	public LogicalSearchQuery getTasksSharedToUserQuery(User user) {
+		LogicalSearchCondition condition = from(tasksSchemas.userTask.schemaType()).whereAllConditions(
+				where(tasksSchemas.userTask.isModel()).isFalseOrNull(),
+				where(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()),
+				where(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS),
+				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
+				anyConditions(
+						where(tasksSchemas.userTask.taskCollaboratorsGroups()).isIn(user.getUserGroups()),
+						where(tasksSchemas.userTask.taskCollaborators()).isContaining(asList(user))
 				));
 		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}

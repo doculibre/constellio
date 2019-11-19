@@ -124,6 +124,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			super(schemaCode);
 		}
 
+		public Metadata abbreviation() {
+			return metadata("abbreviation");
+		}
+
 		public Metadata adress() {
 			return metadata("adress");
 		}
@@ -298,6 +302,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	public class SchemaTypeShortcuts_category_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_category_default(String schemaCode) {
 			super(schemaCode);
+		}
+
+		public Metadata abbreviation() {
+			return metadata("abbreviation");
 		}
 
 		public Metadata code() {

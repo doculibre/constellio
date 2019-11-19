@@ -37,7 +37,7 @@ public class NiceTitle extends AbstractExtension {
 		
 		super.setParent(parent);
 		this.component = (Component) parent;
-		
+
 		if (component != null) {
 			boolean emptyTitle = StringUtils.isBlank(title) || "null".equals(title);
 			boolean alreadyApplied = component.getDescription() != null && component.getDescription().equals(title);

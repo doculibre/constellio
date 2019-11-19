@@ -94,6 +94,8 @@ Schemas {
 	public static final Metadata ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS = add(new Metadata(-49, "attachedPrincipalAncestorsIntIds_is", INTEGER, true));
 	public static final Metadata PRINCIPALS_ANCESTORS_INT_IDS = add(new Metadata(-50, "principalAncestorsIntIds_is", INTEGER, true));
 
+	public static final Metadata ABBREVIATION = new Metadata(-48, "abbreviation_s", STRING, false);
+
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();
 		if (localCode.startsWith("USR") || localCode.startsWith("MAP")) {

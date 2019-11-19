@@ -77,7 +77,7 @@ public class ContentImpl implements Content {
 	public static ContentImpl createWithVersion(String id, User user, String filename,
 												ContentVersionDataSummary newVersion,
 												String version, boolean empty) {
-		version = validateVersion(version, null, false);
+		version = validateVersion(version, null, false, false);
 		validateArgument("id", id);
 		validateUserArgument(user);
 		validateFilenameArgument(filename);
@@ -166,11 +166,12 @@ public class ContentImpl implements Content {
 		}
 	}
 
-	private static String validateVersion(String version, String currentVersionLabel, boolean empty) {
+	private static String validateVersion(String version, String currentVersionLabel, boolean empty,
+										  boolean overwrite) {
 		try {
 			if (!empty && currentVersionLabel != null && version != null) {
 				Integer versionCompare = versionCompare(currentVersionLabel, version);
-				if (versionCompare >= 0) {
+				if (versionCompare > 0 || (versionCompare == 0 && !overwrite)) {
 					throw new ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion(version, currentVersionLabel);
 				}
 			}
@@ -248,8 +249,7 @@ public class ContentImpl implements Content {
 		if (emptyVersion) {
 			currentVersion = currentCheckedOutVersion;
 			emptyVersion = false;
-
-		} else if (!currentCheckedOutVersion.getVersion().equals(currentVersion.getVersion())) {
+		} else if (!currentCheckedOutVersion.getHash().equals(currentVersion.getHash())) {
 			setNewCurrentVersion(currentCheckedOutVersion);
 		}
 		this.currentCheckedOutVersion = null;
@@ -426,8 +426,13 @@ public class ContentImpl implements Content {
 	@Override
 	public Content updateContentWithVersionAndName(User user, ContentVersionDataSummary newVersion, String version,
 												   String name) {
+		return updateContentWithVersionAndName(user, newVersion, version, name, false);
+	}
+
+	private Content updateContentWithVersionAndName(User user, ContentVersionDataSummary newVersion, String version,
+													String name, boolean overwrite) {
 		ensureNotCheckedOut();
-		version = validateVersion(version, currentVersion.getVersion(), isEmptyVersion());
+		version = validateVersion(version, currentVersion.getVersion(), isEmptyVersion(), overwrite);
 		validateUserArgument(user);
 		valdiateNewVersionArgument(newVersion);
 		LocalDateTime now = TimeProvider.getLocalDateTime();
@@ -441,6 +446,12 @@ public class ContentImpl implements Content {
 		}
 		this.dirty = true;
 		return this;
+	}
+
+	@Override
+	public Content replaceCurrentVersionContent(User user, ContentVersionDataSummary newVersion) {
+		return updateContentWithVersionAndName(user, newVersion, currentVersion.getVersion(),
+				currentVersion.getFilename(), true);
 	}
 
 	public Content updateContent(User user, ContentVersionDataSummary newVersion, boolean finalize) {
@@ -468,13 +479,19 @@ public class ContentImpl implements Content {
 		return dirty;
 	}
 
+	@Override
 	public ContentImpl updateCheckedOutContentWithName(ContentVersionDataSummary newVersion, String name) {
+		return updateCheckedOutContentWithName(newVersion, name, false);
+	}
+
+	private ContentImpl updateCheckedOutContentWithName(ContentVersionDataSummary newVersion, String name,
+														boolean overwrite) {
 		ensureCheckedOut();
 		valdiateNewVersionArgument(newVersion);
 		String correctedFilename = correctFilename(name);
 		String version = currentCheckedOutVersion.getVersion();
 
-		if (!emptyVersion && version.equals(getCurrentVersion().getVersion())) {
+		if (!emptyVersion && !overwrite && version.equals(getCurrentVersion().getVersion())) {
 			version = getNextVersion(false);
 		}
 
@@ -487,6 +504,11 @@ public class ContentImpl implements Content {
 
 	public ContentImpl updateCheckedOutContent(ContentVersionDataSummary newVersion) {
 		return updateCheckedOutContentWithName(newVersion, getCurrentCheckedOutVersion().getFilename());
+	}
+
+	@Override
+	public Content replaceCheckedOutContent(ContentVersionDataSummary newVersion) {
+		return updateCheckedOutContentWithName(newVersion, getCurrentCheckedOutVersion().getFilename(), true);
 	}
 
 	public ContentImpl finalizeVersion() {
@@ -601,10 +623,25 @@ public class ContentImpl implements Content {
 		return emptyVersion;
 	}
 
+	@Override
+	public boolean isCheckedOut() {
+		return checkoutUserId != null;
+	}
+
 	private void setNewCurrentVersion(ContentVersion version) {
 		ensureHistoryIsLoaded();
 		if (currentVersion != null) {
-			history.add(currentVersion);
+			boolean exists = false;
+			for (int i = 0; i < history.size(); i++) {
+				if (history.get(i).getVersion().equals(currentVersion.getVersion())) {
+					history.set(i, currentVersion);
+					exists = true;
+					break;
+				}
+			}
+			if (!exists) {
+				history.add(currentVersion);
+			}
 		}
 		currentVersion = version;
 	}

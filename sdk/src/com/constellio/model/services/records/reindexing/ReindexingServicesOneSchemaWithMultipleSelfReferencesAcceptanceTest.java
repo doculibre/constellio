@@ -226,7 +226,10 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		Map<Language, String> labelTitle1 = new HashMap<>();
 		labelTitle1.put(Language.French, "ze taxo");
 
-		Taxonomy taxonomy = new Taxonomy("taxo", labelTitle1, zeCollection, zeSchema.typeCode());
+		Map<Language, String> labelAbv1 = new HashMap<>();
+		labelTitle1.put(Language.French, "ze");
+
+		Taxonomy taxonomy = new Taxonomy("taxo", labelTitle1, labelAbv1, zeCollection, zeSchema.typeCode());
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy, metadataSchemasManager);
 		getModelLayerFactory().getTaxonomiesManager().setPrincipalTaxonomy(taxonomy, metadataSchemasManager);

@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsView.UserFolderBreadcrumbItem;
@@ -9,9 +8,13 @@ import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.UserDocumentVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserDocumentToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserFolderToVOBuilder;

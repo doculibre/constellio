@@ -91,6 +91,11 @@ public class RecordToVOBuilder implements Serializable {
 		for (MetadataVO metadataVO : metadatas) {
 			String metadataCode = metadataVO.getCode();
 
+			// Recreated in newRecordVO override
+			if (metadataVO.isSynthetic()) {
+				continue;
+			}
+
 			Metadata metadata;
 			if (metadataVO.getId() != 0) {
 				metadata = schema.getMetadataById(metadataVO.getId());

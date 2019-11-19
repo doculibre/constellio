@@ -18,9 +18,13 @@ import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.DragAndDropWrapper;
 
 import java.util.ArrayList;
 import java.util.List;

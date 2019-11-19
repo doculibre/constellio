@@ -7,7 +7,6 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;

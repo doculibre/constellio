@@ -19,6 +19,7 @@ import com.vaadin.data.util.BeanItem;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -65,7 +66,7 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 	private Layout buildOwnedCartsTab() {
 		VerticalLayout tabLayout = new VerticalLayout();
 		tabLayout.setCaption($("CartView.ownedCarts"));
-		Button addButton = new WindowButton($("add"), $("CartsListView.creatingCart")) {
+		Button addButton = new WindowButton(FontAwesome.STAR, $("CartsListView.addAFavorite"), $("CartsListView.creatingCart")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();

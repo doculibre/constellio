@@ -181,14 +181,18 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		groupIds.add("heroes");
 		groupIds.add("legends");
 		String title = "Taxo1";
+		String abv = "T1";
 
 		Map<Language, String> labelTitle = new HashMap<>();
 		labelTitle.put(Language.French, "Taxo1");
 
+		Map<Language, String> labelAbv = new HashMap<>();
+		labelTitle.put(Language.French, "T1");
 
-		Taxonomy taxonomy1 = services.createTaxonomy(labelTitle, userIds, groupIds, true, true);
+		Taxonomy taxonomy1 = services.createTaxonomy(labelTitle, labelAbv, userIds, groupIds, true, true);
 
 		assertThat(taxonomy1.getTitle().get(Language.French)).isEqualTo(title);
+		assertThat(taxonomy1.getAbbreviation().get(Language.French)).isEqualTo(abv);
 		assertThat(taxonomy1.getUserIds()).isEqualTo(userIds);
 		assertThat(taxonomy1.getGroupIds()).isEqualTo(groupIds);
 		assertThat(taxonomy1.getSchemaTypes()).containsOnlyOnce(taxonomy1.getCode() + "Type");
@@ -229,8 +233,11 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		Map<Language, String> labelTitle = new HashMap<>();
 		labelTitle.put(Language.French, "Ze ultimate taxo!");
 
-		Taxonomy zeTaxo = services
-				.createTaxonomy("zeTaxo", labelTitle, new ArrayList<String>(), new ArrayList<String>(), true, true);
+		Map<Language, String> labelAbv = new HashMap<>();
+		labelTitle.put(Language.French, "ultimate");
+
+		Taxonomy zeTaxo = services.createTaxonomy("zeTaxo", labelTitle, labelAbv, new ArrayList<>(), new ArrayList<>(),
+				true, true);
 
 		Metadata referenceMetadata = services
 				.createAMultivalueClassificationMetadataInGroup(zeTaxo, Folder.SCHEMA_TYPE, "ZeMagicGroup", "Ze Magic Group");
@@ -264,7 +271,8 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		Map<Language, String> labelTitle = new HashMap<>();
 		labelTitle.put(Language.French, "Ze ultimate taxo!");
 
-		Taxonomy zeTaxo = services.createTaxonomy(labelTitle, new ArrayList<String>(), new ArrayList<String>(), true, true);
+		Taxonomy zeTaxo = services.createTaxonomy(labelTitle, new HashMap<>(), new ArrayList<>(), new ArrayList<>(),
+				true, true);
 
 		services.createAMultivalueClassificationMetadataInGroup(zeTaxo, Folder.SCHEMA_TYPE, "ZeMagicGroup", "Ze Magic Group");
 
@@ -299,7 +307,8 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		Map<Language, String> labelTitle = new HashMap<>();
 		labelTitle.put(Language.French, "Ze ultimate taxo!");
 
-		Taxonomy zeTaxo = services.createTaxonomy(labelTitle, new ArrayList<String>(), new ArrayList<String>(), true, true);
+		Taxonomy zeTaxo = services.createTaxonomy(labelTitle, new HashMap<>(), new ArrayList<>(), new ArrayList<>(),
+				true, true);
 
 		MetadataSchemaTypesBuilder types = schemasManager.modify(zeCollection);
 		MetadataSchemaTypeBuilder zeTaxoSchemaType = types.getSchemaType(zeTaxo.getSchemaTypes().get(0));

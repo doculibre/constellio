@@ -22,6 +22,8 @@ import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
+import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorItem;
+import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorsGroupItem;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
@@ -129,6 +131,12 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 		return task;
 	}
 
+	@Override
+	public void addCollaborators(List<TaskCollaboratorItem> taskCollaboratorItems,
+								 List<TaskCollaboratorsGroupItem> taskCollaboratorsGroupItems, RecordVO taskVO) {
+		taskPresenterServices.modifyCollaborators(taskCollaboratorItems, taskCollaboratorsGroupItems, taskVO, schemaPresenterUtils);
+	}
+
 	public void afterCompletionActions() {
 		if (rmModuleExtensions != null) {
 			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
@@ -143,6 +151,16 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 				extension.beforeCompletionActions(task);
 			}
 		}
+	}
+
+	@Override
+	public boolean currentUserIsCollaborator(RecordVO recordVO) {
+		return taskPresenterServices.currentUserIsCollaborator(recordVO, getCurrentUserId());
+	}
+
+	@Override
+	public boolean currentUserHasWriteAuthorization(RecordVO taskVO) {
+		return getCurrentUser().hasWriteAccess().on(taskVO.getRecord());
 	}
 
 	public RecordVO getTaskVO() {

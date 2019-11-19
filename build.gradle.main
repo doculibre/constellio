@@ -83,6 +83,7 @@ allprojects {
         exclude group: 'com.google.gwt', module: 'gwt-user'
         exclude group: 'com.vaadin.external.gwt', module: 'gwt-elemental'
         exclude group: 'com.vaadin.external.gwt', module: 'gwt-dev'
+        exclude group: 'com.sun.jersey'
 
         resolutionStrategy {
             force 'org.apache.hadoop:hadoop-common:3.0.3'

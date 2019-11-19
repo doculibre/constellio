@@ -5,7 +5,6 @@ import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningLis
 import com.constellio.app.modules.rm.ui.pages.reports.RMNewReportsPresenter;
 import com.constellio.app.ui.framework.components.DecommissioningListReportSelector;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
-import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;

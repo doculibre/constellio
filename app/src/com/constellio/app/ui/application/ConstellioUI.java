@@ -148,7 +148,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 		Responsive.makeResponsive(this);
 		addStyleName(ValoTheme.UI_WITH_MENU);
-		
+
 		int tooltipDelay = 50;
 		getTooltipConfiguration().setOpenDelay(tooltipDelay);
 		getTooltipConfiguration().setQuickOpenDelay(tooltipDelay);

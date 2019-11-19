@@ -121,7 +121,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		menuContent.addStyleName("no-horizontal-drag-hints");
 		menuContent.setWidth(null);
 		menuContent.setHeight("100%");
-		
+
 		Component mainMenu = buildMainMenu();
 		Component toggleButton = buildToggleButton();
 		Component versionInfoLabel = buildVersionInfoComponent();
@@ -131,9 +131,9 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		menuContent.addComponent(toggleButton);
 		menuContent.addComponent(versionInfoLabel);
 		menuContent.addComponent(userMenu);
-		
+
 		menuContent.setExpandRatio(mainMenu, 1);
-//		menuContent.setComponentAlignment(userMenu, Alignment.BOTTOM_CENTER);
+		//		menuContent.setComponentAlignment(userMenu, Alignment.BOTTOM_CENTER);
 
 		return menuContent;
 	}
@@ -150,8 +150,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		valoMenuToggleButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		valoMenuToggleButton.addStyleName(ValoTheme.BUTTON_SMALL);
 		return valoMenuToggleButton;
-	}		
-	
+	}
+
 	protected Component buildVersionInfoComponent() {
 		Link poweredByConstellioLink = new Link($("MainLayout.footerAlt") + "  (" + presenter.getCurrentVersion() + ")",
 				new ExternalResource("http://www.constellio.com"));
@@ -159,14 +159,14 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		poweredByConstellioLink.setTargetName("_blank");
 		return poweredByConstellioLink;
 	}
-	
+
 	protected Component buildUserMenu() {
 		MenuBar userMenuBar = new BaseMenuBar();
 		userMenuBar.addStyleName("user-menu");
 		buildUserMenuItems(userMenuBar);
 		return userMenuBar;
 	}
-	
+
 	private WindowButton buildSystemStateButton() {
 		systemStateButton = new WindowButton($("SystemInfo.systemStateButtonTitle"), $("SystemInfo.systemStateWindowTitle"), WindowConfiguration.modalDialog("75%", "75%")) {
 			@Override
@@ -215,8 +215,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			}
 		};
 		systemStateButton.setPrimaryStyleName(ValoTheme.MENU_ITEM);
-//		systemStateButton.addStyleName(ValoTheme.BUTTON_TINY);
-//		systemStateButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		//		systemStateButton.addStyleName(ValoTheme.BUTTON_TINY);
+		//		systemStateButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		systemStateButton.addStyleName("constellio-menu-system-state-button");
 		systemStateButton.setVisible(presenter.hasUserRightToViewSystemState());
 		refreshSystemStateButton();
@@ -253,13 +253,13 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 			menuItemsLayout.addComponent(mainMenuItemComponent);
 		}
-		
+
 		systemStateButton = buildSystemStateButton();
 		menuItemsLayout.addComponent(systemStateButton);
-		
+
 		return menuItemsLayout;
 	}
-	
+
 	@Override
 	public boolean beforeViewChange(ViewChangeEvent event) {
 		View newView = event.getNewView();

@@ -113,6 +113,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private DownloadContentVersionLink downloadDocumentButton;
 	private EditButton editDocumentButton;
 	private ConfirmDialogButton deleteSelectedVersions;
+	private boolean isContentViewerInSplitPanel = false;
+	private boolean isInSeparateTab = false;
 
 	private boolean contentViewerInitiallyVisible;
 	private boolean waitForContentViewerToBecomeVisible;
@@ -209,9 +211,27 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void refreshContentViewer() {
 		ContentViewer newContentViewer = newContentViewer();
 		if (newContentViewer.isViewerComponentVisible()) {
-			mainLayout.replaceComponent(contentViewer, newContentViewer);
-			contentViewer = newContentViewer;
-			waitForContentViewerToBecomeVisible = false;
+
+			if (!isInSeparateTab && !isContentViewerInSplitPanel) {
+				if (isViewerInSeparateTab()) {
+					tabSheet.addTab(newContentViewer, 0);
+					contentViewer = newContentViewer;
+					isInSeparateTab = true;
+				} else {
+					isContentViewerInSplitPanel = true;
+					contentViewer = newContentViewer;
+					Component splitPanel = createSplitPanel();
+					mainLayout.replaceComponent(contentMetadataComponent, splitPanel);
+					contentMetadataComponent = splitPanel;
+				}
+			} else if (isContentViewerInSplitPanel) {
+				splitPanel.setFirstComponent(newContentViewer);
+				contentViewer = newContentViewer;
+			} else {
+				tabSheet.replaceComponent(contentViewer, newContentViewer);
+				contentViewer = newContentViewer;
+				waitForContentViewerToBecomeVisible = false;
+			}
 		} else if (contentViewerInitiallyVisible && !newContentViewer.isViewerComponentVisible()) {
 			if (contentViewer.isVisible()) {
 				contentViewer.setVisible(false);
@@ -289,6 +309,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
 		if (contentViewerInitiallyVisible && isViewerInSeparateTab()) {
 			tabSheet.addTab(contentViewer, $("DisplayDocumentView.tabs.contentViewer"));
+			isInSeparateTab = true;
+
 		}
 		tabSheet.addTab(recordDisplayPanel, $("DisplayDocumentView.tabs.metadata"));
 		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
@@ -318,10 +340,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		});
 
 		if (contentViewerInitiallyVisible && !isViewerInSeparateTab()) {
-			splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
-			splitPanel.setFirstComponent(contentViewer);
-			splitPanel.setSecondComponent(tabSheet);
-			splitPanel.setSecondComponentWidth(RECORD_DISPLAY_WIDTH, RECORD_DISPLAY_WIDTH_UNIT);
+			createSplitPanel();
+			isContentViewerInSplitPanel = true;
 			contentMetadataComponent = splitPanel;
 		} else {
 			contentMetadataComponent = tabSheet;
@@ -333,6 +353,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		mainLayout.setExpandRatio(contentMetadataComponent, 1);
 
 		return mainLayout;
+	}
+
+	private Component createSplitPanel() {
+		splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
+		splitPanel.setFirstComponent(contentViewer);
+		splitPanel.setSecondComponent(tabSheet);
+		splitPanel.setSecondComponentWidth(RECORD_DISPLAY_WIDTH, RECORD_DISPLAY_WIDTH_UNIT);
+		return splitPanel;
 	}
 
 	protected boolean isViewerInSeparateTab() {
