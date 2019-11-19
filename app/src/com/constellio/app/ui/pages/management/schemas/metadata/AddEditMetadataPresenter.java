@@ -365,6 +365,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		if (!editMode) {
 			builder = types.getSchema(schemaCode).create("USR" + formMetadataVO.getLocalcode());
 			final MetadataAccessRestrictionBuilder originalMetadataAccessRestrictionBuilder = builder.defineAccessRestrictions();
+			boolean reindexRequired = false;
 
 			builder.setMultivalue(formMetadataVO.isMultivalue());
 			builder.setType(formMetadataVO.getValueType());
@@ -395,6 +396,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			}
 
 			if (formMetadataVO.getDataEntryType() == DataEntryType.COPIED) {
+				reindexRequired = true;
 				MetadataSchemaBuilder destinationDefaultSchema = types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
 				MetadataBuilder refMetadata = destinationDefaultSchema.getMetadata(formMetadataVO.getDataEntryReference());
 
@@ -410,7 +412,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			}
 
 			code = schemaCode + "_" + "USR" + formMetadataVO.getLocalcode();
-			saveButtonClicked(formMetadataVO, editMode, schemaCode, schemasManager, types, code, false, builder);
+			saveButtonClicked(formMetadataVO, editMode, schemaCode, schemasManager, types, code, reindexRequired, builder);
 		} else {
 			builder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
 			code = formMetadataVO.getCode();
