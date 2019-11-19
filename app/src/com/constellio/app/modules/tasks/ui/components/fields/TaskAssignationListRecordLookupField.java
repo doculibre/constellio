@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.components.fields;
 
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
+import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.vaadin.data.util.converter.Converter;
 
 import java.util.List;
@@ -8,6 +9,11 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaskAssignationListRecordLookupField extends ListAddRemoveRecordLookupField {
+	public TaskAssignationListRecordLookupField(String schemaTypeCode,
+												RecordTextInputDataProvider recordTextInputDataProvider) {
+		super(schemaTypeCode, null, recordTextInputDataProvider);
+	}
+
 	public TaskAssignationListRecordLookupField(String schemaTypeCode) {
 		super(schemaTypeCode);
 	}
