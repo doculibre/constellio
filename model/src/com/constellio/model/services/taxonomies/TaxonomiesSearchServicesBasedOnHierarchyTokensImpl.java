@@ -12,7 +12,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeE
 import com.constellio.model.services.taxonomies.queryHandlers.GetChildrenContext;
 import com.constellio.model.services.taxonomies.queryHandlers.TaxonomiesSearchServicesLegacyQueryHandler;
 import com.constellio.model.services.taxonomies.queryHandlers.TaxonomiesSearchServicesQueryHandler;
-import com.constellio.model.services.taxonomies.queryHandlers.TaxonomiesSearchServicesRewrittenQueryHandler;
+import com.constellio.model.services.taxonomies.queryHandlers.TaxonomiesSearchServicesSummaryCacheQueryHandler;
 
 import java.util.Date;
 import java.util.List;
@@ -34,7 +34,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 			return new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory);
 		} else {
 			//return new TaxonomiesSearchServicesDefaultQueryHandler(modelLayerFactory);
-			return new TaxonomiesSearchServicesRewrittenQueryHandler(modelLayerFactory);
+			return new TaxonomiesSearchServicesSummaryCacheQueryHandler(modelLayerFactory);
 		}
 	}
 

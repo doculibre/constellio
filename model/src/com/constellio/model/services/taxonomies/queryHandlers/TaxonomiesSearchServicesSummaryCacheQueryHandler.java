@@ -27,12 +27,12 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static java.util.stream.Collectors.toList;
 
-public class TaxonomiesSearchServicesRewrittenQueryHandler
+public class TaxonomiesSearchServicesSummaryCacheQueryHandler
 		extends TaxonomiesSearchServicesBaseQueryHandler implements TaxonomiesSearchServicesQueryHandler {
 
 	private static final int LIMIT_OF_RECORDS_IN_A_NODE_FOR_USING_CACHE = 2000;
 
-	public TaxonomiesSearchServicesRewrittenQueryHandler(ModelLayerFactory modelLayerFactory) {
+	public TaxonomiesSearchServicesSummaryCacheQueryHandler(ModelLayerFactory modelLayerFactory) {
 		super(modelLayerFactory);
 	}
 
