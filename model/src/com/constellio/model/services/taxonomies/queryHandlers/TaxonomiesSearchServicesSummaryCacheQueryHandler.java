@@ -36,7 +36,7 @@ public class TaxonomiesSearchServicesSummaryCacheQueryHandler
 		super(modelLayerFactory);
 	}
 
-	public LinkableTaxonomySearchResponse getVisibleNodesResponse(GetChildrenContext ctx) {
+	public LinkableTaxonomySearchResponse getNodes(GetChildrenContext ctx) {
 		boolean childrenOfTaxonomyRecords = ctx.record == null || ctx.isConceptOfNavigatedTaxonomy(ctx.record);
 		List<TaxonomySearchRecord> returnedRecords = new ArrayList<>();
 		if (childrenOfTaxonomyRecords) {
@@ -286,23 +286,23 @@ public class TaxonomiesSearchServicesSummaryCacheQueryHandler
 	}
 
 	public LinkableTaxonomySearchResponse getVisibleChildrenRecords(GetChildrenContext ctx) {
-		return getVisibleNodesResponse(ctx);
+		return getNodes(ctx);
 
 	}
 
 	public LinkableTaxonomySearchResponse getVisibleRootConceptResponse(GetChildrenContext ctx) {
-		return getVisibleNodesResponse(ctx);
+		return getNodes(ctx);
 	}
 
 	public LinkableTaxonomySearchResponse getLinkableConceptsForSelectionOfAPrincipalTaxonomyConceptBasedOnAuthorizations
 			(
 					GetChildrenContext ctx) {
-		return getVisibleNodesResponse(ctx);
+		return getNodes(ctx);
 	}
 
 	public LinkableTaxonomySearchResponse getLinkableConceptsForSelectionOfARecordUsingNonPrincipalTaxonomy(
 			GetChildrenContext ctx) {
-		return getVisibleNodesResponse(ctx);
+		return getNodes(ctx);
 	}
 
 

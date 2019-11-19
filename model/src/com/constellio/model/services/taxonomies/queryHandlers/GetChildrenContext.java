@@ -18,6 +18,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.taxonomies.HasChildrenQueryHandler;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+import com.constellio.model.services.taxonomies.TaxonomySearchServicesQuery;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,6 +40,10 @@ public class GetChildrenContext {
 	ModelLayerFactory modelLayerFactory;
 	boolean principalTaxonomy;
 	List<MetadataSchemaType> classifiedSchemaTypes = Collections.emptyList();
+
+	public GetChildrenContext(TaxonomySearchServicesQuery query, ModelLayerFactory modelLayerFactory) {
+		this(query.getUser(), query.getRecord(), query.getOptions(), query.getForSelectionOfType(), query.getTaxonomy(), modelLayerFactory);
+	}
 
 	public GetChildrenContext(User user, Record record, TaxonomiesSearchOptions options,
 							  MetadataSchemaType forSelectionOfSchemaType, ModelLayerFactory modelLayerFactory) {
