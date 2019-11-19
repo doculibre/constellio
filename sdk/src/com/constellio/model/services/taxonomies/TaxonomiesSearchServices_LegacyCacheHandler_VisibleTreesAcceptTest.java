@@ -59,7 +59,7 @@ import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.crea
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TaxonomiesSearchServices_VisibleTreesLegacyAcceptTest extends AbstractTaxonomiesSearchServicesAcceptanceTest {
+public class TaxonomiesSearchServices_LegacyCacheHandler_VisibleTreesAcceptTest extends AbstractTaxonomiesSearchServicesAcceptanceTest {
 
 
 	String subFolderId;
