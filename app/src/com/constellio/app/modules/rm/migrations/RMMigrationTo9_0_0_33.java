@@ -22,11 +22,11 @@ public class RMMigrationTo9_0_0_33 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
 
-		new SchemaAlterationFor9_1_0_33(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor9_0_0_33(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	private class SchemaAlterationFor9_1_0_33 extends MetadataSchemasAlterationHelper {
-		SchemaAlterationFor9_1_0_33(String collection, MigrationResourcesProvider migrationResourcesProvider,
+	private class SchemaAlterationFor9_0_0_33 extends MetadataSchemasAlterationHelper {
+		SchemaAlterationFor9_0_0_33(String collection, MigrationResourcesProvider migrationResourcesProvider,
 									AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
