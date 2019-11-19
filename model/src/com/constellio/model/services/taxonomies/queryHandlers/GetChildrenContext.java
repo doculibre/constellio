@@ -66,8 +66,6 @@ public class GetChildrenContext {
 				hasPermanentCache = cacheConfig != null && cacheConfig.isPermanent();
 			}
 			principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(getCollection()).hasSameCode(taxonomy);
-			//			classifiedSchemaTypes = schemasManager.getSchemaTypes(taxonomy.getCollection())
-			//					.getClassifiedSchemaTypesIn(taxonomy.getSchemaTypes().get(0));
 
 		}
 

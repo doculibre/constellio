@@ -147,7 +147,10 @@ public class TaxonomiesSearchServicesSummaryCacheQueryHandler
 
 	private boolean shouldUseCacheToFindChildrensOfType(GetChildrenContext ctx, MetadataSchemaType classifiedType,
 														Metadata classificationMetadata) {
-		if (classificationMetadata != null && classificationMetadata.isCacheIndex()) {
+		if (classificationMetadata != null && classificationMetadata.isCacheIndex()
+			&& classifiedType.getCacheType().hasPermanentCache()
+			&& modelLayerFactory.getRecordsCaches().isCacheInitialized(classifiedType)) {
+
 			int estimatedSize = caches.estimateMaxResultSizeUsingIndexedMetadata(
 					classifiedType, classificationMetadata, ctx.record.getId());
 			return estimatedSize < LIMIT_OF_RECORDS_IN_A_NODE_FOR_USING_CACHE;
