@@ -28,6 +28,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
+import com.constellio.app.ui.framework.components.fields.lookup.GroupTextInputDataProvider;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -52,6 +53,8 @@ import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
 
 public class TaskFieldFactory extends MetadataFieldFactory {
 
@@ -134,7 +137,8 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 				field = new TaskReminderFrequencyFieldImpl();
 				break;
 			case ASSIGNEE_GROUPS_CANDIDATES:
-				field = new TaskAssignationListRecordLookupField(metadata.getSchemaTypeCode());
+				field = new TaskAssignationListRecordLookupField(metadata.getSchemaTypeCode(),
+						new GroupTextInputDataProvider(getInstance(), getCurrentSessionContext()));
 				postBuild(field, metadata);
 				break;
 			case ASSIGNEE_USERS_CANDIDATES:
