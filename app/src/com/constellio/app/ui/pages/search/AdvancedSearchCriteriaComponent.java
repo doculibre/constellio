@@ -242,7 +242,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		private Component buildReferenceOperatorComponent(final Criterion criterion, Component referenceValue,
 														  Component copiedMetadataSelector,
 														  I18NHorizontalLayout copiedMetadataValueContainer) {
-			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
+			final ComboBox operator = buildIsEmptyIsNotEmptyComponentWithoutListener(criterion);
 			if (presenter.isSeparateCopiedMetadata()) {
 				operator.addItem(SearchOperator.CONTAINS);
 				operator.setItemCaption(SearchOperator.CONTAINS, $("AdvancedSearchView.contains"));
@@ -255,8 +255,10 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				public void valueChange(Property.ValueChangeEvent event) {
 					SearchOperator newOperator = (SearchOperator) operator.getValue();
 					if (newOperator != null) {
-						if (isContainsTypeOperator(criterion.getSearchOperator()) != isContainsTypeOperator(newOperator)) {
+						if (isContainsTypeOperator(criterion.getSearchOperator()) != isContainsTypeOperator(newOperator) ||
+							isEmptyTypeOperator(criterion.getSearchOperator()) != isEmptyTypeOperator(newOperator)) {
 							criterion.setValue(null);
+							criterion.setEndValue(null);
 						}
 						criterion.setSearchOperator(newOperator);
 
@@ -266,6 +268,9 @@ public class AdvancedSearchCriteriaComponent extends Table {
 						copiedMetadataSelector.setVisible(isContainsTypeOperator(newOperator));
 						copiedMetadataValueContainer.setVisible(canShowCopiedMetadataValueContainer(criterion));
 					} else {
+						criterion.setValue(null);
+						criterion.setEndValue(null);
+
 						referenceValue.setVisible(true);
 						copiedMetadataSelector.setVisible(false);
 						copiedMetadataValueContainer.setVisible(false);
@@ -292,7 +297,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					criterion.setValue(field.getValue());
 				}
 			});
-			if (isContainsTypeOperator(criterion.getSearchOperator())) {
+			if (isContainsTypeOperator(criterion.getSearchOperator()) || isEmptyTypeOperator(criterion.getSearchOperator())) {
 				field.setValue(null);
 			} else {
 				field.setValue(criterion.getValue());
@@ -360,6 +365,10 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		private boolean isContainsTypeOperator(SearchOperator operator) {
 			return operator.equals(SearchOperator.CONTAINS) || operator.equals(SearchOperator.NOT_CONTAINS);
+		}
+
+		private boolean isEmptyTypeOperator(SearchOperator operator) {
+			return operator.equals(SearchOperator.IS_NULL) || operator.equals(SearchOperator.IS_NOT_NULL);
 		}
 
 		private Component buildSchemaCriterionComponent(final Criterion criterion) {
@@ -504,18 +513,24 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private ComboBox buildIsEmptyIsNotEmptyComponent(final Criterion criterion) {
-			final ComboBox operator = new BaseComboBox();
-			addIsEmptyIsNotEmpty(criterion, operator);
-			operator.setWidth("100px");
-			operator.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
-			operator.setNullSelectionAllowed(true);
-			operator.setValue(criterion.getSearchOperator());
+			final ComboBox operator = buildIsEmptyIsNotEmptyComponentWithoutListener(criterion);
 			operator.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
 					criterion.setSearchOperator((SearchOperator) operator.getValue());
 				}
 			});
+
+			return operator;
+		}
+
+		private ComboBox buildIsEmptyIsNotEmptyComponentWithoutListener(final Criterion criterion) {
+			final ComboBox operator = new BaseComboBox();
+			addIsEmptyIsNotEmpty(criterion, operator);
+			operator.setWidth("100px");
+			operator.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
+			operator.setNullSelectionAllowed(true);
+			operator.setValue(criterion.getSearchOperator());
 
 			return operator;
 		}
