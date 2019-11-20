@@ -39,8 +39,11 @@ import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.event.EventTestUtil;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
@@ -57,13 +60,17 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
 import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.atomicSet;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.zipFileWithSameContentExceptingFiles;
 import static java.util.Arrays.asList;
 import static java.util.Locale.FRENCH;
@@ -82,6 +89,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	private IOServices ioServices;
 	private RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP;
 	private RMSchemasRecordsServices rmSchemasRecordsServices;
+	private Set<String> includedIds = new HashSet<>();
 
 	@Before
 	public void setUp() throws Exception {
@@ -187,10 +195,10 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		File tempFolder = newTempFolder();
 		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
 
-		builder.exportAllFoldersAndDocuments(new ProgressInfo(), new Provider<List<Record>, List<Record>>() {
+		builder.exportAllFoldersAndDocuments(new ProgressInfo(), new Provider<String, Boolean>() {
 			@Override
-			public List<Record> get(List<Record> input) {
-				return input;
+			public Boolean get(String input) {
+				return true;
 			}
 		});
 
@@ -263,6 +271,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).contains("zeFolderId");
 
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).doesNotContain("zeFolderChildId");
+
 		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt"))).isEmpty();
 	}
 
@@ -318,6 +328,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).contains("zeFolderId");
 
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).doesNotContain("zeFolderChildId");
+
 		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt"))).contains("zeDocumentId");
 	}
 
@@ -345,6 +357,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "failedFolderExport.txt"))).isEmpty();
 
 		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).contains("zeFolderId");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).doesNotContain("zeFolderChildId");
 
 		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt"))).isEmpty();
 	}
@@ -377,6 +391,33 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt"))).isEmpty();
 	}
 
+	@Test
+	public void givenAFolderNotIncludedInSIPExportWithDocumentAndFolderIncludedInSIPExportWhenExportAllFoldersAndDocumentThenExportChildDocumentAndFolder()
+			throws IOException, RecordServicesException {
+		File tempFolder = newTempFolder();
+		createSIPExportMetadatas();
+		Folder folder = createRandomFolder(false);
+
+		Transaction tx = new Transaction();
+		tx.add(rm.newDocumentWithId("zeDocumentId").setTitle("zeDocumentTitle").setFolder(folder).set(INCLUDED_IN_SIP_EXPORT_METADATA, true));
+		tx.add(rm.newFolderWithId("zeFolderChildId").setOpenDate(LocalDate.now())
+				.setTitle("Ze folder child")).setParentFolder(folder).set(INCLUDED_IN_SIP_EXPORT_METADATA, true);
+		rm.executeTransaction(tx);
+
+		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
+
+		builder.exportAllFoldersAndDocuments(new ProgressInfo(), getProvider());
+
+		assertThat(new File(tempFolder, "info").list())
+				.containsOnly("failedFolderExport.txt", "exportedFolders.txt", "exportedDocuments.txt");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "failedFolderExport.txt"))).isEmpty();
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).contains("zeFolderChildId", "zeFolderId");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt"))).contains("zeDocumentId");
+	}
+
 	private Folder createRandomFolder(Object includedInSipExport) throws RecordServicesException {
 		Transaction tx = new Transaction();
 		Folder folder = rm.newFolderWithId("zeFolderId").setOpenDate(LocalDate.now())
@@ -393,46 +434,69 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(Folder.DEFAULT_SCHEMA).create(INCLUDED_IN_SIP_EXPORT_METADATA).setType(MetadataValueType.BOOLEAN);
+				types.getSchema(Document.DEFAULT_SCHEMA).create(INCLUDED_IN_SIP_EXPORT_METADATA).setType(MetadataValueType.BOOLEAN);
 				types.getSchema(Folder.DEFAULT_SCHEMA).create(EXCLUDED_FROM_SIP_EXPORT_METADATA).setType(MetadataValueType.BOOLEAN);
 				types.getSchema(Document.DEFAULT_SCHEMA).create(EXCLUDED_FROM_SIP_EXPORT_METADATA).setType(MetadataValueType.BOOLEAN);
 			}
 		});
 	}
 
-	private Provider<List<Record>, List<Record>> getProvider() {
-		Provider<List<Record>, List<Record>> provider = new Provider<List<Record>, List<Record>>() {
-			@Override
-			public List<Record> get(List<Record> recordsToFilter) {
-				List<Record> filteredRecords = new ArrayList<>();
-				String includeInExportMetadataCode = INCLUDED_IN_SIP_EXPORT_METADATA;
-				String excludeFromExportMetadataCode = EXCLUDED_FROM_SIP_EXPORT_METADATA;
-				if (includeInExportMetadataCode != null && excludeFromExportMetadataCode != null) {
-					for (Record record : recordsToFilter) {
-						if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
-							Folder folder = rm.wrapFolder(record);
-							if (folder.getParentFolder() == null) {
-								if (folder.get(includeInExportMetadataCode) != null && (Boolean) folder.get(includeInExportMetadataCode) == true) {
-									filteredRecords.add(record);
-								}
-							} else {
-								if (folder.get(excludeFromExportMetadataCode) == null || (Boolean) folder.get(excludeFromExportMetadataCode) != true) {
-									filteredRecords.add(record);
-								}
-							}
-						}
-						if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
-							Document document = rm.wrapDocument(record);
-							if (document.get(excludeFromExportMetadataCode) == null || (Boolean) document.get(excludeFromExportMetadataCode) != true) {
-								filteredRecords.add(record);
-							}
-						}
+	private void setExcludedIncludedIds() {
+		if (INCLUDED_IN_SIP_EXPORT_METADATA != null && EXCLUDED_FROM_SIP_EXPORT_METADATA != null) {
+			LogicalSearchQuery includedFoldersQuery = new LogicalSearchQuery(from(rm.folder.schemaType())
+					.where(rm.folder.schemaType().getMetadata(Folder.DEFAULT_SCHEMA + "_" + INCLUDED_IN_SIP_EXPORT_METADATA)).isTrue());
+			LogicalSearchQuery includedDocumentsQuery = new LogicalSearchQuery(from(rm.document.schemaType())
+					.where(rm.document.schemaType().getMetadata(Document.DEFAULT_SCHEMA + "_" + INCLUDED_IN_SIP_EXPORT_METADATA)).isTrue());
+			SearchServices searchServices = getModelLayerFactory().newSearchServices();
+
+			Iterator<List<Record>> includedFoldersIterator = searchServices.recordsBatchIterator(100, includedFoldersQuery);
+			Iterator<List<Record>> includedDocumentsIterator = searchServices.recordsBatchIterator(100, includedDocumentsQuery);
+
+			while (includedFoldersIterator.hasNext()) {
+				List<Record> includedFoldersBatch = includedFoldersIterator.next();
+				for (Record record : includedFoldersBatch) {
+					String parentFolder = record.get(rm.folder.parentFolder());
+					if (parentFolder != null) {
+						includedIds.add(parentFolder);
 					}
-					return filteredRecords;
 				}
-				return recordsToFilter;
+				List<String> includedFoldersIdsBatch = new ArrayList<>(RecordUtils.toRecordIdsSet(includedFoldersBatch));
+
+				LogicalSearchQuery includedChildFoldersQuery = new LogicalSearchQuery(from(rm.folder.schemaType())
+						.where(rm.folder.parentFolder()).isIn(includedFoldersIdsBatch).andWhere(rm.folder.schemaType().getMetadata(Folder.DEFAULT_SCHEMA + "_" + EXCLUDED_FROM_SIP_EXPORT_METADATA)).isFalseOrNull());
+				LogicalSearchQuery includedChildDocumentsQuery = new LogicalSearchQuery(from(rm.document.schemaType())
+						.where(rm.document.folder()).isIn(includedFoldersIdsBatch).andWhere(rm.document.schemaType().getMetadata(Document.DEFAULT_SCHEMA + "_" + EXCLUDED_FROM_SIP_EXPORT_METADATA)).isFalseOrNull());
+				includedIds.addAll(searchServices.searchRecordIds(includedChildDocumentsQuery));
+				includedIds.addAll(searchServices.searchRecordIds(includedChildFoldersQuery));
+				includedIds.addAll(includedFoldersIdsBatch);
+			}
+			while (includedDocumentsIterator.hasNext()) {
+				List<Record> includedDocumentsBatch = includedDocumentsIterator.next();
+				for (Record record : includedDocumentsBatch) {
+					String parentFolder = record.get(rm.document.folder());
+					if (parentFolder != null) {
+						includedIds.add(parentFolder);
+					}
+				}
+				List<String> includedDocumentsIdsBatch = new ArrayList<>(RecordUtils.toRecordIdsSet(includedDocumentsBatch));
+
+				includedIds.addAll(includedDocumentsIdsBatch);
+			}
+		}
+	}
+
+	private Provider getProvider() {
+		setExcludedIncludedIds();
+		return new Provider<String, Boolean>() {
+			@Override
+			public Boolean get(String recordId) {
+				if (includedIds.contains(recordId) || recordId == null) {
+					return true;
+				} else {
+					return false;
+				}
 			}
 		};
-		return provider;
 	}
 
 	private void createADocumentInAnInvalidFolder() throws Exception {
@@ -517,7 +581,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	public void givenEventsWriteThemInSipArchiveThenValidateIntegrity()
 			throws Exception {
 		createEvents();
-
+		createSIPExportMetadatas();
 		File tempFolder = newTempFolder();
 
 		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder) {
@@ -532,7 +596,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 			;
 		};
-		builder.exportAllEvents(new ProgressInfo());
+		builder.exportAllEvents(new ProgressInfo(), getProvider());
 
 		File tempFolder1 = new File(tempFolder, "events.zip");
 

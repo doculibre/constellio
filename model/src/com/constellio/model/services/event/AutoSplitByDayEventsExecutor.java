@@ -2,8 +2,10 @@ package com.constellio.model.services.event;
 
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
@@ -46,8 +48,9 @@ public class AutoSplitByDayEventsExecutor {
 		return logicalSearchQuery;
 	}
 
-	public void wrtieAllEvents(String collection) {
-		writeEvents(getAllEventsQuery(collection));
+	public void writeAllEvents(String collection, Provider provider,
+							   Metadata recordIdMetadata) {
+		writeEvents(getAllEventsQuery(collection), recordIdMetadata, provider);
 	}
 
 	public KeySetMap<String, String> getSavedRecords() {
@@ -58,8 +61,10 @@ public class AutoSplitByDayEventsExecutor {
 	 * Query must return records that are events or an exception will be thrown.
 	 *
 	 * @param logicalSearchQuery query
+	 * @param recordIdMetadata
 	 */
-	public void writeEvents(LogicalSearchQuery logicalSearchQuery) {
+	public void writeEvents(LogicalSearchQuery logicalSearchQuery, Metadata recordIdMetadata,
+							Provider<String, Boolean> filter) {
 		Record currentEvent = null;
 
 		try {
@@ -75,28 +80,34 @@ public class AutoSplitByDayEventsExecutor {
 
 			while (searchResponseIterator.hasNext()) {
 				currentEvent = searchResponseIterator.next();
-				localDateTime = currentEvent.get(Schemas.CREATED_ON);
-
-				if (!isSameDay(currentEvent, oldLocalDateTime)) {
-					closeEventXMLWriter();
-					if(oldLocalDateTime != null && eventXMLWriter != null) {
-						fireDateProcessedListener(oldLocalDateTime, eventXMLWriter.getXMLFile());
-					}
-					deleteEventXMLFile();
-
-					eventXMLWriter = new FileEventXMLWriter(
-							getFolderFromDateTime((LocalDateTime) currentEvent.get(Schemas.CREATED_ON)), modelLayerFactory);
+				String linkedRecordId = null;
+				if (recordIdMetadata != null) {
+					linkedRecordId = currentEvent.get(recordIdMetadata);
 				}
+				if (filter.get(linkedRecordId)) {
+					localDateTime = currentEvent.get(Schemas.CREATED_ON);
 
-				eventXMLWriter.write(currentEvent);
-				numberOfEventWrittenInFile++;
+					if (!isSameDay(currentEvent, oldLocalDateTime)) {
+						closeEventXMLWriter();
+						if (oldLocalDateTime != null && eventXMLWriter != null) {
+							fireDateProcessedListener(oldLocalDateTime, eventXMLWriter.getXMLFile());
+						}
+						deleteEventXMLFile();
 
-				oldLocalDateTime = localDateTime;
+						eventXMLWriter = new FileEventXMLWriter(
+								getFolderFromDateTime((LocalDateTime) currentEvent.get(Schemas.CREATED_ON)), modelLayerFactory);
+					}
+
+					eventXMLWriter.write(currentEvent);
+					numberOfEventWrittenInFile++;
+
+					oldLocalDateTime = localDateTime;
+				}
 			}
 		}catch(Throwable t) {
 			throw new RuntimeException("error while writing events", t);
 		} finally {
-			if(!eventXMLWriter.isClose()) {
+			if (eventXMLWriter != null && !eventXMLWriter.isClose()) {
 				closeEventXMLWriter();
 				if (currentEvent != null && eventXMLWriter != null) {
 					LocalDateTime localDateTime = currentEvent.get(Schemas.CREATED_ON);

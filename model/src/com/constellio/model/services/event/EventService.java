@@ -3,6 +3,7 @@ package com.constellio.model.services.event;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.data.utils.Provider;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -132,7 +133,12 @@ public class EventService implements Runnable {
 				}
 			});
 
-			autoSplitByDayEventsExecutor.writeEvents(getEventAfterLastArchivedDayAndBeforeLastDayToArchiveLogicalSearchQuery());
+			autoSplitByDayEventsExecutor.writeEvents(getEventAfterLastArchivedDayAndBeforeLastDayToArchiveLogicalSearchQuery(), null, new Provider<String, Boolean>() {
+				@Override
+				public Boolean get(String input) {
+					return true;
+				}
+			});
 
 			ioServices.deleteQuietly(rootFolder);
 		}
