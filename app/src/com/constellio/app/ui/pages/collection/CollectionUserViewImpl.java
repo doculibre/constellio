@@ -5,6 +5,9 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AuthorizationsButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.RolesButton;
+import com.constellio.app.ui.framework.buttons.TransferPermissionsButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -15,6 +18,8 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
@@ -62,6 +67,14 @@ public class CollectionUserViewImpl extends BaseViewImpl implements CollectionUs
 			}
 		};
 		buttons.add(roles);
+
+
+		Button transferUserPermissions = new TransferPermissionsButton(
+				$("AdminView.transferAccessRights"),
+				$("AdminView.transferAccessRights"));
+		transferUserPermissions.setEnabled(presenter.isDeletionEnabled());
+		buttons.add(transferUserPermissions);
+
 
 		Button delete = new DeleteButton(false) {
 			@Override
