@@ -262,8 +262,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 						}
 						criterion.setSearchOperator(newOperator);
 
-						referenceValue.setVisible(!newOperator.equals(SearchOperator.IS_NULL)
-												  && !newOperator.equals(SearchOperator.IS_NOT_NULL)
+						referenceValue.setVisible(!isEmptyTypeOperator(newOperator)
 												  && !isContainsTypeOperator(newOperator));
 						copiedMetadataSelector.setVisible(isContainsTypeOperator(newOperator));
 						copiedMetadataValueContainer.setVisible(canShowCopiedMetadataValueContainer(criterion));
@@ -278,6 +277,9 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				}
 			});
 			operator.setValue(criterion.getSearchOperator());
+			referenceValue.setVisible(!isEmptyTypeOperator(criterion.getSearchOperator())
+									  && !isContainsTypeOperator(criterion.getSearchOperator()));
+			copiedMetadataSelector.setVisible(isContainsTypeOperator(criterion.getSearchOperator()));
 			copiedMetadataValueContainer.setVisible(canShowCopiedMetadataValueContainer(criterion));
 
 			return operator;
