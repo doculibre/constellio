@@ -237,7 +237,7 @@ public class ConstellioEIMConfigs {
 
 		add(ENABLE_INACTIF_SCHEMAS_IN_SEARCH = search.createBooleanTrueByDefault("enableInactifSchemasInSearch"));
 
-		add(SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH = search.createBooleanTrueByDefault("showCopiedMetadataSeparatelyInSearch"));
+		add(SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH = search.createBooleanFalseByDefault("showCopiedMetadataSeparatelyInSearch"));
 
 		add(ENABLE_LEARN_TO_RANK_FEATURE = search.createBooleanFalseByDefault("enableLearnToRankFeature")
 				.whichIsHidden());
