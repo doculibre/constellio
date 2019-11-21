@@ -15,6 +15,7 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.ui.Window;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CollectionUserPresenter extends SingleSchemaBasePresenter<CollectionUserView> implements TransferPermissionPresenter {
 	String recordId;
+	ArrayList<String> errorsList;
 
 	public CollectionUserPresenter(CollectionUserView view) {
 		super(view, User.DEFAULT_SCHEMA);
@@ -81,7 +83,7 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 	}
 
 
-	public void copyUserPermissions(RecordVO sourceUserVO, List<String> destUsers) {
+	public void copyUserAuthorizations(RecordVO sourceUserVO, List<String> destUsers) {
 		List<Authorization> authorizationsList = getUserAuthorizationsList(sourceUserVO);
 		for (Authorization authorization : authorizationsList) {
 			ArrayList<String> newPrincipalsList = new ArrayList<>();
@@ -94,6 +96,23 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 			updateAuthorizationPrincipalsList(authorization, newPrincipalsList);
 		}
 	}
+
+
+	public void copyUserRoles(RecordVO sourceUserVO, List<String> destUsers) {
+		User sourceUser = wrapUser(sourceUserVO.getRecord());
+		List<String> rolesList = sourceUser.getUserRoles();
+
+		for (String destUserId : destUsers) {
+			User user = coreSchemas().getUser(destUserId);
+			user.setUserRoles(rolesList);
+			addOrUpdate(user.getWrappedRecord());
+		}
+	}
+
+	public void removeAllRolesOfUser(RecordVO userVO) {
+
+	}
+
 
 	public void removeAllAuthorizationsOfUser(RecordVO userVO) {
 		String userID = userVO.getId();
@@ -118,14 +137,56 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 
 	public String buildTransferRightsConfirmMessage(String sourceUserName, String selectedUsersString,
 													boolean multipleUsersSelected, boolean removeUserAccess) {
-		String confirmMessage = multipleUsersSelected ? $("TransferAccessRights.ConfirmMessageMultiple")
-													  : $("TransferAccessRights.ConfirmMessageSingle");
-		confirmMessage = String.format(confirmMessage, sourceUserName, selectedUsersString);
-		if (removeUserAccess) {
-			confirmMessage += String.format($("TransferAccessRights.confirmRemoveAccessRights"), sourceUserName);
+		String confirmMessage;
+		if (multipleUsersSelected) {
+			if (removeUserAccess) {
+				confirmMessage = $("TransferAccessRights.ConfirmMessageMultipleAndRemoveAccess", sourceUserName, selectedUsersString);
+			} else {
+				confirmMessage = $("TransferAccessRights.ConfirmMessageMultiple", sourceUserName, selectedUsersString);
+			}
+		} else {
+			if (removeUserAccess) {
+				confirmMessage = $("TransferAccessRights.ConfirmMessageMultipleAndRemoveAccess", sourceUserName, selectedUsersString);
+			} else {
+				confirmMessage = $("TransferAccessRights.ConfirmMessageMultiple", sourceUserName, selectedUsersString);
+			}
 		}
-		confirmMessage += "?";
 		return confirmMessage;
+	}
+
+	public void transferAccessSaveButtonClicked(RecordVO sourceUser, List<String> destUsers, boolean removeUserAccess,
+												Window window) {
+		errorsList = new ArrayList<>();
+		if (validateAccessTransfer(sourceUser, destUsers)) {
+			copyUserAuthorizations(sourceUser, destUsers);
+			copyUserRoles(sourceUser, destUsers);
+			if (removeUserAccess) {
+				removeAllAuthorizationsOfUser(sourceUser);
+
+			}
+			window.close();
+		} else {
+			displayErrorsList();
+		}
+
+	}
+
+	public void displayErrorsList() {
+		String errorMessages = "";
+		for (String msg : errorsList) {
+			errorMessages += msg;
+			errorMessages += "\n";
+		}
+		view.showErrorMessage(errorMessages);
+	}
+
+	public boolean validateAccessTransfer(RecordVO sourceUser, List<String> destUsers) {
+		errorsList = new ArrayList<>();
+		if (destUsers.isEmpty()) {
+			errorsList.add($("TransferAccessRights.emptyDestinationListError"));
+			return false;
+		}
+		return true;
 	}
 
 	public List<String> convertUserIdListToUserNames(List<String> userIdList) {
@@ -143,15 +204,4 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 		User userRecord = wrapUser(userVO.getRecord());
 		return authorizationsServices.getRecordAuthorizations(userRecord.getWrappedRecord());
 	}
-	/*
-	public List<Record> getUserVOListFromIDs(List<String> idsList) {
-		ArrayList<Record> usersList = new ArrayList<>();
-		for (String userID : idsList) {
-			Record record = presenterService().getRecord(userID);
-			usersList.add(record);
-		}
-		return usersList;
-	}
-	*/
-
 }

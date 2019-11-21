@@ -47,7 +47,6 @@ public class TransferPermissionsButton extends WindowButton {
 		VerticalLayout mainLayout = new VerticalLayout();
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		final Window window = getWindow();
-		//TODO: meilleur message et ajouter aux config
 		label = new Label($("TransferAccessRights.ChooseDestinationUsers"));
 		buildUsersSearchField();
 		buildRemoveCurrentUserRightsCheckbox();
@@ -91,7 +90,12 @@ public class TransferPermissionsButton extends WindowButton {
 		saveButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				confirmSaveDialog();
+				sourceUser = presenter.getUser();
+				if (presenter.validateAccessTransfer(sourceUser, users.getValue())) {
+					confirmSaveDialog();
+				} else {
+					presenter.displayErrorsList();
+				}
 			}
 		});
 	}
@@ -129,20 +133,14 @@ public class TransferPermissionsButton extends WindowButton {
 	}
 
 	private void confirmSaveDialog() {
-		sourceUser = presenter.getUser();
 		String selectedUsersString = buildUserListString();
 		String confirmMessage = presenter.buildTransferRightsConfirmMessage(sourceUser.getTitle(), selectedUsersString,
 				users.getValue().size() > 1, removeUserAccessIsChecked());
 		ConfirmDialog.show(ConstellioUI.getCurrent(), $("TransferAccessRights.Title"), confirmMessage,
 				$("Ok"), $("cancel"), (ConfirmDialog.Listener) dialog -> {
 					if (dialog.isConfirmed()) {
-						presenter.copyUserPermissions(sourceUser, users.getValue());
-						if (removeUserAccessIsChecked()) {
-							presenter.removeAllAuthorizationsOfUser(sourceUser);
-						}
-
+						presenter.transferAccessSaveButtonClicked(sourceUser, users.getValue(), removeUserAccessIsChecked(), getWindow());
 					} else {
-
 					}
 				});
 	}

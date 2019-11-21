@@ -16,6 +16,11 @@ public class TransferPermissionPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenTransferingAccessRightsThenSelectedUsersRolesAreExactlyTheSameAsSourceUser() {
+
+	}
+
+	@Test
 	public void givenMultipleDestinationUsersSelectedWhenTransferingAccessRightsThenCorrectConfirmMessage() {
 
 	}
@@ -31,7 +36,12 @@ public class TransferPermissionPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenRemoveAccessCheckboxCheckedWhenTransferingAccessRightsThenSourceUserAccessRightsAreRemoved() {
+	public void givenRemoveAccessCheckboxCheckedWhenTransferingAccessRightsThenSourceUserAuthorizationsAreRemoved() {
+
+	}
+
+	@Test
+	public void givenRemoveAccessCheckboxCheckedWhenTransferingAccessRightsThenSourceUserRolesAreRemoved() {
 
 	}
 
