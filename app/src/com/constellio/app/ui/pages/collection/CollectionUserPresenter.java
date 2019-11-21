@@ -82,23 +82,38 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 
 
 	public void copyUserPermissions(RecordVO sourceUserVO, List<String> destUsers) {
-		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-		UserServices userServices = modelLayerFactory.newUserServices();
-		User sourceUser = wrapUser(sourceUserVO.getRecord());
-		//List<String> rolesList = sourceUser.getUserRoles();
-		List<Authorization> authorizationsList = authorizationsServices.getRecordAuthorizations(sourceUser.getWrappedRecord());
-
-		ArrayList<String> newPrincipalsList = new ArrayList<>();
+		List<Authorization> authorizationsList = getUserAuthorizationsList(sourceUserVO);
 		for (Authorization authorization : authorizationsList) {
-			List<String> principals = authorization.getPrincipals();
+			ArrayList<String> newPrincipalsList = new ArrayList<>();
+			newPrincipalsList.addAll(authorization.getPrincipals());
 			for (String destUserId : destUsers) {
-				if (!principals.contains(destUserId)) {
+				if (!authorization.getPrincipals().contains(destUserId)) {
 					newPrincipalsList.add(destUserId);
 				}
 			}
-			authorization.setPrincipals(newPrincipalsList);
-			addOrUpdate(authorization.getWrappedRecord());
+			updateAuthorizationPrincipalsList(authorization, newPrincipalsList);
 		}
+	}
+
+	public void removeAllAuthorizationsOfUser(RecordVO userVO) {
+		String userID = userVO.getId();
+		List<Authorization> authorizationsList = getUserAuthorizationsList(userVO);
+		ArrayList<String> modifiedPrincipalsList = new ArrayList<String>();
+		for (Authorization authorization : authorizationsList) {
+			List<String> principalsList = authorization.getPrincipals();
+			for (String principal : principalsList) {
+				if (!principal.equals(userID)) {
+					modifiedPrincipalsList.add(principal);
+				}
+			}
+			updateAuthorizationPrincipalsList(authorization, modifiedPrincipalsList);
+		}
+
+	}
+
+	private void updateAuthorizationPrincipalsList(Authorization authorization, List<String> newPrincipalsList) {
+		authorization.setPrincipals(newPrincipalsList);
+		addOrUpdate(authorization.getWrappedRecord());
 	}
 
 	public String buildTransferRightsConfirmMessage(String sourceUserName, String selectedUsersString,
@@ -113,6 +128,22 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 		return confirmMessage;
 	}
 
+	public List<String> convertUserIdListToUserNames(List<String> userIdList) {
+		ArrayList<String> namesList = new ArrayList<>();
+		for (String userId : userIdList) {
+			Record userRecord = presenterService().getRecord(userId);
+			namesList.add(userRecord.getTitle());
+		}
+		return namesList;
+	}
+
+
+	private List<Authorization> getUserAuthorizationsList(RecordVO userVO) {
+		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		User userRecord = wrapUser(userVO.getRecord());
+		return authorizationsServices.getRecordAuthorizations(userRecord.getWrappedRecord());
+	}
+	/*
 	public List<Record> getUserVOListFromIDs(List<String> idsList) {
 		ArrayList<Record> usersList = new ArrayList<>();
 		for (String userID : idsList) {
@@ -121,5 +152,6 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 		}
 		return usersList;
 	}
+	*/
 
 }

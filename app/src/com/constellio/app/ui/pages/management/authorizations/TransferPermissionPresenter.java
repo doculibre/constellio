@@ -1,7 +1,6 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.model.entities.records.Record;
 
 import java.util.List;
 
@@ -10,8 +9,11 @@ public interface TransferPermissionPresenter {
 
 	RecordVO getUser();
 
-	List<Record> getUserVOListFromIDs(List<String> idsList);
-
 	String buildTransferRightsConfirmMessage(String sourceUser, String selectedUsersNames,
 											 boolean multipleUsersSelected, boolean removeUserAccess);
+
+	List<String> convertUserIdListToUserNames(List<String> userIdList);
+
+	void removeAllAuthorizationsOfUser(RecordVO user);
+
 }

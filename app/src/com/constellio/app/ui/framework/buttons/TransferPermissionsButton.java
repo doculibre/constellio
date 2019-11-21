@@ -112,9 +112,13 @@ public class TransferPermissionsButton extends WindowButton {
 		buttonsLayout.addComponents(saveButton, cancelButton);
 	}
 
+	private boolean removeUserAccessIsChecked() {
+		return removeUserAccessCheckbox.getValue();
+	}
+
 	private String buildUserListString() {
 		String selectedUsersString = "";//users.getValue();
-		List<String> usersList = users.getValue();
+		List<String> usersList = presenter.convertUserIdListToUserNames(users.getValue());
 		for (int i = 0; i < usersList.size(); i++) {
 			selectedUsersString += usersList.get(i);
 			if (i < usersList.size() - 1) {
@@ -125,21 +129,20 @@ public class TransferPermissionsButton extends WindowButton {
 	}
 
 	private void confirmSaveDialog() {
-
 		sourceUser = presenter.getUser();
-		//List<Record> userVOList = presenter.getUserVOListFromIDs(users.getValue());
 		String selectedUsersString = buildUserListString();
 		String confirmMessage = presenter.buildTransferRightsConfirmMessage(sourceUser.getTitle(), selectedUsersString,
-				users.getValue().size() > 1, removeUserAccessCheckbox.getValue());
+				users.getValue().size() > 1, removeUserAccessIsChecked());
 		ConfirmDialog.show(ConstellioUI.getCurrent(), $("TransferAccessRights.Title"), confirmMessage,
-				$("Ok"), $("cancel"), new ConfirmDialog.Listener() {
-					@Override
-					public void onClose(ConfirmDialog dialog) {
-						if (dialog.isConfirmed()) {
-							presenter.copyUserPermissions(sourceUser, users.getValue());
-						} else {
-
+				$("Ok"), $("cancel"), (ConfirmDialog.Listener) dialog -> {
+					if (dialog.isConfirmed()) {
+						presenter.copyUserPermissions(sourceUser, users.getValue());
+						if (removeUserAccessIsChecked()) {
+							presenter.removeAllAuthorizationsOfUser(sourceUser);
 						}
+
+					} else {
+
 					}
 				});
 	}
