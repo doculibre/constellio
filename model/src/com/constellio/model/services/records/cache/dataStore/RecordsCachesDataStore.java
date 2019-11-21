@@ -81,6 +81,9 @@ public class RecordsCachesDataStore {
 
 
 	public RecordDTO get(String id) {
+		if (id == null) {
+			return null;
+		}
 		int intId = RecordUtils.toIntKey(id);
 
 		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {

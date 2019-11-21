@@ -56,6 +56,9 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record getDocumentById(String id) {
+		if (id == null) {
+			return null;
+		}
 		return getById(RECORDS, id);
 	}
 

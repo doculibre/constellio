@@ -5,17 +5,23 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenter;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CollectionUserPresenter extends SingleSchemaBasePresenter<CollectionUserView> {
+import static com.constellio.app.ui.i18n.i18n.$;
+
+public class CollectionUserPresenter extends SingleSchemaBasePresenter<CollectionUserView> implements TransferPermissionPresenter {
 	String recordId;
 
 	public CollectionUserPresenter(CollectionUserView view) {
@@ -73,4 +79,47 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 	public boolean isRMModuleEnabled() {
 		return this.isSchemaExisting(AdministrativeUnit.DEFAULT_SCHEMA);
 	}
+
+
+	public void copyUserPermissions(RecordVO sourceUserVO, List<String> destUsers) {
+		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		UserServices userServices = modelLayerFactory.newUserServices();
+		User sourceUser = wrapUser(sourceUserVO.getRecord());
+		//List<String> rolesList = sourceUser.getUserRoles();
+		List<Authorization> authorizationsList = authorizationsServices.getRecordAuthorizations(sourceUser.getWrappedRecord());
+
+		ArrayList<String> newPrincipalsList = new ArrayList<>();
+		for (Authorization authorization : authorizationsList) {
+			List<String> principals = authorization.getPrincipals();
+			for (String destUserId : destUsers) {
+				if (!principals.contains(destUserId)) {
+					newPrincipalsList.add(destUserId);
+				}
+			}
+			authorization.setPrincipals(newPrincipalsList);
+			addOrUpdate(authorization.getWrappedRecord());
+		}
+	}
+
+	public String buildTransferRightsConfirmMessage(String sourceUserName, String selectedUsersString,
+													boolean multipleUsersSelected, boolean removeUserAccess) {
+		String confirmMessage = multipleUsersSelected ? $("TransferAccessRights.ConfirmMessageMultiple")
+													  : $("TransferAccessRights.ConfirmMessageSingle");
+		confirmMessage = String.format(confirmMessage, sourceUserName, selectedUsersString);
+		if (removeUserAccess) {
+			confirmMessage += String.format($("TransferAccessRights.confirmRemoveAccessRights"), sourceUserName);
+		}
+		confirmMessage += "?";
+		return confirmMessage;
+	}
+
+	public List<Record> getUserVOListFromIDs(List<String> idsList) {
+		ArrayList<Record> usersList = new ArrayList<>();
+		for (String userID : idsList) {
+			Record record = presenterService().getRecord(userID);
+			usersList.add(record);
+		}
+		return usersList;
+	}
+
 }
