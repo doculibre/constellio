@@ -255,17 +255,13 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				public void valueChange(Property.ValueChangeEvent event) {
 					SearchOperator newOperator = (SearchOperator) operator.getValue();
 					if (newOperator != null) {
-						if (isContainsTypeOperator(criterion.getSearchOperator()) != isContainsTypeOperator(newOperator) ||
-							isEmptyTypeOperator(criterion.getSearchOperator()) != isEmptyTypeOperator(newOperator)) {
+						if (isOperatorOfTypeContains(criterion.getSearchOperator()) != isOperatorOfTypeContains(newOperator)
+							|| isOperatorOfTypeEmpty(criterion.getSearchOperator()) != isOperatorOfTypeEmpty(newOperator)) {
 							criterion.setValue(null);
 							criterion.setEndValue(null);
 						}
 						criterion.setSearchOperator(newOperator);
-
-						referenceValue.setVisible(!isEmptyTypeOperator(newOperator)
-												  && !isContainsTypeOperator(newOperator));
-						copiedMetadataSelector.setVisible(isContainsTypeOperator(newOperator));
-						copiedMetadataValueContainer.setVisible(canShowCopiedMetadataValueContainer(criterion));
+						updateReferenceFieldsVisibility(criterion, referenceValue, copiedMetadataSelector, copiedMetadataValueContainer);
 					} else {
 						criterion.setValue(null);
 						criterion.setEndValue(null);
@@ -277,12 +273,18 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				}
 			});
 			operator.setValue(criterion.getSearchOperator());
-			referenceValue.setVisible(!isEmptyTypeOperator(criterion.getSearchOperator())
-									  && !isContainsTypeOperator(criterion.getSearchOperator()));
-			copiedMetadataSelector.setVisible(isContainsTypeOperator(criterion.getSearchOperator()));
-			copiedMetadataValueContainer.setVisible(canShowCopiedMetadataValueContainer(criterion));
+			updateReferenceFieldsVisibility(criterion, referenceValue, copiedMetadataSelector, copiedMetadataValueContainer);
 
 			return operator;
+		}
+
+		private void updateReferenceFieldsVisibility(final Criterion criterion, Component referenceValue,
+													 Component copiedMetadataSelector,
+													 Component copiedMetadataValueContainer) {
+			referenceValue.setVisible(!isOperatorOfTypeEmpty(criterion.getSearchOperator())
+									  && !isOperatorOfTypeContains(criterion.getSearchOperator()));
+			copiedMetadataSelector.setVisible(isOperatorOfTypeContains(criterion.getSearchOperator()));
+			copiedMetadataValueContainer.setVisible(canShowCopiedMetadataValueContainer(criterion));
 		}
 
 		private Field<?> buildReferenceEntryField(AllowedReferences references, final Criterion criterion) {
@@ -299,7 +301,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					criterion.setValue(field.getValue());
 				}
 			});
-			if (isContainsTypeOperator(criterion.getSearchOperator()) || isEmptyTypeOperator(criterion.getSearchOperator())) {
+			if (isOperatorOfTypeContains(criterion.getSearchOperator()) || isOperatorOfTypeEmpty(criterion.getSearchOperator())) {
 				field.setValue(null);
 			} else {
 				field.setValue(criterion.getValue());
@@ -345,14 +347,14 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 						copiedMetadataValueContainer.removeAllComponents();
 						copiedMetadataValueContainer.addComponent(generateCell(subCriterion));
-						copiedMetadataValueContainer.setVisible(isContainsTypeOperator(criterion.getSearchOperator()));
+						copiedMetadataValueContainer.setVisible(isOperatorOfTypeContains(criterion.getSearchOperator()));
 					} else {
 						copiedMetadataValueContainer.setVisible(false);
 						criterion.setEndValue(null);
 					}
 				}
 			});
-			if (isContainsTypeOperator(criterion.getSearchOperator())) {
+			if (isOperatorOfTypeContains(criterion.getSearchOperator())) {
 				comboBox.setValue(criterion.getValue());
 			} else {
 				comboBox.setValue(null);
@@ -362,14 +364,14 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private boolean canShowCopiedMetadataValueContainer(Criterion criterion) {
-			return criterion.getValue() != null && isContainsTypeOperator(criterion.getSearchOperator());
+			return criterion.getValue() != null && isOperatorOfTypeContains(criterion.getSearchOperator());
 		}
 
-		private boolean isContainsTypeOperator(SearchOperator operator) {
+		private boolean isOperatorOfTypeContains(SearchOperator operator) {
 			return operator.equals(SearchOperator.CONTAINS) || operator.equals(SearchOperator.NOT_CONTAINS);
 		}
 
-		private boolean isEmptyTypeOperator(SearchOperator operator) {
+		private boolean isOperatorOfTypeEmpty(SearchOperator operator) {
 			return operator.equals(SearchOperator.IS_NULL) || operator.equals(SearchOperator.IS_NOT_NULL);
 		}
 

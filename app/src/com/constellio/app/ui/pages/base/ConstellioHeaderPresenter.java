@@ -367,10 +367,10 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	public List<MetadataVO> getCopiedMetadataAllowedInCriteria(String referenceCode) {
 		MetadataSchemaType schemaType = types().getSchemaType(schemaTypeCode);
 
-		Set<String> metadataCodes = copiedMetadataAllowedInCriteria.get(schemaTypeCode);
+		Set<String> metadataCodes = copiedMetadataAllowedInCriteria.get(referenceCode);
 		if (metadataCodes == null) {
 			metadataCodes = new HashSet<>();
-			copiedMetadataAllowedInCriteria.put(schemaTypeCode, metadataCodes);
+			copiedMetadataAllowedInCriteria.put(referenceCode, metadataCodes);
 
 			if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
 				for (Metadata metadata : getMetadatasWithRecords(schemaType)) {
