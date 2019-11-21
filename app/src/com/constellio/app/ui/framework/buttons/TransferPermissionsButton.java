@@ -75,7 +75,7 @@ public class TransferPermissionsButton extends WindowButton {
 		removeUserAccessCheckbox = new CheckBox();
 
 		//TODO: ajouter message aux config
-		removeUserAccessCheckbox.setCaption("Retirer les accès à l'utilisateur");
+		removeUserAccessCheckbox.setCaption($("TransferAccessRights.removeUserAccess"));
 		removeUserAccessCheckbox.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {

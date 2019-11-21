@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -69,6 +70,7 @@ public class CollectionUserViewImpl extends BaseViewImpl implements CollectionUs
 				$("TransferAccessRights.Title"),
 				$("TransferAccessRights.Title"),
 				presenter);
+		transferUserPermissions.setIcon(FontAwesome.EXCHANGE);
 
 		transferUserPermissions.setEnabled(presenter.isDeletionEnabled());
 		buttons.add(transferUserPermissions);
