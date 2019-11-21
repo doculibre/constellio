@@ -109,8 +109,11 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 		}
 	}
 
+	//TODO
 	public void removeAllRolesOfUser(RecordVO userVO) {
-
+		User user = wrapUser(userVO.getRecord());
+		user.setUserRoles("");
+		addOrUpdate(user.getWrappedRecord());
 	}
 
 
@@ -159,10 +162,10 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 		errorsList = new ArrayList<>();
 		if (validateAccessTransfer(sourceUser, destUsers)) {
 			copyUserAuthorizations(sourceUser, destUsers);
-			copyUserRoles(sourceUser, destUsers);
+			//copyUserRoles(sourceUser, destUsers);		TODO Demander a Rida, si on inclu les rôles
 			if (removeUserAccess) {
 				removeAllAuthorizationsOfUser(sourceUser);
-
+				//removeAllRolesOfUser(sourceUser);		TODO Demander a Rida, si on inclu les rôles
 			}
 			window.close();
 		} else {
