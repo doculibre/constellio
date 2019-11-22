@@ -598,7 +598,7 @@ public class TaskTable extends VerticalLayout {
 			Label createdOnLabel = new Label(dateTimeConverter.convertToPresentation(createdOnDate, String.class, getLocale()));
 			createdOnLabel.addStyleName("task-details-created-on");
 			I18NHorizontalLayout taskDetailsTopLayout;
-			if (taskMetadataExists(Task.LINKED_FOLDERS) || taskMetadataExists(Task.LINKED_DOCUMENTS) || taskMetadataExists(Task.CONTENTS)) {
+			if (taskMetadataExists(Task.LINKED_FOLDERS) && taskMetadataExists(Task.LINKED_DOCUMENTS) && taskMetadataExists(Task.CONTENTS)) {
 				Label contentsImage = new Label("");
 				contentsImage.setIcon(FontAwesome.PAPERCLIP);
 				contentsImage.addStyleName("task-details-contents-info");
