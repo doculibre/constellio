@@ -96,7 +96,6 @@ import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTER
 import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
 import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
 import static com.constellio.app.ui.i18n.i18n.$;
-import static org.apache.ignite.internal.util.lang.GridFunc.asList;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
 
@@ -798,8 +797,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				recordServices().recalculate(record);
 				folderVO.set(Folder.APPLICABLE_COPY_RULES, record.getApplicableCopyRules());
 			}
-			List<String> ignoredMetadataCodes = asList(RETENTION_RULE_ENTERED);
-			reloadFormAndPopulateCurrentMetadatasExcept(ignoredMetadataCodes);
+			//List<String> ignoredMetadataCodes = asList(RETENTION_RULE_ENTERED);
+			//reloadFormAndPopulateCurrentMetadatasExcept(ignoredMetadataCodes);
 			view.getForm().getCustomField(RETENTION_RULE_ENTERED).focus();
 		}
 	}
