@@ -83,6 +83,7 @@ import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.vaadin.server.StreamResource.StreamSource;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -685,7 +686,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	protected abstract LogicalSearchCondition getSearchCondition();
 
 	protected LogicalSearchQuery getSearchQuery() {
-		String userSearchExpression = getUserSearchExpression();
+		String userSearchExpression = filterSolrOperators();
 		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition())
 				.setOverridedQueryParams(extraSolrParams)
 				.setFreeTextQuery(userSearchExpression)
@@ -731,6 +732,17 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		Metadata metadata = getMetadata(sortCriterion);
 		return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
+	}
+
+	protected String filterSolrOperators() {
+		String userSearchExpression = getUserSearchExpression();
+
+		if (userSearchExpression.startsWith("\"") && userSearchExpression.endsWith("\"")) {
+			userSearchExpression = ClientUtils.escapeQueryChars(userSearchExpression);
+			userSearchExpression = "\"" + userSearchExpression + "\"";
+		}
+
+		return userSearchExpression;
 	}
 
 	public void setHighlighter(boolean highlighter) {
