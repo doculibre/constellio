@@ -106,6 +106,8 @@ subprojects {
         compile name: 'mets-api'
         compile 'com.ithit.webdav:webdav-server:4.2.2812'
         compile 'com.ithit.webdav.integration:servlet-integration:4.2.2812'
+        compile 'com.github.scribejava:scribejava-apis:2.7.3'//6.9.0
+        
         
         testCompile 'nl.jqno.equalsverifier:equalsverifier:1.4.1'
     }
