@@ -63,7 +63,8 @@ public class DocumentDaoTest {
 
 		when(document.getExtendedAttributes()).thenReturn(null);
 		when(record.getId()).thenReturn(id);
-		when(documentDao.getRecordById(anyString())).thenReturn(record);
+		when(documentDao.getRecordById(id)).thenReturn(record);
+		when(documentDao.getRecordById(id, null)).thenReturn(record);
 
 		when(content.getVersion(version)).thenReturn(contentVersion);
 		when(contentManager.getContentInputStream(anyString(), anyString())).thenReturn(inputStream);
