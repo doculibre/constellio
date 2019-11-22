@@ -254,20 +254,32 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			List<String> requiredPermissions = new ArrayList<>();
 			FolderStatus status = restrictedFolder.getPermissionStatus();
 			if (status != null && status.isSemiActive()) {
-				requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS);
-				if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
-					requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
+				if (isDuplicateAction) {
+					requiredPermissions.add(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER);
+				} else {
+					requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS);
+					if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
+						requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
+					}
 				}
 			}
 
 			if (status != null && status.isInactive()) {
-				requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS);
-				if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
-					requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
+				if (isDuplicateAction) {
+					requiredPermissions.add(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER);
+				} else {
+					requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS);
+					if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
+						requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
+					}
 				}
 			}
 
-			return user.hasAll(requiredPermissions).on(restrictedFolder) && user.hasWriteAccess().on(restrictedFolder);
+			if (isDuplicateAction) {
+				return user.hasAll(requiredPermissions).on(restrictedRecord) && user.hasReadAccess().on(restrictedFolder);
+			} else {
+				return user.hasAll(requiredPermissions).on(restrictedFolder) && user.hasWriteAccess().on(restrictedFolder);
+			}
 		}
 
 	}
