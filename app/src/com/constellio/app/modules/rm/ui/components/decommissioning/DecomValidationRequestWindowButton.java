@@ -4,10 +4,8 @@ import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningLis
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveStringLookupField;
 import com.constellio.app.ui.i18n.i18n;
-import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
@@ -15,8 +13,6 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-
-import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -55,7 +51,9 @@ public class DecomValidationRequestWindowButton extends WindowButton {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				if (users.getValue() != null && users.getValue().size() > 0) {
-					if (presenter.validationRequested(users.getValue(), comments.getValue(), checkBox.getValue())) {
+					if (comments.getValue().isEmpty() && checkBox.getValue()) {
+						presenter.showErrorMessage($("DecomAskForValidationWindowButton.emptyComment"));
+					} else if (presenter.validationRequested(users.getValue(), comments.getValue(), checkBox.getValue())) {
 						getWindow().close();
 					}
 				} else {
