@@ -241,6 +241,29 @@ public class ZipContentsServicesAcceptanceTest extends ConstellioTest {
 		assertZipHasContentsWithTitles(zippedContentsResult, asList(content1File), asList(title1));
 	}
 
+	@Test
+	public void givenFolderWithDocumentsInTrashNotContainedInZip()
+			throws Exception {
+		Folder folderA01 = records.getFolder_A01();
+		selectedRecordIds = asList(folderA01.getId());
+
+		zipSearchResultsContentsServices.zipContentsOfRecords(selectedRecordIds, zippedContentsResult);
+		File unzippedResult = newTempFolder();
+		zipService.unzip(zippedContentsResult, unzippedResult);
+		assertThat(unzippedResult.list()).containsOnly(folderA01.getTitle());
+		File taskUnzipped = new File(unzippedResult, folderA01.getTitle());
+		assertThat(taskUnzipped.list()).containsOnly("Chevreuil(0).odt", "Chevreuil(1).odt", "Chevreuil(2).odt", title2);
+
+		recordServices.logicallyDelete(documentWithContent1HavingTitle1, User.GOD);
+
+		zipSearchResultsContentsServices.zipContentsOfRecords(selectedRecordIds, zippedContentsResult);
+		unzippedResult = newTempFolder();
+		zipService.unzip(zippedContentsResult, unzippedResult);
+		assertThat(unzippedResult.list()).containsOnly(folderA01.getTitle());
+		taskUnzipped = new File(unzippedResult, folderA01.getTitle());
+		assertThat(taskUnzipped.list()).containsOnly("Chevreuil(0).odt", "Chevreuil(1).odt", title2);
+	}
+
 	private void initTestData()
 			throws RecordServicesException {
 		Transaction transaction = new Transaction();

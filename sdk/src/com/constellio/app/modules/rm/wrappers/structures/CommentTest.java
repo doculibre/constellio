@@ -99,4 +99,20 @@ public class CommentTest extends ConstellioTest {
 		assertThat(stringValue2).isEqualTo(stringValue);
 		assertThat(builtComment.isDirty()).isFalse();
 	}
+
+	@Test
+	public void whenConvertingStructureWithEmptyStringThenIsBuildSuccessflly()
+			throws Exception {
+
+		Comment comment = new Comment();
+		comment.setMessage("");
+
+		String stringValue = factory.toString(comment);
+		Comment builtComment = (Comment) factory.build(stringValue);
+		String stringValue2 = factory.toString(builtComment);
+
+		assertThat(builtComment).isEqualTo(comment);
+		assertThat(stringValue2).isEqualTo(stringValue);
+		assertThat(builtComment.isDirty()).isFalse();
+	}
 }

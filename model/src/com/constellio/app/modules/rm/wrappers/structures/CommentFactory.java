@@ -4,6 +4,7 @@ import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
 import org.joda.time.LocalDateTime;
 
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 //AFTER : Move in core
@@ -48,11 +49,15 @@ public class CommentFactory implements StructureFactory {
 	}
 
 	private String readString(StringTokenizer stringTokenizer) {
-		String value = stringTokenizer.nextToken();
-		if (NULL.equals(value)) {
-			return null;
-		} else {
-			return value.replace("~~~", ":");
+		try {
+			String value = stringTokenizer.nextToken();
+			if (NULL.equals(value)) {
+				return null;
+			} else {
+				return value.replace("~~~", ":");
+			}
+		} catch (NoSuchElementException e) {
+			return "";
 		}
 	}
 

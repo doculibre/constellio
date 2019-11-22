@@ -652,10 +652,6 @@ public class TaskTable extends VerticalLayout {
 		}
 
 		protected Component newTaskDetailsTopComponent() {
-			List<String> linkedFolderIds = taskVO.get(Task.LINKED_FOLDERS);
-			List<String> linkedDocumentIds = taskVO.get(Task.LINKED_DOCUMENTS);
-			List<ContentVersionVO> contents = taskVO.get(Task.CONTENTS);
-
 			String createdById = taskVO.get(Schemas.CREATED_BY);
 			LocalDateTime createdOnDate = taskVO.get(Schemas.CREATED_ON);
 
@@ -664,16 +660,27 @@ public class TaskTable extends VerticalLayout {
 
 			Label createdOnLabel = new Label(dateTimeConverter.convertToPresentation(createdOnDate, String.class, getLocale()));
 			createdOnLabel.addStyleName("task-details-created-on");
+			I18NHorizontalLayout taskDetailsTopLayout;
+			if (taskMetadataExists(Task.LINKED_FOLDERS) && taskMetadataExists(Task.LINKED_DOCUMENTS) && taskMetadataExists(Task.CONTENTS)) {
+				Label contentsImage = new Label("");
+				contentsImage.setIcon(FontAwesome.PAPERCLIP);
+				contentsImage.addStyleName("task-details-contents-info");
+				List<String> linkedFolderIds = taskVO.get(Task.LINKED_FOLDERS);
+				List<String> linkedDocumentIds = taskVO.get(Task.LINKED_DOCUMENTS);
+				List<ContentVersionVO> contents = taskVO.get(Task.CONTENTS);
+				contentsImage.setVisible(!contents.isEmpty() || !linkedDocumentIds.isEmpty() || !linkedFolderIds.isEmpty());
+				taskDetailsTopLayout = new I18NHorizontalLayout(createdByComponent, createdOnLabel, contentsImage);
+			} else {
+				taskDetailsTopLayout = new I18NHorizontalLayout(createdByComponent, createdOnLabel);
+			}
 
-			Label contentsImage = new Label("");
-			contentsImage.setIcon(FontAwesome.PAPERCLIP);
-			contentsImage.addStyleName("task-details-contents-info");
-			contentsImage.setVisible(!contents.isEmpty() || !linkedDocumentIds.isEmpty() || !linkedFolderIds.isEmpty());
-
-			I18NHorizontalLayout taskDetailsTopLayout = new I18NHorizontalLayout(createdByComponent, createdOnLabel, contentsImage);
 			taskDetailsTopLayout.addStyleName("task-details-top");
 			taskDetailsTopLayout.setSpacing(true);
 			return taskDetailsTopLayout;
+		}
+
+		private boolean taskMetadataExists(String metadataCode) {
+			return presenter.getTask(taskVO).getMetadataSchemaTypes().getDefaultSchema(Task.SCHEMA_TYPE).hasMetadataWithCode(metadataCode);
 		}
 
 		protected Component newTitleComponent() {
@@ -1040,11 +1047,13 @@ public class TaskTable extends VerticalLayout {
 
 			assigneeComponent = newAssigneeComponent();
 			descriptionComponent = newDescriptionComponent();
-			linkedContentComponent = newLinkedContentComponent();
 			commentsLayout = newCommentsLayout();
 			expandLayout.addComponent(assigneeComponent);
 			expandLayout.addComponent(descriptionComponent);
-			expandLayout.addComponent(linkedContentComponent);
+			if (taskMetadataExists(Task.LINKED_FOLDERS) || taskMetadataExists(Task.LINKED_DOCUMENTS) || taskMetadataExists(Task.LINKED_CONTAINERS)) {
+				linkedContentComponent = newLinkedContentComponent();
+				expandLayout.addComponent(linkedContentComponent);
+			}
 			expandLayout.addComponent(commentsLayout);
 
 			return expandLayout;

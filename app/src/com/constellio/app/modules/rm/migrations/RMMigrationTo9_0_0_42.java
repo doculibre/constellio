@@ -37,24 +37,30 @@ public class RMMigrationTo9_0_0_42 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
 
-			MetadataSchemaBuilder documentTypeSchema = typesBuilder.getSchemaType(DocumentType.SCHEMA_TYPE).getDefaultSchema();
-			folderSchema.createUndeletable(Folder.ALLOWED_DOCUMENT_TYPES)
-					.setType(MetadataValueType.REFERENCE)
-					.defineReferencesTo(documentTypeSchema)
-					.setMultivalue(true)
-					.defineDataEntry().asCalculated(FolderAllowedDocumentTypeCalculator.class)
-					.setSystemReserved(true);
+			if (folderSchema.hasMetadata(Folder.ALLOWED_DOCUMENT_TYPES)) {
+				folderSchema.getMetadata(Folder.ALLOWED_DOCUMENT_TYPES).setSystemReserved(true);
+				folderSchema.getMetadata(Folder.ALLOWED_FOLDER_TYPES).setSystemReserved(true);
 
-			MetadataSchemaBuilder folderTypeSchema = typesBuilder.getSchemaType(FolderType.SCHEMA_TYPE).getDefaultSchema();
-			folderSchema.createUndeletable(Folder.ALLOWED_FOLDER_TYPES)
-					.setType(MetadataValueType.REFERENCE)
-					.defineReferencesTo(folderTypeSchema)
-					.setMultivalue(true)
-					.defineDataEntry().asCalculated(FolderAllowedFolderTypeCalculator.class)
-					.setSystemReserved(true);
+			} else {
+				MetadataSchemaBuilder documentTypeSchema = typesBuilder.getSchemaType(DocumentType.SCHEMA_TYPE).getDefaultSchema();
+				folderSchema.createUndeletable(Folder.ALLOWED_DOCUMENT_TYPES)
+						.setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(documentTypeSchema)
+						.setMultivalue(true)
+						.defineDataEntry().asCalculated(FolderAllowedDocumentTypeCalculator.class)
+						.setSystemReserved(true);
 
-			MetadataSchemaBuilder documentSchema = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
-			documentSchema.defineValidators().add(DocumentValidator.class);
+				MetadataSchemaBuilder folderTypeSchema = typesBuilder.getSchemaType(FolderType.SCHEMA_TYPE).getDefaultSchema();
+				folderSchema.createUndeletable(Folder.ALLOWED_FOLDER_TYPES)
+						.setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(folderTypeSchema)
+						.setMultivalue(true)
+						.defineDataEntry().asCalculated(FolderAllowedFolderTypeCalculator.class)
+						.setSystemReserved(true);
+
+				MetadataSchemaBuilder documentSchema = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
+				documentSchema.defineValidators().add(DocumentValidator.class);
+			}
 		}
 	}
 }
