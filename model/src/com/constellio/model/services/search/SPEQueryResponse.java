@@ -33,6 +33,8 @@ public class SPEQueryResponse {
 	private final boolean correctlySpelt;
 	private final List<String> spellcheckerSuggestions;
 
+	private Map<String, Object> debugMap;
+
 	public SPEQueryResponse(List<Record> records, int numFound) {
 		this.fieldFacetValues = new HashMap<>();
 		this.fieldFacetPivotValues = new HashMap<>();
@@ -79,8 +81,8 @@ public class SPEQueryResponse {
 			Map<String, List<FacetValue>> fieldFacetValues, Map<String, List<FacetPivotValue>> fieldFacetPivotValues,
 			Map<String, Map<String, Object>> statisticsValues, Map<String, Integer> queryFacetsValues, long qtime,
 			long numFound, List<Record> records, Map<String, Map<String, List<String>>> highlights,
-			boolean correctlySpelt,
-			List<String> spellcheckerSuggestions, List<MoreLikeThisRecord> moreLikeThisRecords) {
+			Map<String, Object> debugMap, boolean correctlySpelt, List<String> spellcheckerSuggestions,
+			List<MoreLikeThisRecord> moreLikeThisRecords) {
 		this.fieldFacetValues = fieldFacetValues;
 		this.fieldFacetPivotValues = fieldFacetPivotValues;
 		this.statisticsValues = statisticsValues;
@@ -92,7 +94,9 @@ public class SPEQueryResponse {
 		this.correctlySpelt = correctlySpelt;
 		this.spellcheckerSuggestions = spellcheckerSuggestions;
 		this.moreLikeThisRecords = moreLikeThisRecords;
+		this.debugMap = debugMap;
 	}
+
 
 	public List<FacetValue> getFieldFacetValues(String metadata) {
 		if (fieldFacetValues.containsKey(metadata)) {
@@ -140,6 +144,10 @@ public class SPEQueryResponse {
 		return records;
 	}
 
+	public Map<String, Object> getDebugMap() {
+		return debugMap;
+	}
+
 	public long getQtime() {
 		return qtime;
 	}
@@ -174,12 +182,12 @@ public class SPEQueryResponse {
 
 	public SPEQueryResponse withModifiedRecordList(List<Record> records) {
 		return new SPEQueryResponse(fieldFacetValues, fieldFacetPivotValues, statisticsValues, queryFacetsValues, qtime,
-				numFound, records, null, correctlySpelt, spellcheckerSuggestions, moreLikeThisRecords);
+				numFound, records, null, null, correctlySpelt, spellcheckerSuggestions, moreLikeThisRecords);
 	}
 
 	public SPEQueryResponse withNumFound(int numFound) {
 		return new SPEQueryResponse(fieldFacetValues, fieldFacetPivotValues, statisticsValues, queryFacetsValues, qtime,
-				numFound, records, null, correctlySpelt, spellcheckerSuggestions, moreLikeThisRecords);
+				numFound, records, null, null, correctlySpelt, spellcheckerSuggestions, moreLikeThisRecords);
 	}
 
 	public Map<String, Map<String, List<String>>> getHighlights() {

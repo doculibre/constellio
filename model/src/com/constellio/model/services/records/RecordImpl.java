@@ -771,11 +771,14 @@ public class RecordImpl implements Record {
 		MetadataList modifiedMetadatas = new MetadataList();
 
 		for (String modifiedMetadataDataStoreCode : getModifiedValues().keySet()) {
-			String localCode = SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
 
 			try {
 
-				Metadata metadata = schemaTypes.getSchemaOf(this).getMetadata(localCode);
+				Metadata metadata = schemaTypes.getSchemaOf(this).getMetadataByDatastoreCode(modifiedMetadataDataStoreCode);
+				if (metadata == null) {
+					String localCode = SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
+					metadata = schemaTypes.getSchemaOf(this).getMetadata(localCode);
+				}
 
 				boolean modified;
 				if (metadata.isMultivalue()) {
@@ -821,7 +824,7 @@ public class RecordImpl implements Record {
 				if (isSaved()) {
 					Record originalRecord = getCopyOfOriginalRecord();
 					try {
-						modifiedMetadatas.add(schemaTypes.getSchemaOf(originalRecord).getMetadata(localCode));
+						modifiedMetadatas.add(schemaTypes.getSchemaOf(originalRecord).getMetadataByDatastoreCode(modifiedMetadataDataStoreCode));
 					} catch (NoSuchMetadata e2) {
 
 					}

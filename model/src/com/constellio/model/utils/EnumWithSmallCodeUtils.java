@@ -24,6 +24,8 @@ public class EnumWithSmallCodeUtils {
 		return (Enum<?>) toEnumWithSmallCode((Class<? extends EnumWithSmallCode>) enumClass, code);
 	}
 
+	private static List<EnumWithSmallCode> enumConstants;
+
 	public static EnumWithSmallCode toEnumWithSmallCode(Class<? extends EnumWithSmallCode> enumClass, String code) {
 		if (code == null) {
 			return null;

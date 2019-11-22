@@ -21,6 +21,7 @@ public class SerializedCacheSearchService {
 	private static List<MoreLikeThisRecord> emptyRecordsWithMoreLikeThis = Collections.emptyList();
 	private static Map<String, Map<String, Object>> emptyStatisticsValues = Collections.emptyMap();
 	private static List<String> emptySpellcheckerSuggestions = Collections.emptyList();
+	private static Map<String, Object> noDebugMap = null;
 	boolean correctlySpelt = true;
 	boolean serializeRecords;
 
@@ -72,7 +73,7 @@ public class SerializedCacheSearchService {
 		long duration = Math.max(System.currentTimeMillis() - qtime, 1);
 
 		return new SPEQueryResponse(fieldFacetValues, emptyFacetPivotValues, emptyStatisticsValues, queryFacetsValues, duration,
-				numFound, records, highlights, correctlySpelt, emptySpellcheckerSuggestions, emptyRecordsWithMoreLikeThis);
+				numFound, records, highlights, noDebugMap, correctlySpelt, emptySpellcheckerSuggestions, emptyRecordsWithMoreLikeThis);
 	}
 
 	private void validateQueryNotUsingUnsupportedFeatures(LogicalSearchQuery query) {

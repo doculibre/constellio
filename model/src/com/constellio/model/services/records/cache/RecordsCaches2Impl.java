@@ -354,7 +354,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				returnedRecord = toRecord(schemaType, recordDTO);
 			}
 		} else {
-			recordDTO = volatileCache.get(id);
+			recordDTO = volatileCache.get(id.stringValue());
 			if (recordDTO != null) {
 				String collectionCode = (String) recordDTO.getFields().get(COLLECTION.getDataStoreCode());
 				String schemaCode = (String) recordDTO.getFields().get(SCHEMA.getDataStoreCode());

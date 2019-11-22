@@ -1,5 +1,6 @@
 package com.constellio.data.dao.services.idGenerator;
 
+import com.constellio.model.services.records.RecordId;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -7,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class UUIDV1GeneratorAcceptTest {
@@ -43,5 +45,18 @@ public class UUIDV1GeneratorAcceptTest {
 
 		assertEquals(10000, synchronizedSet.size());
 	}
+
+	@Test
+	public void whenGeneratingUUIDRecordIdsThenNoIntValue()
+			throws InterruptedException {
+
+		assertThat(RecordId.toIntId(UUIDV1Generator.newRandomId())).isEqualTo(0);
+
+		for (int i = 0; i < 1_000_000; i++) {
+			assertThat(RecordId.toIntId(UUIDV1Generator.newRandomId())).isEqualTo(0);
+		}
+
+	}
+
 
 }

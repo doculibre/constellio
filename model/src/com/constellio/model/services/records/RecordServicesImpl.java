@@ -92,6 +92,7 @@ import com.constellio.model.services.records.populators.SearchFieldsPopulator;
 import com.constellio.model.services.records.populators.SortFieldsPopulator;
 import com.constellio.model.services.records.preparation.AggregatedMetadataIncrementation;
 import com.constellio.model.services.records.preparation.RecordsLinksResolver;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
 import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
@@ -924,14 +925,16 @@ public class RecordServicesImpl extends BaseRecordServices {
 							}
 
 							MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
-							extensions.callRecordReindexed(new RecordReindexationEvent(record, modifiedMetadatas) {
-								@Override
-								public void recalculateRecord(List<String> metadatas) {
-									newAutomaticMetadataServices().updateAutomaticMetadatas(
-											(RecordImpl) record, newRecordProvider(transaction),
-											metadatas, transaction);
-								}
-							});
+							if (ReindexingServices.getReindexingInfos() != null) {
+								extensions.callRecordReindexed(new RecordReindexationEvent(record, modifiedMetadatas) {
+									@Override
+									public void recalculateRecord(List<String> metadatas) {
+										newAutomaticMetadataServices().updateAutomaticMetadatas(
+												(RecordImpl) record, newRecordProvider(transaction),
+												metadatas, transaction);
+									}
+								});
+							}
 
 							validationServices.validateAccess(record, transaction);
 						}

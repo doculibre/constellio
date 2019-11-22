@@ -1319,6 +1319,10 @@ public class SearchServices {
 			params.add(CommonParams.Q, StringUtils.defaultString(query.getFreeTextQuery(), "*:*"));
 		}
 
+		if (Toggle.DEBUG_SOLR_TIMINGS.isEnabled()) {
+			params.add("debug", "timing");
+		}
+
 		return params;
 	}
 
@@ -1534,8 +1538,9 @@ public class SearchServices {
 				queryResponseDTO.getFieldsStatistics());
 		SPEQueryResponse response = new SPEQueryResponse(fieldFacetValues, facetPivotValues, statisticsValues,
 				queryFacetValues, queryResponseDTO.getQtime(), queryResponseDTO.getNumFound(), records,
-				queryResponseDTO.getHighlights(), queryResponseDTO.isCorrectlySpelt(),
-				queryResponseDTO.getSpellCheckerSuggestions(), moreLikeThisResult);
+				queryResponseDTO.getHighlights(), queryResponseDTO.getDebugMap(),
+				queryResponseDTO.isCorrectlySpelt(), queryResponseDTO.getSpellCheckerSuggestions(), moreLikeThisResult);
+
 
 		if (query.getResultsProjection() != null) {
 			return query.getResultsProjection().project(query, response);

@@ -1,6 +1,7 @@
 package com.constellio.model.services.search.query;
 
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils;
@@ -413,16 +414,21 @@ public class FilterUtils {
 		//Specific auths are excluded, they are handled with tokens
 		KeySetMap<String, String> removedAuthsGroupedByTarget = retrieveUserTokens(user, includeSpecifics, filter);
 
-		for (Map.Entry<String, Set<String>> token : removedAuthsGroupedByTarget.getNestedMap().entrySet()) {
-			filterBuilder.openANDGroupRemovedIfEmpty();
-			filterBuilder.append(Schemas.ATTACHED_ANCESTORS, token.getKey());
-			//TODO Tester!
-			for (Iterator<String> iterator = token.getValue().iterator(); iterator.hasNext(); ) {
-				String removedAuth = iterator.next();
-				filterBuilder.appendNegative(Schemas.ALL_REMOVED_AUTHS, removedAuth);
-			}
 
-			filterBuilder.closeGroup();
+		for (Map.Entry<String, Set<String>> token : removedAuthsGroupedByTarget.getNestedMap().entrySet()) {
+			if (Toggle.DETACHABLE_RECORDS.isEnabled()) {
+				filterBuilder.openANDGroupRemovedIfEmpty();
+				filterBuilder.append(Schemas.ATTACHED_ANCESTORS, token.getKey());
+				//TODO Tester!
+				for (Iterator<String> iterator = token.getValue().iterator(); iterator.hasNext(); ) {
+					String removedAuth = iterator.next();
+					filterBuilder.appendNegative(Schemas.ALL_REMOVED_AUTHS, removedAuth);
+				}
+
+				filterBuilder.closeGroup();
+			} else {
+				filterBuilder.append(Schemas.ATTACHED_ANCESTORS, token.getKey());
+			}
 		}
 
 	}

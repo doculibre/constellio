@@ -15,20 +15,28 @@ public class StringRecordId implements RecordId {
 
 	public StringRecordId(String id) {
 		this.id = id;
-		this.intValue = Math.abs(id.hashCode()) * -1;
-		//The first 100 ids are reserved to handle eventual conflicts
-		if (intValue > -100) {
-			//Handling the zero hashcode
-			intValue -= 101;
-		}
-		String currentStrValue = mapping.get(intValue);
-		if (currentStrValue == null) {
-			synchronized (mapping) {
-				mapping.put(intValue, id);
+
+		if (!isUUID(id)) {
+
+			this.intValue = Math.abs(id.hashCode()) * -1;
+			//The first 100 ids are reserved to handle eventual conflicts
+			if (intValue > -100) {
+				//Handling the zero hashcode
+				intValue -= 101;
 			}
-		} else if (!id.equals(currentStrValue)) {
-			throw new IllegalArgumentException("Id '" + id + "' has same hashcode value than id '" + currentStrValue + "' : " + intValue);
+			String currentStrValue = mapping.get(intValue);
+			if (currentStrValue == null) {
+				synchronized (mapping) {
+					mapping.put(intValue, id);
+				}
+			} else if (!id.equals(currentStrValue)) {
+				throw new IllegalArgumentException("Id '" + id + "' has same hashcode value than id '" + currentStrValue + "' : " + intValue);
+			}
 		}
+	}
+
+	private boolean isUUID(String id) {
+		return id != null && id.length() == 36 && id.charAt(8) == '-' && id.charAt(13) == '-' && id.charAt(18) == '-' && id.charAt(23) == '-';
 	}
 
 	public StringRecordId(int id) {
@@ -43,6 +51,9 @@ public class StringRecordId implements RecordId {
 
 	@Override
 	public int intValue() {
+		if (intValue == 0) {
+			throw new IllegalStateException("UUIDs do not have an integer value");
+		}
 		return intValue;
 	}
 

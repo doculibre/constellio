@@ -77,10 +77,12 @@ public class TaxonomyRecordsHook implements MetadataIndexCacheDataStoreHook<Taxo
 		Set<RecordId> principalIdsWithTokenWriteAccess = new HashSet<>();
 
 		for (String token : record.<String>getList(TOKENS)) {
-			if (token.startsWith("w_")) {
-				principalIdsWithTokenWriteAccess.add(toId(StringUtils.substringAfterLast(token, "_")));
-			} else if (token.startsWith("r_")) {
-				principalIdsWithTokenReadAccess.add(toId(StringUtils.substringAfterLast(token, "_")));
+			if (token != null) {
+				if (token.startsWith("w_")) {
+					principalIdsWithTokenWriteAccess.add(toId(StringUtils.substringAfterLast(token, "_")));
+				} else if (token.startsWith("r_")) {
+					principalIdsWithTokenReadAccess.add(toId(StringUtils.substringAfterLast(token, "_")));
+				}
 			}
 		}
 
