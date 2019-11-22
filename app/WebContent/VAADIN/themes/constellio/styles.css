@@ -12142,6 +12142,10 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: auto;
 }
 
+.constellio .popupContent div[class*="v-filterselect-"] {
+	opacity: 1;
+}
+
 .constellio .valo-menu .valo-menu-part {
 	padding-top: inherit;
 	overflow-x: hidden;
