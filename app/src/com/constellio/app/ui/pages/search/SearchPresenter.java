@@ -737,7 +737,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	protected String filterSolrOperators() {
 		String userSearchExpression = getUserSearchExpression();
 
-		if (userSearchExpression.startsWith("\"") && userSearchExpression.endsWith("\"")) {
+		if (StringUtils.isNotBlank(userSearchExpression) && userSearchExpression.startsWith("\"") && userSearchExpression.endsWith("\"")) {
 			userSearchExpression = ClientUtils.escapeQueryChars(userSearchExpression);
 			userSearchExpression = "\"" + userSearchExpression + "\"";
 		}
