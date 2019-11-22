@@ -18,6 +18,7 @@ import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.collections.CollectionUtils;
@@ -303,7 +304,7 @@ public class ZipContentsService {
 		}
 		LogicalSearchCondition recordContentQuery = fromAllSchemasInExceptEvents(collection).where(Schemas.PRINCIPAL_PATH)
 				.isContainingText(recordPrincipalPath).andWhereAny(contentDataStoreFields).isNotNull();
-		return searchServices.search(new LogicalSearchQuery(recordContentQuery));
+		return searchServices.search(new LogicalSearchQuery(recordContentQuery).filteredByStatus(StatusFilter.ACTIVES));
 	}
 
 	String getRelativePathInRecord(String subRecordPrincipalPath, String recordPrincipalPath, String parentId) {
