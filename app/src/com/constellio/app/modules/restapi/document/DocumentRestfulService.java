@@ -94,13 +94,18 @@ public class DocumentRestfulService extends ResourceRestfulService {
 						@Parameter(required = true, description = "Signature") @QueryParam("signature") String signature,
 						@Parameter(name = "filter", description = "Fields to filter from the JSON response.", example = "[\"directAces\", \"inheritedAces\"]")
 						@QueryParam("filter") Set<String> filters,
+						@Parameter(description = "An ETag value can be specified to retrieve a determined version of the document.")
+							@HeaderParam(HttpHeaders.IF_MATCH) String eTag,
 						@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
 		validateRequiredParametersIncludingId(id, serviceKey, method, date, expiration, signature);
 		validateFilterValues(DocumentDto.class, filters);
 		validateHttpMethod(method, HttpMethods.GET);
 
-		DocumentDto document = documentService.get(host, id, serviceKey, method, date, expiration, signature, filters);
+		validateETag(eTag);
+
+		DocumentDto document = documentService.get(host, id, serviceKey, method, date, expiration, signature,
+				filters, unquoteETag(eTag));
 		return Response.ok(document).tag(document.getETag()).build();
 	}
 
@@ -217,7 +222,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		validateDocument(document, fileStream);
 
 		validateETag(eTag);
-		document.setETag(eTag);
+		document.setETag(unquoteETag(eTag));
 
 		DocumentDto updatedDocument = documentService.update(host, id, serviceKey, method, date, expiration, signature,
 				document, fileStream, false, flush, filters);
@@ -273,7 +278,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		validateDocument(document, fileStream);
 
 		validateETag(eTag);
-		document.setETag(eTag);
+		document.setETag(unquoteETag(eTag));
 
 		DocumentDto updatedDocument = documentService.update(host, id, serviceKey, method, date, expiration, signature,
 				document, fileStream, true, flush, filters);

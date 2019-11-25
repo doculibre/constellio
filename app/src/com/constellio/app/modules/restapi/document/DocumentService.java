@@ -90,8 +90,8 @@ public class DocumentService extends ResourceService {
 	}
 
 	public DocumentDto get(String host, String id, String serviceKey, String method, String date, int expiration,
-						   String signature, Set<String> filters) throws Exception {
-		return getResource(host, id, serviceKey, method, date, expiration, signature, filters);
+						   String signature, Set<String> filters, String eTag) throws Exception {
+		return getResource(host, id, serviceKey, method, date, expiration, signature, filters, eTag);
 	}
 
 	public DocumentDto update(String host, String id, String serviceKey, String method, String date, int expiration,

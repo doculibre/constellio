@@ -82,18 +82,22 @@ public interface RecordServices {
 
 	Record getRecordSummaryByMetadata(Metadata metadata, String value);
 
-	default Record realtimeGetById(MetadataSchemaType schemaType, String id, boolean callExtensions) {
-		return realtimeGetById(schemaType.getDataStore(), id, callExtensions);
+	default Record realtimeGetById(MetadataSchemaType schemaType, String id, Long version, boolean callExtensions) {
+		return realtimeGetById(schemaType.getDataStore(), id, version, callExtensions);
 	}
 
-	Record realtimeGetById(String dataStore, String id, boolean callExtensions);
+	Record realtimeGetById(String dataStore, String id, Long version, boolean callExtensions);
 
 	Record realtimeGetRecordSummaryById(String id, boolean callExtensions);
 
 	List<Record> realtimeGetRecordById(List<String> ids, boolean callExtensions);
 
 	default Record realtimeGetRecordById(String id, boolean callExtensions) {
-		return realtimeGetById(DataStore.RECORDS, id, callExtensions);
+		return realtimeGetRecordById(id, null, callExtensions);
+	}
+
+	default Record realtimeGetRecordById(String id, Long version, boolean callExtensions) {
+		return realtimeGetById(DataStore.RECORDS, id, version, callExtensions);
 	}
 
 	default Record getDocumentById(String id, boolean callExtensions) {
@@ -112,21 +116,16 @@ public interface RecordServices {
 
 	// --
 
-
-	default Record realtimeGetById(MetadataSchemaType schemaType, String id) {
-		return realtimeGetById(schemaType, id, true);
-	}
-
-	default Record realtimeGetById(String dataStore, String id) {
-		return realtimeGetById(dataStore, id, true);
-	}
-
 	default Record realtimeGetRecordSummaryById(String id) {
 		return realtimeGetRecordSummaryById(id, true);
 	}
 
 	default Record realtimeGetRecordById(String id) {
 		return realtimeGetRecordById(id, true);
+	}
+
+	default Record realtimeGetRecordById(String id, Long version) {
+		return realtimeGetRecordById(id, version, true);
 	}
 
 	default Record getDocumentById(String id) {

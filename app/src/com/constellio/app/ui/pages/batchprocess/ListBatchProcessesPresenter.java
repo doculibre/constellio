@@ -96,13 +96,13 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 		Map<String, Boolean> collectionAccess = new HashMap<>();
 		for (int i = 0; i < displayedBatchProcesses.size(); i++) {
 			BatchProcess batchProcess = displayedBatchProcesses.get(i);
-			String batchProcessCollection = batchProcess.getCollection();
+			String collection = batchProcess.getCollection();
 
-			if (!collectionAccess.containsKey(batchProcessCollection)) {
-				collectionAccess.put(batchProcessCollection, hasSystemBatchProcessAccess(batchProcessCollection));
+			if (!collectionAccess.containsKey(collection)) {
+				collectionAccess.put(collection, hasSystemBatchProcessAccess(collection));
 			}
 
-			if (collectionAccess.get(batchProcessCollection)) {
+			if (collectionAccess.get(collection)) {
 				BatchProcessVO batchProcessVO = voBuilder.build(batchProcess);
 				String batchProcessUsername = batchProcessVO.getUsername();
 				if (currentUsername.equals(batchProcessUsername)) {
@@ -136,9 +136,9 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 	}
 
 	private boolean hasSystemBatchProcessAccessInAnyCollection() {
-		CollectionsManager cm = appLayerFactory.getCollectionsManager();
+		CollectionsManager collectionManager = appLayerFactory.getCollectionsManager();
 
-		List<String> collections = cm.getCollectionCodes();
+		List<String> collections = collectionManager.getCollectionCodes();
 		for (String collection : collections) {
 			if (hasSystemBatchProcessAccess(collection)) {
 				return true;

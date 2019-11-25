@@ -2,8 +2,10 @@ package com.constellio.app.modules.rm.extensions.app;
 
 import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
 import com.constellio.app.modules.rm.ui.components.retentionRule.AdministrativeUnitReferenceDisplay;
+import com.constellio.app.modules.rm.ui.components.retentionRule.CategoryReferenceDisplay;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleReferenceDisplay;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
@@ -26,6 +28,8 @@ public class RMRecordDisplayFactoryExtension extends RecordDisplayFactoryExtensi
 				return getReferenceDisplayForAdministrativeUnit(id);
 			} else if (allowedReferences.getAllowedSchemaType().contains(RetentionRule.SCHEMA_TYPE)) {
 				return new RetentionRuleReferenceDisplay(id);
+			} else if (allowedReferences.getAllowedSchemaType().contains(Category.SCHEMA_TYPE)) {
+				return new CategoryReferenceDisplay(id);
 			}
 		}
 		return null;

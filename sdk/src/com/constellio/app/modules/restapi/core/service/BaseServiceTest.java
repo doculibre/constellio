@@ -32,7 +32,7 @@ public class BaseServiceTest {
 		initMocks(this);
 
 		when(documentDao.getUser(anyString(), anyString())).thenReturn(user);
-		when(documentDao.getRecordById(anyString())).thenReturn(record);
+		when(documentDao.getRecordById(anyString(), anyString())).thenReturn(record);
 
 		when(baseService.getDao()).thenReturn(documentDao);
 	}
@@ -45,7 +45,7 @@ public class BaseServiceTest {
 
 	@Test(expected = RecordNotFoundException.class)
 	public void testGetRecordWithInvalidId() {
-		when(documentDao.getRecordById("fakeId")).thenReturn(null);
+		when(documentDao.getRecordById("fakeId", null)).thenReturn(null);
 		baseService.getRecord("fakeId", false);
 	}
 

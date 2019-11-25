@@ -5,6 +5,7 @@ import com.constellio.app.modules.restapi.core.util.HashingUtils;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.schemas.bulkImport.DummyCalculator;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Record;
@@ -138,6 +139,14 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 			record.set(schema.getMetadata(fakeMetadata2), value2);
 			recordServices.update(record);
 		}
+	}
+
+	protected void addUserCalculatedMetadata(String schemaCode) throws Exception {
+		MetadataSchemaTypesBuilder typesBuilder = getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection);
+		MetadataSchemaBuilder schemaBuilder = typesBuilder.getSchema(schemaCode);
+		schemaBuilder.create("USRcalculated").setType(MetadataValueType.DATE)
+				.defineDataEntry().asCalculated(DummyCalculator.class);
+		metadataSchemasManager.saveUpdateSchemaTypes(typesBuilder);
 	}
 
 	protected WebTarget buildQuery(WebTarget target, boolean calculateSignature, List<String> defaultParams,

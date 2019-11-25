@@ -11,27 +11,24 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-import java.util.HashMap;
-
-public class RMMigrationTo9_0_42 implements MigrationScript {
+public class RMMigrationTo9_0_0_42 implements MigrationScript {
 	@Override
 	public String getVersion() {
-		return "9.0.42";
+		return "9.0.0.42";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
-		new SchemaAlterationFor9_0_42(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor9_0_0_42(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	private class SchemaAlterationFor9_0_42 extends MetadataSchemasAlterationHelper {
-		SchemaAlterationFor9_0_42(String collection, MigrationResourcesProvider migrationResourcesProvider,
+	private class SchemaAlterationFor9_0_0_42 extends MetadataSchemasAlterationHelper {
+		SchemaAlterationFor9_0_0_42(String collection, MigrationResourcesProvider migrationResourcesProvider,
 								  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
@@ -46,11 +43,7 @@ public class RMMigrationTo9_0_42 implements MigrationScript {
 
 			} else {
 				MetadataSchemaBuilder documentTypeSchema = typesBuilder.getSchemaType(DocumentType.SCHEMA_TYPE).getDefaultSchema();
-				HashMap<Language, String> labels = new HashMap<>();
-				labels.put(Language.French, "Types de document autorisés");
-				labels.put(Language.English, "Allowed document types");
 				folderSchema.createUndeletable(Folder.ALLOWED_DOCUMENT_TYPES)
-						.setLabels(labels)
 						.setType(MetadataValueType.REFERENCE)
 						.defineReferencesTo(documentTypeSchema)
 						.setMultivalue(true)
@@ -58,11 +51,7 @@ public class RMMigrationTo9_0_42 implements MigrationScript {
 						.setSystemReserved(true);
 
 				MetadataSchemaBuilder folderTypeSchema = typesBuilder.getSchemaType(FolderType.SCHEMA_TYPE).getDefaultSchema();
-				labels = new HashMap<>();
-				labels.put(Language.French, "Types de dossier autorisés");
-				labels.put(Language.English, "Allowed folder types");
 				folderSchema.createUndeletable(Folder.ALLOWED_FOLDER_TYPES)
-						.setLabels(labels)
 						.setType(MetadataValueType.REFERENCE)
 						.defineReferencesTo(folderTypeSchema)
 						.setMultivalue(true)
@@ -72,8 +61,6 @@ public class RMMigrationTo9_0_42 implements MigrationScript {
 				MetadataSchemaBuilder documentSchema = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
 				documentSchema.defineValidators().add(DocumentValidator.class);
 			}
-
-
 		}
 	}
 }

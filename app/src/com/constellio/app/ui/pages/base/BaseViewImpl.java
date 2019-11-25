@@ -218,6 +218,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 			setExpandRatio(mainComponent, 1f);
 
+			Label spacer = new Label("");
+			spacer.addStyleName("base-view-footer-spacer");
+			spacer.setHeight("30px");
+			addComponent(spacer);
+
 			if (isBackgroundViewMonitor()) {
 				addBackgroundViewMonitor();
 			}

@@ -40,7 +40,6 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
-import com.constellio.app.ui.framework.window.ConsultLinkWindow;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -76,7 +75,6 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
@@ -94,6 +92,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 import static java.util.Arrays.asList;
@@ -364,8 +363,7 @@ public class RMRecordsMenuItemBehaviors {
 			}
 		}
 
-		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(linkList);
-		UI.getCurrent().addWindow(consultLinkWindow);
+		copyConsultationLinkToClipBoard(linkList);
 	}
 
 	public void batchDelete(List<String> recordIds, MenuItemActionBehaviorParams params) {

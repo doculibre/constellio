@@ -123,7 +123,7 @@ public abstract class Decommissioner {
 		validationErrors = new ValidationErrors();
 	}
 
-	public ValidationErrors process(DecommissioningList decommissioningList, User user, LocalDate processingDate)
+	public void process(DecommissioningList decommissioningList, User user, LocalDate processingDate)
 			throws RecordServicesException.OptimisticLocking, ValidationException {
 		prepare(decommissioningList, user, processingDate);
 		validate();
@@ -141,7 +141,7 @@ public abstract class Decommissioner {
 
 		validationErrors.throwIfNonEmpty();
 		execute(true);
-		return validationErrors;
+		validationErrors.throwIfNonEmpty();
 	}
 
 	public void approve(DecommissioningList decommissioningList, User user, LocalDate processingDate)
@@ -404,7 +404,8 @@ public abstract class Decommissioner {
 								break;
 							}
 						}
-						e.printStackTrace();
+						LOGGER.error(String.format("Error creating PDFa from content: %s of document: %s",
+								content.getCurrentVersion().getHash(), document.getId()), e);
 					}
 				}
 			}
