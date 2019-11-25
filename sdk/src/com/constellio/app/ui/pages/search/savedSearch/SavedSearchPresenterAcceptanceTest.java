@@ -74,9 +74,10 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 		SavedSearch userSavedSearch2 = newSavedSearch(adminUser, false);
 		SavedSearch publicSavedSearch1 = newSavedSearch(null, true);
 		SavedSearch publicSavedSearch2 = newSavedSearch(adminUser, true, singletonList(aliceUser.getId()), null);
+		SavedSearch publicSavedSearch3 = newSavedSearch(adminUser, true);
 
 		verifyThat(presenter.getUserSearchesDataProvider()).containsOnly(userSavedSearch1, userSavedSearch2);
-		verifyThat(presenter.getPublicSearchesDataProvider()).containsOnly(publicSavedSearch1, publicSavedSearch2);
+		verifyThat(presenter.getPublicSearchesDataProvider()).containsOnly(publicSavedSearch1, publicSavedSearch2, publicSavedSearch3);
 	}
 
 	@Test
@@ -128,6 +129,14 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 	public void whenSavingRestrictedGroupPublicSearchThenNotSharedToUserNotInGroup() throws Exception {
 		newSavedSearch(aliceUser, true, null, aliceUser.getUserGroups());
 		assertThat(verifyThat(presenter.getPublicSearchesDataProvider()).recordsIds).isEmpty();
+	}
+
+	@Test
+	public void whenSavingUnRestrictedPublicSearchThenSharedToAll() throws Exception {
+		SavedSearch savedSearch1 = newSavedSearch(aliceUser, true);
+		SavedSearch savedSearch2 = newSavedSearch(null, true);
+
+		verifyThat(presenter.getPublicSearchesDataProvider()).containsOnly(savedSearch1, savedSearch2);
 	}
 
 	public RecordVO toVO(SavedSearch userSavedSearch1) {
