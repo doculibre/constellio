@@ -3,6 +3,7 @@ package com.constellio.data.dao.services;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class Stats {
 
@@ -26,6 +27,21 @@ public class Stats {
 
 	private static ThreadLocal<CallStatCompiler> currentStatCompiler = new ThreadLocal<>();
 
+	/**
+	 * For the moment, no distinction between group and name
+	 *
+	 * @return
+	 */
+	public static String getCurrentGroup() {
+		CallStatCompiler callStatCompiler = getCurrentStatCompiler();
+		return callStatCompiler == null ? null : callStatCompiler.getName();
+	}
+
+	public static String getCurrentName() {
+		CallStatCompiler callStatCompiler = getCurrentStatCompiler();
+		return callStatCompiler == null ? null : callStatCompiler.getName();
+	}
+
 	public static CallStatCompiler getCurrentStatCompiler() {
 		return currentStatCompiler.get();
 	}
@@ -36,6 +52,10 @@ public class Stats {
 			statsCopy.put(entry.getKey(), entry.getValue());
 		}
 		return statsCopy;
+	}
+
+	public static void reset() {
+		stats = new HashMap<>();
 	}
 
 	public static class CallStatCompiler {
@@ -59,6 +79,20 @@ public class Stats {
 			currentStatCompiler.set(this);
 			try {
 				runnable.run();
+			} finally {
+				currentStatCompiler.set(previousStatCompiler);
+				long end = new Date().getTime();
+				logCall(end - start);
+			}
+
+		}
+
+		public <T> T log(Supplier<T> supplier) {
+			long start = new Date().getTime();
+			CallStatCompiler previousStatCompiler = currentStatCompiler.get();
+			currentStatCompiler.set(this);
+			try {
+				return supplier.get();
 			} finally {
 				currentStatCompiler.set(previousStatCompiler);
 				long end = new Date().getTime();

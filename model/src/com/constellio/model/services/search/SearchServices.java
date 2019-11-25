@@ -5,6 +5,8 @@ import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.MoreLikeThisDTO;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.services.Stats;
+import com.constellio.data.dao.services.Stats.CallStatCompiler;
 import com.constellio.data.dao.services.bigVault.LazyResultsIterator;
 import com.constellio.data.dao.services.bigVault.LazyResultsKeepingOrderIterator;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -430,9 +432,11 @@ public class SearchServices {
 
 				if (parallel) {
 					final LinkedBlockingQueue<Holder<Record>> queue = new LinkedBlockingQueue<>(batchSize * 3);
+					final CallStatCompiler statCompiler = Stats.getCurrentStatCompiler();
 
-					new Thread(() -> {
+					Runnable runnable = () -> {
 						try {
+
 							super.forEach((r) -> {
 								try {
 									queue.put(new Holder(r));
@@ -447,7 +451,9 @@ public class SearchServices {
 								throw new RuntimeException(e);
 							}
 						}
-					}).start();
+					};
+
+					new Thread(statCompiler == null ? runnable : () -> statCompiler.log(runnable)).start();
 
 					Record nextRecord;
 					try {

@@ -696,12 +696,12 @@ public class LangUtils {
 			double secs = ((double) ms) / 1000;
 			return format("%.1f", secs) + "s";
 
-		} else if (ms < 360_000) {
+		} else if (ms < 3600_000) {
 			double mins = ((double) ms) / 60_000;
 			return format("%.1f", mins) + "m";
 
 		} else {
-			double hours = ((double) ms) / 360_000;
+			double hours = ((double) ms) / 3600_000;
 			return format("%.1f", hours) + "h";
 		}
 
