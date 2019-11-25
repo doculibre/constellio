@@ -96,7 +96,7 @@ public class ValueListItemSchemaTypeBuilder {
 		}
 
 		MetadataBuilder abbreviationMetadata = defaultSchemaBuilder.create(ValueListItem.ABBREVIATION)
-				.setType(MetadataValueType.TEXT).setSearchable(true)
+				.setType(MetadataValueType.STRING).setSearchable(true)
 				.setUndeletable(true)
 				.setMultiLingual(options.isMultilingual());
 
