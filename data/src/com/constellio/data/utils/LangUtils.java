@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
+import static java.lang.String.format;
 
 public class LangUtils {
 
@@ -685,6 +686,25 @@ public class LangUtils {
 			return unparsableValue;
 		}
 		return negative ? result : -result;
+	}
+
+	public static String humanReadableTime(long ms) {
+		if (ms < 1000) {
+			return ms + "ms";
+
+		} else if (ms < 60_000) {
+			double secs = ((double) ms) / 1000;
+			return format("%.1f", secs) + "s";
+
+		} else if (ms < 360_000) {
+			double mins = ((double) ms) / 60_000;
+			return format("%.1f", mins) + "m";
+
+		} else {
+			double hours = ((double) ms) / 360_000;
+			return format("%.1f", hours) + "h";
+		}
+
 	}
 
 	//Thanks aioobe, found on https://stackoverflow.com/questions/3758606/how-to-convert-byte-size-into-human-readable-format-in-java

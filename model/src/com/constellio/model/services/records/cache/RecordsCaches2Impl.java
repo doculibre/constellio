@@ -4,6 +4,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
@@ -665,16 +666,18 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 		if (!typesLoadedAsync.isEmpty()) {
 			new Thread(() -> {
-				//One loading at a time
-				synchronized (RecordsCaches2Impl.class) {
-					typesLoadedAsync.forEach(type -> loadSchemaType(type));
-				}
-				summaryCacheInitialized = true;
-				CacheRecordDTOUtils.stopCompilingDTOsStats();
-				LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
-				cacheLoadingProgression = null;
-
+				Stats.compilerFor("SummaryCacheLoading").log(() -> {
+					//One loading at a time
+					synchronized (RecordsCaches2Impl.class) {
+						typesLoadedAsync.forEach(type -> loadSchemaType(type));
+					}
+					summaryCacheInitialized = true;
+					CacheRecordDTOUtils.stopCompilingDTOsStats();
+					LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
+					cacheLoadingProgression = null;
+				});
 			}).start();
+
 
 		} else {
 			summaryCacheInitialized = true;
