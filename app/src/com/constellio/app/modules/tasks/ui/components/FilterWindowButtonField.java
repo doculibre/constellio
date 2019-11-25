@@ -2,6 +2,8 @@ package com.constellio.app.modules.tasks.ui.components;
 
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
+import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -52,7 +54,6 @@ public class FilterWindowButtonField extends CustomField {
 				closeButton.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
 				windowLayout.addComponents(field, closeButton);
-
 				return windowLayout;
 			}
 		};
@@ -66,5 +67,13 @@ public class FilterWindowButtonField extends CustomField {
 
 
 		return horizontalLayout;
+	}
+
+	@Override
+	public void setValue(Object newFieldValue) throws ReadOnlyException, ConversionException {
+		if (field instanceof ListAddRemoveField) {
+			setInternalValue(null);
+		}
+		super.setValue(newFieldValue);
 	}
 }
