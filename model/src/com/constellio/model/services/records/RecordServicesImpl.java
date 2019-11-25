@@ -700,7 +700,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
-	public Record realtimeGetById(String dataStore, String id, boolean callExtensions) {
+	public Record realtimeGetById(String dataStore, String id, Long version, boolean callExtensions) {
 		try {
 			RecordDTO recordDTO = dao(dataStore).realGet(id, callExtensions);
 			String collection = (String) recordDTO.getFields().get("collection_s");

@@ -90,6 +90,12 @@ $popup-view-z-index: 3;
 	.v-slot-setup-panel {
 		overflow-y: auto;
 	}
+	
+	.popupContent {
+		div[class*="v-filterselect-"] {
+			opacity: 1.0;
+		}
+	}
 
 	.valo-menu {
 		.valo-menu-part {

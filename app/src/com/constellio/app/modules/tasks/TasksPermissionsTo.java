@@ -13,7 +13,7 @@ public class TasksPermissionsTo {
 	// Register groups and permissions below
 
 	// Workflows
-	private static final String WORKFLOWS_GROUP = "workflows";
+	public static final String WORKFLOWS_GROUP = "workflows";
 
 	public static final String MANAGE_WORKFLOWS = permission(WORKFLOWS_GROUP, "manageWorkflows");
 	public static final String START_WORKFLOWS = permission(WORKFLOWS_GROUP, "startWorkflows");

@@ -1115,6 +1115,19 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 	}
 
 	@Test
+	public void testUpdateWithQuotedEtag() throws Exception {
+		Record document = recordServices.getDocumentById(minDocumentWithoutAcesToUpdate.getId());
+		String eTag = "\"".concat(String.valueOf(document.getVersion())).concat("\"");
+
+		Response response = buildPutQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
+				.put(entity(buildMultiPart(minDocumentWithoutAcesToUpdate), MULTIPART_FORM_DATA_TYPE));
+		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+
+		DocumentDto documentDto = response.readEntity(DocumentDto.class);
+		assertThat(documentDto.getTitle()).isEqualTo(minDocumentWithoutAcesToUpdate.getTitle());
+	}
+
+	@Test
 	public void testUpdateWithOldEtag() throws Exception {
 		Record document = recordServices.getDocumentById(minDocumentWithoutAcesToUpdate.getId());
 		String eTag = String.valueOf(document.getVersion());
