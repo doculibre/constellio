@@ -698,6 +698,11 @@ public class LogicalSearchQuery implements SearchQuery {
 		public boolean hasUserAccessToRecord(Record record) {
 			SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
 					.newRecordServices().getSecurityModel(user.getCollection());
+
+//			if (!this.showInvisibleRecordsInLinkingMode && Boolean.FALSE.equals(record.get(Schemas.VISIBLE_IN_TREES))) {
+			//				return false;
+			//			}
+
 			String selectedTypeSmallCode = null;
 			if (forSelectionOfSchemaType != null) {
 				selectedTypeSmallCode = forSelectionOfSchemaType.getSmallCode();
@@ -749,6 +754,7 @@ public class LogicalSearchQuery implements SearchQuery {
 					}
 				}
 			}
+
 
 			if (user.isActiveUser()) {
 

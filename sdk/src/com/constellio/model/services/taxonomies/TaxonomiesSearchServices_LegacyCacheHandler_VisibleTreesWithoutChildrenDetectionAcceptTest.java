@@ -46,8 +46,7 @@ import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.H
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAndLoadedHasChildrenCacheAcceptTest extends AbstractTaxonomiesSearchServicesAcceptanceTest {
-
+public class TaxonomiesSearchServices_LegacyCacheHandler_VisibleTreesWithoutChildrenDetectionAcceptTest extends AbstractTaxonomiesSearchServicesAcceptanceTest {
 
 	String subFolderId;
 
@@ -70,8 +69,8 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAndLoa
 				withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
-		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.enable();
 
+		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.disable();
 		inCollection(zeCollection).giveReadAccessTo(admin);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -109,9 +108,8 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAndLoa
 		waitForBatchProcess();
 		authServices = getModelLayerFactory().newAuthorizationsServices();
 
-		rm.preloadCategoryTaxonomyCache();
-
 		configureQueryCounter();
+
 	}
 
 	private List<String> getFolderDocuments(String id) {
@@ -134,7 +132,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAndLoa
 				.has(recordsInOrder(records.categoryId_X100))
 				.has(recordsWithChildren(records.categoryId_X100))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(1, 0, 0))
+				.has(solrQueryCounts(2, 0, 2))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X100)
@@ -143,7 +141,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAndLoa
 				.has(recordsWithChildren(records.categoryId_X110, records.categoryId_X120, records.folder_A16, records.folder_A17,
 						records.folder_A18, records.folder_B06, records.folder_B32))
 				.has(numFoundAndListSize(7))
-				.has(solrQueryCounts(1, 5, 0))
+				.has(solrQueryCounts(2, 5, 2))
 				.has(secondSolrQueryCounts(1, 5, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.folder_A16)
@@ -174,28 +172,28 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAndLoa
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(numFoundAndListSize(9))
-				.has(solrQueryCounts(1, 7, 0))
+				.has(solrQueryCounts(2, 7, 2))
 				.has(secondSolrQueryCounts(1, 7, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z)
 				.has(recordsInOrder(records.categoryId_Z100))
 				.has(recordsWithChildren(records.categoryId_Z100))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(1, 0, 0))
+				.has(solrQueryCounts(2, 0, 4))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100)
 				.has(recordsInOrder(records.categoryId_Z110, records.categoryId_Z120))
 				.has(recordsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(1, 0, 0))
+				.has(solrQueryCounts(2, 0, 2))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110)
 				.has(recordsInOrder(records.categoryId_Z112))
 				.has(recordsWithChildren(records.categoryId_Z112))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(1, 0, 0))
+				.has(solrQueryCounts(2, 0, 2))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 	}
@@ -206,7 +204,6 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAndLoa
 
 		recordServices.add(rm.newCategoryWithId("category_Y_id").setCode("Y").setTitle("Ze category Y"));
 
-
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true)
 				.setHasChildrenFlagCalculated(CONCEPTS_ONLY);
@@ -215,7 +212,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAndLoa
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(numFoundAndListSize(3))
-				.has(solrQueryCounts(1, 0, 1))
+				.has(solrQueryCounts(1, 0, 3))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X, options)
@@ -579,7 +576,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAndLoa
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(listSize(9)).has(numFound(9))
-				.has(solrQueryCounts(1, 7, 0))
+				.has(solrQueryCounts(2, 7, 2))
 				.has(secondSolrQueryCounts(1, 7, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 10)
@@ -1143,6 +1140,5 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAndLoa
 			}
 		});
 	}
-
 
 }

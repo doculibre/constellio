@@ -19,5 +19,5 @@ public interface SecurityModel {
 
 	List<SecurityModelAuthorization> getAuthorizationsToPrincipal(String principalId, boolean includeInherited);
 
-
+	List<String> getGroupsGivingAccessToUser(String userId);
 }

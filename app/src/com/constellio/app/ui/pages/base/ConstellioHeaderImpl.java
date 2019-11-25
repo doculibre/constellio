@@ -96,7 +96,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private static final String POPUP_ID = "header-popup";
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME = "header-show-advanced-search-button-popup-hidden";
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_VISIBLE_STYLE_NAME = "header-show-advanced-search-button-popup-visible";
-	public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
+	//public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
+	public static final Resource SELECTION_ICON_RESOURCE = FontAwesome.SHOPPING_BASKET;
 
 	private List<String> collections = new ArrayList<>();
 
@@ -923,7 +924,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	}
 
 	private void setSelectionButtonIcon() {
-		Resource icon;
+		//		Resource icon;
 		//		if (selectionButton.isEnabled()) {
 		//			icon = FontAwesome.CHECK_SQUARE_O;
 		//		} else {

@@ -1012,6 +1012,67 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 	}
 
+	@Test
+	public void testCreateDocumentAndGetDocument() throws Exception {
+		addUsrMetadata(MetadataValueType.STRING, null, null);
+
+		minDocumentToAdd.setContent(ContentDto.builder().versionType(MAJOR).filename("content.txt").build());
+		Response postResponse = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.FLUSH_MODE, "LATER")
+				.post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+		assertThat(commitCounter.newCommitsCall()).isEmpty();
+
+		DocumentDto postDocument = postResponse.readEntity(DocumentDto.class);
+
+		Response getResponse = doGetQuery(postDocument.getId());
+
+		DocumentDto getDocument = getResponse.readEntity(DocumentDto.class);
+
+		assertThat(getDocument.getContent()).isNotNull();
+		assertThat(getDocument.getContent().getHash()).isNotNull();
+	}
+
+	@Test
+	public void testCreateDocumentAndPatchDocumentAndGetDocument() throws Exception {
+		addUsrMetadata(MetadataValueType.STRING, null, null);
+
+		Response postResponse = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.FLUSH_MODE, "LATER")
+				.post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+		assertThat(commitCounter.newCommitsCall()).isEmpty();
+
+		DocumentDto postDocument = postResponse.readEntity(DocumentDto.class);
+
+		DocumentDto documentToPatch = DocumentDto.builder().id(postDocument.getId())
+				.content(ContentDto.builder().versionType(MAJOR).filename("content.txt").build())
+				.build();
+		Response patchResponse = doPatchQuery("LATER", documentToPatch, fileToAdd);
+
+		assertThat(patchResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+		assertThat(commitCounter.newCommitsCall()).isEmpty();
+
+		Response getResponse = doGetQuery(postDocument.getId());
+
+		DocumentDto getDocument = getResponse.readEntity(DocumentDto.class);
+
+		assertThat(getDocument.getContent()).isNotNull();
+		assertThat(getDocument.getContent().getHash()).isNotNull();
+	}
+
+	@Test
+	public void testCreateDocumentWithCalculatedUsr() throws Exception {
+		addUserCalculatedMetadata(Document.DEFAULT_SCHEMA);
+
+		Response postResponse = buildPostQuery().request().header("host", host)
+				.post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+	}
+
 	//
 	// PRIVATE FUNCTIONS
 	//
@@ -1036,6 +1097,21 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 		return buildQuery(webTarget, true, asList("id", "serviceKey", "method", "date", "expiration", "signature"))
 				.request().header("host", host).header(CustomHttpHeaders.FLUSH_MODE, flushMode)
 				.put(entity(buildMultiPart(document), MULTIPART_FORM_DATA_TYPE));
+	}
+
+	private Response doPatchQuery(String flushMode, DocumentDto document, File file) throws Exception {
+		id = document.getId();
+		method = HttpMethods.PATCH;
+		return buildQuery(webTarget, true, asList("id", "serviceKey", "method", "date", "expiration", "signature"))
+				.request().header("host", host).header(CustomHttpHeaders.FLUSH_MODE, flushMode)
+				.build("PATCH", entity(buildMultiPart(document, file), MULTIPART_FORM_DATA_TYPE)).invoke();
+	}
+
+	private Response doGetQuery(String documentId) throws Exception {
+		id = documentId;
+		method = HttpMethods.GET;
+		return buildQuery(webTarget, true, asList("id", "serviceKey", "method", "date", "expiration", "signature"))
+				.request().header("host", host).get();
 	}
 
 }

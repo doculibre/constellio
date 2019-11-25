@@ -11,7 +11,7 @@ public class PermanentRecordsCacheAcceptanceTest extends ConstellioTest {
 	TestRecord record1, record2, record3, record4, record5, record18, record42;
 
 	TestsSchemasSetup zeCollectionSchemas = new TestsSchemasSetup(zeCollection).withSecurityFlag(false);
-	ZeSchemaMetadatas zeCollectionSchemaWithVolatileCache = zeCollectionSchemas.new ZeSchemaMetadatas();
+	ZeSchemaMetadatas hookedCollection1Schema = zeCollectionSchemas.new ZeSchemaMetadatas();
 	AnotherSchemaMetadatas zeCollectionSchemaWithPermanentCache = zeCollectionSchemas.new AnotherSchemaMetadatas();
 	ThirdSchemaMetadatas zeCollectionSchemaWithoutCache = zeCollectionSchemas.new ThirdSchemaMetadatas();
 
@@ -61,14 +61,14 @@ public class PermanentRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		RecordsCache collection1Cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
 		RecordsCache collection2Cache = getModelLayerFactory().getRecordsCaches().getCache(anotherCollection);
-		collection1Cache.configureCache(volatileCache(zeCollectionSchemaWithVolatileCache.type(), 4));
+		collection1Cache.configureCache(volatileCache(hookedCollection1Schema.type(), 4));
 		collection1Cache.configureCache(permanentCache(zeCollectionSchemaWithPermanentCache.type()));
 		collection2Cache.configureCache(volatileCache(anotherCollectionSchemaWithVolatileCache.type(), 3));
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchemaType(zeCollectionSchemaWithVolatileCache.type().getCode()).setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
+				types.getSchemaType(hookedCollection1Schema.type().getCode()).setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
 				types.getSchemaType(zeCollectionSchemaWithPermanentCache.type().getCode()).setRecordCacheType(RecordCacheType.FULLY_CACHED);
 			}
 		});
@@ -125,7 +125,7 @@ public class PermanentRecordsCacheAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		Transaction transaction = new Transaction();
-		Record record = transaction.add(newRecordOf("1", zeCollectionSchemaWithVolatileCache).withTitle("original title"));
+		Record record = transaction.add(newRecordOf("1", hookedCollection1Schema).withTitle("original title"));
 		record.set(Schemas.LEGACY_ID, "zeLegacyId");
 		recordServices.add(record);
 
@@ -140,7 +140,7 @@ public class PermanentRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		assertThat(cache.getRecord(record.getId()).<String>get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(cache.getCache(record.getCollection())
-				.getByMetadata(zeCollectionSchemaWithVolatileCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
+				.getByMetadata(hookedCollection1Schema.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
 				.<String>get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(record.<String>get(Schemas.TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
@@ -154,7 +154,7 @@ public class PermanentRecordsCacheAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		Transaction transaction = new Transaction();
-		Record record = transaction.add(newRecordOf("1", zeCollectionSchemaWithVolatileCache).withTitle("original title"));
+		Record record = transaction.add(newRecordOf("1", hookedCollection1Schema).withTitle("original title"));
 		record.set(Schemas.LEGACY_ID, "zeLegacyId");
 		recordServices.add(record);
 
@@ -271,7 +271,7 @@ public class PermanentRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		givenTestRecords();
 		queriesListener.clear();
-		Metadata stringMetadata = zeCollectionSchemaWithVolatileCache.stringMetadata();
+		Metadata stringMetadata = hookedCollection1Schema.stringMetadata();
 
 		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code3").getId()).isEqualTo("3");
 		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code18").getId()).isEqualTo("18");
@@ -347,12 +347,12 @@ public class PermanentRecordsCacheAcceptanceTest extends ConstellioTest {
 		givenTestRecords();
 
 		Transaction transaction = new Transaction();
-		transaction.update(newRecordOf("zeUltimateRecordWithEmptyValue", zeCollectionSchemaWithVolatileCache).set(
-				zeCollectionSchemaWithVolatileCache.anotherStringMetadata(), ""));
+		transaction.update(newRecordOf("zeUltimateRecordWithEmptyValue", hookedCollection1Schema).set(
+				hookedCollection1Schema.anotherStringMetadata(), ""));
 		cachelessRecordServices.execute(transaction);
 
 		Record record = getModelLayerFactory().newRecordServices().getDocumentById("zeUltimateRecordWithEmptyValue");
-		assertThat(record.<String>get(zeCollectionSchemaWithVolatileCache.anotherStringMetadata())).isNull();
+		assertThat(record.<String>get(hookedCollection1Schema.anotherStringMetadata())).isNull();
 
 	}
 
@@ -420,12 +420,12 @@ public class PermanentRecordsCacheAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		record1 = (TestRecord) transaction.add(newRecordOf("1", zeCollectionSchemaWithoutCache).withTitle("a"));
 		record2 = (TestRecord) transaction.add(newRecordOf("2", zeCollectionSchemaWithPermanentCache).withTitle("b"));
-		record3 = (TestRecord) transaction.add(newRecordOf("3", zeCollectionSchemaWithVolatileCache).withTitle("c")
-				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code3"));
-		transaction.add(newRecordOf("18", zeCollectionSchemaWithVolatileCache).withTitle("c")
-				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code18"));
-		transaction.add(newRecordOf("42", zeCollectionSchemaWithVolatileCache).withTitle("c")
-				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code42"));
+		record3 = (TestRecord) transaction.add(newRecordOf("3", hookedCollection1Schema).withTitle("c")
+				.set(hookedCollection1Schema.stringMetadata(), "code3"));
+		transaction.add(newRecordOf("18", hookedCollection1Schema).withTitle("c")
+				.set(hookedCollection1Schema.stringMetadata(), "code18"));
+		transaction.add(newRecordOf("42", hookedCollection1Schema).withTitle("c")
+				.set(hookedCollection1Schema.stringMetadata(), "code42"));
 		recordServices.execute(transaction);
 		recordServices.add(record4 = newRecordOf("4", anotherCollectionSchemaWithVolatileCache).withTitle("d"));
 		recordServices.add(record5 = newRecordOf("5", anotherCollectionSchemaWithoutCache).withTitle("e"));

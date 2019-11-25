@@ -181,7 +181,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		}
 
 		staticFooterLayout.addComponent(staticFooterContentAndGuideLayout);
-		if (staticFooterExtraComponentsLayout.getComponentCount() > 0) {
+		if (!isStaticFooterExtraComponentsLayoutEmpty()) {
 			staticFooterLayout.addComponent(staticFooterExtraComponentsLayout);
 			staticFooterLayout.setComponentAlignment(staticFooterExtraComponentsLayout, Alignment.BOTTOM_CENTER);
 		}
@@ -247,12 +247,29 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 
 	private boolean isStaticFooterEmpty() {
 		boolean staticFooterEmpty;
-		if (staticFooterContent == null && !guideButton.isVisible() && (!ResponsiveUtils.isDesktop() || staticFooterExtraComponentsLayout.getComponentCount() == 0)) {
+		if (staticFooterContent == null && !guideButton.isVisible() && (!ResponsiveUtils.isDesktop() || isStaticFooterExtraComponentsLayoutEmpty())) {
 			staticFooterEmpty = true;
 		} else {
 			staticFooterEmpty = false;
 		}
 		return staticFooterEmpty;
+	}
+
+	private boolean isStaticFooterExtraComponentsLayoutEmpty() {
+		boolean staticFooterExtraComponentsLayoutEmpty;
+		if (staticFooterExtraComponentsLayout.getComponentCount() == 0) {
+			staticFooterExtraComponentsLayoutEmpty = true;
+		} else {
+			staticFooterExtraComponentsLayoutEmpty = true;
+			for (int i = 0; i < staticFooterExtraComponentsLayout.getComponentCount(); i++) {
+				Component staticFooterExtraComponentsLayoutComponent = staticFooterExtraComponentsLayout.getComponent(i);
+				if (staticFooterExtraComponentsLayoutComponent.isVisible()) {
+					staticFooterExtraComponentsLayoutEmpty = false;
+					break;
+				}
+			}
+		}
+		return staticFooterExtraComponentsLayoutEmpty;
 	}
 
 	private void updateHelpButtonState(BaseViewImpl view) {

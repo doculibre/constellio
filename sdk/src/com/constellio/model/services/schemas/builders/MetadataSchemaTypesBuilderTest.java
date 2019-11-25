@@ -697,7 +697,8 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 				.isEqualTo(
 						asList("allReferences", "allRemovedAuths", "attachedAncestors", "autocomplete",
 								"m2", "path", "tokens", "m1", "pathParts", "principalpath",
-								"tokensHierarchy"));
+								"tokensHierarchy", "zeSchemaType_default_attachedPrincipalAncestorsIntIds",
+								"zeSchemaType_default_secondaryConceptsIntIds", "zeSchemaType_default_principalAncestorsIntIds"));
 
 	}
 

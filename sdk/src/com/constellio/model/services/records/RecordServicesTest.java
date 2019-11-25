@@ -25,7 +25,6 @@ import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -46,7 +45,6 @@ import com.constellio.model.services.migrations.RecordMigrationsManager;
 import com.constellio.model.services.migrations.RequiredRecordMigrations;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
 import com.constellio.model.services.records.RecordServicesRuntimeException.UnresolvableOptimsiticLockingCausingInfiniteLoops;
-import com.constellio.model.services.records.RecordServicesRuntimeException.UserCannotReadDocument;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
@@ -110,7 +108,7 @@ public class RecordServicesTest extends ConstellioTest {
 	private final Long theDocumentCount = aLong();
 	long theNewVersion = 9L;
 
-	Map<String, Object> dtoValues = asMap("schema_string", (Object) "schematype_default", "collection_s", "zeCollection");
+	Map<String, Object> dtoValues = asMap("schema_s", (Object) "schematype_default", "collection_s", "zeCollection");
 	RecordDTO firstSearchResult = new SolrRecordDTO("1", 1, null, dtoValues, RecordDTOMode.FULLY_LOADED);
 	RecordDTO secondSearchResult = new SolrRecordDTO("2", 1, null, dtoValues, RecordDTOMode.FULLY_LOADED);
 	List<RecordDTO> theSearchResults = Arrays.asList(firstSearchResult, secondSearchResult);
@@ -336,16 +334,6 @@ public class RecordServicesTest extends ConstellioTest {
 		assertThat(recordServices.documentsCount()).isEqualTo(theDocumentCount);
 	}
 
-	@Test
-	public void givenRecordDTOWhenGetDocumentByIdThenRecordHasRecordDTO()
-			throws Exception {
-		when(recordDao.get(theId, true)).thenReturn(recordDTO);
-
-		RecordImpl recordObtained = (RecordImpl) recordServices.getDocumentById(theId);
-
-		assertThat(recordObtained.getRecordDTO()).isEqualTo(recordDTO);
-	}
-
 	@SuppressWarnings("unchecked")
 	@Test(expected = RecordServicesRuntimeException.NoSuchRecordWithId.class)
 	public void givenInexistentIdWhenGetDocumentByIdThenThrowException()
@@ -357,53 +345,6 @@ public class RecordServicesTest extends ConstellioTest {
 
 	}
 
-	@SuppressWarnings("unchecked")
-	@Test(expected = UserCannotReadDocument.class)
-	public void givenUnauthorizedAccessWhenGetDocumentByIdThenThrowException()
-			throws Exception {
-		User theUser = mock(User.class, "theUser");
-
-		when(recordDao.get(theId, true)).thenReturn(recordDTO);
-		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(false);
-		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
-
-		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
-		when(metadataSchemaType.hasSecurity()).thenReturn(true);
-
-		recordServices.getDocumentById(theId, theUser);
-	}
-
-	@Test
-	public void givenAuthorizedAccessWhenGetDocumentByIdThenRecordReturned()
-			throws Exception {
-		User theUser = mock(User.class, "theUser");
-
-		when(recordDao.get(theId, true)).thenReturn(recordDTO);
-
-		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(true);
-		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
-
-		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
-		when(metadataSchemaType.hasSecurity()).thenReturn(true);
-
-		assertThat(recordServices.getDocumentById(theId, theUser)).isNotNull();
-	}
-
-	@Test
-	public void givenRecordOfSchemaTypeWithoutSecurityWhenGetDocumentByIdThenRecordReturned()
-			throws Exception {
-		User theUser = mock(User.class, "theUser");
-
-		when(recordDao.get(theId, true)).thenReturn(recordDTO);
-
-		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(false);
-		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
-
-		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
-		when(metadataSchemaType.hasSecurity()).thenReturn(false);
-
-		assertThat(recordServices.getDocumentById(theId, theUser)).isNotNull();
-	}
 
 	@Test
 	public void whenAddingRecordThenSaveInTransaction()

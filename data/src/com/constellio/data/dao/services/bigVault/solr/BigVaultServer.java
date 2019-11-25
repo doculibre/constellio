@@ -155,7 +155,7 @@ public class BigVaultServer implements Cloneable {
 		long end = new Date().getTime();
 
 		final long qtime = end - start;
-		extensions.afterQuery(params, queryName, qtime, response.getResults() == null ? 0 : response.getResults().size());
+		extensions.afterQuery(params, queryName, qtime, response.getResults() == null ? 0 : response.getResults().size(), response.getDebugMap());
 
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerQueryListener) {

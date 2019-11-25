@@ -17,7 +17,11 @@ public abstract class BaseService {
 	}
 
 	protected Record getRecord(String id, boolean checkLogicallyDeleted) {
-		Record record = getDao().getRecordById(id);
+		return getRecord(id, null, checkLogicallyDeleted);
+	}
+
+	protected Record getRecord(String id, String eTag, boolean checkLogicallyDeleted) {
+		Record record = getDao().getRecordById(id, eTag);
 		if (record == null) {
 			throw new RecordNotFoundException(id);
 		}

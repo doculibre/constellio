@@ -22,6 +22,16 @@ public class SortedStringIdsList implements SortedIdsList {
 	}
 
 	@Override
+	public synchronized void add(RecordId id) {
+		if (id.isInteger()) {
+			add(id.intValue());
+
+		} else {
+			add(id.stringValue());
+		}
+	}
+
+	@Override
 	public synchronized void add(String id) {
 		int intId = RecordUtils.toIntKey(id);
 
@@ -69,6 +79,18 @@ public class SortedStringIdsList implements SortedIdsList {
 		}
 	}
 
+
+	@Override
+	public synchronized void remove(RecordId id) {
+
+		if (id.isInteger()) {
+			intIdsList.remove(id.intValue());
+		} else {
+			stringIds.remove(id.stringValue());
+
+		}
+	}
+
 	@Override
 	public synchronized List<String> getValues() {
 		return getValuesWithoutSynchronizing();
@@ -104,5 +126,10 @@ public class SortedStringIdsList implements SortedIdsList {
 	public void clear() {
 		intIdsList.clear();
 		stringIds.clear();
+	}
+
+	@Override
+	public boolean isSupportingLegacyId() {
+		return true;
 	}
 }

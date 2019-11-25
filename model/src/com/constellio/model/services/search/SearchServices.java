@@ -163,7 +163,46 @@ public class SearchServices {
 	}
 
 	public SPEQueryResponse query(LogicalSearchQuery query) {
+		//		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
+		//
+		//
+		//			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+		//				List<Record> records = searchUsingCache(new LogicalSearchQuery(query));
+		//
+		//				if (query.getSortFields() == null || query.getSortFields().isEmpty()) {
+		//					Set<String> cacheRecordIds = records.stream().limit(query.getNumberOfRows())
+		//							.map(Record::getId).collect(Collectors.toSet());
+		//					Set<String> solrRecordIds = searchUsingSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
+		//							.stream().map(Record::getId).collect(Collectors.toSet());
+		//
+		//					if (!cacheRecordIds.equals(solrRecordIds)) {
+		//						throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
+		//												   + "\nWas : " + cacheRecordIds);
+		//					}
+		//				} else {
+		//					List<String> cacheRecordIds = records.stream().limit(query.getNumberOfRows())
+		//							.map(Record::getId).collect(Collectors.toList());
+		//					List<String> solrRecordIds = searchUsingSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
+		//							.stream().map(Record::getId).collect(Collectors.toList());
+		//
+		//					if (!cacheRecordIds.equals(solrRecordIds)) {
+		//						throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
+		//												   + "\nWas : " + cacheRecordIds);
+		//					}
+		//				}
+		//
+		//			}
+		//
+		//			List<Record> records = searchUsingCache(new LogicalSearchQuery(query).setNumberOfRows(1_000_000));
+		//
+		//			int to = Math.min(query.getStartRow() + query.getNumberOfRows(), records.size());
+		//			return new SPEQueryResponse(records.subList(query.getStartRow(), to), records.size());
+		//
+		//		} else {
 		return buildResponse(query);
+		//		}
+
+
 	}
 
 	@Deprecated
@@ -1280,6 +1319,10 @@ public class SearchServices {
 			params.add(CommonParams.Q, StringUtils.defaultString(query.getFreeTextQuery(), "*:*"));
 		}
 
+		if (Toggle.DEBUG_SOLR_TIMINGS.isEnabled()) {
+			params.add("debug", "timing");
+		}
+
 		return params;
 	}
 
@@ -1495,8 +1538,9 @@ public class SearchServices {
 				queryResponseDTO.getFieldsStatistics());
 		SPEQueryResponse response = new SPEQueryResponse(fieldFacetValues, facetPivotValues, statisticsValues,
 				queryFacetValues, queryResponseDTO.getQtime(), queryResponseDTO.getNumFound(), records,
-				queryResponseDTO.getHighlights(), queryResponseDTO.isCorrectlySpelt(),
-				queryResponseDTO.getSpellCheckerSuggestions(), moreLikeThisResult);
+				queryResponseDTO.getHighlights(), queryResponseDTO.getDebugMap(),
+				queryResponseDTO.isCorrectlySpelt(), queryResponseDTO.getSpellCheckerSuggestions(), moreLikeThisResult);
+
 
 		if (query.getResultsProjection() != null) {
 			return query.getResultsProjection().project(query, response);

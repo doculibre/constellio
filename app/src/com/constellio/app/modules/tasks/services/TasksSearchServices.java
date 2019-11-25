@@ -92,10 +92,13 @@ public class TasksSearchServices {
 
 	public long getCountUnreadTasksToUserQuery(User user) {
 		UnreadTasksUserCache cache = tasksSchemas.getModelLayerFactory().getCachesManager().getUserCache(UnreadTasksUserCache.NAME);
-		Long cachedValue = cache.getCachedUnreadTasks(user);
-		if (cachedValue == null) {
-			cachedValue = calculateCountUnreadTasksToUserQuery(user);
-			cache.insertUnreadTasks(user, cachedValue);
+		Long cachedValue = 0L;
+		if (cache != null) {
+			cachedValue = cache.getCachedUnreadTasks(user);
+			if (cachedValue == null) {
+				cachedValue = calculateCountUnreadTasksToUserQuery(user);
+				cache.insertUnreadTasks(user, cachedValue);
+			}
 		}
 
 		return cachedValue;

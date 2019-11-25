@@ -1,5 +1,6 @@
 package com.constellio.model.entities.schemas;
 
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -50,6 +51,7 @@ public class MetadataSchemaTypes implements Serializable {
 	private final MetadataNetwork metadataNetwork;
 
 	private final CollectionInfo collectionInfo;
+	private final Map<String, List<MetadataSchemaType>> classifiedSchemaTypes;
 
 
 	public MetadataSchemaTypes(CollectionInfo collectionInfo, int version, List<MetadataSchemaType> schemaTypes,
@@ -66,8 +68,40 @@ public class MetadataSchemaTypes implements Serializable {
 		this.languages = Collections.unmodifiableList(languages);
 		this.typeParentOfOtherTypes = buildTypeParentOfOtherTypes(schemaTypes);
 		this.schemaTypesById = buildTypesById(schemaTypes);
+		this.classifiedSchemaTypes = buildClassifiedSchemaTypes(schemaTypes);
 		this.metadataNetwork = metadataNetwork;
 		this.collectionInfo = collectionInfo;
+	}
+
+	private static Map<String, List<MetadataSchemaType>> buildClassifiedSchemaTypes(
+			List<MetadataSchemaType> schemaTypes) {
+		KeyListMap<String, MetadataSchemaType> listMap = new KeyListMap<>();
+
+		for (MetadataSchemaType type : schemaTypes) {
+			for (MetadataSchemaType anotherType : schemaTypes) {
+				if (type != anotherType) {
+					for (Metadata metadata : anotherType.getDefaultSchema().getMetadatas()) {
+						if ((metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship())
+							&& type.getCode().equals(metadata.getReferencedSchemaType())) {
+							listMap.add(type.getCode(), anotherType);
+						}
+					}
+
+
+				} else {
+					//TODO Retirer cette passe de l'ours
+					for (Metadata metadata : anotherType.getDefaultSchema().getMetadatas()) {
+						if ((metadata.isChildOfRelationship()) && type.getCode().equals(metadata.getReferencedSchemaType())
+							&& type.getCode().equals("folder")) {
+							listMap.add(type.getCode(), anotherType);
+						}
+					}
+
+				}
+			}
+		}
+
+		return listMap.getNestedMap();
 	}
 
 	private List<MetadataSchemaType> buildTypesById(List<MetadataSchemaType> schemaTypes) {
@@ -78,6 +112,11 @@ public class MetadataSchemaTypes implements Serializable {
 		}
 
 		return Collections.unmodifiableList(Arrays.asList(types));
+	}
+
+	public List<MetadataSchemaType> getClassifiedSchemaTypesIn(String schemaTypeCode) {
+		List<MetadataSchemaType> types = classifiedSchemaTypes.get(schemaTypeCode);
+		return types == null ? Collections.emptyList() : types;
 	}
 
 	public CollectionInfo getCollectionInfo() {

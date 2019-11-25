@@ -54,14 +54,16 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 						"zeSchemaType_default_pathParts", "zeSchemaType_default_path",
 						"zeSchemaType_default_principalpath", "zeSchemaType_default_attachedAncestors",
 						"zeSchemaType_default_allRemovedAuths", "zeSchemaType_default_autocomplete",
-						"zeSchemaType_default_tokensHierarchy");
+						"zeSchemaType_default_tokensHierarchy", "zeSchemaType_default_attachedPrincipalAncestorsIntIds",
+						"zeSchemaType_default_secondaryConceptsIntIds", "zeSchemaType_default_principalAncestorsIntIds");
 
 		assertThat(((ValidateMetadatasRecordPreparationStep) steps.get(4)).getMetadatasCodes())
 				.containsOnly(zeSchema.anotherStringMetadata().getCode(), "zeSchemaType_default_tokens",
 						"zeSchemaType_default_pathParts", "zeSchemaType_default_path",
 						"zeSchemaType_default_principalpath", "zeSchemaType_default_attachedAncestors",
 						"zeSchemaType_default_allRemovedAuths", "zeSchemaType_default_autocomplete",
-						"zeSchemaType_default_tokensHierarchy");
+						"zeSchemaType_default_tokensHierarchy", "zeSchemaType_default_attachedPrincipalAncestorsIntIds",
+						"zeSchemaType_default_secondaryConceptsIntIds", "zeSchemaType_default_principalAncestorsIntIds");
 
 		assertThat(((ValidateUsingSchemaValidatorsRecordPreparationStep) steps.get(5)).getValidators()).isEmpty();
 	}
