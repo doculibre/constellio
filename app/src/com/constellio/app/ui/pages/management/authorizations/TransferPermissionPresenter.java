@@ -1,12 +1,14 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.vaadin.ui.Window;
 
 import java.util.List;
 
 public interface TransferPermissionPresenter {
-	void copyUserAuthorizations(RecordVO sourceUse, List<String> destUsers);
+	void copyUserAuthorizations(Record sourceUse, List<String> destUsers);
 
 	RecordVO getUser();
 
@@ -24,7 +26,9 @@ public interface TransferPermissionPresenter {
 
 	void displayErrorsList();
 
-	void copyUserRoles(RecordVO sourceUserVO, List<String> destUsers);
+	List<Authorization> getUserAuthorizationsList(Record userVO);
 
-	void removeAllRolesOfUser(RecordVO userVO);
+	//void copyUserRoles(RecordVO sourceUserVO, List<String> destUsers);
+
+	//void removeAllRolesOfUser(RecordVO userVO);
 }

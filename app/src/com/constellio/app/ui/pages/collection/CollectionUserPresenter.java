@@ -83,8 +83,8 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 	}
 
 
-	public void copyUserAuthorizations(RecordVO sourceUserVO, List<String> destUsers) {
-		List<Authorization> authorizationsList = getUserAuthorizationsList(sourceUserVO);
+	public void copyUserAuthorizations(Record sourceUserRecord, List<String> destUsers) {
+		List<Authorization> authorizationsList = getUserAuthorizationsList(sourceUserRecord);
 		for (Authorization authorization : authorizationsList) {
 			ArrayList<String> newPrincipalsList = new ArrayList<>();
 			newPrincipalsList.addAll(authorization.getPrincipals());
@@ -109,17 +109,17 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 		}
 	}
 
-	//TODO
-	public void removeAllRolesOfUser(RecordVO userVO) {
+	/*
+	private void removeAllRolesOfUser(RecordVO userVO) {
 		User user = wrapUser(userVO.getRecord());
 		user.setUserRoles("");
 		addOrUpdate(user.getWrappedRecord());
 	}
-
+	*/
 
 	public void removeAllAuthorizationsOfUser(RecordVO userVO) {
 		String userID = userVO.getId();
-		List<Authorization> authorizationsList = getUserAuthorizationsList(userVO);
+		List<Authorization> authorizationsList = getUserAuthorizationsList(userVO.getRecord());
 		ArrayList<String> modifiedPrincipalsList = new ArrayList<String>();
 		for (Authorization authorization : authorizationsList) {
 			List<String> principalsList = authorization.getPrincipals();
@@ -157,15 +157,16 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 		return confirmMessage;
 	}
 
+	//TODO confirmer si on doit inclure les rôles ou non
 	public void transferAccessSaveButtonClicked(RecordVO sourceUser, List<String> destUsers, boolean removeUserAccess,
 												Window window) {
 		errorsList = new ArrayList<>();
 		if (validateAccessTransfer(sourceUser, destUsers)) {
-			copyUserAuthorizations(sourceUser, destUsers);
-			//copyUserRoles(sourceUser, destUsers);		TODO Demander a Rida, si on inclu les rôles
+			copyUserAuthorizations(sourceUser.getRecord(), destUsers);
+			//copyUserRoles(sourceUser, destUsers);
 			if (removeUserAccess) {
 				removeAllAuthorizationsOfUser(sourceUser);
-				//removeAllRolesOfUser(sourceUser);		TODO Demander a Rida, si on inclu les rôles
+				//removeAllRolesOfUser(sourceUser);
 			}
 			window.close();
 		} else {
@@ -202,9 +203,9 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 	}
 
 
-	private List<Authorization> getUserAuthorizationsList(RecordVO userVO) {
+	public List<Authorization> getUserAuthorizationsList(Record userVO) {
 		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-		User userRecord = wrapUser(userVO.getRecord());
+		User userRecord = wrapUser(userVO);
 		return authorizationsServices.getRecordAuthorizations(userRecord.getWrappedRecord());
 	}
 }

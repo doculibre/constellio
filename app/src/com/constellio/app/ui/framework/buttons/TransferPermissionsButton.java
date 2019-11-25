@@ -5,8 +5,6 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenter;
 import com.constellio.model.entities.records.wrappers.User;
-import com.vaadin.data.Property.ValueChangeEvent;
-import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
@@ -14,7 +12,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
@@ -32,7 +29,6 @@ public class TransferPermissionsButton extends WindowButton {
 	private Button saveButton;
 	private Button cancelButton;
 	private TransferPermissionPresenter presenter;
-	//private CollectionGroupRolesPresenter presenter;
 
 	private RecordVO sourceUser;
 
@@ -46,7 +42,6 @@ public class TransferPermissionsButton extends WindowButton {
 	protected Component buildWindowContent() {
 		VerticalLayout mainLayout = new VerticalLayout();
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
-		final Window window = getWindow();
 		label = new Label($("TransferAccessRights.ChooseDestinationUsers"));
 		buildUsersSearchField();
 		buildRemoveCurrentUserRightsCheckbox();
@@ -73,29 +68,19 @@ public class TransferPermissionsButton extends WindowButton {
 
 	private void buildRemoveCurrentUserRightsCheckbox() {
 		removeUserAccessCheckbox = new CheckBox();
-
-		//TODO: ajouter message aux config
 		removeUserAccessCheckbox.setCaption($("TransferAccessRights.removeUserAccess"));
-		removeUserAccessCheckbox.addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(ValueChangeEvent event) {
-			}
-		});
 	}
 
 	private void buildSaveButton() {
 		saveButton = new Button($("save"));
 		saveButton.addStyleName(SAVE_BUTTON);
 		saveButton.addStyleName(BUTTON_PRIMARY);
-		saveButton.addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				sourceUser = presenter.getUser();
-				if (presenter.validateAccessTransfer(sourceUser, users.getValue())) {
-					confirmSaveDialog();
-				} else {
-					presenter.displayErrorsList();
-				}
+		saveButton.addClickListener((ClickListener) event -> {
+			sourceUser = presenter.getUser();
+			if (presenter.validateAccessTransfer(sourceUser, users.getValue())) {
+				confirmSaveDialog();
+			} else {
+				presenter.displayErrorsList();
 			}
 		});
 	}
@@ -121,7 +106,7 @@ public class TransferPermissionsButton extends WindowButton {
 	}
 
 	private String buildUserListString() {
-		String selectedUsersString = "";//users.getValue();
+		String selectedUsersString = "";
 		List<String> usersList = presenter.convertUserIdListToUserNames(users.getValue());
 		for (int i = 0; i < usersList.size(); i++) {
 			selectedUsersString += usersList.get(i);
