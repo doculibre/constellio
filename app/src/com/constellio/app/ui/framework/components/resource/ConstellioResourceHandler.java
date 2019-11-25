@@ -41,7 +41,7 @@ import java.util.UUID;
 public class ConstellioResourceHandler implements RequestHandler {
 
 	public enum ResourceType {
-		NORMAL, PREVIEW, THUMBNAIL, JPEG_CONVERSION;
+		NORMAL, PREVIEW, THUMBNAIL, JPEG_CONVERSION, ANNOTATION;
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -62,6 +62,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 			String preview = paramsMap.get("preview");
 			String thumbnail = paramsMap.get("thumbnail");
 			String jpegConversion = paramsMap.get("jpegConversion");
+			String annotation = paramsMap.get("annotation");
 			String filePath = paramsMap.get("file");
 			String hashParam = paramsMap.get("hash");
 			String filenameParam = paramsMap.get("z-filename");
@@ -114,6 +115,12 @@ public class ConstellioResourceHandler implements RequestHandler {
 							} else if ("true".equals(jpegConversion)) {
 								if (contentManager.hasContentJpegConversion(hash)) {
 									in = contentManager.getContentJpegConversionInputStream(hash, getClass().getSimpleName() + ".handleRequest");
+								} else {
+									in = null;
+								}
+							} else if ("true".equals(annotation)) {
+								if (contentManager.hasContentAnnotation(hash, recordId, version)) {
+									in = contentManager.getContentAnnotationInputStream(hash, recordId, version, getClass().getSimpleName() + ".handleRequest");
 								} else {
 									in = null;
 								}
@@ -179,6 +186,11 @@ public class ConstellioResourceHandler implements RequestHandler {
 		return createResource(recordId, metadataCode, version, filename, ResourceType.JPEG_CONVERSION);
 	}
 
+	public static Resource createAnnotationResource(String recordId, String metadataCode, String version,
+													String fileName) {
+		return createResource(recordId, metadataCode, version, fileName, ResourceType.ANNOTATION);
+	}
+
 	private static Resource createResource(String recordId, String metadataCode, String version, String filename,
 										   ResourceType resourceType) {
 		return createResource(recordId, metadataCode, version, filename, resourceType, false);
@@ -192,6 +204,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 		params.put("preview", "" + (resourceType == ResourceType.PREVIEW));
 		params.put("thumbnail", "" + (resourceType == ResourceType.THUMBNAIL));
 		params.put("jpegConversion", "" + (resourceType == ResourceType.JPEG_CONVERSION));
+		params.put("annotation", "" + (resourceType == ResourceType.ANNOTATION));
 		params.put("version", version);
 		params.put("z-filename", filename);
 		if (!useBrowserCache) {

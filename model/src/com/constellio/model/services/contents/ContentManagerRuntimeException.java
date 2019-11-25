@@ -48,6 +48,14 @@ public class ContentManagerRuntimeException extends RuntimeException {
 
 	}
 
+	public static class ContentManagerRuntimeException_ContentHasNoAnnotation extends ContentManagerRuntimeException {
+
+		public ContentManagerRuntimeException_ContentHasNoAnnotation(String hash) {
+			super("Content '" + hash + "' has no annotation");
+		}
+
+	}
+
 	public static class ContentManagerRuntimeException_ContentHasNoThumbnail extends ContentManagerRuntimeException {
 
 		public ContentManagerRuntimeException_ContentHasNoThumbnail(String hash) {

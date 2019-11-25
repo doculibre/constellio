@@ -114,12 +114,12 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 			mainLayout.setSpacing(true);
 
 			if (userDocumentRecordVO != null) {
-				contentViewer = new ContentViewer(userDocumentRecordVO, UserDocument.CONTENT, userDocumentRecordVO.get(UserDocument.CONTENT));
+				contentViewer = new ContentViewer(userDocumentRecordVO, UserDocument.CONTENT, userDocumentRecordVO.get(UserDocument.CONTENT), presenter.userHasPermissionToEditOtherUserAnnotation());
 			} else if (duplicateDocumentRecordVO != null) {
-				contentViewer = new ContentViewer(duplicateDocumentRecordVO, Document.CONTENT, duplicateDocumentRecordVO.get(Document.CONTENT));
+				contentViewer = new ContentViewer(duplicateDocumentRecordVO, Document.CONTENT, duplicateDocumentRecordVO.get(Document.CONTENT), presenter.userHasPermissionToEditOtherUserAnnotation());
 				isDuplicateDocumentViewer = true;
 			} else {
-				contentViewer = new ContentViewer(recordVO, Document.CONTENT, contentVersionVO);
+				contentViewer = new ContentViewer(recordVO, Document.CONTENT, contentVersionVO, presenter.userHasPermissionToEditOtherUserAnnotation());
 			}
 
 			recordForm.setSizeFull();

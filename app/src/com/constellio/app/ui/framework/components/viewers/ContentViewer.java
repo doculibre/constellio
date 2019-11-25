@@ -7,6 +7,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.viewers.audio.AudioViewer;
 import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
 import com.constellio.app.ui.framework.components.viewers.image.ImageViewer;
+import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronViewer;
 import com.constellio.app.ui.framework.components.viewers.video.VideoViewer;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
@@ -25,14 +26,20 @@ public class ContentViewer extends CustomComponent {
 	private List<VisibilityChangeListener> imageViewerVisibilityChangeListenerList;
 	private boolean didVisibilityChangeWhileAttaching = false;
 
-	public ContentViewer(RecordVO recordVO, String metadataCode, ContentVersionVO contentVersionVO) {
+	public ContentViewer(RecordVO recordVO, String metadataCode, ContentVersionVO contentVersionVO,
+						 boolean userHasPermissionToEditOtherUserAnnotation) {
 		imageViewerVisibilityChangeListenerList = new ArrayList<>();
 		setId(UUID.randomUUID().toString());
 		if (contentVersionVO != null) {
 			String fileName = contentVersionVO.getFileName();
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 
-			if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
+			String[] pdfTronExt = {"pdf", "doc", "docx"};
+			if (Arrays.asList(pdfTronExt).contains(extension)) {
+				PdfTronViewer pdfTronViewer = new PdfTronViewer((DocumentVO) recordVO, userHasPermissionToEditOtherUserAnnotation);
+
+				viewerComponent = pdfTronViewer;
+			} else if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
 				ImageViewer imageViewer = new ImageViewer(recordVO, Document.CONTENT, contentVersionVO) {
 					@Override
 					public void setVisible(boolean newVisibility) {

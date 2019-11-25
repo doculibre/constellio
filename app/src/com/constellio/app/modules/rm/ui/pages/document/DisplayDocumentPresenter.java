@@ -136,6 +136,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
+	public boolean userHasPermissionToEditOtherUserAnnotation() {
+		return getCurrentUser().has(RMPermissionsTo.EDIT_ALL_ANNOTATION).on(documentVO.getRecord());
+	}
+
 	public String getFavGroupId() {
 		if (params != null) {
 			return params.get(RMViews.FAV_GROUP_ID_KEY);

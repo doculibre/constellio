@@ -177,7 +177,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private ContentViewer newContentViewer() {
 		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
-		final ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
+		final ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO, presenter.userHasPermissionToEditOtherUserAnnotation());
 		if (inWindow && !isViewerInSeparateTab()) {
 			//			int viewerHeight = Page.getCurrent().getBrowserWindowHeight() - 125;
 			//			contentViewer.setHeight(viewerHeight + "px");

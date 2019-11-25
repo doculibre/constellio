@@ -73,6 +73,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.utils.MimeTypes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -88,6 +89,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -460,6 +462,10 @@ public class ContentManager implements StatefulService {
 		return getContentDao().isDocumentExisting(hash + ".preview");
 	}
 
+	public boolean hasContentAnnotation(String hash, String id, String version) {
+		return getContentDao().isDocumentExisting(hash + ".annotation." + id + ":" + version);
+	}
+
 	public boolean hasContentThumbnail(String hash) {
 		return getContentDao().isDocumentExisting(hash + ".thumbnail");
 	}
@@ -482,6 +488,50 @@ public class ContentManager implements StatefulService {
 		} catch (ContentDaoException_NoSuchContent e) {
 			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoPreview(hash);
 		}
+	}
+
+	public InputStream getContentAnnotationInputStream(String hash, String id, String version, String streamName) {
+		try {
+			return getContentDao().getContentInputStream(hash + ".annotation." + id + ":" + version, streamName);
+		} catch (ContentDaoException_NoSuchContent e) {
+			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoAnnotation(hash);
+		}
+	}
+
+	public String getUserHavingAnnotationLock(String hash, String id, String version) {
+		try {
+			String lockFileName = hash + ".annotationLock." + id + ":" + version;
+			if (getContentDao().isDocumentExisting(lockFileName)) {
+				return IOUtils.toString(getContentDao().getContentInputStream(lockFileName, getClass().getSimpleName() + lockFileName + ".annotationLock"), (Charset) null);
+			} else {
+				return null;
+			}
+		} catch (ContentDaoException_NoSuchContent e) {
+			return null;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public boolean obtainAnnotationLock(String hash, String id, String version, String userId) {
+
+		String lockFileName = hash + ".annotationLock." + id + ":" + version;
+		if (!getContentDao().isDocumentExisting(lockFileName)) {
+			try {
+				getContentDao().add(lockFileName, IOUtils.toInputStream(userId, (String) null));
+				return true;
+			} catch (IOException e) {
+				LOGGER.error("error while adding annotationLock", e);
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	public void releaseAnnotationLock(String hash, String id, String version) {
+		String lockFileName = hash + ".annotationLock." + id + ":" + version;
+		getContentDao().delete(asList(lockFileName));
 	}
 
 	public InputStream getContentThumbnailInputStream(String hash, String streamName) {
