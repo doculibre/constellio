@@ -12,10 +12,13 @@ import com.vaadin.data.Item;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.tepi.filtertable.datefilter.DateInterval;
 import org.tepi.filtertable.numberfilter.NumberInterval;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 public class RecordVOFilter implements Container.Filter {
 	private final MetadataVO propertyId;
@@ -67,6 +70,14 @@ public class RecordVOFilter implements Container.Filter {
 					}
 				}
 				break;
+			case DATE_TIME:
+				if (getValue() instanceof Date) {
+					Date date = (Date) getValue();
+					if (date != null) {
+						query.setCondition(query.getCondition().andWhere(metadata).isEqualTo(new LocalDateTime(date.getTime())));
+					}
+				}
+				break;
 			case NUMBER:
 				if (getValue() instanceof NumberInterval) {
 					NumberInterval interval = (NumberInterval) getValue();
@@ -102,6 +113,11 @@ public class RecordVOFilter implements Container.Filter {
 					String stringValue = (String) getValue();
 					if (StringUtils.isNotBlank(stringValue)) {
 						query.setCondition(query.getCondition().andWhere(metadata).isEqualTo(value));
+					}
+				} else if (getValue() instanceof Collection) {
+					List<String> listValue = (List) getValue();
+					if (!listValue.isEmpty()) {
+						query.setCondition(query.getCondition().andWhere(metadata).isIn(listValue));
 					}
 				}
 				break;
