@@ -77,11 +77,7 @@ public class TransferPermissionsButton extends WindowButton {
 		saveButton.addStyleName(BUTTON_PRIMARY);
 		saveButton.addClickListener((ClickListener) event -> {
 			sourceUser = presenter.getUser();
-			if (presenter.validateAccessTransfer(sourceUser, users.getValue())) {
-				confirmSaveDialog();
-			} else {
-				presenter.displayErrorsList();
-			}
+			confirmSaveDialog();
 		});
 	}
 
@@ -117,16 +113,29 @@ public class TransferPermissionsButton extends WindowButton {
 		return selectedUsersString;
 	}
 
-	private void confirmSaveDialog() {
-		String selectedUsersString = buildUserListString();
-		String confirmMessage = presenter.buildTransferRightsConfirmMessage(sourceUser.getTitle(), selectedUsersString,
-				users.getValue().size() > 1, removeUserAccessIsChecked());
-		ConfirmDialog.show(ConstellioUI.getCurrent(), $("TransferAccessRights.Title"), confirmMessage,
-				$("Ok"), $("cancel"), (ConfirmDialog.Listener) dialog -> {
-					if (dialog.isConfirmed()) {
-						presenter.transferAccessSaveButtonClicked(sourceUser, users.getValue(), removeUserAccessIsChecked(), getWindow());
-					} else {
-					}
-				});
+	private boolean validateUserInputInformation() {
+		try {
+			presenter.validateAccessTransfer(sourceUser.getRecord(), users.getValue());
+			return true;
+		} catch (Exception e) {
+			presenter.displayErrorMessage();
+			return false;
+		}
 	}
+
+	private void confirmSaveDialog() {
+		if (validateUserInputInformation()) {
+			String selectedUsersString = buildUserListString();
+			presenter.setRemoveUserAccess(removeUserAccessIsChecked());
+			String confirmMessage = presenter.buildTransferRightsConfirmMessage(sourceUser.getTitle(), selectedUsersString,
+					users.getValue().size() > 1, removeUserAccessIsChecked());
+			ConfirmDialog.show(ConstellioUI.getCurrent(), $("TransferAccessRights.Title"), confirmMessage,
+					$("Ok"), $("cancel"), (ConfirmDialog.Listener) dialog -> {
+						if (dialog.isConfirmed()) {
+							presenter.transferAccessSaveButtonClicked(sourceUser, users.getValue(), getWindow());
+						}
+					});
+		}
+	}
+
 }

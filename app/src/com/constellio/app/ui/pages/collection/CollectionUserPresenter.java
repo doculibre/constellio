@@ -26,6 +26,12 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 	String recordId;
 	ArrayList<String> errorsList;
 
+	public void setRemoveUserAccess(boolean removeUserAccess) {
+		this.removeUserAccess = removeUserAccess;
+	}
+
+	boolean removeUserAccess;
+
 	public CollectionUserPresenter(CollectionUserView view) {
 		super(view, User.DEFAULT_SCHEMA);
 	}
@@ -83,7 +89,8 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 	}
 
 
-	public void copyUserAuthorizations(Record sourceUserRecord, List<String> destUsers) {
+	public void copyUserAuthorizations(Record sourceUserRecord, List<String> destUsers) throws Exception {
+		validateAccessTransfer(sourceUserRecord, destUsers);
 		List<Authorization> authorizationsList = getUserAuthorizationsList(sourceUserRecord);
 		for (Authorization authorization : authorizationsList) {
 			ArrayList<String> newPrincipalsList = new ArrayList<>();
@@ -97,6 +104,16 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 		}
 	}
 
+	public void copyUserGroups(RecordVO sourceUserVO, List<String> destUsers) {
+		User sourceUser = wrapUser(sourceUserVO.getRecord());
+		List<String> groupsList = sourceUser.getUserGroups();
+
+		for (String destUserId : destUsers) {
+			User user = coreSchemas().getUser(destUserId);
+			user.setUserGroups(groupsList);
+			addOrUpdate(user.getWrappedRecord());
+		}
+	}
 
 	public void copyUserRoles(RecordVO sourceUserVO, List<String> destUsers) {
 		User sourceUser = wrapUser(sourceUserVO.getRecord());
@@ -158,39 +175,42 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 	}
 
 	//TODO confirmer si on doit inclure les rôles ou non
-	public void transferAccessSaveButtonClicked(RecordVO sourceUser, List<String> destUsers, boolean removeUserAccess,
-												Window window) {
-		errorsList = new ArrayList<>();
-		if (validateAccessTransfer(sourceUser, destUsers)) {
+	public void transferAccessSaveButtonClicked(RecordVO sourceUser, List<String> destUsers, Window window) {
+		try {
 			copyUserAuthorizations(sourceUser.getRecord(), destUsers);
-			//copyUserRoles(sourceUser, destUsers);
+			copyUserGroups(sourceUser, destUsers);
 			if (removeUserAccess) {
 				removeAllAuthorizationsOfUser(sourceUser);
-				//removeAllRolesOfUser(sourceUser);
 			}
 			window.close();
-		} else {
-			displayErrorsList();
+		} catch (Exception e) {
+			displayErrorMessage();
 		}
-
 	}
 
-	public void displayErrorsList() {
-		String errorMessages = "";
-		for (String msg : errorsList) {
-			errorMessages += msg;
-			errorMessages += "\n";
+	public void displayErrorMessage() {
+		for (String errorMessage : errorsList) {
+			view.showErrorMessage(errorMessage);
 		}
-		view.showErrorMessage(errorMessages);
 	}
 
-	public boolean validateAccessTransfer(RecordVO sourceUser, List<String> destUsers) {
+
+	public void validateAccessTransfer(Record sourceUser, List<String> destUsers) throws Exception {
 		errorsList = new ArrayList<>();
 		if (destUsers.isEmpty()) {
 			errorsList.add($("TransferAccessRights.emptyDestinationListError"));
-			return false;
 		}
-		return true;
+		if (destUsers.contains(sourceUser.getId())) {
+			errorsList.add($("TransferAccessRights.userCannotBeSelected", sourceUser.getTitle()));
+		}
+		if (!isDeletionEnabled() && removeUserAccess) {
+			errorsList.add($("TransferAccessRights.cannotRemovePermissions", sourceUser.getTitle()));
+		}
+
+
+		if (errorsList.size() > 0) {
+			throw new Exception(errorsList.toString());
+		}
 	}
 
 	public List<String> convertUserIdListToUserNames(List<String> userIdList) {

@@ -71,8 +71,6 @@ public class CollectionUserViewImpl extends BaseViewImpl implements CollectionUs
 				$("TransferAccessRights.Title"),
 				presenter);
 		transferUserPermissions.setIcon(FontAwesome.EXCHANGE);
-
-		transferUserPermissions.setEnabled(presenter.isDeletionEnabled());
 		buttons.add(transferUserPermissions);
 
 		Button delete = new DeleteButton(false) {

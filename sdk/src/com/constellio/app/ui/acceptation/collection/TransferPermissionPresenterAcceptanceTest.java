@@ -63,9 +63,7 @@ public class TransferPermissionPresenterAcceptanceTest extends ConstellioTest {
 		userServices = getModelLayerFactory().newUserServices();
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 
-		sourceUser = userServices.getUserInCollection(gandalf, zeCollection);
-		destUser1 = userServices.getUserInCollection(aliceWonderland, zeCollection);
-		destUser2 = userServices.getUserInCollection(bobGratton, zeCollection);
+		initOrUpdateTestUsers();
 
 		transferPermissionPresenter = spy(new CollectionUserPresenter(collectionUserView));
 	}
@@ -83,8 +81,7 @@ public class TransferPermissionPresenterAcceptanceTest extends ConstellioTest {
 			assertThat(authorization.getPrincipals()).doesNotContain(destUser1.getId(), destUser2.getId());
 		}
 
-		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationUsers, false, window);
-
+		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationUsers, window);
 
 		for (Authorization authorization : sourceUserAuthorizations) {
 			assertThat(authorization.getPrincipals()).contains(destUser1.getId(), destUser2.getId());
@@ -94,45 +91,93 @@ public class TransferPermissionPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenRemoveAccessCheckboxCheckedWhenTransferringAccessRightsThenSourceUserAuthorizationsAreRemoved() {
 		Record sourceUserRecord = sourceUser.getWrappedRecord();
-
 		List<String> destinationUsers = new ArrayList<>();
 		destinationUsers.add(destUser1.getId());
 		destinationUsers.add(destUser2.getId());
-		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationUsers, true, window);
+
+		transferPermissionPresenter.setRemoveUserAccess(true);
+		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationUsers, window);
+
 		List<Authorization> sourceUserAuthorizations = authorizationsServices.getRecordAuthorizations(sourceUserRecord);
 		for (Authorization authorization : sourceUserAuthorizations) {
 			assertThat(authorization.getPrincipals()).doesNotContain(sourceUser.getId());
 		}
 	}
 
-	//TODO: confirmer si on doit inclure les rôles
-	/*
 	@Test
-	public void givenRemoveAccessCheckboxCheckedWhenTransferringAccessRightsThenSourceUserRolesAreRemoved() {
+	public void givenRemoveAccessCheckboxUncheckedWhenTransferringAccessRightsThenSourceUserAuthorizationsRemain() {
+		Record sourceUserRecord = sourceUser.getWrappedRecord();
+		List<String> destinationUsers = new ArrayList<>();
+		destinationUsers.add(destUser1.getId());
+		destinationUsers.add(destUser2.getId());
 
+		transferPermissionPresenter.setRemoveUserAccess(false);
+		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationUsers, window);
+		List<Authorization> sourceUserAuthorizations = authorizationsServices.getRecordAuthorizations(sourceUserRecord);
+		for (Authorization authorization : sourceUserAuthorizations) {
+			assertThat(authorization.getPrincipals()).contains(sourceUser.getId());
+		}
 	}
-	*/
-	//TODO: confirmer si on doit inclure les rôles
-	@Test
+
+	@Test        //TODO
 	public void givenNoDestinationUserSelectedDestinationUsersWhenTransferringAccessRightsThenErrorMessage() {
 		List<String> destinationsUsersList = new ArrayList<>();
-		transferPermissionPresenter.transferAccessSaveButtonClicked((UserVO) sourceUser.getWrappedRecord(), destinationsUsersList, false, window);
+		transferPermissionPresenter.transferAccessSaveButtonClicked((UserVO) sourceUser.getWrappedRecord(), destinationsUsersList, window);
 	}
 
-	@Test
+	@Test        //TODO
 	public void givenSourceUserInSelectedDestinationUsersWhenTransferringAccessRightsThenErrorMessage() {
+		Record sourceUserRecord = sourceUser.getWrappedRecord();
 
+		List<String> destinationUsers = new ArrayList<>();
+		destinationUsers.add(destUser1.getId());
+		destinationUsers.add(destUser2.getId());
+		destinationUsers.add(sourceUser.getId());
+		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationUsers, window);
+		//assertThat(collectionUserView)
 	}
 
 	@Test
-	public void givenDestinationUserWhenTransferringAccessRightsThenAuthorizationIsSameAsSourceUser() {
+	public void givenDestinationUsersWhenTransferringAccessRightsThenGroupsSameAsSourceUser() {
+		List<String> destinationIds = new ArrayList<String>();
+		destinationIds.add(destUser1.getId());
+		destinationIds.add(destUser2.getId());
 
+		assertThat(destUser1.getUserGroups()).isNotEqualTo(sourceUser.getUserGroups());
+		assertThat(destUser2.getUserGroups()).isNotEqualTo(sourceUser.getUserGroups());
+
+		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationIds, window);
+		initOrUpdateTestUsers();
+
+		assertThat(destUser1.getUserGroups()).isEqualTo(sourceUser.getUserGroups());
+		assertThat(destUser2.getUserGroups()).isEqualTo(sourceUser.getUserGroups());
 	}
 
 
 	@Test
-	public void givenDestinationUserWithSameAuthorizationAsSourceUserWhenTransferringAccessRightsThenDestinationUserNotAddedToAuthorization() {
+	public void givenDestinationUserWithSameAuthorizationAsSourceUserWhenTransferringAccessRightsThenDestinationUserNotAddedAgainToAuthorization() {
+		List<String> destinationUsers = new ArrayList<>();
+		destinationUsers.add(sourceUser.getId());
 
+		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationUsers, window);
+		List<Authorization> sourceUserAuthorizations = authorizationsServices.getRecordAuthorizations(sourceUser);
+
+		for (Authorization authorization : sourceUserAuthorizations) {
+			assertThat(authorization.getPrincipals()).containsOnlyOnce(sourceUser.getId());
+		}
+	}
+
+	@Test
+		//TODO
+	void givenAdminUserAndRemoveRightsCheckboxCheckedWhenTransferringAccessRightThenErrorMessage() {
+
+	}
+
+
+	public void initOrUpdateTestUsers() {
+		sourceUser = userServices.getUserInCollection(gandalf, zeCollection);
+		destUser1 = userServices.getUserInCollection(aliceWonderland, zeCollection);
+		destUser2 = userServices.getUserInCollection(bobGratton, zeCollection);
 	}
 
 	public AuthorizationAddRequest givenAuthorizationFor(String principalId) {

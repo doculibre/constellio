@@ -8,7 +8,7 @@ import com.vaadin.ui.Window;
 import java.util.List;
 
 public interface TransferPermissionPresenter {
-	void copyUserAuthorizations(Record sourceUse, List<String> destUsers);
+	void copyUserAuthorizations(Record sourceUse, List<String> destUsers) throws Exception;
 
 	RecordVO getUser();
 
@@ -19,15 +19,15 @@ public interface TransferPermissionPresenter {
 
 	void removeAllAuthorizationsOfUser(RecordVO user);
 
-	void transferAccessSaveButtonClicked(RecordVO sourceUser, List<String> destUsers, boolean removeUserAccess,
-										 Window window);
+	void transferAccessSaveButtonClicked(RecordVO sourceUser, List<String> destUsers, Window window);
 
-	boolean validateAccessTransfer(RecordVO sourceUser, List<String> destUsers);
+	void validateAccessTransfer(Record sourceUser, List<String> destUsers) throws Exception;
 
-	void displayErrorsList();
+	void displayErrorMessage();
 
 	List<Authorization> getUserAuthorizationsList(Record userVO);
 
+	void setRemoveUserAccess(boolean value);
 	//void copyUserRoles(RecordVO sourceUserVO, List<String> destUsers);
 
 	//void removeAllRolesOfUser(RecordVO userVO);
