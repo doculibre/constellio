@@ -542,14 +542,15 @@ $popup-view-z-index: 3;
 	.nicetitle-link-disabled  {
 		text-decoration: none;
 		//color: rgb(71, 71, 71);
-	    //opacity: 0.5;
-	    //filter: alpha(opacity=50);
+	    opacity: 0.5;
+	    filter: alpha(opacity=50);
 	    cursor: default;
 	}
 
 	.nicetitle-link-disabled:hover {
 		//color: rgb(71, 71, 71);
-	    //opacity: 0.5;
+	    opacity: 0.5;
+	    filter: alpha(opacity=50);
 	    cursor: default;
 	}
 
@@ -1183,8 +1184,8 @@ $popup-view-z-index: 3;
    }
 
 	.v-slot-disabled-button {
-	    opacity: 0.4;
-	    filter: alpha(opacity=40); /* msie */
+	    opacity: 0.5;
+	    filter: alpha(opacity=50); /* msie */
 	}
 	
 	.v-contextmenu {
@@ -1451,7 +1452,7 @@ $popup-view-z-index: 3;
 	}
 		
 	.v-button.v-disabled, .v-button-link.v-disabled {
-		opacity: inherit;
+		color: black;
 		
 		&:hover {
     		text-decoration: none;
@@ -2923,6 +2924,12 @@ $popup-view-z-index: 3;
 		    content: "\f100";
 		}
 	}
+
+	.collapsible-horizontal-splitpanel-not-resizable {
+		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel {
+			cursor: pointer;
+		}
+	}	
 	
 	.page-size-layout {
 		padding-right: 20px;

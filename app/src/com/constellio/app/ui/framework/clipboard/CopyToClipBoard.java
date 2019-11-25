@@ -34,7 +34,6 @@ public class CopyToClipBoard {
 
 	public static void copyToClipBoard(String text) {
 
-		JavascriptUtils.loadScript("jquery/jquery-2.1.4.min.js");
 		JavascriptUtils.loadScript("clipboard/clipboard.min.js");
 
 		String toExecute = "text=\"" + text + "\";";
