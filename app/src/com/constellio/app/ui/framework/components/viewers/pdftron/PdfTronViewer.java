@@ -52,7 +52,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private PdfTronViewerRequestHandler pdfTronViewerRequestHandler;
 	private PdfTronPresenter pdfTronPresenter;
 
-	private boolean isBtnReadOnly = true;
+	private boolean isViewerInReadOnly;
 	private boolean annotationEnabled = true;
 
 	private Button editAnnotationBtn;
@@ -82,18 +82,26 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		setHeight("800px");
 		mainLayout = new VerticalLayout();
 
+		isViewerInReadOnly = !pdfTronPresenter.doesCurrentUserHaveAnnotationLock();
 
-		editAnnotationBtn = new BaseButton(isBtnReadOnly ? $("pdfTronViewer.editAnnotation") : $("pdfTronViewer.finalizeEditionAnnotation")) {
+
+		editAnnotationBtn = new BaseButton(isViewerInReadOnly ? $("pdfTronViewer.editAnnotation") : $("pdfTronViewer.finalizeEditionAnnotation")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				if (isBtnReadOnly) {
-					com.vaadin.ui.JavaScript.eval("setWebViewerReadOnly(false)");
-					this.setCaption($("pdfTronViewer.finalizeEditionAnnotation"));
-					isBtnReadOnly = false;
+				if (isViewerInReadOnly) {
+					if (pdfTronPresenter.obtainAnnotationLock()) {
+						setWebViewerReadEditable();
+						this.setCaption($("pdfTronViewer.finalizeEditionAnnotation"));
+						isViewerInReadOnly = false;
+					} else {
+						addMessageIfAnOtherUserIsEditing();
+						Notification.show($("pdfTronViewer.errorWhileGettingAnnotationLock"), Type.WARNING_MESSAGE);
+					}
 				} else {
-					com.vaadin.ui.JavaScript.eval("setWebViewerReadOnly(true)");
+					pdfTronPresenter.releaseAnnotationLockIfUserhasIt();
+					setWebViewerReadOnly();
 					this.setCaption($("pdfTronViewer.editAnnotation"));
-					isBtnReadOnly = true;
+					isViewerInReadOnly = true;
 				}
 			}
 		};
@@ -104,7 +112,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				if (annotationEnabled) {
-
 					com.vaadin.ui.JavaScript.eval("setEnableAnnotations(false)");
 					editAnnotationBtn.addStyleName("disabled-link");
 					this.setCaption($("pdfTronViewer.showAnnotation"));
@@ -113,19 +120,12 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					annotationEnabled = false;
 
 				} else {
-					if (pdfTronPresenter.obtainAnnotationLock()) {
-						pdfTronPresenter.releaseAnnotationLock();
-						com.vaadin.ui.JavaScript.eval("setEnableAnnotations(true)");
-						editAnnotationBtn.setImmediate(true);
-						editAnnotationBtn.removeStyleName("disabled-link");
-						this.setCaption($("pdfTronViewer.hideAnnotation"));
-						editAnnotationBtn.setEnabled(true);
-
-						annotationEnabled = true;
-
-					} else {
-						Notification.show($("pdfTronViewer.errorWhileGettingAnnotationLock"), Type.ERROR_MESSAGE);
-					}
+					com.vaadin.ui.JavaScript.eval("setEnableAnnotations(true)");
+					editAnnotationBtn.setImmediate(true);
+					editAnnotationBtn.removeStyleName("disabled-link");
+					this.setCaption($("pdfTronViewer.hideAnnotation"));
+					editAnnotationBtn.setEnabled(true);
+					annotationEnabled = true;
 				}
 			}
 		};
@@ -159,6 +159,14 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		mainLayout.addComponents(canvas);
 		mainLayout.setExpandRatio(canvas, 1);
 		addComponent(mainLayout);
+	}
+
+	private void setWebViewerReadOnly() {
+		com.vaadin.ui.JavaScript.eval("setWebViewerReadOnly(true)");
+	}
+
+	private void setWebViewerReadEditable() {
+		com.vaadin.ui.JavaScript.eval("setWebViewerReadOnly(false)");
 	}
 
 	private void addMessageIfAnOtherUserIsEditing() {
@@ -201,6 +209,8 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		String saveButtonCallbackURL = pdfTronViewerRequestHandler.getCallbackURL();
 
 		StringBuilder toExecute = new StringBuilder();
+
+		toExecute.append("isViewerReadOnlyOnInit=" + isViewerInReadOnly + ";");
 		toExecute.append("documentContent='" + documentContentUrl + "';");
 		toExecute.append("documentAnnotationRK='" + documentAnnotationResourceKey + "';");
 		toExecute.append("documentAnnotationUrl='" + documentAnnotationResourceReference.getURL() + "';");
@@ -212,6 +222,13 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		JavascriptUtils.loadScript("pdftron/lib/webviewer.min.js");
 		JavascriptUtils.loadScript("pdftron/constellio-pdftron.js");
+	}
+
+	@Override
+	public void detach() {
+		super.detach();
+
+		pdfTronPresenter.releaseAnnotationLockIfUserhasIt();
 	}
 
 	private void ensureRequestHandler() {

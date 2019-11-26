@@ -28,7 +28,7 @@ $(() => {
             instance.setAnnotationUser(name);
             instance.setAdminUser(admin);
 
-            instance.setReadOnly(true);
+            instance.setReadOnly(isViewerReadOnlyOnInit);
 
             const {docViewer} = instance;
             const annotManager = instance.annotManager;

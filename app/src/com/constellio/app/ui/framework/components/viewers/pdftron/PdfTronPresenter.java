@@ -20,6 +20,7 @@ public class PdfTronPresenter {
 	private DocumentVO documentVO;
 	private PdfTronViewer pdfTronViewer;
 	private SchemasRecordsServices schemasRecordsServices;
+	private boolean doesCurrentUserHaveAnnotationLock = false;
 
 	public PdfTronPresenter(PdfTronViewer pdfTronViewer, DocumentVO documentVO) {
 		this.appLayerFactory = pdfTronViewer.getAppLayerFactory();
@@ -29,6 +30,18 @@ public class PdfTronPresenter {
 		this.pdfTronViewer = pdfTronViewer;
 		this.schemasRecordsServices = new SchemasRecordsServices(pdfTronViewer.getCurrentSessionContext().getCurrentCollection(),
 				appLayerFactory.getModelLayerFactory());
+		initialize();
+	}
+
+	private void initialize() {
+		String currentAnnotationLockUser = getCurrentAnnotationLockUser();
+
+		doesCurrentUserHaveAnnotationLock = currentAnnotationLockUser != null && currentAnnotationLockUser
+				.equals(pdfTronViewer.getCurrentSessionContext().getCurrentUser().getId());
+	}
+
+	public boolean doesCurrentUserHaveAnnotationLock() {
+		return doesCurrentUserHaveAnnotationLock;
 	}
 
 	public User getCurrentUser() {
@@ -65,10 +78,17 @@ public class PdfTronPresenter {
 	}
 
 	public boolean obtainAnnotationLock() {
-		return contentManager.obtainAnnotationLock(documentVO.getContent().getHash(), documentVO.getId(), documentVO.getContent().getVersion(), getUserVO().getId());
+		boolean isLockObtained = contentManager.obtainAnnotationLock(documentVO.getContent().getHash(), documentVO.getId(), documentVO.getContent().getVersion(), getUserVO().getId());
+		doesCurrentUserHaveAnnotationLock = isLockObtained;
+		return isLockObtained;
 	}
 
-	public void releaseAnnotationLock() {
+	public void releaseAnnotationLockIfUserhasIt() {
+		if (!doesCurrentUserHaveAnnotationLock) {
+			return;
+		}
+
 		contentManager.releaseAnnotationLock(documentVO.getContent().getHash(), documentVO.getId(), documentVO.getContent().getVersion());
+		doesCurrentUserHaveAnnotationLock = false;
 	}
 }
