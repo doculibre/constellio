@@ -28,6 +28,7 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import java.io.IOException;
 import java.util.Map;
@@ -40,7 +41,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 	private static final String CONTENT_RESOURCE_KEY_PREFIX = "document.file.";
 	private static final String ANNOTATION_RESOURCE_KEY = "document.annotation";
-	public static final String PDFTRON_CANVAS_ID = "pdftron-canvas";
 
 	private Component canvas;
 	private Resource documentContentResource;
@@ -63,6 +63,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private boolean userHasRightToEditOtherUserAnnotation;
 	private String documentContentUrl;
 	private String documentAnnotationUrl;
+	private String canvasId;
 
 
 	public PdfTronViewer(DocumentVO documentVO, boolean userHasRightToEditOtherUserAnnotation) {
@@ -84,6 +85,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		ResourceReference documentAnnotationResourceReference = ResourceReference.create(documentAnnotationResource, current, documentAnnotationResourceKey);
 		documentAnnotationUrl = documentAnnotationResourceReference.getURL();
 
+		canvasId = RandomStringUtils.random(13, true, true);
 
 		this.userHasRightToEditOtherUserAnnotation = userHasRightToEditOtherUserAnnotation;
 
@@ -160,7 +162,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		mainLayout.setSizeFull();
 
 		canvas = new Label();
-		canvas.setId(PDFTRON_CANVAS_ID);
+		canvas.setId(canvasId);
 		canvas.setHeight("100%");
 
 		ensureRequestHandler();
@@ -221,6 +223,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		StringBuilder toExecute = new StringBuilder();
 
+		toExecute.append("canvasId='" + canvasId + "';");
 		toExecute.append("isViewerReadOnlyOnInit=" + isViewerInReadOnly + ";");
 		toExecute.append("documentContent='" + documentContentUrl + "';");
 		toExecute.append("documentAnnotationRK='" + documentAnnotationResourceKey + "';");

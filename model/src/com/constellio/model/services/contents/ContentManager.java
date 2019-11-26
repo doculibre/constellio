@@ -463,7 +463,7 @@ public class ContentManager implements StatefulService {
 	}
 
 	public boolean hasContentAnnotation(String hash, String id, String version) {
-		return getContentDao().isDocumentExisting(hash + ".annotation." + id + ":" + version);
+		return getContentDao().isDocumentExisting(hash + ".annotation." + id + "." + version);
 	}
 
 	public boolean hasContentThumbnail(String hash) {
@@ -492,17 +492,21 @@ public class ContentManager implements StatefulService {
 
 	public InputStream getContentAnnotationInputStream(String hash, String id, String version, String streamName) {
 		try {
-			return getContentDao().getContentInputStream(hash + ".annotation." + id + ":" + version, streamName);
+			return getContentDao().getContentInputStream(hash + ".annotation." + id + "." + version, streamName);
 		} catch (ContentDaoException_NoSuchContent e) {
 			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoAnnotation(hash);
 		}
 	}
 
 	public String getUserHavingAnnotationLock(String hash, String id, String version) {
+		InputStream lockInputStream = null;
+
 		try {
-			String lockFileName = hash + ".annotationLock." + id + ":" + version;
+			String lockFileName = hash + ".annotationLock." + id + "." + version;
+
 			if (getContentDao().isDocumentExisting(lockFileName)) {
-				return IOUtils.toString(getContentDao().getContentInputStream(lockFileName, getClass().getSimpleName() + lockFileName + ".annotationLock"), (Charset) null);
+				lockInputStream = getContentDao().getContentInputStream(lockFileName, getClass().getSimpleName() + lockFileName + ".annotationLock");
+				return IOUtils.toString(lockInputStream, (Charset) null);
 			} else {
 				return null;
 			}
@@ -510,19 +514,26 @@ public class ContentManager implements StatefulService {
 			return null;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
+		} finally {
+			ioServices.closeQuietly(lockInputStream);
 		}
 	}
 
 	public boolean obtainAnnotationLock(String hash, String id, String version, String userId) {
 
-		String lockFileName = hash + ".annotationLock." + id + ":" + version;
+		String lockFileName = hash + ".annotationLock." + id + "." + version;
 		if (!getContentDao().isDocumentExisting(lockFileName)) {
+			InputStream lockStream = null;
+
 			try {
-				getContentDao().add(lockFileName, IOUtils.toInputStream(userId, (String) null));
+				lockStream = IOUtils.toInputStream(userId, (String) null);
+				getContentDao().add(lockFileName, lockStream);
 				return true;
 			} catch (IOException e) {
 				LOGGER.error("error while adding annotationLock", e);
 				return false;
+			} finally {
+				ioServices.closeQuietly(lockStream);
 			}
 		} else {
 			return false;
@@ -530,7 +541,7 @@ public class ContentManager implements StatefulService {
 	}
 
 	public void releaseAnnotationLock(String hash, String id, String version) {
-		String lockFileName = hash + ".annotationLock." + id + ":" + version;
+		String lockFileName = hash + ".annotationLock." + id + "." + version;
 		getContentDao().delete(asList(lockFileName));
 	}
 

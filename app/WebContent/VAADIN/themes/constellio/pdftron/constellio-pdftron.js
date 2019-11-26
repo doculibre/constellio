@@ -23,7 +23,7 @@ $(() => {
             path: '/constellio/VAADIN/themes/constellio/pdftron/lib',
             initialDoc: documentContent,
         },
-        document.getElementById('pdftron-canvas')).then(instance => {
+        document.getElementById(canvasId)).then(instance => {
             webViewerInstance = instance;
             instance.setAnnotationUser(name);
             instance.setAdminUser(admin);

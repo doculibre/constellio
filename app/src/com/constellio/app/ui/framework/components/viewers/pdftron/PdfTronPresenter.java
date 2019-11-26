@@ -10,7 +10,6 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 public class PdfTronPresenter {
 
@@ -53,14 +52,13 @@ public class PdfTronPresenter {
 	}
 
 	public void saveAnnotation(String annotation) throws IOException {
-		contentDao.add(documentVO.getContent().getHash() + ".annotation." + documentVO.getId() + ":" + documentVO.getContent().getVersion(), IOUtils.toInputStream(annotation, (String) null));
+		contentDao.add(documentVO.getContent().getHash() + ".annotation." + documentVO.getId() + "." + documentVO.getContent().getVersion(), IOUtils.toInputStream(annotation, (String) null));
 	}
 
 	public String getAnnotations() throws IOException {
 		String hash = documentVO.getContent().getHash();
-		InputStream annotations = contentManager.getContentAnnotationInputStream(hash, documentVO.getId(), documentVO.getContent().getVersion(), getClass().getSimpleName() + hash + ".PdfTronPresenter");
 
-		return IOUtils.toString(annotations, (String) null);
+		return contentManager.getUserHavingAnnotationLock(hash, documentVO.getId(), documentVO.getContent().getVersion());
 	}
 
 	public String getUserName(String userId) {
