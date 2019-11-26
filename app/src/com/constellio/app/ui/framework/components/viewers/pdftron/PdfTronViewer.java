@@ -61,6 +61,8 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private VerticalLayout mainLayout;
 
 	private boolean userHasRightToEditOtherUserAnnotation;
+	private String documentContentUrl;
+	private String documentAnnotationUrl;
 
 
 	public PdfTronViewer(DocumentVO documentVO, boolean userHasRightToEditOtherUserAnnotation) {
@@ -68,15 +70,24 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		String recordId = documentVO.getId();
 		String metadataCode = Document.CONTENT;
 		String filename = documentVO.getContent().getFileName();
+		ConstellioUI current = ConstellioUI.getCurrent();
+
 		this.documentContentResource = ConstellioResourceHandler.createResource(recordId, metadataCode, documentVO.getContent().getVersion(), filename);
 		this.documentContentResourceKey = CONTENT_RESOURCE_KEY_PREFIX + UUID.randomUUID().toString();
 
 		this.documentAnnotationResource = ConstellioResourceHandler.createAnnotationResource(recordId, metadataCode, documentVO.getContent().getVersion(), filename);
 		this.documentAnnotationResourceKey = ANNOTATION_RESOURCE_KEY + UUID.randomUUID().toString();
 
+		ResourceReference documentContentResourceReference = ResourceReference.create(documentContentResource, current, documentContentResourceKey);
+		documentContentUrl = documentContentResourceReference.getURL();
+
+		ResourceReference documentAnnotationResourceReference = ResourceReference.create(documentAnnotationResource, current, documentAnnotationResourceKey);
+		documentAnnotationUrl = documentAnnotationResourceReference.getURL();
+
+
 		this.userHasRightToEditOtherUserAnnotation = userHasRightToEditOtherUserAnnotation;
 
-		pdfTronPresenter = new PdfTronPresenter(this, documentVO);
+		this.pdfTronPresenter = new PdfTronPresenter(this, documentVO);
 
 		setWidth("100%");
 		setHeight("800px");
@@ -197,14 +208,14 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	public void attach() {
 		super.attach();
 
+		showWebViewer();
+	}
+
+	public void showWebViewer() {
 		ConstellioUI current = ConstellioUI.getCurrent();
 		UserVO currentUser = current.getSessionContext().getCurrentUser();
 		String userFirstNameAndLastName = currentUser.getFirstName() + " " + currentUser.getLastName();
 
-		ResourceReference documentContentResourceReference = ResourceReference.create(documentContentResource, current, documentContentResourceKey);
-		String documentContentUrl = documentContentResourceReference.getURL();
-
-		ResourceReference documentAnnotationResourceReference = ResourceReference.create(documentAnnotationResource, current, documentAnnotationResourceKey);
 
 		String saveButtonCallbackURL = pdfTronViewerRequestHandler.getCallbackURL();
 
@@ -213,7 +224,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		toExecute.append("isViewerReadOnlyOnInit=" + isViewerInReadOnly + ";");
 		toExecute.append("documentContent='" + documentContentUrl + "';");
 		toExecute.append("documentAnnotationRK='" + documentAnnotationResourceKey + "';");
-		toExecute.append("documentAnnotationUrl='" + documentAnnotationResourceReference.getURL() + "';");
+		toExecute.append("documentAnnotationUrl='" + documentAnnotationUrl + "';");
 		toExecute.append("documentAnnotationCallBack='" + saveButtonCallbackURL + "';");
 		toExecute.append("name='" + userFirstNameAndLastName + " (" + currentUser.getUsername() + ")" + "';");
 		toExecute.append("admin=" + userHasRightToEditOtherUserAnnotation + ";");

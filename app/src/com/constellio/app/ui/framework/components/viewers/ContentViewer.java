@@ -81,6 +81,8 @@ public class ContentViewer extends CustomComponent {
 	public void refresh() {
 		if (viewerComponent instanceof ImageViewer) {
 			((ImageViewer) viewerComponent).show();
+		} else if (viewerComponent instanceof PdfTronViewer) {
+			((PdfTronViewer) viewerComponent).showWebViewer();
 		}
 	}
 
