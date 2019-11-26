@@ -146,7 +146,6 @@ public class CollectionUserRolesPresenterAcceptanceTest extends ConstellioTest {
 		verifyThat(aliceSpecificRoles).containsRoleAuths(RMRoles.MANAGER).onTarget(zeConcept);
 	}
 
-
 	// ==================================================================================================
 	// ==================================================================================================
 
