@@ -40,6 +40,7 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 
 	private SearchBoostByMetadataPresenter presenter;
 	private VerticalLayout viewLayout;
+	private HorizontalLayout horizontalLayout;
 
 	private Table table;
 
@@ -64,10 +65,30 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 		viewLayout.setSpacing(true);
 		table = buildTable();
 
+		horizontalLayout = buildActionButtonLayout();
+
+		viewLayout.addComponent(horizontalLayout);
+		viewLayout.setComponentAlignment(horizontalLayout, Alignment.TOP_RIGHT);
+
+
 		viewLayout.addComponents(table);
 		viewLayout.setExpandRatio(table, 1);
 
 		return viewLayout;
+	}
+
+	private HorizontalLayout buildActionButtonLayout() {
+		HorizontalLayout horizontalLayout = new HorizontalLayout();
+
+		Button add = buildAddEditForm(null);
+		add.setCaption($("SearchBoostByMetadataView.add"));
+		add.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		add.addStyleName(ValoTheme.BUTTON_LINK);
+		add.addStyleName("marginright");
+
+		horizontalLayout.addComponent(add);
+
+		return horizontalLayout;
 	}
 
 	@Override
@@ -91,7 +112,7 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 		addButtons(dataProvider, buttonsContainer);
 		tableContainer = buttonsContainer;
 
-		Table table = new BaseTable(getClass().getName(), $("SearchBoostByMetadataView.viewTitle"), tableContainer);
+		Table table = new BaseTable(getClass().getName(), $("SearchBoostByMetadataView.records", tableContainer.size()), tableContainer);
 		table.setPageLength(Math.min(15, dataProvider.size()));
 		table.setWidth("100%");
 		table.setColumnHeader("label", $("SearchBoostByMetadataView.labelColumn"));
@@ -137,10 +158,6 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 	public List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> result = super.buildActionMenuButtons(event);
 
-		Button add = buildAddEditForm(null);
-		add.setCaption($("SearchBoostByMetadataView.add"));
-
-		result.add(add);
 		return result;
 	}
 

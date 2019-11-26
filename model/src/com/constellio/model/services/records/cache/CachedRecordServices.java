@@ -78,26 +78,26 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public Record realtimeGetRecordById(String id, boolean callExtensions) {
-		return realtimeGetById(RECORDS, id, callExtensions);
+	public Record realtimeGetRecordById(String id, Long version, boolean callExtensions) {
+		return realtimeGetById(RECORDS, id, version, callExtensions);
 	}
 
 	@Override
-	public Record realtimeGetById(MetadataSchemaType schemaType, String id, boolean callExtensions) {
+	public Record realtimeGetById(MetadataSchemaType schemaType, String id, Long version, boolean callExtensions) {
 		Record record = getRecordsCache().getRecord(id);
-		if (record == null) {
-			record = recordServices.realtimeGetById(schemaType, id, callExtensions);
+		if (record == null || (version != null && record.getVersion() < version)) {
+			record = recordServices.realtimeGetById(schemaType, id, version, callExtensions);
 		}
 		return record;
 	}
 
 	@Override
-	public Record realtimeGetById(String dataStore, String id, boolean callExtensions) {
-		//		Record record = getRecordsCache().getRecord(id);
-		//		if (record == null) {
-		return recordServices.realtimeGetById(dataStore, id, callExtensions);
-		//		}
-		//return record;
+	public Record realtimeGetById(String dataStore, String id, Long version, boolean callExtensions) {
+		Record record = getRecordsCache().getRecord(id);
+		if (record == null || (version != null && record.getVersion() < version)) {
+			record = recordServices.realtimeGetById(dataStore, id, version, callExtensions);
+		}
+		return record;
 	}
 
 	@Override
@@ -266,6 +266,16 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	@Override
 	public Record toRecord(RecordDTO recordDTO, boolean fullyLoaded) {
 		return recordServices.toRecord(recordDTO, fullyLoaded);
+	}
+
+	@Override
+	public Record toRecord(MetadataSchemaType schemaType, RecordDTO recordDTO, boolean fullyLoaded) {
+		return recordServices.toRecord(schemaType, recordDTO, fullyLoaded);
+	}
+
+	@Override
+	public Record toRecord(MetadataSchema schema, RecordDTO recordDTO, boolean fullyLoaded) {
+		return recordServices.toRecord(schema, recordDTO, fullyLoaded);
 	}
 
 	@Override

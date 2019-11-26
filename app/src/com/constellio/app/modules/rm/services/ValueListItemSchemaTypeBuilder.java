@@ -95,6 +95,14 @@ public class ValueListItemSchemaTypeBuilder {
 			descriptionMetadata.addLabel(language, $("init.valuelist.default.description"));
 		}
 
+		MetadataBuilder abbreviationMetadata = defaultSchemaBuilder.create(ValueListItem.ABBREVIATION)
+				.setType(MetadataValueType.STRING).setSearchable(true)
+				.setUndeletable(true)
+				.setMultiLingual(options.isMultilingual());
+
+		for (Language language : languages) {
+			abbreviationMetadata.addLabel(language, $("init.valuelist.default.abbreviation"));
+		}
 
 		MetadataBuilder titleMetadata = defaultSchemaBuilder.getMetadata(Schemas.TITLE.getLocalCode()).setSearchable(true);
 		for (Language language : languages) {

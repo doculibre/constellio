@@ -1,6 +1,5 @@
 package com.constellio.model.services.records.cache;
 
-import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
@@ -8,11 +7,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.RecordCacheType;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
-import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
 import com.constellio.model.services.schemas.SchemaUtils;
-import org.mapdb.HTreeMap;
 
 import java.util.Collection;
 import java.util.List;
@@ -31,10 +26,6 @@ public final class RecordsCache2Impl implements RecordsCache {
 
 	public RecordsCache2Impl(String collection,
 							 byte collectionId,
-							 ModelLayerFactory modelLayerFactory,
-							 FileSystemRecordsValuesCacheDataStore fileSystemDataStore,
-							 RecordsCachesDataStore memoryDataStore,
-							 HTreeMap<String, RecordDTO> volatileCache,
 							 RecordsCaches2Impl caches) {
 		this.collection = collection;
 		this.caches = caches;
@@ -130,6 +121,9 @@ public final class RecordsCache2Impl implements RecordsCache {
 
 			case HOOK_ONLY:
 				break;
+
+			case ONLY_VOLATILE:
+				return CacheConfig.volatileCache(schemaType, 1000000);
 		}
 
 		return null;

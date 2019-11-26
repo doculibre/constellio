@@ -357,4 +357,15 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		CopyRetentionRule copyRetentionRule = copyBuilder.newRetentionRule(CopyType.PRINCIPAL, types, "888-0-D").setId("newId");
 		factory.toString(copyRetentionRule);
 	}
+
+	@Test
+	public void whenMultipleNullValuesInStructure() {
+		String baseValue = "v5:e56bb710-62af-11e7-86be-0050569d6495:02:::P:false:false:~null~:~null~:F0:~null~:F0:~null~:D:~null~:~null~:~null~:~null~:~null~:~null~:00022539008";
+		CopyRetentionRule builtRule = (CopyRetentionRule) factory.build(baseValue);
+		String correctedValue = factory.toString(builtRule);
+
+		assertThat(builtRule.title).isEqualTo(null);
+		assertThat(builtRule.description).isEqualTo(null);
+		assertThat(correctedValue).isEqualTo("v5:e56bb710-62af-11e7-86be-0050569d6495:02:~null~:~null~:P:false:false:~null~:~null~:F0:~null~:F0:~null~:D:~null~:~null~:~null~:~null~:~null~:~null~:00022539008");
+	}
 }

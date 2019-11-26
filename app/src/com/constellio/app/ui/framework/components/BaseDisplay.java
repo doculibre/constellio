@@ -3,7 +3,6 @@ package com.constellio.app.ui.framework.components;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
@@ -14,6 +13,7 @@ import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
@@ -34,6 +34,7 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	public static final String STYLE_NAME = "base-display";
 	public static final String STYLE_CAPTION = "display-caption";
 	public static final String STYLE_VALUE = "display-value";
+	public static final String STYLE_FULL_WIDTH = "display-value-full-width";
 
 	private boolean useTabSheet;
 
@@ -54,7 +55,8 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	public BaseDisplay(List<CaptionAndComponent> captionsAndDisplayComponents, boolean useTabSheet) {
 		this.useTabSheet = useTabSheet;
 		addStyleName(STYLE_NAME);
-		setSizeFull();
+		//		setSizeFull();
+		setWidth("100%");
 		setResponsive(true);
 
 		tabSheet = new TabSheet();
@@ -139,8 +141,8 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	
 	private VerticalLayout newMainLayout() {
 		VerticalLayout mainLayout = new VerticalLayout();
-		mainLayout.setSizeUndefined();
-		mainLayout.setSpacing(true);
+		// mainLayout.setSizeUndefined();
+		mainLayout.setSizeFull();
 		mainLayout.addStyleName(STYLE_NAME + "-main-layout");
 		return mainLayout;
 	}
@@ -157,7 +159,6 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 				layout = new VerticalLayout();
 				layout.addStyleName("base-display-tab-layout");
 				layout.setWidth("100%");
-				layout.setSpacing(true);
 
 				panel = new Panel(layout);
 				panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
@@ -198,19 +199,7 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent, VerticalLayout layout) {
 		if (displayComponent.isVisible()) {
-			if (ResponsiveUtils.isDesktop()) {
-				I18NHorizontalLayout captionAndComponentLayout = new I18NHorizontalLayout();
-				if (isCaptionAndDisplayComponentWidthUndefined()) {
-					captionAndComponentLayout.setWidthUndefined();
-				} else {
-					captionAndComponentLayout.setSizeFull();
-				}
-
-				layout.addComponent(captionAndComponentLayout);
-				captionAndComponentLayout.addComponents(captionLabel, displayComponent);
-			} else {
-				layout.addComponents(captionLabel, displayComponent);
-			}
+			layout.addComponents(captionLabel, displayComponent);
 		}
 	}
 
@@ -220,6 +209,14 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	
 	protected boolean isUseTabsheet() {
 		return useTabSheet;
+	}
+
+	public void addSelectedTabChangeListener(SelectedTabChangeListener listener) {
+		tabSheet.addSelectedTabChangeListener(listener);
+	}
+
+	public void removeSelectedTabChangeListener(SelectedTabChangeListener listener) {
+		tabSheet.removeSelectedTabChangeListener(listener);
 	}
 	
 	public static class CaptionAndComponent implements Serializable {

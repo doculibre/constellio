@@ -7,7 +7,6 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -28,8 +27,8 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 
 	private DocumentToVOBuilder documentToVOBuilder;
 
-	public RMRecordMenuBarHandler(ConstellioFactories constellioFactories) {
-		super(constellioFactories);
+	public RMRecordMenuBarHandler(AppLayerFactory appLayerFactory) {
+		super(appLayerFactory);
 		initTransientObjects();
 	}
 
@@ -40,7 +39,7 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 	}
 
 	private void initTransientObjects() {
-		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		documentToVOBuilder = new DocumentToVOBuilder(modelLayerFactory);
 	}
 
@@ -76,7 +75,6 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 			VIEW_MODE viewMode = recordVO.getViewMode();
 			String id = recordVO.getId();
 			String collection = recordVO.getSchema().getCollection();
-			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 			Document document;
 			if (schemaTypeCode.equals(Document.SCHEMA_TYPE)) {

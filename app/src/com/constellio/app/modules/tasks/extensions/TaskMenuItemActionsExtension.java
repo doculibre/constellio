@@ -11,16 +11,16 @@ import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
-import com.constellio.app.ui.framework.window.ConsultLinkWindow;
+import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.vaadin.server.FontAwesome;
-import com.vaadin.ui.UI;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 
@@ -46,18 +46,18 @@ public class TaskMenuItemActionsExtension extends MenuItemActionsExtension {
 	private void showConsultLink(List<String> recordIds, MenuItemActionBehaviorParams behaviorParams) {
 		String constellioURL = getConstellioUrl(appLayerFactory.getModelLayerFactory());
 
-		List<String> linkList = new ArrayList<>();
+		List<ConsultLinkParams> linkList = new ArrayList<>();
 
 		List<Record> recordList = recordServices.getRecordsById(collection, recordIds);
 
 		for (Record currentRecord : recordList) {
 			if (currentRecord.getSchemaCode().startsWith(RMTask.SCHEMA_TYPE)) {
-				linkList.add(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(currentRecord.getId()));
+				linkList.add(new ConsultLinkParams(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(currentRecord.getId())
+						, currentRecord.getTitle()));
 			}
 		}
 
-		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(linkList);
-		UI.getCurrent().addWindow(consultLinkWindow);
+		copyConsultationLinkToClipBoard(linkList);
 	}
 
 
@@ -75,6 +75,7 @@ public class TaskMenuItemActionsExtension extends MenuItemActionsExtension {
 
 		return new MenuItemActionState(MenuItemActionStateStatus.VISIBLE);
 	}
+
 
 	@Override
 	public void addMenuItemActionsForRecord(MenuItemActionExtensionAddMenuItemActionsForRecordParams params) {

@@ -172,7 +172,7 @@ public class ConceptNodesTaxonomySearchServices {
 
 	public LogicalSearchQuery childNodesQuery(Record record, TaxonomiesSearchOptions options,
 											  MetadataSchemaTypes types, boolean onlyConcepts) {
-		String dataStore = types.getSchema(record.getSchemaCode()).getDataStore();
+		String dataStore = types.getSchemaOf(record).getDataStore();
 		LogicalSearchCondition condition;
 
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(record.getCollection(), record.getTypeCode());

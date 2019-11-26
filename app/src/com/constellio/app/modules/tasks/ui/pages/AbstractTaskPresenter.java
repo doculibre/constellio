@@ -184,7 +184,7 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		
 		Task task = rm.getRMTask(taskVO.getId());
 		List<Comment> newComments = new ArrayList<>(task.getComments());
-		newComments.add(newComment);
+		newComments.add(0, newComment);
 		task.setComments(newComments);
 		try {
 			recordServices.update(task.getWrappedRecord());
@@ -201,6 +201,10 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 	public RecordVO getDocumentVO(String linkedDocumentId) {
 		Record record = getRecord(linkedDocumentId);
 		return new RecordToVOBuilder().build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
+	}
+
+	public boolean userHasPermissionOn(RecordVO recordVO) {
+		return getCurrentUser().hasReadAccess().on(recordVO.getRecord());
 	}
 
 	private boolean documentExists(String fileName, Folder folder) {

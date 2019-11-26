@@ -90,6 +90,9 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration UPDATE_SERVER_CONNECTION_ENABLED;
 
+	public static final SystemConfiguration ADD_COMMENTS_WHEN_READ_AUTHORIZATION;
+	;
+
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
 																 "  { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat' ] },\r\n" +
 																 "	{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },\r\n" +
@@ -130,6 +133,7 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration SEIZE_MULTILANGUAL_VALUES;
 	public static final SystemConfiguration ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY;
+	public static final SystemConfiguration ENABLE_ESSENTIAL_METADATA_HIDING;
 
 	public static final SystemConfiguration ENABLE_INACTIF_SCHEMAS_IN_SEARCH;
 
@@ -291,6 +295,8 @@ public class ConstellioEIMConfigs {
 
 		add(ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY = advanced.createBooleanFalseByDefault("areMultiLangualValuesMandatory"));
 
+		add(ENABLE_ESSENTIAL_METADATA_HIDING = advanced.createBooleanFalseByDefault("enableEssentialMetadataHiding").whichIsHidden());
+
 		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
 				.whichIsHidden());
 
@@ -303,9 +309,9 @@ public class ConstellioEIMConfigs {
 		add(ADD_RECORD_ID_IN_EMAILS = others.createBooleanFalseByDefault("addRecordIdInEmails"));
 		add(GENERATED_EMAIL_FORMAT = others.createEnum("generatedEmailFormat", EmailTextFormat.class).withDefaultValue(EmailTextFormat.PLAIN_TEXT));
 
-
 		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanTrueByDefault("enableThumbnailGeneration")
 				.scriptedBy(EnableThumbnailsScript.class));
+		add(ADD_COMMENTS_WHEN_READ_AUTHORIZATION = others.createBooleanTrueByDefault("addCommentsWhenReadAuthorization"));
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
@@ -633,5 +639,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isLearnToRankFeatureActivated() {
 		return manager.getValue(ENABLE_LEARN_TO_RANK_FEATURE);
+	}
+
+	public boolean isAddCommentsWhenReadAuthorization() {
+		return manager.getValue(ADD_COMMENTS_WHEN_READ_AUTHORIZATION);
 	}
 }

@@ -11,7 +11,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
-import com.vaadin.server.ThemeResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +45,8 @@ public class FolderMenuItemServices {
 	private String collection;
 	private AppLayerFactory appLayerFactory;
 
-	private static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
+	//	private static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
+	private static final Resource SELECTION_ICON_RESOURCE = FontAwesome.SHOPPING_BASKET;
 
 	public FolderMenuItemServices(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -62,7 +62,7 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_ADD_DOCUMENT.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_DOCUMENT.name(),
 					isMenuItemActionPossible(FOLDER_ADD_DOCUMENT.name(), folder, user, params),
-					$("DisplayFolderView.addDocument"), null, -1, 100,
+					$("DisplayFolderView.addDocument"), FontAwesome.FILE_O, -1, 100,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToDocument(folder, params)));
 		}
 
@@ -169,7 +169,7 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_PRINT_LABEL.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_PRINT_LABEL.name(),
 					isMenuItemActionPossible(FOLDER_PRINT_LABEL.name(), folder, user, params),
-					$("DisplayFolderView.printLabel"), null, -1, 1500,
+					$("DisplayFolderView.printLabel"), FontAwesome.PRINT, -1, 1500,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).printLabel(folder, params)));
 		}
 

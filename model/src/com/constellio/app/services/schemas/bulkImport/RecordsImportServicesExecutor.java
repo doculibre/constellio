@@ -8,7 +8,6 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.sequence.SequencesManager;
@@ -634,7 +633,7 @@ public class RecordsImportServicesExecutor {
 										  TypeBatchImportContext typeBatchImportContext,
 										  Record record) {
 
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		MetadataSchema schema = types.getSchemaOf(record);
 		for (Metadata metadata : schema.getMetadatas().onlySequence()) {
 			if (record.get(metadata) != null) {
 				SequenceDataEntry sequenceDataEntry = (SequenceDataEntry) metadata.getDataEntry();
@@ -665,7 +664,6 @@ public class RecordsImportServicesExecutor {
 							contentImports.addAll((List) toImport.getFields().get(contentMetadata.getLocalCode()));
 						} else {
 							contentImports.add((ImportContent) toImport.getFields().get(contentMetadata.getLocalCode()));
-
 						}
 						for (ImportContent contentImport : contentImports) {
 							if (contentImport instanceof SimpleImportContent) {

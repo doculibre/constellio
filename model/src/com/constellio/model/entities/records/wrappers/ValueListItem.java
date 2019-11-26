@@ -14,6 +14,8 @@ public class ValueListItem extends RecordWrapper {
 
 	public static final String DESCRIPTION = "description";
 
+	public static final String ABBREVIATION = "abbreviation";
+
 	public static final String COMMENTS = "comments";
 
 	public ValueListItem(Record record,
@@ -55,6 +57,15 @@ public class ValueListItem extends RecordWrapper {
 
 	public ValueListItem setComments(List<Comment> comments) {
 		set(COMMENTS, comments);
+		return this;
+	}
+
+	public String getAbbreviation() {
+		return get(ABBREVIATION);
+	}
+
+	public ValueListItem setAbbreviation(String abbreviation) {
+		set(ABBREVIATION, abbreviation);
 		return this;
 	}
 

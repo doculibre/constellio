@@ -18,10 +18,10 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
+import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
-import com.constellio.app.ui.framework.window.ConsultLinkWindow;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
@@ -36,7 +36,6 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.UI;
 import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -74,8 +73,8 @@ public class ContainerRecordMenuItemActionBehaviors {
 
 	public void getConsultationLink(ContainerRecord containerRecord, MenuItemActionBehaviorParams params) {
 		String constellioURL = getConstellioUrl(modelLayerFactory);
-		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(constellioURL + RMUrlUtil.getPathToConsultLinkForContainerRecord(containerRecord.getId())));
-		UI.getCurrent().addWindow(consultLinkWindow);
+
+		CopyToClipBoard.copyToClipBoard(constellioURL + RMUrlUtil.getPathToConsultLinkForContainerRecord(containerRecord.getId()));
 	}
 
 	public void consult(ContainerRecord container, MenuItemActionBehaviorParams params) {
@@ -113,7 +112,7 @@ public class ContainerRecordMenuItemActionBehaviors {
 				() -> appLayerFactory.getLabelTemplateManager().listTemplates(ContainerRecord.SCHEMA_TYPE);
 
 		SessionContext sessionContext = params.getView().getSessionContext();
-		Button labels = new LabelButtonV2($("SearchView.labels"), $("SearchView.printLabels"), customLabelTemplatesFactory,
+		Button labels = new LabelButtonV2($("SearchView.printLabels"), $("SearchView.printLabels"), customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory, appLayerFactory,
 				sessionContext.getCurrentCollection(), sessionContext.getCurrentUser(), params.getRecordVO());
 

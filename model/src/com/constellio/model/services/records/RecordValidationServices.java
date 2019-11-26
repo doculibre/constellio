@@ -67,7 +67,7 @@ public class RecordValidationServices {
 			throws RecordServicesException.ValidationException {
 
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = schemaTypes.getSchema(record.getSchemaCode());
+		MetadataSchema schema = schemaTypes.getSchemaOf(record);
 		List<Metadata> metadatas = getManualMetadatas(schema);
 		validateCyclicReferences(record, recordProvider, schemaTypes, metadatas);
 	}
@@ -118,14 +118,14 @@ public class RecordValidationServices {
 													  Transaction transaction, List<Metadata> metadatas,
 													  boolean afterCalculate) {
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = schemaTypes.getSchema(record.getSchemaCode());
+		MetadataSchema schema = schemaTypes.getSchemaOf(record);
 		return validateMetadatasReturningErrors(record, recordProvider, schemaTypes, metadatas, transaction, afterCalculate);
 	}
 
 	ValidationErrors validateManualMetadatasReturningErrors(Record record, RecordProvider recordProvider,
 															Transaction transaction) {
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = schemaTypes.getSchema(record.getSchemaCode());
+		MetadataSchema schema = schemaTypes.getSchemaOf(record);
 		List<Metadata> metadatas = getManualMetadatas(schema);
 		return validateMetadatasReturningErrors(record, recordProvider, schemaTypes, metadatas, transaction, false);
 	}
@@ -133,7 +133,7 @@ public class RecordValidationServices {
 	ValidationErrors validateAutomaticMetadatasReturningErrors(Record record, RecordProvider recordProvider,
 															   Transaction transaction) {
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(record.getCollection());
-		MetadataSchema schema = schemaTypes.getSchema(record.getSchemaCode());
+		MetadataSchema schema = schemaTypes.getSchemaOf(record);
 		List<Metadata> metadatas = schema.getAutomaticMetadatas();
 		return validateMetadatasReturningErrors(record, recordProvider, schemaTypes, metadatas, transaction, true);
 	}
@@ -250,9 +250,11 @@ public class RecordValidationServices {
 			throws ValidationException {
 		//Passe de l'ours temporaire!
 		if (hasSecurityOnSchema(record) && !"workflowExecution".equals(record.getTypeCode())) {
-			ValidationErrors validationErrors = validateUsingSecurityValidatorsReturningErrors(record, transaction);
-			if (!validationErrors.getValidationErrors().isEmpty()) {
-				throw new RecordServicesException.ValidationException(record, validationErrors);
+			if (!transaction.isSkippingUserAccessValidation()) {
+				ValidationErrors validationErrors = validateUsingSecurityValidatorsReturningErrors(record, transaction);
+				if (!validationErrors.getValidationErrors().isEmpty()) {
+					throw new RecordServicesException.ValidationException(record, validationErrors);
+				}
 			}
 		}
 	}

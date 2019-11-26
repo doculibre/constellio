@@ -13,6 +13,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import org.joda.time.LocalDateTime;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,6 +40,20 @@ public class ListAddRemoveCommentField extends ListAddRemoveField<Comment, Comme
 		addEditFieldLayout.setWidth("100%");
 		addEditFieldLayout.setExpandRatio(getAddEditField(), 1);
 		return content;
+	}
+
+	@Override
+	protected void addValue(Comment value) {
+		if (value != null) {
+			if (!isCancelAddValueAndSetValueToNull(value)) {
+				List<Comment> listValue = value instanceof List ? (List<Comment>) value : new ArrayList<>(Arrays.asList(value));
+				for (Comment listValueItem : listValue) {
+					valuesAndButtonsContainer.addItemAt(0, listValueItem);
+				}
+			}
+			addEditField.setValue(null);
+			super.notifyValueChange();
+		}
 	}
 
 	@Override

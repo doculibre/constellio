@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -65,7 +66,7 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 		Map<Language, String> labelTitle1 = new HashMap<>();
 		labelTitle1.put(Language.French, "ze taxo");
 
-		Taxonomy taxonomy = new Taxonomy("ze taxo", labelTitle1, zeCollection, zeSchema.typeCode());
+		Taxonomy taxonomy = new Taxonomy("ze taxo", labelTitle1, emptyMap(), zeCollection, zeSchema.typeCode());
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy, getModelLayerFactory().getMetadataSchemasManager());
 
 		recordServices = getModelLayerFactory().newRecordServices();

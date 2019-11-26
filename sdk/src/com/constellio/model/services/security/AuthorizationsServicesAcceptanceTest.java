@@ -3951,6 +3951,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		auth3 = add(authorizationForUser(charles).on(FOLDER3).givingNegativeReadWriteAccess());
 
+		//Donne accès en lecture au dossier 2
 		auth4 = add(authorizationForGroupInAnotherCollection(heroes).on(otherCollectionRecords.taxo2_station2_1()).givingReadWriteDeleteAccess());
 		auth5 = add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder4()).givingReadWriteDeleteAccess());
 
@@ -3958,6 +3959,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth7 = add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder2_1()).givingNegativeReadWriteDeleteAccess());
 
 		waitForBatchProcess();
+
+		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		SecurityModel securityModel = getModelLayerFactory().newRecordServices().getSecurityModel(zeCollection);
 		assertThat(securityModel.getAuthorizationsToPrincipal(users.charlesIn(zeCollection).getId(), false))

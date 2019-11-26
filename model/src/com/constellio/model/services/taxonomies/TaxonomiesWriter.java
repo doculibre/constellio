@@ -17,6 +17,7 @@ public class TaxonomiesWriter {
 	private static final String SCHEMA_TYPE = "schemaType";
 	private static final String SCHEMA_TYPES = "schemaTypes";
 	private static final String TITLE = "title";
+	private static final String ABBREVIATION = "abbreviation";
 	private static final String CODE = "code";
 	private static final String COLLECTION = "collection";
 	private static final String USER_IDS = "userIds";
@@ -49,8 +50,8 @@ public class TaxonomiesWriter {
 			Element schemaTypeElement = new Element(SCHEMA_TYPE).setText(schemaType);
 			schemaTypesElements.addContent(schemaTypeElement);
 		}
-		Element title = new Element(TITLE);
 
+		Element title = new Element(TITLE);
 		for (Language currentLanguage : taxonomy.getTitleLanguage()) {
 			String currentTitle = taxonomy.getTitle(currentLanguage);
 			if (!Strings.isNullOrEmpty(currentTitle)) {
@@ -58,6 +59,20 @@ public class TaxonomiesWriter {
 					currentTitle = "";
 				}
 				title.setAttribute("title" + currentLanguage.getCode(), currentTitle);
+			}
+		}
+
+		Element abbreviation = null;
+		if (!taxonomy.getAbbreviation().isEmpty()) {
+			abbreviation = new Element(ABBREVIATION);
+			for (Language currentLanguage : taxonomy.getAbbreviationLanguage()) {
+				String currentAbbreviation = taxonomy.getAbbreviation(currentLanguage);
+				if (!Strings.isNullOrEmpty(currentAbbreviation)) {
+					if (currentAbbreviation == null) {
+						currentAbbreviation = "";
+					}
+					abbreviation.setAttribute("abbreviation" + currentLanguage.getCode(), currentAbbreviation);
+				}
 			}
 		}
 
@@ -70,6 +85,9 @@ public class TaxonomiesWriter {
 		Element groupIdsElement = new Element(GROUP_IDS).setText(StringUtils.join(taxonomy.getGroupIds(), ","));
 		Element userIdsElement = new Element(USER_IDS).setText(StringUtils.join(taxonomy.getUserIds(), ","));
 		taxonomyElement.addContent(title);
+		if (abbreviation != null) {
+			taxonomyElement.addContent(abbreviation);
+		}
 		taxonomyElement.addContent(collection);
 		taxonomyElement.addContent(schemaTypesElements);
 		taxonomyElement.addContent(visibleInHomePageElement);

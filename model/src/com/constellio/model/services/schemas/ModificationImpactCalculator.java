@@ -97,7 +97,7 @@ public class ModificationImpactCalculator {
 		for (Record record : transaction.getRecords()) {
 
 			if (Authorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				MetadataSchema authSchema = metadataSchemaTypes.getSchema(Authorization.DEFAULT_SCHEMA);
+				MetadataSchema authSchema = metadataSchemaTypes.getDefaultSchema(Authorization.SCHEMA_TYPE);
 				Metadata authorizationPrincipals = authSchema.getMetadata(Authorization.PRINCIPALS);
 				Metadata lastTokenRecalculate = authSchema.getMetadata(Authorization.LAST_TOKEN_RECALCULATE);
 				Metadata authorizationTargetMetadata = authSchema.getMetadata(Authorization.TARGET);

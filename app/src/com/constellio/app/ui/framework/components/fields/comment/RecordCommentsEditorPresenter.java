@@ -68,12 +68,16 @@ public class RecordCommentsEditorPresenter implements Serializable {
 	}
 
 
-	public boolean isAddEditButtonEnabled() {
+	public boolean isAddButtonEnabled() {
 		User currentUser = presenterUtils.getCurrentUser();
 		return currentUser.hasWriteAccess().on(record);
 	}
 
-	public void commentsChanged(List<Comment> newComments) {
+	public boolean isEditDeleteButtonEnabled(Comment comment) {
+		return comment.getUserId().equals(presenterUtils.getCurrentUser().getId());
+	}
+
+	public void commentsChanged(List<Comment> newComments, boolean userHasToHaveWriteAuthorization) {
 		if (newComments != null) {
 			Metadata metadata = presenterUtils.getMetadata(metadataCode);
 
@@ -83,6 +87,8 @@ public class RecordCommentsEditorPresenter implements Serializable {
 				record.set(metadata, newComments);
 				if (presenterUtils.getCurrentUser().hasWriteAccess().on(record)) {
 					presenterUtils.addOrUpdate(record, new RecordUpdateOptions().setSkippingRequiredValuesValidation(true));
+				} else if (!userHasToHaveWriteAuthorization) {
+					presenterUtils.addOrUpdate(record, new RecordUpdateOptions().setSkippingRequiredValuesValidation(true).setSkipUserAccessValidation(true));
 				}
 			}
 		}

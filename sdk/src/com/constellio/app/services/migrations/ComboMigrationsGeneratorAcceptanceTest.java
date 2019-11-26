@@ -760,7 +760,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 	protected String toEntriesMethodCalls(MetadataSchemaTypes types, Record record, Map<String, Integer> mapping) {
 		StringBuilder stringBuilder = new StringBuilder();
 
-		for (Metadata metadata : types.getSchema(record.getSchemaCode()).getMetadatas().onlyManuals()) {
+		for (Metadata metadata : types.getSchemaOf(record).getMetadatas().onlyManuals()) {
 			if (!metadata.getDataStoreCode().equals("modifiedOn_dt") && !metadata.getDataStoreCode().equals("createdOn_dt")) {
 
 				if (metadata.isMultivalue()) {

@@ -14,9 +14,7 @@ import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
-import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
-import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.capsule.CapsuleComponent;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -27,8 +25,9 @@ import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
 import com.constellio.app.ui.framework.components.search.FacetsSliderPanel;
 import com.constellio.app.ui.framework.components.search.ViewableRecordVOSearchResultTable;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeListener;
+import com.constellio.app.ui.framework.components.table.BaseTable.ItemsPerPageChangeEvent;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
@@ -44,7 +43,6 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.jensjansson.pagedtable.PagedTable;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
@@ -59,7 +57,6 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
-import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Alignment;
@@ -82,6 +79,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.jetbrains.annotations.Nullable;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.sliderpanel.SliderPanel;
+import org.vaadin.sliderpanel.client.SliderPanelListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -102,7 +100,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public static final String SORT_BOX_STYLE = "sort-box";
 	public static final String SORT_TITLE_STYLE = "sort-title";
 	public static final String SAVE_SEARCH = "save-search";
-	public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
+	//public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
+	public static final Resource SELECTION_ICON_RESOURCE = FontAwesome.SHOPPING_BASKET;
 
 	public enum ShareType {
 		NONE, ALL, RESTRICTED
@@ -114,6 +113,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private VerticalLayout summary;
 	private Component resultsAndFacetsPanel;
 	private VerticalLayout resultsArea;
+	private SliderPanel facetsSliderPanel;
 	private FacetsPanel facetsArea;
 	private VerticalLayout capsuleArea;
 
@@ -125,6 +125,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private Map<String, String> extraParameters = null;
 	private boolean lazyLoadedSearchResults;
 	private List<SelectionChangeListener> selectionChangeListenerStorage = new ArrayList<>();
+	private boolean facetsOpened;
 
 	@Override
 	public void attach() {
@@ -280,13 +281,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	public void refreshSearchResultsAndFacets(boolean temporarySave) {
-		SearchResultVODataProvider dataProvider = refreshSearchResults(temporarySave, true);
+		SearchResultVODataProvider dataProvider = refreshSearchResults(temporarySave, facetsOpened);
 		refreshFacets(dataProvider);
 	}
 
 	@Override
 	public void refreshSearchResultsAndFacets() {
-		SearchResultVODataProvider dataProvider = refreshSearchResults(true, true);
+		SearchResultVODataProvider dataProvider = refreshSearchResults(true, facetsOpened);
 		refreshFacets(dataProvider);
 	}
 
@@ -332,13 +333,15 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			((SearchResultDetailedTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		}*/
 
-		if (isDetailedView()) {
-			resultsArea.removeAllComponents();
+		boolean detailedView = isDetailedView();
+		resultsArea.removeAllComponents();
+		if (lazyLoadedSearchResults) {
 			resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
-			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		} else {
-			resultsArea.removeAllComponents();
-			resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
+			resultsArea.addComponent(resultsTable);
+		}
+		if (detailedView) {
+			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		}
 
 		refreshCapsule();
@@ -362,8 +365,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
 		String sortCriterionValue = presenter.getSortCriterionValueAmong(sortableMetadata);
 		SortOrder sortOrder = presenter.getSortOrder();
-		facetsArea.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
+		if (facetsOpened) {
+			facetsArea.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
+			facetsSliderPanel.setHeightUndefined();
+		}
 		presenter.setPageNumber(1);
+		facetsSliderPanel.setVisible(dataProvider.size() > 0 || !facetSelections.isEmpty());
 	}
 
 	@Override
@@ -452,11 +459,21 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//			resultsAndFacetsPanel = body;
 		//		} else {
 
-		SliderPanel sliderPanel = new FacetsSliderPanel(facetsArea);
+		facetsSliderPanel = new FacetsSliderPanel(facetsArea);
+		facetsSliderPanel.addListener((SliderPanelListener) (expand) -> {
+			this.facetsOpened = expand;
+			if (facetsOpened) {
+				final SearchResultVODataProvider dataProvider = presenter.getSearchResults(true);
+				refreshFacets(dataProvider);
+			}
+		});
+		facetsSliderPanel.setHeight("800px");
+		facetsSliderPanel.setVisible(true);
 
-		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, sliderPanel);
+		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsSliderPanel);
 		body.addStyleName("search-result-and-facets-container");
 		body.setWidth("100%");
+		body.setHeight("100%");
 		body.setExpandRatio(resultsArea, 1);
 		body.setSpacing(true);
 
@@ -470,6 +487,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		main.addComponent(resultsAndFacetsPanel);
 		main.addStyleName("suggestions-summary-results-facets");
 		main.setWidth("100%");
+		main.setHeight("100%");
 		main.setSpacing(true);
 
 		return main;
@@ -513,7 +531,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
 
-		final boolean indexColumn = presenter.isShowNumberingColumn(dataProvider);
+		final boolean indexVisible = presenter.isShowNumberingColumn(dataProvider);
 		ViewableRecordVOSearchResultTable.TableMode tableMode;
 		if (this.resultsTable != null) {
 			tableMode = ((ViewableRecordVOSearchResultTable) this.resultsTable).getTableMode();
@@ -522,13 +540,18 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		}
 		ViewableRecordVOSearchResultTable viewerPanel = new ViewableRecordVOSearchResultTable(container, tableMode, presenter, getRecordListMenuBar()) {
 			@Override
-			protected boolean isIndexColumn() {
-				return indexColumn;
+			public boolean isIndexVisible() {
+				return indexVisible;
 			}
 
 			@Override
 			protected boolean isPagedInListMode() {
 				return true;
+			}
+
+			@Override
+			public boolean isSelectionActionMenuBar() {
+				return SearchViewImpl.this.isSelectionActionMenuBar();
 			}
 
 			@Override
@@ -559,7 +582,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				ClickListener elevationClickListener = getElevationClickListener(searchResultVO, index);
 				ClickListener exclusionClickListener = getExclusionClickListener(searchResultVO, index);
 				SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, query, null, elevationClickListener, exclusionClickListener);
-				searchResultDisplay.getTitleLink().setIcon(null);
 				return searchResultDisplay;
 			}
 
@@ -596,13 +618,21 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 
 		int currentPage = presenter.getPageNumber();
-		int selectedPageLength = presenter.getSelectedPageLength();
+		int itemsPerPage = presenter.getSelectedPageLength();
 
-		viewerPanel.setItemsPerPageValue(selectedPageLength);
-		viewerPanel.getActualTable().setPageLength(selectedPageLength);
+		viewerPanel.setItemsPerPageValue(itemsPerPage);
+		viewerPanel.getActualTable().setItemsPerPage(itemsPerPage);
 		viewerPanel.getActualTable().setCurrentPage(currentPage);
+		viewerPanel.getActualTable().addItemsPerPageChangeListener(new BaseTable.ItemsPerPageChangeListener() {
+			@Override
+			public void itemsPerPageChanged(ItemsPerPageChangeEvent event) {
+				int newItemsPerPage = event.getNewItemsPerPage();
+				container.getQueryView().getQueryDefinition().setBatchSize(newItemsPerPage);
+				presenter.setSelectedPageLength(newItemsPerPage);
+			}
+		});
 		viewerPanel.getActualTable().addPageChangeListener(new BaseTable.PageChangeListener() {
-			public void pageChanged(BaseTable.PagedTableChangeEvent event) {
+			public void pageChanged(BaseTable.PageChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
 				presenter.saveTemporarySearch(false);
 				//					if (selectDeselectAllButton != null) {
@@ -616,8 +646,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				//					}
 			}
 		});
-		
+
 		return viewerPanel;
+	}
+
+	public boolean isSelectionActionMenuBar() {
+		return true;
 	}
 
 	@Override
@@ -640,90 +674,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		} else {
 			return Collections.emptyList();
 		}
-	}
-
-	@Deprecated
-	protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
-		//Fixme : use dataProvider instead
-		final SearchResultContainer container = buildResultContainer(dataProvider);
-		SearchResultSimpleTable table = new SearchResultSimpleTable(container, presenter);
-		table.setWidth("100%");
-		table.getTable().addItemClickListener(new ItemClickListener() {
-			@SuppressWarnings("rawtypes")
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				Object itemId = event.getItemId();
-				RecordVO recordVO = container.getRecordVO((int) itemId);
-				((SearchPresenter) presenter).searchResultClicked(recordVO, (Integer) itemId);
-			}
-		});
-		return table;
-	}
-
-	@Deprecated
-	protected SearchResultTable buildDetailedResultsTable(SearchResultVODataProvider dataProvider) {
-		SearchResultContainer container = buildResultContainer(dataProvider);
-		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip(), presenter.isShowNumberingColumn(dataProvider)) {
-			@Override
-			protected void onPreviousPageButtonClicked() {
-				super.onPreviousPageButtonClicked();
-				scrollBackUp();
-				presenter.searchNavigationButtonClicked();
-			}
-
-			@Override
-			protected void onNextPageButtonClicked() {
-				super.onNextPageButtonClicked();
-				scrollBackUp();
-				presenter.searchNavigationButtonClicked();
-			}
-
-			@Override
-			protected void onSetPageButtonClicked(int page) {
-				super.onSetPageButtonClicked(page);
-				scrollBackUp();
-				presenter.searchNavigationButtonClicked();
-			}
-		};
-
-		int totalResults = container.size();
-		int totalAmountOfPages = srTable.getTotalAmountOfPages();
-		int currentPage = presenter.getPageNumber();
-
-		int selectedPageLength = presenter.getSelectedPageLength();
-		//		presenter.setSelectedPageLength(selectedPageLength);
-
-		srTable.setPageLength(selectedPageLength);
-		srTable.setItemsPerPageValue(selectedPageLength);
-		srTable.setCurrentPage(currentPage);
-
-		srTable.addListener(new PagedTable.PageChangeListener() {
-			public void pageChanged(PagedTable.PagedTableChangeEvent event) {
-				presenter.setPageNumber(event.getCurrentPage());
-				presenter.saveTemporarySearch(false);
-				//					if (selectDeselectAllButton != null) {
-				//						hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
-				//						Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
-				//						boolean isSelectAllMode = true;
-				//						if (objIsSelectAllMode != null) {
-				//							isSelectAllMode = objIsSelectAllMode;
-				//						}
-				//						selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
-				//					}
-			}
-		});
-		srTable.getItemsPerPageField().addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(Property.ValueChangeEvent event) {
-				presenter.setSelectedPageLength((int) event.getProperty().getValue());
-				//					hashMapAllSelection = new HashMap<>();
-				presenter.searchNavigationButtonClicked();
-			}
-		});
-
-		srTable.setWidth("100%");
-
-		return srTable;
 	}
 
 	private void scrollBackUp() {
@@ -1042,7 +992,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected BaseButton buildSavedSearchButton() {
 		WindowButton button = new WindowButton($("SearchView.saveSearch"), $("SearchView.saveSearch"),
-				WindowConfiguration.modalDialog("50%", "70%")) {
+				WindowConfiguration.modalDialog("500px", "300px")) {
 			@Override
 			protected Component buildWindowContent() {
 				final TextField titleField = new BaseTextField();
@@ -1071,6 +1021,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 						boolean visible = event.getProperty().getValue().equals(ShareType.RESTRICTED);
 						users.setVisible(visible);
 						groups.setVisible(visible);
+
+						if (visible) {
+							getWindow().setHeight("540px");
+						} else {
+							getWindow().setHeight("300px");
+						}
+
 						if (!visible) {
 							groups.clear();
 							users.clear();

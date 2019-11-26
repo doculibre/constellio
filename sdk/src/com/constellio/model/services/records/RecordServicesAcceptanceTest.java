@@ -48,6 +48,7 @@ import com.constellio.model.services.schemas.validators.MetadataUnmodifiableVali
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.FakeEncryptionServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.GetByIdCounter;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.TestUtils;
@@ -73,6 +74,7 @@ import java.util.Map;
 
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.ESTIMATED_SIZE;
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
@@ -206,6 +208,55 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.metadata("other"), recordUnallowed.getId());
 		recordServices.add(record);
+	}
+
+	@Test
+	public void whenMarkingOrUnmarkingRecordWithoutRecalculateThenNoRecalculate() throws Exception {
+
+		defineSchemasManager().using(schemas.with((types) -> {
+
+			types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(RecordCacheType.NOT_CACHED);
+			types.getSchemaType(anotherSchema.typeCode()).setRecordCacheType(RecordCacheType.NOT_CACHED);
+
+			types.getSchemaType(zeSchema.typeCode()).createMetadata("copied").setType(STRING);
+			types.getSchemaType(anotherSchema.typeCode()).createMetadata("ref")
+					.defineReferencesTo(types.getSchemaType(zeSchema.typeCode()));
+			types.getSchemaType(anotherSchema.typeCode()).createMetadata("calculated").setType(STRING)
+					.defineDataEntry().asJexlScript("ref.copied");
+		}));
+
+
+		Transaction tx = new Transaction();
+		String r1 = tx.add(newRecord(zeSchema).set(zeSchema.metadata("copied"), "toto")).getId();
+		String r2 = tx.add(newRecord(anotherSchema).set(anotherSchema.metadata("ref"), r1)).getId();
+		recordServices.execute(tx);
+
+		assertThat(record(r2).<String>get(anotherSchema.metadata("calculated"))).isEqualTo("toto");
+
+		tx = new Transaction();
+		tx.add(record(r1).set(zeSchema.metadata("copied"), "banana"));
+		recordServices.executeHandlingImpactsAsync(tx);
+		assertThat(record(r2).<String>get(anotherSchema.metadata("calculated"))).isEqualTo("toto");
+
+		GetByIdCounter counter = new GetByIdCounter(getClass()).listening(getDataLayerFactory());
+
+		tx = new Transaction();
+		tx.add(record(r2).set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, true));
+		tx.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
+		tx.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+		recordServices.execute(tx);
+		assertThat(record(r2).<String>get(anotherSchema.metadata("calculated"))).isEqualTo("toto");
+
+		assertThat(counter.newIdCalled()).doesNotContain(r1);
+
+		tx = new Transaction();
+		tx.add(record(r2).set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
+		tx.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+		recordServices.execute(tx);
+
+		assertThat(record(r2).<String>get(anotherSchema.metadata("calculated"))).isEqualTo("banana");
+
+		assertThat(counter.newIdCalled()).contains(r1);
 	}
 
 	@Test
@@ -464,7 +515,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
-				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").setType(MetadataValueType.STRING)
+				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").setType(STRING)
 						.defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
 
 			}
@@ -531,9 +582,9 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 				final MetadataSchemaBuilder DEFAULT_FOLDER_SCHEMA = schemaBuilderAccessor.getSchema(zeSchema.code());
 				final MetadataSchemaBuilder DEFAULT_UNIT_SCHEMA = schemaBuilderAccessor.getSchema(anotherSchema.code());
 
-				DEFAULT_UNIT_SCHEMA.create(UNIT_CODE_METADATA).setType(MetadataValueType.STRING);
+				DEFAULT_UNIT_SCHEMA.create(UNIT_CODE_METADATA).setType(STRING);
 				DEFAULT_FOLDER_SCHEMA.create(REFERENCED_CODE_METADATA).setType(MetadataValueType.REFERENCE).defineReferencesTo(schemaBuilderAccessor.getSchemaType(anotherSchema.typeCode())); // .typeCode to be more generally available (not specific to schema_default but to all schema with same type
-				DEFAULT_FOLDER_SCHEMA.create(DYNAMIC_SEQUENCE_METADATA).setType(MetadataValueType.STRING).defineDataEntry().asSequenceDefinedByMetadata(REFERENCED_CODE_METADATA_CODE);
+				DEFAULT_FOLDER_SCHEMA.create(DYNAMIC_SEQUENCE_METADATA).setType(STRING).defineDataEntry().asSequenceDefinedByMetadata(REFERENCED_CODE_METADATA_CODE);
 			}
 		});
 
@@ -628,7 +679,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
-				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").setType(MetadataValueType.STRING)
+				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").setType(STRING)
 						.defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
 
 			}
@@ -1522,6 +1573,16 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		transaction.add(record6);
 		transaction.addRecordToReindex("record7");
 
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
+				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
+				tuple("record1", null),
+				tuple("record2", null),
+				tuple("record3", null),
+				tuple("record4", null),
+				tuple("record5", null)
+		);
+
 		try {
 			recordServices.execute(transaction);
 			fail("Exception expected");
@@ -1529,7 +1590,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			//OK
 		}
 
-		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
 				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
 				tuple("record1", null),
@@ -2431,7 +2491,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 				MetadataSchemaBuilder anotherSchemaBuilder = schemaTypes.getSchema(anotherSchema.code());
 				MetadataSchemaTypeBuilder zeSchemaTypeBuilder = schemaTypes.getSchemaType(zeSchema.typeCode());
 
-				anotherSchemaBuilder.create("aStringMetadata").setType(MetadataValueType.STRING);
+				anotherSchemaBuilder.create("aStringMetadata").setType(STRING);
 				anotherSchemaBuilder.create("aCalculatedMetadataToAReference").setType(MetadataValueType.REFERENCE)
 						.setMultivalue(true)
 						.defineReferencesTo(zeSchemaTypeBuilder)

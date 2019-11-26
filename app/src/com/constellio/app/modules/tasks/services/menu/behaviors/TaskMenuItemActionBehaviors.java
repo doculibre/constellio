@@ -2,7 +2,6 @@ package com.constellio.app.modules.tasks.services.menu.behaviors;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -10,15 +9,21 @@ import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
+import com.constellio.app.modules.tasks.services.menu.behaviors.util.TaskUrlUtil;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsGroupsField;
 import com.constellio.app.modules.tasks.ui.pages.tasks.TaskCompleteWindowButton;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.app.ui.framework.window.ConsultLinkWindow;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -26,13 +31,19 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.vaadin.ui.UI;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
+import static com.vaadin.ui.themes.ValoTheme.BUTTON_PRIMARY;
+import static com.vaadin.ui.themes.ValoTheme.LABEL_BOLD;
 import static java.util.Arrays.asList;
 
 public class TaskMenuItemActionBehaviors {
@@ -62,8 +73,7 @@ public class TaskMenuItemActionBehaviors {
 
 	public void getConsultationLink(Task task, MenuItemActionBehaviorParams params) {
 		String constellioURL = getConstellioUrl(modelLayerFactory);
-		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(constellioURL + RMUrlUtil.getPathToConsultLinkForFolder(task.getId())));
-		UI.getCurrent().addWindow(consultLinkWindow);
+		CopyToClipBoard.copyToClipBoard(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(task.getId()));
 	}
 
 	public void display(Task task, MenuItemActionBehaviorParams params) {
@@ -166,6 +176,62 @@ public class TaskMenuItemActionBehaviors {
 		};
 
 		reportGeneratorButton.click();
+	}
+
+	public void shareTask(Task task, MenuItemActionBehaviorParams params) {
+		WindowButton shareButton = new WindowButton($("DisplayTaskView.share"), $("DisplayTaskView.shareWindowCaption")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout mainLayout = new VerticalLayout();
+				mainLayout.setSpacing(true);
+
+				ListAddRemoveCollaboratorsField collaboratorsField = buildCollaboratorField(params, task);
+				ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = buildCollaboratorGroupsField(params, task);
+
+				BaseButton saveButton = new BaseButton($("save")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						taskPresenterServices.modifyCollaborators(collaboratorsField.getValue(), collaboratorGroupsField.getValue(), params.getRecordVO(),
+								new SchemaPresenterUtils(Task.DEFAULT_SCHEMA, params.getView().getConstellioFactories(), params.getView().getSessionContext()));
+						getWindow().close();
+					}
+				};
+				saveButton.addStyleName(BUTTON_PRIMARY);
+
+				HorizontalLayout buttonLayout = new HorizontalLayout();
+				buttonLayout.addComponent(saveButton);
+				buttonLayout.setSpacing(true);
+				buttonLayout.setHeight("40px");
+
+				Label collaboratorsLabel = new Label($("TaskAssignationListCollaboratorsField.taskCollaborators"));
+				collaboratorsLabel.setStyleName(LABEL_BOLD);
+				Label collaboratorsGroupsLabel = new Label($("TaskAssignationListCollaboratorsField.taskCollaboratorsGroups"));
+				collaboratorsGroupsLabel.setStyleName(LABEL_BOLD);
+
+				mainLayout.addComponents(collaboratorsLabel, collaboratorsField, collaboratorsGroupsLabel, collaboratorGroupsField, buttonLayout);
+				mainLayout.setComponentAlignment(buttonLayout, Alignment.MIDDLE_CENTER);
+				getWindow().setHeight(collaboratorsField.getHeight() * 80 + "px");
+				return mainLayout;
+			}
+		};
+		shareButton.click();
+	}
+
+	private ListAddRemoveCollaboratorsGroupsField buildCollaboratorGroupsField(MenuItemActionBehaviorParams params,
+																			   Task task) {
+		boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
+		ListAddRemoveCollaboratorsGroupsField collaboratorsGroupField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO());
+		collaboratorsGroupField.writeButtonIsVisible(userHasWriteAuthorization);
+		collaboratorsGroupField.setCurrentUserIsCollaborator(taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+		return collaboratorsGroupField;
+	}
+
+	private ListAddRemoveCollaboratorsField buildCollaboratorField(MenuItemActionBehaviorParams params, Task task) {
+		boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
+		ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(params.getRecordVO());
+		collaboratorsField.writeButtonIsVisible(userHasWriteAuthorization);
+		collaboratorsField.setCurrentUserIsCollaborator(taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+		return collaboratorsField;
 	}
 
 	public interface TaskMenuItemPresenter {

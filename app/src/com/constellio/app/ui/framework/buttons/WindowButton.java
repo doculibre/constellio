@@ -41,7 +41,7 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 	}
 
 	public WindowButton(Resource icon, String caption, String windowCaption) {
-		this(caption, windowCaption, WindowConfiguration.modalDialog("50%", "50%"));
+		this(icon, caption, windowCaption, false, WindowConfiguration.modalDialog("50%", "50%"));
 	}
 
 	public WindowButton(Resource icon, String caption, boolean iconOnly, WindowConfiguration configuration) {
@@ -54,7 +54,6 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 		this.configuration = configuration;
 		this.windowCaption = windowCaption;
 		addStyleName(STYLE_NAME);
-		addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		if (iconOnly) {
 			addStyleName(ValoTheme.BUTTON_ICON_ONLY);
 		}

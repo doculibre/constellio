@@ -143,7 +143,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		SessionContext sessionContext = view.getSessionContext();
 		String collection = view.getCollection();
 		User user = userServices.getUserInCollection(username, collection);
-		
+
 		UserToVOBuilder voBuilder = new UserToVOBuilder();
 		UserVO userVO = voBuilder
 				.build(user.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);

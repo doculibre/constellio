@@ -139,7 +139,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		List<MetadataFilter> metadataThatDontSupportRoleAccessRetValueList = view.getConstellioFactories().getAppLayerFactory()
 				.getExtensions().forCollection(view.getCollection()).getMetadataAccessExclusionFilters();
 
-		if(metadata == null) {
+		if (metadata == null) {
 			return false;
 		}
 
@@ -176,7 +176,6 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 		return result;
 	}
-
 
 	public FormMetadataVO getParentFormMetadataVO() {
 		return getFormMetadataVO().getInheritance();
@@ -664,7 +663,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			Class<? extends Enum<?>> enumClass = null;
 			if (formMetadataVO.getValueType() == REFERENCE) {
 				inputType = MetadataInputType.LOOKUP;
-			} else if (formMetadataVO.getValueType() == BOOLEAN){
+			} else if (formMetadataVO.getValueType() == BOOLEAN) {
 				inputType = MetadataInputType.FIELD;
 			}
 			if (inputType != null && !inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)) {
@@ -678,7 +677,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			CollectionInfoVO collectionInfoVO = new CollectionInfoVO(collectionInfo.getMainSystemLanguage(), collectionInfo.getCode(), collectionInfo.getCollectionLanguages(),
 					collectionInfo.getMainSystemLocale(), collectionInfo.getSecondaryCollectionLanguesCodes(), collectionInfo.getCollectionLanguesCodes(), collectionInfo.getCollectionLocales());
 
-			MetadataVO metadataVO = new MetadataVO(formMetadataVO.getCode(), formMetadataVO.getLocalcode(), formMetadataVO.getValueType(), collection,
+			MetadataVO metadataVO = new MetadataVO(formMetadataVO.getId(), formMetadataVO.getCode(), formMetadataVO.getLocalcode(), formMetadataVO.getValueType(), collection,
 					formMetadataVO.getSchema(), formMetadataVO.isRequired(), formMetadataVO.isMultivalue(), false,
 					new HashMap<Locale, String>(), enumClass, new String[]{}, formMetadataVO.getReference(), inputType, displayType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),

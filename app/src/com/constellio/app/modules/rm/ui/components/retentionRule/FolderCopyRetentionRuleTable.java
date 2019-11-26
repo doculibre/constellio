@@ -105,6 +105,9 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		this.variableRetentionPeriodVOList = presenter.getOpenPeriodsDDVList();
 		this.locale = locale;
 
+		addStyleName("copy-retention-rule-table");
+		addStyleName("folder-copy-retention-rule-table");
+
 		setSizeFull();
 
 		mainLayout = new VerticalLayout();
@@ -130,6 +133,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		}
 
 		table = new BaseTable(getClass().getName());
+		table.addStyleName("copy-retention-rule-table");
 		table.setWidth("100%");
 		table.setPageLength(0);
 		table.setSelectable(false);

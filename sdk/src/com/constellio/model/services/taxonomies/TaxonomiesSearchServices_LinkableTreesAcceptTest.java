@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -88,6 +89,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 		prepareSystem(withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus()
 		);
+		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.enable();
 
 		authsServices = getModelLayerFactory().newAuthorizationsServices();
 		recordServices = getModelLayerFactory().newRecordServices();

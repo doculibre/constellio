@@ -157,7 +157,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 				try {
 					selectedTaxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
 					MetadataSchemaTypes types = rmSchemasRecordsServices.getTypes();
-					MetadataSchema schema = types.getSchema(record.getSchemaCode());
+					MetadataSchema schema = types.getSchemaOf(record);
 					List<Metadata> taxonomyRelationshipReferences = schema.getTaxonomyRelationshipReferences(selectedTaxonomy);
 					if (!taxonomyRelationshipReferences.isEmpty()) {
 						Metadata firstTaxonomyRelationshipReference = taxonomyRelationshipReferences.get(0);

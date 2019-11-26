@@ -17,7 +17,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
-import com.vaadin.server.ThemeResource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +56,8 @@ public class RMRecordsMenuItemServices {
 	private ContainerRecordActionsServices containerRecordActionsServices;
 	private TaskRecordActionsServices taskRecordActionsServices;
 
-	private static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
+	//public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
+	public static final Resource SELECTION_ICON_RESOURCE = FontAwesome.SHOPPING_BASKET;
 
 	public RMRecordsMenuItemServices(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -299,7 +299,7 @@ public class RMRecordsMenuItemServices {
 
 			case RMRECORDS_CONSULT_LINK:
 				menuItemAction = buildMenuItemAction(RMRECORDS_CONSULT_LINK, state,
-						$("consultationLink"), FontAwesome.LAPTOP, -1, 510,
+						$("consultationLink"), FontAwesome.LINK, -1, 510,
 						getRecordsLimit(actionType), (ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).showConsultLink(ids, params));
 				break;
 			case RMRECORDS_CREATE_PDF:
@@ -382,7 +382,7 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_ADD_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
 		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000),
 		RMRECORDS_BATCH_DELETE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
-		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100);
+		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 10000);
 
 		private final List<String> schemaTypes;
 		private final int recordsLimit;

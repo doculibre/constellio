@@ -84,9 +84,11 @@ import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams
 import com.constellio.app.extensions.menu.MenuItemActionsExtension;
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
+import com.constellio.app.extensions.records.UserHavePermissionOnRecordExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
+import com.constellio.app.extensions.records.params.HasUserReadAccessParams;
 import com.constellio.app.extensions.records.params.IsMetadataSpecialCaseToNotBeShownParams;
 import com.constellio.app.extensions.records.params.IsMetadataVisibleInRecordFormParams;
 import com.constellio.app.extensions.sequence.AvailableSequence;
@@ -159,6 +161,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<SearchPageExtension> searchPageExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<RecordAppExtension> recordAppExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<UserHavePermissionOnRecordExtension> userHavePermissionOnRecordExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<TreeNodeExtension> treeNodeAppExtension = new VaultBehaviorsList<>();
 
@@ -700,6 +704,15 @@ public class AppLayerCollectionExtensions {
 			}
 		}
 		return values;
+	}
+
+	public boolean doesUserHaveReadAcessToRecord(boolean defaultValue, User user, Record record) {
+		return ExtensionUtils.getBooleanValue(userHavePermissionOnRecordExtensions, defaultValue, new BooleanCaller<UserHavePermissionOnRecordExtension>() {
+			@Override
+			public ExtensionBooleanResult call(UserHavePermissionOnRecordExtension behavior) {
+				return behavior.hasUserReadAccess(new HasUserReadAccessParams(user, record));
+			}
+		});
 	}
 
 	public boolean isMetadataEnabledInRecordForm(final RecordVO recordVO, final MetadataVO metadataVO) {

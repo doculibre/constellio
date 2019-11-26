@@ -7,6 +7,7 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButt
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.data.util.converter.Converter;
 import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -159,7 +160,16 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 			}
 		});
 
-		fileUploadsContainer = new ButtonsContainer<>(new IndexedContainer());
+		fileUploadsContainer = new ButtonsContainer<>(new IndexedContainer() {
+			public Property<?> getContainerProperty(final Object itemId, Object propertyId) {
+				if (itemId != null && CAPTION_PROPERTY_ID.equals(propertyId)) {
+					Component itemCaption = newItemCaption(itemId);
+					return new ObjectProperty<Component>(itemCaption, Component.class);
+				} else {
+					return super.getContainerProperty(itemId, propertyId);
+				}
+			}
+		});
 		fileUploadsContainer.addContainerProperty(CAPTION_PROPERTY_ID, Component.class, null);
 
 		if (haveDeleteButton) {

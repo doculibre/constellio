@@ -1,6 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -9,19 +8,20 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BasePopupView;
 import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.framework.components.buttons.RecordListActionButtonFactory;
 import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.autocomplete.StringAutocompleteField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
+import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
@@ -96,7 +96,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private static final String POPUP_ID = "header-popup";
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME = "header-show-advanced-search-button-popup-hidden";
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_VISIBLE_STYLE_NAME = "header-show-advanced-search-button-popup-visible";
-	public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
+	//public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
+	public static final Resource SELECTION_ICON_RESOURCE = FontAwesome.SHOPPING_BASKET;
 
 	private List<String> collections = new ArrayList<>();
 
@@ -107,16 +108,18 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	private BasePopupView popupView;
 
+	private Button showDeactivatedMetadatasButton;
 	private Button showAdvancedSearchButton;
 	private ComboBox advancedSearchSchemaTypeField;
+	private ComboBox advancedSearchSchemaField;
 	private Component advancedSearchForm;
 	private Button clearAdvancedSearchButton;
 	private AdvancedSearchCriteriaComponent criteria;
 
 	private Component selectionPanel;
+	private RecordListMenuBar selectionActionMenuBar;
 	private Table selectionTable;
 	private SelectionTableAdapter selectionTableAdapter;
-	private VerticalLayout actionMenuLayout;
 	private int selectionCount;
 
 	private Boolean delayedSelectionButtonEnabled;
@@ -241,6 +244,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 				if (!(event.getNewView() instanceof AdvancedSearchView || event.getNewView() instanceof SimpleSearchView)) {
 					searchField.setValue(null);
 					advancedSearchSchemaTypeField.setValue(null);
+					advancedSearchSchemaField.setValue(null);
+					advancedSearchSchemaField.setEnabled(false);
 					criteria.clear();
 					criteria.addEmptyCriterion().addEmptyCriterion();
 					clearAdvancedSearchButton.setEnabled(false);
@@ -253,7 +258,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private BasePopupView newPopupView(final Component component) {
 		Responsive.makeResponsive(component);
 		component.addStyleName("header-popup-content");
-		component.setWidthUndefined();
+		//		component.setWidthUndefined();
 
 		Panel wrapper = new Panel(component);
 		wrapper.addStyleName("header-popup-content-wrapper");
@@ -339,10 +344,29 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		addCriterion.addStyleName(ValoTheme.BUTTON_LINK);
 
 		Component schemaTypeComponent = buildSchemaTypeComponent();
-		I18NHorizontalLayout top = new I18NHorizontalLayout(schemaTypeComponent, addCriterion);
+		Component schemaComponent = buildSchemaComponent();
+		I18NHorizontalLayout top = new I18NHorizontalLayout(schemaTypeComponent, schemaComponent, addCriterion);
 		top.setComponentAlignment(schemaTypeComponent, Alignment.BOTTOM_LEFT);
+		top.setComponentAlignment(schemaComponent, Alignment.BOTTOM_LEFT);
 		top.setComponentAlignment(addCriterion, Alignment.BOTTOM_RIGHT);
 		top.setWidth("100%");
+
+		String caption = presenter.isDeactivatedMetadatasShown()
+						 ? $("ConstellioHeader.hideDeactivatedMetadatas")
+						 : $("ConstellioHeader.showDeactivatedMetadatas");
+		showDeactivatedMetadatasButton = new Button(caption);
+		showDeactivatedMetadatasButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.toggleDeactivatedMetadatas();
+
+				String caption = presenter.isDeactivatedMetadatasShown()
+								 ? $("ConstellioHeader.hideDeactivatedMetadatas")
+								 : $("ConstellioHeader.showDeactivatedMetadatas");
+				showDeactivatedMetadatasButton.setCaption(caption);
+			}
+		});
+		showDeactivatedMetadatasButton.addStyleName(ValoTheme.BUTTON_LINK);
 
 		criteria = new AdvancedSearchCriteriaComponent(presenter);
 		criteria.addEmptyCriterion();
@@ -367,6 +391,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			@Override
 			public void buttonClick(ClickEvent event) {
 				advancedSearchSchemaTypeField.setValue(null);
+				advancedSearchSchemaField.setValue(null);
+				advancedSearchSchemaField.setEnabled(false);
 				criteria.clear();
 				criteria.addEmptyCriterion().addEmptyCriterion();
 				clearAdvancedSearchButton.setEnabled(false);
@@ -387,7 +413,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		bottom.addStyleName("header-popup-clear-and-search-buttons");
 		bottom.setSpacing(true);
 
-		VerticalLayout searchUI = new VerticalLayout(top, criteria, bottom);
+		VerticalLayout paramsUI = new VerticalLayout(top, showDeactivatedMetadatasButton, criteria);
+		VerticalLayout searchUI = new VerticalLayout(paramsUI, bottom);
 		searchUI.setSpacing(true);
 		return searchUI;
 	}
@@ -414,6 +441,56 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		layout.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
 		layout.setSpacing(true);
 		return layout;
+	}
+
+	private Component buildSchemaComponent() {
+		Label label = new Label($("AdvancedSearchView.schema"));
+
+		advancedSearchSchemaField = new BaseComboBox();
+		advancedSearchSchemaField.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
+		advancedSearchSchemaField.setNullSelectionAllowed(false);
+		advancedSearchSchemaField.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				selectAdvancedSearchSchema((String) advancedSearchSchemaField.getValue());
+			}
+		});
+		advancedSearchSchemaField.setEnabled(false);
+
+		I18NHorizontalLayout layout = new I18NHorizontalLayout(label, advancedSearchSchemaField);
+		layout.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
+		layout.setSpacing(true);
+		return layout;
+	}
+
+	private void populateSchemaComponent(String schemaTypeCode) {
+		if (schemaTypeCode == null) {
+			return;
+		}
+
+		String selectedSchema = presenter.getSchemaSelected();
+		advancedSearchSchemaField.removeAllItems();
+
+		advancedSearchSchemaField.addItem("");
+		advancedSearchSchemaField.setItemCaption("", $("ConstellioHeader.allSchemas"));
+
+		for (MetadataSchemaVO schema : presenter.getSchemaOfSelectedType()) {
+			advancedSearchSchemaField.addItem(schema.getCode());
+			String itemCaption = schema.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+			advancedSearchSchemaField.setItemCaption(schema.getCode(), itemCaption);
+		}
+
+		if (advancedSearchSchemaField.getItemIds().size() > 2) {
+			advancedSearchSchemaField.setEnabled(true);
+		} else {
+			advancedSearchSchemaField.setEnabled(false);
+		}
+
+		if (selectedSchema == null || advancedSearchSchemaField.getItem(selectedSchema) == null) {
+			advancedSearchSchemaField.select("");
+		} else {
+			advancedSearchSchemaField.select(selectedSchema);
+		}
 	}
 
 	private WindowButton buildSelectionButton() {
@@ -497,11 +574,6 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		selectionPanel.addStyleName("header-selection-panel");
 		selectionPanel.addStyleName("no-scroll");
 
-		I18NHorizontalLayout selectionLayout = new I18NHorizontalLayout();
-		selectionLayout.setSpacing(true);
-		selectionLayout.setWidth("100%");
-		selectionLayout.addStyleName("header-selection-panel-layout");
-
 		selectionTable = new BaseTable("selection-table");
 		selectionTable.addContainerProperty("recordId", ReferenceDisplay.class, null);
 		selectionTable.setWidth("100%");
@@ -515,12 +587,13 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			item.getItemProperty("recordId").setValue(referenceDisplay);
 		}
 
-		Button clearSelectionButton = new BaseButton($("ConstellioHeader.clearSelection")) {
+		BaseButton clearSelectionButton = new BaseButton($("ConstellioHeader.clearSelection"), FontAwesome.TRASH_O) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.clearSelectionButtonClicked();
 			}
 		};
+		clearSelectionButton.setCaptionVisibleOnMobile(false);
 		clearSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
 
 		selectionTableAdapter = new SelectionTableAdapter(selectionTable) {
@@ -558,20 +631,19 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 				adjustSelectAllButton(selected);
 			}
 		};
-		Component component = selectionTableAdapter.getComponent(0);
-		I18NHorizontalLayout topButtonsLayout = new I18NHorizontalLayout(component, clearSelectionButton);
-		topButtonsLayout.setSpacing(true);
-		selectionTableAdapter.addComponent(topButtonsLayout, 0);
-		selectionTableAdapter.removeComponent(component);
 
-		actionMenuLayout = new VerticalLayout();
-		actionMenuLayout.addStyleName("header-selection-panel-actions");
-		buildSelectionPanelButtons(actionMenuLayout);
+		Component selectDeselectAllToggleButton = selectionTableAdapter.getComponent(0);
+		I18NHorizontalLayout selectionPanelTopLayout = new I18NHorizontalLayout();
+		selectionPanelTopLayout.addStyleName("selection-panel-top-layout");
+		selectionPanelTopLayout.setWidth("100%");
+		selectionPanelTopLayout.setSpacing(true);
+		selectionTableAdapter.addComponent(selectionPanelTopLayout, 0);
+		selectionTableAdapter.removeComponent(selectDeselectAllToggleButton);
 
-		VerticalLayout selectionActionMenu = new VerticalLayout();
-		selectionActionMenu.setWidth("210px");
-		selectionActionMenu.setSpacing(true);
-		selectionActionMenu.addComponent(actionMenuLayout);
+		selectionActionMenuBar = buildSelectionPanelMenuBar();
+		selectionPanelTopLayout.addComponents(selectDeselectAllToggleButton, clearSelectionButton, selectionActionMenuBar);
+		selectionPanelTopLayout.setComponentAlignment(clearSelectionButton, Alignment.TOP_RIGHT);
+		selectionPanelTopLayout.setComponentAlignment(selectionActionMenuBar, Alignment.TOP_RIGHT);
 
 		I18NHorizontalLayout buttonsLayout = new I18NHorizontalLayout();
 		buttonsLayout.setSpacing(true);
@@ -587,20 +659,15 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		buttonsLayout.setDefaultComponentAlignment(Alignment.TOP_CENTER);
 		buttonsLayout.setSpacing(true);
 
-		selectionPanel.addComponent(selectionLayout);
+		selectionPanel.addComponent(selectionTableAdapter);
 		selectionPanel.addComponent(buttonsLayout);
 		selectionPanel.setComponentAlignment(buttonsLayout, Alignment.TOP_CENTER);
-
-		selectionLayout.addComponent(selectionTableAdapter);
-		selectionLayout.addComponent(selectionActionMenu);
-
-		selectionLayout.setExpandRatio(selectionTableAdapter, 1);
-		selectionLayout.setComponentAlignment(selectionActionMenu, Alignment.TOP_RIGHT);
+		selectionPanel.setExpandRatio(selectionTableAdapter, 1);
 
 		return selectionPanel;
 	}
 
-	private void buildSelectionPanelButtons(VerticalLayout actionMenuLayout) {
+	private RecordListMenuBar buildSelectionPanelMenuBar() {
 		final MenuItemRecordProvider recordProvider = new MenuItemRecordProvider() {
 			@Override
 			public List<Record> getRecords() {
@@ -612,13 +679,10 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 				return null;
 			}
 		};
+
 		List<String> excludedActionTypes = Arrays.asList(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name());
-		RecordListActionButtonFactory actionButtonFactory = new RecordListActionButtonFactory(recordProvider, null, excludedActionTypes);
-		List<Button> actionButtons = actionButtonFactory.build();
-		for (Button actionButton : actionButtons) {
-			SelectionPanelExtension.setStyles(actionButton);
-			actionMenuLayout.addComponent(actionButton);
-		}
+		RecordListMenuBar recordListMenuBar = new RecordListMenuBar(recordProvider, $("ConstellioHeader.selectionActions"), excludedActionTypes);
+		return recordListMenuBar;
 	}
 
 	@Override
@@ -668,7 +732,26 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	@Override
 	public void setAdvancedSearchSchemaType(String schemaTypeCode) {
+		populateSchemaComponent(schemaTypeCode);
 		criteria.setSchemaType(schemaTypeCode);
+	}
+
+	@Override
+	public void selectAdvancedSearchSchema(String schemaCode) {
+		if (schemaCode != null && !schemaCode.equals(advancedSearchSchemaField.getValue())) {
+			advancedSearchSchemaField.setValue(schemaCode);
+		}
+		presenter.schemaSelected(schemaCode);
+	}
+
+	@Override
+	public void setAdvancedSearchSchema(String schemaCode) {
+		criteria.setSchemaSelected(schemaCode);
+	}
+
+	@Override
+	public void setShowDeactivatedMetadatas(boolean shown) {
+		criteria.setShowDeactivatedMetadatas(shown);
 	}
 
 	@Override
@@ -841,12 +924,12 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	}
 
 	private void setSelectionButtonIcon() {
-		Resource icon;
-//		if (selectionButton.isEnabled()) {
-//			icon = FontAwesome.CHECK_SQUARE_O;
-//		} else {
-//			icon = FontAwesome.SQUARE_O;
-//		}
+		//		Resource icon;
+		//		if (selectionButton.isEnabled()) {
+		//			icon = FontAwesome.CHECK_SQUARE_O;
+		//		} else {
+		//			icon = FontAwesome.SQUARE_O;
+		//		}
 		selectionButton.setIcon(SELECTION_ICON_RESOURCE);
 	}
 
@@ -892,8 +975,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	@Override
 	public void refreshActionButtons() {
-		actionMenuLayout.removeAllComponents();
-		buildSelectionPanelButtons(actionMenuLayout);
+		selectionActionMenuBar.buildMenuItems();
 	}
 
 	public void updateRecords() {

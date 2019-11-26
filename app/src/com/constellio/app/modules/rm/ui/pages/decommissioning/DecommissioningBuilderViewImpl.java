@@ -12,8 +12,8 @@ import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeListener;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
 import com.constellio.app.ui.pages.search.SaveSearchListener;
 import com.constellio.app.ui.pages.search.SearchViewImpl;
@@ -88,6 +88,11 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		//		menuItemFactory = new MenuItemFactory();
 
 		addStyleName("search-decommissioning");
+	}
+
+	@Override
+	public boolean isSelectionActionMenuBar() {
+		return false;
 	}
 
 	public void setExtraParameters(String searchType, String saveEventId) {
@@ -187,7 +192,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 
 	@Override
 	protected boolean isActionMenuBar() {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -296,7 +301,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		adminUnit.addStyleName(ADMIN_UNIT);
 
 		HorizontalLayout layout = new HorizontalLayout(label, adminUnit);
-		label.setWidth("150px");
+		label.setWidth("160px");
 		adminUnit.setSizeFull();
 		layout.setExpandRatio(adminUnit, 1);
 		layout.setSizeFull();

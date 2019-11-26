@@ -101,7 +101,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	@Override
 	protected Component buildMainComponent(final ViewChangeEvent event) {
 		mainLayout = new VerticalLayout();
-		mainLayout.setSizeFull();
+		mainLayout.setWidth("100%");
 		mainLayout.setSpacing(true);
 
 		usernameField = new TextField();

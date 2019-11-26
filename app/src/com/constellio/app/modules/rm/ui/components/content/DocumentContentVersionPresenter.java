@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
-import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -29,14 +28,6 @@ import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
-
-import java.io.IOException;
-import java.io.Serializable;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
-import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -135,6 +126,10 @@ public class DocumentContentVersionPresenter implements Serializable {
 		User currentUser = presenterUtils.getCurrentUser();
 		Record record = presenterUtils.getRecord(documentVO.getId());
 		return currentUser.hasWriteAccess().on(record);
+	}
+
+	public User getCurrentUser() {
+		return presenterUtils.getCurrentUser();
 	}
 
 	private boolean isLatestVersion() {

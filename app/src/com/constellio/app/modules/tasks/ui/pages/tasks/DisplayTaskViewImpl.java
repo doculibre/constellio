@@ -127,7 +127,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		return new RecordVOActionButtonFactory(
-				presenter.getTaskVO(), 
+				presenter.getTaskVO(),
 				Arrays.asList(TaskItemActionType.TASK_CONSULT.name(), TaskItemActionType.TASK_EDIT.name())).build();
 	}
 

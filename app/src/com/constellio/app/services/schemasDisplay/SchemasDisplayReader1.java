@@ -1,17 +1,5 @@
 package com.constellio.app.services.schemasDisplay;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -31,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -71,7 +60,7 @@ public class SchemasDisplayReader1 {
 		this.languages = languages;
 	}
 
-	public SchemasDisplayManagerCache readSchemaTypesDisplay(String collection) {
+	public SchemasDisplayManagerCache readSchemaTypesDisplay(String collection, boolean enableEssentialMetadataHiding) {
 
 		Element rootElement = document.getRootElement();
 
@@ -81,7 +70,7 @@ public class SchemasDisplayReader1 {
 
 		setSchemaTypeDisplayConfigs(collection, rootElement, schemasDisplayManagerCache);
 
-		setSchemaDisplayConfigs(collection, rootElement, schemasDisplayManagerCache);
+		setSchemaDisplayConfigs(collection, rootElement, schemasDisplayManagerCache, enableEssentialMetadataHiding);
 
 		setMetadataDisplayConfigs(collection, rootElement, schemasDisplayManagerCache);
 
@@ -170,14 +159,16 @@ public class SchemasDisplayReader1 {
 	}
 
 	private void setSchemaDisplayConfigs(String collection, Element rootElement,
-										 SchemasDisplayManagerCache schemasDisplayManagerCache) {
+										 SchemasDisplayManagerCache schemasDisplayManagerCache,
+										 boolean enableEssentialMetadataHiding) {
 		Map<String, SchemaDisplayConfig> schemaDisplayConfigs = convertElementToSchemaDisplayConfigs(collection,
-				rootElement);
+				rootElement, enableEssentialMetadataHiding);
 		schemasDisplayManagerCache.setSchemaDisplayConfigs(schemaDisplayConfigs);
 	}
 
 	private Map<String, SchemaDisplayConfig> convertElementToSchemaDisplayConfigs(String collection,
-																				  Element rootElement) {
+																				  Element rootElement,
+																				  boolean enableEssentialMetadataHiding) {
 
 		Map<String, SchemaDisplayConfig> map = new HashMap<>();
 
@@ -196,16 +187,26 @@ public class SchemasDisplayReader1 {
 					Element formMetadataCodesElement = schemaDisplayConfigsElement.getChild(FORM_METADATA_CODES);
 
 					List<String> formMetadataCodes = new ArrayList<>();
+					List<String> formHiddenMetadataCodes = new ArrayList<>();
 					addElementValuesToList(schema, formMetadataCodesElement, formMetadataCodes);
 
 					for (Metadata metadata : SchemaDisplayUtils.getRequiredMetadatasInSchemaForm(schema)) {
 						if (!formMetadataCodes.contains(metadata.getCode())) {
-							formMetadataCodes.add(metadata.getCode());
+							if (!enableEssentialMetadataHiding || metadata.getDefaultValue() == null) {
+								formMetadataCodes.add(metadata.getCode());
+							} else {
+								formHiddenMetadataCodes.add(metadata.getCode());
+							}
 						}
 					}
 
 					List<String> availables = SchemaDisplayUtils.getAvailableMetadatasInSchemaForm(schema).toMetadatasCodesList();
 					for (Iterator<String> iterator = formMetadataCodes.iterator(); iterator.hasNext(); ) {
+						if (!availables.contains(iterator.next())) {
+							iterator.remove();
+						}
+					}
+					for (Iterator<String> iterator = formHiddenMetadataCodes.iterator(); iterator.hasNext(); ) {
 						if (!availables.contains(iterator.next())) {
 							iterator.remove();
 						}
@@ -224,7 +225,8 @@ public class SchemasDisplayReader1 {
 					addElementValuesToList(schema, tableMetadataCodesElement, tableMetadataCodes);
 
 					SchemaDisplayConfig schemaDisplayConfig = new SchemaDisplayConfig(collection, schemaCode,
-							displayMetadataCodes, formMetadataCodes, searchResultsMetadataCodes, tableMetadataCodes);
+							displayMetadataCodes, formMetadataCodes, formHiddenMetadataCodes,
+							searchResultsMetadataCodes, tableMetadataCodes);
 
 					map.put(schemaCode, schemaDisplayConfig);
 				}

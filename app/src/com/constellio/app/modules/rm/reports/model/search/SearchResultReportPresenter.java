@@ -9,6 +9,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -132,9 +133,14 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 				!userInCollection.hasAccessToMetadata(metadata, record)) {
 				returnList.add(null);
 			} else {
-				Metadata metadataOfRecordSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-						.getSchemaOf(record).getMetadata(metadata.getLocalCode());
-				returnList.add(getConvertedValue(metadataOfRecordSchema, metadataValue));
+				try {
+					Metadata metadataOfRecordSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
+							.getSchemaOf(record).getMetadata(metadata.getLocalCode());
+					returnList.add(getConvertedValue(metadataOfRecordSchema, metadataValue));
+				} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+					LOGGER.info("Not an error. A metadata selected in the report configuration is not supported by the record. Probably a schema specific metadata. Metadata : " + metadata.getCode() + " RecordSchemaCode : " + record.getSchemaCode());
+					// Metadata not supported by the record.
+				}
 			}
 		}
 		return returnList;

@@ -7,9 +7,12 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import java.util.List;
 
 public interface RecordCommentsDisplay {
+
 	void setCaption(String caption);
 
 	void setVisible(boolean visible);
+
+	void setReadOnly(boolean readOnly);
 
 	void setComments(List<Comment> comments);
 

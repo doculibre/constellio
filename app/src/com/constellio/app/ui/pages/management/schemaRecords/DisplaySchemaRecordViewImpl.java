@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.ProvideSecurityWithNoUrlParamSupport;
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -35,7 +37,7 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
-public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements DisplaySchemaRecordView {
+public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements DisplaySchemaRecordView, ProvideSecurityWithNoUrlParamSupport {
 
 	private DisplaySchemaRecordPresenter presenter;
 
@@ -59,14 +61,19 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	private boolean isInWindow;
 
+	private boolean isViewRecordMode;
+
+
 	public DisplaySchemaRecordViewImpl() {
-		this(null, false, false);
+		this(null, false, false, false);
 	}
 
-	public DisplaySchemaRecordViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
+	public DisplaySchemaRecordViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow,
+									   boolean isViewRecordMode) {
 		this.presenter = new DisplaySchemaRecordPresenter(this, recordVO, nestedView, inWindow);
 		this.nestedView = nestedView;
 		this.isInWindow = inWindow;
+		this.isViewRecordMode = isViewRecordMode;
 	}
 
 	@Override
@@ -76,7 +83,10 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 		} else if (recordVO != null) {
 			presenter.forParams(recordVO.getId());
 		}
+	}
 
+	public boolean isViewRecordMode() {
+		return isViewRecordMode;
 	}
 
 	@Override
@@ -96,8 +106,10 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
+		addStyleName("display-schema-record-view");
+		
 		mainLayout = new VerticalLayout();
-		mainLayout.setSizeFull();
+		mainLayout.setWidth("100%");
 		mainLayout.setSpacing(true);
 
 		recordDisplay = new RecordDisplay(recordVO);
@@ -172,8 +184,13 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 	}
 
 	@Override
+	protected String getActionMenuBarCaption() {
+		return $("DisplaySchemaRecordView.actions");
+	}
+
+	@Override
 	protected boolean isActionMenuBar() {
-		return nestedView;
+		return nestedView || isInWindow;
 	}
 
 	@Override
@@ -255,4 +272,8 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 	}
 
 
+	@Override
+	public SecurityWithNoUrlParamSupport getSecurityWithNoUrlParamSupport() {
+		return presenter;
+	}
 }

@@ -13,7 +13,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
-import com.vaadin.server.ThemeResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +51,8 @@ public class DocumentMenuItemServices {
 	private String collection;
 	private AppLayerFactory appLayerFactory;
 
-	private static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
+	//public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
+	public static final Resource SELECTION_ICON_RESOURCE = FontAwesome.SHOPPING_BASKET;
 
 	public DocumentMenuItemServices(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -246,7 +246,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_ADD_AUTHORIZATION.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_AUTHORIZATION.name(),
 					isMenuItemActionPossible(DOCUMENT_ADD_AUTHORIZATION.name(), document, user, params),
-					$("DocumentContextMenu.shareDocument"), FontAwesome.KEY, -1, 2000,
+					$("DocumentContextMenu.shareDocument"), FontAwesome.PAPER_PLANE_O, -1, 2000,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(document, params));
 
 			menuItemActions.add(menuItemAction);

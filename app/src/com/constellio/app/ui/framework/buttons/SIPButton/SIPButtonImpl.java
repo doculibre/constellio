@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.pages.SIP.BagInfoSIPForm;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Component;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public class SIPButtonImpl extends WindowButton {
 	private boolean showDeleteButton;
 
 	public SIPButtonImpl(String caption, String windowCaption, ConstellioHeader view, boolean showDeleteButton) {
-		super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "75%"));
+		super(FontAwesome.FILE_ARCHIVE_O, caption, windowCaption, false, new WindowConfiguration(true, true, "75%", "75%"));
 		this.view = view;
 		this.presenter = new SIPButtonPresenter(this, objectList, view.getSessionContext().getCurrentLocale());
 		this.showDeleteButton = showDeleteButton;

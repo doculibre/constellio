@@ -1,18 +1,26 @@
 package com.constellio.model.services.records.cache.locks;
 
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SimpleReadLockMechanism {
 
 
-	//TODO Francis : Improve with three-level locking mecanism (level 1 for system, level 2 for collection, level 3 for type)
-	//A get or a stream on an unlocked type should be allowed - but must handle the case where a full reassignIsRequired
 	private AtomicInteger canRead1 = new AtomicInteger();
 	private AtomicInteger canRead2 = new AtomicInteger();
 	private AtomicInteger readingThreads = new AtomicInteger();
 
+	public void obtainSchemaTypeReadingPermit(MetadataSchemaType schemaType) {
+		obtainSchemaTypeReadingPermit(schemaType.getCollectionInfo().getCollectionId(), schemaType.getId());
+	}
+
 	public void obtainSchemaTypeReadingPermit(byte collectionId, short schemaTypeId) {
 		obtainReadingPermit();
+	}
+
+	public void releaseSchemaTypeReadingPermit(MetadataSchemaType schemaType) {
+		releaseSchemaTypeReadingPermit(schemaType.getCollectionInfo().getCollectionId(), schemaType.getId());
 	}
 
 	public void releaseSchemaTypeReadingPermit(byte collectionId, short schemaTypeId) {
@@ -31,12 +39,29 @@ public class SimpleReadLockMechanism {
 		obtainReadingPermit();
 	}
 
+	public void obtainSystemWideWritingPermit() {
+		obtainWritingPermit();
+	}
+
 	public void releaseSystemWideReadingPermit() {
 		finishedReading();
 	}
 
+
+	public void releaseSystemWideWritingPermit() {
+		finishedWriting();
+	}
+
+	public void obtainSchemaTypeWritingPermit(MetadataSchemaType schemaType) {
+		obtainSchemaTypeWritingPermit(schemaType.getCollectionInfo().getCollectionId(), schemaType.getId());
+	}
+
 	public void obtainSchemaTypeWritingPermit(byte collectionId, short schemaTypeId) {
 		obtainWritingPermit();
+	}
+
+	public void releaseSchemaTypeWritingPermit(MetadataSchemaType schemaType) {
+		releaseSchemaTypeWritingPermit(schemaType.getCollectionInfo().getCollectionId(), schemaType.getId());
 	}
 
 	public void releaseSchemaTypeWritingPermit(byte collectionId, short schemaTypeId) {

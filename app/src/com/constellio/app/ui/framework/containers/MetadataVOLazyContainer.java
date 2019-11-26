@@ -42,12 +42,13 @@ public class MetadataVOLazyContainer extends LazyQueryContainer {
 
 			super.addProperty(CODE, String.class, null, true, true);
 			super.addProperty(LABEL, String.class, null, true, true);
-			super.addProperty(TYPE, String.class, null, true, false);
-			super.addProperty(DISPLAY_TYPE, String.class, null, true, false);
-			super.addProperty(REQUIRED, String.class, null, true, false);
-			super.addProperty(ENABLED, String.class, null, true, false);
+			super.addProperty(TYPE, String.class, null, true, true);
+			super.addProperty(DISPLAY_TYPE, String.class, null, true, true);
+			super.addProperty(REQUIRED, String.class, null, true, true);
+			super.addProperty(ENABLED, String.class, null, true, true);
 		}
 	}
+
 
 	public static class SchemaVOLazyQueryFactory implements SerializableQueryFactory {
 

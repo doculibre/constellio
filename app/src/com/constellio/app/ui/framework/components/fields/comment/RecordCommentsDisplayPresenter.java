@@ -9,14 +9,19 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class RecordCommentsDisplayPresenter implements Serializable {
+
 	private RecordCommentsDisplay editor;
 
 	private String recordId;
@@ -24,6 +29,8 @@ public class RecordCommentsDisplayPresenter implements Serializable {
 	private String metadataCode;
 
 	private SchemaPresenterUtils presenterUtils;
+
+	private List<Comment> comments = new ArrayList<>();
 
 	public RecordCommentsDisplayPresenter(RecordCommentsDisplay editor) {
 		this.editor = editor;
@@ -56,7 +63,10 @@ public class RecordCommentsDisplayPresenter implements Serializable {
 
 		Metadata metadata = presenterUtils.getMetadata(metadataCode);
 		String caption = metadata.getLabel(Language.withCode(presenterUtils.getCurrentLocale().getLanguage()));
-		List<Comment> comments = record.get(metadata);
+		comments = record.get(metadata);
+		if (comments == null) {
+			comments = new ArrayList<>();
+		}
 		editor.setComments(comments);
 		editor.setCaption(caption);
 
@@ -64,25 +74,40 @@ public class RecordCommentsDisplayPresenter implements Serializable {
 		if (!authorizationsServices.canWrite(currentUser, record)) {
 			editor.setVisible(false);
 		}
+		if (Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS))) {
+			editor.setReadOnly(true);
+		}
 	}
 
-	public void commentsChanged(List<Comment> newComments) {
-		if (newComments != null) {
-			Metadata metadata = presenterUtils.getMetadata(metadataCode);
-
-			Record record = presenterUtils.getRecord(recordId);
-			List<Comment> existingComments = record.get(metadata);
-			if (!newComments.equals(existingComments)) {
-				User user = presenterUtils.getCurrentUser();
-				ConstellioFactories constellioFactories = editor.getConstellioFactories();
-				ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-				AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-
-				record.set(metadata, newComments);
-				if (authorizationsServices.canWrite(user, record)) {
-					presenterUtils.addOrUpdate(record);
-				}
-			}
+	public boolean commentAdded(Comment newComment) {
+		if (StringUtils.isBlank(newComment.getMessage())) {
+			return false;
 		}
+
+		User user = presenterUtils.getCurrentUser();
+		newComment.setUser(user);
+		newComment.setDateTime(new LocalDateTime());
+
+		List<Comment> newComments = new ArrayList<>(comments);
+		newComments.add(0, newComment);
+
+		updateComments(newComments);
+		return true;
+	}
+
+	public void commentDeleted(Comment comment) {
+		List<Comment> newComments = new ArrayList<>(comments);
+		newComments.remove(comment);
+		updateComments(newComments);
+	}
+
+	private void updateComments(List<Comment> newComments) {
+		Metadata metadata = presenterUtils.getMetadata(metadataCode);
+
+		Record record = presenterUtils.getRecord(recordId);
+
+		record.set(metadata, newComments);
+		presenterUtils.addOrUpdate(record);
+		editor.setComments(comments = newComments);
 	}
 }

@@ -7,12 +7,11 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.BaseForm.FieldAndPropertyId;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.jgoodies.common.base.Strings;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
-import com.vaadin.data.Property.ValueChangeEvent;
-import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
 import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -71,7 +70,12 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 
 	public UpdateContentVersionWindowImpl(Map<RecordVO, MetadataVO> records, boolean isEditView) {
 		setModal(true);
-		setWidth("70%");
+		if (ResponsiveUtils.isPhone()) {
+			setWidth("90%");
+		} else {
+			setWidth("750px");
+		}
+		
 		setZIndex(null);
 
 		mainLayout = new VerticalLayout();
@@ -93,31 +97,18 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		};
 		uploadField.setCaption($("UpdateContentVersionWindow.uploadField"));
 		uploadField.setImmediate(true);
-		uploadField.addValidator(new Validator() {
-			@Override
-			public void validate(Object value)
-					throws InvalidValueException {
-				if (getContentVersion() == null && getMajorVersion() instanceof Boolean) {
-					throw new InvalidValueException($("UpdateContentVersionWindow.validate.noVersionIfContentVersionUploaded"));
-				}
-			}
-		});
 
 		majorVersionField = new OptionGroup();
 		majorVersionField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 		majorVersionField.setCaption($("UpdateContentVersionWindow.version"));
 		majorVersionField.setRequired(true);
 		majorVersionField.setImmediate(true);
-
-		majorVersionField.addValueChangeListener(new ValueChangeListener() {
+		majorVersionField.addValidator(new Validator() {
 			@Override
-			public void valueChange(ValueChangeEvent event) {
-				Object value = majorVersionField.getValue();
-
-				if (value instanceof String) {
-					uploadField.setRequired(false);
-				} else {
-					uploadField.setRequired(true);
+			public void validate(Object value)
+					throws InvalidValueException {
+				if (getContentVersion() != null && value == null) {
+					throw new InvalidValueException($("UpdateContentVersionWindow.validate.noVersionIfContentVersionUploaded"));
 				}
 			}
 		});
@@ -127,7 +118,8 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		fieldsAndPropertyIds.add(new FieldAndPropertyId(majorVersionField, "majorVersion"));
 
 		if (records.keySet().iterator().hasNext()) {
-			uploadForm = new BaseForm<RecordVO>(records.keySet().iterator().next(), fieldsAndPropertyIds) {
+			RecordVO recordVO = records.keySet().iterator().next();
+			uploadForm = new BaseForm<RecordVO>(recordVO, fieldsAndPropertyIds) {
 				@Override
 				protected Item newItem(RecordVO viewObject) {
 					return new Item() {
@@ -197,6 +189,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 
 		DragAndDropWrapper dragAndDropWrapper = new DragAndDropWrapper(mainLayout);
 		dragAndDropWrapper.setSizeFull();
+		dragAndDropWrapper.addStyleName("no-scroll");
 		setContent(dragAndDropWrapper);
 		dragAndDropWrapper.setDropHandler(uploadField);
 
@@ -254,13 +247,12 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 	@Override
 	public void setFormVisible(boolean visible) {
 		uploadField.setVisible(visible);
-		uploadField.setVisible(visible);
+		majorVersionField.setVisible(visible);
 	}
 
 	@Override
 	public void setUploadFieldVisible(boolean visible) {
 		uploadField.setVisible(visible);
-		uploadField.setRequired(visible);
 	}
 
 	private void initMajorVersionFieldOptions() {

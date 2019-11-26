@@ -12,6 +12,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -407,20 +408,31 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 
 			MetadataSchemaType type = types.getSchemaType(schemaType);
 
-			Set<Taxonomy> taxonomies = new HashSet<>();
+			List<Taxonomy> taxonomies = new ArrayList<>();
+			Set<String> taxonomyCodes = new HashSet<>();
 
-			for (Metadata metadatas : type.getAllMetadatas().onlyTaxonomyReferences()) {
-				String referenceTypeCode = metadatas.getAllowedReferences().getTypeWithAllowedSchemas();
-				Taxonomy taxonomy = getTaxonomyFor(user.getCollection(), referenceTypeCode);
-				if (hasCurrentUserRightsOnTaxonomy(taxonomy, user)) {
-					taxonomies.add(taxonomy);
+			for (Metadata metadata : type.getAllMetadatas()) {
+				if (metadata.getType() == MetadataValueType.REFERENCE && metadata.isTaxonomyRelationship()) {
+					String referenceTypeCode = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
+					Taxonomy taxonomy = getTaxonomyFor(user.getCollection(), referenceTypeCode);
+					if (hasCurrentUserRightsOnTaxonomy(taxonomy, user)) {
+						if (taxonomyCodes.add(taxonomy.getCode())) {
+							taxonomies.add(taxonomy);
+						}
+					}
 				}
 			}
 
-			for (Metadata metadatas : type.getAllMetadatas().onlyParentReferences()) {
-				String referenceTypeCode = metadatas.getAllowedReferences().getTypeWithAllowedSchemas();
-				if (!referenceTypeCode.equals(type.getCode())) {
-					taxonomies.addAll(getAvailableTaxonomiesForSelectionOfType(referenceTypeCode, user, metadataSchemasManager));
+			for (Metadata metadata : type.getAllMetadatas()) {
+				if (metadata.getType() == MetadataValueType.REFERENCE && metadata.isChildOfRelationship()) {
+					String referenceTypeCode = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
+					if (!referenceTypeCode.equals(type.getCode())) {
+						for (Taxonomy taxonomy : getAvailableTaxonomiesForSelectionOfType(referenceTypeCode, user, metadataSchemasManager)) {
+							if (taxonomyCodes.add(taxonomy.getCode())) {
+								taxonomies.add(taxonomy);
+							}
+						}
+					}
 				}
 			}
 

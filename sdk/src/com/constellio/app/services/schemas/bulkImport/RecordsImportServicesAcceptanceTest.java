@@ -16,6 +16,7 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetai
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
@@ -170,8 +171,9 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		XMLImportDataProvider document = toXMLFile("document.xml");
 		XMLImportDataProvider retentionRule = toXMLFile("retentionRule.xml");
 		XMLImportDataProvider ddvDocumentType = toXMLFile("ddvDocumentType.xml");
+		XMLImportDataProvider userTask = toXMLFile("userTask.xml");
 		XMLImportDataProvider[] files = new XMLImportDataProvider[]{
-				ddvDocumentType, category, administrativeUnit, retentionRule, folder, document,};
+				ddvDocumentType, category, administrativeUnit, retentionRule, folder, document, userTask,};
 
 		for (ImportDataProvider importDataProvider : files) {
 			importServices.bulkImport(importDataProvider, progressionListener, admin);
@@ -183,6 +185,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(document.size("document")).isEqualTo(3);
 		assertThat(retentionRule.size("retentionRule")).isEqualTo(2);
 		assertThat(ddvDocumentType.size("ddvDocumentType")).isEqualTo(2);
+		assertThat(userTask.size("userTask")).isEqualTo(1);
 
 		importAndValidate();
 		importAndValidateWithRetentionRules();
@@ -210,6 +213,10 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		folder8 = rm.wrapFolder(expectedRecordWithLegacyId("674"));
 		assertThat(folder8.getRetentionRule()).isEqualTo(rule111201Id.getId());
 		assertThat(folder8.getMainCopyRule().getId()).isEqualTo(copy789Id);
+
+		Task task = rm.wrapRMTask(expectedRecordWithLegacyId("001"));
+		assertThat(task.getTitle()).isEqualTo("An unexpected Journey task");
+		assertThat(task.getContent().get(0).getCurrentVersion().getFilename()).isEqualTo("An unexpected Journey");
 	}
 
 	@Test

@@ -1,11 +1,6 @@
 package com.constellio.app.ui.pages.setup;
 
 import com.constellio.app.entities.modules.ProgressInfo;
-import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
-import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.entities.UserVO;
-import com.constellio.app.entities.modules.ProgressInfo;
-import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
@@ -15,16 +10,11 @@ import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.LogoUtils;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.updates.UploadWaitWindow;
 import com.constellio.app.utils.ManualUpdateHandler;
 import com.constellio.app.utils.ManualUpdateHandlerView;
 import com.constellio.model.entities.Language;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.users.UserServices;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
@@ -52,7 +42,6 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -329,6 +318,11 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 			@Override
 			protected void cancelButtonClick(ConstellioSetupBean viewObject) {
 
+			}
+
+			@Override
+			protected boolean isAddButtonsToStaticFooter() {
+				return false;
 			}
 		};
 

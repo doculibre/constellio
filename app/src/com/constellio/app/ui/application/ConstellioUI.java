@@ -1,8 +1,6 @@
 package com.constellio.app.ui.application;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
-import com.constellio.app.modules.rm.ui.contextmenu.RMRecordContextMenuHandler;
-import com.constellio.app.modules.rm.ui.menuBar.RMRecordMenuBarHandler;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.sso.SSOServices;
@@ -141,8 +139,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 
-		addRecordContextMenuHandler(new RMRecordContextMenuHandler(constellioFactories));
-		addRecordMenuBarHandler(new RMRecordMenuBarHandler(constellioFactories));
+		appLayerFactory.getExtensions().getSystemWideExtensions().addToConstellioUIInitialisation(this);
 
 		List<InitUIListener> initUIListeners = appLayerFactory.getInitUIListeners();
 		for (InitUIListener initUIListener : initUIListeners) {
@@ -151,7 +148,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 		Responsive.makeResponsive(this);
 		addStyleName(ValoTheme.UI_WITH_MENU);
-		
+
 		int tooltipDelay = 50;
 		getTooltipConfiguration().setOpenDelay(tooltipDelay);
 		getTooltipConfiguration().setQuickOpenDelay(tooltipDelay);
@@ -446,7 +443,17 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		return mainLayout;
 	}
 
-	public void runAsync(final Runnable runnable, int pollInterval, final Component component) {
+	public Component getStaticFooterContent() {
+		return mainLayout.getStaticFooterContent();
+	}
+
+	public void setStaticFooterContent(Component component) {
+		if (mainLayout != null) {
+			mainLayout.setStaticFooterContent(component);
+		}
+	}
+
+	public Thread runAsync(final Runnable runnable, int pollInterval, final Component component) {
 		final boolean restorePollingInterval;
 		final int pollIntervalBefore = getPollInterval();
 		if (getPollInterval() <= 0) {
@@ -455,7 +462,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		} else {
 			restorePollingInterval = false;
 		}
-		new Thread() {
+		Thread thread = new Thread() {
 			@Override
 			public void run() {
 				try {
@@ -472,7 +479,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 					}
 				}
 			}
-		}.start();
+		};
+		thread.start();
+		return thread;
 	}
 
 }

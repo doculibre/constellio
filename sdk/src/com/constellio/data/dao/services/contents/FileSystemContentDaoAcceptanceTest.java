@@ -49,7 +49,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 						.getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding());
 
 		getDataLayerFactory().getDataLayerConfiguration().setContentDaoReplicatedVaultMountPoint(newTempFolder().getAbsolutePath());
-		fileSystemContentDao = Mockito.spy(new FileSystemContentDao(getIOLayerFactory().newIOServices(), getDataLayerFactory().getDataLayerConfiguration()));
+		fileSystemContentDao = Mockito.spy(new FileSystemContentDao(getDataLayerFactory()));
 
 		fileHash1 = hashingService.getHashFromFile(getTestResourceFile("1.docx"));
 		fileHash2 = hashingService.getHashFromFile(getTestResourceFile("2.docx"));
@@ -68,7 +68,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenVaultWihoutReplicationWhenMoveFileFailThenThrow() throws Exception {
 		getDataLayerFactory().getDataLayerConfiguration().setContentDaoReplicatedVaultMountPoint(null);
-		fileSystemContentDao = Mockito.spy(new FileSystemContentDao(getIOLayerFactory().newIOServices(), getDataLayerFactory().getDataLayerConfiguration()));
+		fileSystemContentDao = Mockito.spy(new FileSystemContentDao(getDataLayerFactory()));
 
 		Mockito.doReturn(false).when(fileSystemContentDao).moveFile((File) Mockito.any(), (File) Mockito.any());
 

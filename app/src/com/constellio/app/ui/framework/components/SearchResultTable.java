@@ -1,6 +1,6 @@
 package com.constellio.app.ui.framework.components;
 
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeListener;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.Component;
 

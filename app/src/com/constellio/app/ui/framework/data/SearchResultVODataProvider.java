@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public abstract class SearchResultVODataProvider implements DataProvider {
 
@@ -39,7 +40,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	protected transient AppLayerFactory appLayerFactory;
 	protected SerializableSearchCache queryCache = new SerializableSearchCache();
 	private transient SessionContext sessionContext;
-	protected int resultsPerPage;
+	protected Supplier<Integer> resultsPerPageSupplier;
 
 	RecordToVOBuilder voBuilder;
 
@@ -53,22 +54,34 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		//		SolrUserCredential userCredential = (SolrUserCredential) appLayerFactory.getModelLayerFactory().getUserCredentialsManager()
 		//				.getUserCredential(username);
 
-		this.resultsPerPage = resultsPerPage;
+		this.resultsPerPageSupplier = () -> resultsPerPage;
+		init(appLayerFactory, sessionContext);
+	}
+
+	public SearchResultVODataProvider(RecordToVOBuilder voBuilder, AppLayerFactory appLayerFactory,
+									  SessionContext sessionContext, Supplier<Integer> resultsPerPageSupplier) {
+		this.voBuilder = voBuilder;
+		//		String username = sessionContext.getCurrentUser().getUsername();
+		//
+		//		SolrUserCredential userCredential = (SolrUserCredential) appLayerFactory.getModelLayerFactory().getUserCredentialsManager()
+		//				.getUserCredential(username);
+
+		this.resultsPerPageSupplier = resultsPerPageSupplier;
 		init(appLayerFactory, sessionContext);
 	}
 
 	public int getResultsPerPage() {
-		return resultsPerPage;
+		return resultsPerPageSupplier.get();
 	}
 
 	public Map<String, List<FacetValue>> getFieldFacetValues() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
-		return searchServices.getFieldFacetValues();
+		return searchServices.getFieldFacetValues(query);
 	}
 
 	public Map<String, Integer> getQueryFacetsValues() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
-		return searchServices.getQueryFacetsValues();
+		return searchServices.getQueryFacetsValues(query);
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -151,7 +164,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	public int size() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		if (size == null) {
-			SPEQueryResponse response = searchServices.query(query, resultsPerPage);
+			SPEQueryResponse response = searchServices.query(query, resultsPerPageSupplier.get());
 
 			size = response.getRecords().size();
 		}
@@ -171,15 +184,17 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		List<SearchResultVO> results = new ArrayList<>(numberOfItems);
 
-		SPEQueryResponse response = searchServices.query(query, Math.max(resultsPerPage, numberOfItems));
+		SPEQueryResponse response = searchServices.query(query, Math.max(resultsPerPageSupplier.get(), numberOfItems));
 		onQuery(query, response);
 		List<Record> records = response.getRecords();
-		List<Record> subListOfRecords = records.subList(startIndex, startIndex + Math.min(numberOfItems, records.size()));
+		List<Record> subListOfRecords = records.subList(startIndex, Math.min(startIndex + numberOfItems, records.size()));
 
+		int searchResultIndex = startIndex;
 		for (Record record : subListOfRecords) {
 			RecordVO recordVO = voBuilder.build(record, VIEW_MODE.SEARCH, sessionContext);
-			SearchResultVO searchResultVO = new SearchResultVO(recordVO, response.getHighlighting(recordVO.getId()));
+			SearchResultVO searchResultVO = new SearchResultVO(searchResultIndex, recordVO, response.getHighlighting(recordVO.getId()));
 			results.add(searchResultVO);
+			searchResultIndex++;
 		}
 
 		return results;
@@ -213,6 +228,11 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		int qtime = queryCache.getTotalQTime();
 		queryCache.resetTotalQTime();
 		return qtime;
+	}
+
+	public int getResultsCount() {
+		int resultsCount = queryCache.getSize();
+		return resultsCount;
 	}
 
 	public List<MetadataSchema> getSchemas() {

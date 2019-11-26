@@ -96,11 +96,16 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 	private MetadataForm metadataForm;
 	private FormMetadataVO formMetadataVO;
+	private MetadataFieldFactory fieldFactory;
 
 	VerticalLayout viewLayout;
 
 	public AddEditMetadataViewImpl() {
 		this.presenter = new AddEditMetadataPresenter(this);
+	}
+
+	public void setFieldFactory(MetadataFieldFactory fieldFactory) {
+		this.fieldFactory = fieldFactory;
 	}
 
 	@Override
@@ -528,14 +533,16 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			viewLayout.addComponent(attributeField);
 		}
 
-		MetadataFieldFactory factory = new MetadataFieldFactory();
+		if (fieldFactory == null) {
+			fieldFactory = new MetadataFieldFactory();
+		}
 
 		MetadataVO defaultValueMetadataVO = presenter.getDefaultValueMetadataVO(formMetadataVO, editMode);
 
 		Field<?> previousDefaultValueField = defaultValueField;
 		if (defaultValueMetadataVO != null && presenter.isDefaultValuePossible(formMetadataVO)) {
 			try {
-				defaultValueField = factory.build(defaultValueMetadataVO);
+				defaultValueField = fieldFactory.build(defaultValueMetadataVO);
 			} catch (Exception e) {
 				e.printStackTrace();
 				defaultValueField = null;

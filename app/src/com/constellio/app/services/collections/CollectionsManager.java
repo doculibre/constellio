@@ -128,7 +128,8 @@ public class CollectionsManager implements StatefulService {
 		}
 	}
 
-	private void createSystemCollection() throws NoMoreCollectionAvalibleException, ConstellioModulesManagerException_ModuleInstallationFailed {
+	private void createSystemCollection()
+			throws NoMoreCollectionAvalibleException, ConstellioModulesManagerException_ModuleInstallationFailed {
 		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
 
 		if (NEW_SYSTEM_MAIN_DATA_LANGUAGE != null) {

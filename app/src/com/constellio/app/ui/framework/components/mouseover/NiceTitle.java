@@ -1,11 +1,10 @@
 package com.constellio.app.ui.framework.components.mouseover;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.vaadin.server.AbstractExtension;
 import com.vaadin.server.ClientConnector;
 import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.Component;
+import org.apache.commons.lang3.StringUtils;
 
 public class NiceTitle extends AbstractExtension {
 
@@ -38,12 +37,12 @@ public class NiceTitle extends AbstractExtension {
 		
 		super.setParent(parent);
 		this.component = (Component) parent;
-		
+
 		if (component != null) {
 			boolean emptyTitle = StringUtils.isBlank(title) || "null".equals(title);
 			boolean alreadyApplied = component.getDescription() != null && component.getDescription().equals(title);
 			boolean enabledOrApplyIfDisabled = visibleWhenDisabled || component.isEnabled();
-			if (component.isVisible() && !alreadyApplied && !emptyTitle && enabledOrApplyIfDisabled) {
+			if (!alreadyApplied && !emptyTitle && enabledOrApplyIfDisabled) {
 				((AbstractComponent) component).setDescription(title);
 			} 
 		}

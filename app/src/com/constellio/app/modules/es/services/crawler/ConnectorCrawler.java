@@ -86,7 +86,7 @@ public class ConnectorCrawler {
 
 	boolean crawlAllConnectors() {
 
-		if (Toggle.ALL_CONNECTORS_DISABLED.isEnabled()) {
+		if (Toggle.ALL_CONNECTORS_DISABLED.isEnabled() || ReindexingServices.getReindexingInfos() != null) {
 			return false;
 		}
 

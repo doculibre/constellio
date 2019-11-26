@@ -440,7 +440,10 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		Map<Language, String> labelTitle = new HashMap<>();
 		labelTitle.put(Language.French, "zeTaxo");
 
-		Taxonomy taxonomy = new Taxonomy("zeTaxo", labelTitle, zeCollection, zeSchema.typeCode());
+		Map<Language, String> labelAbv = new HashMap<>();
+		labelTitle.put(Language.French, "ze");
+
+		Taxonomy taxonomy = new Taxonomy("zeTaxo", labelTitle, labelAbv, zeCollection, zeSchema.typeCode());
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy, getModelLayerFactory().getMetadataSchemasManager());
 	}
 

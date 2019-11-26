@@ -112,7 +112,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	protected List<String> initialFinishedBatchProcesses;
 
-	protected String auth1, auth2, auth3, auth4, auth5, auth6, auth7;
+	protected String auth1, auth2, auth3, auth4, auth5, auth6, auth7, auth8;
 
 	String[] allUsers = new String[]{alice, bob, charles, dakota, edouard, gandalf, chuck, sasquatch, robin};
 

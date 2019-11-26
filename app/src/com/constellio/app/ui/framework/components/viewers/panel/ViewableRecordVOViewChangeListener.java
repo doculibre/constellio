@@ -36,8 +36,10 @@ public class ViewableRecordVOViewChangeListener implements ViewChangeListener {
 			RecordVO recordVO = displayFolderView.getRecord();
 			Integer returnIndex = displayFolderView.getReturnIndex();
 			RecordVO returnRecordVO = displayFolderView.getReturnRecordVO();
-			displayFolderViewReturnIndexes.put(recordVO.getId(), returnIndex);
-			displayFolderViewReturnRecordVOs.put(recordVO.getId(), returnRecordVO);
+			if (recordVO != null) {
+				displayFolderViewReturnIndexes.put(recordVO.getId(), returnIndex);
+				displayFolderViewReturnRecordVOs.put(recordVO.getId(), returnRecordVO);
+			}
 		}
 		return true;
 	}

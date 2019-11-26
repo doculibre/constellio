@@ -8,17 +8,21 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.pages.base.ConstellioMenuImpl.ConstellioMenuButton;
 import com.constellio.app.ui.util.ComponentTreeUtils;
-import com.constellio.app.ui.util.PlatformDetectionUtils;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -63,14 +67,16 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private DragAndDropWrapper dragAndDropWrapper;
 	private UserDocumentsWindow userDocumentsWindow;
 	private List<NavigationItem> navigationItems;
+	private VerticalLayout contentAndStaticFooterLayout;
 
-	private boolean reindexationRequired;
-	private Component message;
+	private VerticalLayout staticFooterLayout;
+	private I18NHorizontalLayout staticFooterContentAndGuideLayout;
+	private I18NHorizontalLayout staticFooterExtraComponentsLayout;
+	private Component staticFooterContent;
+	private BaseButton guideButton;
 
 	public MainLayoutImpl(final AppLayerFactory appLayerFactory) {
 		this.presenter = new MainLayoutPresenter(this);
-
-		reindexationRequired = appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired();
 
 		addStyleName("main-layout");
 
@@ -78,7 +84,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		mainMenuContentFooterLayout.setSizeFull();
 		mainMenuContentFooterLayout.addStyleName("main-menu-content-footer");
 
-		contentViewWrapper = new Panel(); 
+		contentViewWrapper = new Panel();
 		contentViewWrapper.addStyleName(ValoTheme.PANEL_BORDERLESS);
 
 		Navigator navigator = new Navigator(UI.getCurrent(), contentViewWrapper);
@@ -95,10 +101,22 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		footerLayout = new VerticalLayout();
 		footerLayout.setId("footer-layout");
 		footerLayout.addStyleName(footerLayout.getId());
+		footerLayout.setVisible(false);
+
+		staticFooterLayout = new VerticalLayout();
+		staticFooterLayout.addStyleName("static-footer-layout");
+		staticFooterLayout.setWidth("100%");
+		staticFooterLayout.setHeight("76px");
+		staticFooterLayout.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+
+		staticFooterContentAndGuideLayout = new I18NHorizontalLayout();
+		staticFooterContentAndGuideLayout.addStyleName("static-footer-content-and-guide-layout");
+		staticFooterContentAndGuideLayout.setWidth("100%");
+		staticFooterContentAndGuideLayout.setSpacing(true);
 
 		header = buildHeader();
 		header.setWidth("100%");
-		header.setHeightUndefined();
+		header.setHeight("63px");
 
 		mainMenu = buildMainMenu();
 
@@ -106,16 +124,77 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		dragAndDropWrapper = new DragAndDropWrapper(mainMenuContentFooterLayout) {
 			@Override
 			public void setDropHandler(DropHandler dropHandler) {
-				if (PlatformDetectionUtils.isDesktop()) {
+				if (ResponsiveUtils.isDesktop()) {
 					super.setDropHandler(dropHandler);
 				}
 			}
 		};
 		dragAndDropWrapper.setSizeFull();
 		dragAndDropWrapper.setDropHandler(userDocumentsWindow);
+
+		guideButton = new BaseButton($("guide"), new ThemeResource("images/icons/about.png")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				BaseViewImpl view = (BaseViewImpl) ConstellioUI.getCurrent().getViewChangeEvent().getNewView();
+				String guideUrl = view.getGuideUrl();
+				Page.getCurrent().open(guideUrl, "_blank", false);
+			}
+		};
+		guideButton.addStyleName(ValoTheme.BUTTON_LINK);
+		guideButton.addStyleName("guide-button");
+		guideButton.setVisible(false);
+		guideButton.addExtension(new NiceTitle($("guide.details")));
+
+		addComponent(header);
+		addComponent(dragAndDropWrapper);
+		setExpandRatio(dragAndDropWrapper, 1);
+
+		contentFooterLayout.addComponent(contentViewWrapper);
+		contentFooterLayout.addComponent(footerLayout);
+		contentFooterLayout.setExpandRatio(contentViewWrapper, 1);
+		contentFooterWrapperLayout.addComponent(contentFooterLayout);
+
+		contentAndStaticFooterLayout = new VerticalLayout(contentFooterWrapperLayout, staticFooterLayout);
+		contentAndStaticFooterLayout.addStyleName("content-and-static-footer-layout");
+		contentAndStaticFooterLayout.setSizeFull();
+		contentAndStaticFooterLayout.setExpandRatio(contentFooterWrapperLayout, 1);
+
+		mainMenuContentFooterLayout.addComponent(mainMenu);
+		mainMenuContentFooterLayout.addComponent(contentAndStaticFooterLayout);
+		mainMenuContentFooterLayout.setExpandRatio(contentAndStaticFooterLayout, 1);
+
+		staticFooterExtraComponentsLayout = new I18NHorizontalLayout();
+		staticFooterExtraComponentsLayout.addStyleName("static-footer-extra-components-layout");
+		staticFooterExtraComponentsLayout.setWidth("100%");
+		staticFooterExtraComponentsLayout.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+
+		staticFooterContentAndGuideLayout.addComponent(guideButton);
+		staticFooterContentAndGuideLayout.setComponentAlignment(guideButton, Alignment.MIDDLE_RIGHT);
+
+		PagesComponentsExtensionParams params = new PagesComponentsExtensionParams(header, mainMenu, staticFooterExtraComponentsLayout, this,
+				contentViewWrapper, contentFooterWrapperLayout, presenter.getUser());
+		appLayerFactory.getExtensions().getSystemWideExtensions().decorateView(params);
+		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
+		if (collection != null) {
+			appLayerFactory.getExtensions().forCollection(collection).decorateView(params);
+		}
+
+		staticFooterLayout.addComponent(staticFooterContentAndGuideLayout);
+		if (!isStaticFooterExtraComponentsLayoutEmpty()) {
+			staticFooterLayout.addComponent(staticFooterExtraComponentsLayout);
+			staticFooterLayout.setComponentAlignment(staticFooterExtraComponentsLayout, Alignment.BOTTOM_CENTER);
+		}
+		if (staticFooterContent != null) {
+			setStaticFooterContent(staticFooterContent);
+		}
+		updateStaticFooterState();
+
+		buildInitJavascript();
+
 		navigator.addViewChangeListener(new ViewChangeListener() {
 			@Override
 			public boolean beforeViewChange(ViewChangeEvent event) {
+				setStaticFooterContent(null);
 				return true;
 			}
 
@@ -126,8 +205,6 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 					dragAndDropWrapper.setDropHandler(null);
 				} else if (newView instanceof DropHandler) {
 					dragAndDropWrapper.setDropHandler((DropHandler) newView);
-				} else if (appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired() != reindexationRequired) {
-					updateMessage();
 				} else {
 					List<DropHandler> viewDropHandlers = ComponentTreeUtils.getChildren((Component) newView, DropHandler.class);
 					if (viewDropHandlers.size() > 1) {
@@ -138,49 +215,75 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 						dragAndDropWrapper.setDropHandler(userDocumentsWindow);
 					}
 				}
-				//				SerializationUtils.clone(event.getOldView());
-				//				SerializationUtils.clone(newView);
-
-				reindexationRequired = appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired();
+				updateHelpButtonState((BaseViewImpl) newView);
+				updateStaticFooterState();
 			}
 		});
+	}
 
-		addComponent(header);
-		addComponent(dragAndDropWrapper);
-		setExpandRatio(dragAndDropWrapper, 1);
+	public Component getStaticFooterContent() {
+		return staticFooterContent;
+	}
 
-		mainMenuContentFooterLayout.addComponent(mainMenu);
-		mainMenuContentFooterLayout.addComponent(contentFooterWrapperLayout);
-		mainMenuContentFooterLayout.setExpandRatio(contentFooterWrapperLayout, 1);
-
-		contentFooterWrapperLayout.addComponent(contentFooterLayout);
-
-		contentFooterLayout.addComponent(contentViewWrapper);
-		contentFooterLayout.addComponent(footerLayout);
-
-		message = buildMessage();
-		if (message != null) {
-			footerLayout.addComponent(message);
+	public void setStaticFooterContent(Component component) {
+		if (staticFooterContent != null) {
+			if (component == null) {
+				staticFooterContentAndGuideLayout.removeComponent(staticFooterContent);
+				staticFooterContent = null;
+			} else {
+				staticFooterContentAndGuideLayout.replaceComponent(staticFooterContent, staticFooterContent = component);
+				staticFooterContentAndGuideLayout.setComponentAlignment(staticFooterContent, Alignment.MIDDLE_CENTER);
+				staticFooterContentAndGuideLayout.setExpandRatio(staticFooterContent, 1);
+			}
+		} else if (component != null) {
+			staticFooterContentAndGuideLayout.addComponent(staticFooterContent = component, 0);
+			staticFooterContentAndGuideLayout.setComponentAlignment(staticFooterContent, Alignment.MIDDLE_CENTER);
+			staticFooterContentAndGuideLayout.setExpandRatio(staticFooterContent, 1);
+		} else {
+			staticFooterContent = null;
 		}
+	}
 
-		contentFooterLayout.setExpandRatio(contentViewWrapper, 1);
-
-		Component license = buildLicense();
-		if (license != null) {
-			license.addStyleName("license");
+	private boolean isStaticFooterEmpty() {
+		boolean staticFooterEmpty;
+		if (staticFooterContent == null && !guideButton.isVisible() && (!ResponsiveUtils.isDesktop() || isStaticFooterExtraComponentsLayoutEmpty())) {
+			staticFooterEmpty = true;
+		} else {
+			staticFooterEmpty = false;
 		}
+		return staticFooterEmpty;
+	}
 
-		PagesComponentsExtensionParams params = new PagesComponentsExtensionParams(header, mainMenu, contentFooterLayout, this,
-				contentViewWrapper, contentFooterWrapperLayout, presenter.getUser());
-		appLayerFactory.getExtensions().getSystemWideExtensions().decorateView(params);
-		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
-		if (collection != null) {
-			appLayerFactory.getExtensions().forCollection(collection).decorateView(params);
+	private boolean isStaticFooterExtraComponentsLayoutEmpty() {
+		boolean staticFooterExtraComponentsLayoutEmpty;
+		if (staticFooterExtraComponentsLayout.getComponentCount() == 0) {
+			staticFooterExtraComponentsLayoutEmpty = true;
+		} else {
+			staticFooterExtraComponentsLayoutEmpty = true;
+			for (int i = 0; i < staticFooterExtraComponentsLayout.getComponentCount(); i++) {
+				Component staticFooterExtraComponentsLayoutComponent = staticFooterExtraComponentsLayout.getComponent(i);
+				if (staticFooterExtraComponentsLayoutComponent.isVisible()) {
+					staticFooterExtraComponentsLayoutEmpty = false;
+					break;
+				}
+			}
 		}
+		return staticFooterExtraComponentsLayoutEmpty;
+	}
 
-		//		footerLayout.setVisible(false);
+	private void updateHelpButtonState(BaseViewImpl view) {
+		String guideUrl = view.getGuideUrl();
+		boolean guideButtonVisible = StringUtils.isNotBlank(guideUrl);
+		guideButton.setVisible(guideButtonVisible);
+	}
 
-		buildInitJavascript();
+	private void updateStaticFooterState() {
+		boolean staticFooterEmpty = isStaticFooterEmpty();
+		if (!staticFooterLayout.isVisible() && !staticFooterEmpty) {
+			staticFooterLayout.setVisible(true);
+		} else if (staticFooterLayout.isVisible() && staticFooterEmpty) {
+			staticFooterLayout.setVisible(false);
+		}
 	}
 
 	protected ConstellioHeaderImpl buildHeader() {
@@ -231,21 +334,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		return mainMenuButtons;
 	}
 
-	private Component buildMessage() {
-		String messageText = presenter.getMessage();
-		if (StringUtils.isEmpty(messageText)) {
-			return null;
-		}
-		Label message = new Label(messageText);
-		message.addStyleName("footer-warning");
-		message.addStyleName(ValoTheme.LABEL_LARGE);
-		message.addStyleName(ValoTheme.LABEL_BOLD);
-		message.addStyleName("message");
-		return message;
-	}
-
 	protected Component buildInstanceType(boolean isDistributed) {
-
 		Link poweredByConstellioLink = new Link($("MainLayout.distributed." + isDistributed), null);
 		poweredByConstellioLink.setTargetName("_blank");
 		poweredByConstellioLink.addStyleName("footer");
@@ -298,19 +387,6 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		ComponentState state = presenter.getStateFor(navigationItem);
 		button.setVisible(state.isVisible());
 		button.setEnabled(state.isEnabled());
-	}
-
-	private void updateMessage() {
-		Component newMessage = buildMessage();
-		if (newMessage != null) {
-			if (footerLayout.getComponentIndex(message) != -1) {
-				footerLayout.replaceComponent(message, newMessage);
-			} else {
-				footerLayout.addComponent(newMessage, 1);
-			}
-			message = newMessage;
-		}
-
 	}
 
 	@Override

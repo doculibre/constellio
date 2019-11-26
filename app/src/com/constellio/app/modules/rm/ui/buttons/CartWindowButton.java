@@ -128,7 +128,8 @@ public class CartWindowButton extends WindowButton {
 				try {
 					createNewCartAndAddToItRequested(newCartTitleField.getValue(), params);
 					getWindow().close();
-				} catch (Exception e) {
+				} catch (RecordServicesException e) {
+					e.printStackTrace();
 					params.getView().showErrorMessage(MessageUtils.toMessage(e));
 				}
 			}
@@ -279,40 +280,37 @@ public class CartWindowButton extends WindowButton {
 		}
 	}
 
-	private void createNewCartAndAddToItRequested(String title, MenuItemActionBehaviorParams params) {
+	private void createNewCartAndAddToItRequested(String title, MenuItemActionBehaviorParams params)
+			throws RecordServicesException {
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(params.getUser());
-		try {
-			recordServices.add(cart);
 
-			for (Record record : records) {
-				addToFavorite(cart.getId(), record);
-			}
+		recordServices.add(cart);
 
-			Transaction transaction = new Transaction(RecordUpdateOptions.validationExceptionSafeOptions());
-			transaction.update(cart.getWrappedRecord());
-			transaction.update(records);
+		for (Record record : records) {
+			addToFavorite(cart.getId(), record);
+		}
 
-			recordServices.executeHandlingImpactsAsync(transaction);
+		Transaction transaction = new Transaction(RecordUpdateOptions.validationExceptionSafeOptions());
+		transaction.update(cart.getWrappedRecord());
+		transaction.update(records);
 
-			switch (addedRecordType) {
-				case DOCUMENT:
-					params.getView().showMessage($("DocumentActionsComponent.addedToCart"));
-					break;
-				case FOLDER:
-					params.getView().showMessage($("DisplayFolderView.addedToCart"));
-					break;
-				case CONTAINER:
-					params.getView().showMessage($("DisplayContainerView.addedToCart"));
-					break;
-				case MULTIPLE:
-					params.getView().showMessage($("SearchView.addedToCart"));
-					break;
-			}
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
+		recordServices.executeHandlingImpactsAsync(transaction);
+
+		switch (addedRecordType) {
+			case DOCUMENT:
+				params.getView().showMessage($("DocumentActionsComponent.addedToCart"));
+				break;
+			case FOLDER:
+				params.getView().showMessage($("DisplayFolderView.addedToCart"));
+				break;
+			case CONTAINER:
+				params.getView().showMessage($("DisplayContainerView.addedToCart"));
+				break;
+			case MULTIPLE:
+				params.getView().showMessage($("SearchView.addedToCart"));
+				break;
 		}
 	}
 

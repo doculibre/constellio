@@ -103,4 +103,10 @@ public interface RecordsCaches {
 														  String value) {
 		return -1;
 	}
+
+	CacheLoadingProgression getLoadingProgression();
+
+	void enableVolatileCache();
+
+	void disableVolatileCache();
 }

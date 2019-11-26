@@ -336,11 +336,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 		}
 		autoCompleteField.addValueChangeListener(autoCompleteChangeListener);
 
-		createLookupWindowBouton();
-		lookupWindowButton.setIcon(new ThemeResource("images/icons/actions/view.png"));
-		lookupWindowButton.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
-		lookupWindowButton.addStyleName(OPEN_WINDOW_BUTTON_STYLE_NAME);
-		lookupWindowButton.setZIndex(windowZIndex);
+		createLookupWindowButton();
 
 		addValueChangeListener(new ValueChangeListener() {
 			@Override
@@ -385,7 +381,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 	}
 
 	@NotNull
-	public WindowButton createLookupWindowBouton() {
+	public WindowButton createLookupWindowButton() {
 		lookupWindowButton = new WindowButton(null, $("search")) {
 			@Override
 			protected BaseWindow newWindow(String windowCaption) {
@@ -407,6 +403,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 				}
 			}
 		};
+		lookupWindowButton.setIcon(new ThemeResource("images/icons/actions/view.png"));
+		lookupWindowButton.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
+		lookupWindowButton.addStyleName(OPEN_WINDOW_BUTTON_STYLE_NAME);
+		lookupWindowButton.setZIndex(windowZIndex);
 		return lookupWindowButton;
 	}
 
@@ -494,7 +494,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 	}
 
 	public void setItemConverter(Converter<String, T> itemConverter) {
-		if (itemConverter != null) {
+		if (itemConverter != null && suggestInputDataProvider != null) {
 			this.itemConverter = new ConverterWithCache<>(itemConverter);
 			suggestInputDataProvider.setConverterWithCache(this.itemConverter);
 		}
@@ -667,7 +667,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 			setSpacing(true);
 
 			searchFieldLayout = new I18NHorizontalLayout();
-			searchFieldLayout.setWidthUndefined();
+			//			searchFieldLayout.setWidthUndefined();
 			searchFieldLayout.setSpacing(true);
 
 			searchField = new BaseTextField();
@@ -891,7 +891,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 						replaceComponent(searchResultsTable, lookupTreeComponent);
 						setExpandRatio(lookupTreeComponent, 1);
 					}
-					selectButton.setVisible(true);
+					selectButton.setVisible(multiValue);
 				}
 			} else {
 				Container searchResultsContainer = new LookupSearchResultContainer(geSuggestInputDataProvider(), searchField);

@@ -85,7 +85,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 
 		MetadataSchemaProvider schemaProvider = modelLayerFactory.getMetadataSchemasManager();
 
-		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(schemaCode);
+		MetadataSchema schema = type.getSchema(schemaCode);
 		CollectionInfo collectionInfo = schema.getCollectionInfo();
 
 		//TODO Handle Holder

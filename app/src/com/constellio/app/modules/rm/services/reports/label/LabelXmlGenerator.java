@@ -370,7 +370,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 					new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code")
 							.setText(recordElement.<EnumWithSmallCode>get(metadata).getCode()),
 					new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title")
-							.setText(recordElement.get(metadata).toString())
+							.setText($(recordElement.<EnumWithSmallCode>get(metadata)))
 					)
 			);
 		}

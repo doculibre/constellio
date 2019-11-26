@@ -288,6 +288,78 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 				taskForCandidatesLegends.getId());
 	}
 
+	@Test
+	public void givenTaskWithCollaboratorUserAliceWhenGetSharedTasksWithAliceThenReturnTask()
+			throws Exception {
+		Task taskForCollaboratorAlice = tasksSchemas.newTask().setTitle("zeTask").addTaskCollaborator(alice.getId(), false);
+		Transaction transaction = new Transaction();
+		transaction.add(taskForCollaboratorAlice);
+		recordServices.execute(transaction);
+
+		assertThat(searchServices.searchRecordIds(tasksSearchServices.getTasksSharedToUserQuery(alice)))
+				.contains(taskForCollaboratorAlice.getId());
+		assertThat(alice.hasReadAccess().on(taskForCollaboratorAlice)).isTrue();
+		assertThat(alice.hasWriteAccess().on(taskForCollaboratorAlice)).isFalse();
+	}
+
+	@Test
+	public void givenTaskWithCollaboratorUserAliceAndNotWriteAuthorizationThenAliceHasReadAccessOnTask()
+			throws Exception {
+		Task taskForCollaboratorAlice = tasksSchemas.newTask().setTitle("zeTask").addTaskCollaborator(alice.getId(), false);
+		Transaction transaction = new Transaction();
+		transaction.add(taskForCollaboratorAlice);
+		recordServices.execute(transaction);
+
+		assertThat(alice.hasReadAccess().on(taskForCollaboratorAlice)).isTrue();
+		assertThat(alice.hasWriteAccess().on(taskForCollaboratorAlice)).isFalse();
+	}
+
+	@Test
+	public void givenTaskWithCollaboratorUserAliceAndWriteAuthorizationThenAliceHasReadAnsWriteAccessOnTask()
+			throws Exception {
+		Task taskForCollaboratorAlice = tasksSchemas.newTask().setTitle("zeTask").addTaskCollaborator(alice.getId(), true);
+		Transaction transaction = new Transaction();
+		transaction.add(taskForCollaboratorAlice);
+		recordServices.execute(transaction);
+
+		assertThat(alice.hasReadAccess().on(taskForCollaboratorAlice)).isTrue();
+		assertThat(alice.hasWriteAccess().on(taskForCollaboratorAlice)).isTrue();
+	}
+
+	@Test
+	public void givenTaskWithCollaboratorGroupLegendsWhenGetSharedTasksWithEdouardThenReturnTask()
+			throws Exception {
+		Task taskForCollaboratorGroupLegends = tasksSchemas.newTask().setTitle("zeTask").addTaskCollaboratorGroup(legends.getId(), false);
+		Transaction transaction = new Transaction();
+		transaction.add(taskForCollaboratorGroupLegends);
+		recordServices.execute(transaction);
+
+		assertThat(searchServices.searchRecordIds(tasksSearchServices.getTasksSharedToUserQuery(edouard)))
+				.contains(taskForCollaboratorGroupLegends.getId());
+	}
+
+	@Test
+	public void givenTaskWithCollaboratorGroupLegendsWithoutWriteAuthorizationThenEdouardHasJustReadAcces()
+			throws Exception {
+		Task taskForCollaboratorGroupLegends = tasksSchemas.newTask().setTitle("zeTask").addTaskCollaboratorGroup(legends.getId(), false);
+		Transaction transaction = new Transaction();
+		transaction.add(taskForCollaboratorGroupLegends);
+		recordServices.execute(transaction);
+		assertThat(alice.hasReadAccess().on(taskForCollaboratorGroupLegends)).isTrue();
+		assertThat(alice.hasWriteAccess().on(taskForCollaboratorGroupLegends)).isFalse();
+	}
+
+	@Test
+	public void givenTaskWithCollaboratorGroupLegendsWithoutWriteAuthorizationThenEdouardHasReadAndWriteAcces()
+			throws Exception {
+		Task taskForCollaboratorGroupLegends = tasksSchemas.newTask().setTitle("zeTask").addTaskCollaboratorGroup(legends.getId(), true);
+		Transaction transaction = new Transaction();
+		transaction.add(taskForCollaboratorGroupLegends);
+		recordServices.execute(transaction);
+		assertThat(alice.hasReadAccess().on(taskForCollaboratorGroupLegends)).isTrue();
+		assertThat(alice.hasWriteAccess().on(taskForCollaboratorGroupLegends)).isTrue();
+	}
+
 	private void whenSearchSubTasksForBobThenNoTasFound(String taskId) {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getDirectSubTasks(taskId, bob));

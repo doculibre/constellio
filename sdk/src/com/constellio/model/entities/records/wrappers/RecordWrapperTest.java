@@ -19,6 +19,7 @@ import org.mockito.Mock;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,6 +48,7 @@ public class RecordWrapperTest extends ConstellioTest {
 
 		when(metadataSchemaTypes.getMetadata("folder_default_zeMetadata")).thenReturn(zeMetadata);
 		when(metadataSchemaTypes.getSchema("folder_default")).thenReturn(folderSchema);
+		when(metadataSchemaTypes.getSchemaOf(any(Record.class))).thenReturn(folderSchema);
 		when(metadataSchemaTypes.getSchema(schema)).thenReturn(folderSchema);
 		when(folderSchema.get("zeMetadata")).thenReturn(zeMetadata);
 		when(folderSchema.getMetadata("zeMetadata")).thenReturn(zeMetadata);

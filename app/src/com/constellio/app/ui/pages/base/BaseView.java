@@ -10,9 +10,6 @@ public interface BaseView extends ViewComponent {
 
 	String getCollection();
 
-	//@Deprecated
-	//CoreViews navigateTo();
-
 	@Override
 	void showMessage(String message);
 
@@ -41,9 +38,11 @@ public interface BaseView extends ViewComponent {
 	MainLayout getMainLayout();
 
 	void removeViewEnterListener(ViewEnterListener listener);
-	
+
+	void setBackButtonVisible(boolean visible);
+
 	void runAsync(Runnable runnable);
-	
+
 	void runAsync(Runnable runnable, int pollIntervall);
 
 	void openURL(String url);

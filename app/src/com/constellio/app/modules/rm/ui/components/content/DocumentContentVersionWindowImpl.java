@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Map;
-
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentWindow;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -13,9 +9,12 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
+import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.server.Resource;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -26,7 +25,13 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
+@Slf4j
 public class DocumentContentVersionWindowImpl extends VerticalLayout implements DocumentContentVersionWindow {
 
 	private RecordVO recordVO;
@@ -55,12 +60,12 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 		this.contentVersionVO = contentVersionVO;
 		this.presenter = new DocumentContentVersionPresenter(this, params);
 
-		setSpacing(true);
-		setWidth("90%");
+		setWidth("100%");
 		addStyleName("document-window-content");
+		addStyleName("no-scroll-vertical");
 
-		readOnlyLabel = new Label(readOnlyMessage);
-		readOnlyLabel.addStyleName(ValoTheme.LABEL_H2);
+		readOnlyLabel = new Label(readOnlyMessage, ContentMode.HTML);
+		readOnlyLabel.addStyleName("read-only-document-warning");
 		readOnlyLabel.setVisible(readOnlyMessage != null);
 
 		if (agentURL != null) {
@@ -128,6 +133,11 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 
 	public Window openWindow() {
 		Window warningWindow = new BaseWindow($("DocumentContentVersionWindow.windowTitle"), this);
+		if (ResponsiveUtils.isPhone()) {
+			warningWindow.setWidth("90%");
+		} else {
+			warningWindow.setWidth("700px");
+		}
 		warningWindow.center();
 		warningWindow.setModal(true);
 		UI.getCurrent().addWindow(warningWindow);
@@ -171,7 +181,13 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 	@Override
 	public void displayInWindow() {
 		closeWindow();
-		Window window =  new DisplayDocumentWindow(recordVO);
-		ConstellioUI.getCurrent().addWindow(window);
+		Window window;
+		try {
+			window = new DisplayDocumentWindow(recordVO);
+			ConstellioUI.getCurrent().addWindow(window);
+		} catch (UserDoesNotHaveAccessException e) {
+			log.error(e.getMessage(), e);
+		}
+
 	}
 }

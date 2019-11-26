@@ -3,10 +3,13 @@ package com.constellio.app.modules.rm.ui.pages.document;
 import com.constellio.app.modules.rm.ui.components.document.DocumentForm;
 import com.constellio.app.modules.rm.ui.components.document.DocumentFormImpl;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.ProvideSecurityWithNoUrlParamSupport;
+import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
 import com.constellio.app.ui.framework.components.viewers.VisibilityChangeEvent;
 import com.constellio.app.ui.framework.components.viewers.VisibilityChangeListener;
@@ -21,20 +24,26 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.JavaScriptFunction;
+import elemental.json.JsonArray;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocumentView {
+public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocumentView, ProvideSecurityWithNoUrlParamSupport {
 
-	public static final String RECORD_FORM_WIDTH = "700px";
+	public static final int RECORD_FORM_WIDTH = 50;
+	public static final Unit RECORD_FORM_WIDTH_UNIT = Unit.PERCENTAGE;
 	private final AddEditDocumentPresenter presenter;
 	private RecordVO recordVO;
 	private ContentViewer contentViewer;
 	private DocumentFormImpl recordForm;
 	private I18NHorizontalLayout mainLayout;
-	private boolean popup;
 	private boolean isUserDocumentViewer = false;
 	private boolean isDuplicateDocumentViewer = false;
+	private Component contentMetadataComponent;
+	private boolean inWindow;
+	private CollapsibleHorizontalSplitPanel splitPanel;
 
 	public AddEditDocumentViewImpl() {
 		this(null);
@@ -44,7 +53,8 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 		this(documentVO, false);
 	}
 
-	public AddEditDocumentViewImpl(RecordVO documentVO, boolean popup) {
+	public AddEditDocumentViewImpl(RecordVO documentVO, boolean inWindow) {
+		this.inWindow = inWindow;
 		presenter = newPresenter(documentVO);
 	}
 
@@ -63,6 +73,11 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 
 	@Override
 	protected void afterViewAssembled(ViewChangeEvent event) {
+		if (contentViewer != null && !contentViewer.isViewerComponentVisible()
+			&& contentMetadataComponent instanceof CollapsibleHorizontalSplitPanel
+			&& ((CollapsibleHorizontalSplitPanel) contentMetadataComponent).getRealFirstComponent() == contentViewer) {
+			mainLayout.replaceComponent(contentMetadataComponent, recordForm);
+		}
 		presenter.viewAssembled();
 	}
 
@@ -84,6 +99,8 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
+		addStyleName("add-edit-document-view");
+		
 		newForm();
 
 		mainLayout = new I18NHorizontalLayout();
@@ -105,15 +122,9 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 				contentViewer = new ContentViewer(recordVO, Document.CONTENT, contentVersionVO);
 			}
 
-			contentViewer.setWidth("100%");
-			contentViewer.setHeight("100%");
-
-			mainLayout.addComponents(recordForm);
-
+			recordForm.setSizeFull();
 			if (contentViewer.isViewerComponentVisible()) {
-				mainLayout.addComponent(contentViewer, 0);
-				recordForm.setWidth(RECORD_FORM_WIDTH);
-				mainLayout.setExpandRatio(contentViewer, 1);
+				adjustContentViewerSize();
 
 				contentViewer.addImageViewerVisibilityChangeListener(new VisibilityChangeListener() {
 					@Override
@@ -129,14 +140,51 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 						}
 					}
 				});
+
+				splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
+				splitPanel.setFirstComponent(contentViewer);
+				splitPanel.setSecondComponent(recordForm);
+				splitPanel.setSecondComponentWidth(RECORD_FORM_WIDTH, RECORD_FORM_WIDTH_UNIT);
+				contentMetadataComponent = splitPanel;
+			} else {
+				contentMetadataComponent = recordForm;
 			}
-
 		} else {
-			mainLayout.addComponent(recordForm);
+			contentMetadataComponent = recordForm;
 		}
-
-
+		mainLayout.addComponent(contentMetadataComponent);
+		mainLayout.setExpandRatio(contentMetadataComponent, 1);
 		return mainLayout;
+	}
+
+	private void adjustContentViewerSize() {
+		if (inWindow) {
+			contentViewer.setWidth("100%");
+			//			int viewerHeight = Page.getCurrent().getBrowserWindowHeight() - 68;
+			//			contentViewer.setHeight(viewerHeight + "px");
+
+			final String functionId = "adjustContentViewerHeight";
+			JavaScript.getCurrent().addFunction(functionId,
+					new JavaScriptFunction() {
+						@Override
+						public void call(JsonArray arguments) {
+							int splitterDivHeight = (int) arguments.getNumber(0);
+							int newViewerHeight = splitterDivHeight - 4;
+							contentViewer.setHeight(newViewerHeight + "px");
+							splitPanel.setFirstComponentHeight(newViewerHeight, Unit.PIXELS);
+
+							if (contentViewer.isVerticalScroll()) {
+								splitPanel.addStyleName("first-component-no-vertical-scroll");
+							}
+						}
+					});
+
+			StringBuilder js = new StringBuilder();
+			js.append("  var splitterDiv =  document.getElementsByClassName('v-splitpanel-hsplitter')[0];");
+			js.append("  var splitterDivHeight =  constellio_getHeight(splitterDiv);");
+			js.append(functionId + "(splitterDivHeight);");
+			JavaScript.getCurrent().execute(js.toString());
+		}
 	}
 
 	private DocumentFormImpl newForm() {
@@ -155,20 +203,14 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 			@Override
 			public void reload() {
 				Component oldRecordForm = recordForm;
-
 				recordForm = newForm();
-
 				if ((isUserDocumentViewer && presenter.getUserDocumentRecordVO() == null)
 					|| (isDuplicateDocumentViewer && presenter.getDuplicateDocumentRecordVO() == null)) {
 					isDuplicateDocumentViewer = false;
 					isUserDocumentViewer = false;
 					mainLayout.removeComponent(contentViewer);
 					contentViewer = null;
-				} else if (contentViewer != null && contentViewer.isViewerComponentVisible()) {
-					recordForm.setWidth(RECORD_FORM_WIDTH);
-					mainLayout.setExpandRatio(contentViewer, 1);
 				}
-
 				mainLayout.replaceComponent(oldRecordForm, recordForm);
 			}
 
@@ -212,4 +254,13 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 		return true;
 	}
 
+	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return !inWindow;
+	}
+
+	@Override
+	public SecurityWithNoUrlParamSupport getSecurityWithNoUrlParamSupport() {
+		return presenter;
+	}
 }

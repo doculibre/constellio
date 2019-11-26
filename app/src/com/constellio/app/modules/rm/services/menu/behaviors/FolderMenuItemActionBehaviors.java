@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
@@ -21,10 +22,12 @@ import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -36,6 +39,8 @@ import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
+import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
@@ -43,10 +48,10 @@ import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.window.ConsultLinkWindow;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
@@ -64,21 +69,26 @@ import com.constellio.model.services.records.RecordDeleteServicesRuntimeExceptio
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
+import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.Roles;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.UI;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -105,13 +115,14 @@ public class FolderMenuItemActionBehaviors {
 	private RMSchemasRecordsServices rm;
 	private DecommissioningService decommissioningService;
 	private RMModuleExtensions rmModuleExtensions;
-	private FolderRecordActionsServices folderRecordActionsServices;
 	private SearchServices searchServices;
 	private MetadataSchemaToVOBuilder schemaVOBuilder;
 	private BorrowingServices borrowingServices;
 	private RMConfigs rmConfigs;
 	private ConstellioEIMConfigs eimConfigs;
 	private MetadataSchemaTypes schemaTypes;
+	private FolderRecordActionsServices folderRecordActionsServices;
+	private DocumentRecordActionsServices documentRecordActionsServices;
 
 	public static final String USER_LOOKUP = "user-lookup";
 
@@ -123,19 +134,19 @@ public class FolderMenuItemActionBehaviors {
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
-		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		searchServices = modelLayerFactory.newSearchServices();
 		schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
+		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 	}
 
 	public void getConsultationLink(Folder folder, MenuItemActionBehaviorParams params) {
 		String constellioURL = getConstellioUrl(modelLayerFactory);
-		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(constellioURL + RMUrlUtil.getPathToConsultLinkForFolder(folder.getId())));
-		UI.getCurrent().addWindow(consultLinkWindow);
+		CopyToClipBoard.copyToClipBoard(constellioURL + RMUrlUtil.getPathToConsultLinkForFolder(folder.getId()));
 	}
 
 	public void addToDocument(Folder folder, MenuItemActionBehaviorParams params) {
@@ -150,7 +161,7 @@ public class FolderMenuItemActionBehaviors {
 
 	public void move(Folder folder, MenuItemActionBehaviorParams params) {
 		Button moveInFolderButton = new WindowButton($("DisplayFolderView.parentFolder"),
-				$("DisplayFolderView.parentFolder"), WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
+				$("DisplayFolderView.parentFolder"), WindowButton.WindowConfiguration.modalDialog("570px", "160px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout verticalLayout = new VerticalLayout();
@@ -216,38 +227,183 @@ public class FolderMenuItemActionBehaviors {
 		boolean needAReasonToDeleteFolder = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager())
 				.isNeedingAReasonBeforeDeletingFolders();
 
-		Button deleteFolderButton = new Button();
+		Button deleteFolderButton;
+
+		LogicalSearchQuery searchDocument = new LogicalSearchQuery();
+		searchDocument.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
+
+		LogicalSearchCondition logicalSearchQuery = from(rm.document.schemaType(), rm.folder.schemaType()).where(Schemas.PATH_PARTS).isContaining(asList(folder.getId()));
+
+		searchDocument.setCondition(logicalSearchQuery);
+
+		SPEQueryResponse speQueryResponse = searchServices.query(searchDocument);
+		List<Record> folderAndDocument = new ArrayList<>(speQueryResponse.getRecords());
+
+		// Dossier qu'on essai de supprimer
+		folderAndDocument.add(0, folder.getWrappedRecord());
+
+		List<RecordVO> checkoutRecords = getCheckoutRecordsAsVO(folderAndDocument, params.getView().getSessionContext());
 		if (!needAReasonToDeleteFolder) {
-			deleteFolderButton = new DeleteButton($("DisplayFolderView.deleteFolder"), false) {
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					deleteFolder(folder, null, params);
-				}
+			if (checkoutRecords.isEmpty()) {
+				deleteFolderButton = new DeleteButton($("DisplayFolderView.deleteFolder"), false) {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						deleteFolder(folder, null, params);
+					}
 
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("ConfirmDialog.confirmDeleteWithRecord", folder.getTitle());
-				}
-			};
+					@Override
+					protected String getConfirmDialogMessage() {
+						return $("ConfirmDialog.confirmDeleteWithRecord", folder.getTitle());
+					}
+				};
+			} else {
+				deleteFolderButton = getDeleteButtonWithCheckoutElementsMessage(folder, params, checkoutRecords);
+			}
 		} else {
-			deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
-				@Override
-				protected void deletionConfirmed(String reason) {
-					deleteFolder(folder, reason, params);
-				}
-
-				@Override
-				public Component getRecordCaption() {
-					return new ReferenceDisplay(params.getRecordVO());
-				}
-			};
+			deleteFolderButton = getDeleteWithJustificationButton(folder, params, checkoutRecords);
 		}
 		deleteFolderButton.click();
 	}
 
+	@NotNull
+	private Button getDeleteWithJustificationButton(Folder folder, MenuItemActionBehaviorParams params,
+													List<RecordVO> checkoutRecords) {
+		Button deleteFolderButton;
+		deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false, WindowConfiguration.modalDialog("650px", null)) {
+			@Override
+			protected void deletionConfirmed(String reason) {
+				deleteFolder(folder, reason, params);
+			}
+
+			@Override
+			public Component getRecordCaption() {
+				return new ReferenceDisplay(params.getRecordVO());
+			}
+
+			@Override
+			protected Component buildWindowContent() {
+				Component content = super.buildWindowContent();
+				content.addStyleName(BaseWindow.WINDOW_CONTENT_WITH_BOTTOM_MARGIN);
+				return content;
+			}
+
+			@Override
+			public Component getMessageComponent() {
+				if (checkoutRecords.isEmpty()) {
+					return super.getMessageComponent();
+				} else {
+					VerticalLayout messageLayout = new VerticalLayout();
+					Label someRecordsAreCheckoutLabel = new Label(getSomeRecordsAreCheckoutMessage());
+					someRecordsAreCheckoutLabel.setContentMode(ContentMode.HTML);
+
+					messageLayout.addComponent(someRecordsAreCheckoutLabel);
+
+					for (RecordVO currentRecordVO : checkoutRecords) {
+						messageLayout.addComponent(new ReferenceDisplay(currentRecordVO));
+					}
+
+					messageLayout.addComponent(new Label("<br>", ContentMode.HTML));
+
+					messageLayout.addComponent(super.getMessageComponent());
+
+					return messageLayout;
+				}
+			}
+		};
+		return deleteFolderButton;
+	}
+
+	private List<RecordVO> getCheckoutRecordsAsVO(List<Record> folderAndDocument, SessionContext sessionContext) {
+		List<RecordVO> checktedMessage = new ArrayList<>();
+		RecordToVOBuilder recordToVOBuilder = new RecordToVOBuilder();
+
+		for (Record currentRecord : folderAndDocument) {
+			if (currentRecord.isOfSchemaType(Document.SCHEMA_TYPE)) {
+				Document document = rm.wrapDocument(currentRecord);
+
+				if (documentRecordActionsServices.isContentCheckedOut(document.getContent())) {
+					checktedMessage.add(recordToVOBuilder.build(currentRecord, VIEW_MODE.DISPLAY, sessionContext));
+				}
+			} else if (currentRecord.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+				Folder subFolder = rm.wrapFolder(currentRecord);
+
+				if (subFolder.getBorrowed() != null && subFolder.getBorrowed()) {
+					checktedMessage.add(recordToVOBuilder.build(currentRecord, VIEW_MODE.DISPLAY, sessionContext));
+				}
+			}
+		}
+		return checktedMessage;
+	}
+
+	@NotNull
+	private WindowButton getDeleteButtonWithCheckoutElementsMessage(Folder folder, MenuItemActionBehaviorParams params,
+																	List<RecordVO> recordVOList) {
+		return new WindowButton($("DisplayFolderView.deleteFolder"), $("DisplayFolderView.deleteFolder"),
+				WindowConfiguration.modalDialog("650px", null)) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout mainLayout = new VerticalLayout();
+
+				mainLayout.addStyleName(BaseWindow.WINDOW_CONTENT_WITH_BOTTOM_MARGIN);
+
+				VerticalLayout messageLayout = new VerticalLayout();
+
+				Label someRecordAreCheckoutLabel = new Label(getSomeRecordsAreCheckoutMessage());
+
+				someRecordAreCheckoutLabel.setContentMode(ContentMode.HTML);
+
+				messageLayout.addComponent(someRecordAreCheckoutLabel);
+
+				for (RecordVO currentRecordVO : recordVOList) {
+					messageLayout.addComponent(new ReferenceDisplay(currentRecordVO));
+				}
+
+				mainLayout.addComponent(messageLayout);
+				mainLayout.setSpacing(true);
+
+				HorizontalLayout buttonLayout = new HorizontalLayout();
+
+
+				BaseButton cancel = new BaseButton($("cancel")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				};
+
+				cancel.addStyleName(DeleteWithJustificationButton.CANCEL_DELETION);
+
+				BaseButton confirm = new BaseButton($("confirm")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						deleteFolder(folder, null, params);
+					}
+				};
+				confirm.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				buttonLayout.addComponent(confirm);
+				buttonLayout.setWidth("100%");
+				buttonLayout.setComponentAlignment(confirm, Alignment.MIDDLE_RIGHT);
+				buttonLayout.addComponent(cancel);
+				buttonLayout.setComponentAlignment(cancel, Alignment.MIDDLE_LEFT);
+				buttonLayout.setSpacing(true);
+
+				mainLayout.addComponent(buttonLayout);
+
+				return mainLayout;
+			}
+		};
+	}
+
+	private String getSomeRecordsAreCheckoutMessage() {
+		return $("FolderMenuItemActionBehaviors.deletionConfirmationMessageSomeRecordAreCheckout") + "<br><br>"
+			   + $("FolderMenuItemActionBehaviors.borrowedRecords") + "<br>";
+	}
+
 	public void copy(Folder folder, MenuItemActionBehaviorParams params) {
 		Button duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
-				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
+				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy"),
+				WindowConfiguration.modalDialog("50%", "20%")) {
 			@Override
 			protected Component buildWindowContent() {
 				BaseButton folderButton = new BaseButton($("DisplayFolderView.folderOnly")) {
@@ -290,16 +446,11 @@ public class FolderMenuItemActionBehaviors {
 				cancel.addStyleName(ValoTheme.BUTTON_LINK);
 
 				HorizontalLayout layout = new HorizontalLayout(folderButton, structure, cancel);
-				layout.setComponentAlignment(folderButton, Alignment.TOP_LEFT);
-				layout.setComponentAlignment(structure, Alignment.TOP_LEFT);
-				layout.setComponentAlignment(cancel, Alignment.TOP_RIGHT);
-				layout.setExpandRatio(cancel, 1);
-
-				layout.setWidth("95%");
 				layout.setSpacing(true);
 
 				VerticalLayout wrapper = new VerticalLayout(layout);
 				wrapper.setSizeFull();
+				wrapper.setComponentAlignment(layout, Alignment.MIDDLE_CENTER);
 
 				return wrapper;
 			}

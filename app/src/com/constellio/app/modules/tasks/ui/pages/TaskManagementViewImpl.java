@@ -1,20 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.tepi.filtertable.FilterGenerator;
-
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskDetailsComponentFactory;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -36,6 +21,20 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.tepi.filtertable.FilterGenerator;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class TaskManagementViewImpl extends BaseViewImpl implements TaskManagementView {
 
@@ -119,9 +118,10 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 
 		primaryTabSheet = new IdTabSheet();
 		primaryTabSheet.setSizeFull();
-		primaryTabSheet.addTab(buildEmptyTab(TASKS_TAB));
+
 
 		if (tasksInSubTabSheet) {
+			primaryTabSheet.addTab(buildEmptyTab(TASKS_TAB));
 			tasksTabSheet = new IdTabSheet();
 			tasksTabSheet.addStyleName("tabsheet-secondary");
 			tasksTabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
@@ -420,7 +420,4 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			presenter.addTaskButtonClicked();
 		}
 	}
-
-	;
-
 }

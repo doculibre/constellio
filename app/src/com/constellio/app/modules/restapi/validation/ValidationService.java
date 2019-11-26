@@ -27,7 +27,6 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import javax.inject.Inject;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -51,19 +50,14 @@ public class ValidationService extends BaseService {
 		String data = StringUtils.concat(host, id, serviceKey, schemaType, method, date, String.valueOf(expiration),
 				version, physicalValue, copySourceId);
 
-		Collection<String> tokens = validationDao.getUserTokens(serviceKey, true);
-		if (tokens.isEmpty()) {
-			throw new UnauthenticatedUserException();
-		}
-
-		for (String token : tokens) {
-			String currentSignature = signatureService.sign(token, data);
-
-			if (currentSignature.equals(signature)) {
-				return;
+		List<String> tokens = validationDao.getUserTokens(serviceKey, false, true);
+		if (isInvalidSignature(tokens, data, signature)) {
+			// try while bypassing cache
+			tokens = validationDao.getUserTokens(serviceKey, true, true);
+			if (isInvalidSignature(tokens, data, signature)) {
+				throw new InvalidSignatureException();
 			}
 		}
-		throw new InvalidSignatureException();
 	}
 
 	public void validateUrl(String date, int expiration) {
@@ -160,5 +154,20 @@ public class ValidationService extends BaseService {
 	@Override
 	protected BaseDao getDao() {
 		return validationDao;
+	}
+
+	private boolean isInvalidSignature(List<String> tokens, String data, String signature) throws Exception {
+		if (tokens.isEmpty()) {
+			throw new UnauthenticatedUserException();
+		}
+
+		for (String token : tokens) {
+			String currentSignature = signatureService.sign(token, data);
+
+			if (currentSignature.equals(signature)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

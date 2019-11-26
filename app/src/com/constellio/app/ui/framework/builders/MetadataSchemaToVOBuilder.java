@@ -15,6 +15,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -70,6 +71,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		SchemaDisplayConfig schemaDisplayConfig = schemasDisplayManager.getSchema(collection, code);
 
 		List<String> formMetadataCodes = new ArrayList<>();
+		List<String> formHiddenMetadataCodes = new ArrayList<>();
 		List<String> displayMetadataCodes = new ArrayList<>();
 		List<String> searchMetadataCodes = new ArrayList<>();
 		List<String> tableMetadataCodes = new ArrayList<>();
@@ -83,6 +85,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 			} else {
 				formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
 			}
+			formHiddenMetadataCodes.addAll(schemaDisplayConfig.getFormHiddenMetadataCodes());
 			displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
 			searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
 			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
@@ -96,6 +99,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 				displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
 			}
 			formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
+			formHiddenMetadataCodes.addAll(schemaDisplayConfig.getFormHiddenMetadataCodes());
 			searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
 			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 		} else if (viewMode == VIEW_MODE.TABLE) {
@@ -108,6 +112,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 				tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 			}
 			formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
+			formHiddenMetadataCodes.addAll(schemaDisplayConfig.getFormHiddenMetadataCodes());
 			displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
 			searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
 		} else if (viewMode == VIEW_MODE.SEARCH) {
@@ -120,6 +125,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 				searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
 			}
 			formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
+			formHiddenMetadataCodes.addAll(schemaDisplayConfig.getFormHiddenMetadataCodes());
 			displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
 			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 		} else {
@@ -131,12 +137,14 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 
 		CollectionInfoVO collectionInfoVO = new CollectionInfoVO(collectionInfo.getMainSystemLanguage(), collectionInfo.getCode(), collectionInfo.getCollectionLanguages(),
 				collectionInfo.getMainSystemLocale(), collectionInfo.getSecondaryCollectionLanguesCodes(), collectionInfo.getCollectionLanguesCodes(), collectionInfo.getCollectionLocales());
-		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, localCode, formMetadataCodes, displayMetadataCodes,
-				tableMetadataCodes, searchMetadataCodes, labels, collectionInfoVO);
+		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, localCode, formMetadataCodes, formHiddenMetadataCodes,
+				displayMetadataCodes, tableMetadataCodes, searchMetadataCodes, labels, collectionInfoVO);
 
 		if (!withoutBuildingMetadatas) {
+			boolean isMultiLingualActivated = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SEIZE_MULTILANGUAL_VALUES);
+
 			for (Metadata metadata : schema.getMetadatas()) {
-				if (viewMode == VIEW_MODE.FORM && metadata.isMultiLingual()) {
+				if (viewMode == VIEW_MODE.FORM && metadata.isMultiLingual() && isMultiLingualActivated) {
 					List<Locale> supportedLocales = schema.getCollectionInfo().getCollectionLocales();
 					for (Locale supportedLocale : supportedLocales) {
 						metadataToVOBuilder.build(metadata, supportedLocale, schemaVO, sessionContext);

@@ -1,17 +1,5 @@
 package com.constellio.app.services.extensions;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
@@ -41,6 +29,17 @@ import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.utils.DependencyUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ConstellioModulesManagerImpl implements ConstellioModulesManager, StatefulService {
 	@SuppressWarnings("unused") private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioModulesManagerImpl.class);

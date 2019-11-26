@@ -29,8 +29,8 @@ import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUp
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
 import com.constellio.app.ui.framework.components.search.FacetsSliderPanel;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent;
-import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
+import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
@@ -96,6 +96,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private ContentVersionUploadField uploadField;
 	private TabSheet tabSheet;
 	private RecordDisplay recordDisplay;
+	private FacetsSliderPanel facetsSliderPanel;
 	private Component folderContentComponent;
 	private ViewableRecordVOTablePanel viewerPanel;
 	private Component tasksComponent;
@@ -230,12 +231,16 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				Component selectedTab = tabSheet.getSelectedTab();
 				if (selectedTab == recordDisplay) {
 					presenter.metadataTabSelected();
+					setFacetsPanelVisible(false);
 				} else if (selectedTab == folderContentComponent) {
 					presenter.folderContentTabSelected();
+					setFacetsPanelVisible(facetsSliderPanel != null);
 				} else if (selectedTab == tasksComponent) {
 					presenter.tasksTabSelected();
+					setFacetsPanelVisible(false);
 				} else if (selectedTab == eventsComponent) {
 					presenter.eventsTabSelected();
+					setFacetsPanelVisible(false);
 				}
 			}
 		});
@@ -250,9 +255,18 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		documentVersionWindow.center();
 		documentVersionWindow.setModal(true);
 
-		mainLayout.addComponents(borrowedLabel, uploadField, tabSheet);
+		contentAndFacetsLayout = new I18NHorizontalLayout(tabSheet);
+		//contentAndFacetsLayout.addStyleName("content-and-facets-layout");
+		contentAndFacetsLayout.setWidth("100%");
+		contentAndFacetsLayout.setExpandRatio(tabSheet, 1);
+
+		mainLayout.addComponents(borrowedLabel, uploadField, contentAndFacetsLayout);
 		presenter.selectInitialTabForUser();
 		return mainLayout;
+	}
+
+	public void addComponentAfterMenu(Component component) {
+		mainLayout.addComponent(component, 0);
 	}
 
 	@Override
@@ -484,25 +498,25 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			});
 			viewerPanel.addStyleName("folder-content-table");
-			//			viewerPanel.addStyleName("search-result-title");
 
-			if (!nestedView) {
-				contentAndFacetsLayout = new I18NHorizontalLayout();
-				contentAndFacetsLayout.setSizeFull();
-				contentAndFacetsLayout.setSpacing(true);
-				
-				FacetsSliderPanel sliderPanel = new FacetsSliderPanel(facetsPanel);
-				contentAndFacetsLayout.addComponents(viewerPanel, sliderPanel);
-				contentAndFacetsLayout.setExpandRatio(viewerPanel, 1);
-				
-				tabSheet.replaceComponent(folderContentComponent, folderContentComponent = contentAndFacetsLayout);
-			} else {
-				tabSheet.replaceComponent(folderContentComponent, folderContentComponent = viewerPanel);
+			if (!nestedView && (folderContentDataProvider.size() > 0 || !folderContentDataProvider.getFieldFacetValues().isEmpty())) {
+				if (facetsSliderPanel != null && facetsSliderPanel.getParent() != null) {
+					contentAndFacetsLayout.removeComponent(facetsSliderPanel);
+				}
+				facetsSliderPanel = new FacetsSliderPanel(facetsPanel);
+				contentAndFacetsLayout.addComponent(facetsSliderPanel);
 			}
+			tabSheet.replaceComponent(folderContentComponent, folderContentComponent = viewerPanel);
 			viewerPanel.setSelectionActionButtons();
 		}
 		tabSheet.setSelectedTab(folderContentComponent);
 		tabSheet.addSelectedTabChangeListener(selectedTabChangeListener);
+	}
+
+	private void setFacetsPanelVisible(boolean visible) {
+		if (facetsSliderPanel != null) {
+			facetsSliderPanel.setVisible(visible);
+		}
 	}
 
 	@Override
@@ -592,6 +606,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			if (displayFolderButton != null) {
 				quickActionMenuButtons.add(displayFolderButton);
 			}
+			if (editFolderButton != null) {
+				quickActionMenuButtons.add(editFolderButton);
+			}
 		}
 		return quickActionMenuButtons;
 	}
@@ -650,7 +667,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void drop(DragAndDropEvent event) {
-		if (dragNDropAllowed) {
+		boolean handledByViewer;
+		if (viewerPanel != null && viewerPanel.isDropSupported()) {
+			viewerPanel.drop(event);
+			handledByViewer = true;
+		} else {
+			handledByViewer = false;
+		}
+		if (!handledByViewer && dragNDropAllowed) {
 			uploadField.drop(event);
 		}
 	}

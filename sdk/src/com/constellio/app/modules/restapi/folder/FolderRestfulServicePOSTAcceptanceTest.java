@@ -6,6 +6,7 @@ import com.constellio.app.modules.restapi.core.exception.InvalidMetadataValueExc
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterCombinationException;
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
 import com.constellio.app.modules.restapi.core.exception.MetadataNotFoundException;
+import com.constellio.app.modules.restapi.core.exception.MetadataNotManualException;
 import com.constellio.app.modules.restapi.core.exception.MetadataNotMultivalueException;
 import com.constellio.app.modules.restapi.core.exception.MetadataReferenceNotAllowedException;
 import com.constellio.app.modules.restapi.core.exception.ParametersMustMatchException;
@@ -39,6 +40,7 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.services.schemas.bulkImport.DummyCalculator;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.utils.TimeProvider;
@@ -46,6 +48,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.google.common.collect.Lists;
 import org.joda.time.LocalDate;
@@ -1169,6 +1174,33 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 	}
 
 	@Test
+	public void testCopyFolderWhenTryingToSetCalculatedMetadata() throws Exception {
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaBuilder schemaBuilder = types.getSchema(Folder.DEFAULT_SCHEMA);
+				schemaBuilder.create("USRcalculated").setType(MetadataValueType.DATE)
+						.defineDataEntry().asCalculated(DummyCalculator.class);
+			}
+		});
+
+		copySource = records.folder_C35;
+
+		FolderDto minFolderToCopy = FolderDto.builder().parentFolderId(minFolderToAdd.getParentFolderId())
+				.title(minFolderToAdd.getTitle())
+				.extendedAttributes(singletonList(ExtendedAttributeDto.builder()
+						.key("USRcalculated").values(singletonList("2019-01-01")).build()))
+				.build();
+
+		Response response = doPostQuery(minFolderToCopy);
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain("{").doesNotContain("}")
+				.isEqualTo(i18n.$(new MetadataNotManualException("USRcalculated").getValidationError()));
+	}
+
+	@Test
 	public void testCopyFolderWhenCopyIsNotPermittedByExtension() throws Exception {
 		RMModuleExtensions rmModuleExtensions = getAppLayerFactory().getExtensions().forCollection(zeCollection)
 				.forModule(ConstellioRMModule.ID);
@@ -1188,6 +1220,26 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain("{").doesNotContain("}")
 				.isEqualTo(i18n.$(new RecordCopyNotPermittedException(copySource).getValidationError()));
+	}
+
+	@Test
+	public void testCreateDocumentWithCalculatedUsr() throws Exception {
+		addUserCalculatedMetadata(Folder.DEFAULT_SCHEMA);
+
+		Response response = doPostQuery(minFolderToAdd);
+		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+	}
+
+	@Test
+	public void testCreateDocumentWithoutRetentionRule() throws Exception {
+		folderId = null;
+
+		minFolderToAdd.setParentFolderId(null);
+		minFolderToAdd.setCopyStatus(null);
+		minFolderToAdd.setRetentionRule(null);
+
+		Response response = doPostQuery(minFolderToAdd);
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 	}
 
 	//

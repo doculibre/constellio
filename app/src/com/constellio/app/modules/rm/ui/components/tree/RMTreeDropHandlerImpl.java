@@ -3,7 +3,6 @@ package com.constellio.app.modules.rm.ui.components.tree;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.util.PlatformDetectionUtils;
 import com.vaadin.event.Transferable;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
@@ -22,10 +21,6 @@ public abstract class RMTreeDropHandlerImpl implements DropHandler, RMTreeDropHa
 
 	@Override
 	public void drop(DragAndDropEvent dragEvent) {
-		if (!PlatformDetectionUtils.isDesktop()) {
-			return;
-		}
-
 		AbstractSelectTargetDetails dropTargetData = (AbstractSelectTargetDetails) dragEvent.getTargetDetails();
 		Tree tree = (Tree) dragEvent.getTargetDetails().getTarget();
 		Transferable transferable = dragEvent.getTransferable();

@@ -52,10 +52,6 @@ public class StringIdsRecordsCachesDataStore {
 		return schemasManager.getSchemaTypes(collectionCode).getSchemaType(typeCode).getId();
 	}
 
-	private short schemaId(String collectionCode, String schemaCode) {
-		return schemasManager.getSchemaTypes(collectionCode).getSchema(schemaCode).getId();
-	}
-
 	private List<Holder<RecordDTO>> getStringKeyListForType(byte collectionId, short typeId, boolean createIfAbsent,
 															boolean isSynchronized) {
 		int collectionIndex = collectionId - Byte.MIN_VALUE;

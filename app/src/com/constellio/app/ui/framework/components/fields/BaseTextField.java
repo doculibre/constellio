@@ -4,6 +4,7 @@ import com.constellio.model.utils.MaskUtils;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
+import com.vaadin.event.FieldEvents;
 import com.vaadin.ui.TextField;
 import org.apache.commons.lang.StringUtils;
 
@@ -15,6 +16,8 @@ public class BaseTextField extends TextField {
 	private String inputMask;
 
 	private boolean maskSet = false;
+
+	private boolean trim = true;
 
 	public BaseTextField() {
 		super();
@@ -41,8 +44,35 @@ public class BaseTextField extends TextField {
 		init();
 	}
 
+	public BaseTextField(boolean trim) {
+		super();
+		this.trim = trim;
+		init();
+	}
+
 	private void init() {
 		setNullRepresentation("");
+		addFocusListener(new FieldEvents.FocusListener() {
+			@Override
+			public void focus(FieldEvents.FocusEvent event) {
+				if (StringUtils.isNotBlank(inputMask)) {
+					String id = getId();
+					if (id == null) {
+						id = UUID.randomUUID().toString();
+						setId(id);
+					}
+					StringBuffer js = new StringBuffer();
+					if (MaskUtils.MM_DD.equals(inputMask)) {
+						inputMask = "m/d";
+					}
+					js.append("$(document).ready(function() {");
+					js.append(" $(\"#" + id + "\").inputmask(\"" + inputMask + "\"); ");
+					js.append("})");
+
+					com.vaadin.ui.JavaScript.eval(js.toString());
+				}
+			}
+		});
 	}
 
 	@Override
@@ -61,30 +91,10 @@ public class BaseTextField extends TextField {
 	}
 
 	@Override
-	public void attach() {
-		super.attach();
-		if (!maskSet && StringUtils.isNotBlank(inputMask)) {
-			String id = getId();
-			if (id == null) {
-				id = UUID.randomUUID().toString();
-				setId(id);
-			}
-			StringBuffer js = new StringBuffer();
-			if (MaskUtils.MM_DD.equals(inputMask)) {
-				inputMask = "m/d";
-			}
-			js.append("$(document).ready(function() {");
-			js.append(" $(\"#" + id + "\").inputmask(\"" + inputMask + "\"); ");
-			js.append("})");
-
-			com.vaadin.ui.JavaScript.eval(js.toString());
-			maskSet = true;
-		}
-	}
-
-	@Override
 	public void commit() throws SourceException, InvalidValueException {
-		setInternalValue(StringUtils.trim(getValue()));
+		if (trim) {
+			setInternalValue(StringUtils.trim(getValue()));
+		}
 		super.commit();
 	}
 }

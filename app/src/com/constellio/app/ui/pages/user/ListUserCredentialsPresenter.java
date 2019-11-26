@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class ListUserCredentialsPresenter extends BasePresenter<ListUsersCredentialsView> {
 	private transient UserServices userServices;
 
@@ -91,13 +93,13 @@ public class ListUserCredentialsPresenter extends BasePresenter<ListUsersCredent
 	public String getTabCaption(String tabId) {
 		switch (tabId) {
 			case ACTIVE:
-				return "Actif";
+				return $("ListUsersCredentialsView.active");
 			case PENDING:
-				return "Instance d'approbation";
+				return $("ListUsersCredentialsView.pending");
 			case SUSPENDED:
-				return "Suspendu";
+				return $("ListUsersCredentialsView.suspended");
 			case DELETED:
-				return "Supprimé";
+				return $("ListUsersCredentialsView.deleted");
 			default:
 				return null;
 		}

@@ -35,11 +35,11 @@ import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
+import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
-import com.constellio.app.ui.framework.window.ConsultLinkWindow;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -63,14 +63,11 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.SearchServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.FilenameUtils;
@@ -99,29 +96,25 @@ public class DocumentMenuItemActionBehaviors {
 	private RMSchemasRecordsServices rm;
 	private LoggingServices loggingServices;
 	private DecommissioningLoggingService decommissioningLoggingService;
-	private SearchServices searchServices;
-	private MetadataSchemasManager metadataSchemasManager;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 
 	public DocumentMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		recordServices = modelLayerFactory.newRecordServices();
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		loggingServices = modelLayerFactory.newLoggingServices();
 		decommissioningLoggingService = new DecommissioningLoggingService(appLayerFactory.getModelLayerFactory());
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
-		metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 	}
 
 	public void getConsultationLink(Document document, MenuItemActionBehaviorParams params) {
 		String constellioURL = getConstellioUrl(modelLayerFactory);
-		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(constellioURL + RMUrlUtil.getPathToConsultLinkForDocument(document.getId())));
-		UI.getCurrent().addWindow(consultLinkWindow);
+
+		CopyToClipBoard.copyToClipBoard(constellioURL + RMUrlUtil.getPathToConsultLinkForDocument(document.getId()));
 	}
 
 	public void display(Document document, MenuItemActionBehaviorParams params) {
@@ -171,10 +164,22 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void delete(Document document, MenuItemActionBehaviorParams params) {
+
+		final boolean isDocumentCheckout = documentRecordActionsServices.isContentCheckedOut(document.getContent());
+
 		Button deleteDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				deleteConfirmationDocumentButtonClicked(document, params);
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				if (isDocumentCheckout) {
+					return $("DocumentMenuItemActionBehaviors.documentIsCheckoutDeleteConfirmationMessage");
+				} else {
+					return super.getConfirmDialogMessage();
+				}
 			}
 		};
 
@@ -373,6 +378,8 @@ public class DocumentMenuItemActionBehaviors {
 			} catch (RecordServicesException e) {
 				params.getView().showErrorMessage(MessageUtils.toMessage(e));
 			}
+		} else if (documentRecordActionsServices.isCheckOutActionNotPossibleDocumentDeleted(document.getWrappedRecord(), params.getUser())) {
+			params.getView().showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
 		}
 	}
 

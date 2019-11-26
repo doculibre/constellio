@@ -11,11 +11,10 @@ import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
-import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
-import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.data.Container;
 import com.vaadin.data.Container.ItemSetChangeNotifier;
 import com.vaadin.data.Item;
@@ -28,7 +27,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Image;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -55,10 +53,6 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		return recordVOContainer;
 	}
 	
-	public Collection<?> getCompressedPropertyIds() {
-		return Arrays.asList(THUMBNAIL_PROPERTY, SEARCH_RESULT_PROPERTY);
-	}
-	
 	public boolean isCompressed() {
 		return compressed;
 	}
@@ -72,7 +66,9 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		for (Object propertyId : propertyIds) {
 			removeContainerProperty(propertyId);
 		}
-		addContainerProperty(THUMBNAIL_PROPERTY, Image.class, null);
+		if (!ResponsiveUtils.isPhone()) {
+			addContainerProperty(THUMBNAIL_PROPERTY, Image.class, null);
+		}
 		addContainerProperty(SEARCH_RESULT_PROPERTY, Component.class, null);
 	}
 
@@ -116,10 +112,6 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 			@Override
 			public Component getValue() {
 				Component recordDisplay = getRecordDisplay(itemId);
-				ReferenceDisplay referenceDisplay = ComponentTreeUtils.getFirstChild(recordDisplay, ReferenceDisplay.class);
-				if (referenceDisplay != null) {
-					referenceDisplay.setIcon(null);
-				}
 				return recordDisplay;
 			}
 
@@ -304,12 +296,12 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 	}
 
 	protected Component getRecordDisplay(Object itemId) {
+		Integer index = recordVOContainer.indexOfId(itemId);
 		UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(currentUser);
 		RecordVO recordVO = recordVOContainer.getRecordVO(itemId);
-		SearchResultVO searchResultVO = new SearchResultVO(recordVO, new HashMap<String, List<String>>());
+		SearchResultVO searchResultVO = new SearchResultVO(index, recordVO, new HashMap<String, List<String>>());
 		SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, null, null, null, null);
-		searchResultDisplay.getTitleLink().setIcon(null);
 		return searchResultDisplay;
 	}
 

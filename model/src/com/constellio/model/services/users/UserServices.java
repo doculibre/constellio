@@ -170,12 +170,12 @@ public class UserServices {
 
 	public UserCredential newUserCredential() {
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(SYSTEM_COLLECTION);
-		return new UserCredential(recordServices.newRecordWithSchema(types.getSchema(UserCredential.DEFAULT_SCHEMA)), types);
+		return new UserCredential(recordServices.newRecordWithSchema(types.getDefaultSchema(UserCredential.SCHEMA_TYPE)), types);
 	}
 
 	public GlobalGroup newGlobalGroup() {
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(SYSTEM_COLLECTION);
-		return new GlobalGroup(recordServices.newRecordWithSchema(types.getSchema(GlobalGroup.DEFAULT_SCHEMA)), types);
+		return new GlobalGroup(recordServices.newRecordWithSchema(types.getDefaultSchema(GlobalGroup.SCHEMA_TYPE)), types);
 	}
 
 
@@ -277,13 +277,20 @@ public class UserServices {
 	}
 
 	public User getUserInCollection(String username, String collection) {
-		UserCredential userCredential = getUser(username);
-		// Case insensitive
-		username = userCredential.getUsername();
-		if (!userCredential.getCollections().contains(collection)) {
-			throw new UserServicesRuntimeException_UserIsNotInCollection(username, collection);
+		User user = getUserRecordInCollection(username, collection);
+
+		if (user == null) {
+
+			UserCredential userCredential = getUser(username);
+			// Case insensitive
+			username = userCredential.getUsername();
+			if (!userCredential.getCollections().contains(collection)) {
+				throw new UserServicesRuntimeException_UserIsNotInCollection(username, collection);
+			}
+			user = getUserRecordInCollection(username, collection);
 		}
-		return getUserRecordInCollection(username, collection);
+
+		return user;
 	}
 
 	public User getUserInCollectionCaseSensitive(String username, String collection) {
@@ -659,7 +666,7 @@ public class UserServices {
 
 	MetadataSchema userSchema(String collection) {
 		MetadataSchemaTypes schemaTypes = schemaTypes(collection);
-		return schemaTypes.getSchema(User.SCHEMA_TYPE + "_default");
+		return schemaTypes.getDefaultSchema(User.SCHEMA_TYPE);
 	}
 
 	Metadata usernameMetadata(String collection) {
@@ -671,7 +678,7 @@ public class UserServices {
 	}
 
 	MetadataSchema groupSchema(String collection) {
-		return schemaTypes(collection).getSchema(Group.SCHEMA_TYPE + "_default");
+		return schemaTypes(collection).getDefaultSchema(Group.SCHEMA_TYPE);
 	}
 
 	Metadata groupCodeMetadata(String collection) {
@@ -1022,11 +1029,10 @@ public class UserServices {
 		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				from(collectionTypes.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema()).returnAll());
-		query.filteredByStatus(StatusFilter.DELETED);
-
 		List<User> deletedUsers = new ArrayList<>();
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		for (Record record : searchServices.search(query)) {
-			deletedUsers.add(new User(record, collectionTypes, null));
+			deletedUsers.add(schemas.wrapUser(record));
 		}
 		for (User user : deletedUsers) {
 			LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());

@@ -87,11 +87,11 @@ public class GetXMLButton extends WindowButton {
 		String caption;
 
 		if(currentSchema.equals(Folder.SCHEMA_TYPE)) {
-			caption =  $("GenerateXML.nbFolder");
+			caption = $("GenerateXML.chooseFolder");
 		} else if (currentSchema.equals(ContainerRecord.SCHEMA_TYPE)) {
-			caption = $("GenerateXML.nbContainer");
+			caption = $("GenerateXML.chooseContainer");
 		} else {
-			caption = $("GenerateXML.nbDocument");
+			caption = $("GenerateXML.chooseDocument");
 		}
 
 		listAddRemoveRecordLookupField.setCaption(caption);
