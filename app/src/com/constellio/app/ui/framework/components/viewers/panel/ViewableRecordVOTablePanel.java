@@ -793,7 +793,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	private SelectDeselectAllButton newSelectDeselectAllToggleButton() {
-		return table.newSelectDeselectAllToggleButton("", "");
+		return table.newSelectDeselectAllToggleButton("", "");
 	}
 
 	private void updateTableButtonsAfterTableModeChange(BaseTable tableBefore) {
