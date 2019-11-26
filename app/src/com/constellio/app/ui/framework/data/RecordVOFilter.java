@@ -41,9 +41,15 @@ public class RecordVOFilter implements Container.Filter {
 
 	public void addCondition(LogicalSearchQuery query) {
 		Metadata metadata = getMetadata();
-
 		switch (metadata.getType()) {
 			case TEXT:
+				if (getValue() instanceof String) {
+					String stringValue = (String) getValue();
+					if (StringUtils.isNotBlank(stringValue)) {
+						query.setCondition(query.getCondition().andWhere(metadata).isEqualTo(stringValue));
+					}
+				}
+				break;
 			case STRING:
 				if (getValue() instanceof String) {
 					String stringValue = (String) getValue();
@@ -74,7 +80,8 @@ public class RecordVOFilter implements Container.Filter {
 				if (getValue() instanceof Date) {
 					Date date = (Date) getValue();
 					if (date != null) {
-						query.setCondition(query.getCondition().andWhere(metadata).isEqualTo(new LocalDateTime(date.getTime())));
+						query.setCondition(query.getCondition().andWhere(metadata).isGreaterOrEqualThan(new LocalDateTime(date.getTime())));
+						query.setCondition(query.getCondition().andWhere(metadata).isLessOrEqualThan(new LocalDateTime(date.getTime()).plusDays(1)));
 					}
 				}
 				break;
@@ -121,6 +128,24 @@ public class RecordVOFilter implements Container.Filter {
 					}
 				}
 				break;
+			case BOOLEAN:
+				if (getValue() instanceof Boolean) {
+					Boolean value = (Boolean) getValue();
+					if (value == true) {
+						query.setCondition(query.getCondition().andWhere(metadata).isTrue());
+					}
+					if (value == false) {
+						query.setCondition(query.getCondition().andWhere(metadata).isFalseOrNull());
+					}
+				}
+				break;
+			case INTEGER:
+				if (getValue() instanceof Integer) {
+					Integer value = (Integer) getValue();
+					if (value != null) {
+						query.setCondition(query.getCondition().andWhere(metadata).isEqualTo(value));
+					}
+				}
 			default:
 				break;
 		}

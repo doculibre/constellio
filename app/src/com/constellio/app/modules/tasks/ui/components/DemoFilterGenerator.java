@@ -3,6 +3,8 @@ package com.constellio.app.modules.tasks.ui.components;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
+import com.constellio.app.ui.framework.components.fields.BaseTextArea;
+import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.vaadin.data.Container;
 import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.AbstractTextField;
@@ -13,7 +15,10 @@ import org.tepi.filtertable.FilterGenerator;
 import org.tepi.filtertable.datefilter.DateFilterPopup;
 import org.tepi.filtertable.numberfilter.NumberFilterPopup;
 
+import java.util.Locale;
+
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 
 public class DemoFilterGenerator implements FilterGenerator {
 
@@ -56,10 +61,20 @@ public class DemoFilterGenerator implements FilterGenerator {
 			} else if (Number.class.isAssignableFrom(javaType)) {
 				customFilterComponent = new NumberFilterPopup(new DemoFilterDecorator());
 			} else {
-				MetadataFieldFactory factory = new TaskFieldFactory(false);
+				MetadataFieldFactory factory = new TaskFieldFactory(false) {
+					@Override
+					public Field<?> build(MetadataVO metadata, Locale locale) {
+						Field<?> field;
+						if (DATE_TIME.equals(metadata.getType())) {
+							field = new JodaDateField();
+							return field;
+						}
+						return super.build(metadata, locale);
+					}
+				};
 				final Field<?> field = factory.build(metadataVO);
 				if (field != null) {
-					if (field instanceof AbstractTextField || field instanceof ComboBox) {
+					if ((field instanceof AbstractTextField || field instanceof ComboBox) && !(field instanceof BaseTextArea)) {
 						customFilterComponent = (AbstractField) field;
 					} else {
 						customFilterComponent = new FilterWindowButtonField(field);
