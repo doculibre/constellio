@@ -32,6 +32,9 @@ public class RMConfigs {
 
 	static List<SystemConfiguration> configurations = new ArrayList<>();
 
+	// Advanced
+	public static final SystemConfiguration ALLOW_TO_EDIT_OLD_DOCUMENT_VERSION_ANNOTATION;
+
 	// Retention calendar configs
 	public static final SystemConfiguration DOCUMENT_RETENTION_RULES,
 			CALCULATED_CLOSING_DATE,
@@ -103,6 +106,9 @@ public class RMConfigs {
 
 	static {
 		//SystemConfigurationGroup beta = new SystemConfigurationGroup(ID, "beta");
+
+		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
+		add(ALLOW_TO_EDIT_OLD_DOCUMENT_VERSION_ANNOTATION = advanced.createBooleanFalseByDefault("allowToEditOldVersionAnnotation"));
 
 		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, decommissioningGroup);
 

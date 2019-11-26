@@ -1,9 +1,8 @@
 package com.constellio.app.ui.framework.components.viewers.pdftron;
 
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseLabel;
@@ -39,6 +38,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 @JavaScript({"theme://jquery/jquery-2.1.4.min.js"})
 public class PdfTronViewer extends VerticalLayout implements ViewChangeListener {
 
+	public static final String[] SUPPORTED_EXTENTION = {"pdf", "pdf/a", "xfdf", "fdf", "docx", "xlsx", "pptx", "jpg", "png"};
 	private static final String CONTENT_RESOURCE_KEY_PREFIX = "document.file.";
 	private static final String ANNOTATION_RESOURCE_KEY = "document.annotation";
 	public static final String PDFTRON_CANVAS_ID = "pdftron-canvas";
@@ -66,18 +66,19 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private String documentAnnotationUrl;
 	private String canvasId;
 
+	private String recordId;
 
-	public PdfTronViewer(DocumentVO documentVO, boolean userHasRightToEditOtherUserAnnotation) {
+	public PdfTronViewer(String recordId, ContentVersionVO contentVersion, String metadataCode,
+						 boolean userHasRightToEditOtherUserAnnotation) {
 
-		String recordId = documentVO.getId();
-		String metadataCode = Document.CONTENT;
-		String filename = documentVO.getContent().getFileName();
+		this.recordId = recordId;
+		String filename = contentVersion.getFileName();
 		ConstellioUI current = ConstellioUI.getCurrent();
 
-		this.documentContentResource = ConstellioResourceHandler.createResource(recordId, metadataCode, documentVO.getContent().getVersion(), filename);
+		this.documentContentResource = ConstellioResourceHandler.createResource(recordId, metadataCode, contentVersion.getVersion(), filename);
 		this.documentContentResourceKey = CONTENT_RESOURCE_KEY_PREFIX + UUID.randomUUID().toString();
 
-		this.documentAnnotationResource = ConstellioResourceHandler.createAnnotationResource(recordId, metadataCode, documentVO.getContent().getVersion(), filename);
+		this.documentAnnotationResource = ConstellioResourceHandler.createAnnotationResource(recordId, metadataCode, contentVersion.getVersion(), filename);
 		this.documentAnnotationResourceKey = ANNOTATION_RESOURCE_KEY + UUID.randomUUID().toString();
 
 		ResourceReference documentContentResourceReference = ResourceReference.create(documentContentResource, current, documentContentResourceKey);
@@ -90,7 +91,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		this.userHasRightToEditOtherUserAnnotation = userHasRightToEditOtherUserAnnotation;
 
-		this.pdfTronPresenter = new PdfTronPresenter(this, documentVO);
+		this.pdfTronPresenter = new PdfTronPresenter(this, this.recordId, contentVersion);
 
 		setWidth("100%");
 		setHeight("800px");

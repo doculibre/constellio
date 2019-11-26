@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -446,6 +447,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			addOrUpdate(document.getWrappedRecord());
 			RMNavigationUtils.navigateToDisplayDocument(document.getId(), params, appLayerFactory, collection);
 		}
+	}
+
+	public boolean canEditOldVersion() {
+		return appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager().getValue(RMConfigs.ALLOW_TO_EDIT_OLD_DOCUMENT_VERSION_ANNOTATION);
 	}
 
 	public boolean hasWritePermission() {

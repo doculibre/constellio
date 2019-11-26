@@ -59,21 +59,43 @@ public class ContentVersionVOTable extends BaseTable {
 
 	private HashSet<ContentVersionVO> selectedContentVersions;
 
+	private String recordId;
+
+	private String metadataCode;
+
+	private boolean haveRightToEditAnnotationOfRecord;
+	private boolean canEditAnnotationOnOldVersion;
+	private String currentVersion;
+
 	public ContentVersionVOTable(String tableId, AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
-		this(tableId, new ArrayList<ContentVersionVO>(), appLayerFactory, isShowingSystemFileName);
+		this(tableId, new ArrayList<ContentVersionVO>(), appLayerFactory, isShowingSystemFileName, null, null, false, false, null);
 	}
 
 	public ContentVersionVOTable(String tableId, List<ContentVersionVO> contentVersions,
 								 AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
+		this(tableId, contentVersions, appLayerFactory, isShowingSystemFileName, null, null, false, false, null);
+	}
+
+	public ContentVersionVOTable(String tableId, List<ContentVersionVO> contentVersions,
+								 AppLayerFactory appLayerFactory, boolean isShowingSystemFileName,
+								 String recordId, String metadataCode, boolean haveRightToEditAnnotationOfRecord,
+								 boolean canEditAnnotationOnOldVersion, String currentVersion) {
 		super(tableId);
 		this.appLayerFactory = appLayerFactory;
 		this.isShowingSystemFileName = isShowingSystemFileName;
 		this.selectedContentVersions = new HashSet<>();
+		this.recordId = recordId;
+		this.metadataCode = metadataCode;
+		this.haveRightToEditAnnotationOfRecord = haveRightToEditAnnotationOfRecord;
+		this.canEditAnnotationOnOldVersion = canEditAnnotationOnOldVersion;
+		this.currentVersion = currentVersion;
 
 		if (isSelectionColumn()) {
 			addContainerProperty(CHECK_BOX, CheckBox.class, null);
 		}
+
 		addContainerProperty(FILE_NAME, DownloadContentVersionLink.class, null);
+
 		addContainerProperty(VERSION, String.class, null);
 		addContainerProperty(LENGTH, String.class, null);
 		addContainerProperty(LAST_MODIFICATION_DATE_TIME, String.class, null);
@@ -149,6 +171,7 @@ public class ContentVersionVOTable extends BaseTable {
 		return contentVersionVOs;
 	}
 
+
 	@SuppressWarnings("unchecked")
 	public void setContentVersions(List<ContentVersionVO> contentVersions) {
 		this.contentVersionVOs = contentVersions;
@@ -199,6 +222,7 @@ public class ContentVersionVOTable extends BaseTable {
 			if (isSelectionColumn()) {
 				item.getItemProperty(CHECK_BOX).setValue(checkBox);
 			}
+
 
 			item.getItemProperty(FILE_NAME).setValue(new DownloadContentVersionLink(contentVersion, fileName));
 			item.getItemProperty(VERSION).setValue(version);

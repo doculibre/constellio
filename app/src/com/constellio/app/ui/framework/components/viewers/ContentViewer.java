@@ -20,11 +20,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+import static com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronViewer.SUPPORTED_EXTENTION;
+
 public class ContentViewer extends CustomComponent {
 
 	private Component viewerComponent;
 	private List<VisibilityChangeListener> imageViewerVisibilityChangeListenerList;
-	private boolean didVisibilityChangeWhileAttaching = false;
 
 	public ContentViewer(RecordVO recordVO, String metadataCode, ContentVersionVO contentVersionVO,
 						 boolean userHasPermissionToEditOtherUserAnnotation) {
@@ -34,9 +35,8 @@ public class ContentViewer extends CustomComponent {
 			String fileName = contentVersionVO.getFileName();
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 
-			String[] pdfTronExt = {"pdf", "doc", "docx"};
-			if (Arrays.asList(pdfTronExt).contains(extension)) {
-				PdfTronViewer pdfTronViewer = new PdfTronViewer((DocumentVO) recordVO, userHasPermissionToEditOtherUserAnnotation);
+			if (Arrays.asList(SUPPORTED_EXTENTION).contains(extension)) {
+				PdfTronViewer pdfTronViewer = new PdfTronViewer(recordVO.getId(), contentVersionVO, metadataCode, userHasPermissionToEditOtherUserAnnotation);
 
 				viewerComponent = pdfTronViewer;
 			} else if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {

@@ -263,7 +263,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory(), Toggle.SEARCH_RESULTS_VIEWER.isEnabled());
 		recordDisplay.setSizeFull();
 
-		versionTable = new ContentVersionVOTable("DocumentVersions", presenter.getAppLayerFactory(), presenter.hasCurrentUserPermissionToViewFileSystemName()) {
+		versionTable = new ContentVersionVOTable("DocumentVersions", new ArrayList<>(), presenter.getAppLayerFactory(),
+				presenter.hasCurrentUserPermissionToViewFileSystemName(),
+				getRecordVO().getId(),
+				Document.CONTENT, presenter.hasWritePermission(),
+				presenter.canEditOldVersion(), ((ContentVersionVO) documentVO.get(Document.CONTENT)).getVersion()) {
 			@Override
 			protected boolean isSelectionColumn() {
 				return isDeleteColumn();

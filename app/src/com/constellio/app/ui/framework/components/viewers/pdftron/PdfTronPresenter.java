@@ -1,9 +1,10 @@
 package com.constellio.app.ui.framework.components.viewers.pdftron;
 
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.data.dao.services.contents.ContentDao;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -16,19 +17,24 @@ public class PdfTronPresenter {
 	private AppLayerFactory appLayerFactory;
 	private ContentManager contentManager;
 	private ContentDao contentDao;
-	private DocumentVO documentVO;
+	private String recordId;
+	private ContentVersionVO contentVersion;
 	private PdfTronViewer pdfTronViewer;
 	private SchemasRecordsServices schemasRecordsServices;
 	private boolean doesCurrentUserHaveAnnotationLock = false;
+	private Record record;
 
-	public PdfTronPresenter(PdfTronViewer pdfTronViewer, DocumentVO documentVO) {
+	public PdfTronPresenter(PdfTronViewer pdfTronViewer, String recordId, ContentVersionVO contentVersion) {
 		this.appLayerFactory = pdfTronViewer.getAppLayerFactory();
 		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 		this.contentDao = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getContentsDao();
-		this.documentVO = documentVO;
+		this.contentVersion = contentVersion;
 		this.pdfTronViewer = pdfTronViewer;
+		this.recordId = recordId;
 		this.schemasRecordsServices = new SchemasRecordsServices(pdfTronViewer.getCurrentSessionContext().getCurrentCollection(),
 				appLayerFactory.getModelLayerFactory());
+		this.record = this.schemasRecordsServices.get(recordId);
+
 		initialize();
 	}
 
@@ -52,13 +58,13 @@ public class PdfTronPresenter {
 	}
 
 	public void saveAnnotation(String annotation) throws IOException {
-		contentDao.add(documentVO.getContent().getHash() + ".annotation." + documentVO.getId() + "." + documentVO.getContent().getVersion(), IOUtils.toInputStream(annotation, (String) null));
+		contentDao.add(contentVersion.getHash() + ".annotation." + recordId + "." + contentVersion.getVersion(), IOUtils.toInputStream(annotation, (String) null));
 	}
 
 	public String getAnnotations() throws IOException {
-		String hash = documentVO.getContent().getHash();
+		String hash = contentVersion.getHash();
 
-		return contentManager.getUserHavingAnnotationLock(hash, documentVO.getId(), documentVO.getContent().getVersion());
+		return contentManager.getUserHavingAnnotationLock(hash, recordId, contentVersion.getVersion());
 	}
 
 	public String getUserName(String userId) {
@@ -68,15 +74,15 @@ public class PdfTronPresenter {
 	}
 
 	public boolean userHasWrtteAccessToDocument() {
-		return getCurrentUser().hasWriteAccess().on(documentVO.getRecord());
+		return getCurrentUser().hasWriteAccess().on(record);
 	}
 
 	public String getCurrentAnnotationLockUser() {
-		return contentManager.getUserHavingAnnotationLock(documentVO.getContent().getHash(), documentVO.getId(), documentVO.getContent().getVersion());
+		return contentManager.getUserHavingAnnotationLock(contentVersion.getHash(), recordId, contentVersion.getVersion());
 	}
 
 	public boolean obtainAnnotationLock() {
-		boolean isLockObtained = contentManager.obtainAnnotationLock(documentVO.getContent().getHash(), documentVO.getId(), documentVO.getContent().getVersion(), getUserVO().getId());
+		boolean isLockObtained = contentManager.obtainAnnotationLock(contentVersion.getHash(), recordId, contentVersion.getVersion(), getUserVO().getId());
 		doesCurrentUserHaveAnnotationLock = isLockObtained;
 		return isLockObtained;
 	}
@@ -86,7 +92,7 @@ public class PdfTronPresenter {
 			return;
 		}
 
-		contentManager.releaseAnnotationLock(documentVO.getContent().getHash(), documentVO.getId(), documentVO.getContent().getVersion());
+		contentManager.releaseAnnotationLock(contentVersion.getHash(), recordId, contentVersion.getVersion());
 		doesCurrentUserHaveAnnotationLock = false;
 	}
 }
