@@ -468,8 +468,8 @@ $popup-view-z-index: 3;
 	}
 
 	.v-slot-disabled-button {
-	    opacity: 0.4;
-	    filter: alpha(opacity=40); /* msie */
+	    opacity: 0.5;
+	    filter: alpha(opacity=50); /* msie */
 	}
 	
 	.v-contextmenu {
@@ -582,6 +582,10 @@ $popup-view-z-index: 3;
     .v-disabled:hover {
     	text-decoration: none;
     }
+						
+	.reference-display.v-disabled {
+		opacity: 1;
+	}
     
     .v-filterselect {
     	width: 100%;
@@ -636,7 +640,7 @@ $popup-view-z-index: 3;
 		.xbreadcrumbbutton {
 		    height: auto;
 		    white-space: normal;
-		    opacity: 0.4;
+		    opacity: 0.5;
 		}
 	}
 	
@@ -1117,7 +1121,7 @@ $popup-view-z-index: 3;
     		}
     		.reference-display.nicetitle-link-disabled {
 				color: black !important;
-				opacity: 0.4;
+				opacity: 1;
     		}
     	}
 	}
@@ -1494,7 +1498,6 @@ $popup-view-z-index: 3;
 							.reference-display {
             					white-space: normal;
             					height: inherit;
-            					color: inherit;
 							}
 							
 							.agent-action-link {
