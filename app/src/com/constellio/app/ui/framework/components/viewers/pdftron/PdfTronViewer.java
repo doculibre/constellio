@@ -41,6 +41,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 	private static final String CONTENT_RESOURCE_KEY_PREFIX = "document.file.";
 	private static final String ANNOTATION_RESOURCE_KEY = "document.annotation";
+	public static final String PDFTRON_CANVAS_ID = "pdftron-canvas";
 
 	private Component canvas;
 	private Resource documentContentResource;
@@ -85,7 +86,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		ResourceReference documentAnnotationResourceReference = ResourceReference.create(documentAnnotationResource, current, documentAnnotationResourceKey);
 		documentAnnotationUrl = documentAnnotationResourceReference.getURL();
 
-		canvasId = RandomStringUtils.random(13, true, true);
+		canvasId = PDFTRON_CANVAS_ID + RandomStringUtils.random(13, true, true);
 
 		this.userHasRightToEditOtherUserAnnotation = userHasRightToEditOtherUserAnnotation;
 
