@@ -12914,7 +12914,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .xbreadcrumbs .xbreadcrumbbutton {
 	height: auto;
 	white-space: normal;
-	opacity: 0.5;
+	opacity: 0.4;
 }
 
 .constellio .information-capsule {
@@ -13299,21 +13299,36 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: 7px;
 }
 
+.constellio .v-button.v-disabled, .constellio .v-button-link.v-disabled {
+	color: black;
+}
+
+.constellio .v-button.v-disabled:hover, .constellio .v-button-link.v-disabled:hover {
+	text-decoration: none;
+}
+
 .constellio .clickable-row .v-table-body tr, .constellio .clickable-row .v-table-body .reference-display {
-	cursor: pointer;
+	cursor: pointer !important;
 	color: #696969;
 }
 
 .constellio .clickable-row .v-table-body tr:hover, .constellio .clickable-row .v-table-body .reference-display:hover {
-	color: white;
+	color: white !important;
 	background-color: #197de1;
 	text-decoration: none;
 }
 
+.constellio .clickable-row .v-table-body tr:hover .v-button, .constellio .clickable-row .v-table-body .reference-display:hover .v-button {
+	color: white !important;
+}
+
+.constellio .clickable-row .v-table-body .reference-display.nicetitle-link-disabled {
+	color: black !important;
+	opacity: 0.4;
+}
+
 .constellio .v-table .v-table-body .v-disabled {
 	text-align: left;
-	opacity: 10%;
-	color: black;
 }
 
 .constellio .v-table .v-table-body .v-slot-icon-only .v-disabled {
