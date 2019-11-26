@@ -86,7 +86,7 @@ public final class GeneratedCoreMigrationCombo {
     MetadataSchemaBuilder capsuleSchema = capsuleSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder ddvCapsuleLanguageSchemaType = typesBuilder.createNewSchemaType("ddvCapsuleLanguage",false).setSecurity(false);
     MetadataSchemaBuilder ddvCapsuleLanguageSchema = ddvCapsuleLanguageSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder emailToSendSchemaType = typesBuilder.createNewSchemaType("emailToSend",false).setSecurity(false);
+    MetadataSchemaTypeBuilder emailToSendSchemaType = typesBuilder.createNewSchemaType("emailToSend",false).setSecurity(false).setRecordCacheType(RecordCacheType.NOT_CACHED);
     MetadataSchemaBuilder emailToSendSchema = emailToSendSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder eventSchemaType = typesBuilder.createNewSchemaType("event",false).setSecurity(false).setRecordCacheType(RecordCacheType.NOT_CACHED);
     MetadataSchemaBuilder eventSchema = eventSchemaType.getDefaultSchema();
@@ -114,9 +114,9 @@ public final class GeneratedCoreMigrationCombo {
     MetadataSchemaBuilder temporaryRecordSchema = temporaryRecordSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder thesaurusConfigSchemaType = typesBuilder.createNewSchemaType("thesaurusConfig",false).setSecurity(false);
     MetadataSchemaBuilder thesaurusConfigSchema = thesaurusConfigSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder userDocumentSchemaType = typesBuilder.createNewSchemaType("userDocument",false).setSecurity(false);
+    MetadataSchemaTypeBuilder userDocumentSchemaType = typesBuilder.createNewSchemaType("userDocument",false).setSecurity(false).setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
     MetadataSchemaBuilder userDocumentSchema = userDocumentSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder userFolderSchemaType = typesBuilder.createNewSchemaType("userFolder",false).setSecurity(false);
+    MetadataSchemaTypeBuilder userFolderSchemaType = typesBuilder.createNewSchemaType("userFolder",false).setSecurity(false).setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
     MetadataSchemaBuilder userFolderSchema = userFolderSchemaType.getDefaultSchema();
     createCollectionSchemaTypeMetadatas(typesBuilder,collectionSchemaType, collectionSchema);
     createGroupSchemaTypeMetadatas(typesBuilder,groupSchemaType, groupSchema);
@@ -1209,6 +1209,8 @@ public final class GeneratedCoreMigrationCombo {
     savedSearch_schema.setSystemReserved(true);
     savedSearch_schema.setUndeletable(true);
     savedSearch_schema.setMultiLingual(false);
+    MetadataBuilder savedSearch_schemaCodeFilter = savedSearchSchema.create("schemaCodeFilter").setType(MetadataValueType.STRING);
+    savedSearch_schemaCodeFilter.setUndeletable(true);
     MetadataBuilder savedSearch_schemaFilter = savedSearchSchema.create("schemaFilter").setType(MetadataValueType.STRING);
     savedSearch_schemaFilter.setUndeletable(true);
     MetadataBuilder savedSearch_searchType = savedSearchSchema.create("searchType").setType(MetadataValueType.STRING);
@@ -2080,6 +2082,10 @@ public final class GeneratedCoreMigrationCombo {
   }
 
   private void createDdvCapsuleLanguageSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvCapsuleLanguageSchemaType, MetadataSchemaBuilder ddvCapsuleLanguageSchema) {
+    MetadataBuilder ddvCapsuleLanguage_abbreviation = ddvCapsuleLanguageSchema.create("abbreviation").setType(MetadataValueType.STRING);
+    ddvCapsuleLanguage_abbreviation.setUndeletable(true);
+    ddvCapsuleLanguage_abbreviation.setMultiLingual(true);
+    ddvCapsuleLanguage_abbreviation.setSearchable(true);
     MetadataBuilder ddvCapsuleLanguage_allReferences = ddvCapsuleLanguageSchema.create("allReferences").setType(MetadataValueType.STRING);
     ddvCapsuleLanguage_allReferences.setMultivalue(true);
     ddvCapsuleLanguage_allReferences.setSystemReserved(true);
@@ -3690,6 +3696,7 @@ public final class GeneratedCoreMigrationCombo {
     MetadataBuilder user_userDocumentSizeSum = userSchema.create("userDocumentSizeSum").setType(MetadataValueType.NUMBER);
     user_userDocumentSizeSum.setUndeletable(true);
     MetadataBuilder user_username = userSchema.create("username").setType(MetadataValueType.STRING);
+    user_username.setCacheIndex(true);
     user_username.setUndeletable(true);
     user_username.setUniqueValue(true);
     user_username.setUnmodifiable(true);
@@ -4038,6 +4045,7 @@ public final class GeneratedCoreMigrationCombo {
     group_caption.setMultiLingual(false);
     group_caption.setSortable(true);
     MetadataBuilder group_code = groupSchema.create("code").setType(MetadataValueType.STRING);
+    group_code.setCacheIndex(true);
     group_code.setUndeletable(true);
     group_code.setSchemaAutocomplete(true);
     group_code.setUniqueValue(true);
@@ -4216,7 +4224,7 @@ public final class GeneratedCoreMigrationCombo {
     transaction.add(manager.getSchema(collection, "temporaryRecord_importAudit").withFormMetadataCodes(asList("temporaryRecord_importAudit_title", "temporaryRecord_importAudit_daysBeforeDestruction")).withDisplayMetadataCodes(asList("temporaryRecord_importAudit_title", "temporaryRecord_importAudit_createdBy", "temporaryRecord_importAudit_createdOn", "temporaryRecord_importAudit_modifiedBy", "temporaryRecord_importAudit_modifiedOn", "temporaryRecord_importAudit_daysBeforeDestruction", "temporaryRecord_importAudit_endDate", "temporaryRecord_importAudit_errors")).withSearchResultsMetadataCodes(asList("temporaryRecord_importAudit_title", "temporaryRecord_importAudit_modifiedOn")).withTableMetadataCodes(asList("temporaryRecord_importAudit_createdBy", "temporaryRecord_importAudit_createdOn", "temporaryRecord_importAudit_destructionDate", "temporaryRecord_importAudit_content")));
     transaction.add(manager.getSchema(collection, "temporaryRecord_vaultScanReport").withFormMetadataCodes(asList("temporaryRecord_vaultScanReport_title", "temporaryRecord_vaultScanReport_daysBeforeDestruction")).withDisplayMetadataCodes(asList("temporaryRecord_vaultScanReport_title", "temporaryRecord_vaultScanReport_createdBy", "temporaryRecord_vaultScanReport_createdOn", "temporaryRecord_vaultScanReport_modifiedBy", "temporaryRecord_vaultScanReport_modifiedOn", "temporaryRecord_vaultScanReport_daysBeforeDestruction", "temporaryRecord_vaultScanReport_message", "temporaryRecord_vaultScanReport_numberOfDeletedContents")).withSearchResultsMetadataCodes(asList("temporaryRecord_vaultScanReport_title", "temporaryRecord_vaultScanReport_modifiedOn")).withTableMetadataCodes(asList("temporaryRecord_vaultScanReport_createdBy", "temporaryRecord_vaultScanReport_createdOn", "temporaryRecord_vaultScanReport_destructionDate", "temporaryRecord_vaultScanReport_content", "temporaryRecord_vaultScanReport_numberOfDeletedContents", "temporaryRecord_vaultScanReport_message")));
     transaction.add(manager.getSchema(collection, "temporaryRecord_default").withFormMetadataCodes(asList("temporaryRecord_default_title", "temporaryRecord_default_daysBeforeDestruction")).withDisplayMetadataCodes(asList("temporaryRecord_default_title", "temporaryRecord_default_createdBy", "temporaryRecord_default_createdOn", "temporaryRecord_default_modifiedBy", "temporaryRecord_default_modifiedOn", "temporaryRecord_default_daysBeforeDestruction")).withSearchResultsMetadataCodes(asList("temporaryRecord_default_title", "temporaryRecord_default_modifiedOn")).withTableMetadataCodes(asList("temporaryRecord_default_createdBy", "temporaryRecord_default_createdOn", "temporaryRecord_default_destructionDate", "temporaryRecord_default_content")));
-    transaction.add(manager.getSchema(collection, "user_default").withFormMetadataCodes(asList("user_default_defaultTabInFolderDisplay", "user_default_defaultTaxonomy", "user_default_email", "user_default_firstname", "user_default_groups", "user_default_jobTitle", "user_default_lastname", "user_default_loginLanguageCode", "user_default_phone", "user_default_startTab", "user_default_status", "user_default_username", "user_default_userroles", "user_default_collectionDeleteAccess", "user_default_collectionReadAccess", "user_default_collectionWriteAccess", "user_default_systemAdmin", "user_default_signature")).withDisplayMetadataCodes(asList("user_default_username", "user_default_firstname", "user_default_lastname", "user_default_title", "user_default_email", "user_default_userroles", "user_default_groups", "user_default_jobTitle", "user_default_phone", "user_default_status", "user_default_createdOn", "user_default_modifiedOn", "user_default_allroles", "user_default_defaultPageLength")).withSearchResultsMetadataCodes(asList("user_default_title", "user_default_modifiedOn")).withTableMetadataCodes(asList("user_default_title", "user_default_modifiedOn")));
+    transaction.add(manager.getSchema(collection, "user_default").withFormMetadataCodes(asList("user_default_defaultTabInFolderDisplay", "user_default_defaultTaxonomy", "user_default_email", "user_default_firstname", "user_default_groups", "user_default_jobTitle", "user_default_lastname", "user_default_loginLanguageCode", "user_default_phone", "user_default_startTab", "user_default_status", "user_default_username", "user_default_userroles", "user_default_collectionDeleteAccess", "user_default_collectionReadAccess", "user_default_collectionWriteAccess", "user_default_systemAdmin", "user_default_signature")).withDisplayMetadataCodes(asList("user_default_username", "user_default_firstname", "user_default_lastname", "user_default_title", "user_default_email", "user_default_groups", "user_default_jobTitle", "user_default_phone", "user_default_status", "user_default_createdOn", "user_default_modifiedOn", "user_default_allroles", "user_default_defaultPageLength")).withSearchResultsMetadataCodes(asList("user_default_title", "user_default_modifiedOn")).withTableMetadataCodes(asList("user_default_title", "user_default_modifiedOn")));
     transaction.add(manager.getMetadata(collection, "user_default_path").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "user_default_personalEmails").withMetadataGroup("").withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "userDocument_default_path").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));

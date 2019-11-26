@@ -21,7 +21,7 @@ import com.constellio.app.modules.tasks.model.calculators.TaskFollowersCalculato
 import com.constellio.app.modules.tasks.model.calculators.TaskHiddenStatusCalculator;
 import com.constellio.app.modules.tasks.model.calculators.TaskIsLateCalculator;
 import com.constellio.app.modules.tasks.model.calculators.TaskNextReminderOnCalculator;
-import com.constellio.app.modules.tasks.model.calculators.TaskTokensCalculator;
+import com.constellio.app.modules.tasks.model.calculators.TaskTokensCalculator2;
 import com.constellio.app.modules.tasks.model.calculators.TaskVisibleInTreesCalculator;
 import com.constellio.app.modules.tasks.model.validators.TaskStatusValidator;
 import com.constellio.app.modules.tasks.model.validators.TaskValidator;
@@ -176,7 +176,7 @@ public final class GeneratedTasksMigrationCombo {
     userTaskSchema.get("principalpath").defineDataEntry().asCalculated(PrincipalPathCalculator.class);
     userTaskSchema.get("statusType").defineDataEntry().asCopied(userTaskSchema.get("status"), typesBuilder.getMetadata("ddvTaskStatus_default_statusType"));
     userTaskSchema.get("taskFollowersIds").defineDataEntry().asCalculated(TaskFollowersCalculator.class);
-    userTaskSchema.get("tokens").defineDataEntry().asCalculated(TaskTokensCalculator.class);
+    userTaskSchema.get("tokens").defineDataEntry().asCalculated(TaskTokensCalculator2.class);
     userTaskSchema.get("tokensHierarchy").defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
     userTaskSchema.get("visibleInTrees").defineDataEntry().asCalculated(TaskVisibleInTreesCalculator.class);
     workflowSchema.get("allReferences").defineDataEntry().asCalculated(AllReferencesCalculator.class);
@@ -569,6 +569,10 @@ public final class GeneratedTasksMigrationCombo {
   }
 
   private void createDdvTaskTypeSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvTaskTypeSchemaType, MetadataSchemaBuilder ddvTaskTypeSchema) {
+    MetadataBuilder ddvTaskType_abbreviation = ddvTaskTypeSchema.create("abbreviation").setType(MetadataValueType.STRING);
+    ddvTaskType_abbreviation.setUndeletable(true);
+    ddvTaskType_abbreviation.setMultiLingual(true);
+    ddvTaskType_abbreviation.setSearchable(true);
     MetadataBuilder ddvTaskType_allReferences = ddvTaskTypeSchema.create("allReferences").setType(MetadataValueType.STRING);
     ddvTaskType_allReferences.setMultivalue(true);
     ddvTaskType_allReferences.setSystemReserved(true);
@@ -1017,6 +1021,20 @@ public final class GeneratedTasksMigrationCombo {
     userTask_status.defineReferencesTo(types.getSchemaType("ddvTaskStatus"));
     MetadataBuilder userTask_statusType = userTaskSchema.create("statusType").setType(MetadataValueType.ENUM);
     userTask_statusType.defineAsEnum(TaskStatusType.class);
+    MetadataBuilder userTask_taskCollaborators = userTaskSchema.create("taskCollaborators").setType(MetadataValueType.REFERENCE);
+    userTask_taskCollaborators.setMultivalue(true);
+    userTask_taskCollaborators.setUndeletable(true);
+    userTask_taskCollaborators.defineReferencesTo(types.getSchemaType("user"));
+    MetadataBuilder userTask_taskCollaboratorsGroups = userTaskSchema.create("taskCollaboratorsGroups").setType(MetadataValueType.REFERENCE);
+    userTask_taskCollaboratorsGroups.setMultivalue(true);
+    userTask_taskCollaboratorsGroups.setUndeletable(true);
+    userTask_taskCollaboratorsGroups.defineReferencesTo(types.getSchemaType("group"));
+    MetadataBuilder userTask_taskCollaboratorsGroupsWriteAuthorizations = userTaskSchema.create("taskCollaboratorsGroupsWriteAuthorizations").setType(MetadataValueType.BOOLEAN);
+    userTask_taskCollaboratorsGroupsWriteAuthorizations.setMultivalue(true);
+    userTask_taskCollaboratorsGroupsWriteAuthorizations.setUndeletable(true);
+    MetadataBuilder userTask_taskCollaboratorsWriteAuthorizations = userTaskSchema.create("taskCollaboratorsWriteAuthorizations").setType(MetadataValueType.BOOLEAN);
+    userTask_taskCollaboratorsWriteAuthorizations.setMultivalue(true);
+    userTask_taskCollaboratorsWriteAuthorizations.setUndeletable(true);
     MetadataBuilder userTask_taskFollowers = userTaskSchema.create("taskFollowers").setType(MetadataValueType.STRUCTURE);
     userTask_taskFollowers.setMultivalue(true);
     userTask_taskFollowers.setUndeletable(true);
@@ -1112,6 +1130,10 @@ public final class GeneratedTasksMigrationCombo {
   }
 
   private void createDdvTaskStatusSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvTaskStatusSchemaType, MetadataSchemaBuilder ddvTaskStatusSchema) {
+    MetadataBuilder ddvTaskStatus_abbreviation = ddvTaskStatusSchema.create("abbreviation").setType(MetadataValueType.STRING);
+    ddvTaskStatus_abbreviation.setUndeletable(true);
+    ddvTaskStatus_abbreviation.setMultiLingual(true);
+    ddvTaskStatus_abbreviation.setSearchable(true);
     MetadataBuilder ddvTaskStatus_allReferences = ddvTaskStatusSchema.create("allReferences").setType(MetadataValueType.STRING);
     ddvTaskStatus_allReferences.setMultivalue(true);
     ddvTaskStatus_allReferences.setSystemReserved(true);
@@ -1620,7 +1642,7 @@ public final class GeneratedTasksMigrationCombo {
     SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
     SchemaTypesDisplayConfig typesConfig = manager.getTypes(collection);
     transaction.add(manager.getType(collection, "userTask").withSimpleSearchStatus(true).withAdvancedSearchStatus(true).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("default:init.userTask.definition", "init.userTask.assignment", "init.userTask.details", "init.userTask.followersTab", "init.userTask.remindersTab"))));
-    transaction.add(manager.getSchema(collection, "userTask_default").withFormMetadataCodes(asList("userTask_default_title", "userTask_default_type", "userTask_default_assignee", "userTask_default_assigneeGroupsCandidates", "userTask_default_assigneeUsersCandidates", "userTask_default_assigner", "userTask_default_parentTask", "userTask_default_progressPercentage", "userTask_default_status", "userTask_default_assignedOn", "userTask_default_dueDate", "userTask_default_endDate", "userTask_default_startDate", "userTask_default_contents", "userTask_default_description", "userTask_default_reminders", "userTask_default_taskFollowers", "userTask_default_question", "userTask_default_decision", "userTask_default_relativeDueDate", "userTask_default_reminderFrequency", "userTask_default_escalationAssignee")).withDisplayMetadataCodes(asList("userTask_default_title", "userTask_default_type", "userTask_default_createdOn", "userTask_default_modifiedOn", "userTask_default_assignedOn", "userTask_default_assignee", "userTask_default_assigneeGroupsCandidates", "userTask_default_assigneeUsersCandidates", "userTask_default_assigner", "userTask_default_dueDate", "userTask_default_endDate", "userTask_default_nextReminderOn", "userTask_default_parentTask", "userTask_default_parentTaskDueDate", "userTask_default_progressPercentage", "userTask_default_startDate", "userTask_default_status", "userTask_default_taskFollowersIds", "userTask_default_contents", "userTask_default_description", "userTask_default_comments", "userTask_default_question", "userTask_default_decision", "userTask_default_workflow", "userTask_default_workflowInstance", "userTask_default_relativeDueDate", "userTask_default_reminderFrequency", "userTask_default_escalationAssignee", "userTask_default_isLate")).withSearchResultsMetadataCodes(asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate", "userTask_default_assignee")).withTableMetadataCodes(asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate", "userTask_default_assignee", "userTask_default_starredByUsers")));
+    transaction.add(manager.getSchema(collection, "userTask_default").withFormMetadataCodes(asList("userTask_default_title", "userTask_default_type", "userTask_default_assignee", "userTask_default_assigneeGroupsCandidates", "userTask_default_assigneeUsersCandidates", "userTask_default_assigner", "userTask_default_parentTask", "userTask_default_progressPercentage", "userTask_default_status", "userTask_default_assignedOn", "userTask_default_dueDate", "userTask_default_endDate", "userTask_default_startDate", "userTask_default_contents", "userTask_default_description", "userTask_default_reminders", "userTask_default_taskFollowers", "userTask_default_question", "userTask_default_decision", "userTask_default_relativeDueDate", "userTask_default_reminderFrequency", "userTask_default_escalationAssignee", "userTask_default_taskCollaborators", "userTask_default_taskCollaboratorsGroups")).withDisplayMetadataCodes(asList("userTask_default_title", "userTask_default_type", "userTask_default_createdOn", "userTask_default_modifiedOn", "userTask_default_assignedOn", "userTask_default_assignee", "userTask_default_assigneeGroupsCandidates", "userTask_default_assigneeUsersCandidates", "userTask_default_assigner", "userTask_default_dueDate", "userTask_default_endDate", "userTask_default_nextReminderOn", "userTask_default_parentTask", "userTask_default_parentTaskDueDate", "userTask_default_progressPercentage", "userTask_default_startDate", "userTask_default_status", "userTask_default_taskFollowersIds", "userTask_default_contents", "userTask_default_description", "userTask_default_comments", "userTask_default_question", "userTask_default_decision", "userTask_default_workflow", "userTask_default_workflowInstance", "userTask_default_relativeDueDate", "userTask_default_reminderFrequency", "userTask_default_escalationAssignee", "userTask_default_isLate", "userTask_default_taskCollaborators", "userTask_default_taskCollaboratorsGroups")).withSearchResultsMetadataCodes(asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate", "userTask_default_assignee")).withTableMetadataCodes(asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate", "userTask_default_assignee", "userTask_default_starredByUsers")));
     transaction.add(manager.getMetadata(collection, "userTask_default_assignedOn").withMetadataGroup("").withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "userTask_default_assignee").withMetadataGroup("init.userTask.assignment").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "userTask_default_assigneeGroupsCandidates").withMetadataGroup("init.userTask.assignment").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
@@ -1639,6 +1661,10 @@ public final class GeneratedTasksMigrationCombo {
     transaction.add(manager.getMetadata(collection, "userTask_default_reminders").withMetadataGroup("init.userTask.remindersTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "userTask_default_startDate").withMetadataGroup("").withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "userTask_default_status").withMetadataGroup("").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
+    transaction.add(manager.getMetadata(collection, "userTask_default_taskCollaborators").withMetadataGroup("init.userTask.assignment").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
+    transaction.add(manager.getMetadata(collection, "userTask_default_taskCollaboratorsGroups").withMetadataGroup("init.userTask.assignment").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
+    transaction.add(manager.getMetadata(collection, "userTask_default_taskCollaboratorsGroupsWriteAuthorizations").withMetadataGroup("init.userTask.assignment").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
+    transaction.add(manager.getMetadata(collection, "userTask_default_taskCollaboratorsWriteAuthorizations").withMetadataGroup("init.userTask.assignment").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "userTask_default_taskFollowers").withMetadataGroup("init.userTask.followersTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "userTask_default_taskFollowersIds").withMetadataGroup("").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "userTask_default_title").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(true).withVisibleInAdvancedSearchStatus(true));

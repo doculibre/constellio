@@ -85,7 +85,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataSchemaBuilder authorizationDetailsSchema = authorizationDetailsSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder capsuleSchemaType = typesBuilder.createNewSchemaType("capsule",false).setSecurity(false);
     MetadataSchemaBuilder capsuleSchema = capsuleSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder emailToSendSchemaType = typesBuilder.createNewSchemaType("emailToSend",false).setSecurity(false);
+    MetadataSchemaTypeBuilder emailToSendSchemaType = typesBuilder.createNewSchemaType("emailToSend",false).setSecurity(false).setRecordCacheType(RecordCacheType.NOT_CACHED);
     MetadataSchemaBuilder emailToSendSchema = emailToSendSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder eventSchemaType = typesBuilder.createNewSchemaType("event",false).setSecurity(false).setRecordCacheType(RecordCacheType.NOT_CACHED);
     MetadataSchemaBuilder eventSchema = eventSchemaType.getDefaultSchema();
@@ -116,9 +116,9 @@ public final class GeneratedSystemMigrationCombo {
     MetadataSchemaBuilder thesaurusConfigSchema = thesaurusConfigSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder userCredentialSchemaType = typesBuilder.createNewSchemaType("userCredential",false).setSecurity(false);
     MetadataSchemaBuilder userCredentialSchema = userCredentialSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder userDocumentSchemaType = typesBuilder.createNewSchemaType("userDocument",false).setSecurity(false);
+    MetadataSchemaTypeBuilder userDocumentSchemaType = typesBuilder.createNewSchemaType("userDocument",false).setSecurity(false).setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
     MetadataSchemaBuilder userDocumentSchema = userDocumentSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder userFolderSchemaType = typesBuilder.createNewSchemaType("userFolder",false).setSecurity(false);
+    MetadataSchemaTypeBuilder userFolderSchemaType = typesBuilder.createNewSchemaType("userFolder",false).setSecurity(false).setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
     MetadataSchemaBuilder userFolderSchema = userFolderSchemaType.getDefaultSchema();
     createCollectionSchemaTypeMetadatas(typesBuilder,collectionSchemaType, collectionSchema);
     createGroupSchemaTypeMetadatas(typesBuilder,groupSchemaType, groupSchema);
@@ -1217,6 +1217,8 @@ public final class GeneratedSystemMigrationCombo {
     savedSearch_schema.setSystemReserved(true);
     savedSearch_schema.setUndeletable(true);
     savedSearch_schema.setMultiLingual(false);
+    MetadataBuilder savedSearch_schemaCodeFilter = savedSearchSchema.create("schemaCodeFilter").setType(MetadataValueType.STRING);
+    savedSearch_schemaCodeFilter.setUndeletable(true);
     MetadataBuilder savedSearch_schemaFilter = savedSearchSchema.create("schemaFilter").setType(MetadataValueType.STRING);
     savedSearch_schemaFilter.setUndeletable(true);
     MetadataBuilder savedSearch_searchType = savedSearchSchema.create("searchType").setType(MetadataValueType.STRING);
@@ -2115,6 +2117,7 @@ public final class GeneratedSystemMigrationCombo {
     globalGroup_caption.setMultiLingual(false);
     globalGroup_caption.setSortable(true);
     MetadataBuilder globalGroup_code = globalGroupSchema.create("code").setType(MetadataValueType.STRING);
+    globalGroup_code.setCacheIndex(true);
     globalGroup_code.setDefaultRequirement(true);
     globalGroup_code.setUndeletable(true);
     globalGroup_code.setEssential(true);
@@ -2220,6 +2223,7 @@ public final class GeneratedSystemMigrationCombo {
     globalGroup_name.setDefaultRequirement(true);
     globalGroup_name.setUndeletable(true);
     MetadataBuilder globalGroup_parent = globalGroupSchema.create("parent").setType(MetadataValueType.STRING);
+    globalGroup_parent.setCacheIndex(true);
     globalGroup_parent.setUndeletable(true);
     MetadataBuilder globalGroup_path = globalGroupSchema.create("path").setType(MetadataValueType.STRING);
     globalGroup_path.setMultivalue(true);
@@ -3659,6 +3663,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder user_userDocumentSizeSum = userSchema.create("userDocumentSizeSum").setType(MetadataValueType.NUMBER);
     user_userDocumentSizeSum.setUndeletable(true);
     MetadataBuilder user_username = userSchema.create("username").setType(MetadataValueType.STRING);
+    user_username.setCacheIndex(true);
     user_username.setUndeletable(true);
     user_username.setUniqueValue(true);
     user_username.setUnmodifiable(true);
@@ -4057,6 +4062,7 @@ public final class GeneratedSystemMigrationCombo {
     userCredential_firstname.setUndeletable(true);
     MetadataBuilder userCredential_globalGroups = userCredentialSchema.create("globalGroups").setType(MetadataValueType.STRING);
     userCredential_globalGroups.setMultivalue(true);
+    userCredential_globalGroups.setCacheIndex(true);
     userCredential_globalGroups.setUndeletable(true);
     MetadataBuilder userCredential_hasAgreedToPrivacyPolicy = userCredentialSchema.create("hasAgreedToPrivacyPolicy").setType(MetadataValueType.BOOLEAN);
     userCredential_hasAgreedToPrivacyPolicy.setUndeletable(true);
@@ -4155,6 +4161,7 @@ public final class GeneratedSystemMigrationCombo {
     userCredential_schema.setUndeletable(true);
     userCredential_schema.setMultiLingual(false);
     MetadataBuilder userCredential_serviceKey = userCredentialSchema.create("serviceKey").setType(MetadataValueType.STRING);
+    userCredential_serviceKey.setCacheIndex(true);
     userCredential_serviceKey.setUndeletable(true);
     userCredential_serviceKey.setEncrypted(true);
     userCredential_serviceKey.setUniqueValue(true);
@@ -4201,6 +4208,7 @@ public final class GeneratedSystemMigrationCombo {
     userCredential_tokensHierarchy.setUndeletable(true);
     userCredential_tokensHierarchy.setMultiLingual(false);
     MetadataBuilder userCredential_username = userCredentialSchema.create("username").setType(MetadataValueType.STRING);
+    userCredential_username.setCacheIndex(true);
     userCredential_username.setDefaultRequirement(true);
     userCredential_username.setUndeletable(true);
     userCredential_username.setUniqueValue(true);
@@ -4243,6 +4251,7 @@ public final class GeneratedSystemMigrationCombo {
     group_caption.setMultiLingual(false);
     group_caption.setSortable(true);
     MetadataBuilder group_code = groupSchema.create("code").setType(MetadataValueType.STRING);
+    group_code.setCacheIndex(true);
     group_code.setUndeletable(true);
     group_code.setSchemaAutocomplete(true);
     group_code.setUniqueValue(true);
@@ -4418,7 +4427,7 @@ public final class GeneratedSystemMigrationCombo {
     transaction.add(manager.getSchema(collection, "temporaryRecord_exportAudit").withFormMetadataCodes(asList("temporaryRecord_exportAudit_title", "temporaryRecord_exportAudit_daysBeforeDestruction")).withDisplayMetadataCodes(asList("temporaryRecord_exportAudit_title", "temporaryRecord_exportAudit_createdBy", "temporaryRecord_exportAudit_createdOn", "temporaryRecord_exportAudit_modifiedBy", "temporaryRecord_exportAudit_modifiedOn", "temporaryRecord_exportAudit_daysBeforeDestruction", "temporaryRecord_exportAudit_endDate")).withSearchResultsMetadataCodes(asList("temporaryRecord_exportAudit_title", "temporaryRecord_exportAudit_modifiedOn")).withTableMetadataCodes(asList("temporaryRecord_exportAudit_createdBy", "temporaryRecord_exportAudit_createdOn", "temporaryRecord_exportAudit_destructionDate", "temporaryRecord_exportAudit_content")));
     transaction.add(manager.getSchema(collection, "temporaryRecord_importAudit").withFormMetadataCodes(asList("temporaryRecord_importAudit_title", "temporaryRecord_importAudit_daysBeforeDestruction")).withDisplayMetadataCodes(asList("temporaryRecord_importAudit_title", "temporaryRecord_importAudit_createdBy", "temporaryRecord_importAudit_createdOn", "temporaryRecord_importAudit_modifiedBy", "temporaryRecord_importAudit_modifiedOn", "temporaryRecord_importAudit_daysBeforeDestruction", "temporaryRecord_importAudit_endDate", "temporaryRecord_importAudit_errors")).withSearchResultsMetadataCodes(asList("temporaryRecord_importAudit_title", "temporaryRecord_importAudit_modifiedOn")).withTableMetadataCodes(asList("temporaryRecord_importAudit_createdBy", "temporaryRecord_importAudit_createdOn", "temporaryRecord_importAudit_destructionDate", "temporaryRecord_importAudit_content")));
     transaction.add(manager.getSchema(collection, "temporaryRecord_default").withFormMetadataCodes(asList("temporaryRecord_default_title", "temporaryRecord_default_daysBeforeDestruction")).withDisplayMetadataCodes(asList("temporaryRecord_default_title", "temporaryRecord_default_createdBy", "temporaryRecord_default_createdOn", "temporaryRecord_default_modifiedBy", "temporaryRecord_default_modifiedOn", "temporaryRecord_default_daysBeforeDestruction")).withSearchResultsMetadataCodes(asList("temporaryRecord_default_title", "temporaryRecord_default_modifiedOn")).withTableMetadataCodes(asList("temporaryRecord_default_createdBy", "temporaryRecord_default_createdOn", "temporaryRecord_default_destructionDate", "temporaryRecord_default_content")));
-    transaction.add(manager.getSchema(collection, "user_default").withFormMetadataCodes(asList("user_default_defaultTabInFolderDisplay", "user_default_defaultTaxonomy", "user_default_email", "user_default_firstname", "user_default_groups", "user_default_jobTitle", "user_default_lastname", "user_default_loginLanguageCode", "user_default_phone", "user_default_startTab", "user_default_status", "user_default_username", "user_default_userroles", "user_default_collectionDeleteAccess", "user_default_collectionReadAccess", "user_default_collectionWriteAccess", "user_default_systemAdmin", "user_default_signature")).withDisplayMetadataCodes(asList("user_default_username", "user_default_firstname", "user_default_lastname", "user_default_title", "user_default_email", "user_default_userroles", "user_default_groups", "user_default_jobTitle", "user_default_phone", "user_default_status", "user_default_createdOn", "user_default_modifiedOn", "user_default_allroles", "user_default_defaultPageLength")).withSearchResultsMetadataCodes(asList("user_default_title", "user_default_modifiedOn")).withTableMetadataCodes(asList("user_default_title", "user_default_modifiedOn")));
+    transaction.add(manager.getSchema(collection, "user_default").withFormMetadataCodes(asList("user_default_defaultTabInFolderDisplay", "user_default_defaultTaxonomy", "user_default_email", "user_default_firstname", "user_default_groups", "user_default_jobTitle", "user_default_lastname", "user_default_loginLanguageCode", "user_default_phone", "user_default_startTab", "user_default_status", "user_default_username", "user_default_userroles", "user_default_collectionDeleteAccess", "user_default_collectionReadAccess", "user_default_collectionWriteAccess", "user_default_systemAdmin", "user_default_signature")).withDisplayMetadataCodes(asList("user_default_username", "user_default_firstname", "user_default_lastname", "user_default_title", "user_default_email", "user_default_groups", "user_default_jobTitle", "user_default_phone", "user_default_status", "user_default_createdOn", "user_default_modifiedOn", "user_default_allroles", "user_default_defaultPageLength")).withSearchResultsMetadataCodes(asList("user_default_title", "user_default_modifiedOn")).withTableMetadataCodes(asList("user_default_title", "user_default_modifiedOn")));
     transaction.add(manager.getMetadata(collection, "user_default_path").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "user_default_personalEmails").withMetadataGroup("").withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "userDocument_default_path").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
