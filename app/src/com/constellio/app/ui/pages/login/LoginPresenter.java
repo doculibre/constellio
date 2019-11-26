@@ -27,6 +27,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.lang3.StringUtils;
@@ -202,7 +203,8 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(userDocumentsSchemaType).where(userMetadata).is(user.getId()));
 		query.sortDesc(Schemas.MODIFIED_ON);
-		return searchServices.getResultsCount(query) > 0;
+		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
+		return searchServices.hasResults(query);
 	}
 
 	private boolean hasLastAlertPermission(User user) {

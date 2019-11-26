@@ -71,6 +71,11 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 	public Stream<Record> stream(LogicalSearchQuery query) {
+
+		if (isQueryReturningNoResults(query)) {
+			return Stream.empty();
+		}
+
 		MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
 
 		Locale locale = query.getLanguage() == null ? null : Language.withCode(query.getLanguage()).getLocale();
@@ -332,7 +337,14 @@ public class LogicalSearchQueryExecutorInCache {
 		return stream(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL));
 	}
 
+	private boolean isQueryReturningNoResults(LogicalSearchQuery query) {
+		return LogicalSearchQuery.INEXISTENT_COLLECTION_42.equals(query.getCondition().getCollection());
+	}
+
 	public boolean isQueryExecutableInCache(LogicalSearchQuery query) {
+		if (isQueryReturningNoResults(query)) {
+			return true;
+		}
 		if (recordsCaches == null) {
 			return false;
 		}
@@ -471,6 +483,10 @@ public class LogicalSearchQueryExecutorInCache {
 
 	public int estimateMaxResultSize(LogicalSearchQuery query) {
 		if (isQueryExecutableInCache(query)) {
+
+			if (isQueryReturningNoResults(query)) {
+				return 0;
+			}
 
 			MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
 

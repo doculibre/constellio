@@ -42,6 +42,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
+import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.KeySetMap;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -108,7 +109,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private Window documentVersionWindow;
 
-	private I18NHorizontalLayout contentAndFacetsLayout; 
+	private I18NHorizontalLayout contentAndFacetsLayout;
 
 	private RecordVODataProvider folderContentDataProvider;
 	private RecordVODataProvider tasksDataProvider;
@@ -129,7 +130,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	public DisplayFolderViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		this.nestedView = nestedView;
 		this.inWindow = inWindow;
-		presenter = new DisplayFolderPresenter(this, recordVO, nestedView, inWindow);
+
+		presenter = Stats.compilerFor(getClass().getSimpleName()).log(() -> {
+			return new DisplayFolderPresenter(this, recordVO, nestedView, inWindow);
+		});
 	}
 
 	@Override
