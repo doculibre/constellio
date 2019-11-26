@@ -378,6 +378,41 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public String getMicrosoftSqlServerUrl() {
+		return getString("sql.server.url", null);
+	}
+
+	@Override
+	public String getMicrosoftSqlServerDatabase() {
+		return getString("sql.server.database", null);
+	}
+
+	@Override
+	public String getMicrosoftSqlServeruser() {
+		return getString("sql.server.user", null);
+	}
+
+	@Override
+	public String getMicrosoftSqlServerpassword() {
+		return getString("sql.server.password", null);
+	}
+
+	@Override
+	public boolean getMicrosoftSqlServerencrypt() {
+		return getBoolean("sql.server.encrypt", false);
+	}
+
+	@Override
+	public boolean getMicrosoftSqlServertrustServerCertificate() {
+		return getBoolean("sql.server.trustServerCertificate", false);
+	}
+
+	@Override
+	public int getMicrosoftSqlServerloginTimeout() {
+		return getInt("sql.server.loginTimeout", 0);
+	}
+
+	@Override
 	public ElectionServiceType getElectionServiceType() {
 		return (ElectionServiceType) getEnum("leaderElectionMethod.type", ElectionServiceType.STANDALONE);
 	}

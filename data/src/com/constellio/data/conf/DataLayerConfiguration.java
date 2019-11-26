@@ -103,4 +103,18 @@ public interface DataLayerConfiguration {
 
 	Duration getSolrEventBusSendingServiceTypePollAndRetrieveFrequency();
 
+	String getMicrosoftSqlServerUrl();
+
+	String getMicrosoftSqlServerDatabase();
+
+	String getMicrosoftSqlServeruser();
+
+	String getMicrosoftSqlServerpassword();
+
+	boolean getMicrosoftSqlServerencrypt();
+
+	boolean getMicrosoftSqlServertrustServerCertificate();
+
+	int getMicrosoftSqlServerloginTimeout();
+
 }
