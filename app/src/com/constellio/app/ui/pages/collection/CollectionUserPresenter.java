@@ -24,9 +24,14 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CollectionUserPresenter extends SingleSchemaBasePresenter<CollectionUserView> implements TransferPermissionPresenter {
 	String recordId;
+
+	public ArrayList<String> getErrorsList() {
+		return errorsList;
+	}
+
 	ArrayList<String> errorsList;
 
-	public void setRemoveUserAccess(boolean removeUserAccess) {
+	public void setRemoveUserAccessCheckboxValue(boolean removeUserAccess) {
 		this.removeUserAccess = removeUserAccess;
 	}
 
@@ -174,9 +179,9 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 		return confirmMessage;
 	}
 
-	//TODO confirmer si on doit inclure les rôles ou non
 	public void transferAccessSaveButtonClicked(RecordVO sourceUser, List<String> destUsers, Window window) {
 		try {
+			validateAccessTransfer(sourceUser.getRecord(), destUsers);
 			copyUserAuthorizations(sourceUser.getRecord(), destUsers);
 			copyUserGroups(sourceUser, destUsers);
 			if (removeUserAccess) {
@@ -189,9 +194,11 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 	}
 
 	public void displayErrorMessage() {
+		String errorString = "";
 		for (String errorMessage : errorsList) {
-			view.showErrorMessage(errorMessage);
+			errorString += errorMessage;
 		}
+		view.showErrorMessage(errorString);
 	}
 
 
@@ -206,7 +213,6 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 		if (!isDeletionEnabled() && removeUserAccess) {
 			errorsList.add($("TransferAccessRights.cannotRemovePermissions", sourceUser.getTitle()));
 		}
-
 
 		if (errorsList.size() > 0) {
 			throw new Exception(errorsList.toString());

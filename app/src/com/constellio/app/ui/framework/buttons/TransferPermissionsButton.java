@@ -5,6 +5,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenter;
 import com.constellio.model.entities.records.wrappers.User;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
@@ -69,6 +70,8 @@ public class TransferPermissionsButton extends WindowButton {
 	private void buildRemoveCurrentUserRightsCheckbox() {
 		removeUserAccessCheckbox = new CheckBox();
 		removeUserAccessCheckbox.setCaption($("TransferAccessRights.removeUserAccess"));
+		removeUserAccessCheckbox.addValueChangeListener(
+				(ValueChangeListener) event -> presenter.setRemoveUserAccessCheckboxValue(removeUserAccessIsChecked()));
 	}
 
 	private void buildSaveButton() {
@@ -126,7 +129,7 @@ public class TransferPermissionsButton extends WindowButton {
 	private void confirmSaveDialog() {
 		if (validateUserInputInformation()) {
 			String selectedUsersString = buildUserListString();
-			presenter.setRemoveUserAccess(removeUserAccessIsChecked());
+			presenter.setRemoveUserAccessCheckboxValue(removeUserAccessIsChecked());
 			String confirmMessage = presenter.buildTransferRightsConfirmMessage(sourceUser.getTitle(), selectedUsersString,
 					users.getValue().size() > 1, removeUserAccessIsChecked());
 			ConfirmDialog.show(ConstellioUI.getCurrent(), $("TransferAccessRights.Title"), confirmMessage,

@@ -27,8 +27,12 @@ public interface TransferPermissionPresenter {
 
 	List<Authorization> getUserAuthorizationsList(Record userVO);
 
-	void setRemoveUserAccess(boolean value);
+	void setRemoveUserAccessCheckboxValue(boolean value);
+
 	//void copyUserRoles(RecordVO sourceUserVO, List<String> destUsers);
+	boolean isDeletionEnabled();
+
+	List<String> getErrorsList();
 
 	//void removeAllRolesOfUser(RecordVO userVO);
 }

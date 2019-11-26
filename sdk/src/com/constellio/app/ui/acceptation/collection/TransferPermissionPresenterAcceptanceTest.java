@@ -3,7 +3,6 @@ package com.constellio.app.ui.acceptation.collection;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.collection.CollectionUserPresenter;
@@ -12,23 +11,20 @@ import com.constellio.app.ui.pages.management.authorizations.TransferPermissionP
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
-import com.google.common.collect.Lists;
 import com.vaadin.ui.Window;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -81,7 +77,7 @@ public class TransferPermissionPresenterAcceptanceTest extends ConstellioTest {
 			assertThat(authorization.getPrincipals()).doesNotContain(destUser1.getId(), destUser2.getId());
 		}
 
-		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationUsers, window);
+		transferPermissionPresenter.transferAccessSaveButtonClicked(convertUsertoUserVO(sourceUser), destinationUsers, window);
 
 		for (Authorization authorization : sourceUserAuthorizations) {
 			assertThat(authorization.getPrincipals()).contains(destUser1.getId(), destUser2.getId());
@@ -95,8 +91,8 @@ public class TransferPermissionPresenterAcceptanceTest extends ConstellioTest {
 		destinationUsers.add(destUser1.getId());
 		destinationUsers.add(destUser2.getId());
 
-		transferPermissionPresenter.setRemoveUserAccess(true);
-		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationUsers, window);
+		transferPermissionPresenter.setRemoveUserAccessCheckboxValue(true);
+		transferPermissionPresenter.transferAccessSaveButtonClicked(convertUsertoUserVO(sourceUser), destinationUsers, window);
 
 		List<Authorization> sourceUserAuthorizations = authorizationsServices.getRecordAuthorizations(sourceUserRecord);
 		for (Authorization authorization : sourceUserAuthorizations) {
@@ -111,42 +107,39 @@ public class TransferPermissionPresenterAcceptanceTest extends ConstellioTest {
 		destinationUsers.add(destUser1.getId());
 		destinationUsers.add(destUser2.getId());
 
-		transferPermissionPresenter.setRemoveUserAccess(false);
-		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationUsers, window);
+		transferPermissionPresenter.setRemoveUserAccessCheckboxValue(false);
+		transferPermissionPresenter.transferAccessSaveButtonClicked(convertUsertoUserVO(sourceUser), destinationUsers, window);
 		List<Authorization> sourceUserAuthorizations = authorizationsServices.getRecordAuthorizations(sourceUserRecord);
 		for (Authorization authorization : sourceUserAuthorizations) {
 			assertThat(authorization.getPrincipals()).contains(sourceUser.getId());
 		}
 	}
 
-	@Test        //TODO
+	@Test
 	public void givenNoDestinationUserSelectedDestinationUsersWhenTransferringAccessRightsThenErrorMessage() {
 		List<String> destinationsUsersList = new ArrayList<>();
-		transferPermissionPresenter.transferAccessSaveButtonClicked((UserVO) sourceUser.getWrappedRecord(), destinationsUsersList, window);
+		transferPermissionPresenter.transferAccessSaveButtonClicked(convertUsertoUserVO(sourceUser), destinationsUsersList, window);
+		assertThat(transferPermissionPresenter.getErrorsList()).isNotEmpty();
 	}
 
-	@Test        //TODO
-	public void givenSourceUserInSelectedDestinationUsersWhenTransferringAccessRightsThenErrorMessage() {
-		Record sourceUserRecord = sourceUser.getWrappedRecord();
-
+	@Test
+	public void givenSourceUserInDestinationUsersWhenTransferringAccessRightsThenErrorMessage() {
 		List<String> destinationUsers = new ArrayList<>();
-		destinationUsers.add(destUser1.getId());
-		destinationUsers.add(destUser2.getId());
 		destinationUsers.add(sourceUser.getId());
-		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationUsers, window);
-		//assertThat(collectionUserView)
+		transferPermissionPresenter.transferAccessSaveButtonClicked(convertUsertoUserVO(sourceUser), destinationUsers, window);
+		assertThat(transferPermissionPresenter.getErrorsList()).isNotEmpty();
 	}
 
 	@Test
 	public void givenDestinationUsersWhenTransferringAccessRightsThenGroupsSameAsSourceUser() {
-		List<String> destinationIds = new ArrayList<String>();
+		List<String> destinationIds = new ArrayList<>();
 		destinationIds.add(destUser1.getId());
 		destinationIds.add(destUser2.getId());
 
 		assertThat(destUser1.getUserGroups()).isNotEqualTo(sourceUser.getUserGroups());
 		assertThat(destUser2.getUserGroups()).isNotEqualTo(sourceUser.getUserGroups());
 
-		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationIds, window);
+		transferPermissionPresenter.transferAccessSaveButtonClicked(convertUsertoUserVO(sourceUser), destinationIds, window);
 		initOrUpdateTestUsers();
 
 		assertThat(destUser1.getUserGroups()).isEqualTo(sourceUser.getUserGroups());
@@ -159,7 +152,7 @@ public class TransferPermissionPresenterAcceptanceTest extends ConstellioTest {
 		List<String> destinationUsers = new ArrayList<>();
 		destinationUsers.add(sourceUser.getId());
 
-		transferPermissionPresenter.transferAccessSaveButtonClicked(toVO(sourceUser), destinationUsers, window);
+		transferPermissionPresenter.transferAccessSaveButtonClicked(convertUsertoUserVO(sourceUser), destinationUsers, window);
 		List<Authorization> sourceUserAuthorizations = authorizationsServices.getRecordAuthorizations(sourceUser);
 
 		for (Authorization authorization : sourceUserAuthorizations) {
@@ -168,9 +161,28 @@ public class TransferPermissionPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-		//TODO
-	void givenAdminUserAndRemoveRightsCheckboxCheckedWhenTransferringAccessRightThenErrorMessage() {
+	public void givenUserDeletionDisabledAndRemoveRightsCheckboxCheckedWhenTransferringAccessRightErrorMessage() {
+		User adminUser = userServices.getUserInCollection(admin, zeCollection);
+		when(transferPermissionPresenter.isDeletionEnabled()).thenReturn(false);
 
+		transferPermissionPresenter.setRemoveUserAccessCheckboxValue(true);
+		transferPermissionPresenter.transferAccessSaveButtonClicked(convertUsertoUserVO(adminUser), Arrays.asList(destUser1.getId()), window);
+		assertThat(transferPermissionPresenter.getErrorsList()).isNotEmpty();
+	}
+
+	@Test
+	public void givenUserDeletionDisabledAndRemoveRightsCheckboxCheckedWhenTransferringAccessRightThenAuthorizationsAreNotRemoved() {
+		User adminUser = userServices.getUserInCollection(admin, zeCollection);
+		when(transferPermissionPresenter.isDeletionEnabled()).thenReturn(false);
+
+		Record adminUserRecord = adminUser.getWrappedRecord();
+		List<Authorization> adminUserAuthorizationsBeforeClick = authorizationsServices.getRecordAuthorizations(adminUserRecord);
+
+		transferPermissionPresenter.setRemoveUserAccessCheckboxValue(true);
+		transferPermissionPresenter.transferAccessSaveButtonClicked(convertUsertoUserVO(adminUser), Arrays.asList(destUser1.getId()), window);
+
+		List<Authorization> adminUserAuthorizationsAfterClick = authorizationsServices.getRecordAuthorizations(adminUserRecord);
+		assertThat(adminUserAuthorizationsAfterClick).isEqualTo(adminUserAuthorizationsBeforeClick);
 	}
 
 
@@ -180,23 +192,10 @@ public class TransferPermissionPresenterAcceptanceTest extends ConstellioTest {
 		destUser2 = userServices.getUserInCollection(bobGratton, zeCollection);
 	}
 
-	public AuthorizationAddRequest givenAuthorizationFor(String principalId) {
-		return authorizationInCollection(zeCollection).forPrincipalsIds(asList(principalId));
-	}
 
-	public RecordVO toVO(User user) {
+	public RecordVO convertUsertoUserVO(User user) {
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 		return voBuilder.build(user.getWrappedRecord(), VIEW_MODE.FORM, sessionContext);
-	}
-
-	protected List<Authorization> filterInheritedAuthorizations(List<Authorization> authorizations, String recordId) {
-		List<Authorization> filteredAuthorizations = Lists.newArrayList();
-		for (Authorization authorization : authorizations) {
-			if (authorization.getTarget().equals(recordId)) {
-				filteredAuthorizations.add(authorization);
-			}
-		}
-		return filteredAuthorizations;
 	}
 
 }
