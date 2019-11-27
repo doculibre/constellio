@@ -12,6 +12,10 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.JavascriptUtils;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
+import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
+import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
+import com.constellio.model.services.pdftron.PdfTronXMLService;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Resource;
@@ -28,7 +32,9 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.util.Map;
@@ -37,6 +43,7 @@ import java.util.UUID;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 @JavaScript({"theme://jquery/jquery-2.1.4.min.js"})
+@Slf4j
 public class PdfTronViewer extends VerticalLayout implements ViewChangeListener {
 
 	public static final String[] SUPPORTED_EXTENTION = {"pdf", "pdf/a", "xfdf", "fdf", "docx", "xlsx", "pptx", "jpg", "png"};
@@ -69,6 +76,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 	private String recordId;
 	private String pdfTronLicense;
+
 
 	public PdfTronViewer(String recordId, ContentVersionVO contentVersion, String metadataCode,
 						 boolean userHasRightToEditOtherUserAnnotation, String license) {
@@ -280,10 +288,12 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	public class PdfTronViewerRequestHandler extends BaseRequestHandler {
 
 		private String bpmnResourceKey;
+		private PdfTronXMLService pdfTronParser;
 
 		public PdfTronViewerRequestHandler(String bpmnFileResourceKey) {
 			super(PdfTronViewerRequestHandler.class.getName());
 			this.bpmnResourceKey = bpmnFileResourceKey;
+			pdfTronParser = new PdfTronXMLService();
 		}
 
 		public String getCallbackURL() {
@@ -300,14 +310,37 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			boolean handled;
 			String key = request.getParameter("resourceKey");
 			if (bpmnResourceKey.equals(key)) {
-				pdfTronPresenter.saveAnnotation(request.getParameter("data"));
+				try {
+					pdfTronPresenter.handleNewXml(request.getParameter("data"), userHasRightToEditOtherUserAnnotation, user.getId());
+				} catch (PdfTronXMLException_CannotEditOtherUsersAnnoations pdfTronXMLException_cannotEditOtherUsersAnnoations) {
+					log.error("do not have permission to edit other user annotation parsing error", pdfTronXMLException_cannotEditOtherUsersAnnoations);
+					response.getWriter().write(
+							createErrorJSONResponse("Could not update. Some modifications are " +
+													"invalid"));
 
+				} catch (PdfTronXMLException_XMLParsingException e) {
+					log.error("unexpected xml parsing error", e);
+					response.getWriter().write(
+							createErrorJSONResponse("Invalid xml"));
+
+				} catch (PdfTronXMLException_IOExeption pdfTronXMLException_ioExeption) {
+					log.error("unexpected io error", pdfTronXMLException_ioExeption);
+					response.getWriter().write(
+							createErrorJSONResponse("Unexpected IO error"));
+				}
 				handled = true;
 			} else {
 				handled = false;
 			}
 
 			return handled;
+		}
+
+		private String createErrorJSONResponse(String errorMessage) throws IOException {
+			JSONObject rootJsonObject = new JSONObject();
+			rootJsonObject.put("error", errorMessage);
+
+			return rootJsonObject.toJSONString();
 		}
 
 	}

@@ -40,7 +40,9 @@ public class ContentViewer extends CustomComponent {
 			String fileName = contentVersionVO.getFileName();
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 
-			if (StringUtils.isNotBlank(licenseForPdftron) && Arrays.asList(SUPPORTED_EXTENTION).contains(extension)) {
+			// REMOVE TRUE*****************
+			// ***************************
+			if (true || StringUtils.isNotBlank(licenseForPdftron) && Arrays.asList(SUPPORTED_EXTENTION).contains(extension)) {
 				PdfTronViewer pdfTronViewer = new PdfTronViewer(recordVO.getId(), contentVersionVO, metadataCode, userHasPermissionToEditOtherUserAnnotation, licenseForPdftron);
 
 				viewerComponent = pdfTronViewer;
