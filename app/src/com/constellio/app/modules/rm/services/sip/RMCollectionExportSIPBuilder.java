@@ -100,7 +100,7 @@ public class RMCollectionExportSIPBuilder {
 		return this;
 	}
 
-	public void exportAllEvents(final ProgressInfo progressInfo, Provider filter) throws IOException {
+	public void exportAllEvents(final ProgressInfo progressInfo, Provider<String, Boolean> filter) throws IOException {
 
 		final SIPZipWriter sipZipWriter = newFileSIPZipWriter("events", new HashMap<String, MetsDivisionInfo>(), progressInfo);
 
