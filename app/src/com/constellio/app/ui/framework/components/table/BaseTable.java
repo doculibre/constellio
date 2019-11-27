@@ -514,10 +514,10 @@ public class BaseTable extends Table implements SelectionComponent {
 			@Override
 			public void selectionChanged(SelectionChangeEvent event) {
 				if (event.getComponent() != toggleButton) {
-					if (event.isAllItemsSelected()) {
-						toggleButton.setSelectAllMode(true);
-					} else if (event.isAllItemsDeselected()) {
+					if (event.getSelectedItemIds() != null && event.getSelectedItemIds().size() > 0) {
 						toggleButton.setSelectAllMode(false);
+					} else if (selectionManager.isAllItemsDeselected()) {
+						toggleButton.setSelectAllMode(true);
 					}
 				}
 			}
