@@ -40,9 +40,11 @@ public class TasksMigrationTo9_0_1_1 extends MigrationHelper implements Migratio
 			MetadataSchemaBuilder task = typesBuilder.getSchema(Task.DEFAULT_SCHEMA);
 			task.get(Schemas.VISIBLE_IN_TREES).defineDataEntry().asCalculated(TaskVisibleInTreesCalculator.class);
 
-			if (!task.hasMetadata(User.ASSIGNATION_EMAIL_RECEPTION_DISABLED)) {
-				typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).createUndeletable(User.ASSIGNATION_EMAIL_RECEPTION_DISABLED)
-						.setType(BOOLEAN).setSystemReserved(true);
+			MetadataSchemaBuilder userSchema = typesBuilder.getDefaultSchema(User.SCHEMA_TYPE);
+			if (!userSchema.hasMetadata(User.ASSIGNATION_EMAIL_RECEPTION_DISABLED)) {
+				userSchema.createUndeletable(User.ASSIGNATION_EMAIL_RECEPTION_DISABLED)
+						.setType(BOOLEAN)
+						.setSystemReserved(true);
 			}
 		}
 	}
