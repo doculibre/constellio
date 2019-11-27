@@ -243,6 +243,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 														  Component copiedMetadataSelector,
 														  I18NHorizontalLayout copiedMetadataValueContainer) {
 			final ComboBox operator = buildIsEmptyIsNotEmptyComponentWithoutListener(criterion);
+			operator.setWidth("180px");
 			if (presenter.isSeparateCopiedMetadata()) {
 				operator.addItem(SearchOperator.CONTAINS);
 				operator.setItemCaption(SearchOperator.CONTAINS, $("AdvancedSearchView.contains"));
@@ -531,7 +532,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		private ComboBox buildIsEmptyIsNotEmptyComponentWithoutListener(final Criterion criterion) {
 			final ComboBox operator = new BaseComboBox();
 			addIsEmptyIsNotEmpty(criterion, operator);
-			operator.setWidth("100px");
+			operator.setWidth("150px");
 			operator.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 			operator.setNullSelectionAllowed(true);
 			operator.setValue(criterion.getSearchOperator());
@@ -900,7 +901,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			comboBox.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 			comboBox.setNullSelectionAllowed(false);
 			comboBox.setValue(criterion.getBooleanOperator());
-			comboBox.setWidth("100px");
+			comboBox.setWidth("150px");
 			comboBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
