@@ -967,7 +967,7 @@ public class DecommissioningService {
 		}
 
 		if (folder.getSchema().getMetadata(Schemas.TITLE.getCode()).isDuplicable() || forceTitleDuplication) {
-			newFolder.setTitle(folder.getTitle() + " (Copie)");
+			newFolder.setTitle(folder.getTitle() + " " + $("DecommissionningServices.duplicateSuffix"));
 		}
 
 		LocalDateTime localDateTime = TimeProvider.getLocalDateTime();
