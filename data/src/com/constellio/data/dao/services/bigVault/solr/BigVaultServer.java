@@ -429,24 +429,13 @@ public class BigVaultServer implements Cloneable {
 	TransactionResponseDTO add(BigVaultServerTransaction transaction)
 			throws SolrServerException, IOException {
 
-		for (BigVaultServerListener listener : this.listeners) {
-			if (listener instanceof BigVaultServerAddEditListener) {
-				((BigVaultServerAddEditListener) listener).beforeAdd(transaction);
-			}
-		}
 		int commitWithin = transaction.getRecordsFlushing().getWithinMilliseconds();
 		if (transaction.isRequiringLock()) {
 			String transactionId = UUIDV1Generator.newRandomId();
 			verifyTransactionOptimisticLocking(commitWithin, transactionId, transaction.getUpdatedDocuments());
 			transaction.setTransactionId(transactionId);
 		}
-		TransactionResponseDTO response = processChanges(transaction);
-		for (BigVaultServerListener listener : this.listeners) {
-			if (listener instanceof BigVaultServerAddEditListener) {
-				((BigVaultServerAddEditListener) listener).afterAdd(transaction, response);
-			}
-		}
-		return response;
+		return processChanges(transaction);
 	}
 
 	void verifyTransactionOptimisticLocking(int commitWithin, String transactionId,

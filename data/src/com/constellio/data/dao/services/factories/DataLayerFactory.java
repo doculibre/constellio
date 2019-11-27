@@ -41,6 +41,7 @@ import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionM
 import com.constellio.data.dao.services.leaderElection.ZookeeperLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.replicationFactor.TransactionLogReplicationFactorManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.dao.services.sequence.SolrSequencesManager;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
@@ -105,6 +106,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
+	private TransactionLogReplicationFactorManager transactionLogReplicationFactorManager;
 	private String constellioVersion;
 	private final ConversionManager conversionManager;
 	private final EventBusManager eventBusManager;
@@ -245,6 +247,14 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			}
 		} else {
 			secondTransactionLogManager = null;
+		}
+
+		if (dataLayerConfiguration.getRecordsDaoSolrServerType() == SolrServerType.CLOUD) {
+			transactionLogReplicationFactorManager =
+					new TransactionLogReplicationFactorManager(this, getExtensions().getSystemWideExtensions());
+			add(transactionLogReplicationFactorManager);
+		} else {
+			transactionLogReplicationFactorManager = null;
 		}
 
 		IOServices ioServices = ioServicesFactory.newIOServices();
@@ -466,5 +476,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	public boolean isDistributed() {
 		return !(leaderElectionManager.getNestedLeaderElectionManager() instanceof StandaloneLeaderElectionManager);
+	}
+
+	public TransactionLogReplicationFactorManager getTransactionLogReplicationFactorManager() {
+		return transactionLogReplicationFactorManager;
 	}
 }
