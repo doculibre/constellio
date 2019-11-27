@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.components.resource.ConstellioResourceHan
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.JavascriptUtils;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Resource;
@@ -67,13 +68,16 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private String canvasId;
 
 	private String recordId;
+	private String pdfTronLicense;
 
 	public PdfTronViewer(String recordId, ContentVersionVO contentVersion, String metadataCode,
-						 boolean userHasRightToEditOtherUserAnnotation) {
+						 boolean userHasRightToEditOtherUserAnnotation, String license) {
 
 		this.recordId = recordId;
 		String filename = contentVersion.getFileName();
 		ConstellioUI current = ConstellioUI.getCurrent();
+
+		this.pdfTronLicense = license;
 
 		this.documentContentResource = ConstellioResourceHandler.createResource(recordId, metadataCode, contentVersion.getVersion(), filename);
 		this.documentContentResourceKey = CONTENT_RESOURCE_KEY_PREFIX + UUID.randomUUID().toString();
@@ -176,6 +180,14 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		addComponent(mainLayout);
 	}
 
+	public static String getPdfTronKey(AppLayerFactory appLayerFactory) {
+		return appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.PDFTRON_LICENSE);
+	}
+
+	public static String getPdfTronKey() {
+		return getPdfTronKey(getAppLayerFactory());
+	}
+
 	private void setWebViewerReadOnly() {
 		com.vaadin.ui.JavaScript.eval("setWebViewerReadOnly(true)");
 	}
@@ -204,7 +216,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		return ConstellioUI.getCurrentSessionContext();
 	}
 
-	public AppLayerFactory getAppLayerFactory() {
+	public static AppLayerFactory getAppLayerFactory() {
 		return ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
 	}
 
@@ -233,6 +245,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		toExecute.append("documentAnnotationCallBack='" + saveButtonCallbackURL + "';");
 		toExecute.append("name='" + userFirstNameAndLastName + " (" + currentUser.getUsername() + ")" + "';");
 		toExecute.append("admin=" + userHasRightToEditOtherUserAnnotation + ";");
+		toExecute.append("license=" + pdfTronLicense + ";");
 
 		com.vaadin.ui.JavaScript.eval(toExecute.toString());
 

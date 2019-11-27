@@ -64,7 +64,7 @@ public class DownloadContentVersionLink extends DownloadLink {
 	}
 
 	private BaseWindow buildPdfTronWindow() {
-		return new PdfTronContentVersionWindow(recordId, contentVersionVO, metadataCode, hasRightToAnnotate);
+		return new PdfTronContentVersionWindow(recordId, contentVersionVO, metadataCode, hasRightToAnnotate, PdfTronViewer.getPdfTronKey());
 	}
 
 	@Override

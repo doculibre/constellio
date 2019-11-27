@@ -15,9 +15,10 @@ public class PdfTronContentVersionWindow extends BaseWindow {
 	private ContentVersionVO contentVersion;
 	private String metadataCode;
 	private boolean hasRightToAnnotate;
+	private String pdfTronKey;
 
 	public PdfTronContentVersionWindow(String recordId, ContentVersionVO contentVersion, String metadataCode,
-									   boolean hasRightToAnnotate) {
+									   boolean hasRightToAnnotate, String pdfTronKey) {
 		super($("contentVersionWindowButton.caption"));
 		this.setWidth("800px");
 		this.setHeight("700px");
@@ -26,6 +27,7 @@ public class PdfTronContentVersionWindow extends BaseWindow {
 		this.metadataCode = metadataCode;
 		this.contentVersion = contentVersion;
 		this.recordId = recordId;
+		this.pdfTronKey = pdfTronKey;
 
 		this.setContent(buildWindowContent());
 
@@ -38,7 +40,7 @@ public class PdfTronContentVersionWindow extends BaseWindow {
 	protected Component buildWindowContent() {
 		VerticalLayout vlayoutMain = new VerticalLayout();
 
-		PdfTronViewer pdfTronViewer = new PdfTronViewer(this.recordId, this.contentVersion, this.metadataCode, this.hasRightToAnnotate);
+		PdfTronViewer pdfTronViewer = new PdfTronViewer(this.recordId, this.contentVersion, this.metadataCode, this.hasRightToAnnotate, pdfTronKey);
 		pdfTronViewer.setHeight("100%");
 
 		vlayoutMain.addComponent(pdfTronViewer);

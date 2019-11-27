@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components.viewers;
 
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.viewers.audio.AudioViewer;
@@ -27,16 +28,20 @@ public class ContentViewer extends CustomComponent {
 	private Component viewerComponent;
 	private List<VisibilityChangeListener> imageViewerVisibilityChangeListenerList;
 
-	public ContentViewer(RecordVO recordVO, String metadataCode, ContentVersionVO contentVersionVO,
+	public ContentViewer(AppLayerFactory appLayerFactory, RecordVO recordVO, String metadataCode,
+						 ContentVersionVO contentVersionVO,
 						 boolean userHasPermissionToEditOtherUserAnnotation) {
 		imageViewerVisibilityChangeListenerList = new ArrayList<>();
 		setId(UUID.randomUUID().toString());
+
+		String licenseForPdftron = PdfTronViewer.getPdfTronKey(appLayerFactory);
+
 		if (contentVersionVO != null) {
 			String fileName = contentVersionVO.getFileName();
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 
-			if (Arrays.asList(SUPPORTED_EXTENTION).contains(extension)) {
-				PdfTronViewer pdfTronViewer = new PdfTronViewer(recordVO.getId(), contentVersionVO, metadataCode, userHasPermissionToEditOtherUserAnnotation);
+			if (StringUtils.isNotBlank(licenseForPdftron) && Arrays.asList(SUPPORTED_EXTENTION).contains(extension)) {
+				PdfTronViewer pdfTronViewer = new PdfTronViewer(recordVO.getId(), contentVersionVO, metadataCode, userHasPermissionToEditOtherUserAnnotation, licenseForPdftron);
 
 				viewerComponent = pdfTronViewer;
 			} else if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {

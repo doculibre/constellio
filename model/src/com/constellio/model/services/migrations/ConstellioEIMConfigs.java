@@ -49,6 +49,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
 	public static final SystemConfiguration CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS;
 	public static final SystemConfiguration FILE_EXTENSIONS_EXCLUDED_FROM_PARSING;
+	public static final SystemConfiguration PDFTRON_LICENSE;
 
 	public static final SystemConfiguration METADATA_POPULATE_PRIORITY, TITLE_METADATA_POPULATE_PRIORITY;
 	public static final SystemConfiguration LOGO;
@@ -197,6 +198,7 @@ public class ConstellioEIMConfigs {
 		add(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS = advanced.createInteger("contentMaxLengthForParsingInMegaoctets")
 				.withDefaultValue(30));
 		add(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING = advanced.createString("fileExtensionsExcludedFromParsing").withReIndexationRequired());
+		add(PDFTRON_LICENSE = advanced.createString("pdftronLicense"));
 
 		add(CLEAN_DURING_INSTALL = advanced.createBooleanFalseByDefault("cleanDuringInstall"));
 

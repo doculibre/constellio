@@ -2,8 +2,6 @@ package com.constellio.app.modules.rm.ui.pages.folder;
 
 import com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
-import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersionWindowImpl;
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
@@ -712,12 +710,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}
 	}
 
-	@Override
-	public void openDocumentContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO) {
-		documentVersionWindow
-				.setContent(new DocumentContentVersionWindowImpl(documentVO, contentVersionVO, presenter.getParams()));
-		UI.getCurrent().addWindow(documentVersionWindow);
-	}
 
 	@Override
 	public void closeDocumentContentVersionWindow() {
