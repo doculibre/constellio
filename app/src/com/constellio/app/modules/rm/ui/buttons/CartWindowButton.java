@@ -285,6 +285,8 @@ public class CartWindowButton extends WindowButton {
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(params.getUser());
+		recordServices.execute(new Transaction(cart.getWrappedRecord()).setUser(params.getUser()));
+
 
 		recordServices.add(cart);
 
