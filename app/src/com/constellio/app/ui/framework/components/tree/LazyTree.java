@@ -452,11 +452,11 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 	}
 
 	public void setItemIcon(Object itemId, Resource icon, String altText) {
-//		adaptee.setItemIcon(itemId, icon, altText);
+		adaptee.setItemIcon(itemId, icon, altText);
 	}
 
 	public void setItemIconAlternateText(Object itemId, String altText) {
-//		adaptee.setItemIconAlternateText(itemId, altText);
+		adaptee.setItemIconAlternateText(itemId, altText);
 	}
 
 	public void setItemCaption(Object itemId, String caption) {
@@ -468,7 +468,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 	}
 
 	public void setItemStyleGenerator(ItemStyleGenerator itemStyleGenerator) {
-//		adaptee.setItemStyleGenerator(itemStyleGenerator);
+		adaptee.setItemStyleGenerator(itemStyleGenerator);
 	}
 
 	public void setItemCaptionPropertyId(Object propertyId) {
@@ -775,6 +775,12 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 
 		void setItemDescriptionGenerator(ItemDescriptionGenerator itemDescriptionGenerator);
 
+		void setItemStyleGenerator(ItemStyleGenerator itemStyleGenerator);
+
+		void setItemIconAlternateText(Object itemId, String altText);
+
+		void setItemIcon(Object itemId, Resource icon, String altText);
+
 		Collection<?> getChildren(Object parentId);
 
 		Collection<?> rootItemIds();
@@ -1003,6 +1009,25 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		@Override
 		public Resource getItemIcon(Object itemId) {
 			return baseTreeComponentHelper.getItemIcon(itemId);
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void setItemIcon(Object itemId, Resource icon, String altText) {
+			Object iconPropertyId = getItemIconPropertyId();
+			if (iconPropertyId != null) {
+				getItem(itemId).getItemProperty(iconPropertyId).setValue(icon);
+			}
+		}
+
+		@Override
+		public void setItemStyleGenerator(ItemStyleGenerator itemStyleGenerator) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void setItemIconAlternateText(Object itemId, String altText) {
+			// TODO Auto-generated method stub
 		}
 
 	}
