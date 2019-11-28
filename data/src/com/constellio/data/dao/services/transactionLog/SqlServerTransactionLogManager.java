@@ -5,7 +5,7 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.dto.records.TransactionSqlDTO;
-import com.constellio.data.dao.services.DataLayerSqlLogger;
+import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
@@ -86,7 +86,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	private BackgroundThreadsManager backgroundThreadsManager;
 
-	private DataLayerSqlLogger dataLayerLogger;
+	private DataLayerLogger dataLayerLogger;
 
 	private DataLayerSystemExtensions dataLayerSystemExtensions;
 
@@ -99,7 +99,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	public SqlServerTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices,
 										  RecordDao recordDao,SqlRecordDao sqlRecordDao,
 										  ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager,
-										  DataLayerSqlLogger dataLayerLogger,
+										  DataLayerLogger dataLayerLogger,
 										  DataLayerSystemExtensions dataLayerSystemExtensions,
 										  TransactionLogRecoveryManager transactionLogRecoveryManager) {
 		this.configuration = configuration;
@@ -124,7 +124,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		}
 
 		getUnflushedFolder().mkdirs();
-		idSequence = newIdSequence();
+		//idSequence = newIdSequence();
 		started = true;
 
 		flushOrCancelPreparedTransactions();
@@ -168,21 +168,28 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		}
 	}
 
-	void doFlush(String transactionId, TransactionResponseDTO transactionInfo)
+	 void doFlush(String transactionId, TransactionResponseDTO transactionInfo)
 			throws IOException {
 
 		Path source = FileSystems.getDefault().getPath(getUnflushedFolder().getAbsolutePath(), transactionId);
 
-		//TODO this is where we need to turn the logs to json content
-
 		String content = toJson(transactionContentMap.remove(transactionId));
 
-		try{
-			sqlRecordDao.insert(createTransactionSqlDto(transactionId,transactionInfo, content));
-		} catch (SQLException e) {
-			exceptionOccured = true;
-			throw new RuntimeException(e);
+		AtomicInteger atomicTries = new AtomicInteger(0);
+		do {
+			try {
+				Integer logVersion = getLogVersion();
+				sqlRecordDao.insert(createTransactionSqlDto(transactionId, transactionInfo, content,logVersion));
+				break;
+			} catch (SQLException e) {
+				atomicTries.getAndIncrement();
+				if (atomicTries.get() > 2) {
+					exceptionOccured = true;
+					throw new RuntimeException(e);
+				}
+			}
 		}
+		while(true);
 		if (!source.toFile().exists()) {
 			throw new RuntimeException("Source does not exist");
 		}
@@ -257,18 +264,6 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	public File getUnflushedFolder() {
 		return new File(folder, "unflushed");
-	}
-
-	AtomicInteger newIdSequence() {
-
-		List<String> transactionFiles = null;//getFlushedTransactionsSortedByName();
-		if (transactionFiles.isEmpty()) {
-			return new AtomicInteger(0);
-		} else {
-			int lastTransaction = Integer.valueOf(transactionFiles.get(transactionFiles.size() - 1));
-			return new AtomicInteger(lastTransaction);
-
-		}
 	}
 
 	private void flushOrCancelPreparedTransactions() {
@@ -440,9 +435,11 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	private TransactionSqlDTO createTransactionSqlDto(String transactionId,
-													  TransactionResponseDTO transactionInfo, String content){
+													  TransactionResponseDTO transactionInfo, String content, int version){
+		transactionInfo = transactionInfo == null ?
+						  new TransactionResponseDTO( 0, new HashMap<>()): transactionInfo;
 		return new TransactionSqlDTO(transactionId, new java.sql.Date((new Date()).getTime()),
-				1, transactionInfo.getNewDocumentVersions().toString(), content);
+				version, transactionInfo.getNewDocumentVersions().toString(), content);
 	}
 
 	private String toJson(BigVaultServerTransaction bigVaultServerTransaction) throws JsonProcessingException {
@@ -453,5 +450,9 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		ObjectWriter ow =new ObjectMapper().writer().withDefaultPrettyPrinter();
 
 		return ow.writeValueAsString(bigVaultServerTransaction);
+	}
+
+	private int getLogVersion() throws SQLException {
+		return sqlRecordDao.getCurrentVersion();
 	}
 }

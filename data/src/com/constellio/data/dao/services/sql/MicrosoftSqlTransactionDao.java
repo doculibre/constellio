@@ -23,6 +23,11 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 		this.connector = connector;
 	}
 
+	public MicrosoftSqlTransactionDao(SqlConnector connector, QueryRunner queryRunner){
+		this.queryRunner = queryRunner;
+		this.connector = connector;
+	}
+
 	@Override
 	public void insert(String query) throws SQLException {
 
@@ -34,10 +39,10 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 
 		String insertQuery = "INSERT INTO transactions "
 							 +"(transactionUUID,timestamp, logVersion, transactionSummary, content) "
-							 + "VALUES (?, ?, ?, ?, ?)";
+							 + "VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)";
 
-		int newId = queryRunner.insert(connector.getConnection(),
-				insertQuery, defaultHandler, dto.getTransactionUUID(), dto.getTimestamp(),
+		queryRunner.insert(connector.getConnection(),
+				insertQuery, defaultHandler, dto.getTransactionUUID(),
 				dto.getLogVersion(), dto.getTransactionSummary(), dto.getContent());
 
 		//dto.setId(newId);
@@ -48,8 +53,19 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 
 		ResultSetHandler<TransactionSqlDTO> handler = new BeanHandler<>(TransactionSqlDTO.class);
 
-		TransactionSqlDTO dto = queryRunner.query(
+		TransactionSqlDTO dto = queryRunner.query(connector.getConnection(),
 				"SELECT * FROM transactions WHERE id=?", handler, id);
+
+		return dto;
+	}
+
+	@Override
+	public TransactionSqlDTO get(String transactionId) throws SQLException {
+
+		ResultSetHandler<TransactionSqlDTO> handler = new BeanHandler<>(TransactionSqlDTO.class);
+
+		TransactionSqlDTO dto = queryRunner.query(connector.getConnection(),
+				"SELECT TOP 1 * FROM transactions WHERE transactionUUID=?", handler, transactionId);
 
 		return dto;
 	}
@@ -63,7 +79,7 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	public List<TransactionSqlDTO> getAll()  throws SQLException  {
 		ResultSetHandler<List<TransactionSqlDTO>> handler = new BeanListHandler<>(TransactionSqlDTO.class);
 
-		List<TransactionSqlDTO> dto = queryRunner.query(
+		List<TransactionSqlDTO> dto = queryRunner.query(connector.getConnection(),
 				"SELECT * FROM transactions", handler);
 
 		return dto;
@@ -71,25 +87,54 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 
 	@Override
 	public void delete(int id) throws SQLException {
-		queryRunner.execute(
+		queryRunner.execute(connector.getConnection(),
 				"DELETE FROM transactions WHERE id=?",id);
 	}
 
 	@Override
 	public void deleteAll() throws SQLException {
 
-		queryRunner.execute(
+		queryRunner.execute(connector.getConnection(),
 				"DELETE FROM transactions WHERE id > 0");
 	}
 
 	@Override
 	public void update(TransactionSqlDTO dto) throws SQLException {
 
-		String updateQuery = "UPDATE transactions tr"
+		String updateQuery = "UPDATE transactions tr "
 							 +"SET tr.transactionUUID=?, tr.timestamp=?, tr.logVersion=?, tr.transactionSummary=?, tr.content=?) "
 							 + "WHERE id=?";
-		int numberOfRowsUpdated = queryRunner.update(connector.getConnection(), updateQuery,
+		 queryRunner.update(connector.getConnection(), updateQuery,
 				dto.getTransactionUUID(),dto.getTimestamp(),dto.getLogVersion(),dto.getTransactionSummary(),dto.getContent(), dto.getId());
+	}
+
+	@Override
+	public void increaseVersion() throws SQLException {
+
+		queryRunner.update(connector.getConnection(),
+				"UPDATE versions SET version = version + 1 WHERE name = 'transactionLog' ");
+	}
+
+	@Override
+	public int getCurrentVersion() throws SQLException {
+
+		ScalarHandler<Integer> scalarHandler = new ScalarHandler<>();
+
+		Integer version = queryRunner.query(connector.getConnection(),
+				"SELECT version FROM versions WHERE name = 'transactionLog' ",scalarHandler);
+
+		if(version == null)
+		{
+			String insertQuery = "INSERT INTO versions "
+								 +"(name, version) "
+								 + "VALUES ('transactionLog', 1)";
+
+			queryRunner.insert(connector.getConnection(),
+					insertQuery, defaultHandler);
+			return 1;
+		}
+
+		return version;
 	}
 
 
@@ -97,4 +142,6 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	public void flush() {
 
 	}
+
+
 }

@@ -1,6 +1,7 @@
 package com.constellio.data.dao.services.sql;
 
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.microsoft.sqlserver.jdbc.SQLServerDriver;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -13,6 +14,8 @@ public class SqlServerConnector implements SqlConnector{
 
 	@Override
 	public void setConnection(DataLayerConfiguration dataLayerConfiguration) throws SQLException {
+
+		SQLServerDriver driver = new SQLServerDriver();
 
 		String conUrl = dataLayerConfiguration.getMicrosoftSqlServerUrl()
 						+ "; databaseName=" + dataLayerConfiguration.getMicrosoftSqlServerDatabase()

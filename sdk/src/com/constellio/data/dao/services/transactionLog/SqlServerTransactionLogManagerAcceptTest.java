@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 
-public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
+public class SqlServerTransactionLogManagerAcceptTest extends ConstellioTest {
 
 	private LocalDateTime shishOClock = new LocalDateTime();
 	private LocalDateTime shishOClockPlus1Hour = shishOClock.plusHours(1);
@@ -41,7 +41,7 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 	TestsSchemasSetup schemas = new TestsSchemasSetup();
 	ZeSchemaMetadatas zeSchema = schemas.new ZeSchemaMetadatas();
 
-	KafkaTransactionLogManager log;
+	SqlServerTransactionLogManager log;
 
 	ReindexingServices reindexServices;
 	RecordServices recordServices;
@@ -61,12 +61,17 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(InMemoryDataLayerConfiguration configuration) {
 				configuration.setSecondTransactionLogEnabled(true);
-				configuration.setSecondTransactionLogMode(SecondTransactionLogType.KAFKA);
+				configuration.setSecondTransactionLogMode(SecondTransactionLogType.SQL_SERVER);
 				configuration.setSecondTransactionLogMergeFrequency(Duration.standardSeconds(5));
 				configuration.setSecondTransactionLogBackupCount(3);
 				configuration.setReplayTransactionStartVersion(0L);
-				configuration.setKafkaServers("localhost:9092");
-				configuration.setKafkaTopic("constellio-topic5");
+				configuration.setMicrosoftSqlServerUrl("jdbc:sqlserver://localhost:1433");
+				configuration.setMicrosoftSqlServerDatabase("constellio");
+				configuration.setMicrosoftSqlServeruser("constellio");
+				configuration.setMicrosoftSqlServerpassword("ncix123$");
+				configuration.setMicrosoftSqlServerencrypt(false);
+				configuration.setMicrosoftSqlServertrustServerCertificate(false);
+				configuration.setMicrosoftSqlServerloginTimeout(15);
 			}
 		});
 
@@ -76,7 +81,7 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 
 		reindexServices = getModelLayerFactory().newReindexingServices();
 		recordServices = getModelLayerFactory().newRecordServices();
-		log = (KafkaTransactionLogManager) getDataLayerFactory().getSecondTransactionLogManager();
+		log = (SqlServerTransactionLogManager) getDataLayerFactory().getSecondTransactionLogManager();
 	}
 
 	// @LoadTest
@@ -174,3 +179,4 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 		// verify(log, never()).prepare(anyString(), any(BigVaultServerTransaction.class));
 	}
 }
+

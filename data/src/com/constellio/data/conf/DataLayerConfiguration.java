@@ -83,7 +83,7 @@ public interface DataLayerConfiguration {
 
 	String getKafkaServers();
 
-	String getSecondTransactionLogMode();
+	SecondTransactionLogType getSecondTransactionLogMode();
 
 	String getKafkaTopic();
 

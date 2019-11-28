@@ -84,3 +84,4 @@ Supprimerait app/WebContent/WEB-INF/lib/
 Supprimerait sdk/ConfigurationRoot/
 /app/src/com/constellio/app/ui/application/widgetset/AppWidgetset.gwt.xml
 /version
+sdk/pluginsJars/

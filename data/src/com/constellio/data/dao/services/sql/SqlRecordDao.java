@@ -1,5 +1,6 @@
 package com.constellio.data.dao.services.sql;
 
+import com.constellio.data.dao.dto.records.TransactionSqlDTO;
 import org.apache.commons.dbutils.ResultSetHandler;
 
 import java.sql.SQLException;
@@ -13,6 +14,7 @@ public interface SqlRecordDao<Object> {
 
 	Object get(int id)
 			throws SQLException;
+	Object get(String transactionId) throws SQLException;
 
 	ResultSetHandler<Object> realGet(int id)
 			throws SQLException;
@@ -24,6 +26,10 @@ public interface SqlRecordDao<Object> {
 	void deleteAll()throws SQLException;
 
 	void update(Object dto) throws SQLException;
+
+	void increaseVersion() throws SQLException;
+
+	int getCurrentVersion() throws SQLException;
 
 	void flush();
 }

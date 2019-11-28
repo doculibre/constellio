@@ -68,8 +68,8 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setFile("secondTransactionLog.folder", value);
 		}
 
-		public void setSecondTransactionLogMode(String value) {
-			setString("secondTransactionLog.mode", value);
+		public void setSecondTransactionLogMode(SecondTransactionLogType value) {
+			setEnum("secondTransactionLog.mode", value);
 		}
 
 		public void setReplayTransactionStartVersion(long value) {
@@ -144,6 +144,34 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 		public void setRecordsDaoSolrServerType(SolrServerType solrServerType) {
 			setEnum(RECORD_TYPE, solrServerType);
+		}
+
+		public void setMicrosoftSqlServerUrl(String value) {
+			setString("sql.server.url", value);
+		}
+
+		public void setMicrosoftSqlServerDatabase(String value) {
+			setString("sql.server.database", value);
+		}
+
+		public void setMicrosoftSqlServeruser(String value) {
+			setString("sql.server.user", value);
+		}
+
+		public void setMicrosoftSqlServerpassword(String value) {
+			setString("sql.server.password", value);
+		}
+
+		public void setMicrosoftSqlServerencrypt(boolean value) {
+			setBoolean("sql.server.encrypt", value);
+		}
+
+		public void setMicrosoftSqlServertrustServerCertificate(boolean value) {
+			setBoolean("sql.server.trustServerCertificate", value);
+		}
+
+		public void setMicrosoftSqlServerloginTimeout(int value) {
+			setInt("sql.server.loginTimeout", value);
 		}
 
 	}
@@ -230,8 +258,8 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
-	public String getSecondTransactionLogMode() {
-		return getString("secondTransactionLog.mode", "xml");
+	public SecondTransactionLogType getSecondTransactionLogMode() {
+		return (SecondTransactionLogType) getRequiredEnum("secondTransactionLog.mode", SecondTransactionLogType.class);
 	}
 
 	@Override

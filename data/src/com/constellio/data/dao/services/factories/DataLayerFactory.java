@@ -6,6 +6,7 @@ import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.EventBusSendingServiceType;
 import com.constellio.data.conf.IdGeneratorType;
+import com.constellio.data.conf.SecondTransactionLogType;
 import com.constellio.data.conf.SolrServerType;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
@@ -19,7 +20,6 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.FileSystemConfigManager;
 import com.constellio.data.dao.managers.config.ZooKeeperConfigManager;
 import com.constellio.data.dao.services.DataLayerLogger;
-import com.constellio.data.dao.services.DataLayerSqlLogger;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.BigVaultRecordDao;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
@@ -114,7 +114,6 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final BackgroundThreadsManager backgroundThreadsManager;
 	private final ConstellioJobManager constellioJobManager;
 	private final DataLayerLogger dataLayerLogger;
-	private final DataLayerSqlLogger dataLayerSqlLogger;
 	private final DataLayerExtensions dataLayerExtensions;
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
 	private String constellioVersion;
@@ -142,7 +141,6 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		this.ioServicesFactory = ioServicesFactory;
 		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions);
 		this.dataLayerLogger = new DataLayerLogger();
-		this.dataLayerSqlLogger = new DataLayerSqlLogger();
 		this.sqlConnector = new SqlServerConnector();
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
@@ -249,14 +247,14 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		transactionLogRecoveryManager = new TransactionLogRecoveryManager(this);
 
 		if (dataLayerConfiguration.isSecondTransactionLogEnabled()) {
-			if ("kafka".equals(dataLayerConfiguration.getSecondTransactionLogMode())) {
+			if (dataLayerConfiguration.getSecondTransactionLogMode() == SecondTransactionLogType.KAFKA) {
 				secondTransactionLogManager = add(new KafkaTransactionLogManager(dataLayerConfiguration,
 						dataLayerExtensions.getSystemWideExtensions(), newRecordDao(), dataLayerLogger));
 			}
-			else if("sqlServer".equals(dataLayerConfiguration.getSecondTransactionLogMode())){
+			else if(dataLayerConfiguration.getSecondTransactionLogMode()==SecondTransactionLogType.SQL_SERVER){
 
 				secondTransactionLogManager = add(new SqlServerTransactionLogManager(dataLayerConfiguration,
-						ioServicesFactory.newIOServices(), newRecordDao(), sqlRecordDao ,contentDao, backgroundThreadsManager, dataLayerSqlLogger,
+						ioServicesFactory.newIOServices(), newRecordDao(), sqlRecordDao ,contentDao, backgroundThreadsManager, dataLayerLogger,
 						dataLayerExtensions.getSystemWideExtensions(), transactionLogRecoveryManager));
 			}
 			else {
@@ -320,6 +318,10 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	public ContentDao getContentsDao() {
 		return contentDao;
+	}
+
+	public SqlRecordDao getSqlRecordDao(){
+		return sqlRecordDao;
 	}
 
 	public BigVaultServer getRecordsVaultServer() {
