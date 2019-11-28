@@ -193,7 +193,7 @@ public class ConstellioEIMConfigs {
 				.withDefaultValue(30));
 		add(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING = advanced.createString("fileExtensionsExcludedFromParsing").withReIndexationRequired());
 		add(BACKGROUND_RECORDS_REINDEXING_MODE = advanced.createEnum("backgroundRecordsReindexingMode", BackgroundRecordsReindexingMode.class)
-				.withDefaultValue(BackgroundRecordsReindexingMode.SLOW));
+				.withDefaultValue(BackgroundRecordsReindexingMode.SLOW).whichIsHidden());
 
 		add(CLEAN_DURING_INSTALL = advanced.createBooleanFalseByDefault("cleanDuringInstall"));
 
