@@ -102,7 +102,7 @@ public class PdfTronXMLService {
 		return xmlOut.outputString(newAnnotationDocument);
 	}
 
-	private static boolean areEqual(String str1, String str2) {
+	public static boolean areEqual(String str1, String str2) {
 		if (str1 == null && str2 == null) {
 			return true;
 		}
@@ -114,7 +114,7 @@ public class PdfTronXMLService {
 		return str1.equals(str2);
 	}
 
-	private static boolean areElementEqual(Element element1, Element element2) {
+	public static boolean areElementEqual(Element element1, Element element2) {
 		if (element1 == null && element2 == null) {
 			return true;
 		}
@@ -126,6 +126,10 @@ public class PdfTronXMLService {
 
 
 		if (element1.getAttributes().size() != element2.getAttributes().size()) {
+			return false;
+		}
+
+		if (!element1.getName().equals(element2.getName())) {
 			return false;
 		}
 
