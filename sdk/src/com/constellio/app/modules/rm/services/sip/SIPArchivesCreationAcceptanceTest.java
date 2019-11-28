@@ -83,6 +83,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	private IOServices ioServices;
 	private RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP;
 	private RMSchemasRecordsServices rmSchemasRecordsServices;
+	private RMSIPExportService rmSIPExportService;
 	private Set<String> includedIds = new HashSet<>();
 
 	@Before
@@ -108,6 +109,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
 		constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		rmSIPExportService = new RMSIPExportService(getAppLayerFactory());
 	}
 
 	@Test
@@ -226,36 +228,89 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 	}
 
-	//	@Test
-	//	public void givenAFolderNotIncludedInSIPExportWhenExportAllFoldersAndDocumentsThenNothingIsExported()
-	//			throws IOException, RecordServicesException {
-	//		File tempFolder = newTempFolder();
-	//		createSIPExportMetadatas();
-	//		createRandomFolder(false);
-	//
-	//		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
-	//
-	//		builder.exportAllFoldersAndDocuments(new ProgressInfo(), getProvider());
-	//
-	//		assertThat(new File(tempFolder, "info").list())
-	//				.containsOnly("failedFolderExport.txt", "exportedFolders.txt", "exportedDocuments.txt");
-	//
-	//		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "failedFolderExport.txt"))).isEmpty();
-	//
-	//		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt"))).isEmpty();
-	//
-	//		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt"))).isEmpty();
-	//	}
-
-	private Folder createRandomFolder(Object includedInSipExport) throws RecordServicesException {
+	@Test
+	public void givenFolderIncldedInSIPExportWhenGetIncludedIdsThenParentAndChildAreIncluded()
+			throws RecordServicesException {
+		createSIPExportMetadatas();
 		Transaction tx = new Transaction();
-		Folder folder = rm.newFolderWithId("zeFolderId").setOpenDate(LocalDate.now())
-				.setTitle("Ze folder")
-				.setAdministrativeUnitEntered(records.unitId_10a).setCategoryEntered(records.categoryId_X13)
-				.setRetentionRuleEntered(records.ruleId_1).set(INCLUDED_IN_SIP_EXPORT_METADATA, includedInSipExport);
-		tx.add(folder);
+		Folder parentFolder = createFolder("zeParentFolderId", null, false, false);
+		Folder folder = createFolder("zeFolderId", parentFolder.getId(), true, false);
+		Folder childFolder = createFolder("zeChildFolderId", folder.getId(), false, false);
+		tx.addAll(parentFolder, folder, childFolder);
 		rm.executeTransaction(tx);
+
+		assertThat(rmSIPExportService.getIncludedIds(zeCollection, INCLUDED_IN_SIP_EXPORT_METADATA, INCLUDED_IN_SIP_EXPORT_METADATA, EXCLUDED_FROM_SIP_EXPORT_METADATA, EXCLUDED_FROM_SIP_EXPORT_METADATA))
+				.containsExactly("zeParentFolderId", "zeFolderId", "zeChildFolderId");
+	}
+
+	@Test
+	public void givenFolderIncldedInSIPExportWhenGetIncludedIdsThenParentIncludedNoMatterTheStatus()
+			throws RecordServicesException {
+		createSIPExportMetadatas();
+		Transaction tx = new Transaction();
+		Folder parentFolder = createFolder("zeParentFolderId", null, false, true);
+		Folder folder = createFolder("zeFolderId", parentFolder.getId(), true, false);
+		Folder childFolder = createFolder("zeChildFolderId", folder.getId(), false, false);
+		tx.addAll(parentFolder, folder, childFolder);
+		rm.executeTransaction(tx);
+
+		assertThat(rmSIPExportService.getIncludedIds(zeCollection, INCLUDED_IN_SIP_EXPORT_METADATA, INCLUDED_IN_SIP_EXPORT_METADATA, EXCLUDED_FROM_SIP_EXPORT_METADATA, EXCLUDED_FROM_SIP_EXPORT_METADATA))
+				.containsExactly("zeParentFolderId", "zeFolderId", "zeChildFolderId");
+	}
+
+	@Test
+	public void givenFolderIncldedInSIPExportWhenGetIncludedIdsThenOnlyParentIAndChildArencluded()
+			throws RecordServicesException {
+		createSIPExportMetadatas();
+		Transaction tx = new Transaction();
+		Folder parentFolder = createFolder("zeParentFolderId", null, false, true);
+		Document documentInParentFolder = createDocument("zeDocumentInParentFolderId", parentFolder.getId(), false, true);
+		Folder folder = createFolder("zeFolderId", parentFolder.getId(), true, false);
+		Folder childFolder = createFolder("zeChildFolderId", folder.getId(), false, false);
+		Document documentInChildFolder = createDocument("zeDocumentInChildFolderId", childFolder.getId(), false, false);
+		tx.addAll(parentFolder, documentInParentFolder, folder, childFolder, documentInChildFolder);
+		rm.executeTransaction(tx);
+
+		assertThat(rmSIPExportService.getIncludedIds(zeCollection, INCLUDED_IN_SIP_EXPORT_METADATA, INCLUDED_IN_SIP_EXPORT_METADATA, EXCLUDED_FROM_SIP_EXPORT_METADATA, EXCLUDED_FROM_SIP_EXPORT_METADATA))
+				.containsExactly("zeParentFolderId", "zeFolderId", "zeChildFolderId");
+	}
+
+	@Test
+	public void givenFolderIncldedInSIPExportWithExcludedChildWhenGetIncludedIdsThenOnlyParentIncludedNoMatterTheStatusAndChildExcluded()
+			throws RecordServicesException {
+		createSIPExportMetadatas();
+		Transaction tx = new Transaction();
+		Folder parentFolder = createFolder("zeParentFolderId", null, false, true);
+		Document documentInParentFolder = createDocument("zeDocumentInParentFolderId", parentFolder.getId(), false, true);
+		Folder folder = createFolder("zeFolderId", parentFolder.getId(), true, false);
+		Folder childFolder = createFolder("zeChildFolderId", folder.getId(), false, true);
+		Document documentInChildFolder = createDocument("zeDocumentInChildFolderId", childFolder.getId(), false, false);
+		tx.addAll(parentFolder, documentInParentFolder, folder, childFolder, documentInChildFolder);
+		rm.executeTransaction(tx);
+
+		assertThat(rmSIPExportService.getIncludedIds(zeCollection, INCLUDED_IN_SIP_EXPORT_METADATA, INCLUDED_IN_SIP_EXPORT_METADATA, EXCLUDED_FROM_SIP_EXPORT_METADATA, EXCLUDED_FROM_SIP_EXPORT_METADATA))
+				.containsExactly("zeParentFolderId", "zeFolderId");
+	}
+
+
+	private Folder createFolder(String id, String parentFolder, boolean includedInSipExport,
+								boolean excludedFromSipExport) {
+		Folder folder = rm.newFolderWithId(id).setOpenDate(LocalDate.now()).setTitle("Ze folder")
+				.set(INCLUDED_IN_SIP_EXPORT_METADATA, includedInSipExport).set(EXCLUDED_FROM_SIP_EXPORT_METADATA, excludedFromSipExport);
+		if (parentFolder == null) {
+			folder.setAdministrativeUnitEntered(records.unitId_10a).setCategoryEntered(records.categoryId_X13)
+					.setRetentionRuleEntered(records.ruleId_1);
+		} else {
+			folder.setParentFolder(parentFolder);
+		}
 		return folder;
+	}
+
+	private Document createDocument(String id, String folder, boolean includedInSipExport,
+									boolean excludedFromSipExport) {
+		Document document = rm.newDocumentWithId(id).setTitle("Ze document").setFolder(folder)
+				.set(INCLUDED_IN_SIP_EXPORT_METADATA, includedInSipExport).set(EXCLUDED_FROM_SIP_EXPORT_METADATA, excludedFromSipExport);
+		return document;
 	}
 
 	private void createSIPExportMetadatas() {
