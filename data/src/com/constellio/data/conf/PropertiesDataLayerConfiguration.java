@@ -259,7 +259,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public SecondTransactionLogType getSecondTransactionLogMode() {
-		return (SecondTransactionLogType) getRequiredEnum("secondTransactionLog.mode", SecondTransactionLogType.class);
+		return (SecondTransactionLogType) getEnum("secondTransactionLog.mode", SecondTransactionLogType.XML);
 	}
 
 	@Override
