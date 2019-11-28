@@ -75,7 +75,7 @@ public class ValueListItemSchemaTypeBuilder {
 
 
 		for (Language language : languages) {
-			codeMetadata.addLabel(language, $("init.valuelist.default.code"));
+			codeMetadata.addLabel(language, $("init.valuelist.default.code", language.getLocale()));
 		}
 
 		codeMetadata.setSchemaAutocomplete(true);
@@ -92,7 +92,7 @@ public class ValueListItemSchemaTypeBuilder {
 				.setMultiLingual(options.isMultilingual());
 
 		for (Language language : languages) {
-			descriptionMetadata.addLabel(language, $("init.valuelist.default.description"));
+			descriptionMetadata.addLabel(language, $("init.valuelist.default.description", language.getLocale()));
 		}
 
 		MetadataBuilder abbreviationMetadata = defaultSchemaBuilder.create(ValueListItem.ABBREVIATION)
@@ -101,7 +101,7 @@ public class ValueListItemSchemaTypeBuilder {
 				.setMultiLingual(options.isMultilingual());
 
 		for (Language language : languages) {
-			abbreviationMetadata.addLabel(language, $("init.valuelist.default.abbreviation"));
+			abbreviationMetadata.addLabel(language, $("init.valuelist.default.abbreviation", language.getLocale()));
 		}
 
 		MetadataBuilder titleMetadata = defaultSchemaBuilder.getMetadata(Schemas.TITLE.getLocalCode()).setSearchable(true);

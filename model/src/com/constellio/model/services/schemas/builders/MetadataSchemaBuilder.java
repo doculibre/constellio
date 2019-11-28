@@ -402,6 +402,24 @@ public class MetadataSchemaBuilder {
 		return schemaTypeBuilder.getCode();
 	}
 
+	public void resetAllIds(SchemasIdSequence sequenceForSchemaAndTypeId,
+							SchemasIdSequence metadataForSchemaAndTypeId) {
+		id = sequenceForSchemaAndTypeId.getNewId();
+
+		List<MetadataBuilder> metadatas = new ArrayList<>(getMetadatas());
+		metadatas.sort(Comparator.comparing(MetadataBuilder::getCode));
+
+		for (MetadataBuilder metadata : metadatas) {
+			if (metadata.getInheritance() != null) {
+				metadata.id = metadata.getInheritance().getId();
+			} else {
+				short newId = metadataForSchemaAndTypeId.getNewId();
+				metadata.id = newId;
+			}
+		}
+
+	}
+
 	private static class SchemaRecordSteps {
 
 		List<Metadata> automaticMetadatas;

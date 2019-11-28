@@ -17,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +24,7 @@ import java.util.function.Predicate;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.services.records.RecordUtils.toIntKey;
+import static com.constellio.sdk.tests.TestUtils.calculateOpsPerSecondsOver;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioTest {
@@ -346,18 +346,6 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 		System.out.println("Streams/sec when supplying type : " + (int) streamsBySecondSupplyingType);
 	}
 
-	private double calculateOpsPerSecondsOver(Runnable op, int msToBench) {
-		long loopCount = 0;
-		long start = new Date().getTime();
-		long end = start;
-		while ((start + msToBench > end)) {
-			op.run();
-			loopCount++;
-			end = new Date().getTime();
-		}
 
-		long elapsedMs = end - start;
-		return ((double) (1000 * loopCount)) / elapsedMs;
-	}
 
 }

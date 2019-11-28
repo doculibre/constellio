@@ -14988,14 +14988,14 @@ div.v-layout.v-horizontal.v-widget {
 	width: 0px;
 }
 
-.constellio .v-multifileupload-dropzone {
+.constellio .v-multifileupload-dropzone, .constellio .v-multifileupload-no-dropzone {
 	width: 100%;
 	background-color: #fafafa;
 	background-image: none;
 	padding-top: 8px;
 }
 
-.constellio .v-multifileupload-dropzone .v-label {
+.constellio .v-multifileupload-dropzone .v-label, .constellio .v-multifileupload-no-dropzone .v-label {
 	font-size: inherit;
 }
 

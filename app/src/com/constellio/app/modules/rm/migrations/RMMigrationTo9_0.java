@@ -17,7 +17,6 @@ import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.configs.MarkForPreviewConversionFlagEnabler;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -63,7 +62,7 @@ public class RMMigrationTo9_0 implements MigrationScript {
 		adminRole = adminRole.withTitle(migrationResourcesProvider.getValuesOfAllLanguagesWithSeparator("init.roles.ADM", " / "));
 		rolesManager.updateRole(adminRole);
 
-		new MarkForPreviewConversionFlagEnabler(collection, modelLayerFactory).enable();
+		//new MarkForPreviewConversionFlagEnabler(collection, modelLayerFactory).enable();
 	}
 
 	private class SchemaAlterationFor9_0 extends MetadataSchemasAlterationHelper {

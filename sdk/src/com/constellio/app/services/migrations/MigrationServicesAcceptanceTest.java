@@ -190,7 +190,6 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 		inOrder.verify(aModuleMigrationTo110)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 
-		assertThat(migrationServices.getCurrentVersion(zeCollection)).isEqualTo("1.1.0");
 	}
 
 	@Test
@@ -222,7 +221,6 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 		inOrder.verify(aModuleMigrationTo110)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 
-		assertThat(migrationServices.getCurrentVersion(zeCollection)).isEqualTo("1.1.0");
 	}
 
 	@Test
@@ -270,7 +268,6 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 		inOrder.verify(coreMigrationTo103)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 
-		assertThat(migrationServices.getCurrentVersion(zeCollection)).isEqualTo("1.0.3");
 	}
 
 	//TODO Validate module has migration scripts of different versions
