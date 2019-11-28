@@ -19,17 +19,25 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class ContentVersionUploadField extends BaseUploadField {
 
 	private boolean majorVersionFieldVisible = true;
+	private String recordId;
+	private String metadataCode;
+	private boolean isReadonly;
 
-	public ContentVersionUploadField() {
-		this(false, true, false);
+	public ContentVersionUploadField(String recordId, String metadataCode) {
+		this(false, true, false, recordId, metadataCode);
 	}
 
-	public ContentVersionUploadField(boolean multiValue) {
-		this(multiValue, true, false);
+	public ContentVersionUploadField(boolean multiValue, String recordId, String metadataCode) {
+		this(multiValue, true, false, recordId, metadataCode);
 	}
 
-	public ContentVersionUploadField(boolean multiValue, boolean haveDeleteButton, boolean isViewOnly) {
+	public ContentVersionUploadField(boolean multiValue, boolean haveDeleteButton, boolean isViewOnly, String recordId,
+									 String metadataCode) {
 		super(haveDeleteButton, isViewOnly);
+		this.recordId = recordId;
+		this.metadataCode = metadataCode;
+		this.isReadonly = isViewOnly;
+
 		setConverter(new TempFileUploadToContentVersionVOConverter() {
 			@Override
 			protected boolean shouldSetHashForTemporaryFiles() {
@@ -48,7 +56,19 @@ public class ContentVersionUploadField extends BaseUploadField {
 	protected Component newItemCaption(Object itemId) {
 		ContentVersionVO contentVersionVO = (ContentVersionVO) itemId;
 		boolean majorVersionFieldVisible = isMajorVersionField(contentVersionVO);
-		return new ContentVersionCaption(contentVersionVO, majorVersionFieldVisible);
+		return new ContentVersionCaption(contentVersionVO, majorVersionFieldVisible, this.recordId, this.metadataCode, this.isReadonly);
+	}
+
+	public String getMetadataCode() {
+		return metadataCode;
+	}
+
+	public boolean isReadonly() {
+		return isReadonly;
+	}
+
+	public String getRecordId() {
+		return recordId;
 	}
 
 	protected boolean isMajorVersionField(ContentVersionVO contentVersionVO) {
@@ -105,10 +125,11 @@ public class ContentVersionUploadField extends BaseUploadField {
 
 		private OptionGroup majorVersionField;
 
-		public ContentVersionCaption(ContentVersionVO contentVersionVO, boolean majorVersionFieldVisible) {
+		public ContentVersionCaption(ContentVersionVO contentVersionVO, boolean majorVersionFieldVisible,
+									 String recordId, String metadataCode, boolean isReadonly) {
 			setSpacing(true);
 
-			captionComponent = newCaptionComponent(contentVersionVO);
+			captionComponent = newCaptionComponent(contentVersionVO, recordId, metadataCode, isReadonly);
 
 			majorVersionField = new OptionGroup();
 			majorVersionField.setVisible(majorVersionFieldVisible);
@@ -131,8 +152,9 @@ public class ContentVersionUploadField extends BaseUploadField {
 			majorVersionField.setRequired(visible);
 		}
 
-		protected Component newCaptionComponent(ContentVersionVO contentVersionVO) {
-			return new DownloadContentVersionLink(contentVersionVO);
+		protected Component newCaptionComponent(ContentVersionVO contentVersionVO, String recordId, String metadataCode,
+												boolean isReadonly) {
+			return new DownloadContentVersionLink(contentVersionVO, contentVersionVO.toString(), recordId, metadataCode, isReadonly);
 		}
 
 	}

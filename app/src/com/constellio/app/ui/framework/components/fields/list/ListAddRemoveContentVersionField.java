@@ -11,9 +11,17 @@ import java.util.List;
 @SuppressWarnings("unchecked")
 public class ListAddRemoveContentVersionField extends ListAddRemoveField<Serializable, ContentVersionUploadField> {
 
+	private String recordId;
+	private String metadata;
+
+	public ListAddRemoveContentVersionField(String recordId, String metatadata) {
+		this.recordId = recordId;
+		this.metadata = metatadata;
+	}
+
 	@Override
 	protected ContentVersionUploadField newAddEditField() {
-		ContentVersionUploadField contentUploadField = new ContentVersionUploadField();
+		ContentVersionUploadField contentUploadField = new ContentVersionUploadField(this.recordId, this.metadata);
 		contentUploadField.setMultiValue(true);
 		return contentUploadField;
 	}

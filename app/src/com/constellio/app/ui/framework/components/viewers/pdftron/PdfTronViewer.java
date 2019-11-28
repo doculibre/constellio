@@ -78,8 +78,8 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private String pdfTronLicense;
 
 
-	public PdfTronViewer(String recordId, ContentVersionVO contentVersion, String metadataCode,
-						 boolean userHasRightToEditOtherUserAnnotation, String license) {
+	public PdfTronViewer(String recordId, ContentVersionVO contentVersion, String metadataCode, boolean readOnlyMode,
+						 String license) {
 
 		this.recordId = recordId;
 		String filename = contentVersion.getFileName();
@@ -101,7 +101,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		canvasId = PDFTRON_CANVAS_ID + RandomStringUtils.random(13, true, true);
 
-		this.userHasRightToEditOtherUserAnnotation = userHasRightToEditOtherUserAnnotation;
+		this.userHasRightToEditOtherUserAnnotation = pdfTronPresenter.hasEditAllAnnotation();
 
 		this.pdfTronPresenter = new PdfTronPresenter(this, this.recordId, contentVersion);
 
@@ -157,7 +157,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			}
 		};
 
-		boolean userHasWriteAccess = pdfTronPresenter.userHasWrtteAccessToDocument();
+		boolean userHasWriteAccess = pdfTronPresenter.hasWrtteAccessToDocument() && !readOnlyMode;
 
 		consultAnnotation.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		consultAnnotation.addStyleName(ValoTheme.BUTTON_LINK);
@@ -205,7 +205,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	}
 
 	private void addMessageIfAnOtherUserIsEditing() {
-		if (!pdfTronPresenter.userHasWrtteAccessToDocument()) {
+		if (!pdfTronPresenter.hasWrtteAccessToDocument()) {
 			return;
 		}
 

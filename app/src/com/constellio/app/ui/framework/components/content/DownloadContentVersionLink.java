@@ -7,6 +7,7 @@ import com.constellio.app.ui.framework.buttons.PdfTronContentVersionWindow;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronViewer;
 import com.vaadin.server.Resource;
+import com.vaadin.ui.UI;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -18,7 +19,7 @@ public class DownloadContentVersionLink extends DownloadLink {
 
 	private String recordId;
 	private String metadataCode;
-	private boolean hasRightToAnnotate;
+	private Boolean isReadonly = null;
 	private ContentVersionVO contentVersionVO;
 
 	public DownloadContentVersionLink(ContentVersionVO contentVersionVO) {
@@ -29,14 +30,15 @@ public class DownloadContentVersionLink extends DownloadLink {
 		super(new ContentVersionVOResource(contentVersionVO), caption);
 		addStyleName(STYLE_NAME);
 		setSizeFull();
+		this.contentVersionVO = contentVersionVO;
 	}
 
 	public DownloadContentVersionLink(ContentVersionVO contentVersionVO, String caption, String recordId,
-									  String metadataCode, boolean hasRightToAnnotate) {
+									  String metadataCode, boolean isReadonly) {
 		super(new ContentVersionVOResource(contentVersionVO), caption);
 		this.recordId = recordId;
 		this.metadataCode = metadataCode;
-		this.hasRightToAnnotate = hasRightToAnnotate;
+		this.isReadonly = isReadonly;
 		this.contentVersionVO = contentVersionVO;
 	}
 
@@ -60,20 +62,22 @@ public class DownloadContentVersionLink extends DownloadLink {
 
 	private boolean usePdfTron() {
 		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(contentVersionVO.getFileName()));
-		return Arrays.asList(PdfTronViewer.SUPPORTED_EXTENTION).contains(extension);
+		return this.recordId != null && this.metadataCode != null && isReadonly != null && Arrays.asList(PdfTronViewer.SUPPORTED_EXTENTION).contains(extension)
+			   && (true || StringUtils.isNotBlank(PdfTronViewer.getPdfTronKey()));
 	}
 
 	private BaseWindow buildPdfTronWindow() {
-		return new PdfTronContentVersionWindow(recordId, contentVersionVO, metadataCode, hasRightToAnnotate, PdfTronViewer.getPdfTronKey());
+
+		return new PdfTronContentVersionWindow(recordId, contentVersionVO, metadataCode, isReadonly, PdfTronViewer.getPdfTronKey());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
-	public void click() {
-
+	protected void buttonClick(ClickEvent event) {
 		if (usePdfTron()) {
-
+			UI.getCurrent().addWindow(buildPdfTronWindow());
 		} else {
-			super.click();
+			super.buttonClick(event);
 		}
 	}
 }

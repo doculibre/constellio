@@ -753,7 +753,7 @@ public class TaskTable extends VerticalLayout {
 					formLayout.addStyleName("no-scroll");
 					formLayout.setSpacing(true);
 
-					final ContentVersionUploadField uploadField = new ContentVersionUploadField(true);
+					final ContentVersionUploadField uploadField = new ContentVersionUploadField(true, taskVO != null ? taskVO.getId() : null, Task.CONTENTS);
 					uploadField.setCaption($("TaskTable.details.addDocuments.files"));
 					uploadField.setMajorVersionFieldVisible(false);
 

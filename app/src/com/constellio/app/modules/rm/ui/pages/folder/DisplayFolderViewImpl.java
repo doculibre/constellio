@@ -180,7 +180,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
-		uploadField = new ContentVersionUploadField() {
+		uploadField = new ContentVersionUploadField(null, null) {
 			@Override
 			public boolean fireValueChangeWhenEqual() {
 				return true;

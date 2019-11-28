@@ -19,7 +19,6 @@ import com.vaadin.ui.CheckBox;
 import org.apache.commons.io.FileUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -63,22 +62,13 @@ public class ContentVersionVOTable extends BaseTable {
 
 	private String metadataCode;
 
-	private boolean haveRightToEditAnnotationOfRecord;
 	private boolean canEditAnnotationOnOldVersion;
 	private String currentVersion;
 
-	public ContentVersionVOTable(String tableId, AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
-		this(tableId, new ArrayList<ContentVersionVO>(), appLayerFactory, isShowingSystemFileName, null, null, false, false, null);
-	}
-
-	public ContentVersionVOTable(String tableId, List<ContentVersionVO> contentVersions,
-								 AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
-		this(tableId, contentVersions, appLayerFactory, isShowingSystemFileName, null, null, false, false, null);
-	}
 
 	public ContentVersionVOTable(String tableId, List<ContentVersionVO> contentVersions,
 								 AppLayerFactory appLayerFactory, boolean isShowingSystemFileName,
-								 String recordId, String metadataCode, boolean haveRightToEditAnnotationOfRecord,
+								 String recordId, String metadataCode,
 								 boolean canEditAnnotationOnOldVersion, String currentVersion) {
 		super(tableId);
 		this.appLayerFactory = appLayerFactory;
@@ -86,7 +76,6 @@ public class ContentVersionVOTable extends BaseTable {
 		this.selectedContentVersions = new HashSet<>();
 		this.recordId = recordId;
 		this.metadataCode = metadataCode;
-		this.haveRightToEditAnnotationOfRecord = haveRightToEditAnnotationOfRecord;
 		this.canEditAnnotationOnOldVersion = canEditAnnotationOnOldVersion;
 		this.currentVersion = currentVersion;
 
@@ -223,8 +212,8 @@ public class ContentVersionVOTable extends BaseTable {
 				item.getItemProperty(CHECK_BOX).setValue(checkBox);
 			}
 
-
-			item.getItemProperty(FILE_NAME).setValue(new DownloadContentVersionLink(contentVersion, fileName));
+			boolean canEditVersions = ((contentVersion.getVersion().equals(currentVersion) || canEditAnnotationOnOldVersion));
+			item.getItemProperty(FILE_NAME).setValue(new DownloadContentVersionLink(contentVersion, fileName, recordId, metadataCode, canEditVersions));
 			item.getItemProperty(VERSION).setValue(version);
 			item.getItemProperty(LENGTH).setValue(lengthCaption);
 			item.getItemProperty(LAST_MODIFICATION_DATE_TIME).setValue(lastModificationDateTimeCaption);

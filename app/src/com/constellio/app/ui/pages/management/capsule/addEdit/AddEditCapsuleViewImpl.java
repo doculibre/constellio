@@ -80,14 +80,15 @@ public class AddEditCapsuleViewImpl extends BaseViewImpl implements AddEditCapsu
 		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
 			Field<?> field;
 			if (MetadataVO.getCodeWithoutPrefix(metadataVO.getCode()).equals(Capsule.IMAGES)) {
-				field = new ContentVersionUploadField(true, true, false) {
+				field = new ContentVersionUploadField(true, true, false, recordVO.getId(), metadataVO.getLocalCode()) {
 					@Override
 					protected Component newItemCaption(Object itemId) {
 						ContentVersionVO contentVersionVO = (ContentVersionVO) itemId;
 						boolean majorVersionFieldVisible = false;
-						return new ContentVersionUploadField.ContentVersionCaption(contentVersionVO, majorVersionFieldVisible) {
+						return new ContentVersionUploadField.ContentVersionCaption(contentVersionVO, majorVersionFieldVisible, recordVO.getId(), metadataVO.getLocalCode(), false) {
 							@Override
-							protected Component newCaptionComponent(ContentVersionVO contentVersionVO) {
+							protected Component newCaptionComponent(ContentVersionVO contentVersionVO, String recordId,
+																	String metadataCode, boolean isReadOnly) {
 								String hash = presenter.getHash(contentVersionVO);
 								String filename = contentVersionVO.getFileName();
 								Resource resource = ConstellioResourceHandler.createResource(hash, filename);

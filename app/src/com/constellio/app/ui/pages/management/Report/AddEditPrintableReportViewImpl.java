@@ -171,7 +171,7 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
 					field = createComboBoxForSchemaType(metadataVO);
 					break;
 				default:
-					field = new MetadataFieldFactory().build(metadataVO, locale);
+					field = new MetadataFieldFactory().build(metadataVO, recordVO != null ? recordVO.getId() : null, locale);
 					if (metadataVO.codeMatches(Printable.JASPERFILE)) {
 						field.addValidator(new Validator() {
 							@Override

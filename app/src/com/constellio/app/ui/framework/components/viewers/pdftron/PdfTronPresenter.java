@@ -5,6 +5,7 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
@@ -71,12 +72,15 @@ public class PdfTronPresenter {
 		return this.contentManager.hasContentAnnotation(contentVersion.getHash(), recordId, contentVersion.getVersion());
 	}
 
+
 	public boolean doesCurrentUserHaveAnnotationLock() {
 		return doesCurrentUserHaveAnnotationLock;
 	}
 
 	public User getCurrentUser() {
-		return schemasRecordsServices.getUser(getUserVO().getId());
+		return appLayerFactory.getModelLayerFactory().newUserServices()
+				.getUserInCollection(getUserVO().getUsername(),
+						pdfTronViewer.getCurrentSessionContext().getCurrentCollection());
 	}
 
 	private UserVO getUserVO() {
@@ -105,8 +109,12 @@ public class PdfTronPresenter {
 		return user.getFirstName() + " " + user.getLastName();
 	}
 
-	public boolean userHasWrtteAccessToDocument() {
+	public boolean hasWrtteAccessToDocument() {
 		return getCurrentUser().hasWriteAccess().on(record);
+	}
+
+	public boolean hasEditAllAnnotation() {
+		return getCurrentUser().has(CorePermissions.EDIT_ALL_ANNOTATION).on(record);
 	}
 
 	public String getCurrentAnnotationLockUser() {

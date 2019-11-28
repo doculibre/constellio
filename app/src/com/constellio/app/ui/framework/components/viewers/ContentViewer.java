@@ -29,8 +29,7 @@ public class ContentViewer extends CustomComponent {
 	private List<VisibilityChangeListener> imageViewerVisibilityChangeListenerList;
 
 	public ContentViewer(AppLayerFactory appLayerFactory, RecordVO recordVO, String metadataCode,
-						 ContentVersionVO contentVersionVO,
-						 boolean userHasPermissionToEditOtherUserAnnotation) {
+						 ContentVersionVO contentVersionVO) {
 		imageViewerVisibilityChangeListenerList = new ArrayList<>();
 		setId(UUID.randomUUID().toString());
 
@@ -43,7 +42,7 @@ public class ContentViewer extends CustomComponent {
 			// REMOVE TRUE*****************
 			// ***************************
 			if (true || StringUtils.isNotBlank(licenseForPdftron) && Arrays.asList(SUPPORTED_EXTENTION).contains(extension)) {
-				PdfTronViewer pdfTronViewer = new PdfTronViewer(recordVO.getId(), contentVersionVO, metadataCode, userHasPermissionToEditOtherUserAnnotation, licenseForPdftron);
+				PdfTronViewer pdfTronViewer = new PdfTronViewer(recordVO.getId(), contentVersionVO, metadataCode, false, licenseForPdftron);
 
 				viewerComponent = pdfTronViewer;
 			} else if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {

@@ -115,16 +115,16 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 
 			if (userDocumentRecordVO != null) {
 				contentViewer = new ContentViewer(getConstellioFactories().getAppLayerFactory(), userDocumentRecordVO, UserDocument.CONTENT,
-						userDocumentRecordVO.get(UserDocument.CONTENT), presenter.userHasPermissionToEditOtherUserAnnotation());
+						userDocumentRecordVO.get(UserDocument.CONTENT));
 
 			} else if (duplicateDocumentRecordVO != null) {
 				contentViewer = new ContentViewer(getConstellioFactories().getAppLayerFactory(),
-						duplicateDocumentRecordVO, Document.CONTENT, duplicateDocumentRecordVO.get(Document.CONTENT), presenter.userHasPermissionToEditOtherUserAnnotation());
+						duplicateDocumentRecordVO, Document.CONTENT, duplicateDocumentRecordVO.get(Document.CONTENT));
 
 				isDuplicateDocumentViewer = true;
 			} else {
 				contentViewer = new ContentViewer(getConstellioFactories().getAppLayerFactory(), recordVO, Document.CONTENT,
-						contentVersionVO, presenter.userHasPermissionToEditOtherUserAnnotation());
+						contentVersionVO);
 			}
 
 			recordForm.setSizeFull();

@@ -177,7 +177,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private ContentViewer newContentViewer() {
 		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
-		final ContentViewer contentViewer = new ContentViewer(presenter.getAppLayerFactory(), documentVO, Document.CONTENT, contentVersionVO, presenter.userHasPermissionToEditOtherUserAnnotation());
+		final ContentViewer contentViewer = new ContentViewer(presenter.getAppLayerFactory(),
+				documentVO, Document.CONTENT, contentVersionVO);
 		if (inWindow && !isViewerInSeparateTab()) {
 			//			int viewerHeight = Page.getCurrent().getBrowserWindowHeight() - 125;
 			//			contentViewer.setHeight(viewerHeight + "px");
@@ -268,8 +269,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		versionTable = new ContentVersionVOTable("DocumentVersions", new ArrayList<>(), presenter.getAppLayerFactory(),
 				presenter.hasCurrentUserPermissionToViewFileSystemName(),
 				getRecordVO().getId(),
-				Document.CONTENT, presenter.hasWritePermission(),
-				presenter.canEditOldVersion(), contentVersionVO != null ? contentVersionVO.getVersion() : null) {
+				Document.CONTENT,
+				presenter.canEditOldVersion() && presenter.hasWritePermission(), contentVersionVO != null ? contentVersionVO.getVersion() : null) {
 			@Override
 			protected boolean isSelectionColumn() {
 				return isDeleteColumn();

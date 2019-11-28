@@ -371,14 +371,6 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		}
 	}
 
-	public boolean userHasPermissionToEditOtherUserAnnotation() {
-		if (documentVO != null) {
-			return getCurrentUser().has(RMPermissionsTo.EDIT_ALL_ANNOTATION).on(documentVO.getRecord());
-		} else {
-			return getCurrentUser().has(RMPermissionsTo.EDIT_ALL_ANNOTATION).globally();
-		}
-	}
-
 	public RecordVO getDuplicateDocumentRecordVO() {
 		if (copyId != null) {
 			Document document = rmSchemasRecordsServices.getDocument(copyId);
