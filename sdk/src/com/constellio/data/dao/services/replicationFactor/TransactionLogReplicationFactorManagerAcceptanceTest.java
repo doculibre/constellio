@@ -173,15 +173,15 @@ public class TransactionLogReplicationFactorManagerAcceptanceTest extends Conste
 		assertThat(Files.exists(localLogFilePath2)).isFalse();
 	}
 
-	// TODO test with two constellio, make sure that only one is running
-
-	// TODO test with two constellio, force leader change, make sure that the tasks stop/start correctly
-
 	private void waitUntilRecordExists(String recordId) {
 		Record record = null;
+		long start = System.currentTimeMillis();
 		do {
 			try {
 				record = recordServices.getDocumentById(recordId);
+				if (System.currentTimeMillis() - start > 15000L) {
+					fail();
+				}
 			} catch (NoSuchRecordWithId ignored) {
 			}
 		} while (record == null);

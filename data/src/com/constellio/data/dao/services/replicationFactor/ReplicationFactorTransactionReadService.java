@@ -51,7 +51,7 @@ public class ReplicationFactorTransactionReadService implements LeaderElectionMa
 	private DataLayerFactory dataLayerFactory;
 	private DataLayerSystemExtensions extensions;
 
-	private ScheduledExecutorService executor;
+	ScheduledExecutorService executor;
 	private ScheduledFuture scheduledFuture;
 	private Map<String, SortedSet<ReplicationFactorTransaction>> transactionsByRecordIds;
 
@@ -71,8 +71,12 @@ public class ReplicationFactorTransactionReadService implements LeaderElectionMa
 		if (dataLayerFactory.getLeaderElectionService().isCurrentNodeLeader()) {
 			executor = Executors.newSingleThreadScheduledExecutor();
 			scheduledFuture = executor.scheduleWithFixedDelay(
-					new ReplicationFactorTransactionReadTask(), 1, 1, SECONDS);
+					createReplicationFactorReadTask(), 1, 1, SECONDS);
 		}
+	}
+
+	Runnable createReplicationFactorReadTask() {
+		return new ReplicationFactorTransactionReadTask();
 	}
 
 	public void stop() {
@@ -266,9 +270,7 @@ public class ReplicationFactorTransactionReadService implements LeaderElectionMa
 		public void run() {
 			try {
 				if (isSolrCloudOnline()) {
-					log.info("Starting replay transactions task");
 					replayDegradedStateTransactions();
-					log.info("Completed replay transactions task");
 				}
 			} catch (Exception e) {
 				log.error("Error encountered while trying to replay transactions", e);

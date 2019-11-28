@@ -2,11 +2,15 @@ package com.constellio.data.dao.services.replicationFactor;
 
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
 import com.constellio.data.dao.services.replicationFactor.ReplicationFactorTestUtils.MockReplicationFactorTransactionReadTask;
 import com.constellio.data.dao.services.replicationFactor.dto.ReplicationFactorSolrInputField;
 import com.constellio.data.dao.services.replicationFactor.dto.ReplicationFactorTransaction;
 import com.constellio.data.dao.services.replicationFactor.dto.ReplicationFactorTransactionType;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.solr.common.SolrInputDocument;
@@ -27,8 +31,14 @@ import java.util.UUID;
 
 import static com.constellio.data.dao.services.replicationFactor.ReplicationFactorTestUtils.FOLDER;
 import static com.constellio.data.dao.services.replicationFactor.ReplicationFactorTestUtils.PREFIX;
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ReplicationFactorTransactionReadServiceAcceptanceTest extends ConstellioTest {
 
@@ -106,6 +116,101 @@ public class ReplicationFactorTransactionReadServiceAcceptanceTest extends Const
 		sortedTransactions.add(transaction1);
 
 		assertThat(sortedTransactions).containsExactly(transaction1, transaction2, transaction3);
+	}
+
+	@Test
+	public void givenDistributedModeThenOnlyMasterIsRunningTask() {
+		ModelLayerFactory modelLayerFactory1 = getModelLayerFactory();
+		ModelLayerFactory modelLayerFactory2 = getModelLayerFactory("other-instance");
+		linkEventBus(modelLayerFactory1, modelLayerFactory2, 1);
+
+		ReplicationFactorTransactionReadService transactionReadService2 =
+				new ReplicationFactorTransactionReadService(modelLayerFactory2.getDataLayerFactory(),
+						new ReplicationFactorLogService(modelLayerFactory2.getDataLayerFactory().getContentsDao()),
+						modelLayerFactory2.getDataLayerFactory().getExtensions().getSystemWideExtensions());
+		transactionReadService2.start();
+
+		transactionReadService.start();
+
+		if (modelLayerFactory2.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()) {
+			assertThat(transactionReadService.executor).isNull();
+			assertThat(transactionReadService2.executor).isNotNull();
+		} else {
+			assertThat(transactionReadService.executor).isNotNull();
+			assertThat(transactionReadService2.executor).isNull();
+		}
+	}
+
+	@Test
+	public void givenNodeIsLeaderThenExecutorIsStarted() {
+		DataLayerFactory dataLayerFactory = spy(getModelLayerFactory().getDataLayerFactory());
+
+		ObservableLeaderElectionManager leaderElectionManager = new ObservableLeaderElectionManager(new StandaloneLeaderElectionManager());
+		when(dataLayerFactory.getLeaderElectionService()).thenReturn(leaderElectionManager);
+
+		transactionReadService = new ReplicationFactorTransactionReadService(dataLayerFactory,
+				new ReplicationFactorLogService(dataLayerFactory.getContentsDao()),
+				dataLayerFactory.getExtensions().getSystemWideExtensions());
+		transactionReadService.start();
+
+		assertThat(transactionReadService.executor).isNotNull();
+	}
+
+	@Test
+	public void givenNodeIsNotLeaderThenExecutorIsNotStarted() {
+		DataLayerFactory dataLayerFactory = spy(getModelLayerFactory().getDataLayerFactory());
+
+		StandaloneLeaderElectionManager electionManager = new StandaloneLeaderElectionManager();
+		electionManager.setLeader(false);
+		ObservableLeaderElectionManager leaderElectionManager = new ObservableLeaderElectionManager(electionManager);
+		when(dataLayerFactory.getLeaderElectionService()).thenReturn(leaderElectionManager);
+
+		transactionReadService = new ReplicationFactorTransactionReadService(dataLayerFactory,
+				new ReplicationFactorLogService(dataLayerFactory.getContentsDao()),
+				dataLayerFactory.getExtensions().getSystemWideExtensions());
+		transactionReadService.start();
+
+		assertThat(transactionReadService.executor).isNull();
+	}
+
+	@Test
+	public void givenLeaderChangeThenExecutorHasCorrectBehavior() {
+		DataLayerFactory dataLayerFactory = spy(getModelLayerFactory().getDataLayerFactory());
+
+		ObservableLeaderElectionManager leaderElectionManager = new ObservableLeaderElectionManager(new StandaloneLeaderElectionManager());
+		when(dataLayerFactory.getLeaderElectionService()).thenReturn(leaderElectionManager);
+
+		transactionReadService = spy(new ReplicationFactorTransactionReadService(dataLayerFactory,
+				new ReplicationFactorLogService(dataLayerFactory.getContentsDao()),
+				dataLayerFactory.getExtensions().getSystemWideExtensions()));
+		when(transactionReadService.createReplicationFactorReadTask())
+				.thenReturn(new MockReplicationFactorTransactionReadTask(transactionReadService));
+
+		transactionReadService.start();
+
+		transactionReadService.onLeaderStatusChanged(false);
+		verify(transactionReadService).stop();
+
+		long start = System.currentTimeMillis();
+		do {
+			if (System.currentTimeMillis() - start > 15000L) {
+				fail();
+			}
+		} while (!transactionReadService.executor.isTerminated());
+
+		assertThat(transactionReadService.executor.isTerminated()).isTrue();
+
+		transactionReadService.onLeaderStatusChanged(true);
+		verify(transactionReadService, times(2)).start();
+
+		start = System.currentTimeMillis();
+		do {
+			if (System.currentTimeMillis() - start > 15000L) {
+				fail();
+			}
+		} while (transactionReadService.executor.isTerminated());
+
+		assertThat(transactionReadService.executor.isTerminated()).isFalse();
 	}
 
 	private ReplicationFactorTransaction buildTransaction(String id, long version) {
