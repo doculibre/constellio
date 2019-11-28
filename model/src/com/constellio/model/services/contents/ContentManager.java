@@ -367,7 +367,9 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		}
-		deleteOrphanParsedContentOrPreview(subFiles, vaultScanResults);
+		if (vaultScanResults != null) {
+			deleteOrphanParsedContentOrPreview(subFiles, vaultScanResults);
+		}
 	}
 
 	private boolean deleteOrphanParsedContentOrPreview(List<String> subFiles, VaultScanResults vaultScanResults) {
@@ -1337,6 +1339,26 @@ public class ContentManager implements StatefulService {
 		public ContentVersionDataSummary getContentVersionDataSummary() {
 			return contentVersionDataSummary;
 		}
+	}
+
+	public List<File> scanVaultContentAndFindUnreferenced() {
+		List<String> vaultContentFileList = new ArrayList<>();
+		getAllContentsFromVaultAndRemoveOrphan("", vaultContentFileList, null);
+		recordServices.flushRecords();
+		Set<String> allReferencedHashes = getAllReferencedHashes();
+
+		ContentDao contentDao = getContentDao();
+		List<File> files = new ArrayList<>();
+		for (String fileId : vaultContentFileList) {
+			if (!allReferencedHashes.contains(fileId)) {
+				File file = contentDao.getFileOf(fileId);
+				if (file.exists()) {
+					files.add(file);
+				}
+			}
+		}
+
+		return files;
 	}
 
 	protected static class VaultScanResults {

@@ -19,6 +19,7 @@ public abstract class RenameDialog extends WindowButton {
 
 	public RenameDialog(Resource icon, String caption, String windowCaption, boolean iconOnly) {
 		super(icon, caption, windowCaption, iconOnly, WindowConfiguration.modalDialog("768px", "130px"));
+		addStyleName(ValoTheme.BUTTON_BORDERLESS);
 	}
 
 	public String getOriginalValue() {

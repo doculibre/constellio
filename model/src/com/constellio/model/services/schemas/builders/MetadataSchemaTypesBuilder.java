@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -138,6 +139,17 @@ public class MetadataSchemaTypesBuilder {
 
 		schemaTypes.add(typeBuilder);
 		return typeBuilder;
+	}
+
+	public void resetAllIds() {
+		this.schemasTypeIdSequence = new SchemasIdSequence();
+
+		List<MetadataSchemaTypeBuilder> sortedTypes = new ArrayList<>(schemaTypes);
+		sortedTypes.sort(Comparator.comparing(MetadataSchemaTypeBuilder::getCode));
+
+		for (MetadataSchemaTypeBuilder schemaType : sortedTypes) {
+			schemaType.resetAllIds(schemasTypeIdSequence);
+		}
 	}
 
 	public boolean hasSchemaType(String code) {
