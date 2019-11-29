@@ -5,9 +5,10 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
+import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams.SearchAggregatedValuesParamsQuery;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,36 +18,30 @@ import java.util.Set;
 
 public class UnionMetadataAggregationHandler implements MetadataAggregationHandler {
 
-
 	@Override
 	public Object calculate(SearchAggregatedValuesParams params) {
-		//		Set<Object> allValues = new HashSet<>();
-		//		for (SearchAggregatedValuesParamsQuery entry : params.getQueries()) {
-		//			entry.getStreamSupplier().get().forEach((r) -> {
-		//				for (Metadata metadata : entry.getMetadatas()) {
-		//					allValues.addAll(r.getValues(metadata));
-		//				}
-		//			});
-		//		}
-
-		LogicalSearchQuery query = new LogicalSearchQuery(params.getCombinedQuery());
-
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(params.getInputMetadatas()));
-		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
-		query.setName("RecordReindexing:BackgroundThread:UnionMetadataAggregationHandlerQuery");
-		SearchResponseIterator<Record> iterator = params.getSearchServices().recordsIterator(query, 10000);
-
 		Set<Comparable> allValues = new HashSet<>();
 
-		while (iterator.hasNext()) {
-			Record record = iterator.next();
-			for (Metadata inputMetadata : params.getInputMetadatas()) {
-				allValues.addAll((List) record.getValues(inputMetadata));
-			}
+		for (SearchAggregatedValuesParamsQuery searchQuery : params.getQueries()) {
+			LogicalSearchQuery query = new LogicalSearchQuery(searchQuery.getQuery());
+			boolean areAllMetadatasInSummary = params.getInputMetadatas().stream().allMatch(SchemaUtils::isSummary);
+			query.setReturnedMetadatas(areAllMetadatasInSummary ?
+									   ReturnedMetadatasFilter.onlySummaryFields() :
+									   ReturnedMetadatasFilter.onlyMetadatas(params.getInputMetadatas()));
 
+			SearchResponseIterator<Record> iterator =
+					params.getSearchServices().recordsIterator(query, 10000);
+
+			while (iterator.hasNext()) {
+				Record record = iterator.next();
+				for (Metadata inputMetadata : params.getInputMetadatas()) {
+					allValues.addAll(record.getValues(inputMetadata));
+				}
+
+			}
 		}
 
-		List<Comparable> listValues = new ArrayList(allValues);
+		List<Comparable> listValues = new ArrayList<>(allValues);
 		Collections.sort(listValues);
 
 		return listValues;
