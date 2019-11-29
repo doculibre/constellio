@@ -825,7 +825,7 @@ public class TaskTable extends VerticalLayout {
 
 				for (ContentVersionVO contentVersionVO : contents) {
 					String filename = contentVersionVO.getFileName();
-					DownloadContentVersionLink downloadContentLink = new DownloadContentVersionLink(contentVersionVO, filename);
+					DownloadContentVersionLink downloadContentLink = new DownloadContentVersionLink(contentVersionVO, filename, taskVO.getId(), Task.CONTENTS, false);
 					contentsLayout.addComponent(downloadContentLink);
 				}
 				contentsComponent = contentsLayout;

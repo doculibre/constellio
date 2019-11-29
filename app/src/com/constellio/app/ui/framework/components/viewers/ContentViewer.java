@@ -43,7 +43,6 @@ public class ContentViewer extends CustomComponent {
 			// ***************************
 			if (true || StringUtils.isNotBlank(licenseForPdftron) && Arrays.asList(SUPPORTED_EXTENTION).contains(extension)) {
 				PdfTronViewer pdfTronViewer = new PdfTronViewer(recordVO.getId(), contentVersionVO, metadataCode, false, licenseForPdftron);
-
 				viewerComponent = pdfTronViewer;
 			} else if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
 				ImageViewer imageViewer = new ImageViewer(recordVO, Document.CONTENT, contentVersionVO) {
@@ -81,6 +80,12 @@ public class ContentViewer extends CustomComponent {
 			setVisible(false);
 		} else {
 			setCompositionRoot(viewerComponent);
+		}
+	}
+
+	public void setSpecialCaseHeight(String height) {
+		if (viewerComponent instanceof PdfTronViewer) {
+			viewerComponent.setHeight(height);
 		}
 	}
 

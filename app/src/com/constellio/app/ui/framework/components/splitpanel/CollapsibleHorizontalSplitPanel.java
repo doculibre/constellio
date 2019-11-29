@@ -116,6 +116,10 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 		}
 	}
 
+	public Component getFirstComponentContainer() {
+		return this.firstComponentContainer;
+	}
+
 	public float getSecondComponentWidth() {
 		return secondComponentWidth;
 	}

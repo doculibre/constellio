@@ -61,13 +61,17 @@ public class DownloadContentVersionLink extends DownloadLink {
 	}
 
 	private boolean usePdfTron() {
+		// contentVersion is only set in pdfTron constructor.
+		if (this.contentVersionVO == null) {
+			return false;
+		}
+
 		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(contentVersionVO.getFileName()));
-		return this.recordId != null && this.metadataCode != null && isReadonly != null && Arrays.asList(PdfTronViewer.SUPPORTED_EXTENTION).contains(extension)
+		return this.contentVersionVO.getContentId() != null && this.recordId != null && this.metadataCode != null && isReadonly != null && Arrays.asList(PdfTronViewer.SUPPORTED_EXTENTION).contains(extension)
 			   && (true || StringUtils.isNotBlank(PdfTronViewer.getPdfTronKey()));
 	}
 
 	private BaseWindow buildPdfTronWindow() {
-
 		return new PdfTronContentVersionWindow(recordId, contentVersionVO, metadataCode, isReadonly, PdfTronViewer.getPdfTronKey());
 	}
 

@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseLabel;
 import com.constellio.app.ui.framework.components.BaseRequestHandler;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
+import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler.ResourceType;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.JavascriptUtils;
 import com.constellio.model.entities.records.wrappers.User;
@@ -87,10 +88,10 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		this.pdfTronLicense = license;
 
-		this.documentContentResource = ConstellioResourceHandler.createResource(recordId, metadataCode, contentVersion.getVersion(), filename);
+		this.documentContentResource = ConstellioResourceHandler.createResource(recordId, metadataCode, contentVersion.getVersion(), filename, ResourceType.NORMAL, false, contentVersion.getContentId());
 		this.documentContentResourceKey = CONTENT_RESOURCE_KEY_PREFIX + UUID.randomUUID().toString();
 
-		this.documentAnnotationResource = ConstellioResourceHandler.createAnnotationResource(recordId, metadataCode, contentVersion.getVersion(), filename);
+		this.documentAnnotationResource = ConstellioResourceHandler.createAnnotationResource(recordId, metadataCode, contentVersion.getVersion(), filename, contentVersion.getContentId());
 		this.documentAnnotationResourceKey = ANNOTATION_RESOURCE_KEY + UUID.randomUUID().toString();
 
 		ResourceReference documentContentResourceReference = ResourceReference.create(documentContentResource, current, documentContentResourceKey);
@@ -101,9 +102,9 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		canvasId = PDFTRON_CANVAS_ID + RandomStringUtils.random(13, true, true);
 
-		this.userHasRightToEditOtherUserAnnotation = pdfTronPresenter.hasEditAllAnnotation();
-
 		this.pdfTronPresenter = new PdfTronPresenter(this, this.recordId, contentVersion);
+
+		this.userHasRightToEditOtherUserAnnotation = pdfTronPresenter.hasEditAllAnnotation();
 
 		setWidth("100%");
 		setHeight("800px");

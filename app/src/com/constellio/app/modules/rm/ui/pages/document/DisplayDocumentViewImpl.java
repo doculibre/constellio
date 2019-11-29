@@ -205,6 +205,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			js.append(functionId + "(splitterDivHeight);");
 			JavaScript.getCurrent().execute(js.toString());
 		}
+
+		if (inWindow) {
+			contentViewer.setSpecialCaseHeight("100%");
+			contentViewer.setHeight("100%");
+			mainLayout.setHeight("100%");
+		}
+
 		return contentViewer;
 	}
 
@@ -222,6 +229,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					isContentViewerInSplitPanel = true;
 					contentViewer = newContentViewer;
 					Component splitPanel = createSplitPanel();
+
 					mainLayout.replaceComponent(contentMetadataComponent, splitPanel);
 					contentMetadataComponent = splitPanel;
 				}
@@ -367,6 +375,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		splitPanel.setFirstComponent(contentViewer);
 		splitPanel.setSecondComponent(tabSheet);
 		splitPanel.setSecondComponentWidth(RECORD_DISPLAY_WIDTH, RECORD_DISPLAY_WIDTH_UNIT);
+
+		if (inWindow) {
+			splitPanel.getFirstComponentContainer().setHeightUndefined();
+		}
+
 		return splitPanel;
 	}
 
@@ -631,7 +644,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		if (((DocumentVO) documentVO).getContent() != null) {
 			downloadDocumentButton = new DownloadContentVersionLink(((DocumentVO) documentVO).getContent(),
-					$("DisplayDocumentView.downloadDocument"));
+					$("DisplayDocumentView.downloadDocument"), documentVO.getId(), Document.CONTENT, false);
 			downloadDocumentButton.addStyleName("download-document-link");
 
 			openDocumentButton.setIcon(downloadDocumentButton.getIcon());

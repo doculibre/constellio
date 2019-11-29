@@ -225,7 +225,7 @@ public class MetadataDisplayFactory implements Serializable {
 					break;
 				case CONTENT:
 					ContentVersionVO contentVersionVO = (ContentVersionVO) displayValue;
-					displayComponent = new ContentVersionDisplay(recordVO, contentVersionVO, new BaseUpdatableContentVersionPresenter());
+					displayComponent = new ContentVersionDisplay(recordVO, contentVersionVO, metadata.getLocalCode(), new BaseUpdatableContentVersionPresenter());
 					break;
 				case REFERENCE:
 					switch (metadataInputType) {

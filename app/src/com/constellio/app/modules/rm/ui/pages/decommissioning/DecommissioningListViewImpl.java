@@ -1248,7 +1248,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		private Object generateDownloadLinkCell(ContentVersionVO contentVersionVO) {
 			String filename = contentVersionVO.getFileName();
-			return new ContentVersionDisplay(decommissioningList, contentVersionVO, filename, new BaseUpdatableContentVersionPresenter());
+			return new ContentVersionDisplay(decommissioningList, contentVersionVO, filename, DecommissioningList.CONTENTS, new BaseUpdatableContentVersionPresenter());
 		}
 
 		private Object generateUserCell(ContentVersionVO contentVersionVO) {
