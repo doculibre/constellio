@@ -854,7 +854,7 @@ public class TaskTable extends VerticalLayout {
 				Component linkComponent;
 
 				if (agentURL != null && isUserAuthorized) {
-					linkComponent = new ConstellioAgentLink(agentURL, documentVO, contentVersionVO, documentVO.getTitle(), false, new BaseUpdatableContentVersionPresenter());
+					linkComponent = new ConstellioAgentLink(agentURL, documentVO, contentVersionVO, documentVO.getTitle(), false, new BaseUpdatableContentVersionPresenter(), Document.CONTENT);
 					((ConstellioAgentLink) linkComponent).addVisitedClickListener(documentVO.getId());
 				} else {
 					linkComponent = new ReferenceDisplay(documentVO);

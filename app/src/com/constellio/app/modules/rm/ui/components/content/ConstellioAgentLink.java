@@ -24,18 +24,15 @@ public class ConstellioAgentLink extends HorizontalLayout {
 	
 	private DownloadContentVersionLink downloadContentLink;
 
-	public ConstellioAgentLink(String agentURL, RecordVO recordVO, ContentVersionVO contentVersionVO, String caption,
-							   UpdatableContentVersionPresenter presenter) {
-		this(agentURL, recordVO, contentVersionVO, caption, true, presenter);
-	}
 
 	public ConstellioAgentLink(String agentURL, ContentVersionVO contentVersionVO, String caption,
 							   boolean downloadLink) {
-		this(agentURL, null, contentVersionVO, caption, downloadLink, null);
+		this(agentURL, null, contentVersionVO, caption, downloadLink, null, null);
 	}
 
 	public ConstellioAgentLink(final String agentURL, final RecordVO recordVO, final ContentVersionVO contentVersionVO,
-							   String caption, boolean downloadLink, UpdatableContentVersionPresenter presenter) {
+							   String caption, boolean downloadLink, UpdatableContentVersionPresenter presenter,
+							   String metadataCode) {
 		addStyleName("agent-link");
 		agentLink = new AgentLink(agentURL, contentVersionVO, caption);
 		agentLink.addClickListener(new ClickListener() {
@@ -51,9 +48,9 @@ public class ConstellioAgentLink extends HorizontalLayout {
 		addComponent(agentLink);
 		if (downloadLink) {
 			if (presenter != null) {
-				downloadContentLink = new DownloadContentVersionLink(recordVO, contentVersionVO, new ThemeResource("images/icons/actions/download.png"), presenter);
+				downloadContentLink = new DownloadContentVersionLink(recordVO, contentVersionVO, new ThemeResource("images/icons/actions/download.png"), presenter, metadataCode, false);
 			} else {
-				downloadContentLink = new DownloadContentVersionLink(contentVersionVO, new ThemeResource("images/icons/actions/download.png"));
+				downloadContentLink = new DownloadContentVersionLink(recordVO, contentVersionVO, new ThemeResource("images/icons/actions/download.png"), metadataCode, false);
 			}
 			downloadContentLink.setDescription($("download"));
 			addComponent(downloadContentLink);

@@ -7,7 +7,7 @@ import com.vaadin.ui.Component;
 
 public interface DownloadContentVersionLinkExtension {
 
-	Component getDownloadLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption,
+	Component getDownloadLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption, String metadataCode,
 							  UpdatableContentVersionPresenter presenter);
 
 }
