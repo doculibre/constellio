@@ -338,7 +338,7 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 	private boolean isQueryReturningNoResults(LogicalSearchQuery query) {
-		return LogicalSearchQuery.INEXISTENT_COLLECTION_42.equals(query.getCondition().getCollection());
+		return query.getCondition() != null && query.getCondition().getCollection() != null && LogicalSearchQuery.INEXISTENT_COLLECTION_42.equals(query.getCondition().getCollection());
 	}
 
 	public boolean isQueryExecutableInCache(LogicalSearchQuery query) {

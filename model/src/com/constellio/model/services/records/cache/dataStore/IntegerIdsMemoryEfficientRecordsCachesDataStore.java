@@ -20,6 +20,7 @@ import com.constellio.model.services.records.cache.offHeapCollections.OffHeapSho
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -64,6 +65,13 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		this.tenantId = modelLayerFactory.getInstanceId();
 	}
 
+	public void storeCache(File cacheFile) {
+
+	}
+
+	public void loadFromCacheFile(File cacheFile) {
+
+	}
 
 	private byte collectionId(String collectionCode) {
 		return collectionsListManager.getCollectionInfo(collectionCode).getCollectionId();
@@ -173,21 +181,24 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 		mechanism.obtainSchemaTypeWritingPermit(collectionId, typeId);
 
-		try {
+		synchronized (this) {
+			try {
 
-			boolean newRecord = index == -1;
-			if (index < 0) {
-				boolean fullyCached = dto instanceof SolrRecordDTO;
-				index = ajustArraysForNewId(id, fullyCached, holdSpaceForPreviousIds);
+				boolean newRecord = index == -1;
+				if (index < 0) {
+					boolean fullyCached = dto instanceof SolrRecordDTO;
+					index = ajustArraysForNewId(id, fullyCached, holdSpaceForPreviousIds);
+				}
+				writeAtIndex(dto, collectionId, typeId, schemaId, collectionIndex, index, newRecord);
+
+			} finally {
+				mechanism.releaseSchemaTypeWritingPermit(collectionId, typeId);
 			}
-			writeAtIndex(dto, collectionId, typeId, schemaId, collectionIndex, index, newRecord);
-
-		} finally {
-			mechanism.releaseSchemaTypeWritingPermit(collectionId, typeId);
 		}
 	}
 
-	private void writeAtIndex(RecordDTO dto, byte collectionId, short typeId, short schemaId, int collectionIndex,
+	private void writeAtIndex(RecordDTO dto, byte collectionId, short typeId, short schemaId,
+							  int collectionIndex,
 							  int index, boolean newRecord) {
 		newRecord |= schema.get(index) == 0;
 

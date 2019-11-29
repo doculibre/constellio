@@ -16,6 +16,7 @@ import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.Holder;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LazyIterator;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -32,6 +33,7 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
@@ -50,7 +52,11 @@ import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuer
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderContext;
 import com.constellio.model.services.security.SecurityTokenManager;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.io.Tuple;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.FacetParams;
@@ -64,6 +70,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -78,6 +85,7 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -340,6 +348,17 @@ public class SearchServices {
 		return streamFromSolr(query, batchSize);
 
 	}
+
+	@AllArgsConstructor
+	public static class RecordIdVersion {
+
+		@Getter
+		RecordId recordId;
+
+		@Getter
+		long version;
+	}
+
 
 	public Stream<Record> stream(LogicalSearchQuery query) {
 		return stream(query, 1000);
@@ -1017,6 +1036,77 @@ public class SearchServices {
 				return recordDTO.getId();
 			}
 		};
+	}
+
+
+	public Iterator<RecordIdVersion> recordsIdVersionIteratorUsingSolr(MetadataSchemaType schemaType) {
+
+		Map<String, String> props = new HashMap<>();
+		props.put("q", "schema_s:" + schemaType.getCode() + "_*");
+		props.put("fq", "collection_s:" + schemaType.getCollection());
+		//props.put("qt", "/export");
+		props.put("sort", "id asc");
+		props.put("fl", "id, _version_");
+		props.put("rows", "100000000");
+
+		TupleStream tupleStream = dataStoreDao(DataStore.RECORDS).tupleStream(props);
+
+		try {
+			tupleStream.open();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		AtomicInteger count = new AtomicInteger();
+		return new LazyIterator<RecordIdVersion>() {
+
+			@Override
+			protected RecordIdVersion getNextOrNull() {
+
+				try {
+
+					Tuple tuple = tupleStream.read();
+					if (tuple.EOF) {
+						LOGGER.info("Fetching ids and versions of schema type '" + schemaType.getCollection() + ":" + schemaType.getCode() + "' using tuple stream method finished : " + count.get());
+						tupleStream.close();
+						return null;
+					} else {
+						//LOGGER.info("Fetching ids and versions of schema type '" + schemaType.getCollection() + ":" + schemaType.getCode() + "' using tuple stream method ... : " + count.get());
+						count.incrementAndGet();
+						RecordId id = RecordId.toId(tuple.getString("id"));
+						long version = tuple.getLong("_version_");
+						return new RecordIdVersion(id, version);
+					}
+				} catch (IOException e) {
+					try {
+						tupleStream.close();
+					} catch (IOException e1) {
+						throw new RuntimeException(e1);
+					}
+					throw new RuntimeException(e);
+				}
+			}
+		};
+
+
+	}
+
+	protected void visitTuples(TupleStream tupleStream, Consumer<Tuple> consumer) throws
+																				  IOException {
+
+		try {
+			tupleStream.open();
+			int start = 0;
+			for (Tuple tuple = tupleStream.read(); !tuple.EOF; tuple = tupleStream.read()) {
+				consumer.accept(tuple);
+				//System.out.println(tuple.getString("id"));
+				//if (start++ % 100000 == 0) {
+				//	System.out.println(start);
+				//}
+			}
+		} finally {
+			tupleStream.close();
+		}
 	}
 
 	public Iterator<String> reverseRecordsIdsIterator(LogicalSearchQuery query) {

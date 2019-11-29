@@ -8,20 +8,25 @@ public class ThreadList<T extends Thread> {
 
 	private final List<T> threads = new ArrayList<T>();
 
-	public void add(T thread) {
-		threads.add(thread);
+	public ThreadList() {
 	}
 
-	public void addAndStart(T thread) {
+	public ThreadList<T> add(T thread) {
+		threads.add(thread);
+		return this;
+	}
+
+	public ThreadList<T> addAndStart(T thread) {
 		threads.add(thread);
 		thread.start();
+		return this;
 	}
 
-	public void startAll()
-			throws InterruptedException {
+	public ThreadList<T> startAll() {
 		for (Thread thread : threads) {
 			thread.start();
 		}
+		return this;
 	}
 
 	public void joinAll()
@@ -39,5 +44,14 @@ public class ThreadList<T extends Thread> {
 
 	public int size() {
 		return threads.size();
+	}
+
+	public static ThreadList<Thread> running(int nbThreads, Runnable runnable) {
+		ThreadList<Thread> threads = new ThreadList<>();
+
+		for (int i = 0; i < nbThreads; i++) {
+			threads.add(new Thread(runnable));
+		}
+		return threads;
 	}
 }
