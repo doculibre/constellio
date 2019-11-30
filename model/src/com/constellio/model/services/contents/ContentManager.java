@@ -528,40 +528,35 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	public boolean getAnnotationLockIfUserHaveIt(String hash, String id, String version, String userId,
-												 String randomKey) {
+	public boolean doesUserHaveLock(String hash, String id, String version, String userId) {
 		String lockFileName = hash + ".annotationLock." + id + "." + version;
 
 		if (getContentDao().isDocumentExisting(lockFileName)) {
-			return addUserRandomKeyToLockFile(hash, id, version, userId, randomKey, lockFileName);
-		} else {
-			return false;
+			String tokenized = getUserAndKeyHavingAnnotationLock(hash, id, version);
+
+			if (tokenized != null) {
+				String userWithLockId = AnnotationLockUtil.getUserId(tokenized);
+
+				if (userId.equals(userWithLockId)) {
+					return true;
+				} else {
+					return false;
+				}
+			}
 		}
+
+		return false;
 	}
 
-	private boolean addUserRandomKeyToLockFile(String hash, String id, String version, String userId, String randomKey,
-											   String lockFileName) {
-		String token = getUserAndKeyHavingAnnotationLock(hash, id, version);
-		String userIdWhoHaveLock = AnnotationLockUtil.getUserId(token);
 
-		if (userId.equals(userIdWhoHaveLock)) {
-			List<String> keys = AnnotationLockUtil.getKeys(token);
-			keys.add(randomKey);
-
-			return writeLockFile(AnnotationLockUtil.createTokenizedString(userId, keys), lockFileName);
-		} else {
-			return false;
-		}
-	}
 
 	public boolean obtainAnnotationLock(String hash, String id, String version, String userId, String randomKey) {
 
 		String lockFileName = hash + ".annotationLock." + id + "." + version;
 		if (!getContentDao().isDocumentExisting(lockFileName)) {
-
 			return writeLockFile(userId + ";" + randomKey, lockFileName);
 		} else {
-			return addUserRandomKeyToLockFile(hash, id, version, userId, randomKey, lockFileName);
+			return false;
 		}
 	}
 
@@ -586,27 +581,12 @@ public class ContentManager implements StatefulService {
 			String userWithLockId = AnnotationLockUtil.getUserId(tokenized);
 
 			if (userId.equals(userWithLockId)) {
-				List<String> keyList = AnnotationLockUtil.getKeys(tokenized);
+				String keyInFile = AnnotationLockUtil.getKey(tokenized);
 
 				String lockFileName = hash + ".annotationLock." + id + "." + version;
 
-				if (keyList.size() == 1) {
-					if (keyList.get(0).equals(key)) {
-						getContentDao().delete(asList(lockFileName));
-					}
-				} else {
-					Iterator<String> keyIterator = keyList.iterator();
-
-					while (keyIterator.hasNext()) {
-						String currentKey = keyIterator.next();
-
-						if (currentKey.equals(key)) {
-							keyIterator.remove();
-							break;
-						}
-					}
-
-					writeLockFile(AnnotationLockUtil.createTokenizedString(userId, keyList), lockFileName);
+				if (keyInFile.equals(key)) {
+					getContentDao().delete(asList(lockFileName));
 				}
 			}
 		}

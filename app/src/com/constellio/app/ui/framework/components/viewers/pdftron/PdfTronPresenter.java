@@ -46,6 +46,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	private IOServices ioServices;
 	private String metadataCode;
 	private String pageRandomId;
+	private boolean doesCurrnetPageHaveLock;
 
 	public PdfTronPresenter(PdfTronViewer pdfTronViewer, String recordId, String metadataCode,
 							ContentVersionVO contentVersion) {
@@ -67,7 +68,8 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	private void initialize() {
-		doesCurrentUserHaveAnnotationLock = addPageLockIfUserAlreadyHaveLock();
+		this.doesCurrentUserHaveAnnotationLock = doesUserHaveLock();
+		this.doesCurrnetPageHaveLock = false;
 
 		try {
 			if (hasContentAnnotation()) {
@@ -78,6 +80,10 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public boolean doesCurrentPageHaveLock() {
+		return doesCurrnetPageHaveLock;
 	}
 
 	private boolean hasContentAnnotation() {
@@ -129,14 +135,15 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		return getCurrentUser().has(CorePermissions.EDIT_ALL_ANNOTATION).on(record);
 	}
 
-	public boolean addPageLockIfUserAlreadyHaveLock() {
-		return contentManager.getAnnotationLockIfUserHaveIt(contentVersion.getHash(), recordId, contentVersion.getVersion(), getUserVO().getId(), this.pageRandomId);
+	public boolean doesUserHaveLock() {
+		return contentManager.doesUserHaveLock(contentVersion.getHash(), recordId, contentVersion.getVersion(), getUserVO().getId());
 	}
 
 	public boolean obtainAnnotationLock() {
 		boolean isLockObtained = contentManager.obtainAnnotationLock(contentVersion.getHash(), recordId, contentVersion.getVersion(), getUserVO().getId(), pageRandomId);
-		doesCurrentUserHaveAnnotationLock = isLockObtained;
-		return isLockObtained;
+		this.doesCurrentUserHaveAnnotationLock = isLockObtained;
+		this.doesCurrnetPageHaveLock = isLockObtained;
+		return doesCurrnetPageHaveLock;
 	}
 
 	public void releaseAnnotationLockIfUserhasIt() {

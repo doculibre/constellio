@@ -70,6 +70,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private GetAnnotationsOfOtherVersionWindowButton getAnnotationsOfOtherVersionWindowButton;
 	private Button editAnnotationBtn;
 	private Label anOtherUserIdEditing;
+	private Label anOtherPageIsEdtting;
 
 	private VerticalLayout mainLayout;
 
@@ -114,7 +115,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		setHeight("800px");
 		mainLayout = new VerticalLayout();
 
-		isViewerInReadOnly = !pdfTronPresenter.doesCurrentUserHaveAnnotationLock();
+		isViewerInReadOnly = !pdfTronPresenter.doesCurrentPageHaveLock();
 
 		editAnnotationBtn = new BaseButton(isViewerInReadOnly ? $("pdfTronViewer.editAnnotation") : $("pdfTronViewer.finalizeEditionAnnotation")) {
 			@Override
@@ -126,7 +127,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 						this.setCaption($("pdfTronViewer.finalizeEditionAnnotation"));
 						isViewerInReadOnly = false;
 					} else {
-						addMessageIfAnOtherUserIsEditing();
+						addMessageIfAnOtherUserOrAnOtherPageIsEditing();
 						Notification.show($("pdfTronViewer.errorWhileGettingAnnotationLock"), Type.WARNING_MESSAGE);
 					}
 				} else {
@@ -174,7 +175,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		if (userHasWriteAccess) {
 			buttonLayout.addComponent(editAnnotationBtn);
 		}
-		addMessageIfAnOtherUserIsEditing();
+		addMessageIfAnOtherUserOrAnOtherPageIsEditing();
 
 		buttonLayout.addComponent(consultAnnotation);
 
@@ -193,6 +194,12 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		mainLayout.setExpandRatio(canvas, 1);
 		addComponent(mainLayout);
 	}
+
+	public void releaseRessource() {
+		pdfTronPresenter.releaseAnnotationLockIfUserhasIt();
+		stopThreadAndDontReleaseLock();
+	}
+
 
 	private void stopThreadAndDontReleaseLock() {
 		if (this.threadState != null) {
@@ -300,7 +307,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		com.vaadin.ui.JavaScript.eval("setWebViewerReadOnly(false)");
 	}
 
-	private void addMessageIfAnOtherUserIsEditing() {
+	private void addMessageIfAnOtherUserOrAnOtherPageIsEditing() {
 		if (!pdfTronPresenter.hasWrtteAccessToDocument()) {
 			return;
 		}
@@ -311,6 +318,9 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			anOtherUserIdEditing = new BaseLabel($("pdfTronViewer.someOneElseIdEditingAnnotation",
 					pdfTronPresenter.getUserName(currentAnnotationLockUser)));
 			mainLayout.addComponent(anOtherUserIdEditing, 0);
+		} else if (pdfTronPresenter.doesUserHaveLock() && !pdfTronPresenter.doesCurrentPageHaveLock()) {
+			anOtherPageIsEdtting = new BaseLabel($("pdfTronViewer.anOtherPageIsEditting"));
+			mainLayout.addComponent(anOtherPageIsEdtting, 0);
 		}
 
 		editAnnotationBtn.setEnabled(!someOneElseIsEditingAnnotations);
@@ -341,7 +351,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		StringBuilder toExecute = new StringBuilder();
 
 		toExecute.append("canvasId='" + canvasId + "';");
-		toExecute.append("isViewerReadOnlyOnInit=" + isViewerInReadOnly + ";");
+		//		toExecute.append("isViewerReadOnlyOnInit=" + isViewerInReadOnly + ";");
 		toExecute.append("documentContent='" + documentContentUrl + "';");
 		toExecute.append("documentAnnotationRK='" + documentAnnotationResourceKey + "';");
 		toExecute.append("documentAnnotationUrl='" + documentAnnotationUrl + "';");
@@ -350,9 +360,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		toExecute.append("admin=" + userHasRightToEditOtherUserAnnotation + ";");
 		toExecute.append("license=" + pdfTronLicense + ";");
 
-		if (!isViewerInReadOnly) {
-			startAliveCallBack();
-		}
 
 		com.vaadin.ui.JavaScript.eval(toExecute.toString());
 

@@ -83,6 +83,12 @@ public class ContentViewer extends CustomComponent {
 		}
 	}
 
+	public void releaseRessource() {
+		if (viewerComponent instanceof PdfTronViewer) {
+			((PdfTronViewer) viewerComponent).releaseRessource();
+		}
+	}
+
 	public void setSpecialCaseHeight(String height) {
 		if (viewerComponent instanceof PdfTronViewer) {
 			viewerComponent.setHeight(height);

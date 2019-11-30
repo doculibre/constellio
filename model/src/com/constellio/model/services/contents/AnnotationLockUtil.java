@@ -1,6 +1,5 @@
 package com.constellio.model.services.contents;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -12,18 +11,13 @@ public class AnnotationLockUtil {
 		return tokenizer.nextToken();
 	}
 
-	public static List<String> getKeys(String tokenString) {
+	public static String getKey(String tokenString) {
 		StringTokenizer tokeneizer = new StringTokenizer(tokenString, ";");
 
 		tokeneizer.nextToken();
 
-		List<String> keyList = new ArrayList<>();
 
-		while (tokeneizer.hasMoreTokens()) {
-			keyList.add(tokeneizer.nextToken());
-		}
-
-		return keyList;
+		return tokeneizer.nextToken();
 	}
 
 	public static String createTokenizedString(String userId, List<String> keyList) {

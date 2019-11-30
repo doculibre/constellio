@@ -625,6 +625,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		displayDocumentButton = new DisplayButton($("DisplayDocumentView.displayDocument"), false) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				contentViewer.releaseRessource();
 				presenter.displayDocumentButtonClicked();
 			}
 		};
