@@ -34,7 +34,7 @@ public class ContentVersionDisplay extends CustomComponent {
 		Component downloadLink = null;
 		if (downloadContentVersionLinkExtensions != null) {
 			for (DownloadContentVersionLinkExtension extension : downloadContentVersionLinkExtensions) {
-				downloadLink = extension.getDownloadLink(recordVO, contentVersionVO, caption, presenter);
+				downloadLink = extension.getDownloadLink(recordVO, contentVersionVO, caption, metadataCode, presenter);
 				if (downloadLink != null) {
 					break;
 				}

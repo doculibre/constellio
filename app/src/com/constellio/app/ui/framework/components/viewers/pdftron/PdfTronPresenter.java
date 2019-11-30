@@ -3,23 +3,33 @@ package com.constellio.app.ui.framework.components.viewers.pdftron;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
 import com.constellio.model.services.pdftron.PdfTronXMLService;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
-public class PdfTronPresenter {
+public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter {
 
 	private AppLayerFactory appLayerFactory;
 	private ContentManager contentManager;
@@ -32,10 +42,13 @@ public class PdfTronPresenter {
 	private Record record;
 	private PdfTronXMLService pdfTronParser;
 	private String xmlCurrentAnnotations;
+	private MetadataSchemasManager metadataSchemasManager;
 	private IOServices ioServices;
+	private String metadataCode;
+	private String pageRandomId;
 
-
-	public PdfTronPresenter(PdfTronViewer pdfTronViewer, String recordId, ContentVersionVO contentVersion) {
+	public PdfTronPresenter(PdfTronViewer pdfTronViewer, String recordId, String metadataCode,
+							ContentVersionVO contentVersion) {
 		this.appLayerFactory = pdfTronViewer.getAppLayerFactory();
 		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 		this.contentDao = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getContentsDao();
@@ -47,12 +60,14 @@ public class PdfTronPresenter {
 		this.record = this.schemasRecordsServices.get(recordId);
 		this.pdfTronParser = new PdfTronXMLService();
 		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
-
+		this.metadataCode = metadataCode;
+		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+		this.pageRandomId = UUID.randomUUID().toString();
 		initialize();
 	}
 
 	private void initialize() {
-		String currentAnnotationLockUser = getCurrentAnnotationLockUser();
+		doesCurrentUserHaveAnnotationLock = addPageLockIfUserAlreadyHaveLock();
 
 		try {
 			if (hasContentAnnotation()) {
@@ -63,13 +78,15 @@ public class PdfTronPresenter {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-
-		doesCurrentUserHaveAnnotationLock = currentAnnotationLockUser != null && currentAnnotationLockUser
-				.equals(pdfTronViewer.getCurrentSessionContext().getCurrentUser().getId());
 	}
 
 	private boolean hasContentAnnotation() {
 		return this.contentManager.hasContentAnnotation(contentVersion.getHash(), recordId, contentVersion.getVersion());
+	}
+
+
+	public String getUserIdThatHaveAnnotationLock() {
+		return this.contentManager.getUserIdThatHaveAnnotationLock(this.contentVersion.getHash(), recordId, contentVersion.getVersion());
 	}
 
 
@@ -97,11 +114,6 @@ public class PdfTronPresenter {
 		}
 	}
 
-	public String getUserHavingAnnotationLock() {
-		String hash = contentVersion.getHash();
-
-		return contentManager.getUserHavingAnnotationLock(hash, recordId, contentVersion.getVersion());
-	}
 
 	public String getUserName(String userId) {
 		User user = schemasRecordsServices.getUser(userId);
@@ -117,12 +129,12 @@ public class PdfTronPresenter {
 		return getCurrentUser().has(CorePermissions.EDIT_ALL_ANNOTATION).on(record);
 	}
 
-	public String getCurrentAnnotationLockUser() {
-		return contentManager.getUserHavingAnnotationLock(contentVersion.getHash(), recordId, contentVersion.getVersion());
+	public boolean addPageLockIfUserAlreadyHaveLock() {
+		return contentManager.getAnnotationLockIfUserHaveIt(contentVersion.getHash(), recordId, contentVersion.getVersion(), getUserVO().getId(), this.pageRandomId);
 	}
 
 	public boolean obtainAnnotationLock() {
-		boolean isLockObtained = contentManager.obtainAnnotationLock(contentVersion.getHash(), recordId, contentVersion.getVersion(), getUserVO().getId());
+		boolean isLockObtained = contentManager.obtainAnnotationLock(contentVersion.getHash(), recordId, contentVersion.getVersion(), getUserVO().getId(), pageRandomId);
 		doesCurrentUserHaveAnnotationLock = isLockObtained;
 		return isLockObtained;
 	}
@@ -132,7 +144,7 @@ public class PdfTronPresenter {
 			return;
 		}
 
-		contentManager.releaseAnnotationLock(contentVersion.getHash(), recordId, contentVersion.getVersion());
+		contentManager.releaseAnnotationLock(contentVersion.getHash(), recordId, contentVersion.getVersion(), getCurrentUser().getId(), this.pageRandomId);
 		doesCurrentUserHaveAnnotationLock = false;
 	}
 
@@ -162,4 +174,40 @@ public class PdfTronPresenter {
 			System.out.println(xmlToSave);
 		}
 	}
+
+	@Override
+	public List<ContentVersionVO> getAvalibleVersion() {
+		MetadataSchema metadataSchema = metadataSchemasManager.getSchemaOf(record);
+		Metadata contentMetadata = metadataSchema.getMetadata(metadataCode);
+
+		Object contentValueAsObj = record.get(contentMetadata);
+
+		Content content;
+		if (contentValueAsObj instanceof Content) {
+			content = (Content) contentValueAsObj;
+		} else {
+			throw new ImpossibleRuntimeException("Not implemented because no use case for now. (multi val)");
+		}
+
+		String currentVersion = contentVersion.getVersion();
+
+		List<ContentVersionVO> listContentVersionVO = new ArrayList<>();
+
+		ContentVersionToVOBuilder contentVersionToVOBuilder = new ContentVersionToVOBuilder(appLayerFactory.getModelLayerFactory());
+
+		for (ContentVersion contentVersion : content.getHistoryVersions()) {
+			if (!contentVersion.getVersion().equals(currentVersion)
+				&& contentManager.hasContentAnnotation(contentVersion.getHash(), recordId, contentVersion.getVersion())) {
+				listContentVersionVO.add(contentVersionToVOBuilder.build(content, contentVersion));
+			}
+		}
+
+		return listContentVersionVO;
+	}
+
+	@Override
+	public void addAnnotation(ContentVersion contentVErsionVO) {
+
+	}
+
 }

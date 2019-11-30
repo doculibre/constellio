@@ -44,21 +44,43 @@ public class DownloadContentVersionLink extends DownloadLink {
 
 	public DownloadContentVersionLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption,
 									  UpdatableContentVersionPresenter presenter) {
+		this(recordVO, contentVersionVO, caption, presenter, null, false);
+	}
+
+	public DownloadContentVersionLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption,
+									  UpdatableContentVersionPresenter presenter, String metadataCode,
+									  boolean isReadonly) {
 		super(new UpdatableContentVersionVOResource(recordVO, contentVersionVO, presenter), caption);
 		addStyleName(STYLE_NAME);
 		setSizeFull();
+		this.contentVersionVO = contentVersionVO;
+		this.recordId = recordVO != null ? recordVO.getId() : null;
+		this.isReadonly = isReadonly;
+		this.metadataCode = metadataCode;
 	}
 
 	public DownloadContentVersionLink(RecordVO recordVO, ContentVersionVO contentVersionVO, Resource icon,
-									  UpdatableContentVersionPresenter presenter) {
+									  UpdatableContentVersionPresenter presenter, String metadataCode,
+									  boolean isReadonly) {
 		this(recordVO, contentVersionVO, "", presenter);
 		setIcon(icon);
+		this.contentVersionVO = contentVersionVO;
+		this.recordId = recordVO != null ? recordVO.getId() : null;
+		this.isReadonly = isReadonly;
+		this.metadataCode = metadataCode;
 	}
 
-	public DownloadContentVersionLink(ContentVersionVO contentVersionVO, Resource icon) {
+
+	public DownloadContentVersionLink(RecordVO recordVO, ContentVersionVO contentVersionVO, Resource icon,
+									  String metadataCode, boolean isReadonly) {
 		this(contentVersionVO, "");
 		setIcon(icon);
+		this.contentVersionVO = contentVersionVO;
+		this.recordId = recordVO != null ? recordVO.getId() : null;
+		this.isReadonly = isReadonly;
+		this.metadataCode = metadataCode;
 	}
+
 
 	private boolean usePdfTron() {
 		// contentVersion is only set in pdfTron constructor.
