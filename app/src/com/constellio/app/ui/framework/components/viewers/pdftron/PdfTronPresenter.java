@@ -15,6 +15,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
@@ -169,16 +170,20 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	public void handleNewXml(String newXml, boolean userHasRightToEditOtherUserAnnotation, String userId)
-			throws PdfTronXMLException_CannotEditOtherUsersAnnoations, PdfTronXMLException_XMLParsingException, PdfTronXMLException_IOExeption {
+			throws PdfTronXMLException_CannotEditOtherUsersAnnoations, PdfTronXMLException_XMLParsingException, PdfTronXMLException_IOExeption,
+				   PdfTronXMLException_CannotEditAnnotationWithoutLock {
 		String currenttAnnotations = xmlCurrentAnnotations;
 
 		// Will throw if something is wrong.
-		String xmlToSave = pdfTronParser.processNewXML(currenttAnnotations, newXml, userHasRightToEditOtherUserAnnotation, userId);
+		if (doesCurrnetPageHaveLock) {
+			String xmlToSave = pdfTronParser.processNewXML(currenttAnnotations, newXml, userHasRightToEditOtherUserAnnotation, userId);
 
-		if (xmlToSave != null) {
-			saveAnnotation(xmlToSave);
-			xmlCurrentAnnotations = xmlToSave;
-			System.out.println(xmlToSave);
+			if (xmlToSave != null) {
+				saveAnnotation(xmlToSave);
+				xmlCurrentAnnotations = xmlToSave;
+			}
+		} else {
+			throw new PdfTronXMLException_CannotEditAnnotationWithoutLock();
 		}
 	}
 

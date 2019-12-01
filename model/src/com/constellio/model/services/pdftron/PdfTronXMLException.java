@@ -17,6 +17,12 @@ public class PdfTronXMLException extends Exception {
 		}
 	}
 
+	public static class PdfTronXMLException_CannotEditAnnotationWithoutLock extends PdfTronXMLException {
+		public PdfTronXMLException_CannotEditAnnotationWithoutLock() {
+			super("You can't edit annotations without obtaining the lock first");
+		}
+	}
+
 	public static class PdfTronXMLException_IOExeption extends PdfTronXMLException {
 		public PdfTronXMLException_IOExeption(IOException e) {
 			super("Exception d'IO", e);
