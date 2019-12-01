@@ -655,6 +655,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		editDocumentButton = new EditButton($("DisplayDocumentView.editDocument")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				contentViewer.releaseRessource();
 				presenter.editDocumentButtonClicked();
 			}
 		};

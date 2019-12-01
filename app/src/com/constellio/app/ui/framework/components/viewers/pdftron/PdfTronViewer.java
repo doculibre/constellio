@@ -13,6 +13,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.JavascriptUtils;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
@@ -314,16 +315,19 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		String currentAnnotationLockUser = pdfTronPresenter.getUserIdThatHaveAnnotationLock();
 		boolean someOneElseIsEditingAnnotations = currentAnnotationLockUser != null && !currentAnnotationLockUser.equals(getCurrentSessionContext().getCurrentUser().getId());
+
 		if (someOneElseIsEditingAnnotations) {
 			anOtherUserIdEditing = new BaseLabel($("pdfTronViewer.someOneElseIdEditingAnnotation",
 					pdfTronPresenter.getUserName(currentAnnotationLockUser)));
 			mainLayout.addComponent(anOtherUserIdEditing, 0);
+
+			editAnnotationBtn.setEnabled(false);
 		} else if (pdfTronPresenter.doesUserHaveLock() && !pdfTronPresenter.doesCurrentPageHaveLock()) {
 			anOtherPageIsEdtting = new BaseLabel($("pdfTronViewer.anOtherPageIsEditting"));
 			mainLayout.addComponent(anOtherPageIsEdtting, 0);
+			editAnnotationBtn.setEnabled(false);
 		}
 
-		editAnnotationBtn.setEnabled(!someOneElseIsEditingAnnotations);
 	}
 
 	protected SessionContext getCurrentSessionContext() {
@@ -433,6 +437,10 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					log.error("unexpected io error", pdfTronXMLException_ioExeption);
 					response.getWriter().write(
 							createErrorJSONResponse("Unexpected IO error"));
+				} catch (PdfTronXMLException_CannotEditAnnotationWithoutLock pdfTronXMLException_cannotEditAnnotationWithoutLock) {
+					log.error("cannot edit while not having the page lock");
+					response.getWriter().write(
+							createErrorJSONResponse("cannot edit while not having the page lock"));
 				}
 				handled = true;
 			} else {
