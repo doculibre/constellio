@@ -368,12 +368,6 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 							listValue.remove(object);
 							setValue(listValue);
 						}
-
-//						MouseEventDetails mouseEventDetails = new MouseEventDetails();
-//						mouseEventDetails.setButton(MouseEventDetails.MouseButton.LEFT);
-//						for(ItemClickListener listener: itemClickListeners) {
-//							listener.itemClick(new ItemClickEvent(LazyTree.this, getItem(object), object, event.getProperty(), mouseEventDetails));
-//						}
 					}
 				});
 				Resource icon = getItemIcon(object);
