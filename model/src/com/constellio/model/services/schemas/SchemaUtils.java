@@ -311,7 +311,8 @@ public class SchemaUtils {
 						  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary()
 						  || metadata.isCacheIndex() || Schemas.TOKENS.getLocalCode().equals(metadata.getLocalCode())
 						  || Schemas.ALL_REMOVED_AUTHS.getLocalCode().equals(metadata.getLocalCode())
-						  || Schemas.ATTACHED_ANCESTORS.getLocalCode().equals(metadata.getLocalCode());
+				//		  || Schemas.ATTACHED_ANCESTORS.getLocalCode().equals(metadata.getLocalCode())
+				;
 				;
 				break;
 

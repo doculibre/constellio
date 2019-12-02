@@ -124,6 +124,11 @@ public interface RecordServices {
 		return realtimeGetRecordById(id, true);
 	}
 
+	default Record realtimeGetRecordById(RecordId id) {
+		return realtimeGetRecordById(id.stringValue(), true);
+	}
+
+
 	default Record realtimeGetRecordById(String id, Long version) {
 		return realtimeGetRecordById(id, version, true);
 	}

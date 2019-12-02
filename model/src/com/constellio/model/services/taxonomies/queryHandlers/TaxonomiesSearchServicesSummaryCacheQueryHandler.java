@@ -30,7 +30,7 @@ import static java.util.stream.Collectors.toList;
 public class TaxonomiesSearchServicesSummaryCacheQueryHandler
 		extends TaxonomiesSearchServicesBaseQueryHandler implements TaxonomiesSearchServicesQueryHandler {
 
-	private static final int LIMIT_OF_RECORDS_IN_A_NODE_FOR_USING_CACHE = 2000;
+	private static final int LIMIT_OF_RECORDS_IN_A_NODE_FOR_USING_CACHE = 100000;
 
 	public TaxonomiesSearchServicesSummaryCacheQueryHandler(ModelLayerFactory modelLayerFactory) {
 		super(modelLayerFactory);

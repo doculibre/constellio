@@ -5,6 +5,8 @@ import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.MoreLikeThisDTO;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.services.Stats;
+import com.constellio.data.dao.services.Stats.CallStatCompiler;
 import com.constellio.data.dao.services.bigVault.LazyResultsIterator;
 import com.constellio.data.dao.services.bigVault.LazyResultsKeepingOrderIterator;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -14,6 +16,7 @@ import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.Holder;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LazyIterator;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -30,6 +33,7 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
@@ -48,7 +52,11 @@ import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuer
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderContext;
 import com.constellio.model.services.security.SecurityTokenManager;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.io.Tuple;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.FacetParams;
@@ -62,6 +70,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -76,6 +85,7 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -339,6 +349,17 @@ public class SearchServices {
 
 	}
 
+	@AllArgsConstructor
+	public static class RecordIdVersion {
+
+		@Getter
+		RecordId recordId;
+
+		@Getter
+		long version;
+	}
+
+
 	public Stream<Record> stream(LogicalSearchQuery query) {
 		return stream(query, 1000);
 	}
@@ -430,9 +451,11 @@ public class SearchServices {
 
 				if (parallel) {
 					final LinkedBlockingQueue<Holder<Record>> queue = new LinkedBlockingQueue<>(batchSize * 3);
+					final CallStatCompiler statCompiler = Stats.getCurrentStatCompiler();
 
-					new Thread(() -> {
+					Runnable runnable = () -> {
 						try {
+
 							super.forEach((r) -> {
 								try {
 									queue.put(new Holder(r));
@@ -447,7 +470,9 @@ public class SearchServices {
 								throw new RuntimeException(e);
 							}
 						}
-					}).start();
+					};
+
+					new Thread(statCompiler == null ? runnable : () -> statCompiler.log(runnable)).start();
 
 					Record nextRecord;
 					try {
@@ -1013,6 +1038,77 @@ public class SearchServices {
 		};
 	}
 
+
+	public Iterator<RecordIdVersion> recordsIdVersionIteratorUsingSolr(MetadataSchemaType schemaType) {
+
+		Map<String, String> props = new HashMap<>();
+		props.put("q", "schema_s:" + schemaType.getCode() + "_*");
+		props.put("fq", "collection_s:" + schemaType.getCollection());
+		//props.put("qt", "/export");
+		props.put("sort", "id asc");
+		props.put("fl", "id, _version_");
+		props.put("rows", "100000000");
+
+		TupleStream tupleStream = dataStoreDao(DataStore.RECORDS).tupleStream(props);
+
+		try {
+			tupleStream.open();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		AtomicInteger count = new AtomicInteger();
+		return new LazyIterator<RecordIdVersion>() {
+
+			@Override
+			protected RecordIdVersion getNextOrNull() {
+
+				try {
+
+					Tuple tuple = tupleStream.read();
+					if (tuple.EOF) {
+						LOGGER.info("Fetching ids and versions of schema type '" + schemaType.getCollection() + ":" + schemaType.getCode() + "' using tuple stream method finished : " + count.get());
+						tupleStream.close();
+						return null;
+					} else {
+						//LOGGER.info("Fetching ids and versions of schema type '" + schemaType.getCollection() + ":" + schemaType.getCode() + "' using tuple stream method ... : " + count.get());
+						count.incrementAndGet();
+						RecordId id = RecordId.toId(tuple.getString("id"));
+						long version = tuple.getLong("_version_");
+						return new RecordIdVersion(id, version);
+					}
+				} catch (IOException e) {
+					try {
+						tupleStream.close();
+					} catch (IOException e1) {
+						throw new RuntimeException(e1);
+					}
+					throw new RuntimeException(e);
+				}
+			}
+		};
+
+
+	}
+
+	protected void visitTuples(TupleStream tupleStream, Consumer<Tuple> consumer) throws
+																				  IOException {
+
+		try {
+			tupleStream.open();
+			int start = 0;
+			for (Tuple tuple = tupleStream.read(); !tuple.EOF; tuple = tupleStream.read()) {
+				consumer.accept(tuple);
+				//System.out.println(tuple.getString("id"));
+				//if (start++ % 100000 == 0) {
+				//	System.out.println(start);
+				//}
+			}
+		} finally {
+			tupleStream.close();
+		}
+	}
+
 	public Iterator<String> reverseRecordsIdsIterator(LogicalSearchQuery query) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		return new LazyResultsIterator<String>(dataStoreDao(query.getDataStore()), params, 10000, false, query.getName()) {
@@ -1163,7 +1259,7 @@ public class SearchServices {
 
 		if (query.getUserFilters() != null) {
 			for (UserFilter userFilter : query.getUserFilters()) {
-				params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager));
+				params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager, query));
 			}
 		}
 
@@ -1206,7 +1302,11 @@ public class SearchServices {
 			params.add(CommonParams.SORT, sort);
 		}
 
-		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().getAcceptedFields() != null) {
+		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()
+			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+			params.set(CommonParams.FL, "id");
+
+		} else if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().getAcceptedFields() != null) {
 			List<String> fields = new ArrayList<>();
 			fields.add("id");
 			fields.add("schema_s");
@@ -1225,6 +1325,7 @@ public class SearchServices {
 					fields.add(Schemas.getSecondaryLanguageDataStoreCode(field, secondaryCollectionLanguage));
 				}
 			}
+
 
 			params.set(CommonParams.FL, StringUtils.join(fields.toArray(), ","));
 
@@ -1551,7 +1652,31 @@ public class SearchServices {
 
 	private QueryResponseDTO queryDao(LogicalSearchQuery query) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		return dataStoreDao(query.getDataStore()).query(query.getName(), params);
+		QueryResponseDTO responseDTO = dataStoreDao(query.getDataStore()).query(query.getName(), params);
+		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()
+			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+
+			List<RecordDTO> loadedFromCacheRecordsDTO = new ArrayList<>();
+			//todo Keep a short term history of deleted records, in the case they were returned by a query at the same moment
+
+			for (RecordDTO recordDTOWithId : responseDTO.getResults()) {
+				loadedFromCacheRecordsDTO.add(modelLayerFactory.getRecordsCaches()
+						.getRecordSummary(recordDTOWithId.getId()).getRecordDTO());
+			}
+
+
+			return responseDTO = new QueryResponseDTO(
+					loadedFromCacheRecordsDTO, (int) responseDTO.getQtime(), responseDTO.getNumFound(),
+					responseDTO.getFieldFacetValues(),
+					responseDTO.getFieldFacetPivotValues(),
+					responseDTO.getFieldsStatistics(),
+					responseDTO.getQueryFacetValues(), responseDTO.getHighlights(),
+					responseDTO.getDebugMap(), responseDTO.isCorrectlySpelt(),
+					responseDTO.getSpellCheckerSuggestions(), responseDTO.getMoreLikeThisResults()
+			);
+		} else {
+			return responseDTO;
+		}
 	}
 
 	private List<MoreLikeThisRecord> getResultWithMoreLikeThis(List<MoreLikeThisDTO> moreLikeThisResults) {
@@ -1600,15 +1725,6 @@ public class SearchServices {
 		return result;
 	}
 
-	private void addUserFilter(ModifiableSolrParams params, List<UserFilter> userFilters) {
-		if (userFilters == null) {
-			return;
-		}
-
-		for (UserFilter userFilter : userFilters) {
-			params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager));
-		}
-	}
 
 	public List<Record> getAllRecords(MetadataSchemaType schemaType) {
 

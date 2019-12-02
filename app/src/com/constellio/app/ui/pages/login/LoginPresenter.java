@@ -16,7 +16,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -27,6 +27,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.lang3.StringUtils;
@@ -197,12 +198,13 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 
-		MetadataSchema userDocumentsSchema = types.getSchema(UserDocument.DEFAULT_SCHEMA);
-		Metadata userMetadata = userDocumentsSchema.getMetadata(UserDocument.USER);
+		MetadataSchemaType userDocumentsSchemaType = types.getSchemaType(UserDocument.SCHEMA_TYPE);
+		Metadata userMetadata = userDocumentsSchemaType.getDefaultSchema().getMetadata(UserDocument.USER);
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(from(userDocumentsSchema).where(userMetadata).is(user.getId()));
+		query.setCondition(from(userDocumentsSchemaType).where(userMetadata).is(user.getId()));
 		query.sortDesc(Schemas.MODIFIED_ON);
-		return searchServices.getResultsCount(query) > 0;
+		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
+		return searchServices.hasResults(query);
 	}
 
 	private boolean hasLastAlertPermission(User user) {

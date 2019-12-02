@@ -91,6 +91,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration UPDATE_SERVER_CONNECTION_ENABLED;
 
 	public static final SystemConfiguration ADD_COMMENTS_WHEN_READ_AUTHORIZATION;
+
+	public static final SystemConfiguration SEARCH_RESULTS_HIGHLIGHTING_ENABLED;
 	;
 
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
@@ -317,6 +319,7 @@ public class ConstellioEIMConfigs {
 
 		add(NO_LINKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
 		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
+		add(SEARCH_RESULTS_HIGHLIGHTING_ENABLED = search.createBooleanTrueByDefault("searchResultsHighlightingEnabled"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 
@@ -325,6 +328,8 @@ public class ConstellioEIMConfigs {
 		add(ENABLE_SYSTEM_STATE_MEMORY_ALLOCATION = systemState.createBooleanTrueByDefault("enableSystemStateMemoryAllocation"));
 		add(ENABLE_SYSTEM_STATE_OPT_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateOptDiskUsage"));
 		add(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateSolrDiskUsage"));
+
+
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -643,5 +648,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isAddCommentsWhenReadAuthorization() {
 		return manager.getValue(ADD_COMMENTS_WHEN_READ_AUTHORIZATION);
+	}
+
+	public boolean isSearchResultsHighlightingEnabled() {
+		return manager.getValue(SEARCH_RESULTS_HIGHLIGHTING_ENABLED);
 	}
 }

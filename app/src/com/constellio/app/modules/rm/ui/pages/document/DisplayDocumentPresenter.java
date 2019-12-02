@@ -220,15 +220,24 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				tasksSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			public LogicalSearchQuery getQuery() {
+
 				TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 				Metadata taskDocumentMetadata = tasks.userTask.schema().getMetadata(RMTask.LINKED_DOCUMENTS);
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				query.setCondition(from(tasks.userTask.schemaType()).where(taskDocumentMetadata).is(documentVO.getId()));
 				query.filteredByStatus(StatusFilter.ACTIVES);
 				query.filteredWithUser(getCurrentUser());
-				addStarredSortToQuery(query);
-				query.sortDesc(Schemas.MODIFIED_ON);
-				return query;
+
+				//This query use a function sort which is not yet supported in cache. We first test if the cache has results before returning it
+
+				if (searchServices().hasResults(query)) {
+					addStarredSortToQuery(query);
+					query.sortDesc(Schemas.MODIFIED_ON);
+					return query;
+
+				} else {
+					return LogicalSearchQuery.returningNoResults();
+				}
 			}
 
 			@Override

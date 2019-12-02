@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
+import com.constellio.data.dao.services.Stats;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -22,6 +23,7 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 	public static final String DELETION_REASON = "deletion-reason";
 
 	private ContentMode messageContentMode = null;
+	private String statCompilerName;
 
 	public DeleteWithJustificationButton(String caption, boolean iconOnly) {
 		this(caption, iconOnly, WindowConfiguration.modalDialog("610px", "350px"));
@@ -30,6 +32,7 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 	public DeleteWithJustificationButton(String caption, boolean iconOnly, WindowConfiguration windowConfiguration) {
 		super((iconOnly ? DeleteButton.ICON_RESOURCE : null),
 				DeleteButton.computeCaption(caption, iconOnly), iconOnly, windowConfiguration);
+		this.statCompilerName = Stats.getCurrentName();
 	}
 
 	public DeleteWithJustificationButton(boolean iconOnly) {
@@ -58,7 +61,14 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				getWindow().close();
-				deletionConfirmed(reason.getValue());
+
+				if (statCompilerName == null) {
+					deletionConfirmed(reason.getValue());
+				} else {
+					Stats.compilerFor(statCompilerName).log(() -> {
+						deletionConfirmed(reason.getValue());
+					});
+				}
 			}
 		});
 
@@ -82,13 +92,13 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 		HorizontalLayout buttons = new HorizontalLayout(confirm, cancel);
 		buttons.setSpacing(true);
 
-		if(getRecordCaption() != null) {
+		if (getRecordCaption() != null) {
 			messageLayout.addComponent(getRecordCaption());
 		}
 		VerticalLayout layout = new VerticalLayout(messageLayout, reason, buttons);
 		layout.setComponentAlignment(buttons, Alignment.MIDDLE_CENTER);
 		layout.setSpacing(true);
-//		layout.setSizeFull();
+		//		layout.setSizeFull();
 		return layout;
 	}
 

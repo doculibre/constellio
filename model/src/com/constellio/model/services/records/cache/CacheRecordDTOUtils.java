@@ -5,6 +5,7 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.cache.CompiledDTOStats.CompiledDTOStatsBuilder;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import org.joda.time.LocalDate;
@@ -18,9 +19,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -816,7 +819,7 @@ public class CacheRecordDTOUtils {
 
 	private static String formatToId(int id) {
 		// rebuild the id to have have the right length (ex: 8 -> "00000000008")
-		return String.format("%0" + ID_LENGTH + "d", id);
+		return RecordId.toId(id).toString();
 	}
 
 	private static Boolean parseBooleanFromByteArray(byte[] byteArray, short startingIndex) {
@@ -885,17 +888,42 @@ public class CacheRecordDTOUtils {
 		return new LocalDateTime(epochTimeInMillis);
 	}
 
+	private static Map<Class, Map<Byte, String>> enumCache = new HashMap<>();
+
 	private static String parseEnumFromByteArray(Class<? extends Enum> clazz, byte value) {
-		try {
-			// - acts as a + since Byte.MIN_VALUE is -128
-			return ((EnumWithSmallCode) ((Object[]) clazz.getMethod("values").invoke(null))[((int) value - Byte.MIN_VALUE)]).getCode();
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		} catch (InvocationTargetException e) {
-			throw new RuntimeException(e);
-		} catch (NoSuchMethodException e) {
-			throw new RuntimeException(e);
+		Map<Byte, String> map = enumCache.get(clazz);
+		if (map == null) {
+			try {
+				map = new HashMap<>();
+				EnumWithSmallCode[] values = ((EnumWithSmallCode[]) clazz.getMethod("values").invoke(null));
+				for (int i = 0; i < values.length; i++) {
+					EnumWithSmallCode aValue = values[i];
+					map.put((byte) (i + Byte.MIN_VALUE), aValue.getCode());
+				}
+
+				synchronized (enumCache) {
+					enumCache.put(clazz, map);
+				}
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException(e);
+			} catch (InvocationTargetException e) {
+				throw new RuntimeException(e);
+			} catch (NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
 		}
+
+		return map.get(value);
+		//		try {
+		//			// - acts as a + since Byte.MIN_VALUE is -128
+		//			return ((EnumWithSmallCode) ((Object[]) clazz.getMethod("values").invoke(null))[((int) value - Byte.MIN_VALUE)]).getCode();
+		//		} catch (IllegalAccessException e) {
+		//			throw new RuntimeException(e);
+		//		} catch (InvocationTargetException e) {
+		//			throw new RuntimeException(e);
+		//		} catch (NoSuchMethodException e) {
+		//			throw new RuntimeException(e);
+		//		}
 	}
 
 	private static class NeighboringMetadata {

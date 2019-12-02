@@ -18,6 +18,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices.RecordIdVersion;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
@@ -28,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Iterator;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
@@ -56,6 +58,13 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 						.withDocumentsHavingContent().withDocumentsDecommissioningList()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		Iterator<RecordIdVersion> idVersionIterator =
+				getModelLayerFactory().newSearchServices().recordsIdVersionIteratorUsingSolr(rm.folder.schemaType());
+		while (idVersionIterator.hasNext()) {
+			System.out.println(idVersionIterator.next().getRecordId());
+		}
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		AppLayerFactory appLayerFactory = getAppLayerFactory();

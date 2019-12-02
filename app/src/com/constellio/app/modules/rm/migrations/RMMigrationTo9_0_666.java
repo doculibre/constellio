@@ -5,7 +5,6 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -30,7 +29,7 @@ public class RMMigrationTo9_0_666 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaTypeBuilder documentSchemaType = typesBuilder.getSchemaType(Document.SCHEMA_TYPE);
-			documentSchemaType.setRecordCacheType(RecordCacheType.ONLY_VOLATILE);
+			//documentSchemaType.setRecordCacheType(RecordCacheType.ONLY_VOLATILE);
 		}
 	}
 }
