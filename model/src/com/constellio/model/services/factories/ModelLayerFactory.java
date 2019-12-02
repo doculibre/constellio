@@ -25,6 +25,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.migrations.RecordMigrationsManager;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.LanguageDetectionManager;
+import com.constellio.model.services.pdftron.AnnotationLockManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.RecordsCaches;
@@ -89,6 +90,8 @@ public interface ModelLayerFactory extends LayerFactory {
 	TaxonomiesSearchServices newTaxonomiesSearchService();
 
 	RolesManager getRolesManager();
+
+	AnnotationLockManager getAnnotationLockManager();
 
 	AuthorizationsServices newAuthorizationsServices();
 

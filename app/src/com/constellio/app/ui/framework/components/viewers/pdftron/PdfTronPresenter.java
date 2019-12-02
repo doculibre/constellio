@@ -15,6 +15,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.pdftron.AnnotationLockManager;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
@@ -48,6 +49,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	private String metadataCode;
 	private String pageRandomId;
 	private boolean doesCurrnetPageHaveLock;
+	private AnnotationLockManager annotationLockManager;
 
 	public PdfTronPresenter(PdfTronViewer pdfTronViewer, String recordId, String metadataCode,
 							ContentVersionVO contentVersion) {
@@ -65,6 +67,8 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		this.metadataCode = metadataCode;
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.pageRandomId = UUID.randomUUID().toString();
+		this.annotationLockManager = appLayerFactory.getModelLayerFactory().getAnnotationLockManager();
+
 		initialize();
 	}
 
@@ -93,7 +97,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 
 
 	public String getUserIdThatHaveAnnotationLock() {
-		return this.contentManager.getUserIdThatHaveAnnotationLock(this.contentVersion.getHash(), recordId, contentVersion.getVersion());
+		return this.annotationLockManager.getUserIdOfLock(this.contentVersion.getHash(), recordId, contentVersion.getVersion());
 	}
 
 
@@ -128,7 +132,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		return user.getFirstName() + " " + user.getLastName();
 	}
 
-	public boolean hasWrtteAccessToDocument() {
+	public boolean hasWriteAccessToDocument() {
 		return getCurrentUser().hasWriteAccess().on(record);
 	}
 
@@ -137,11 +141,12 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	public boolean doesUserHaveLock() {
-		return contentManager.doesUserHaveLock(contentVersion.getHash(), recordId, contentVersion.getVersion(), getUserVO().getId());
+		String userIdOfLock = annotationLockManager.getUserIdOfLock(contentVersion.getHash(), recordId, contentVersion.getVersion());
+		return userIdOfLock != null && userIdOfLock.equals(getUserVO().getId());
 	}
 
 	public boolean obtainAnnotationLock() {
-		boolean isLockObtained = contentManager.obtainAnnotationLock(contentVersion.getHash(), recordId, contentVersion.getVersion(), getUserVO().getId(), pageRandomId);
+		boolean isLockObtained = annotationLockManager.obtainLock(contentVersion.getHash(), recordId, contentVersion.getVersion(), getUserVO().getId(), pageRandomId);
 		this.doesCurrentUserHaveAnnotationLock = isLockObtained;
 		this.doesCurrnetPageHaveLock = isLockObtained;
 		return doesCurrnetPageHaveLock;
@@ -152,7 +157,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 			return;
 		}
 
-		contentManager.releaseAnnotationLock(contentVersion.getHash(), recordId, contentVersion.getVersion(), getCurrentUser().getId(), this.pageRandomId);
+		annotationLockManager.releaseLock(contentVersion.getHash(), recordId, contentVersion.getVersion(), getCurrentUser().getId(), this.pageRandomId);
 		doesCurrentUserHaveAnnotationLock = false;
 	}
 

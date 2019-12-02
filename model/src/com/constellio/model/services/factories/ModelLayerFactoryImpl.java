@@ -36,6 +36,7 @@ import com.constellio.model.services.migrations.RecordMigrationsManager;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.ForkParsers;
 import com.constellio.model.services.parser.LanguageDetectionManager;
+import com.constellio.model.services.pdftron.AnnotationLockManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.CachedRecordServices;
@@ -126,6 +127,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final RecordMigrationsManager recordMigrationsManager;
 	private final SearchConfigurationsManager searchConfigurationsManager;
 	private final SynonymsConfigurationsManager synonymsConfigurationsManager;
+	private final AnnotationLockManager annotationLockManager;
 
 	private ThesaurusManager thesaurusManager;
 
@@ -153,6 +155,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.modelLayerConfiguration = modelLayerConfiguration;
 		this.collectionsListManager = add(new CollectionsListManager(this));
 
+		this.annotationLockManager = new AnnotationLockManager(dataLayerFactory.getConfigManager());
 
 		this.foldersLocator = foldersLocator;
 
@@ -271,6 +274,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		DataStoreTypesFactory typesFactory = dataLayerFactory.newTypesFactory();
 		return new RecordServicesImpl(recordDao, eventsDao, notificationsDao, this, typesFactory,
 				dataLayerFactory.getUniqueIdGenerator(), recordsCaches);
+	}
+
+	public AnnotationLockManager getAnnotationLockManager() {
+		return annotationLockManager;
 	}
 
 	public RecordServicesImpl newCachelessRecordServices() {

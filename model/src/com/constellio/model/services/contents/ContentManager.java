@@ -73,7 +73,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.utils.MimeTypes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -89,7 +88,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -104,7 +102,9 @@ import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_S
 import static com.constellio.model.conf.FoldersLocator.usingAppWrapper;
 import static com.constellio.model.entities.enums.ParsingBehavior.ASYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 import static java.util.Arrays.asList;
 
 public class ContentManager implements StatefulService {
@@ -493,102 +493,6 @@ public class ContentManager implements StatefulService {
 			return getContentDao().getContentInputStream(hash + ".annotation." + id + "." + version, streamName);
 		} catch (ContentDaoException_NoSuchContent e) {
 			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoAnnotation(hash);
-		}
-	}
-
-
-	public String getUserAndKeyHavingAnnotationLock(String hash, String id, String version) {
-		InputStream lockInputStream = null;
-
-		try {
-			String lockFileName = hash + ".annotationLock." + id + "." + version;
-
-			if (getContentDao().isDocumentExisting(lockFileName)) {
-				lockInputStream = getContentDao().getContentInputStream(lockFileName, getClass().getSimpleName() + lockFileName + ".annotationLock");
-				return IOUtils.toString(lockInputStream, (Charset) null);
-			} else {
-				return null;
-			}
-		} catch (ContentDaoException_NoSuchContent e) {
-			return null;
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		} finally {
-			ioServices.closeQuietly(lockInputStream);
-		}
-	}
-
-	public String getUserIdThatHaveAnnotationLock(String hash, String id, String version) {
-		String token = getUserAndKeyHavingAnnotationLock(hash, id, version);
-
-		if (token != null) {
-			return AnnotationLockUtil.getUserId(token);
-		} else {
-			return null;
-		}
-	}
-
-	public boolean doesUserHaveLock(String hash, String id, String version, String userId) {
-		String lockFileName = hash + ".annotationLock." + id + "." + version;
-
-		if (getContentDao().isDocumentExisting(lockFileName)) {
-			String tokenized = getUserAndKeyHavingAnnotationLock(hash, id, version);
-
-			if (tokenized != null) {
-				String userWithLockId = AnnotationLockUtil.getUserId(tokenized);
-
-				if (userId.equals(userWithLockId)) {
-					return true;
-				} else {
-					return false;
-				}
-			}
-		}
-
-		return false;
-	}
-
-
-
-	public boolean obtainAnnotationLock(String hash, String id, String version, String userId, String randomKey) {
-
-		String lockFileName = hash + ".annotationLock." + id + "." + version;
-		if (!getContentDao().isDocumentExisting(lockFileName)) {
-			return writeLockFile(userId + ";" + randomKey, lockFileName);
-		} else {
-			return false;
-		}
-	}
-
-	private boolean writeLockFile(String token, String lockFileName) {
-		InputStream lockStream = null;
-		try {
-			lockStream = IOUtils.toInputStream(token, (String) null);
-			getContentDao().add(lockFileName, lockStream);
-			return true;
-		} catch (IOException e) {
-			LOGGER.error("error while adding annotationLock", e);
-			return false;
-		} finally {
-			ioServices.closeQuietly(lockStream);
-		}
-	}
-
-	public void releaseAnnotationLock(String hash, String id, String version, String userId, String key) {
-		String tokenized = getUserAndKeyHavingAnnotationLock(hash, id, version);
-
-		if (tokenized != null) {
-			String userWithLockId = AnnotationLockUtil.getUserId(tokenized);
-
-			if (userId.equals(userWithLockId)) {
-				String keyInFile = AnnotationLockUtil.getKey(tokenized);
-
-				String lockFileName = hash + ".annotationLock." + id + "." + version;
-
-				if (keyInFile.equals(key)) {
-					getContentDao().delete(asList(lockFileName));
-				}
-			}
 		}
 	}
 

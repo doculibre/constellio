@@ -128,8 +128,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 						this.setCaption($("pdfTronViewer.finalizeEditionAnnotation"));
 						isViewerInReadOnly = false;
 					} else {
-						addMessageIfAnOtherUserOrAnOtherPageIsEditing();
-						Notification.show($("pdfTronViewer.errorWhileGettingAnnotationLock"), Type.WARNING_MESSAGE);
+						addMessageIfAnOtherUserOrAnOtherPageIsEditing(true);
 					}
 				} else {
 					stopThreadAndDontReleaseLock();
@@ -165,7 +164,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			}
 		};
 
-		boolean userHasWriteAccess = pdfTronPresenter.hasWrtteAccessToDocument() && !readOnlyMode;
+		boolean userHasWriteAccess = pdfTronPresenter.hasWriteAccessToDocument() && !readOnlyMode;
 
 		consultAnnotation.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		consultAnnotation.addStyleName(ValoTheme.BUTTON_LINK);
@@ -176,7 +175,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		if (userHasWriteAccess) {
 			buttonLayout.addComponent(editAnnotationBtn);
 		}
-		addMessageIfAnOtherUserOrAnOtherPageIsEditing();
+		addMessageIfAnOtherUserOrAnOtherPageIsEditing(false);
 
 		buttonLayout.addComponent(consultAnnotation);
 
@@ -308,8 +307,8 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		com.vaadin.ui.JavaScript.eval("setWebViewerReadOnly(false)");
 	}
 
-	private void addMessageIfAnOtherUserOrAnOtherPageIsEditing() {
-		if (!pdfTronPresenter.hasWrtteAccessToDocument()) {
+	private void addMessageIfAnOtherUserOrAnOtherPageIsEditing(boolean showNotification) {
+		if (!pdfTronPresenter.hasWriteAccessToDocument()) {
 			return;
 		}
 
@@ -321,11 +320,19 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					pdfTronPresenter.getUserName(currentAnnotationLockUser)));
 			mainLayout.addComponent(anOtherUserIdEditing, 0);
 
+			if (showNotification) {
+				Notification.show($("pdfTronViewer.errorAnOtherUserHasAnnotationLock"), Type.WARNING_MESSAGE);
+			}
+
 			editAnnotationBtn.setEnabled(false);
 		} else if (pdfTronPresenter.doesUserHaveLock() && !pdfTronPresenter.doesCurrentPageHaveLock()) {
 			anOtherPageIsEdtting = new BaseLabel($("pdfTronViewer.anOtherPageIsEditting"));
 			mainLayout.addComponent(anOtherPageIsEdtting, 0);
 			editAnnotationBtn.setEnabled(false);
+
+			if (showNotification) {
+				Notification.show($("pdfTronViewer.errorAnOtherPageHaveAnnotationLock"), Type.WARNING_MESSAGE);
+			}
 		}
 
 	}
