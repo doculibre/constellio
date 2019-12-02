@@ -96,7 +96,7 @@ public class RMRecordAppExtension extends RecordAppExtension {
 	private void setNiceTitle(RecordVO recordVO, Record record, String schemaTypeCode, String schemaCode,
 							  String metadataCode) {
 		Metadata metadata = types().getSchemaType(schemaTypeCode).getSchema(schemaCode).getMetadata(metadataCode);
-		String niceTitle = record.get(metadata);
+		String niceTitle = metadata.isEssentialInSummary() ? record.get(metadata) : null;
 		if (niceTitle != null) {
 			recordVO.setNiceTitle(niceTitle);
 		}
@@ -181,18 +181,18 @@ public class RMRecordAppExtension extends RecordAppExtension {
 		FolderStatus archivisticStatus = recordVO.getMetadataValue(recordVO.getMetadata(Folder.ARCHIVISTIC_STATUS)).getValue();
 		FolderMediaType folderMediaType = recordVO.getMetadataValue(recordVO.getMetadata(Folder.MEDIA_TYPE)).getValue();
 		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(archivisticStatus, folderMediaType)
-				+ "_folder_" + getIsOpenOrClose(expanded);
+			   + "_folder_" + getIsOpenOrClose(expanded);
 	}
 
 	private String getFolderExtension(Folder folder, boolean expanded) {
 		FolderStatus archivisticStatus = folder.getArchivisticStatus();
 		FolderMediaType folderMediaType = folder.getMediaType();
 		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(archivisticStatus, folderMediaType)
-				+ "_folder_" + getIsOpenOrClose(expanded);
+			   + "_folder_" + getIsOpenOrClose(expanded);
 	}
 
 	public static String getIsOpenOrClose(boolean expanded) {
-		if(expanded) {
+		if (expanded) {
 			return "opened";
 		} else {
 			return "closed";
@@ -204,7 +204,7 @@ public class RMRecordAppExtension extends RecordAppExtension {
 			return "empty";
 		}
 
-		switch(folderMediaType) {
+		switch (folderMediaType) {
 			case ELECTRONIC:
 				return "numerical";
 			case HYBRID:
@@ -259,7 +259,7 @@ public class RMRecordAppExtension extends RecordAppExtension {
 
 	public Resource getIconFromContent(GetIconPathParams params) {
 		RecordVO recordVO = params.getRecordVO();
-		if(Document.SCHEMA_TYPE.equals(recordVO.getSchema().getTypeCode())) {
+		if (Document.SCHEMA_TYPE.equals(recordVO.getSchema().getTypeCode())) {
 			String fileName = appLayerFactory.getExtensions().forCollection(collection).getIconForRecordVO(new GetIconPathParams(recordVO, false));
 			if (fileName == null) {
 				for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {

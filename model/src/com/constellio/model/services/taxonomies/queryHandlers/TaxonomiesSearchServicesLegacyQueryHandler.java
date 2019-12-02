@@ -786,7 +786,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 		query.filteredWith(new UserFilter() {
 
 			@Override
-			public String buildFQ(SecurityTokenManager securityTokenManager) {
+			public String buildFQ(SecurityTokenManager securityTokenManager, LogicalSearchQuery query) {
 
 				return FilterUtils.userHierarchyFilter(ctx.user, securityTokenManager, ctx.options.getRequiredAccess(),
 						ctx.forSelectionOfSchemaType, ctx.options.isShowInvisibleRecordsInLinkingMode());

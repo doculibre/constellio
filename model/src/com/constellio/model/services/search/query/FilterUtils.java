@@ -69,7 +69,7 @@ public class FilterUtils {
 				}
 
 				filter.append(" OR (");
-				filter.append(userReadFilter(user, securityTokenManager));
+				filter.append(userReadFilter(user, securityTokenManager, null));
 				filter.append(")");
 
 			}
@@ -78,7 +78,7 @@ public class FilterUtils {
 		return filter.toString();
 	}
 
-	public static String userWriteFilter(User user, SecurityTokenManager securityTokenManager) {
+	public static String userWriteFilter(User user, SecurityTokenManager securityTokenManager, List<String> fromTypes) {
 
 		SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningFalseIfEmpty();
 		SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
@@ -132,14 +132,16 @@ public class FilterUtils {
 			}
 
 			for (String publicType : securityTokenManager.getSchemaTypesWithoutSecurity()) {
-				filterBuilder.append(SCHEMA, publicType + "_*");
+				if (fromTypes == null || fromTypes.contains(publicType)) {
+					filterBuilder.append(SCHEMA, publicType + "_*");
+				}
 			}
 		}
 		filterBuilder.closeGroup();
 		return filterBuilder.toString();
 	}
 
-	public static String userReadFilter(User user, SecurityTokenManager securityTokenManager) {
+	public static String userReadFilter(User user, SecurityTokenManager securityTokenManager, List<String> fromTypes) {
 		SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningFalseIfEmpty();
 		SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
 				.newRecordServices().getSecurityModel(user.getCollection());
@@ -198,7 +200,9 @@ public class FilterUtils {
 			}
 
 			for (String publicType : securityTokenManager.getSchemaTypesWithoutSecurity()) {
-				filterBuilder.append(SCHEMA, publicType + "_*");
+				if (fromTypes == null || fromTypes.contains(publicType)) {
+					filterBuilder.append(SCHEMA, publicType + "_*");
+				}
 			}
 
 			filterBuilder.append(TOKENS, Record.PUBLIC_TOKEN);

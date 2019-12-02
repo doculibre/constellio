@@ -1259,7 +1259,7 @@ public class SearchServices {
 
 		if (query.getUserFilters() != null) {
 			for (UserFilter userFilter : query.getUserFilters()) {
-				params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager));
+				params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager, query));
 			}
 		}
 
@@ -1302,7 +1302,11 @@ public class SearchServices {
 			params.add(CommonParams.SORT, sort);
 		}
 
-		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().getAcceptedFields() != null) {
+		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()
+			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+			params.set(CommonParams.FL, "id");
+
+		} else if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().getAcceptedFields() != null) {
 			List<String> fields = new ArrayList<>();
 			fields.add("id");
 			fields.add("schema_s");
@@ -1321,6 +1325,7 @@ public class SearchServices {
 					fields.add(Schemas.getSecondaryLanguageDataStoreCode(field, secondaryCollectionLanguage));
 				}
 			}
+
 
 			params.set(CommonParams.FL, StringUtils.join(fields.toArray(), ","));
 
@@ -1647,7 +1652,31 @@ public class SearchServices {
 
 	private QueryResponseDTO queryDao(LogicalSearchQuery query) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		return dataStoreDao(query.getDataStore()).query(query.getName(), params);
+		QueryResponseDTO responseDTO = dataStoreDao(query.getDataStore()).query(query.getName(), params);
+		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()
+			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+
+			List<RecordDTO> loadedFromCacheRecordsDTO = new ArrayList<>();
+			//todo Keep a short term history of deleted records, in the case they were returned by a query at the same moment
+
+			for (RecordDTO recordDTOWithId : responseDTO.getResults()) {
+				loadedFromCacheRecordsDTO.add(modelLayerFactory.getRecordsCaches()
+						.getRecordSummary(recordDTOWithId.getId()).getRecordDTO());
+			}
+
+
+			return responseDTO = new QueryResponseDTO(
+					loadedFromCacheRecordsDTO, (int) responseDTO.getQtime(), responseDTO.getNumFound(),
+					responseDTO.getFieldFacetValues(),
+					responseDTO.getFieldFacetPivotValues(),
+					responseDTO.getFieldsStatistics(),
+					responseDTO.getQueryFacetValues(), responseDTO.getHighlights(),
+					responseDTO.getDebugMap(), responseDTO.isCorrectlySpelt(),
+					responseDTO.getSpellCheckerSuggestions(), responseDTO.getMoreLikeThisResults()
+			);
+		} else {
+			return responseDTO;
+		}
 	}
 
 	private List<MoreLikeThisRecord> getResultWithMoreLikeThis(List<MoreLikeThisDTO> moreLikeThisResults) {
@@ -1696,15 +1725,6 @@ public class SearchServices {
 		return result;
 	}
 
-	private void addUserFilter(ModifiableSolrParams params, List<UserFilter> userFilters) {
-		if (userFilters == null) {
-			return;
-		}
-
-		for (UserFilter userFilter : userFilters) {
-			params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager));
-		}
-	}
 
 	public List<Record> getAllRecords(MetadataSchemaType schemaType) {
 

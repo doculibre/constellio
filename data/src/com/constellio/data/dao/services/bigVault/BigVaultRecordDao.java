@@ -805,7 +805,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 	protected RecordDTO toEntity(SolrDocument solrDocument, RecordDTOMode mode) {
 		String id = (String) solrDocument.get(ID_FIELD);
-		long version = (Long) solrDocument.get(VERSION_FIELD);
+		Long version = (Long) solrDocument.get(VERSION_FIELD);
 
 		Map<String, Object> fieldValues = new HashMap<String, Object>();
 
@@ -817,7 +817,7 @@ public class BigVaultRecordDao implements RecordDao {
 				}
 			}
 		}
-		return new SolrRecordDTO(id, version, fieldValues, mode);
+		return new SolrRecordDTO(id, version == null ? -1 : version, fieldValues, mode);
 	}
 
 	private boolean containsTwoUnderscoresAndIsNotVersionField(String field) {

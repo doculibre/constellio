@@ -587,7 +587,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 
 	public interface UserFilter {
-		String buildFQ(SecurityTokenManager securityTokenManager);
+		String buildFQ(SecurityTokenManager securityTokenManager, LogicalSearchQuery query);
 
 		boolean isExecutableInCache();
 
@@ -614,14 +614,19 @@ public class LogicalSearchQuery implements SearchQuery {
 			return access;
 		}
 
-		public String buildFQ(SecurityTokenManager securityTokenManager) {
+		public String buildFQ(SecurityTokenManager securityTokenManager, LogicalSearchQuery query) {
+			List<String> from = null;
+			if (query != null && query.getCondition() != null) {
+				from = query.getCondition().getFilterSchemaTypesCodes();
+			}
+
 			String filter;
 			switch (access) {
 				case Role.READ:
-					filter = FilterUtils.userReadFilter(user, securityTokenManager);
+					filter = FilterUtils.userReadFilter(user, securityTokenManager, from);
 					break;
 				case Role.WRITE:
-					filter = FilterUtils.userWriteFilter(user, securityTokenManager);
+					filter = FilterUtils.userWriteFilter(user, securityTokenManager, from);
 					break;
 				case Role.DELETE:
 					filter = FilterUtils.userDeleteFilter(user, securityTokenManager);
@@ -680,7 +685,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		}
 
 		@Override
-		public String buildFQ(SecurityTokenManager securityTokenManager) {
+		public String buildFQ(SecurityTokenManager securityTokenManager, LogicalSearchQuery query) {
 			return FilterUtils.userHierarchyFilter(user, securityTokenManager, access,
 					forSelectionOfSchemaType, showInvisibleRecordsInLinkingMode);
 		}
@@ -699,7 +704,7 @@ public class LogicalSearchQuery implements SearchQuery {
 			SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
 					.newRecordServices().getSecurityModel(user.getCollection());
 
-//			if (!this.showInvisibleRecordsInLinkingMode && Boolean.FALSE.equals(record.get(Schemas.VISIBLE_IN_TREES))) {
+			//			if (!this.showInvisibleRecordsInLinkingMode && Boolean.FALSE.equals(record.get(Schemas.VISIBLE_IN_TREES))) {
 			//				return false;
 			//			}
 
