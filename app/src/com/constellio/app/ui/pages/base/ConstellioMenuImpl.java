@@ -382,7 +382,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		//			}
 		//		});
 		final String collection = sessionContext.getCurrentCollection();
-		for (String language : presenter.getCollectionLanguages(collection)) {
+		for (String language : presenter.getCollectionLanguagesExceptCurrent(collection)) {
 			userSettingsItem.addSeparator();
 			userSettingsItem.addItem(language, new Command() {
 				@Override
