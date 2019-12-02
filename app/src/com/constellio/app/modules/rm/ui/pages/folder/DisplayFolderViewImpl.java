@@ -72,6 +72,7 @@ import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.sliderpanel.client.SliderPanelListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -116,6 +117,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private RecordVODataProvider eventsDataProvider;
 
 	private FacetsPanel facetsPanel;
+	private boolean facetsPanelLoaded;
 
 	private boolean nestedView;
 
@@ -419,7 +421,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					presenter.facetClosed(id);
 				}
 			};
-			refreshFacets(folderContentDataProvider);
 
 			viewerPanel = new ViewableRecordVOTablePanel(recordVOContainer) {
 				@Override
@@ -508,6 +509,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					contentAndFacetsLayout.removeComponent(facetsSliderPanel);
 				}
 				facetsSliderPanel = new FacetsSliderPanel(facetsPanel);
+				facetsSliderPanel.addListener((SliderPanelListener) expand -> {
+					if (expand && !facetsPanelLoaded) {
+						refreshFacets(folderContentDataProvider);
+						facetsPanelLoaded = true;
+					}
+				});
 				contentAndFacetsLayout.addComponent(facetsSliderPanel);
 			}
 			tabSheet.replaceComponent(folderContentComponent, folderContentComponent = viewerPanel);

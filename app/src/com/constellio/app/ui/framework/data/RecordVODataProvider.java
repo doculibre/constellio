@@ -44,8 +44,6 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	SessionContext sessionContext;
 	private int batchSize = 20;
 
-	private boolean cachedSearch;
-
 	private Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
 
 	private List<MetadataSchemaVO> extraSchemas = new ArrayList<>();
@@ -218,7 +216,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 			query.setNumberOfRows(LogicalSearchQuery.DEFAULT_NUMBER_OF_ROWS);
 			query.setLanguage(sessionContext.getCurrentLocale());
 			SearchServices searchServices = modelLayerFactory.newSearchServices();
-			recordList = searchServices.cachedSearch(query);
+			recordList = searchServices.search(query);
 		} else {
 			query.setLanguage(sessionContext.getCurrentLocale());
 			SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);

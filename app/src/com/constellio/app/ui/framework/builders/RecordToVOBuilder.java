@@ -10,6 +10,7 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -19,6 +20,7 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordAutomaticMetadataServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,6 +109,11 @@ public class RecordToVOBuilder implements Serializable {
 
 			} else {
 				metadata = schema.getMetadata(metadataCode);
+			}
+
+			if (record.getRecordDTO() != null &&
+				record.getLoadedFieldsMode() == RecordDTOMode.SUMMARY && !SchemaUtils.isSummary(metadata)) {
+				continue;
 			}
 
 			Object recordVOValue;

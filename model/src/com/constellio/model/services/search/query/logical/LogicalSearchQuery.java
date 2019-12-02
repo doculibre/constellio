@@ -27,6 +27,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -86,6 +87,8 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	private QueryExecutionMethod queryExecutionMethod = QueryExecutionMethod.DEFAULT;
 
+	private List<LogicalSearchQuery> cacheableQueries = new ArrayList<>();
+
 	public LogicalSearchQuery() {
 		numberOfRows = DEFAULT_NUMBER_OF_ROWS;
 		startRow = 0;
@@ -133,6 +136,8 @@ public class LogicalSearchQuery implements SearchQuery {
 		language = query.language;
 		loadTransientValues = query.loadTransientValues;
 		queryExecutionMethod = query.queryExecutionMethod;
+
+		cacheableQueries = new ArrayList<>(query.cacheableQueries);
 	}
 
 	// The following methods are attribute accessors
@@ -317,6 +322,15 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public LogicalSearchQuery setReturnedMetadatas(ReturnedMetadatasFilter filter) {
 		this.returnedMetadatasFilter = filter;
+		return this;
+	}
+
+	public List<LogicalSearchQuery> getCacheableQueries() {
+		return cacheableQueries != null ? cacheableQueries : Collections.emptyList();
+	}
+
+	public LogicalSearchQuery setCacheableQueries(List<LogicalSearchQuery> cacheableQueries) {
+		this.cacheableQueries = cacheableQueries;
 		return this;
 	}
 
