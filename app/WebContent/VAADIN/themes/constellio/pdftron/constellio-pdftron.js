@@ -27,14 +27,17 @@ $(() => {
             webViewerInstance = instance;
             instance.setAnnotationUser(name);
             instance.setAdminUser(admin);
-
-            instance.setReadOnly(isViewerReadOnlyOnInit);
+            instance.setReadOnly(true);
 
             const {docViewer} = instance;
             const annotManager = instance.annotManager;
 
             annotManager.on('annotationChanged', (event, annotations, action) => {
                 if (action === 'add' || action === 'modify' || action === 'delete') {
+                     if(ignoreAnnotationChange) {
+                        return;
+                     }
+
                     const annotationsFile = annotManager.exportAnnotations({links: false, widgets: false});
                     $.post(documentAnnotationCallBack, {
                         'resourceKey': documentAnnotationRK,
@@ -49,6 +52,7 @@ $(() => {
                     if(data) {
                         annotManager.importAnnotations(data);
                     }
+                    ignoreAnnotationChange = false;
                 });
             });
         });

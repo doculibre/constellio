@@ -95,14 +95,8 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		return this.contentManager.hasContentAnnotation(contentVersion.getHash(), recordId, contentVersion.getVersion());
 	}
 
-
 	public String getUserIdThatHaveAnnotationLock() {
 		return this.annotationLockManager.getUserIdOfLock(this.contentVersion.getHash(), recordId, contentVersion.getVersion());
-	}
-
-
-	public boolean doesCurrentUserHaveAnnotationLock() {
-		return doesCurrentUserHaveAnnotationLock;
 	}
 
 	public User getCurrentUser() {
@@ -124,7 +118,6 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 			throw new PdfTronXMLException_IOExeption(e);
 		}
 	}
-
 
 	public String getUserName(String userId) {
 		User user = schemasRecordsServices.getUser(userId);
@@ -179,7 +172,6 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 				   PdfTronXMLException_CannotEditAnnotationWithoutLock {
 		String currenttAnnotations = xmlCurrentAnnotations;
 
-		// Will throw if something is wrong.
 		if (doesCurrnetPageHaveLock) {
 			String xmlToSave = pdfTronParser.processNewXML(currenttAnnotations, newXml, userHasRightToEditOtherUserAnnotation, userId);
 

@@ -362,7 +362,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		StringBuilder toExecute = new StringBuilder();
 
 		toExecute.append("canvasId='" + canvasId + "';");
-		//		toExecute.append("isViewerReadOnlyOnInit=" + isViewerInReadOnly + ";");
+		toExecute.append("ignoreAnnotationChange='" + true + "';");
 		toExecute.append("documentContent='" + documentContentUrl + "';");
 		toExecute.append("documentAnnotationRK='" + documentAnnotationResourceKey + "';");
 		toExecute.append("documentAnnotationUrl='" + documentAnnotationUrl + "';");
