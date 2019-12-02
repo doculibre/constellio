@@ -1,12 +1,15 @@
 package com.constellio.app.ui.framework.components.viewers.pdftron;
 
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.Notification.Type;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -39,10 +42,21 @@ public class GetAnnotationsOfOtherVersionWindowButton extends WindowButton {
 
 		horizontalLayout.addComponent(versionToPickFrom);
 
-		horizontalLayout.addComponent(new Button($("Ok")));
+		Button okButton = new BaseButton($("Ok")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				ContentVersionVO selectedContentVersionVO = (ContentVersionVO) versionToPickFrom.getValue();
 
-		return null;
+				if (selectedContentVersionVO == null) {
+					Notification.show($(""), Type.WARNING_MESSAGE);
+				} else {
+					copyAnnotationsOfOtherVersionPresenter.addAnnotation(selectedContentVersionVO);
+				}
+			}
+		};
+
+		horizontalLayout.addComponent(okButton);
+
+		return horizontalLayout;
 	}
-
-	private String version;
 }
