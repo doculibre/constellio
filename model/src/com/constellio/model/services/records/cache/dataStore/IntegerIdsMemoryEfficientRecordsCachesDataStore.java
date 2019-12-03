@@ -115,11 +115,12 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		boolean summary = dto instanceof ByteArrayRecordDTO;
 		mechanism.obtainSchemaTypeWritingPermit(collectionId, typeId);
 		try {
-			if (index >= 0) {
+			synchronized (this) {
+				if (index >= 0) {
 
-				removeFromMainListsAndTypeIndex(collectionId, typeId, index, summary);
+					removeFromMainListsAndTypeIndex(collectionId, typeId, index, summary);
+				}
 			}
-
 		} finally {
 			mechanism.releaseSchemaTypeWritingPermit(collectionId, typeId);
 		}
@@ -174,20 +175,21 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		mechanism.obtainSchemaTypeWritingPermit(collectionId, typeId);
 
 		try {
-
-			boolean newRecord = index == -1;
-			if (index < 0) {
-				boolean fullyCached = dto instanceof SolrRecordDTO;
-				index = ajustArraysForNewId(id, fullyCached, holdSpaceForPreviousIds);
+			synchronized (this) {
+				boolean newRecord = index == -1;
+				if (index < 0) {
+					boolean fullyCached = dto instanceof SolrRecordDTO;
+					index = ajustArraysForNewId(id, fullyCached, holdSpaceForPreviousIds);
+				}
+				writeAtIndex(dto, collectionId, typeId, schemaId, collectionIndex, index, newRecord);
 			}
-			writeAtIndex(dto, collectionId, typeId, schemaId, collectionIndex, index, newRecord);
-
 		} finally {
 			mechanism.releaseSchemaTypeWritingPermit(collectionId, typeId);
 		}
 	}
 
-	private void writeAtIndex(RecordDTO dto, byte collectionId, short typeId, short schemaId, int collectionIndex,
+	private void writeAtIndex(RecordDTO dto, byte collectionId, short typeId, short schemaId,
+							  int collectionIndex,
 							  int index, boolean newRecord) {
 		newRecord |= schema.get(index) == 0;
 
@@ -427,30 +429,30 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 	private void invalidate(byte predicateCollectionId, Predicate<RecordDTO> predicate) {
 		mechanism.obtainCollectionWritingPermit(predicateCollectionId);
 		try {
-
-			for (int i = 0; i < ids.size(); i++) {
-				RecordDTO dto = getUnknownIdAtIndex(i);
-				if (dto != null && predicate.test(dto)) {
-					byte collectionId = getCollectionIdOf(dto);
-					if (collectionId != predicateCollectionId) {
-						continue;
-					}
-					boolean summary = dto instanceof ByteArrayRecordDTO;
-					removeFromMainLists(collectionId, i, summary);
-				}
-			}
-
-			int collectionIndex = predicateCollectionId - Byte.MIN_VALUE;
-			IntArrayList[] typeIndexes = typesIndexes[collectionIndex];
-			if (typeIndexes != null) {
-				for (IntArrayList typeIndex : typeIndexes) {
-					if (typeIndex != null) {
-						typeIndex.clear();
+			synchronized (this) {
+				for (int i = 0; i < ids.size(); i++) {
+					RecordDTO dto = getUnknownIdAtIndex(i);
+					if (dto != null && predicate.test(dto)) {
+						byte collectionId = getCollectionIdOf(dto);
+						if (collectionId != predicateCollectionId) {
+							continue;
+						}
+						boolean summary = dto instanceof ByteArrayRecordDTO;
+						removeFromMainLists(collectionId, i, summary);
 					}
 				}
 
-			}
+				int collectionIndex = predicateCollectionId - Byte.MIN_VALUE;
+				IntArrayList[] typeIndexes = typesIndexes[collectionIndex];
+				if (typeIndexes != null) {
+					for (IntArrayList typeIndex : typeIndexes) {
+						if (typeIndex != null) {
+							typeIndex.clear();
+						}
+					}
 
+				}
+			}
 		} finally {
 			mechanism.releaseCollectionWritingPermit(predicateCollectionId);
 		}
@@ -467,25 +469,26 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 	void invalidate(byte predicateCollectionId, short predicateTypeId,
 					Predicate<RecordDTO> predicate) {
 		mechanism.obtainSchemaTypeWritingPermit(predicateCollectionId, predicateTypeId);
+
 		try {
+			synchronized (this) {
+				for (int i = 0; i < ids.size(); i++) {
+					RecordDTO dto = getUnknownIdAtIndex(i);
+					if (dto != null && predicate.test(dto)) {
+						byte collectionId = getCollectionIdOf(dto);
+						if (collectionId != predicateCollectionId) {
+							continue;
+						}
+						short typeId = getTypeId(dto);
+						if (typeId != predicateTypeId) {
+							continue;
+						}
 
-			for (int i = 0; i < ids.size(); i++) {
-				RecordDTO dto = getUnknownIdAtIndex(i);
-				if (dto != null && predicate.test(dto)) {
-					byte collectionId = getCollectionIdOf(dto);
-					if (collectionId != predicateCollectionId) {
-						continue;
+						boolean summary = dto instanceof ByteArrayRecordDTO;
+						removeFromMainListsAndTypeIndex(collectionId, typeId, i, summary);
 					}
-					short typeId = getTypeId(dto);
-					if (typeId != predicateTypeId) {
-						continue;
-					}
-
-					boolean summary = dto instanceof ByteArrayRecordDTO;
-					removeFromMainListsAndTypeIndex(collectionId, typeId, i, summary);
 				}
 			}
-
 		} finally {
 			mechanism.releaseSchemaTypeWritingPermit(predicateCollectionId, predicateTypeId);
 		}
