@@ -263,6 +263,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			public LogicalSearchQuery getQuery() {
 				return getFolderContentQuery();
 			}
+
+			@Override
+			public boolean isSearchCache() {
+				return eimConfigs.isOnlySummaryMetadatasDisplayedInTables();
+			}
 		};
 		//		folderContentDataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory, view.getSessionContext()) {
 		//			@Override
@@ -283,7 +288,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					addStarredSortToQuery(query);
 					query.sortDesc(Schemas.MODIFIED_ON);
 					return query;
-
 				} else {
 					return LogicalSearchQuery.returningNoResults();
 				}
@@ -336,19 +340,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return query;
 	}
 
-	private LogicalSearchQuery getSubFoldersQuery() {
-		Record record = getRecord(folderVO.getId());
-		MetadataSchemaType foldersSchemaType = getFoldersSchemaType();
-		MetadataSchema foldersSchema = getFoldersSchema();
-		Metadata parentFolderMetadata = foldersSchema.getMetadata(Folder.PARENT_FOLDER);
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(from(foldersSchemaType).where(parentFolderMetadata).is(record));
-		query.filteredWithUser(getCurrentUser());
-		query.filteredByStatus(StatusFilter.ACTIVES);
-		query.sortAsc(Schemas.TITLE);
-		return query;
-	}
-
 	private LogicalSearchQuery getFolderContentQuery() {
 		Record record = getRecord(folderVO.getId());
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -365,6 +356,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		LogicalSearchQuery query = new LogicalSearchQuery();
 
 		LogicalSearchCondition condition = from(foldersSchemaType, documentsSchemaType).where(rm.folder.parentFolder()).is(record).orWhere(rm.document.folder()).is(record);
+
+		if (eimConfigs.isOnlySummaryMetadatasDisplayedInTables()) {
+			query.setCacheableQueries(asList(
+					new LogicalSearchQuery(from(foldersSchemaType).where(rm.folder.parentFolder()).is(record))
+							.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields()),
+					new LogicalSearchQuery(from(documentsSchemaType).where(rm.document.folder()).is(record))
+							.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields())));
+		}
 
 		if (!referencedDocuments.isEmpty()) {
 			condition = condition.orWhere(Schemas.IDENTIFIER).isIn(referencedDocuments);
@@ -417,6 +416,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		query.setCondition(from(tasks.userTask.schemaType()).where(taskFolderMetadata).is(folderVO.getId()));
 		query.filteredByStatus(StatusFilter.ACTIVES);
 		query.filteredWithUser(getCurrentUser());
+
 		return query;
 	}
 
@@ -1131,6 +1131,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					addStarredSortToQuery(query);
 					query.sortDesc(Schemas.MODIFIED_ON);
 					return query;
+				}
+
+				@Override
+				public boolean isSearchCache() {
+					return eimConfigs.isOnlySummaryMetadatasDisplayedInTables();
 				}
 
 				@Override

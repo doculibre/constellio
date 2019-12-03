@@ -349,9 +349,19 @@ public class LogicalSearchQueryExecutorInCache {
 			return false;
 		}
 
+		if (!query.getCacheableQueries().isEmpty()) {
+			for (LogicalSearchQuery cacheableQuery : query.getCacheableQueries()) {
+				if (!hasNoUnsupportedFeatureOrFilter(cacheableQuery) ||
+					!isConditionExecutableInCache(cacheableQuery.getCondition(), cacheableQuery.getReturnedMetadatas(),
+							cacheableQuery.getQueryExecutionMethod())) {
+					return false;
+				}
+			}
+			return true;
+		}
+
 		return hasNoUnsupportedFeatureOrFilter(query)
 			   && isConditionExecutableInCache(query.getCondition(), query.getReturnedMetadatas(), query.getQueryExecutionMethod());
-
 	}
 
 

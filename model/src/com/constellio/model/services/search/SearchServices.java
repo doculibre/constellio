@@ -72,6 +72,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -254,11 +255,14 @@ public class SearchServices {
 	}
 
 	private List<Record> searchUsingCache(LogicalSearchQuery query) {
-		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
-			Stream<Record> stream = logicalSearchQueryExecutorInCache.stream(query);
-			List<Record> records = stream.collect(Collectors.toList());
-			stream.close();
-			return records;
+		if (!query.getCacheableQueries().isEmpty() &&
+			query.getCacheableQueries().stream().allMatch(logicalSearchQueryExecutorInCache::isQueryExecutableInCache)) {
+			return query.getCacheableQueries().stream()
+					.map(this::retrieveRecordsUsingCache)
+					.flatMap(Collection::stream)
+					.collect(Collectors.toList());
+		} else if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
+			return retrieveRecordsUsingCache(query);
 		} else {
 			return search(query);
 		}
@@ -268,6 +272,12 @@ public class SearchServices {
 		return query(query).getRecords();
 	}
 
+	private List<Record> retrieveRecordsUsingCache(LogicalSearchQuery query) {
+		Stream<Record> stream = logicalSearchQueryExecutorInCache.stream(query);
+		List<Record> records = stream.collect(Collectors.toList());
+		stream.close();
+		return records;
+	}
 
 	@Deprecated
 	public List<String> cachedSearchRecordIds(LogicalSearchQuery query) {

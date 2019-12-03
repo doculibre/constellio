@@ -308,7 +308,7 @@ public class SchemaUtils {
 			case STRING:
 				summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
 						  || LEGACY_ID.isSameLocalCode(metadata)
-						  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary()
+						  || TITLE.isSameLocalCode(metadata)
 						  || metadata.isCacheIndex() || Schemas.TOKENS.getLocalCode().equals(metadata.getLocalCode())
 						  || Schemas.ALL_REMOVED_AUTHS.getLocalCode().equals(metadata.getLocalCode())
 				//		  || Schemas.ATTACHED_ANCESTORS.getLocalCode().equals(metadata.getLocalCode())

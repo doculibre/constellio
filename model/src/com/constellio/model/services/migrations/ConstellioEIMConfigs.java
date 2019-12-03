@@ -165,6 +165,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration NO_LINKS_IN_SEARCH_RESULTS;
 	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
 
+	public static final SystemConfiguration DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES;
+
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -329,6 +331,7 @@ public class ConstellioEIMConfigs {
 		add(ENABLE_SYSTEM_STATE_OPT_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateOptDiskUsage"));
 		add(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateSolrDiskUsage"));
 
+		add(DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES = search.createBooleanFalseByDefault("displayOnlySummaryMetadatasInTables"));
 
 	}
 
@@ -648,6 +651,10 @@ public class ConstellioEIMConfigs {
 
 	public boolean isAddCommentsWhenReadAuthorization() {
 		return manager.getValue(ADD_COMMENTS_WHEN_READ_AUTHORIZATION);
+	}
+
+	public boolean isOnlySummaryMetadatasDisplayedInTables() {
+		return manager.getValue(DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES);
 	}
 
 	public boolean isSearchResultsHighlightingEnabled() {
