@@ -68,7 +68,8 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private boolean isViewerInReadOnly;
 	private boolean annotationEnabled = true;
 
-	private GetAnnotationsOfOtherVersionWindowButton getAnnotationsOfOtherVersionWindowButton;
+	private GetAnnotationsOfOtherVersionWindowButton getAnnotationOfOtherVersionWindowButton;
+	private HorizontalLayout getAnnotationOfOtherVersionLayout;
 	private Button editAnnotationBtn;
 	private Label anOtherUserIdEditing;
 	private Label anOtherPageIsEdtting;
@@ -83,6 +84,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private String recordId;
 	private String pdfTronLicense;
 	private ThreadState threadState = null;
+	private Button topRightButton = null;
 
 
 	public PdfTronViewer(String recordId, ContentVersionVO contentVersion, String metadataCode, boolean readOnlyMode,
@@ -118,6 +120,13 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		isViewerInReadOnly = !pdfTronPresenter.doesCurrentPageHaveLock();
 
+		this.getAnnotationOfOtherVersionWindowButton = new GetAnnotationsOfOtherVersionWindowButton(pdfTronPresenter);
+
+		this.getAnnotationOfOtherVersionLayout = new HorizontalLayout();
+		this.getAnnotationOfOtherVersionLayout.setWidth("100%");
+		this.getAnnotationOfOtherVersionLayout.addComponent(getAnnotationOfOtherVersionWindowButton);
+		this.getAnnotationOfOtherVersionLayout.setVisible(false);
+
 		editAnnotationBtn = new BaseButton(isViewerInReadOnly ? $("pdfTronViewer.editAnnotation") : $("pdfTronViewer.finalizeEditionAnnotation")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -126,6 +135,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 						startAliveCallBack();
 						setWebViewerReadEditable();
 						this.setCaption($("pdfTronViewer.finalizeEditionAnnotation"));
+						hideGetAnnotationFromPreviousVersion(pdfTronPresenter.getAvailableVersion().size() > 0);
 						isViewerInReadOnly = false;
 					} else {
 						addMessageIfAnOtherUserOrAnOtherPageIsEditing(true);
@@ -136,13 +146,14 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					setWebViewerReadOnly();
 					this.setCaption($("pdfTronViewer.editAnnotation"));
 					isViewerInReadOnly = true;
+					hideGetAnnotationFromPreviousVersion(false);
 				}
 			}
 		};
 		editAnnotationBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		editAnnotationBtn.addStyleName(ValoTheme.BUTTON_LINK);
 
-		Button consultAnnotation = new BaseButton($("pdfTronViewer.hideAnnotation")) {
+		Button enableDisableAnnotation = new BaseButton($("pdfTronViewer.hideAnnotation")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				if (annotationEnabled) {
@@ -166,20 +177,23 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		boolean userHasWriteAccess = pdfTronPresenter.hasWriteAccessToDocument() && !readOnlyMode;
 
-		consultAnnotation.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-		consultAnnotation.addStyleName(ValoTheme.BUTTON_LINK);
+		hideGetAnnotationFromPreviousVersion(false);
 
-		HorizontalLayout buttonLayout = new HorizontalLayout();
-		buttonLayout.setWidth("100%");
+		enableDisableAnnotation.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		enableDisableAnnotation.addStyleName(ValoTheme.BUTTON_LINK);
+
+
+		HorizontalLayout buttonLayout2 = new HorizontalLayout();
+		buttonLayout2.setWidth("100%");
 
 		if (userHasWriteAccess) {
-			buttonLayout.addComponent(editAnnotationBtn);
+			buttonLayout2.addComponent(editAnnotationBtn);
 		}
 		addMessageIfAnOtherUserOrAnOtherPageIsEditing(false);
 
-		buttonLayout.addComponent(consultAnnotation);
+		buttonLayout2.addComponent(enableDisableAnnotation);
 
-		buttonLayout.setComponentAlignment(consultAnnotation, Alignment.MIDDLE_RIGHT);
+		buttonLayout2.setComponentAlignment(enableDisableAnnotation, Alignment.MIDDLE_RIGHT);
 		mainLayout.setSizeFull();
 
 		canvas = new Label();
@@ -188,11 +202,28 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		ensureRequestHandler();
 
-
-		mainLayout.addComponent(buttonLayout);
+		mainLayout.addComponent(getAnnotationOfOtherVersionLayout);
+		mainLayout.addComponent(buttonLayout2);
 		mainLayout.addComponents(canvas);
 		mainLayout.setExpandRatio(canvas, 1);
 		addComponent(mainLayout);
+	}
+
+	private void hideGetAnnotationFromPreviousVersion(boolean visible) {
+		if (topRightButton != null) {
+			getAnnotationOfOtherVersionWindowButton.setVisible(visible);
+			getAnnotationOfOtherVersionLayout.setVisible(true);
+		} else {
+			getAnnotationOfOtherVersionLayout.setVisible(visible);
+			getAnnotationOfOtherVersionWindowButton.setVisible(visible);
+		}
+	}
+
+	public void setTopRightButton(Button button) {
+		this.getAnnotationOfOtherVersionLayout.addComponent(button);
+		this.getAnnotationOfOtherVersionLayout.setComponentAlignment(button, Alignment.MIDDLE_RIGHT);
+		this.getAnnotationOfOtherVersionLayout.setVisible(true);
+		this.topRightButton = button;
 	}
 
 	public void releaseRessource() {

@@ -5,7 +5,7 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import java.util.List;
 
 public interface CopyAnnotationsOfOtherVersionPresenter {
-	List<ContentVersionVO> getAvalibleVersion();
+	List<ContentVersionVO> getAvailableVersion();
 
 	void addAnnotation(ContentVersionVO contentVErsionVO);
 }

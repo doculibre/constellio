@@ -10,6 +10,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import com.vaadin.ui.themes.ValoTheme;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -23,8 +24,10 @@ public class GetAnnotationsOfOtherVersionWindowButton extends WindowButton {
 		super($("getAnnotationsOfPreviousVersionWindowButton.btnTitle"), $("getAnnotationsOfPreviousVersionWindowButton.btnTitle"),
 				new WindowConfiguration(true, true, "800px", "300px"));
 
-		this.copyAnnotationsOfOtherVersionPresenter = copyAnnotationsOfOtherVersionPresenter;
+		this.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		this.addStyleName(ValoTheme.BUTTON_LINK);
 
+		this.copyAnnotationsOfOtherVersionPresenter = copyAnnotationsOfOtherVersionPresenter;
 	}
 
 	@Override
@@ -33,12 +36,12 @@ public class GetAnnotationsOfOtherVersionWindowButton extends WindowButton {
 
 		versionToPickFrom = new BaseComboBox();
 
-		for (ContentVersionVO contentVersionVO : copyAnnotationsOfOtherVersionPresenter.getAvalibleVersion()) {
+		for (ContentVersionVO contentVersionVO : copyAnnotationsOfOtherVersionPresenter.getAvailableVersion()) {
 			versionToPickFrom.addItem(contentVersionVO);
 			versionToPickFrom.setItemCaption(contentVersionVO, contentVersionVO.toString());
 		}
 
-		versionToPickFrom.setCaption("getAnnotationsOfPreviousVersionWindowButton.pickVersion");
+		versionToPickFrom.setCaption($("getAnnotationsOfPreviousVersionWindowButton.pickVersion"));
 
 		horizontalLayout.addComponent(versionToPickFrom);
 

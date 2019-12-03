@@ -44,9 +44,10 @@ public class PdfTronContentVersionWindow extends BaseWindow {
 
 		DownloadLink downloadLink = new DownloadLink(new ContentVersionVOResource(this.contentVersion), $("contentVersionWindowButton.downloadWithoutAnnotation"));
 
-		vlayoutMain.addComponent(downloadLink);
-
 		PdfTronViewer pdfTronViewer = new PdfTronViewer(this.recordId, this.contentVersion, this.metadataCode, isReadonly, pdfTronKey);
+
+		pdfTronViewer.setTopRightButton(downloadLink);
+
 		pdfTronViewer.setHeight("100%");
 
 		vlayoutMain.addComponent(pdfTronViewer);

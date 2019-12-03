@@ -190,7 +190,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	@Override
-	public List<ContentVersionVO> getAvalibleVersion() {
+	public List<ContentVersionVO> getAvailableVersion() {
 		MetadataSchema metadataSchema = metadataSchemasManager.getSchemaOf(record);
 		Metadata contentMetadata = metadataSchema.getMetadata(metadataCode);
 
