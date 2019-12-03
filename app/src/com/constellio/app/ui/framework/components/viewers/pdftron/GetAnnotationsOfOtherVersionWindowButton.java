@@ -4,6 +4,9 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
+import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -11,19 +14,23 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.themes.ValoTheme;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+@Slf4j
 public class GetAnnotationsOfOtherVersionWindowButton extends WindowButton {
 
 	private ComboBox versionToPickFrom;
 	private CopyAnnotationsOfOtherVersionPresenter copyAnnotationsOfOtherVersionPresenter;
+	private Refresh refresh;
 
 	public GetAnnotationsOfOtherVersionWindowButton(
-			CopyAnnotationsOfOtherVersionPresenter copyAnnotationsOfOtherVersionPresenter) {
+			CopyAnnotationsOfOtherVersionPresenter copyAnnotationsOfOtherVersionPresenter, Refresh refresh) {
 		super($("getAnnotationsOfPreviousVersionWindowButton.btnTitle"), $("getAnnotationsOfPreviousVersionWindowButton.btnTitle"),
 				new WindowConfiguration(true, true, "800px", "300px"));
-
+		this.refresh = refresh;
 		this.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		this.addStyleName(ValoTheme.BUTTON_LINK);
 
@@ -45,21 +52,41 @@ public class GetAnnotationsOfOtherVersionWindowButton extends WindowButton {
 
 		horizontalLayout.addComponent(versionToPickFrom);
 
+
 		Button okButton = new BaseButton($("Ok")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				ContentVersionVO selectedContentVersionVO = (ContentVersionVO) versionToPickFrom.getValue();
 
 				if (selectedContentVersionVO == null) {
-					Notification.show($(""), Type.WARNING_MESSAGE);
+					Notification.show($("getAnnotationsOfPreviousVersionWindowButton.selectAVersion"), Type.WARNING_MESSAGE);
 				} else {
-					copyAnnotationsOfOtherVersionPresenter.addAnnotation(selectedContentVersionVO);
+					try {
+						copyAnnotationsOfOtherVersionPresenter.addAnnotation(selectedContentVersionVO);
+						GetAnnotationsOfOtherVersionWindowButton.this.refresh.refresh();
+						GetAnnotationsOfOtherVersionWindowButton.this.getWindow().close();
+					} catch (PdfTronXMLException_IOExeption e) {
+						log.error("annotation transfer failed." + getCurrentContentInfo(selectedContentVersionVO), e);
+						Notification.show($("getAnnotationsOfPreviousVersionWindowButton.unexpectedError"));
+					} catch (PdfTronXMLException_XMLParsingException e) {
+						log.error("annotation transfer failed." + getCurrentContentInfo(selectedContentVersionVO), e);
+						Notification.show(($("getAnnotationsOfPreviousVersionWindowButton.unexpectedError")));
+					}
 				}
 			}
 		};
 
 		horizontalLayout.addComponent(okButton);
+		horizontalLayout.setComponentAlignment(okButton, Alignment.BOTTOM_RIGHT);
 
 		return horizontalLayout;
+	}
+
+	@NotNull
+	private String getCurrentContentInfo(ContentVersionVO contentVersionVO) {
+		return " Hash : " + copyAnnotationsOfOtherVersionPresenter.getHash()
+			   + " recordId : " + copyAnnotationsOfOtherVersionPresenter.getRecordId()
+			   + " version : " + copyAnnotationsOfOtherVersionPresenter.getVersion()
+			   + " contentId of content being merged : " + contentVersionVO.getContentId();
 	}
 }

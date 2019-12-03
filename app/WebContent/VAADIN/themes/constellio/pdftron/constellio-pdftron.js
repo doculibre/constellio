@@ -18,11 +18,36 @@ const FitWidth = "FitWidth";
     }
 });
 
+(window.rePullAnnotations = function() {
+    if(webViewerInstance !== null) {
+            $.get(documentAnnotationUrl, (data) => {
+
+                ignoreAnnotationChange = true;
+                if(data) {
+                    webViewerInstance.annotManager.importAnnotations(data);
+                }
+                ignoreAnnotationChange = false;
+            });
+    }
+});
+
 $(() => {
-    WebViewer({
-            path: '/constellio/VAADIN/themes/constellio/pdftron/lib',
-            initialDoc: documentContent,
-        },
+    let mapParams;
+
+     if(license) {
+         mapParams = {
+                licenseKey: license,
+                path: '/constellio/VAADIN/themes/constellio/pdftron/lib',
+                initialDoc: documentContent,
+        }
+    } else {
+         mapParams = {
+                path: '/constellio/VAADIN/themes/constellio/pdftron/lib',
+                initialDoc: documentContent,
+        }
+    }
+
+    WebViewer(mapParams,
         document.getElementById(canvasId)).then(instance => {
             webViewerInstance = instance;
             instance.setAnnotationUser(name);

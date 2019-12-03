@@ -120,7 +120,12 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		isViewerInReadOnly = !pdfTronPresenter.doesCurrentPageHaveLock();
 
-		this.getAnnotationOfOtherVersionWindowButton = new GetAnnotationsOfOtherVersionWindowButton(pdfTronPresenter);
+		this.getAnnotationOfOtherVersionWindowButton = new GetAnnotationsOfOtherVersionWindowButton(pdfTronPresenter, new Refresh() {
+			@Override
+			public void refresh() {
+				rePullAnnotationsInPdfTron();
+			}
+		});
 
 		this.getAnnotationOfOtherVersionLayout = new HorizontalLayout();
 		this.getAnnotationOfOtherVersionLayout.setWidth("100%");
@@ -207,6 +212,10 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		mainLayout.addComponents(canvas);
 		mainLayout.setExpandRatio(canvas, 1);
 		addComponent(mainLayout);
+	}
+
+	private void rePullAnnotationsInPdfTron() {
+		com.vaadin.ui.JavaScript.eval("rePullAnnotations()");
 	}
 
 	private void hideGetAnnotationFromPreviousVersion(boolean visible) {
@@ -383,6 +392,9 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	}
 
 	public void showWebViewer() {
+		pdfTronPresenter.releaseAnnotationLockIfUserhasIt();
+		stopThreadAndDontReleaseLock();
+
 		ConstellioUI current = ConstellioUI.getCurrent();
 		UserVO currentUser = current.getSessionContext().getCurrentUser();
 		String userFirstNameAndLastName = currentUser.getFirstName() + " " + currentUser.getLastName();

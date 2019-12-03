@@ -214,7 +214,6 @@ public class PdfTronXMLServiceAcceptanceTest extends ConstellioTest {
 
 			String newXml = pdfTronXMLService.processNewXML(originalAnnoations, modifiedAnnotations, canUserChangeOtherAnnotation, userId);
 			assertThat(newXml.equals(modifiedAnnotations));
-
 		} finally {
 			closeQuietly(originalAnnotationInputStream);
 			closeQuietly(modifiedAnnotationValidInputStream);

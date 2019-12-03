@@ -1,6 +1,5 @@
 package com.constellio.model.services.pdftron;
 
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
@@ -15,8 +14,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class PdfTronXMLService {
 	public static final String ANNOTATION_ELEMENT_NAME = "annots";
@@ -24,11 +25,9 @@ public class PdfTronXMLService {
 	public static final String ELEMENT_NAME = "name";
 	public static final String USER_ID = "userId";
 
-	ModelLayerFactory modelLayerFactory;
-
 	public PdfTronXMLService() {
-	}
 
+	}
 
 	public Map<String, Element> getElementInMapById(List<Element> elementList) {
 		Map<String, Element> elementInMapById = new HashMap<>();
@@ -61,6 +60,28 @@ public class PdfTronXMLService {
 		return document;
 	}
 
+	public String mergeTwoAnnotationFile(String xmlMain, String xmlFileToMerge)
+			throws PdfTronXMLException_XMLParsingException, PdfTronXMLException_IOExeption {
+		Document mainDocument = getDocumentFromStr(xmlMain);
+		Document documentToMerge = getDocumentFromStr(xmlFileToMerge);
+
+		Element elementParentOfElementToMerge = getAnnotationElementList(documentToMerge);
+		Element elementParentOfXmlMain = getAnnotationElementList(mainDocument);
+
+		Iterator<Element> iterableElements = elementParentOfElementToMerge.getChildren().iterator();
+
+		while (iterableElements.hasNext()) {
+			Element currentElement = iterableElements.next();
+			iterableElements.remove();
+			currentElement.setAttribute(ELEMENT_NAME, UUID.randomUUID().toString());
+
+			elementParentOfXmlMain.addContent(currentElement);
+		}
+
+		XMLOutputter xmlOut = new XMLOutputter();
+
+		return xmlOut.outputString(mainDocument);
+	}
 
 	public String processNewXML(String currentAnnotationAsStr, String newAnnotationAsStr,
 								boolean canUserChangeOtherUserAnnotation, String userId)

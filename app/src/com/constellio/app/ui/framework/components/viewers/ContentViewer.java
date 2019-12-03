@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.components.viewers.document.DocumentViewe
 import com.constellio.app.ui.framework.components.viewers.image.ImageViewer;
 import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronViewer;
 import com.constellio.app.ui.framework.components.viewers.video.VideoViewer;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import org.apache.commons.io.FilenameUtils;
@@ -39,9 +40,7 @@ public class ContentViewer extends CustomComponent {
 			String fileName = contentVersionVO.getFileName();
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 
-			// REMOVE TRUE*****************
-			// ***************************
-			if (true || StringUtils.isNotBlank(licenseForPdftron) && Arrays.asList(SUPPORTED_EXTENTION).contains(extension)) {
+			if (Toggle.ENABLE_PDTRON_TRIAL.isEnabled() || StringUtils.isNotBlank(licenseForPdftron) && Arrays.asList(SUPPORTED_EXTENTION).contains(extension)) {
 				PdfTronViewer pdfTronViewer = new PdfTronViewer(recordVO.getId(), contentVersionVO, metadataCode, false, licenseForPdftron);
 				viewerComponent = pdfTronViewer;
 			} else if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {

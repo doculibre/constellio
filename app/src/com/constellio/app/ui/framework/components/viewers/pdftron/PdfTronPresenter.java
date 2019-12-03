@@ -48,7 +48,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	private IOServices ioServices;
 	private String metadataCode;
 	private String pageRandomId;
-	private boolean doesCurrnetPageHaveLock;
+	private boolean doesCurrentPageHaveLock;
 	private AnnotationLockManager annotationLockManager;
 
 	public PdfTronPresenter(PdfTronViewer pdfTronViewer, String recordId, String metadataCode,
@@ -74,7 +74,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 
 	private void initialize() {
 		this.doesCurrentUserHaveAnnotationLock = doesUserHaveLock();
-		this.doesCurrnetPageHaveLock = false;
+		this.doesCurrentPageHaveLock = false;
 
 		try {
 			if (hasContentAnnotation()) {
@@ -88,7 +88,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	public boolean doesCurrentPageHaveLock() {
-		return doesCurrnetPageHaveLock;
+		return doesCurrentPageHaveLock;
 	}
 
 	private boolean hasContentAnnotation() {
@@ -103,6 +103,18 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		return appLayerFactory.getModelLayerFactory().newUserServices()
 				.getUserInCollection(getUserVO().getUsername(),
 						pdfTronViewer.getCurrentSessionContext().getCurrentCollection());
+	}
+
+	public String getHash() {
+		return contentVersionVO.getHash();
+	}
+
+	public String getRecordId() {
+		return recordId;
+	}
+
+	public String getVersion() {
+		return contentVersionVO.getVersion();
 	}
 
 	private UserVO getUserVO() {
@@ -146,8 +158,8 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	public boolean obtainAnnotationLock() {
 		boolean isLockObtained = annotationLockManager.obtainLock(contentVersionVO.getHash(), recordId, contentVersionVO.getVersion(), getUserVO().getId(), pageRandomId);
 		this.doesCurrentUserHaveAnnotationLock = isLockObtained;
-		this.doesCurrnetPageHaveLock = isLockObtained;
-		return doesCurrnetPageHaveLock;
+		this.doesCurrentPageHaveLock = isLockObtained;
+		return doesCurrentPageHaveLock;
 	}
 
 	public void releaseAnnotationLockIfUserhasIt() {
@@ -177,7 +189,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 				   PdfTronXMLException_CannotEditAnnotationWithoutLock {
 		String currenttAnnotations = xmlCurrentAnnotations;
 
-		if (doesCurrnetPageHaveLock) {
+		if (doesCurrentPageHaveLock) {
 			String xmlToSave = pdfTronParser.processNewXML(currenttAnnotations, newXml, userHasRightToEditOtherUserAnnotation, userId);
 
 			if (xmlToSave != null) {
@@ -191,6 +203,8 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 
 	@Override
 	public List<ContentVersionVO> getAvailableVersion() {
+		record = schemasRecordsServices.get(recordId);
+
 		MetadataSchema metadataSchema = metadataSchemasManager.getSchemaOf(record);
 		Metadata contentMetadata = metadataSchema.getMetadata(metadataCode);
 
@@ -209,7 +223,10 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 
 		ContentVersionToVOBuilder contentVersionToVOBuilder = new ContentVersionToVOBuilder(appLayerFactory.getModelLayerFactory());
 
-		for (ContentVersion contentVersion : content.getHistoryVersions()) {
+		List<ContentVersion> historyVersionsWithCurrent = new ArrayList<>(content.getHistoryVersions());
+		historyVersionsWithCurrent.add(0, content.getCurrentVersion());
+
+		for (ContentVersion contentVersion : historyVersionsWithCurrent) {
 			if (!contentVersion.getVersion().equals(currentVersion)
 				&& contentManager.hasContentAnnotation(contentVersion.getHash(), recordId, contentVersion.getVersion())) {
 				listContentVersionVO.add(contentVersionToVOBuilder.build(content, contentVersion));
@@ -220,13 +237,35 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	@Override
-	public void addAnnotation(ContentVersionVO contentVersionOfAnnotationToCopy) {
+	public void addAnnotation(ContentVersionVO contentVersionOfAnnotationToCopy)
+			throws PdfTronXMLException_IOExeption, PdfTronXMLException_XMLParsingException {
 		InputStream annotationInputStream = contentManager.getContentAnnotationInputStream(contentVersionOfAnnotationToCopy.getHash(), recordId, contentVersionOfAnnotationToCopy.getVersion(), PdfTronPresenter.class.getSimpleName() + "addAnnotationToVersion");
 
 		try {
-			contentDao.add(contentVersionVO.getHash() + ".annotation."
-						   + recordId + "." + contentVersionVO.getVersion(),
-					annotationInputStream);
+			if (doesCurrentPageHaveLock) {
+				if (!contentManager.hasContentAnnotation(contentVersionVO.getHash(), recordId, contentVersionVO.getVersion())) {
+					contentDao.add(contentVersionVO.getHash() + ".annotation."
+								   + recordId + "." + contentVersionVO.getVersion(),
+							annotationInputStream);
+					try {
+						xmlCurrentAnnotations = getContentAnnotationFromVault();
+					} catch (IOException e) {
+						throw new PdfTronXMLException_IOExeption(e);
+					}
+				} else {
+					String xmlToSave;
+					try {
+						xmlToSave = pdfTronParser.mergeTwoAnnotationFile(xmlCurrentAnnotations, IOUtils.toString(annotationInputStream, "UTF-8"));
+					} catch (IOException e) {
+						throw new PdfTronXMLException_IOExeption(e);
+					}
+
+					if (xmlToSave != null) {
+						saveAnnotation(xmlToSave);
+						xmlCurrentAnnotations = xmlToSave;
+					}
+				}
+			}
 		} finally {
 			ioServices.closeQuietly(annotationInputStream);
 		}

@@ -6,6 +6,7 @@ import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.PdfTronContentVersionWindow;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronViewer;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.UI;
 import org.apache.commons.io.FilenameUtils;
@@ -90,7 +91,7 @@ public class DownloadContentVersionLink extends DownloadLink {
 
 		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(contentVersionVO.getFileName()));
 		return this.contentVersionVO.getContentId() != null && this.recordId != null && this.metadataCode != null && isReadonly != null && Arrays.asList(PdfTronViewer.SUPPORTED_EXTENTION).contains(extension)
-			   && (true || StringUtils.isNotBlank(PdfTronViewer.getPdfTronKey()));
+			   && (Toggle.ENABLE_PDTRON_TRIAL.isEnabled() || StringUtils.isNotBlank(PdfTronViewer.getPdfTronKey()));
 	}
 
 	private BaseWindow buildPdfTronWindow() {
