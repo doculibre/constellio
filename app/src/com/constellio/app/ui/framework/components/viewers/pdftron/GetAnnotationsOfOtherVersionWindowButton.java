@@ -29,7 +29,7 @@ public class GetAnnotationsOfOtherVersionWindowButton extends WindowButton {
 	public GetAnnotationsOfOtherVersionWindowButton(
 			CopyAnnotationsOfOtherVersionPresenter copyAnnotationsOfOtherVersionPresenter, Refresh refresh) {
 		super($("getAnnotationsOfPreviousVersionWindowButton.btnTitle"), $("getAnnotationsOfPreviousVersionWindowButton.btnTitle"),
-				new WindowConfiguration(true, true, "800px", "300px"));
+				new WindowConfiguration(true, true, "450px", "200px"));
 		this.refresh = refresh;
 		this.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		this.addStyleName(ValoTheme.BUTTON_LINK);
@@ -41,7 +41,11 @@ public class GetAnnotationsOfOtherVersionWindowButton extends WindowButton {
 	protected Component buildWindowContent() {
 		HorizontalLayout horizontalLayout = new HorizontalLayout();
 
+		horizontalLayout.setSpacing(true);
+
 		versionToPickFrom = new BaseComboBox();
+
+		versionToPickFrom.setWidth("350px");
 
 		for (ContentVersionVO contentVersionVO : copyAnnotationsOfOtherVersionPresenter.getAvailableVersion()) {
 			versionToPickFrom.addItem(contentVersionVO);

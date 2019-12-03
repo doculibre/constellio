@@ -140,7 +140,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 						startAliveCallBack();
 						setWebViewerReadEditable();
 						this.setCaption($("pdfTronViewer.finalizeEditionAnnotation"));
-						hideGetAnnotationFromPreviousVersion(pdfTronPresenter.getAvailableVersion().size() > 0);
+						hideGetAnnotationFromPreviousVersion(userHasRightToEditOtherUserAnnotation && pdfTronPresenter.getAvailableVersion().size() > 0);
 						isViewerInReadOnly = false;
 					} else {
 						addMessageIfAnOtherUserOrAnOtherPageIsEditing(true);
