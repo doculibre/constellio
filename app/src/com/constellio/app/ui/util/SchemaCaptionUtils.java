@@ -73,6 +73,10 @@ public class SchemaCaptionUtils implements Serializable {
 		return caption;
 	}
 
+	public static String getCaptionForRecord(Record record) {
+		return getCaptionForRecord(record, ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+	}
+
 	public static String getCaptionForRecord(Record record, Locale locale) {
 		String caption;
 		if (record != null) {
