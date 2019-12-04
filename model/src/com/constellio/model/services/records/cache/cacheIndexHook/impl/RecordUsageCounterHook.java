@@ -28,7 +28,7 @@ public class RecordUsageCounterHook implements MetadataIndexCacheDataStoreHook<I
 
 	@Override
 	public boolean isHooked(MetadataSchemaType schemaType) {
-		return true;
+		return schemaType.getAllSchemas().stream().anyMatch(s -> !s.getReferencesToSummaryCachedType().isEmpty());
 	}
 
 	@Override
