@@ -11,6 +11,7 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManag
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.Octets;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
@@ -136,7 +137,7 @@ public class ReindexingServices {
 				}
 
 			} else {
-
+				SystemLogger.info("Reindexing started");
 				if (logManager != null && params.getReindexationMode().isFullRewrite()) {
 					logManager.regroupAndMoveInVault();
 					logManager.moveTLOGToBackup();
@@ -191,7 +192,7 @@ public class ReindexingServices {
 						}
 					}
 				}
-
+				SystemLogger.info("Reindexing finished");
 			}
 
 		} finally {

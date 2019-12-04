@@ -857,7 +857,8 @@ public class ContentManager implements StatefulService {
 							if (!closing.get()) {
 								try {
 									tryConvertRecordContents(record, tempFolder);
-								} catch (NullPointerException e) {
+								} catch (Throwable t) {
+									t.printStackTrace();
 									//unsupported extension
 								} finally {
 									transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));

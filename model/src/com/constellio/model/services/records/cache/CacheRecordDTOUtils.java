@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -279,7 +280,7 @@ public class CacheRecordDTOUtils {
 		bytes[2] = (byte) ((dateValue & ((short) 0x7f)));
 	}
 
-	public static <T> T readMetadata(byte[] byteArray, MetadataSchema schema, String metadataLocalCode,
+	public static <T> T readMetadata(String recordId, byte[] byteArray, MetadataSchema schema, String metadataLocalCode,
 									 Supplier<byte[]> persistedByteArraySupplier) {
 		Metadata metadataSearched = schema.getMetadataByDatastoreCode(metadataLocalCode);
 
@@ -298,7 +299,7 @@ public class CacheRecordDTOUtils {
 		short searchedMetadataIndex = neighboringMetadata.searchedMetadataIndex;
 		short nextMetadataIndex = neighboringMetadata.nextMetadataIndex;
 
-		return parseValueMetadata(byteArrayToSearchIn, metadataSearched, searchedMetadataIndex, nextMetadataIndex);
+		return parseValueMetadata(recordId, byteArrayToSearchIn, metadataSearched, searchedMetadataIndex, nextMetadataIndex);
 	}
 
 	public static Set<String> getStoredMetadatas(byte[] byteArrayToKeepInMemory, MetadataSchema schema) {
@@ -320,7 +321,7 @@ public class CacheRecordDTOUtils {
 		return storedMetadatas;
 	}
 
-	public static Set<Object> getStoredValues(byte[] byteArray, MetadataSchema schema,
+	public static Set<Object> getStoredValues(String recordId, byte[] byteArray, MetadataSchema schema,
 											  Supplier<byte[]> persistedByteArraySupplier) {
 		short metadatasSize = metadatasSize(byteArray);
 		Set<Object> storedValues = new HashSet<>();
@@ -344,13 +345,13 @@ public class CacheRecordDTOUtils {
 			}
 
 			// searchedMetadataIndex & nextMetadataIndex are needed to know where to start and stop parsing the value
-			storedValues.add(parseValueMetadata(byteArrayToUse, metadataSearched, neighboringMetadata.searchedMetadataIndex, neighboringMetadata.nextMetadataIndex));
+			storedValues.add(parseValueMetadata(recordId, byteArrayToUse, metadataSearched, neighboringMetadata.searchedMetadataIndex, neighboringMetadata.nextMetadataIndex));
 		}
 
 		return storedValues;
 	}
 
-	public static Set<Entry<String, Object>> toEntrySet(byte[] byteArray, MetadataSchema schema,
+	public static Set<Entry<String, Object>> toEntrySet(String recordId, byte[] byteArray, MetadataSchema schema,
 														Supplier<byte[]> persistedByteArraySupplier) {
 		Set<Entry<String, Object>> metadatasEntrySet = new HashSet<>();
 
@@ -376,7 +377,7 @@ public class CacheRecordDTOUtils {
 
 			// searchedMetadataIndex & nextMetadataIndex are needed to know where to start and stop parsing the value
 			metadatasEntrySet.add(new SimpleEntry(metadataSearched.getDataStoreCode(),
-					parseValueMetadata(byteArrayToUse, metadataSearched, neighboringMetadata.searchedMetadataIndex, neighboringMetadata.nextMetadataIndex)));
+					parseValueMetadata(recordId, byteArrayToUse, metadataSearched, neighboringMetadata.searchedMetadataIndex, neighboringMetadata.nextMetadataIndex)));
 		}
 
 		return metadatasEntrySet;
@@ -473,60 +474,72 @@ public class CacheRecordDTOUtils {
 		}
 	}
 
-	private static <T> T parseValueMetadata(byte[] byteArray, Metadata metadataSearched, short metadataSearchedIndex,
+	private static <T> T parseValueMetadata(String recordId, byte[] byteArray, Metadata metadataSearched,
+											short metadataSearchedIndex,
 											short nextMetadataIndex) {
 		if (metadataSearched.isMultivalue()) {
-			if (isIndexValid(metadataSearchedIndex)) {
-				switch (metadataSearched.getType()) {
-					case BOOLEAN:
-						return (T) getMultivalueBooleanMetadata(byteArray, metadataSearchedIndex);
-					case REFERENCE:
-						return (T) getMultivalueReferenceMetadata(byteArray, metadataSearchedIndex);
-					case STRING:
-					case STRUCTURE:
-					case TEXT:
-					case CONTENT:
-						return (T) getMultivalueStringMetadata(byteArray, metadataSearchedIndex);
-					case INTEGER:
-						return (T) getMultivalueIntegerMetadata(byteArray, metadataSearchedIndex);
-					case NUMBER:
-						return (T) getMultivalueNumberMetadata(byteArray, metadataSearchedIndex);
-					case DATE:
-						return (T) getMultivalueLocalDateMetadata(byteArray, metadataSearchedIndex);
-					case DATE_TIME:
-						return (T) getMultivalueLocalDateTimeMetadata(byteArray, metadataSearchedIndex);
-					case ENUM:
-						return (T) getMultivalueEnumMetadata(byteArray, metadataSearchedIndex, metadataSearched);
+
+			try {
+				if (isIndexValid(metadataSearchedIndex)) {
+					switch (metadataSearched.getType()) {
+						case BOOLEAN:
+							return (T) getMultivalueBooleanMetadata(byteArray, metadataSearchedIndex);
+						case REFERENCE:
+							return (T) getMultivalueReferenceMetadata(byteArray, metadataSearchedIndex);
+						case STRING:
+						case STRUCTURE:
+						case TEXT:
+						case CONTENT:
+							return (T) getMultivalueStringMetadata(byteArray, metadataSearchedIndex);
+						case INTEGER:
+							return (T) getMultivalueIntegerMetadata(byteArray, metadataSearchedIndex);
+						case NUMBER:
+							return (T) getMultivalueNumberMetadata(byteArray, metadataSearchedIndex);
+						case DATE:
+							return (T) getMultivalueLocalDateMetadata(byteArray, metadataSearchedIndex);
+						case DATE_TIME:
+							return (T) getMultivalueLocalDateTimeMetadata(byteArray, metadataSearchedIndex);
+						case ENUM:
+							return (T) getMultivalueEnumMetadata(byteArray, metadataSearchedIndex, metadataSearched);
+					}
 				}
+
+			} catch (Throwable t) {
+				SystemLogger.error("Could not parse value of metadata '" + metadataSearched.getLocalCode() + "' of record '" + recordId + "'", t);
+				return (T) new ArrayList<>();
 			}
 
 			// returns a empty array even if no value is stored in the cache to mimic Solr
 			return (T) new ArrayList<>();
 		} else {
-			if (isIndexValid(metadataSearchedIndex)) {
-				switch (metadataSearched.getType()) {
-					case BOOLEAN:
-						return (T) getSingleValueBooleanMetadata(byteArray, metadataSearchedIndex);
-					case REFERENCE:
-						return (T) getSingleValueReferenceMetadata(byteArray, metadataSearchedIndex);
-					case STRING:
-					case STRUCTURE:
-					case TEXT:
-					case CONTENT:
-						return (T) getSingleValueStringMetadata(byteArray, metadataSearchedIndex, nextMetadataIndex);
-					case INTEGER:
-						return (T) getSingleValueIntegerMetadata(byteArray, metadataSearchedIndex);
-					case NUMBER:
-						return (T) getSingleValueNumberMetadata(byteArray, metadataSearchedIndex);
-					case DATE:
-						return (T) getSingleValueLocalDateMetadata(byteArray, metadataSearchedIndex);
-					case DATE_TIME:
-						return (T) getSingleValueLocalDateTimeMetadata(byteArray, metadataSearchedIndex);
-					case ENUM:
-						return (T) getSingleValueEnumMetadata(byteArray, metadataSearchedIndex, metadataSearched);
+			try {
+				if (isIndexValid(metadataSearchedIndex)) {
+					switch (metadataSearched.getType()) {
+						case BOOLEAN:
+							return (T) getSingleValueBooleanMetadata(byteArray, metadataSearchedIndex);
+						case REFERENCE:
+							return (T) getSingleValueReferenceMetadata(byteArray, metadataSearchedIndex);
+						case STRING:
+						case STRUCTURE:
+						case TEXT:
+						case CONTENT:
+							return (T) getSingleValueStringMetadata(byteArray, metadataSearchedIndex, nextMetadataIndex);
+						case INTEGER:
+							return (T) getSingleValueIntegerMetadata(byteArray, metadataSearchedIndex);
+						case NUMBER:
+							return (T) getSingleValueNumberMetadata(byteArray, metadataSearchedIndex);
+						case DATE:
+							return (T) getSingleValueLocalDateMetadata(byteArray, metadataSearchedIndex);
+						case DATE_TIME:
+							return (T) getSingleValueLocalDateTimeMetadata(byteArray, metadataSearchedIndex);
+						case ENUM:
+							return (T) getSingleValueEnumMetadata(byteArray, metadataSearchedIndex, metadataSearched);
+					}
 				}
+			} catch (Throwable t) {
+				SystemLogger.error("Could not parse value of metadata '" + metadataSearched.getLocalCode() + "' of record '" + recordId + "'", t);
+				return null;
 			}
-
 			return null;
 		}
 	}
