@@ -82,19 +82,30 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public Record realtimeGetRecordById(String id, Long version) {
+		return realtimeGetById(RECORDS, id, version);
+	}
+
+	@Override
 	public Record realtimeGetById(MetadataSchemaType schemaType, String id) {
-		Record record = getConnectedRecordsCache().getRecord(id);
-		if (record == null) {
-			record = recordServices.realtimeGetById(schemaType, id);
-		}
-		return record;
+		return realtimeGetById(schemaType, id, null);
+	}
+
+	@Override
+	public Record realtimeGetById(MetadataSchemaType schemaType, String id, Long version) {
+		return realtimeGetById(schemaType.getDataStore(), id, version);
 	}
 
 	@Override
 	public Record realtimeGetById(String dataStore, String id) {
+		return realtimeGetById(dataStore, id, null);
+	}
+
+	@Override
+	public Record realtimeGetById(String dataStore, String id, Long version) {
 		Record record = getConnectedRecordsCache().getRecord(id);
-		if (record == null) {
-			record = recordServices.realtimeGetById(dataStore, id);
+		if (record == null || (version != null && record.getVersion() < version)) {
+			record = recordServices.realtimeGetById(dataStore, id, version);
 		}
 		return record;
 	}

@@ -1031,6 +1031,20 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
+	public void testPartialUpdateWithQuotedEtag() throws Exception {
+		Record Folder = recordServices.getDocumentById(folderToPatialUpdate.getId());
+		String eTag = "\"".concat(String.valueOf(Folder.getVersion())).concat("\"");
+
+		folderToPatialUpdate.setTitle("aNewTitle");
+		Response response = buildPatchQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
+				.build("PATCH", entity(folderToPatialUpdate, APPLICATION_JSON)).invoke();
+		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+
+		FolderDto folderDto = response.readEntity(FolderDto.class);
+		assertThat(folderDto.getTitle()).isEqualTo(folderToPatialUpdate.getTitle());
+	}
+
+	@Test
 	public void testPartialUpdateWithOldEtag() throws Exception {
 		Record Folder = recordServices.getDocumentById(folderToPatialUpdate.getId());
 		String eTag = String.valueOf(Folder.getVersion());

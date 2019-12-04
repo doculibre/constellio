@@ -64,6 +64,11 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
 		assertThat(documentDto.getType().getId()).isEqualTo(fakeDocumentType.getId());
 		assertThat(documentDto.getType().getCode()).isEqualTo(fakeDocumentType.getCode());
 		assertThat(documentDto.getType().getTitle()).isEqualTo(fakeDocumentType.getTitle());
+		assertThat(documentDto.getContent()).isNotNull();
+		assertThat(documentDto.getContent().getFilename()).isNotNull();
+		assertThat(documentDto.getContent().getVersion()).isNotNull();
+		assertThat(documentDto.getContent().getVersionType()).isNotNull();
+		assertThat(documentDto.getContent().getHash()).isNotNull();
 		assertThat(documentDto.getTitle()).isEqualTo(fakeDocument.getTitle());
 		assertThat(documentDto.getKeywords()).contains(fakeDocument.getKeywords().toArray(new String[0]));
 		assertThat(documentDto.getAuthor()).isEqualTo(fakeDocument.getAuthor());

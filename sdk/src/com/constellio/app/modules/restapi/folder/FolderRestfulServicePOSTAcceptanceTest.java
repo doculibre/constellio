@@ -1190,6 +1190,26 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 				.isEqualTo(i18n.$(new RecordCopyNotPermittedException(copySource).getValidationError()));
 	}
 
+	@Test
+	public void testCreateDocumentWithCalculatedUsr() throws Exception {
+		addUserCalculatedMetadata(Folder.DEFAULT_SCHEMA);
+
+		Response response = doPostQuery(minFolderToAdd);
+		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+	}
+
+	@Test
+	public void testCreateDocumentWithoutRetentionRule() throws Exception {
+		folderId = null;
+
+		minFolderToAdd.setParentFolderId(null);
+		minFolderToAdd.setCopyStatus(null);
+		minFolderToAdd.setRetentionRule(null);
+
+		Response response = doPostQuery(minFolderToAdd);
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+	}
+
 	//
 	// PRIVATE FUNCTIONS
 	//

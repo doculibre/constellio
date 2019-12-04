@@ -72,8 +72,13 @@ public abstract class BaseDao {
 	}
 
 	public Record getRecordById(String id) {
+		return getRecordById(id, null);
+	}
+
+	public Record getRecordById(String id, String eTag) {
 		try {
-			return recordServices.realtimeGetRecordById(id);
+			Long recordVersion = eTag != null ? Long.valueOf(eTag) : null;
+			return recordServices.realtimeGetRecordById(id, recordVersion);
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 			return null;
 		}
@@ -148,7 +153,7 @@ public abstract class BaseDao {
 	}
 
 	protected void clearCustomMetadataValues(Record record, MetadataSchema schema) {
-		for (Metadata metadata : schema.getMetadatas().onlyUSR()) {
+		for (Metadata metadata : schema.getMetadatas().onlyUSR().onlyManuals()) {
 			record.set(metadata, null);
 		}
 	}
