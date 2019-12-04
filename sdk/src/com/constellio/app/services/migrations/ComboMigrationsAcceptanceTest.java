@@ -46,8 +46,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			@Override
 			public void setupCollection() {
 				givenCollection(zeCollection);
-				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						Authorization.DEFAULT_SCHEMA);
+				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, Authorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 			}
@@ -275,6 +274,8 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 	public void validate(SetupScript setupScript)
 			throws Exception {
 
+		cacheIntegrityCheckedAfterTest = false;
+
 		System.out.println("\n\n---------- 1 ----------");
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
@@ -294,6 +295,20 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 		LocalDateTime time = new LocalDateTime();
 		givenTimeIs(time);
 		setupScript.setupCollection();
+
+		getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager().modify("_system_", new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.resetAllIds();
+			}
+		});
+		getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.resetAllIds();
+			}
+		});
+
 		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(zeCollection);
 		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(Collection.SYSTEM_COLLECTION);
 		DataLayerFactory dataLayerFactory = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory();
@@ -307,6 +322,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 		VaultSnapshot snapshot1 = tools.snapshot();
 
 		resetTestSession();
+		cacheIntegrityCheckedAfterTest = false;
 
 		System.out.println("\n\n---------- 2 ----------");
 
@@ -327,6 +343,18 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 
 		givenTimeIs(time);
 		setupScript.setupCollection();
+		getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager().modify("_system_", new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.resetAllIds();
+			}
+		});
+		getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.resetAllIds();
+			}
+		});
 		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(zeCollection);
 		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(Collection.SYSTEM_COLLECTION);
 		dataLayerFactory = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory();

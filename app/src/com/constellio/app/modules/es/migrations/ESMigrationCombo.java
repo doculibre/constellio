@@ -60,6 +60,8 @@ public class ESMigrationCombo implements ComboMigrationScript {
 		scripts.add(new ESMigrationTo8_0());
 		scripts.add(new ESMigrationTo8_0_1());
 		scripts.add(new ESMigrationTo8_0_2());
+		scripts.add(new ESMigrationTo8_1_1());
+		scripts.add(new ESMigrationTo9_0());
 
 		return scripts;
 	}
