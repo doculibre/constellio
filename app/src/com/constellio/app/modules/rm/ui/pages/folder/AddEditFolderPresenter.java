@@ -40,7 +40,6 @@ import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
@@ -356,16 +355,6 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		folder.setFormModifiedOn(time);
 		addOrUpdate(folder.getWrappedRecord(),
 				RecordsFlushing.WITHIN_SECONDS(modelLayerFactory.getSystemConfigs().getTransactionDelay()));
-
-		// FIXME test
-		for (int i = 0; i < 50; i++) {
-			Document subFolder = rmSchemas().newDocument().setFolder(folder).setTitle("title" + i);
-			addOrUpdate(subFolder.getWrappedRecord(), RecordsFlushing.NOW());
-			try {
-				Thread.sleep(10);
-			} catch (Exception ignored) {
-			}
-		}
 
 		if (userFolderId != null) {
 			RMUserFolder userFolder = rmSchemas().getUserFolder(userFolderId);
