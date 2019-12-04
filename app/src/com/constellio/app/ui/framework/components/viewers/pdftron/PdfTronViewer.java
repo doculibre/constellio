@@ -86,6 +86,8 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private ThreadState threadState = null;
 	private Button topRightButton = null;
 
+	private String searchTerm = null;
+
 
 	public PdfTronViewer(String recordId, ContentVersionVO contentVersion, String metadataCode, boolean readOnlyMode,
 						 String license) {
@@ -212,6 +214,11 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		mainLayout.addComponents(canvas);
 		mainLayout.setExpandRatio(canvas, 1);
 		addComponent(mainLayout);
+	}
+
+
+	public void setSearchTerm(String searchTerm) {
+		this.searchTerm = searchTerm;
 	}
 
 	private void rePullAnnotationsInPdfTron() {
@@ -413,7 +420,13 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		toExecute.append("name='" + userFirstNameAndLastName + " (" + currentUser.getUsername() + ")" + "';");
 		toExecute.append("admin=" + userHasRightToEditOtherUserAnnotation + ";");
 		toExecute.append("license=" + pdfTronLicense + ";");
+		toExecute.append("isReadOnly=" + isViewerInReadOnly + ";");
 
+		if (searchTerm != null) {
+			toExecute.append("searchTerm='" + searchTerm + "';");
+		} else {
+			toExecute.append("searchTerm=undefined;");
+		}
 
 		com.vaadin.ui.JavaScript.eval(toExecute.toString());
 
