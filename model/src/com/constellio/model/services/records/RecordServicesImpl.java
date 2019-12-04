@@ -738,7 +738,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 			RecordDTO summaryRecordDTO = toPersistedSummaryRecordDTO(record, schema);
 			record = toRecord(summaryRecordDTO, false);
 
-			insertInCache(record, WAS_OBTAINED);
 			return record;
 
 		} catch (NoSuchRecordWithId e) {
