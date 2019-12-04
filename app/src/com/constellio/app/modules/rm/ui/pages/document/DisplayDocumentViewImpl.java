@@ -130,6 +130,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private Component contentMetadataComponent;
 
 	private CollapsibleHorizontalSplitPanel splitPanel;
+	private String searchTerm;
+
 
 	public DisplayDocumentViewImpl() {
 		this(null, false, false);
@@ -143,6 +145,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	public DisplayDocumentPresenter getDisplayDocumentPresenter() {
 		return presenter;
+	}
+
+	public void setSearchTerm(String searchTerm) {
+		this.searchTerm = searchTerm;
 	}
 
 	@Override
@@ -179,6 +185,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
 		final ContentViewer contentViewer = new ContentViewer(presenter.getAppLayerFactory(),
 				documentVO, Document.CONTENT, contentVersionVO);
+
+		contentViewer.setSearchTerm(searchTerm);
+
 		if (inWindow && !isViewerInSeparateTab()) {
 			//			int viewerHeight = Page.getCurrent().getBrowserWindowHeight() - 125;
 			//			contentViewer.setHeight(viewerHeight + "px");

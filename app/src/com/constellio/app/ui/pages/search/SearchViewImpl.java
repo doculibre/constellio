@@ -603,6 +603,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				};
 			}
 		};
+		viewerPanel.setSearchTerm(presenter.getUserSearchExpression());
 		viewerPanel.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {

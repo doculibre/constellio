@@ -17,7 +17,6 @@ import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLExcep
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
-import com.constellio.model.services.pdftron.PdfTronXMLService;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Resource;
@@ -85,6 +84,8 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private String pdfTronLicense;
 	private ThreadState threadState = null;
 	private Button topRightButton = null;
+
+	private String searchTerm = null;
 
 
 	public PdfTronViewer(String recordId, ContentVersionVO contentVersion, String metadataCode, boolean readOnlyMode,
@@ -212,6 +213,11 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		mainLayout.addComponents(canvas);
 		mainLayout.setExpandRatio(canvas, 1);
 		addComponent(mainLayout);
+	}
+
+
+	public void setSearchTerm(String searchTerm) {
+		this.searchTerm = searchTerm;
 	}
 
 	private void rePullAnnotationsInPdfTron() {
@@ -413,7 +419,13 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		toExecute.append("name='" + userFirstNameAndLastName + " (" + currentUser.getUsername() + ")" + "';");
 		toExecute.append("admin=" + userHasRightToEditOtherUserAnnotation + ";");
 		toExecute.append("license=" + pdfTronLicense + ";");
+		toExecute.append("isReadOnly=" + isViewerInReadOnly + ";");
 
+		if (searchTerm != null) {
+			toExecute.append("searchTerm='" + searchTerm + "';");
+		} else {
+			toExecute.append("searchTerm=undefined;");
+		}
 
 		com.vaadin.ui.JavaScript.eval(toExecute.toString());
 
@@ -448,12 +460,10 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	public class PdfTronViewerRequestHandler extends BaseRequestHandler {
 
 		private String bpmnResourceKey;
-		private PdfTronXMLService pdfTronParser;
 
 		public PdfTronViewerRequestHandler(String bpmnFileResourceKey) {
 			super(PdfTronViewerRequestHandler.class.getName());
 			this.bpmnResourceKey = bpmnFileResourceKey;
-			pdfTronParser = new PdfTronXMLService();
 		}
 
 		public String getCallbackURL() {
@@ -500,7 +510,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			return handled;
 		}
 
-		private String createErrorJSONResponse(String errorMessage) throws IOException {
+		private String createErrorJSONResponse(String errorMessage) {
 			JSONObject rootJsonObject = new JSONObject();
 			rootJsonObject.put("error", errorMessage);
 

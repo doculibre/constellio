@@ -29,7 +29,7 @@ public class GetAnnotationsOfOtherVersionWindowButton extends WindowButton {
 	public GetAnnotationsOfOtherVersionWindowButton(
 			CopyAnnotationsOfOtherVersionPresenter copyAnnotationsOfOtherVersionPresenter, Refresh refresh) {
 		super($("getAnnotationsOfPreviousVersionWindowButton.btnTitle"), $("getAnnotationsOfPreviousVersionWindowButton.btnTitle"),
-				new WindowConfiguration(true, true, "450px", "200px"));
+				new WindowConfiguration(true, true, "490px", "125px"));
 		this.refresh = refresh;
 		this.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		this.addStyleName(ValoTheme.BUTTON_LINK);
@@ -57,7 +57,7 @@ public class GetAnnotationsOfOtherVersionWindowButton extends WindowButton {
 		horizontalLayout.addComponent(versionToPickFrom);
 
 
-		Button okButton = new BaseButton($("Ok")) {
+		Button okButton = new BaseButton($("getAnnotationsOfPreviousVersionWindowButton.transfer")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				ContentVersionVO selectedContentVersionVO = (ContentVersionVO) versionToPickFrom.getValue();

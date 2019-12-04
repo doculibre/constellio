@@ -28,6 +28,7 @@ public class ContentViewer extends CustomComponent {
 
 	private Component viewerComponent;
 	private List<VisibilityChangeListener> imageViewerVisibilityChangeListenerList;
+	String searchTerm;
 
 	public ContentViewer(AppLayerFactory appLayerFactory, RecordVO recordVO, String metadataCode,
 						 ContentVersionVO contentVersionVO) {
@@ -79,6 +80,14 @@ public class ContentViewer extends CustomComponent {
 			setVisible(false);
 		} else {
 			setCompositionRoot(viewerComponent);
+		}
+	}
+
+	public void setSearchTerm(String searchTerm) {
+		this.searchTerm = searchTerm;
+
+		if (viewerComponent instanceof PdfTronViewer) {
+			((PdfTronViewer) viewerComponent).setSearchTerm(searchTerm);
 		}
 	}
 

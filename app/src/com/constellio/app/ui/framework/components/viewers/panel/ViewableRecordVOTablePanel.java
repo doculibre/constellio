@@ -171,6 +171,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	private ViewWindow viewWindow;
 
+	private String searchTerm = null;
+
 	public ViewableRecordVOTablePanel(RecordVOContainer container) {
 		this(container, TableMode.LIST, null);
 	}
@@ -203,6 +205,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	public RecordVOContainer getRecordVOContainer() {
 		return recordVOContainer;
+	}
+
+
+	public void setSearchTerm(String searchTerm) {
+		this.searchTerm = searchTerm;
 	}
 
 	private void buildUI() {
@@ -1236,6 +1243,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				String schemaTypeCode = recordVO.getSchema().getTypeCode();
 				if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, true, false);
+					view.setSearchTerm(searchTerm);
 					view.enter(null);
 					view.addEditWindowCloseListener(new Window.CloseListener() {
 						@Override

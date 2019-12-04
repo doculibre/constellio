@@ -52,7 +52,7 @@ $(() => {
             webViewerInstance = instance;
             instance.setAnnotationUser(name);
             instance.setAdminUser(admin);
-            instance.setReadOnly(true);
+            instance.setReadOnly(isReadOnly);
 
             const {docViewer} = instance;
             const annotManager = instance.annotManager;
@@ -78,6 +78,10 @@ $(() => {
                         annotManager.importAnnotations(data);
                     }
                     ignoreAnnotationChange = false;
+
+                    if(searchTerm) {
+                        instance.searchTextFull(searchTerm);
+                    }
                 });
             });
         });
