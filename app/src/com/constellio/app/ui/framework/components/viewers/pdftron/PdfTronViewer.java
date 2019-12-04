@@ -17,7 +17,6 @@ import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLExcep
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
-import com.constellio.model.services.pdftron.PdfTronXMLService;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Resource;
@@ -461,12 +460,10 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	public class PdfTronViewerRequestHandler extends BaseRequestHandler {
 
 		private String bpmnResourceKey;
-		private PdfTronXMLService pdfTronParser;
 
 		public PdfTronViewerRequestHandler(String bpmnFileResourceKey) {
 			super(PdfTronViewerRequestHandler.class.getName());
 			this.bpmnResourceKey = bpmnFileResourceKey;
-			pdfTronParser = new PdfTronXMLService();
 		}
 
 		public String getCallbackURL() {
@@ -513,7 +510,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			return handled;
 		}
 
-		private String createErrorJSONResponse(String errorMessage) throws IOException {
+		private String createErrorJSONResponse(String errorMessage) {
 			JSONObject rootJsonObject = new JSONObject();
 			rootJsonObject.put("error", errorMessage);
 
