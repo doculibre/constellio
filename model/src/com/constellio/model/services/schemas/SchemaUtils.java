@@ -537,4 +537,17 @@ public class SchemaUtils {
 
 		return schemaTypesInHierarchy;
 	}
+
+	public List<Metadata> buildListOfReferencesToSummaryCachedType(List<Metadata> metadatas,
+																   Set<String> typesWithSummaryCache) {
+
+		List<Metadata> returnedMetadatas = new ArrayList<>();
+		for (Metadata metadata : metadatas) {
+			if (metadata.getType() == REFERENCE && typesWithSummaryCache.contains(metadata.getReferencedSchemaType())) {
+				returnedMetadatas.add(metadata);
+			}
+		}
+
+		return returnedMetadatas;
+	}
 }

@@ -29,6 +29,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
@@ -351,6 +352,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	@Override
 	public TaxonomyRecordsHookRetriever getTaxonomyRecordsHookRetriever(String collection) {
 		return this.modelLayerFactory.getTaxonomyRecordsHookRetriever(collection);
+	}
+
+	@Override
+	public RecordUsageCounterHookRetriever getRecordUsageCounterHookRetriever(String collection) {
+		return this.modelLayerFactory.getRecordUsageCounterHookRetriever(collection);
 	}
 
 	@Override

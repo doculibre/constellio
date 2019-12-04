@@ -28,6 +28,7 @@ import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
@@ -177,4 +178,6 @@ public interface ModelLayerFactory extends LayerFactory {
 	void onCollectionInitialized(String collection);
 
 	TaxonomyRecordsHookRetriever getTaxonomyRecordsHookRetriever(String collection);
+
+	RecordUsageCounterHookRetriever getRecordUsageCounterHookRetriever(String collection);
 }

@@ -40,6 +40,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHook;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHook;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
 import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
@@ -133,6 +135,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
 	private final Map<String, TaxonomyRecordsHookRetriever> taxonomyRecordsHookRetrieverMap = new HashMap<>();
+	private final Map<String, RecordUsageCounterHookRetriever> recordUsageCounterHookRetrieverMap = new HashMap<>();
 
 	private final ModelLayerCachesManager modelLayerCachesManager;
 
@@ -233,11 +236,20 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	public void onCollectionInitialized(String collection) {
 		taxonomyRecordsHookRetrieverMap.put(collection, new TaxonomyRecordsHookRetriever(
 				recordsCaches.registerRecordCountHook(collection, new TaxonomyRecordsHook(collection, this)), this));
+
+		recordUsageCounterHookRetrieverMap.put(collection, new RecordUsageCounterHookRetriever(
+				recordsCaches.registerRecordCountHook(collection, new RecordUsageCounterHook(collection, this)), this));
 	}
 
 	@Override
 	public TaxonomyRecordsHookRetriever getTaxonomyRecordsHookRetriever(String collection) {
 		return taxonomyRecordsHookRetrieverMap.get(collection);
+	}
+
+
+	@Override
+	public RecordUsageCounterHookRetriever getRecordUsageCounterHookRetriever(String collection) {
+		return recordUsageCounterHookRetrieverMap.get(collection);
 	}
 
 	public RecordMigrationsManager getRecordMigrationsManager() {

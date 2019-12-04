@@ -41,7 +41,12 @@ public class UnionMetadataAggregationHandler implements MetadataAggregationHandl
 			}
 		}
 
-		List<Comparable> listValues = new ArrayList<>(allValues);
+		List<Comparable> listValues = new ArrayList<>();
+		for (Comparable value : allValues) {
+			if (value != null) {
+				listValues.add(value);
+			}
+		}
 		Collections.sort(listValues);
 
 		return listValues;

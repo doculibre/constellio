@@ -68,6 +68,7 @@ public class OffHeapIntList {
 
 
 	//Found on https://www.geeksforgeeks.org/binary-search/
+
 	public int binarySearch(int value) {
 		int l = 0, r = lastIndex;
 		while (l <= r) {
