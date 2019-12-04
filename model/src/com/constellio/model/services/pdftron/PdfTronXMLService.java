@@ -40,7 +40,7 @@ public class PdfTronXMLService {
 		return elementInMapById;
 	}
 
-	public Document getDocumentFromStr(String str)
+	public static Document getDocumentFromStr(String str)
 			throws PdfTronXMLException_IOExeption, PdfTronXMLException_XMLParsingException {
 		if (str == null) {
 			return null;
@@ -195,7 +195,7 @@ public class PdfTronXMLService {
 		return indexDone.size() == size;
 	}
 
-	private Element getAnnotationElementList(Document xmlDocument) {
+	public static Element getAnnotationElementList(Document xmlDocument) {
 		if (xmlDocument == null) {
 			return null;
 		}

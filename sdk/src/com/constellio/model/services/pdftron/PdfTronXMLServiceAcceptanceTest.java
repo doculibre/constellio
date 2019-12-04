@@ -12,8 +12,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.constellio.model.services.pdftron.PdfTronXMLService.areElementEqual;
+import static com.constellio.model.services.pdftron.PdfTronXMLService.getDocumentFromStr;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PdfTronXMLServiceAcceptanceTest extends ConstellioTest {
@@ -192,6 +195,45 @@ public class PdfTronXMLServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenProcessNoModificationThenOk() throws Exception {
 		processNewXmlTest("originalannoations.xml", "originalannoations.xml", false, "00000000068");
+	}
+
+	@Test
+	public void whenMergingTwoXmlThenAllElementAreThere() throws Exception {
+		File originalAnnotationsFile = getTestResourceFileWithoutCheckingIfUnitTest(this.getClass(), "originalannoations.xml");
+		File modifiedAnnotationsFile = getTestResourceFileWithoutCheckingIfUnitTest(this.getClass(), "annotation-modification1.xml");
+
+		InputStream originalAnnotationInputStream = null;
+		InputStream modifiedAnnotationValidInputStream = null;
+
+		try {
+			originalAnnotationInputStream = new FileInputStream(originalAnnotationsFile);
+			modifiedAnnotationValidInputStream = new FileInputStream(modifiedAnnotationsFile);
+
+			String originalAnnoations = IOUtils.toString(originalAnnotationInputStream, "UTF-8");
+			String modifiedAnnotations = IOUtils.toString(modifiedAnnotationValidInputStream, "UTF-8");
+
+
+			PdfTronXMLService pdfTronXMLService = new PdfTronXMLService();
+
+			String mergedXml = pdfTronXMLService.mergeTwoAnnotationFile(originalAnnoations, modifiedAnnotations);
+
+
+			List<Element> annotList = PdfTronXMLService.getAnnotationElementList(getDocumentFromStr(mergedXml)).getChildren();
+
+			assertThat(annotList.size()).isEqualTo(6);
+
+			List<String> annotationIdList = new ArrayList<>();
+
+			for (Element currentElement : annotList) {
+				String id = currentElement.getAttributeValue(PdfTronXMLService.ELEMENT_NAME);
+				assertThat(annotationIdList).doesNotContain(id);
+				annotationIdList.add(id);
+			}
+
+		} finally {
+			closeQuietly(originalAnnotationInputStream);
+			closeQuietly(modifiedAnnotationValidInputStream);
+		}
 	}
 
 	public void processNewXmlTest(String originalAnnotationsXml, String modifiedAnnotationsXml,
