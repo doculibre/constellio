@@ -35,7 +35,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
@@ -100,7 +100,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			MetadataValueType.class,
 			MetadataTransiency.class,
 			SchemaTypesDisplayConfig.class,
-			SchemaTypesDisplayTransactionBuilder.class
+			SchemaTypesDisplayTransactionBuilder.class,
+			RecordCacheType.class
 	};
 
 	@Test
@@ -577,7 +578,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		FileUtils.deleteQuietly(comboFolder);
 		FileUtils.forceMkdir(comboFolder);
 
-		File[] childFiles = moduleFolder.listFiles();
+		List<File> childFiles = Arrays.asList(moduleFolder.listFiles());
+		childFiles.sort((f1, f2) -> f1.getName().compareTo(f2.getName()));
 		if (childFiles != null) {
 
 			List<File> properties = new ArrayList<>();
@@ -1212,6 +1214,10 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			stringBuilder.append(".setUndeletable(true)");
 		}
 
+		if (type.getCacheType() != RecordCacheType.FULLY_CACHED) {
+			stringBuilder.append(".setRecordCacheType(RecordCacheType." + type.getCacheType().name() + ")");
+		}
+
 		if (type.getSmallCode() != null) {
 			stringBuilder.append(".setSmallCode(\"" + type.getSmallCode() + "\")");
 		}
@@ -1242,6 +1248,10 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		if (metadata.isMarkedForDeletion()) {
 			method.addStatement("$L.setMarkedForDeletion(true)", variable);
+		}
+
+		if (metadata.isCacheIndex()) {
+			method.addStatement("$L.setCacheIndex(true)", variable);
 		}
 
 		if (metadata.isDefaultRequirement()) {
@@ -1324,7 +1334,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 					asListLitteral(metadata.getPopulateConfigs().getProperties()));
 		}
 
-		if (metadata.getType() == MetadataValueType.REFERENCE && !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
+		if (metadata.getType() == MetadataValueType.REFERENCE /*&& !Schemas.isGlobalMetadata(metadata.getLocalCode()) */) {
 			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 			if (metadata.getAllowedReferences().getAllowedSchemas().isEmpty()) {
 				String referencedType = metadata.getAllowedReferences().getAllowedSchemaType();

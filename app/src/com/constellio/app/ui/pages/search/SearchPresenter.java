@@ -131,10 +131,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
 	}
 
-	public boolean isLazyLoadedSearchResults() {
-		return modelLayerFactory.getSystemConfigs().isLazyLoadedSearchResults();
-	}
-
 	public enum SortOrder {ASCENDING, DESCENDING}
 
 	private static Logger LOGGER = LoggerFactory.getLogger(SearchPresenter.class);

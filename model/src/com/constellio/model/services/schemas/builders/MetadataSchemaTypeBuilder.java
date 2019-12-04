@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -56,7 +57,7 @@ public class MetadataSchemaTypeBuilder {
 	private String dataStore;
 	private SchemasIdSequence metadatasIdSequence;
 	private RecordCacheType recordCacheType;
-	private SchemasIdSequence schemasIdSequence;
+	SchemasIdSequence schemasIdSequence;
 
 	private MetadataSchemaType lastVersion;
 
@@ -507,5 +508,19 @@ public class MetadataSchemaTypeBuilder {
 
 	public boolean isNewSchemaType() {
 		return lastVersion == null;
+	}
+
+	public void resetAllIds(SchemasIdSequence sequenceForSchemaAndTypeId) {
+		schemasIdSequence = new SchemasIdSequence();
+		id = sequenceForSchemaAndTypeId.getNewId();
+
+		getDefaultSchema().resetAllIds(sequenceForSchemaAndTypeId, schemasIdSequence);
+
+		List<MetadataSchemaBuilder> sortedCustomSchemas = new ArrayList<>(getCustomSchemas());
+		sortedCustomSchemas.sort(Comparator.comparing(MetadataSchemaBuilder::getCode));
+
+		for (MetadataSchemaBuilder schema : sortedCustomSchemas) {
+			schema.resetAllIds(sequenceForSchemaAndTypeId, schemasIdSequence);
+		}
 	}
 }

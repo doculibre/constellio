@@ -346,6 +346,14 @@ public class SearchServices {
 
 		}
 
+		if (summary && queryResponseDTO.getNumFound() > 1_000_000) {
+			batchSize = Math.max(batchSize, 20_000);
+
+		} else if (summary && queryResponseDTO.getNumFound() > 100_000) {
+			batchSize = Math.max(batchSize, 2_000);
+
+		}
+
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(schemaType).returnAll());
 		query.filteredByVisibilityStatus(ALL);
