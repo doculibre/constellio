@@ -192,7 +192,6 @@ public class ConstellioEIM {
 	private static void configureBaseAppLayerExtensions(AppLayerFactory appLayerFactory, String collection) {
 		appLayerFactory.getExtensions().forCollection(collection)
 				.pagesComponentsExtensions.add(new CoreUserProfileFieldsExtension(collection, appLayerFactory));
-
 	}
 
 	private static void configureBaseModelLayerExtensions(AppLayerFactory appLayerFactory, String collection) {

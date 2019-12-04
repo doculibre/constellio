@@ -6,6 +6,8 @@ import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisp
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
 import com.constellio.app.api.extensions.DocumentViewButtonExtension;
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
+import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention;
+import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.ExtraTabInfo;
 import com.constellio.app.api.extensions.FieldBindingExtention;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.LabelTemplateExtension;
@@ -222,6 +224,7 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<TabSheetInDisplayAndFormExtention> tabSheetCaptionToHide = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<ExtraTabForSimpleSearchResultExtention> extraTabsForSimpleSearchResultExtentions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -263,6 +266,16 @@ public class AppLayerCollectionExtensions {
 		for (XmlGeneratorExtension xmlGeneratorExtension1 : xmlGeneratorExtensions) {
 			xmlGeneratorExtension1.getExtraMetadataToGenerateOnReference(extraMetadataToGenerateOnReferenceParams);
 		}
+	}
+
+	public List<ExtraTabInfo> getExtraTabForSimpleSearchResult() {
+		List<ExtraTabInfo> extraTabInfoList = new ArrayList<>();
+
+		for (ExtraTabForSimpleSearchResultExtention extraTabForSimpleSearchResultExtention : extraTabsForSimpleSearchResultExtentions) {
+			extraTabInfoList.addAll(extraTabForSimpleSearchResultExtention.getExtraTabs());
+		}
+
+		return extraTabInfoList;
 	}
 
 	public Map<String, Object> convertStructureToMap(ConvertStructureToMapParams params) {

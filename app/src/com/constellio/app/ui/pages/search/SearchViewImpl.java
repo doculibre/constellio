@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.search;
 
+import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.ExtraTabInfo;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
@@ -71,6 +72,7 @@ import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextField;
@@ -126,6 +128,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private boolean lazyLoadedSearchResults;
 	private List<SelectionChangeListener> selectionChangeListenerStorage = new ArrayList<>();
 	private boolean facetsOpened;
+	private TabSheet resultTabSheet;
 
 	@Override
 	public void attach() {
@@ -333,13 +336,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			((SearchResultDetailedTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		}*/
 
+
 		boolean detailedView = isDetailedView();
-		resultsArea.removeAllComponents();
-		if (lazyLoadedSearchResults) {
-			resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
-		} else {
-			resultsArea.addComponent(resultsTable);
-		}
+		createResultArea();
+
 		if (detailedView) {
 			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		}
@@ -347,6 +347,33 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		refreshCapsule();
 
 		return dataProvider;
+	}
+
+	private void createResultArea() {
+		List<ExtraTabInfo> extraTabInfoList = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getExtraTabForSimpleSearchResult();
+
+		resultsArea.removeAllComponents();
+		if (extraTabInfoList.isEmpty()) {
+			if (lazyLoadedSearchResults) {
+				resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
+			} else {
+				resultsArea.addComponent(resultsTable);
+			}
+		} else {
+			resultTabSheet = new TabSheet();
+
+			if (lazyLoadedSearchResults) {
+				resultTabSheet.addTab(new LazyLoadWrapper(resultsTable), $("SearchView.constellioResultTab"));
+			} else {
+				resultTabSheet.addTab(resultsTable, $("SearchView.constellioResultTab"));
+			}
+
+			for (ExtraTabInfo currentExtraTab : extraTabInfoList) {
+				resultTabSheet.addTab(currentExtraTab.getTabComponent(), currentExtraTab.getTabCaption());
+			}
+
+			resultsArea.addComponent(resultTabSheet);
+		}
 	}
 
 	@Override
