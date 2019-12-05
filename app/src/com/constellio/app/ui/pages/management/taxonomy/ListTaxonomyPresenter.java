@@ -14,9 +14,9 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 
@@ -122,7 +122,7 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 
 	protected boolean hasConcepts(Taxonomy taxonomy) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		LogicalSearchQuery query = new ConceptNodesTaxonomySearchServices(modelLayerFactory)
+		LogicalSearchQuery query = new RecordHierarchyServices(modelLayerFactory)
 				.getRootConceptsQuery(view.getSessionContext().getCurrentCollection(), taxonomy.getCode(),
 						new TaxonomiesSearchOptions());
 		Long numberOfConcepts = searchServices.getResultsCount(query);

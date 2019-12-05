@@ -1,4 +1,4 @@
-package com.constellio.model.services.taxonomies;
+package com.constellio.model.services.records;
 
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -9,8 +9,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.StatusFilter;
@@ -18,6 +16,9 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -40,7 +41,7 @@ import static com.constellio.model.entities.security.global.AuthorizationAddRequ
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
+public class RecordHierarchyServicesAcceptanceTest extends ConstellioTest {
 
 	String TAXO1 = "taxo1";
 	String TAXO2 = "taxo2";
@@ -61,7 +62,7 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 	TaxonomyRecords records;
 	MetadataSchemasManager schemasManager;
 	RecordServices recordServices;
-	ConceptNodesTaxonomySearchServices services;
+	RecordHierarchyServices services;
 	TaxonomiesSearchOptions options;
 	Record folder;
 	Record subFolder;
@@ -106,7 +107,7 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 
 		MetadataSchemaTypesBuilder types = schemasManager.modify("zeCollection");
 
-		services = new ConceptNodesTaxonomySearchServices(getModelLayerFactory());
+		services = new RecordHierarchyServices(getModelLayerFactory());
 
 	}
 

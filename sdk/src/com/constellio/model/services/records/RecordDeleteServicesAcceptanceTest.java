@@ -20,7 +20,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
-import com.constellio.model.services.records.utils.SortOrder;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -34,7 +33,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -201,19 +199,5 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(rm.getDocument("fakeDocument2b")).isNotNull();
 		assertThat(rm.getDocument("fakeDocument2bb")).isNotNull();
-	}
-
-	@Test
-	public void givenRecordInHierarchyWhenGetAllRecordsInHierarchySortOrderAscendingThenRecordsSortedAscending() {
-		List<Record> orderedRecords =
-				deleteService.getAllRecordsInHierarchy(records.getFolder_A02().getWrappedRecord(), SortOrder.ASCENDING);
-		assertThat(orderedRecords.get(0)).isEqualTo(records.getFolder_A02().getWrappedRecord());
-	}
-
-	@Test
-	public void givenRecordInHierarchyWhenGetAllRecordsInHierarchySortOrderDescendingThenRecordsSortedDescending() {
-		List<Record> orderedRecords =
-				deleteService.getAllRecordsInHierarchy(records.getFolder_A02().getWrappedRecord(), SortOrder.DESCENDING);
-		assertThat(orderedRecords.get(orderedRecords.size() - 1)).isEqualTo(records.getFolder_A02().getWrappedRecord());
 	}
 }

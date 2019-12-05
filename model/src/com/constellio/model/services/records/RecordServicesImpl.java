@@ -682,6 +682,29 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return returnedRecord;
 	}
 
+	@Override
+	public Record getRecordSummaryById(String collection, String id, boolean callExtensions) {
+		try {
+			//TODO Improve!!!!
+			RecordDTO recordDTO = dao(DataStore.RECORDS).get(id, callExtensions);
+			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+
+			short typeId = metadataSchemasManager.getSchemaTypes(collectionInfo.getCollectionId()).getSchema(recordDTO.getSchemaCode()).getTypeId();
+			Record record = new RecordImpl(recordDTO, collectionInfo, typeId);
+			newAutomaticMetadataServices()
+					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
+							new Transaction(new RecordUpdateOptions()));
+
+			MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
+
+			RecordDTO summaryRecordDTO = toPersistedSummaryRecordDTO(record, schema);
+			return toRecord(summaryRecordDTO, false);
+
+		} catch (NoSuchRecordWithId e) {
+			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, DataStore.RECORDS, e);
+		}
+	}
+
 	public Record getById(String dataStore, String id, boolean callExtensions) {
 		try {
 			RecordDTO recordDTO = dao(dataStore).get(id, callExtensions);

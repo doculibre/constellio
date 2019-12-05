@@ -460,14 +460,21 @@ public class LogicalSearchQueryExecutorInCache {
 			return false;
 
 		} else if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			return condition.isSupportingMemoryExecution(false, queryExecutionMethod == USE_CACHE)
-				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
-
+			boolean test = condition.isSupportingMemoryExecution(false, queryExecutionMethod == USE_CACHE)
+						   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
+			if (!test) {
+				return false;
+			}
+			return true;
 		} else if (schemaType.getCacheType().hasPermanentCache()) {
 			//Verify that schemaType is loaded
-			return (returnedMetadatasFilter.isOnlySummary() || returnedMetadatasFilter.isOnlyId()) &&
-				   condition.isSupportingMemoryExecution(true, queryExecutionMethod == USE_CACHE)
-				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
+			boolean test = (returnedMetadatasFilter.isOnlySummary() || returnedMetadatasFilter.isOnlyId()) &&
+						   condition.isSupportingMemoryExecution(true, queryExecutionMethod == USE_CACHE)
+						   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
+			if (!test) {
+				return false;
+			}
+			return true;
 
 		} else {
 			return false;

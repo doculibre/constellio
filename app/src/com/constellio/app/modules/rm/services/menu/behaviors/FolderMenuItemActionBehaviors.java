@@ -66,14 +66,12 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
-import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.Roles;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -123,6 +121,7 @@ public class FolderMenuItemActionBehaviors {
 	private MetadataSchemaTypes schemaTypes;
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
+	private RecordHierarchyServices recordHierarchyServices;
 
 	public static final String USER_LOOKUP = "user-lookup";
 
@@ -142,6 +141,7 @@ public class FolderMenuItemActionBehaviors {
 		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+		recordHierarchyServices = new RecordHierarchyServices(modelLayerFactory);
 	}
 
 	public void getConsultationLink(Folder folder, MenuItemActionBehaviorParams params) {
@@ -229,18 +229,7 @@ public class FolderMenuItemActionBehaviors {
 
 		Button deleteFolderButton;
 
-		LogicalSearchQuery searchDocument = new LogicalSearchQuery();
-		searchDocument.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
-
-		LogicalSearchCondition logicalSearchQuery = from(rm.document.schemaType(), rm.folder.schemaType()).where(Schemas.PATH_PARTS).isContaining(asList(folder.getId()));
-
-		searchDocument.setCondition(logicalSearchQuery);
-
-		SPEQueryResponse speQueryResponse = searchServices.query(searchDocument);
-		List<Record> folderAndDocument = new ArrayList<>(speQueryResponse.getRecords());
-
-		// Dossier qu'on essai de supprimer
-		folderAndDocument.add(0, folder.getWrappedRecord());
+		List<Record> folderAndDocument = recordHierarchyServices.getAllRecordsInHierarchy(folder.getWrappedRecord(), true);
 
 		List<RecordVO> checkoutRecords = getCheckoutRecordsAsVO(folderAndDocument, params.getView().getSessionContext());
 		if (!needAReasonToDeleteFolder) {

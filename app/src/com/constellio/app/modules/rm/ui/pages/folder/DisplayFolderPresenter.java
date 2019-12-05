@@ -360,8 +360,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (eimConfigs.isOnlySummaryMetadatasDisplayedInTables()) {
 			query.setCacheableQueries(asList(
 					new LogicalSearchQuery(from(foldersSchemaType).where(rm.folder.parentFolder()).is(record))
+							.filteredWithUser(getCurrentUser())
+							.filteredByStatus(StatusFilter.ACTIVES)
 							.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields()),
 					new LogicalSearchQuery(from(documentsSchemaType).where(rm.document.folder()).is(record))
+							.filteredWithUser(getCurrentUser())
+							.filteredByStatus(StatusFilter.ACTIVES)
 							.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields())));
 		}
 

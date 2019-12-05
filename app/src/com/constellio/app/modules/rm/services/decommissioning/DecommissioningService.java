@@ -56,6 +56,7 @@ import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -65,7 +66,6 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
@@ -100,7 +100,7 @@ public class DecommissioningService {
 	private final RecordServices recordServices;
 	private final RMSchemasRecordsServices rm;
 	private final TaxonomiesSearchServices taxonomiesSearchServices;
-	private final ConceptNodesTaxonomySearchServices conceptNodesTaxonomySearchServices;
+	private final RecordHierarchyServices recordHierarchyServices;
 	private final TaxonomiesManager taxonomiesManager;
 	private final SearchServices searchServices;
 	private final String collection;
@@ -116,7 +116,7 @@ public class DecommissioningService {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-		this.conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(modelLayerFactory);
+		this.recordHierarchyServices = new RecordHierarchyServices(modelLayerFactory);
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.searchServices = modelLayerFactory.newSearchServices();
@@ -604,7 +604,7 @@ public class DecommissioningService {
 
 	public List<String> getAllAdminUnitIdsHierarchyOf(String administrativeUnitId) {
 		Record record = rm.getAdministrativeUnit(administrativeUnitId).getWrappedRecord();
-		return conceptNodesTaxonomySearchServices.getAllConceptIdsHierarchyOf(adminUnitsTaxonomy(), record);
+		return recordHierarchyServices.getAllConceptIdsHierarchyOf(adminUnitsTaxonomy(), record);
 	}
 
 	public List<String> getChildrenAdministrativeUnit(String administrativeUnitId, User user) {
@@ -706,7 +706,7 @@ public class DecommissioningService {
 		Taxonomy principalTaxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(
 				rule.getCollection());
 		for (String unit : rule.getAdministrativeUnits()) {
-			List<String> currentUnits = conceptNodesTaxonomySearchServices
+			List<String> currentUnits = recordHierarchyServices
 					.getAllConceptIdsHierarchyOf(principalTaxonomy, rm.getAdministrativeUnit(unit).getWrappedRecord());
 			returnSet.addAll(currentUnits);
 		}

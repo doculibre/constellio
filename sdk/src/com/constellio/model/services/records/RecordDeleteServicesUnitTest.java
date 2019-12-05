@@ -67,6 +67,8 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 
 	@Mock AuthorizationsServices authorizationsServices;
 
+	@Mock RecordHierarchyServices recordHierarchyServices;
+
 	RecordDeleteServices recordDeleteServices;
 
 	@Mock Taxonomy principalTaxonomy;
@@ -112,18 +114,18 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		recordDeleteServices = spy(new RecordDeleteServices(recordDao, modelLayerFactory));
 
 		doReturn(Arrays.asList(theRecord, aRecordInTheRecordHierarchy, anotherRecordInTheRecordHierarchy))
-				.when(recordDeleteServices)
+				.when(recordHierarchyServices)
 				.getAllRecordsInHierarchy(eq(theRecord));
 
 		doReturn(Arrays.asList(aSubPrincipalConcept, aRecordInThePrincipalConcept, aRecordInTheSubPrincipalConcept))
-				.when(recordDeleteServices).getAllRecordsInHierarchy(eq(thePrincipalConcept));
+				.when(recordHierarchyServices).getAllRecordsInHierarchy(eq(thePrincipalConcept));
 
 		doReturn(Arrays.asList(theRecord, aRecordInTheRecordHierarchy, anotherRecordInTheRecordHierarchy))
-				.when(recordDeleteServices)
+				.when(recordHierarchyServices)
 				.getAllRecordsInHierarchy(eq(theRecord), any(SortOrder.class));
 
 		doReturn(Arrays.asList(aSubPrincipalConcept, aRecordInThePrincipalConcept, aRecordInTheSubPrincipalConcept))
-				.when(recordDeleteServices).getAllRecordsInHierarchy(eq(thePrincipalConcept), any(SortOrder.class));
+				.when(recordHierarchyServices).getAllRecordsInHierarchy(eq(thePrincipalConcept), any(SortOrder.class));
 
 
 		doReturn(Arrays.asList(aSubPrincipalConcept))
