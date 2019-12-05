@@ -34,10 +34,10 @@ import java.util.List;
 import java.util.Set;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.RecordHierarchyServices.visibleInTrees;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInCollectionOf;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.visibleInTrees;
 
 public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvider {
 	String taxonomyCode;

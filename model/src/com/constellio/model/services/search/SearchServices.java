@@ -72,7 +72,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -90,6 +89,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -258,8 +258,9 @@ public class SearchServices {
 		if (!query.getCacheableQueries().isEmpty() &&
 			query.getCacheableQueries().stream().allMatch(logicalSearchQueryExecutorInCache::isQueryExecutableInCache)) {
 			return query.getCacheableQueries().stream()
-					.map(this::retrieveRecordsUsingCache)
-					.flatMap(Collection::stream)
+					.map(logicalSearchQueryExecutorInCache::stream)
+					.flatMap(Function.identity())
+					//.sorted(query.getSortFields()) // FIXME sort or not?
 					.collect(Collectors.toList());
 		} else if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
 			return retrieveRecordsUsingCache(query);

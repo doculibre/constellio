@@ -5,7 +5,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.search.SearchServicesRuntimeException.TooManyElementsInCriterion;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.TestedQueryRecord;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -14,19 +13,21 @@ import java.util.List;
 
 public class IsNotInCriterion extends LogicalSearchValueCondition {
 
-	private final List<Object> elements;
+	private final List<Object> values;
+	private final List<Object> memoryQueryValues;
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public IsNotInCriterion(List<?> values) {
 		super();
-		this.elements = (List) values;
+		this.values = (List) values;
+		this.memoryQueryValues = CriteriaUtils.convertToMemoryQueryValues((List) values);
 		if (values.size() > 1000) {
 			throw new TooManyElementsInCriterion(values.size());
 		}
 	}
 
 	public List<Object> getValues() {
-		return elements;
+		return values;
 	}
 
 	@Override
@@ -38,7 +39,7 @@ public class IsNotInCriterion extends LogicalSearchValueCondition {
 	public String getSolrQuery(DataStoreField dataStoreField) {
 		StringBuilder solrQuery = new StringBuilder("(*:* ");
 
-		List<Object> queryValues = elements;
+		List<Object> queryValues = values;
 		if (queryValues.isEmpty()) {
 			queryValues = Arrays.asList((Object) "_impossible_value_a38_");
 		}
@@ -61,9 +62,25 @@ public class IsNotInCriterion extends LogicalSearchValueCondition {
 
 	@Override
 	public boolean testConditionOnField(Metadata metadata, TestedQueryRecord record) {
+		if (memoryQueryValues.isEmpty()) {
+			return true;
+		}
+
 		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
 
-		throw new NotImplementedException("Not implemented yet");
+		for (Object value : CriteriaUtils.getValues(recordValue)) {
+			if (CriteriaUtils.useConvertedValues(metadata)) {
+				if (!memoryQueryValues.contains(value)) {
+					return true;
+				}
+			} else {
+				if (!values.contains(value)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	@Override
@@ -78,6 +95,11 @@ public class IsNotInCriterion extends LogicalSearchValueCondition {
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + ":" + elements;
+		return getClass().getSimpleName() + ":" + values;
+	}
+
+	@Override
+	public boolean isSupportingMemoryExecution() {
+		return true;
 	}
 }

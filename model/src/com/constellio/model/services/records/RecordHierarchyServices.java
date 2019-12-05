@@ -1,4 +1,4 @@
-package com.constellio.model.services.taxonomies;
+package com.constellio.model.services.records;
 
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -13,6 +13,7 @@ import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.utils.SortOrder;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
@@ -24,11 +25,16 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+import com.constellio.model.services.taxonomies.TaxonomySearchQueryConditionFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
 import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
@@ -40,7 +46,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromTypesInCollectionOf;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
-public class ConceptNodesTaxonomySearchServices {
+public class RecordHierarchyServices {
 
 	SearchServices searchServices;
 	TaxonomiesManager taxonomiesManager;
@@ -49,13 +55,15 @@ public class ConceptNodesTaxonomySearchServices {
 	SchemaUtils schemaUtils = new SchemaUtils();
 	RecordsCaches recordsCaches;
 	ModelLayerExtensions extensions;
+	RecordServices recordServices;
 
-	public ConceptNodesTaxonomySearchServices(ModelLayerFactory modelLayerFactory) {
+	public RecordHierarchyServices(ModelLayerFactory modelLayerFactory) {
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.recordsCaches = modelLayerFactory.getRecordsCaches();
 		this.extensions = modelLayerFactory.getExtensions();
+		recordServices = modelLayerFactory.newRecordServices();
 	}
 
 	public List<Record> getRootConcept(String collection, String taxonomyCode, TaxonomiesSearchOptions options) {
@@ -292,5 +300,54 @@ public class ConceptNodesTaxonomySearchServices {
 		return searchServices.search(new LogicalSearchQuery(fromConceptsOf(taxonomy).returnAll())
 				.sortAsc(CODE).sortAsc(TITLE)
 				.filteredWithUser(user));
+	}
+
+	public List<Record> getAllRecordsInHierarchy(Record record) {
+		return getAllRecordsInHierarchy(record, SortOrder.NONE);
+	}
+
+	public List<Record> getAllRecordsInHierarchy(Record record, boolean summary) {
+		return getAllRecordsInHierarchy(record, SortOrder.NONE, summary);
+	}
+
+	public List<Record> getAllRecordsInHierarchy(Record record, SortOrder sortOrder) {
+		return getAllRecordsInHierarchy(record, sortOrder, false);
+	}
+
+	public List<Record> getAllRecordsInHierarchy(Record record, SortOrder sortOrder, boolean summary) {
+		LinkedList<Record> hierarchySummaryRecords = new LinkedList<>();
+		hierarchySummaryRecords.add(record);
+
+		addChildRecordRecursively(record, hierarchySummaryRecords, sortOrder);
+
+		if (summary) {
+			return hierarchySummaryRecords;
+		} else {
+			List<String> ids = hierarchySummaryRecords.stream().map(Record::getId).collect(Collectors.toList());
+			return recordServices.getRecordsById(record.getCollection(), ids);
+		}
+	}
+
+	private void addChildRecordRecursively(Record record, LinkedList<Record> hierarchySummaryRecords, SortOrder order) {
+		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypeOf(record);
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection());
+
+		for (MetadataSchemaType childSchemaType : schemaTypes.getClassifiedSchemaTypesIn(schemaType.getCode())) {
+			List<Metadata> parentMetadatas = childSchemaType.getAllParentReferencesTo(schemaType.getCode());
+			for (Metadata parentMetadata : parentMetadatas) {
+				LogicalSearchQuery query = new LogicalSearchQuery()
+						.setCondition(from(childSchemaType).where(parentMetadata).isEqualTo(record.getId()))
+						.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
+				List<Record> childRecords = searchServices.search(query);
+				childRecords.forEach(childRecord -> {
+					if (order == SortOrder.DESCENDING) {
+						hierarchySummaryRecords.addFirst(childRecord);
+					} else {
+						hierarchySummaryRecords.addLast(childRecord);
+					}
+					addChildRecordRecursively(childRecord, hierarchySummaryRecords, order);
+				});
+			}
+		}
 	}
 }
