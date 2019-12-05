@@ -18,7 +18,7 @@ import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-public class RMSIPExportService {
+public class RecordIdListBasedOnIncludeExcludeMetadatasBuilder {
 
 	private SearchServices searchServices;
 	private AppLayerFactory appLayerFactory;
@@ -27,7 +27,7 @@ public class RMSIPExportService {
 	private List<String> includedRecordIds;
 	private ScriptActionLogger outputLogger;
 
-	public RMSIPExportService(AppLayerFactory appLayerFactory) {
+	public RecordIdListBasedOnIncludeExcludeMetadatasBuilder(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 	}

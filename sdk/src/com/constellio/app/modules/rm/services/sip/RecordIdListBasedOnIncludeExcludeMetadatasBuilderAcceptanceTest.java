@@ -26,14 +26,14 @@ import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.contentOf;
 
-public class RMSIPExportServiceAcceptanceTest extends ConstellioTest {
+public class RecordIdListBasedOnIncludeExcludeMetadatasBuilderAcceptanceTest extends ConstellioTest {
 
 	private static final String INCLUDED_IN_SIP_EXPORT_METADATA = "USRincludedInSIPExport";
 	private static final String EXCLUDED_FROM_SIP_EXPORT_METADATA = "USRexcludedFromSIPExport";
 
 	private RMTestRecords records = new RMTestRecords(zeCollection);
 	private RMSchemasRecordsServices rm;
-	private RMSIPExportService rmSIPExportService;
+	private RecordIdListBasedOnIncludeExcludeMetadatasBuilder rmSIPExportService;
 
 	@Before
 	public void setUp() throws Exception {
@@ -41,7 +41,7 @@ public class RMSIPExportServiceAcceptanceTest extends ConstellioTest {
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 		this.rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
-		rmSIPExportService = new RMSIPExportService(getAppLayerFactory());
+		rmSIPExportService = new RecordIdListBasedOnIncludeExcludeMetadatasBuilder(getAppLayerFactory());
 	}
 
 	@Test
