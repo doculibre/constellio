@@ -54,6 +54,7 @@ import com.constellio.data.dao.services.solr.serverFactories.HttpSolrServerFacto
 import com.constellio.data.dao.services.sql.MicrosoftSqlTransactionDao;
 import com.constellio.data.dao.services.sql.SqlConnector;
 import com.constellio.data.dao.services.sql.SqlRecordDao;
+import com.constellio.data.dao.services.sql.SqlRecordDaoFactory;
 import com.constellio.data.dao.services.sql.SqlServerConnector;
 import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
@@ -101,7 +102,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final IOServicesFactory ioServicesFactory;
 	private final SolrServers solrServers;
 	private final SqlConnector sqlConnector;
-	private SqlRecordDao sqlRecordDao;
+	private SqlRecordDaoFactory sqlRecordDaoFactory;
 	private ConstellioCacheManager localCacheManager;
 	private ConstellioCacheManager distributedCacheManager;
 	private final ConfigManager configManager;
@@ -236,7 +237,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		if(dataLayerConfiguration.getMicrosoftSqlServerUrl() != null){
 			try {
 				this.sqlConnector.setConnection(dataLayerConfiguration);
-				this.sqlRecordDao = new MicrosoftSqlTransactionDao(this.sqlConnector);
+				this.sqlRecordDaoFactory = new SqlRecordDaoFactory(this.sqlConnector);
 			}catch(SQLException sqlException){
 				throw new RuntimeException(sqlException);
 			}
@@ -254,7 +255,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			else if(dataLayerConfiguration.getSecondTransactionLogMode()==SecondTransactionLogType.SQL_SERVER){
 
 				secondTransactionLogManager = add(new SqlServerTransactionLogManager(dataLayerConfiguration,
-						ioServicesFactory.newIOServices(), newRecordDao(), sqlRecordDao ,contentDao, backgroundThreadsManager, dataLayerLogger,
+						ioServicesFactory.newIOServices(), newRecordDao(), sqlRecordDaoFactory ,contentDao, backgroundThreadsManager, dataLayerLogger,
 						dataLayerExtensions.getSystemWideExtensions(), transactionLogRecoveryManager));
 			}
 			else {
@@ -320,8 +321,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		return contentDao;
 	}
 
-	public SqlRecordDao getSqlRecordDao(){
-		return sqlRecordDao;
+	public SqlRecordDaoFactory getSqlRecordDao(){
+		return sqlRecordDaoFactory;
 	}
 
 	public BigVaultServer getRecordsVaultServer() {

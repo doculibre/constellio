@@ -595,7 +595,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		transactionLog.prepare(secondTransactionId, secondTransaction);
 		transactionLog.flush(secondTransactionId, null);
 
-		String id = transactionLog.regroupAndMoveInVault();
+		String id = transactionLog.regroupAndMove();
 		assertThat(id).isEqualTo("tlogs/2345-06-07T08-09-10-011.tlog");
 
 		String content = IOUtils.toString(getDataLayerFactory().getContentsDao().getContentInputStream(id, SDK_STREAM));
@@ -612,7 +612,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 		transactionLog.prepare(secondTransactionId, secondTransaction);
 
-		String id = transactionLog.regroupAndMoveInVault();
+		String id = transactionLog.regroupAndMove();
 		assertThat(id).isNull();
 
 		verify(contentDao, never()).add(anyString(), any(InputStream.class));
@@ -633,7 +633,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		doThrow(ContentDaoRuntimeException.class).when(contentDao).add(anyString(), any(InputStream.class));
 
 		try {
-			transactionLog.regroupAndMoveInVault();
+			transactionLog.regroupAndMove();
 			fail("SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault expected");
 		} catch (SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault e) {
 			//OK

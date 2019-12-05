@@ -4,7 +4,8 @@ import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
-import com.constellio.data.dao.dto.records.TransactionSqlDTO;
+import com.constellio.data.dao.dto.sql.RecordTransactionSqlDTO;
+import com.constellio.data.dao.dto.sql.TransactionSqlDTO;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
@@ -12,12 +13,15 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
-import com.constellio.data.dao.services.sql.SqlRecordDao;
+import com.constellio.data.dao.services.sql.SqlRecordDaoFactory;
+import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogIsNotInitialized;
+import com.constellio.data.dao.services.transactionLog.sql.TransactionDocumentLogContent;
+import com.constellio.data.dao.services.transactionLog.sql.TransactionLogContent;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
@@ -35,18 +39,22 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.STOP;
 
@@ -64,15 +72,13 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	static final String RECOVERY_FOLDER = XMLSecondTransactionLogManager.class.getSimpleName() + "_recoveryFolder";
 	static final String RECOVERED_TLOG_INPUT = XMLSecondTransactionLogManager.class.getSimpleName() + "_recoveredTLogInput";
 	static final String RECOVERED_TLOG_OUTPUT = XMLSecondTransactionLogManager.class.getSimpleName() + "_recoveredTLogOutput";
-	private static final Map<String,BigVaultServerTransaction > transactionContentMap = new HashMap<>();
+	private static final Map<String, String> transactionContentMap = new HashMap<>();
 
 	private DataLayerConfiguration configuration;
 
 	private File folder;
 
 	private IOServices ioServices;
-
-	private AtomicInteger idSequence;
 
 	private boolean started;
 
@@ -90,14 +96,14 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	private DataLayerSystemExtensions dataLayerSystemExtensions;
 
-	private SqlRecordDao sqlRecordDao;
+	private SqlRecordDaoFactory sqlRecordDaoFactory;
 
 	private final TransactionLogRecoveryManager transactionLogRecoveryManager;
 
 	private boolean automaticRegroup = true;
 
 	public SqlServerTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices,
-										  RecordDao recordDao,SqlRecordDao sqlRecordDao,
+										  RecordDao recordDao, SqlRecordDaoFactory sqlRecordDaoFactory,
 										  ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager,
 										  DataLayerLogger dataLayerLogger,
 										  DataLayerSystemExtensions dataLayerSystemExtensions,
@@ -108,7 +114,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		this.recordDao = recordDao;
 		this.bigVaultServer = recordDao.getBigVaultServer();
 		this.contentDao = contentDao;
-		this.sqlRecordDao = sqlRecordDao;
+		this.sqlRecordDaoFactory = sqlRecordDaoFactory;
 		this.backgroundThreadsManager = backgroundThreadsManager;
 		this.dataLayerLogger = dataLayerLogger;
 		this.dataLayerSystemExtensions = dataLayerSystemExtensions;
@@ -133,10 +139,10 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 				BackgroundThreadConfiguration.repeatingAction(MERGE_LOGS_ACTION, newRegroupAndMoveInVaultRunnable())
 						.handlingExceptionWith(STOP).executedEvery(configuration.getSecondTransactionLogMergeFrequency()));
 
-//		if (bigVaultServer.countDocuments() == 0) {
-//			regroupAndMoveInVault();
-//			destroyAndRebuildSolrCollection();
-//		}
+		//		if (bigVaultServer.countDocuments() == 0) {
+		//			regroupAndMove();
+		//			destroyAndRebuildSolrCollection();
+		//		}
 	}
 
 	@Override
@@ -145,11 +151,12 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		ensureNoExceptionOccured();
 		File file = new File(getUnflushedFolder(), transactionId);
 		try {
-			ioServices.replaceFileContent(file, newReadWriteServices().toLogEntry(transaction));
+			String content = newReadWriteServices().toLogEntry(transaction);
+			ioServices.replaceFileContent(file, content);
 
 			newReadWriteServices().toLogEntry(transaction);
 
-			transactionContentMap.put(transactionId, transaction);
+			transactionContentMap.put(transactionId, content);
 		} catch (IOException e) {
 			exceptionOccured = true;
 			throw new RuntimeException(e);
@@ -160,36 +167,27 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	public void flush(String transactionId, TransactionResponseDTO transactionInfo) {
 		ensureStarted();
 		try {
-
 			doFlush(transactionId, transactionInfo);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			exceptionOccured = true;
 			throw new SecondTransactionLogRuntimeException_CouldNotFlushTransaction(e);
 		}
 	}
 
-	 void doFlush(String transactionId, TransactionResponseDTO transactionInfo)
+	void doFlush(String transactionId, TransactionResponseDTO transactionInfo)
 			throws IOException {
 
 		Path source = FileSystems.getDefault().getPath(getUnflushedFolder().getAbsolutePath(), transactionId);
 
-		String content = toJson(transactionContentMap.remove(transactionId));
+		String content = transactionContentMap.remove(transactionId);
 
-		AtomicInteger atomicTries = new AtomicInteger(0);
-		do {
-			try {
-				Integer logVersion = getLogVersion();
-				sqlRecordDao.insert(createTransactionSqlDto(transactionId, transactionInfo, content,logVersion));
-				break;
-			} catch (SQLException e) {
-				atomicTries.getAndIncrement();
-				if (atomicTries.get() > 2) {
-					exceptionOccured = true;
-					throw new RuntimeException(e);
-				}
-			}
-		}
-		while(true);
+		tryThreeTimes(() -> {
+			Integer logVersion = getLogVersion();
+			sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).insert(createTransactionSqlDto(transactionId, transactionInfo, content, logVersion));
+			return true;
+		});
+
+
 		if (!source.toFile().exists()) {
 			throw new RuntimeException("Source does not exist");
 		}
@@ -206,42 +204,144 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	@Override
 	public void setSequence(String sequenceId, long value, TransactionResponseDTO transactionInfo) {
-		String data = getTransactionLogReadWriteServices().toSetSequenceLogEntry(sequenceId, value);
-		//sendTransaction(transactionInfo, data);
+
 	}
 
 	@Override
 	public void nextSequence(String sequenceId, TransactionResponseDTO transactionInfo) {
-		String data = getTransactionLogReadWriteServices().toNextSequenceLogEntry(sequenceId);
-		//sendTransaction(transactionInfo, data);
+
 	}
 
 	@Override
-	public String regroupAndMoveInVault() {
-		return null;
+	public synchronized String regroupAndMove() {
+
+		//get transactions
+
+		List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll());
+
+		//build record on json
+		try {
+
+			int logVersion = this.getLogVersion();
+			final List<RecordTransactionSqlDTO> records = extractRecordsFromTransaction(transactionsToConvert, logVersion);
+
+			//save records
+			tryThreeTimes(() -> {
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(records);
+				return true;
+			});
+
+		} catch (IOException e) {
+			exceptionOccured = true;
+			throw new RuntimeException(e);
+		} catch (SQLException e) {
+			exceptionOccured = true;
+			throw new RuntimeException(e);
+		}
+
+		return "";
+	}
+
+	private List<RecordTransactionSqlDTO> extractRecordsFromTransaction(List<TransactionSqlDTO> transactions,
+																		int logVersion)
+			throws IOException, SQLException {
+		List<RecordTransactionSqlDTO> records = new ArrayList<>();
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		for (TransactionSqlDTO transactionSql : transactions) {
+			String jsonContent = transactionSql.getContent();
+			if (jsonContent != null && "".equals(jsonContent)) {
+				TransactionLogContent transaction = objectMapper.readValue(jsonContent, TransactionLogContent.class);
+
+				records.addAll(mapBigVaultTransactionToRecordTransaction(transaction, logVersion));
+
+				//delete
+				List<String> deleteIds = transaction.getDeletedRecords();
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(deleteIds);
+
+			}
+		}
+		return records;
+	}
+
+	private List<RecordTransactionSqlDTO> mapBigVaultTransactionToRecordTransaction(
+			TransactionLogContent bigVaultServerTransaction, int logVersion)
+			throws SQLException {
+
+		String solrVersion = this.recordDao.getBigVaultServer().getVersion();
+
+		//new documents
+		List<RecordTransactionSqlDTO> records = bigVaultServerTransaction.getNewDocuments().stream().map(x -> {
+			try {
+				return new RecordTransactionSqlDTO( x.getId(), logVersion, solrVersion, toJson(x));
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+			return new RecordTransactionSqlDTO();
+		}).collect(Collectors.toList());
+
+		//remove existing records
+		List<String> recordsUpdateIds = bigVaultServerTransaction.getUpdatedDocuments().stream()
+				.map(x -> x.getId()).collect(Collectors.toList());
+		sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(recordsUpdateIds);
+
+
+		//update documents
+		List<RecordTransactionSqlDTO> recordsUpdate = bigVaultServerTransaction.getUpdatedDocuments().stream().map(x -> {
+			try {
+				return new RecordTransactionSqlDTO(x.getId(), logVersion, solrVersion, toJson(x));
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+			return new RecordTransactionSqlDTO();
+		}).collect(Collectors.toList());
+
+		records.addAll(recordsUpdate);
+
+		return records;
 	}
 
 	@Override
 	public void destroyAndRebuildSolrCollection() {
 
+		this.transactionLogRecoveryManager.disableRollbackModeDuringSolrRestore();
+		try {
+//			if (!tLogs.isEmpty()) {
+//				clearSolrCollection();
+//				new TransactionLogReplayServices(newReadWriteServices(), bigVaultServer, dataLayerLogger)
+//						.replayTransactionLogs(tLogs);
+//			}
+
+		} finally {
+		}
+	}
+
+	@Override
+	public void transactionLOGReindexationStartStrategy() {
+		//table and schema backup is set up in SQL Server
+
+		tryThreeTimes(() -> {
+			sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).increaseVersion();
+			return true;
+		});
 
 	}
 
 	@Override
-	public void moveTLOGToBackup() {
-		//table and schema backup is set up in SQL Server
+	public void transactionLOGReindexationCleanupStrategy() {
+
+		tryThreeTimes(() -> {
+			int version = sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getCurrentVersion();
+			sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAllByLogVersion(version);
+			return true;
+		});
+
 	}
 
 	@Override
-	public void deleteLastTLOGBackup() {
-
-		//table and schema backup is set up in SQL Server
-	}
-
-	@Override
-	public void setAutomaticRegroupAndMoveInVaultEnabled(boolean enabled) {
-
-		//table and schema backup is set up in SQL Server
+	public void setAutomaticRegroupAndMoveEnabled(boolean automaticMode) {
+		this.automaticRegroup = automaticMode;
 	}
 
 	@Override
@@ -262,6 +362,13 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		started = false;
 	}
 
+	public void deleteAllTransactionsAndRecords() throws SQLException {
+		sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll();
+
+		sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll();
+
+	}
+
 	public File getUnflushedFolder() {
 		return new File(folder, "unflushed");
 	}
@@ -275,6 +382,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			}
 		}
 	}
+
 	private Collection<File> findUnflushedFiles() {
 
 		IOFileFilter filter = new AbstractFileFilter() {
@@ -287,7 +395,6 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 		return FileUtils.listFiles(getUnflushedFolder(), filter, filter);
 	}
-
 
 	boolean isCommitted(File file, RecordDao recordDao) {
 		List<String> lines = readFileToLines(file);
@@ -328,7 +435,6 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		} else {
 			return (currentVersion != -1 && currentVersion != versionBeforeUpdate);
 		}
-
 	}
 
 	private boolean isDeleteQueryCommitted(String query, RecordDao recordDao) {
@@ -352,52 +458,29 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			@Override
 			public void run() {
 				if (isAutomaticRegroup()) {
-					regroupAndMoveInVault();
+					regroupAndMove();
 				}
 			}
 		};
 	}
 
-	synchronized public boolean isAutomaticRegroup() {
-		return automaticRegroup;
+	private void saveRegroupLogsInVault(File bigLogFile, String vaultContentId) {
+		InputStream inputStream = ioServices.newBufferedFileInputStreamWithoutExpectableFileNotFoundException(bigLogFile,
+				READ_TEMP_BIG_LOG);
+		try {
+			contentDao.add(vaultContentId, inputStream);
+
+			if (bigLogFile.length() != contentDao.getContentLength(vaultContentId)) {
+				throw new ImpossibleRuntimeException("Copy of transactions failed");
+			}
+
+		} finally {
+			ioServices.closeQuietly(inputStream);
+		}
 	}
 
-	private List<File> recoverTransactionLogs(File tlogsFolder) {
-//		List<String> tlogs = contentDao.getFolderContents("/tlogs");
-//		Collections.sort(tlogs);
-//
-//		List<File> tlogsFiles = new ArrayList<>();
-//		if (contentDao instanceof FileSystemContentDao) {
-//			File tlogsFolderInVault = ((FileSystemContentDao) contentDao).getFolder("tlogs").getParentFile();
-//			for (String tlog : tlogs) {
-//				tlogsFiles.add(new File(tlogsFolderInVault, tlog));
-//			}
-//			return tlogsFiles;
-//		}
-//
-//		for (String tlog : tlogs) {
-//
-//			InputStream inputStream;
-//			try {
-//				inputStream = contentDao.getContentInputStream(tlog, RECOVERED_TLOG_INPUT);
-//			} catch (ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
-//				throw new RuntimeException(contentDaoException_noSuchContent);
-//			}
-//			File tLogFile = new File(tlogsFolder, tlog);
-//			ioServices.touch(tLogFile);
-//			OutputStream outputStream = ioServices.newBufferedFileOutputStreamWithoutExpectableFileNotFoundException(
-//					tLogFile, RECOVERED_TLOG_OUTPUT);
-//			tlogsFiles.add(tLogFile);
-//
-//			try {
-//				ioServices.copyAndClose(inputStream, outputStream);
-//			} catch (IOException e) {
-//				throw new RuntimeException(e);
-//			}
-//		}
-//
-//		return tlogsFiles;
-		return null;
+	synchronized public boolean isAutomaticRegroup() {
+		return automaticRegroup;
 	}
 
 	private void ensureStarted() {
@@ -426,33 +509,106 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	}
 
-	TransactionLogReadWriteServices newReadWriteServices() {
-		return new TransactionLogReadWriteServices(ioServices, configuration, dataLayerSystemExtensions);
+	TransactionLogSqlReadWriteServices newReadWriteServices() {
+		return new TransactionLogSqlReadWriteServices(configuration, dataLayerSystemExtensions);
 	}
 
-	private TransactionLogReadWriteServices getTransactionLogReadWriteServices() {
-		return new TransactionLogReadWriteServices(null, configuration, dataLayerSystemExtensions);
+	private TransactionLogSqlReadWriteServices getTransactionLogReadWriteServices() {
+		return new TransactionLogSqlReadWriteServices(configuration, dataLayerSystemExtensions);
 	}
 
 	private TransactionSqlDTO createTransactionSqlDto(String transactionId,
-													  TransactionResponseDTO transactionInfo, String content, int version){
+													  TransactionResponseDTO transactionInfo, String content,
+													  int version) {
 		transactionInfo = transactionInfo == null ?
-						  new TransactionResponseDTO( 0, new HashMap<>()): transactionInfo;
+						  new TransactionResponseDTO(0, new HashMap<>()) : transactionInfo;
 		return new TransactionSqlDTO(transactionId, new java.sql.Date((new Date()).getTime()),
 				version, transactionInfo.getNewDocumentVersions().toString(), content);
 	}
 
 	private String toJson(BigVaultServerTransaction bigVaultServerTransaction) throws JsonProcessingException {
 
-		if(bigVaultServerTransaction == null){
+		if (bigVaultServerTransaction == null) {
 			return "{}";
 		}
-		ObjectWriter ow =new ObjectMapper().writer().withDefaultPrettyPrinter();
+		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 
 		return ow.writeValueAsString(bigVaultServerTransaction);
 	}
 
+	private String toJson(TransactionDocumentLogContent inputDocument) throws JsonProcessingException {
+
+		if (inputDocument == null) {
+			return "{}";
+		}
+		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+
+		return ow.writeValueAsString(inputDocument);
+	}
+
 	private int getLogVersion() throws SQLException {
-		return sqlRecordDao.getCurrentVersion();
+		return sqlRecordDaoFactory
+				.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getCurrentVersion();
+	}
+
+	public long getTableTransactionCount() throws SQLException {
+		return sqlRecordDaoFactory
+				.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getTableCount();
+	}
+
+	//Command pattern
+
+	void tryThreeTimes(Callable func) {
+		AtomicInteger atomicTries = new AtomicInteger(0);
+		do {
+			try {
+				func.call();
+				break;
+			} catch (SQLException e) {
+				atomicTries.getAndIncrement();
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException ex) {
+					exceptionOccured = true;
+					throw new RuntimeException(e);
+				}
+				if (atomicTries.get() > 2) {
+					exceptionOccured = true;
+					throw new RuntimeException(e);
+				}
+			} catch (Exception e) {
+				throw new RuntimeException();
+			}
+		}
+		while (true);
+	}
+
+	List<TransactionSqlDTO> tryThreeTimesReturnList(Callable<List<TransactionSqlDTO>> func) {
+
+		List<TransactionSqlDTO> transactionsToConvert = null;
+		AtomicInteger atomicTries = new AtomicInteger(0);
+		do {
+			try {
+				transactionsToConvert = func.call();
+				break;
+			} catch (SQLException e) {
+				atomicTries.getAndIncrement();
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException ex) {
+					exceptionOccured = true;
+					throw new RuntimeException(e);
+				}
+				if (atomicTries.get() > 2) {
+					exceptionOccured = true;
+					throw new RuntimeException(e);
+				}
+			} catch (Exception e) {
+				throw new RuntimeException();
+			}
+		}
+		while (true);
+
+		return transactionsToConvert;
 	}
 }

@@ -109,7 +109,7 @@ public class AfterTestValidationsTestFeature {
 		TimeProvider.setTimeProvider(new DefaultTimeProvider());
 		DataLayerFactory dataLayerFactory = factoriesTestFeatures.getConstellioFactories().getDataLayerFactory();
 		SecondTransactionLogManager secondTransactionLogManager = dataLayerFactory.getSecondTransactionLogManager();
-		secondTransactionLogManager.regroupAndMoveInVault();
+		secondTransactionLogManager.regroupAndMove();
 
 		VaultSnapshot snapshotBeforeReplay = tools.snapshot();
 		tools.flushAndDeleteContentMarkers();

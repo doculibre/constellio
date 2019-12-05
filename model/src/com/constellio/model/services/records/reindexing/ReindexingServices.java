@@ -138,8 +138,8 @@ public class ReindexingServices {
 			} else {
 
 				if (logManager != null && params.getReindexationMode().isFullRewrite()) {
-					logManager.regroupAndMoveInVault();
-					logManager.moveTLOGToBackup();
+					logManager.regroupAndMove();
+					logManager.transactionLOGReindexationStartStrategy();
 					RecordDao recordDao = dataLayerFactory.newRecordDao();
 					try {
 
@@ -170,8 +170,8 @@ public class ReindexingServices {
 				}
 
 				if (logManager != null && params.getReindexationMode().isFullRewrite()) {
-					logManager.regroupAndMoveInVault();
-					logManager.deleteLastTLOGBackup();
+					logManager.regroupAndMove();
+					logManager.transactionLOGReindexationCleanupStrategy();
 				}
 
 				RecordDao recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();

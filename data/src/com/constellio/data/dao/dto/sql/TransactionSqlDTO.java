@@ -1,4 +1,4 @@
-package com.constellio.data.dao.dto.records;
+package com.constellio.data.dao.dto.sql;
 
 import java.sql.Date;
 

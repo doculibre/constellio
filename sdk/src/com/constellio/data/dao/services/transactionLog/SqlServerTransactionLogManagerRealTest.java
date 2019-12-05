@@ -4,63 +4,56 @@ import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
-import com.constellio.data.dao.dto.records.TransactionSqlDTO;
+import com.constellio.data.dao.dto.sql.TransactionSqlDTO;
 import com.constellio.data.dao.services.DataLayerLogger;
-import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
-import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
 import com.constellio.data.dao.services.sql.MicrosoftSqlTransactionDao;
-import com.constellio.data.dao.services.sql.SqlRecordDao;
+import com.constellio.data.dao.services.sql.SqlRecordDaoFactory;
+import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogIsNotInitialized;
-import com.constellio.data.dao.services.transactionLog.reader1.ReaderLinesIteratorV1;
+import com.constellio.data.dao.services.transactionLog.sql.TransactionLogContent;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
@@ -73,6 +66,8 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 	@Mock DataLayerSystemExtensions systemExtensions;
 
+	@Mock MicrosoftSqlTransactionDao sqlTransactionDao;
+
 	LocalDateTime shishOclockLocalDateTime = new LocalDateTime().plusHours(1);
 	LocalDateTime tockOClockLocalDateTime = shishOclockLocalDateTime.plusMinutes(1);
 	String shishOclock = SolrUtils.convertLocalDateTimeToSolrDate(shishOclockLocalDateTime);
@@ -84,7 +79,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Mock QueryResponseDTO queryResponseDTO;
 	@Mock BackgroundThreadsManager backgroundThreadsManager;
 	ContentDao contentDao;
-	SqlRecordDao sqlRecordDao;
+	SqlRecordDaoFactory sqlRecordDaoFactory;
 
 	File baseFolder, unflushed, flushed;
 
@@ -101,6 +96,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	List<SolrInputDocument> firstTransactionModifiedRecords = new ArrayList<>();
 	List<String> firstTransactionDeletedRecords = new ArrayList<>();
 	List<String> firstTransactionDeletedByQueries = new ArrayList<>();
+	TransactionResponseDTO transactionResponseDTO1 = new TransactionResponseDTO(0, new HashMap<>());
 
 	BigVaultServerTransaction firstTransaction = new BigVaultServerTransaction(firstTransactionId, recordsFlushing,
 			firstTransactionNewRecords,
@@ -137,10 +133,10 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		unflushed = new File(baseFolder, "unflushed");
 		ioServices = getIOLayerFactory().newIOServices();
 		contentDao = getDataLayerFactory().getContentsDao();
-		sqlRecordDao = getDataLayerFactory().getSqlRecordDao();
+		sqlRecordDaoFactory = getDataLayerFactory().getSqlRecordDao();
 		when(recordDao.getBigVaultServer()).thenReturn(bigVaultServer);
 		when(bigVaultServer.countDocuments()).thenReturn(42L);
-		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDao, contentDao,
+		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
 				backgroundThreadsManager, dataLayerLogger, systemExtensions,
 				getDataLayerFactory().getTransactionLogRecoveryManager()));
 		transactionLog.initialize();
@@ -185,35 +181,9 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		secondTransactionDeletedRecords.add(deletedRecord6);
 		secondTransactionDeletedRecords.add(deletedRecord7);
 
-		StringBuilder expectedLogOfFirstTransactionBuilder = new StringBuilder();
-		expectedLogOfFirstTransactionBuilder.append("--transaction--\n");
-		expectedLogOfFirstTransactionBuilder.append("addUpdate record1 -1\n");
-		expectedLogOfFirstTransactionBuilder.append("text_s=aValue\n");
-		expectedLogOfFirstTransactionBuilder.append("date_dt=" + shishOclock + "\n");
-		expectedLogOfFirstTransactionBuilder.append("addUpdate record2 -1\n");
-		expectedLogOfFirstTransactionBuilder.append("text_s=anotherValue\n");
-		expectedLogOfFirstTransactionBuilder.append("otherfield_ss=true\n");
-		expectedLogOfFirstTransactionBuilder.append("otherfield_ss=false\n");
-		expectedLogOfFirstTransactionBuilder.append("addUpdate record3 34\n");
-		expectedLogOfFirstTransactionBuilder.append("text_s=line1__LINEBREAK__line2\n");
-		expectedLogOfFirstTransactionBuilder.append("addUpdate record4 45\n");
-		expectedLogOfFirstTransactionBuilder.append("text_s=value3\n");
-		expectedLogOfFirstTransactionBuilder.append("otherfield_ss=false\n");
-		expectedLogOfFirstTransactionBuilder.append("otherfield_ss=true\n");
-		expectedLogOfFirstTransactionBuilder.append("deletequery ((zeQuery) AND (firstFilter) AND (secondFilter))\n");
-		expectedLogOfFirstTransactionBuilder
-				.append("deletequery ((anotherQuery) AND (firstFilter) AND (secondFilter) AND (thirdFilter))\n");
-		expectedLogOfFirstTransaction = expectedLogOfFirstTransactionBuilder.toString();
+		expectedLogOfFirstTransaction = buildTransactionExampleString();
 
-		StringBuilder expectedLogOfSecondTransactionBuilder = new StringBuilder();
-		expectedLogOfSecondTransactionBuilder.append("--transaction--\n");
-		expectedLogOfSecondTransactionBuilder.append("addUpdate record5 56\n");
-		expectedLogOfSecondTransactionBuilder.append("text_s=aValue\n");
-		expectedLogOfSecondTransactionBuilder.append("date_dt=" + tockOClock + "\n");
-		expectedLogOfSecondTransactionBuilder.append("addUpdate record3 34\n");
-		expectedLogOfSecondTransactionBuilder.append("text_s=line1__LINEBREAK__line2\n");
-		expectedLogOfSecondTransactionBuilder.append("delete deletedRecord6 deletedRecord7\n");
-		expectedLogOfSecondTransaction = expectedLogOfSecondTransactionBuilder.toString();
+		expectedLogOfSecondTransaction = buildSecondTransactionExampleString();
 
 		firstTransactionTempFile = new File(unflushed, firstTransactionId);
 		secondTransactionTempFile = new File(unflushed, secondTransactionId);
@@ -249,11 +219,155 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 		transactionLog.flush(firstTransactionId, null);
 
-		TransactionSqlDTO transactionSqlDTO =(TransactionSqlDTO) sqlRecordDao.get(firstTransactionId);
+		TransactionSqlDTO transactionSqlDTO = (TransactionSqlDTO) sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).get(firstTransactionId);
 		assertThat(transactionSqlDTO).isNotNull();
 		assertThat(transactionSqlDTO.getContent()).contains("record6ZZ");
 	}
 
+	@Test
+	public void givenUnflushedTransactionFileIsEmptyThenDeleted()
+			throws Exception {
+
+		when(recordDao.getCurrentVersion("zeRecord")).thenReturn(-1L);
+
+		File file = new File(transactionLog.getUnflushedFolder(), UUIDV1Generator.newRandomId());
+		FileUtils.touch(file);
+
+		assertThat(transactionLog.isCommitted(file, recordDao)).isFalse();
+
+	}
+
+	@Test
+	public void givenAnExceptionOccurWhenFlushingThenThrowExceptionAndBlockFutureTransactions()
+			throws Exception {
+
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		File firstTransactionTempFile = new File(unflushed, firstTransactionId);
+		doThrow(RuntimeException.class).when(transactionLog).doFlush(firstTransactionId, null);
+
+		try {
+			transactionLog.flush(firstTransactionId, null);
+			fail("SecondTransactionLogRuntimeException_CouldNotFlushTransaction expected");
+		} catch (SecondTransactionLogRuntimeException_CouldNotFlushTransaction e) {
+			//OK
+		}
+
+		assertThat(firstTransactionTempFile).exists();
+
+		try {
+			transactionLog.prepare(secondTransactionId, secondTransaction);
+			fail("SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException expected");
+		} catch (SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException e) {
+			//OK
+		}
+
+	}
+
+	@Test
+	public void givenAnSqlExceptionOccuredOnlyOnceWhenFlushingThenSucceeds()
+			throws Exception {
+
+		doThrow(new SQLException()).doNothing().when(sqlTransactionDao).insert("");
+
+		transactionLog.tryThreeTimes(() -> {
+			sqlTransactionDao.insert("");
+			return true;
+		});
+
+		//OK
+	}
+
+	@Test
+	public void givenAnSqlExceptionOccuredOnlyTwiceWhenFlushingThenSucceeds()
+			throws Exception {
+
+		doThrow(new SQLException()).doThrow(new SQLException()).doNothing().when(sqlTransactionDao).insert("");
+
+		transactionLog.tryThreeTimes(() -> {
+			sqlTransactionDao.insert("");
+			return true;
+		});
+
+		//OK
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void givenAnSqlExceptionOccuredThreeTimeWhenFlushingThenThrowRuntimeException()
+			throws Exception {
+
+		doThrow(new SQLException()).doThrow(new SQLException()).doThrow(new SQLException()).when(sqlTransactionDao).insert("");
+
+		transactionLog.tryThreeTimes(() -> {
+			sqlTransactionDao.insert("");
+			return true;
+		});
+
+		//OK
+	}
+
+	@Test(expected = SecondTransactionLogRuntimeException_TransactionLogIsNotInitialized.class)
+	public void givenPreparedIsCalledBeforeInitializingTheTransactionLogThenException() {
+
+		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
+				backgroundThreadsManager, dataLayerLogger, systemExtensions,
+				getDataLayerFactory().getTransactionLogRecoveryManager()));
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+
+	}
+
+	@Test(expected = SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized.class)
+	public void givenInitializedTransactionLogWhenStartASecondTimeThenException() {
+
+		transactionLog.initialize();
+
+	}
+
+	@Test
+	public void whenFlushingContentIsCreated()
+			throws Exception {
+
+		givenTimeIs(new LocalDateTime(2345, 6, 7, 8, 9, 10, 11));
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		transactionLog.flush(firstTransactionId, null);
+		transactionLog.prepare(secondTransactionId, secondTransaction);
+		transactionLog.flush(secondTransactionId, null);
+
+		String id = transactionLog.regroupAndMove();
+
+		TransactionSqlDTO transactionLogs1 = (TransactionSqlDTO) getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).get(firstTransactionId);
+		TransactionSqlDTO transactionLogs2 = (TransactionSqlDTO) getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).get(secondTransactionId);
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		String transactionLogs1Content = transactionLogs1.getContent();
+		String transactionLogs2Content = transactionLogs2.getContent();
+
+		assertThat(transactionLogs1Content+transactionLogs2Content).isEqualTo(expectedLogOfFirstTransaction+expectedLogOfSecondTransaction);
+
+	}
+
+	@Test
+	public void whenFlushingContentIsCreatedContentIsSameWhenDeserialized()
+			throws Exception {
+
+		givenTimeIs(new LocalDateTime(2345, 6, 7, 8, 9, 10, 11));
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		transactionLog.flush(firstTransactionId, null);
+
+		String id = transactionLog.regroupAndMove();
+
+		TransactionSqlDTO transactionLogs1 = (TransactionSqlDTO) getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).get(firstTransactionId);
+
+		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		//String transactionLogSerialized1 = ow.writeValueAsString(transactionLogs1);
+		TransactionLogContent transactionLogDeserialized = objectMapper.readValue(transactionLogs1.getContent(), TransactionLogContent.class);
+
+		assertThat(transactionLogDeserialized.getUpdatedDocuments().size()).isEqualTo(2);
+		assertThat(transactionLogDeserialized.getNewDocuments().size()).isEqualTo(2);
+		assertThat(transactionLogDeserialized.getDeletedQueries().size()).isEqualTo(2);
+		assertThat(transactionLogDeserialized.getDeletedRecords().size()).isEqualTo(0);
+	}
 
 	private Condition<? super Iterable<Map.Entry<String, String[]>>> sameAsFirstQuery() {
 		return new Condition<Iterable<Map.Entry<String, String[]>>>() {
@@ -292,5 +406,85 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 				return true;
 			}
 		};
+	}
+
+
+	@After
+	public void tearDown() throws Exception {
+
+		transactionLog.deleteAllTransactionsAndRecords();
+	}
+
+	private String buildTransactionExampleString() {
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("{\r\n");
+		sb.append("  \"transactionId\" : \"firstTransaction\",\r\n");
+		sb.append("  \"newDocuments\" : [ {\r\n");
+		sb.append("    \"id\" : \"record1\",\r\n");
+		sb.append("    \"version\" : -1,\r\n");
+		sb.append("    \"fields\" : {\r\n");
+		sb.append("      \"date_dt\" : \""+shishOclock+"\",\r\n");
+		sb.append("      \"text_s\" : \"aValue\"\r\n");
+		sb.append("    }\r\n");
+		sb.append("  }, {\r\n");
+		sb.append("    \"id\" : \"record2\",\r\n");
+		sb.append("    \"version\" : -1,\r\n");
+		sb.append("    \"fields\" : {\r\n");
+		sb.append("      \"text_s\" : \"anotherValue\",\r\n");
+		sb.append("      \"otherfield_ss\" : \"false\"\r\n");
+		sb.append("    }\r\n");
+		sb.append("  } ],\r\n");
+		sb.append("  \"updatedDocuments\" : [ {\r\n");
+		sb.append("    \"id\" : \"record3\",\r\n");
+		sb.append("    \"version\" : 34,\r\n");
+		sb.append("    \"fields\" : {\r\n");
+		sb.append("      \"text_s\" : \"line1__LINEBREAK__line2\"\r\n");
+		sb.append("    }\r\n");
+		sb.append("  }, {\r\n");
+		sb.append("    \"id\" : \"record4\",\r\n");
+		sb.append("    \"version\" : 45,\r\n");
+		sb.append("    \"fields\" : {\r\n");
+		sb.append("      \"text_s\" : \"value3\",\r\n");
+		sb.append("      \"otherfield_ss\" : \"true\"\r\n");
+		sb.append("    }\r\n");
+		sb.append("  } ],\r\n");
+		sb.append("  \"deletedRecords\" : [ ],\r\n");
+		sb.append("  \"deletedQueries\" : [ \"((zeQuery) AND (firstFilter) AND (secondFilter))\", \"((anotherQuery) AND (firstFilter) AND (secondFilter) AND (thirdFilter))\" ]\r\n");
+		sb.append("}");
+
+
+		return sb.toString();
+	}
+
+
+	private String buildSecondTransactionExampleString() {
+
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("{\r\n");
+		sb.append("  \"transactionId\" : \"secondTransaction\",\r\n");
+		sb.append("  \"newDocuments\" : [ {\r\n");
+		sb.append("    \"id\" : \"record5\",\r\n");
+		sb.append("    \"version\" : 56,\r\n");
+		sb.append("    \"fields\" : {\r\n");
+		sb.append("      \"date_dt\" : \""+tockOClock+"\",\r\n");
+		sb.append("      \"text_s\" : \"aValue\"\r\n");
+		sb.append("    }\r\n");
+		sb.append("  } ],\r\n");
+		sb.append("  \"updatedDocuments\" : [ {\r\n");
+		sb.append("    \"id\" : \"record3\",\r\n");
+		sb.append("    \"version\" : 34,\r\n");
+		sb.append("    \"fields\" : {\r\n");
+		sb.append("      \"text_s\" : \"line1__LINEBREAK__line2\"\r\n");
+		sb.append("    }\r\n");
+		sb.append("  } ],\r\n");
+		sb.append("  \"deletedRecords\" : [ \"deletedRecord6\", \"deletedRecord7\" ],\r\n");
+		sb.append("  \"deletedQueries\" : [ ]\r\n");
+		sb.append("}");
+
+		return sb.toString();
 	}
 }

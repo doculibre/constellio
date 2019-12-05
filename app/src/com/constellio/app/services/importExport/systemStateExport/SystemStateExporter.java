@@ -60,7 +60,7 @@ public class SystemStateExporter {
 	}
 
 	public void exportSystemToFolder(File folder, SystemStateExportParams params) {
-		secondTransactionLogManager.regroupAndMoveInVault();
+		secondTransactionLogManager.regroupAndMove();
 		File tempFolderContentFolder = new File(folder, "content");
 		File tempFolderSettingsFolder = new File(folder, "settings");
 		File tempPluginsFolder = new File(folder, "plugins");
@@ -81,7 +81,7 @@ public class SystemStateExporter {
 	}
 
 	public void exportSystemToFile(File file, SystemStateExportParams params) {
-		secondTransactionLogManager.regroupAndMoveInVault();
+		secondTransactionLogManager.regroupAndMove();
 		File tempFolder = ioServices.newTemporaryFolder(TEMP_FOLDER_RESOURCE_NAME);
 
 		try {

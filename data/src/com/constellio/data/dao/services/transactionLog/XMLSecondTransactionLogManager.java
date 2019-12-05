@@ -135,7 +135,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 						.handlingExceptionWith(STOP).executedEvery(configuration.getSecondTransactionLogMergeFrequency()));
 
 		if (bigVaultServer.countDocuments() == 0) {
-			regroupAndMoveInVault();
+			regroupAndMove();
 			destroyAndRebuildSolrCollection();
 		}
 	}
@@ -158,8 +158,8 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	@Override
-	public void moveTLOGToBackup() {
-		regroupAndMoveInVault();
+	public void transactionLOGReindexationStartStrategy() {
+		regroupAndMove();
 		File tlogsFolder = contentDao.getFileOf("tlogs/");
 		Collection<File> tlogs = FileUtils.listFiles(tlogsFolder, new String[]{"tlog"}, false);
 		String backupFolderId = "tlogs_bck/" + TimeProvider.getLocalDateTime().toString("yyyy-MM-dd-HH-mm-ss") + ".zip";
@@ -176,7 +176,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	@Override
-	public void deleteLastTLOGBackup() {
+	public void transactionLOGReindexationCleanupStrategy() {
 		List<String> backups;
 
 		while ((backups = contentDao.getFolderContents("tlogs_bck")).size() > configuration
@@ -261,7 +261,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 			@Override
 			public void run() {
 				if (isAutomaticRegroup()) {
-					regroupAndMoveInVault();
+					regroupAndMove();
 				}
 			}
 		};
@@ -444,7 +444,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	@Override
-	public synchronized String regroupAndMoveInVault() {
+	public synchronized String regroupAndMove() {
 		List<String> transactionLogs = getFlushedTransactionsSortedByName();
 		if (transactionLogs.isEmpty()) {
 			return null;
@@ -461,7 +461,6 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		} catch (ContentDaoRuntimeException | IOException e) {
 			exceptionOccured = true;
 			throw new SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault(e);
-
 		} finally {
 			ioServices.deleteQuietly(tempFile);
 		}
@@ -583,7 +582,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		return automaticRegroup;
 	}
 
-	public void setAutomaticRegroupAndMoveInVaultEnabled(boolean automaticMode) {
+	public void setAutomaticRegroupAndMoveEnabled(boolean automaticMode) {
 		this.automaticRegroup = automaticMode;
 	}
 
