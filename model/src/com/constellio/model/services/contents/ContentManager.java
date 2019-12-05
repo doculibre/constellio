@@ -192,7 +192,9 @@ public class ContentManager implements StatefulService {
 		Runnable handleRecordsMarkedForParsingRunnable = new Runnable() {
 			@Override
 			public void run() {
-				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null && modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
+					&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
+					&& !Toggle.PERFORMANCE_TESTING.isEnabled()) {
 					boolean converted = handleRecordsMarkedForParsing();
 
 					if (!converted && usingAppWrapper()) {
@@ -839,51 +841,52 @@ public class ContentManager implements StatefulService {
 
 	public boolean convertPendingContentForPreview() {
 		boolean converted = false;
-		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
-			if (!closing.get()) {
-				List<Record> records = searchServices.search(new LogicalSearchQuery()
-						.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue())
-						.setNumberOfRows(20).sortDesc(Schemas.MODIFIED_ON).sortDesc(Schemas.CREATED_ON)
-						.setName("ContentManager:BackgroundThread:convertPendingContentForPreview()"));
+		if (!Toggle.PERFORMANCE_TESTING.isEnabled()) {
+			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
+				if (!closing.get()) {
+					List<Record> records = searchServices.search(new LogicalSearchQuery()
+							.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue())
+							.setNumberOfRows(20).sortDesc(Schemas.MODIFIED_ON).sortDesc(Schemas.CREATED_ON)
+							.setName("ContentManager:BackgroundThread:convertPendingContentForPreview()"));
 
-				if (!records.isEmpty()) {
-					converted = true;
-					final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
-					try {
-						Transaction transaction = new Transaction();
-						transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions()
-								.setOverwriteModificationDateAndUser(false));
-						for (Record record : records) {
-							if (!closing.get()) {
-								try {
-									tryConvertRecordContents(record, tempFolder);
-								} catch (Throwable t) {
-									t.printStackTrace();
-									//unsupported extension
-								} finally {
-									transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
+					if (!records.isEmpty()) {
+						converted = true;
+						final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
+						try {
+							Transaction transaction = new Transaction();
+							transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions()
+									.setOverwriteModificationDateAndUser(false));
+							for (Record record : records) {
+								if (!closing.get()) {
+									try {
+										tryConvertRecordContents(record, tempFolder);
+									} catch (Throwable t) {
+										t.printStackTrace();
+										//unsupported extension
+									} finally {
+										transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
+									}
 								}
 							}
-						}
-						try {
-							transaction.setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(5));
-							transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-							transaction.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
-							recordServices.executeWithoutImpactHandling(transaction);
-						} catch (RecordServicesException.OptimisticLocking e) {
-							LOGGER.trace("Optimistic locking occured with record " + e.getId());
+							try {
+								transaction.setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(5));
+								transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+								transaction.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
+								recordServices.executeWithoutImpactHandling(transaction);
+							} catch (RecordServicesException.OptimisticLocking e) {
+								LOGGER.trace("Optimistic locking occured with record " + e.getId());
 
-						} catch (RecordServicesException e) {
-							throw new RuntimeException(e);
-						}
+							} catch (RecordServicesException e) {
+								throw new RuntimeException(e);
+							}
 
-					} finally {
-						ioServices.deleteQuietly(tempFolder);
+						} finally {
+							ioServices.deleteQuietly(tempFolder);
+						}
 					}
 				}
 			}
 		}
-
 		return converted;
 	}
 

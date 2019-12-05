@@ -730,6 +730,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 			}
 			threadList.joinAll();
+
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
@@ -830,6 +831,10 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 					LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
 					cacheLoadingProgression = null;
 				});
+
+				if (Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled() && !Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.isEnabled()) {
+					fileSystemDataStore.closeThenReopenWithoutMmap();
+				}
 			}).start();
 
 

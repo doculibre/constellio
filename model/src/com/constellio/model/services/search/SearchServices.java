@@ -1267,8 +1267,16 @@ public class SearchServices {
 					params.add("q.op", "OR");
 				}
 			}
-			params.add("defType", "edismax");
-			params.add(DisMaxParams.BQ, "\"" + query.getFreeTextQuery() + "\"");
+
+			if (systemConfigs.isSearchUsingEDismax()) {
+				params.add("defType", "edismax");
+			} else {
+				params.add("defType", "dismax");
+			}
+
+			if (systemConfigs.isSearchUsingTermsInBQ()) {
+				params.add(DisMaxParams.BQ, "\"" + query.getFreeTextQuery() + "\"");
+			}
 
 			for (SearchBoost boost : query.getQueryBoosts()) {
 				params.add(DisMaxParams.BQ, boost.getKey() + "^" + boost.getValue());

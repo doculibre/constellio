@@ -105,7 +105,8 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 	public void given4MRecordsSplittedOn10CollectionsAnd30TypesThenLookupByCollectionsAndTypesVeryFast()
 			throws Exception {
 
-		Toggle.USE_MMAP_WITHMAP_DB.enable();
+		Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.enable();
+		Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.enable();
 		prepareSystem(withZeCollection(), withCollection("collection2"), withCollection("collection3"), withCollection("collection4"));
 		String[] collections = new String[]{"zeCollection", "collection2", "collection3", "collection4",};
 
@@ -345,7 +346,6 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 
 		System.out.println("Streams/sec when supplying type : " + (int) streamsBySecondSupplyingType);
 	}
-
 
 
 }

@@ -83,7 +83,8 @@ public class Toggle {
 
 	public static AvailableToggle TRI_LEVEL_CACHE_LOCKING_Mecanism = newToggle(false);
 
-	public static AvailableToggle USE_MMAP_WITHMAP_DB = newToggle(true);
+	public static AvailableToggle USE_MMAP_WITHMAP_DB_FOR_LOADING = newToggle(true);
+	public static AvailableToggle USE_MMAP_WITHMAP_DB_FOR_RUNTIME = newToggle(false);
 
 	public static AvailableToggle USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE = newToggle(true);
 
@@ -93,7 +94,7 @@ public class Toggle {
 
 	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(true);
 
-	public static AvailableToggle PERFORMANCE_TESTING = newToggle(false);
+	public static AvailableToggle PERFORMANCE_TESTING = newToggle(true);
 
 	public static AvailableToggle OLD_DELETE_UNUSED_CONTENT_METHOD = newToggle(false);
 

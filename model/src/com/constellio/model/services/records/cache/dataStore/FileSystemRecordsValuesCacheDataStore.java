@@ -47,42 +47,33 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	private File file;
 
+	private boolean busy = false;
+
 	public FileSystemRecordsValuesCacheDataStore(File file) {
 		this.file = file;
 
+		//Possibly enable mmap for faster loading
+		open(file, Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled());
+		stringKeyMap.clear();
+	}
 
+	private void open(File file, boolean useMmap) {
 		if (Toggle.USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE.isEnabled()) {
 
 			//	try {
 			recreated = !file.exists();
 			Maker dbMaker = DBMaker.fileDB(file);
-			if (Toggle.USE_MMAP_WITHMAP_DB.isEnabled()) {
+			if (useMmap) {
+				LOGGER.info("Opening MapDB with MMAP support");
 				dbMaker.fileMmapEnableIfSupported().fileMmapPreclearDisable();
 				dbMaker.allocateStartSize(500 * 1024 * 1024).allocateIncrement(500 * 1024 * 1024);
+			} else {
+				LOGGER.info("Opening MapDB without MMAP support");
 			}
 			dbMaker.checksumHeaderBypass();
 			dbMaker.closeOnJvmShutdownWeakReference();
 			this.onDiskDatabase = dbMaker.fileLockDisable().make();
 
-			//			} catch(Throwable t) {
-			//				file.delete();
-			//				recreated = true;
-			//				t.printStackTrace();
-			//			}
-
-			//			if (recreated) {
-			////				Maker dbMaker = DBMaker.fileDB(file);
-			////
-			////				if (Toggle.USE_MMAP_WITHMAP_DB.isEnabled()) {
-			////					dbMaker.fileMmapEnableIfSupported().fileMmapPreclearDisable();
-			////					dbMaker.allocateStartSize(500 * 1024 * 1024).allocateIncrement(500 * 1024 * 1024);
-			////				}
-			//				this.onDiskDatabase = dbMaker.fileLockDisable().make();
-			//			} else {
-			//				throw new IllegalStateException("File delete failed. Only one instance per file can be active. " +
-			//												"To Create a new one close the other instance before instanciating " +
-			//												"the second one.");
-			//			}
 		} else {
 			Maker dbMaker = DBMaker.memoryDB();
 			this.onDiskDatabase = dbMaker.make();
@@ -118,29 +109,6 @@ public class FileSystemRecordsValuesCacheDataStore {
 				.keySerializer(Serializer.STRING)
 				.valueSerializer(Serializer.BYTE_ARRAY)
 				.createOrOpen();
-		stringKeyMap.clear();
-		DB onMEmoryDatabase = DBMaker.memoryDirectDB().make();
-
-		//
-		//		intKeyMapMemoryBuffer = onMEmoryDatabase.hashMap("intKeysDataStoreBuffer")
-		//				.keySerializer(Serializer.INTEGER)
-		//				.valueSerializer(Serializer.BYTE_ARRAY)
-		//				.expireStoreSize(25 * 1024 * 1024)
-		//				//.expireAfterGet()
-		//				.expireAfterUpdate()
-		//				.expireOverflow(intKeyMap)
-		//				.create();
-		//
-		//		stringKeyMapMemoryBuffer = onMEmoryDatabase.hashMap("stringKeysDataStoreBuffer")
-		//				.keySerializer(Serializer.STRING)
-		//				.valueSerializer(Serializer.BYTE_ARRAY)
-		//				.expireStoreSize(5 * 1024 * 1024)
-		//				.expireAfterGet()
-		//				.expireAfterCreate()
-		//				.expireOverflow(stringKeyMap)
-		//				.create();
-
-
 	}
 
 	public boolean isRecreated() {
@@ -148,10 +116,12 @@ public class FileSystemRecordsValuesCacheDataStore {
 	}
 
 	public void saveStringKey(String id, byte[] bytes) {
+		ensureNotBusy();
 		stringKeyMap.put(id, bytes);
 	}
 
 	public void saveIntKeyPersistedAndMemoryData(int id, byte[] persistedData, ByteArrayRecordDTO memoryRecordDTO) {
+		ensureNotBusy();
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		ObjectOutputStream objectOutputStream = null;
 		try {
@@ -176,14 +146,17 @@ public class FileSystemRecordsValuesCacheDataStore {
 	}
 
 	public void removeStringKey(String id) {
+		ensureNotBusy();
 		stringKeyMap.remove(id);
 	}
 
 	public void removeIntKey(int id) {
+		ensureNotBusy();
 		intKeyMap.remove(id);
 	}
 
 	public byte[] loadStringKey(String id) {
+		ensureNotBusy();
 		byte[] bytes = stringKeyMap.get(id);
 		if (bytes == null) {
 			throw new IllegalStateException("Record '" + id + "' has no stored bytes");
@@ -192,6 +165,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 	}
 
 	public byte[] loadIntKeyPersistedData(int id) {
+		ensureNotBusy();
 		byte[] bytes = intKeyMap.get(id);
 		if (bytes == null) {
 			throw new IllegalStateException("Record '" + id + "' has no stored bytes");
@@ -216,6 +190,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 	public ByteArrayRecordDTO loadRecordDTOIfVersion(int id, long expectedVersion,
 													 MetadataSchemasManager schemasManager,
 													 MetadataSchemaType schemaType) {
+		ensureNotBusy();
 		byte[] bytes = intKeyMap.get(id);
 		if (bytes == null) {
 			return null;
@@ -227,6 +202,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 	@Nullable
 	private ByteArrayRecordDTO toByteArrayRecordDTO(int id, long expectedVersion, MetadataSchemasManager schemasManager,
 													MetadataSchemaType schemaType, byte[] bytes) {
+		ensureNotBusy();
 		ObjectInputStream objectInputStream = null;
 		try {
 			objectInputStream = new ObjectInputStream(new ByteArrayInputStream(bytes));
@@ -264,9 +240,39 @@ public class FileSystemRecordsValuesCacheDataStore {
 		intKeyMap.close();
 		stringKeyMap.close();
 		onDiskDatabase.close();
+
+		intKeyMap = null;
+		stringKeyMap = null;
+		onDiskDatabase = null;
+	}
+
+	public void closeThenReopenWithoutMmap() {
+		busy = true;
+
+		try {
+			Thread.sleep(10_000);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		close();
+		open(file, false);
+
+		busy = false;
+	}
+
+	private void ensureNotBusy() {
+		while (busy) {
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	public void clearAll() {
+		ensureNotBusy();
 		intKeyMap.clear();
 		stringKeyMap.clear();
 		intKeyMap.clear();
@@ -277,6 +283,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 																  MetadataSchemaType schemaType,
 																  LocalDateTime modifiedOnBefore,
 																  Set<RecordId> except) {
+		ensureNotBusy();
 		List<RecordIdVersion> idVersions = new ArrayList<>();
 
 		Iterator<Entry<Integer, byte[]>> entryIterator = intKeyMap.entryIterator();

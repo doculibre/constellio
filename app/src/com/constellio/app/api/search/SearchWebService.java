@@ -26,8 +26,9 @@ public class SearchWebService extends AbstractSearchServlet {
 	protected void doGet(UserCredential user, HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		ModifiableSolrParams solrParams = getModifiableSolrParams(req.getQueryString());
-		boolean searchingInEvents = "true".equals(req.getParameter("searchEvents"));
+		boolean searchingInEvents = "true".equals(req.getParameter(SEARCH_EVENTS));
 		String thesaurusValue = req.getParameter(THESAURUS_VALUE);
+		String core = req.getParameter(CORE);
 
 		solrParams.add("fq", "-type_s:index");
 
@@ -93,7 +94,7 @@ public class SearchWebService extends AbstractSearchServlet {
 				}
 			}
 
-			queryResponse = getQueryResponse(solrParams, user);
+			queryResponse = getQueryResponse(core, solrParams, user);
 
 			if (schemasRecordsServices != null) {
 

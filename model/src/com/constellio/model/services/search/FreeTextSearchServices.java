@@ -1,5 +1,6 @@
 package com.constellio.model.services.search;
 
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -36,6 +37,10 @@ public class FreeTextSearchServices {
 	}
 
 	public QueryResponse search(FreeTextQuery query) {
+		return search(DataStore.RECORDS, query);
+	}
+
+	public QueryResponse search(String core, FreeTextQuery query) {
 		ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams(query.getSolrParams());
 
 		if (query.getUserFilter() != null && isSecurityEnabled(modifiableSolrParams)) {
@@ -49,7 +54,12 @@ public class FreeTextSearchServices {
 			modifiableSolrParams.add("fq", "-schema_s:event*");
 		}
 		//LOGGER.info(LoggerUtils.toParamsString(modifiableSolrParams));
-		return recordDao.nativeQuery(modifiableSolrParams);
+
+		if (core == null || core.equals(DataStore.RECORDS)) {
+			return recordDao.nativeQuery(modifiableSolrParams);
+		} else {
+			return eventsDao.nativeQuery(modifiableSolrParams);
+		}
 	}
 
 	public boolean isSecurityEnabled(SolrParams params) {

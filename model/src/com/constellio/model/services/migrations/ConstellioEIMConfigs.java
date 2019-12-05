@@ -167,6 +167,9 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES;
 
+	public static final SystemConfiguration SEARCH_USING_EDISMAX;
+	public static final SystemConfiguration SEARCH_USING_TERMS_IN_BQ;
+
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -333,6 +336,9 @@ public class ConstellioEIMConfigs {
 
 		add(DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES = search.createBooleanFalseByDefault("displayOnlySummaryMetadatasInTables"));
 
+		add(SEARCH_USING_EDISMAX = search.createBooleanFalseByDefault("searchUsingEDismax"));
+		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanFalseByDefault("searchUsingBQ"));
+
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -420,6 +426,14 @@ public class ConstellioEIMConfigs {
 
 	public boolean isShowPathToResult() {
 		return manager.getValue(SHOW_PATH_TO_RESULT);
+	}
+
+	public boolean isSearchUsingTermsInBQ() {
+		return manager.getValue(SEARCH_USING_TERMS_IN_BQ);
+	}
+
+	public boolean isSearchUsingEDismax() {
+		return manager.getValue(SEARCH_USING_EDISMAX);
 	}
 
 	public boolean isShowResultsNumberingInListView() {
