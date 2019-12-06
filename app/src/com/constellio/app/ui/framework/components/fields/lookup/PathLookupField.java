@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
@@ -12,8 +13,10 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.StatusFilter;
@@ -32,6 +35,7 @@ import java.util.List;
 import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatchingInMetadatas;
 import static java.util.Arrays.asList;
 
 public class PathLookupField extends LookupField<String> {
@@ -165,11 +169,16 @@ public class PathLookupField extends LookupField<String> {
 		private SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
 			List<String> taxonomyCodesForUser = getTaxonomyCodesForUser();
 
-			List<String> schemaTypesToSearch = SchemaUtils.getSchemaTypesInHierarchyOf(schemaType,
-					modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()));
+			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection());
+			List<String> schemaTypesToSearch = SchemaUtils.getSchemaTypesInHierarchyOf(schemaType, types,
+					schemaType.equals(Document.SCHEMA_TYPE));
+
+			MetadataList autocompleteMetadatas = types.getSchemaType(schemaType).getDefaultSchema()
+					.getMetadatas().onlySearchable().onlySchemaAutocomplete();
 
 			LogicalSearchCondition condition = from(schemaTypesToSearch, sessionContext.getCurrentCollection())
-					.where(autocompleteFieldMatching(text)).andWhere(Schemas.PATH).isNotNull();
+					.where(autocompleteFieldMatchingInMetadatas(text, autocompleteMetadatas))
+					.andWhere(Schemas.PATH).isNotNull();
 			if (!taxonomyCodesForUser.isEmpty()) {
 				List<LogicalSearchCondition> conditionList = new ArrayList<>();
 				for (String taxonomyCode : taxonomyCodesForUser) {
