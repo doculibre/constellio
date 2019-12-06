@@ -130,7 +130,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		// TODO Possibility to configure the logger
 		this.bigVaultLogger = BigVaultLogger.disabled();
 		this.ioServicesFactory = ioServicesFactory;
-		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions);
+		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions, dataLayerConfiguration);
 		this.dataLayerLogger = new DataLayerLogger();
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));

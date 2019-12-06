@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
@@ -68,11 +67,14 @@ public class ReplicationFactorTransactionReadService implements LeaderElectionMa
 	}
 
 	public void start() {
+		// FIXME Disabled for now, will be activated once we fully support solr 8+
+		/*
 		if (dataLayerFactory.getLeaderElectionService().isCurrentNodeLeader()) {
 			executor = Executors.newSingleThreadScheduledExecutor();
 			scheduledFuture = executor.scheduleWithFixedDelay(
 					createReplicationFactorReadTask(), 1, 1, SECONDS);
 		}
+		*/
 	}
 
 	Runnable createReplicationFactorReadTask() {

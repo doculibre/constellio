@@ -61,7 +61,8 @@ public class ReplicationFactorTransactionWriteService {
 			}
 
 			String id = (String) updateDocument.getField("id").getValue();
-			String version = String.valueOf(updateDocument.getField("_version_").getValue());
+			SolrInputField versionField = updateDocument.getField("_version_");
+			String version = versionField != null ? String.valueOf(versionField.getValue()) : null;
 			replicationFactorTransactions.add(
 					ReplicationFactorTransaction.builder()
 							.id(UUID.randomUUID().toString())
