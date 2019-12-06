@@ -13,6 +13,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
@@ -390,7 +391,7 @@ public class LogicalSearchQueryExecutorInCache {
 	 * @param query
 	 * @return
 	 */
-	public static boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
+	public boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
 		for (int i = 0; i < requirements.size(); i++) {
 			if (!requirements.get(i).test(query)) {
 				if (query.getQueryExecutionMethod().requiringCacheExecution()) {
@@ -398,11 +399,26 @@ public class LogicalSearchQueryExecutorInCache {
 				} else {
 					return false;
 				}
+			}
+		}
+		return hasNoUnsupportedFieldSort(query);
 
+	}
+
+	private boolean hasNoUnsupportedFieldSort(LogicalSearchQuery query) {
+		for (LogicalSearchQuerySort sort : query.getSortFields()) {
+			if (sort instanceof FieldLogicalSearchQuerySort) {
+				FieldLogicalSearchQuerySort fieldSort = (FieldLogicalSearchQuerySort) sort;
+				if (fieldSort.getField() instanceof Metadata) {
+					MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
+					if (schemaType != null && schemaType.getCacheType().isSummaryCache() &&
+						!SchemaUtils.isSummary((Metadata) fieldSort.getField())) {
+						return false;
+					}
+				}
 			}
 		}
 		return true;
-
 	}
 
 	private static boolean areAllFiltersExecutableInCache(List<UserFilter> userFilters) {
@@ -460,27 +476,16 @@ public class LogicalSearchQueryExecutorInCache {
 			return false;
 
 		} else if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			boolean test = condition.isSupportingMemoryExecution(false, queryExecutionMethod == USE_CACHE)
-						   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
-			if (!test) {
-				return false;
-			}
-			return true;
+			return condition.isSupportingMemoryExecution(false, queryExecutionMethod == USE_CACHE)
+				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
 		} else if (schemaType.getCacheType().hasPermanentCache()) {
 			//Verify that schemaType is loaded
-			boolean test = (returnedMetadatasFilter.isOnlySummary() || returnedMetadatasFilter.isOnlyId()) &&
-						   condition.isSupportingMemoryExecution(true, queryExecutionMethod == USE_CACHE)
-						   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
-			if (!test) {
-				return false;
-			}
-			return true;
-
+			return (returnedMetadatasFilter.isOnlySummary() || returnedMetadatasFilter.isOnlyId()) &&
+				   condition.isSupportingMemoryExecution(true, queryExecutionMethod == USE_CACHE)
+				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
 		} else {
 			return false;
 		}
-
-
 	}
 
 	private MetadataSchemaType getQueriedSchemaType(LogicalSearchCondition condition) {

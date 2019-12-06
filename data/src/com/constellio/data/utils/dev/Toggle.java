@@ -94,7 +94,7 @@ public class Toggle {
 
 	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(true);
 
-	public static AvailableToggle PERFORMANCE_TESTING = newToggle(true);
+	public static AvailableToggle PERFORMANCE_TESTING = newToggle(false);
 
 	public static AvailableToggle OLD_DELETE_UNUSED_CONTENT_METHOD = newToggle(false);
 
