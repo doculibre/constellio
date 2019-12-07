@@ -39,16 +39,28 @@ public class CyclicHierarchyValidator implements Validator<Record> {
 				&& record.get(metadata) != null) {
 				if (!metadata.isMultivalue()) {
 					String referenceValue = record.get(metadata);
-					Record referencedRecord = recordProvider.getRecord(referenceValue);
+
+					Record referencedRecord = recordProvider.getRecordSummary(referenceValue);
 					MetadataSchema schema = getSchema(referencedRecord);
 					if (metadata.isChildOfRelationship()) {
-						String principalPath = (String) referencedRecord.get(Schemas.PRINCIPAL_PATH);
-						if (isInPrincipalPath(record.getId(), principalPath)) {
+						List<Integer> principalIds = referencedRecord.get(Schemas.PRINCIPALS_ANCESTORS_INT_IDS);
+						if (principalIds.contains(record.getRecordId().intValue())) {
 							addValidationErrors(validationErrors, CANNOT_REFERENCE_A_DESCENDANT_IN_A_CHILD_OF_REFERENCE,
 									metadata, schema.getCode());
 						}
 
 					}
+
+					//					Record referencedRecord = recordProvider.getRecord(referenceValue);
+					//					MetadataSchema schema = getSchema(referencedRecord);
+					//					if (metadata.isChildOfRelationship()) {
+					//						String principalPath = (String) referencedRecord.get(Schemas.PRINCIPAL_PATH);
+					//						if (isInPrincipalPath(record.getId(), principalPath)) {
+					//							addValidationErrors(validationErrors, CANNOT_REFERENCE_A_DESCENDANT_IN_A_CHILD_OF_REFERENCE,
+					//									metadata, schema.getCode());
+					//						}
+					//
+					//					}
 				}
 
 			}

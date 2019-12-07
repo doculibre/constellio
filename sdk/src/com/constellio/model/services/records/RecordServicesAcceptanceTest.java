@@ -50,6 +50,7 @@ import com.constellio.sdk.FakeEncryptionServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.GetByIdCounter;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
+import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.SlowTest;
@@ -75,6 +76,7 @@ import java.util.Map;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE;
 import static com.constellio.model.entities.schemas.Schemas.ESTIMATED_SIZE;
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
@@ -2481,6 +2483,155 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		record = recordServices.newRecordWithSchema(zeSchema.instance());
 		recordServices.add(record.set(zeSchema.stringMetadata(), "12345 is a little bit longer value"));
 		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(176);
+	}
+
+	@Test
+	public void givenCopiedMetadataCopyingSummaryMetadatasAndRefIndexedInCacheThenLoadedOnceUsingGetById()
+			throws Exception {
+		defineSchemasManager().using(schemas.with((MetadataSchemaTypesBuilder b) -> {
+			b.getSchemaType("zeSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE);
+			b.getSchemaType("zeSchemaType").createMetadata("m1").setType(STRING).setEssentialInSummary(true);
+			b.getSchemaType("zeSchemaType").createMetadata("m2").setType(STRING).setEssentialInSummary(true);
+			b.getSchemaType("anotherSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE);
+			b.getSchemaType("anotherSchemaType").createMetadata("ref").defineReferencesTo(b.getSchemaType("zeSchemaType")).setCacheIndex(true);
+			b.getSchemaType("anotherSchemaType").createMetadata("m1Copied").setType(STRING).defineDataEntry().asCopied(
+					b.getMetadata("anotherSchemaType_default_ref"), b.getMetadata("zeSchemaType_default_m1"));
+			b.getSchemaType("anotherSchemaType").createMetadata("m2Copied").setType(STRING).defineDataEntry().asCopied(
+					b.getMetadata("anotherSchemaType_default_ref"), b.getMetadata("zeSchemaType_default_m2"));
+			b.getSchemaType("anotherSchemaType").createMetadata("mCalculated")
+					.setType(STRING).defineDataEntry().asJexlScript("ref.m1;");
+		}));
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryDebuggingMode(true);
+		Transaction tx = new Transaction();
+		Record record1 = tx.add(newRecord(zeSchema).set(zeSchema.metadata("m1"), "v1").set(zeSchema.metadata("m2"), "v2"));
+		Record record2 = tx.add(newRecord(zeSchema).set(zeSchema.metadata("m1"), "v3").set(zeSchema.metadata("m2"), "v4"));
+		execute(tx);
+
+		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), getClass());
+
+
+		Record record3 = newRecord(anotherSchema).set(anotherSchema.metadata("ref"), record1);
+		recordServices.add(record3);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+
+		recordServices.update(newRecord(anotherSchema).set(anotherSchema.metadata("ref"), record2));
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		recordServices.refresh(record3);
+		assertThat(record3.<String>get(anotherSchema.metadata("m1Copied"))).isEqualTo("v1");
+		assertThat(record3.<String>get(anotherSchema.metadata("m2Copied"))).isEqualTo("v2");
+		assertThat(record3.<String>get(anotherSchema.metadata("mCalculated"))).isEqualTo("v1");
+		queryCounter.reset();
+
+		recordServices.update(record1.set(zeSchema.metadata("m1"), "v5").set(zeSchema.metadata("m2"), "v6"));
+		//A getById is made to retrieve record3 and update it, that's ok
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(1);
+		recordServices.refresh(record3);
+		assertThat(record3.<String>get(anotherSchema.metadata("m1Copied"))).isEqualTo("v5");
+		assertThat(record3.<String>get(anotherSchema.metadata("m2Copied"))).isEqualTo("v6");
+		assertThat(record3.<String>get(anotherSchema.metadata("mCalculated"))).isEqualTo("v5");
+		queryCounter.reset();
+
+		recordServices.executeHandlingImpactsAsync(new Transaction(record1.set(zeSchema.metadata("m1"), "v7").set(zeSchema.metadata("m2"), "v8")));
+		waitForBatchProcess();
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(1);
+		recordServices.refresh(record3);
+		assertThat(record3.<String>get(anotherSchema.metadata("m1Copied"))).isEqualTo("v7");
+		assertThat(record3.<String>get(anotherSchema.metadata("m2Copied"))).isEqualTo("v8");
+		assertThat(record3.<String>get(anotherSchema.metadata("mCalculated"))).isEqualTo("v7");
+		queryCounter.reset();
+
+		recordServices.execute(new Transaction(record3.set(anotherSchema.metadata("ref"), record2)));
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		recordServices.refresh(record3);
+		assertThat(record3.<String>get(anotherSchema.metadata("m1Copied"))).isEqualTo("v3");
+		assertThat(record3.<String>get(anotherSchema.metadata("m2Copied"))).isEqualTo("v4");
+		assertThat(record3.<String>get(anotherSchema.metadata("mCalculated"))).isEqualTo("v3");
+		queryCounter.reset();
+
+		recordServices.executeHandlingImpactsAsync(new Transaction(record3.set(anotherSchema.metadata("ref"), record1)));
+		waitForBatchProcess();
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		recordServices.refresh(record3);
+		assertThat(record3.<String>get(anotherSchema.metadata("m1Copied"))).isEqualTo("v7");
+		assertThat(record3.<String>get(anotherSchema.metadata("m2Copied"))).isEqualTo("v8");
+		assertThat(record3.<String>get(anotherSchema.metadata("mCalculated"))).isEqualTo("v7");
+		queryCounter.reset();
+
+	}
+
+
+	@Test
+	public void givenCopiedMetadataCopyingNonSummaryMetadatasThenLoadedOnceUsingGetById() throws Exception {
+		defineSchemasManager().using(schemas.with((MetadataSchemaTypesBuilder b) -> {
+			b.getSchemaType("zeSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE);
+			b.getSchemaType("zeSchemaType").createMetadata("m1").setType(STRING);
+			b.getSchemaType("zeSchemaType").createMetadata("m2").setType(STRING);
+			b.getSchemaType("anotherSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE);
+			b.getSchemaType("anotherSchemaType").createMetadata("ref").defineReferencesTo(b.getSchemaType("zeSchemaType"));
+			b.getSchemaType("anotherSchemaType").createMetadata("m1Copied").setType(STRING).defineDataEntry().asCopied(
+					b.getMetadata("anotherSchemaType_default_ref"), b.getMetadata("zeSchemaType_default_m1"));
+			b.getSchemaType("anotherSchemaType").createMetadata("m2Copied").setType(STRING).defineDataEntry().asCopied(
+					b.getMetadata("anotherSchemaType_default_ref"), b.getMetadata("zeSchemaType_default_m2"));
+			b.getSchemaType("anotherSchemaType").createMetadata("mCalculated")
+					.setType(STRING).defineDataEntry().asJexlScript("ref.m1");
+		}));
+
+		Transaction tx = new Transaction();
+		Record record1 = tx.add(newRecord(zeSchema).set(zeSchema.metadata("m1"), "v1").set(zeSchema.metadata("m2"), "v2"));
+		Record record2 = tx.add(newRecord(zeSchema).set(zeSchema.metadata("m1"), "v3").set(zeSchema.metadata("m2"), "v4"));
+		execute(tx);
+
+		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), getClass());
+
+
+		Record record3 = newRecord(anotherSchema).set(anotherSchema.metadata("ref"), record1);
+		recordServices.add(record3);
+
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(1);
+
+		recordServices.update(newRecord(anotherSchema).set(anotherSchema.metadata("ref"), record2));
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(1);
+		recordServices.refresh(record3);
+		assertThat(record3.<String>get(anotherSchema.metadata("m1Copied"))).isEqualTo("v1");
+		assertThat(record3.<String>get(anotherSchema.metadata("m2Copied"))).isEqualTo("v2");
+		assertThat(record3.<String>get(anotherSchema.metadata("mCalculated"))).isEqualTo("v1");
+		queryCounter.reset();
+
+		recordServices.update(record1.set(zeSchema.metadata("m1"), "v5").set(zeSchema.metadata("m2"), "v6"));
+		//FIX ME : assertThat(queryCounter.newQueryCalls()).isEqualTo(1);
+		recordServices.refresh(record3);
+		assertThat(record3.<String>get(anotherSchema.metadata("m1Copied"))).isEqualTo("v5");
+		assertThat(record3.<String>get(anotherSchema.metadata("m2Copied"))).isEqualTo("v6");
+		assertThat(record3.<String>get(anotherSchema.metadata("mCalculated"))).isEqualTo("v5");
+		queryCounter.reset();
+
+		recordServices.executeHandlingImpactsAsync(new Transaction(record1.set(zeSchema.metadata("m1"), "v7").set(zeSchema.metadata("m2"), "v8")));
+		waitForBatchProcess();
+		//FIX ME : assertThat(queryCounter.newQueryCalls()).isEqualTo(1);
+		recordServices.refresh(record3);
+		assertThat(record3.<String>get(anotherSchema.metadata("m1Copied"))).isEqualTo("v7");
+		assertThat(record3.<String>get(anotherSchema.metadata("m2Copied"))).isEqualTo("v8");
+		assertThat(record3.<String>get(anotherSchema.metadata("mCalculated"))).isEqualTo("v7");
+		queryCounter.reset();
+
+		recordServices.execute(new Transaction(record3.set(anotherSchema.metadata("ref"), record2)));
+		//FIX ME : assertThat(queryCounter.newQueryCalls()).isEqualTo(1);
+		recordServices.refresh(record3);
+		assertThat(record3.<String>get(anotherSchema.metadata("m1Copied"))).isEqualTo("v3");
+		assertThat(record3.<String>get(anotherSchema.metadata("m2Copied"))).isEqualTo("v4");
+		assertThat(record3.<String>get(anotherSchema.metadata("mCalculated"))).isEqualTo("v3");
+		queryCounter.reset();
+
+		recordServices.executeHandlingImpactsAsync(new Transaction(record3.set(anotherSchema.metadata("ref"), record1)));
+		waitForBatchProcess();
+		//FIX ME : assertThat(queryCounter.newQueryCalls()).isEqualTo(1);
+		recordServices.refresh(record3);
+		assertThat(record3.<String>get(anotherSchema.metadata("m1Copied"))).isEqualTo("v7");
+		assertThat(record3.<String>get(anotherSchema.metadata("m2Copied"))).isEqualTo("v8");
+		assertThat(record3.<String>get(anotherSchema.metadata("mCalculated"))).isEqualTo("v7");
+		queryCounter.reset();
+
 	}
 
 	private MetadataSchemaTypesConfigurator aMetadataInAnotherSchemaContainingAReferenceToZeSchemaAndACalculatorRetreivingIt() {

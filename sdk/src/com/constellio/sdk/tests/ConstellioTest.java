@@ -3,13 +3,17 @@ package com.constellio.sdk.tests;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.sdk.tests.annotations.PreserveState;
+import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.junit.After;
@@ -102,6 +106,29 @@ public class ConstellioTest extends AbstractConstellioTest {
 			}
 		}
 		currentInstance = this;
+	}
+
+	protected void execute(Transaction tx) throws RecordServicesException {
+		getModelLayerFactory().newRecordServices().execute(tx);
+	}
+
+	protected Record newRecord(SchemaShortcuts schemaShortcuts) {
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schemaShortcuts.instance());
+	}
+
+
+	protected Record newRecord(SchemaShortcuts schemaShortcuts, String id) {
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schemaShortcuts.instance(), id);
+	}
+
+
+	protected Record newRecord(MetadataSchema schema) {
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schema);
+	}
+
+
+	protected Record newRecord(MetadataSchema schema, String id) {
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schema, id);
 	}
 
 	public static ConstellioTest getInstance() {

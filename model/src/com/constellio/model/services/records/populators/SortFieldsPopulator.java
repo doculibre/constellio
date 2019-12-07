@@ -34,7 +34,7 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 	@Override
 	protected boolean isPopulatedForAllLocales(Metadata metadata) {
 		if (metadata.getType() == MetadataValueType.REFERENCE && metadata.isSortable() && !metadata.isMultivalue()) {
-			MetadataSchemaType targettedSchemaType = types.getSchemaType(metadata.getReferencedSchemaType());
+			MetadataSchemaType targettedSchemaType = types.getSchemaType(metadata.getReferencedSchemaTypeCode());
 			return targettedSchemaType.getDefaultSchema().hasMultilingualMetadatas();
 		} else {
 			return metadata.isMultiLingual() || metadata.isSameLocalCode(Schemas.CAPTION);

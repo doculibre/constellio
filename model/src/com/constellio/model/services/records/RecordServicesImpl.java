@@ -962,7 +962,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 									String[] splittedCode = dataEntry.getMetadataProvidingSequenceCode().split("\\.");
 									metadataProvidingReference = schema.getMetadata(splittedCode[0]);
 									metadataProvidingSequenceCode = types
-											.getDefaultSchema(metadataProvidingReference.getReferencedSchemaType())
+											.getDefaultSchema(metadataProvidingReference.getReferencedSchemaTypeCode())
 											.getMetadata(splittedCode[1]);
 									String metadataProvidingReferenceValue = record.get(metadataProvidingReference);
 

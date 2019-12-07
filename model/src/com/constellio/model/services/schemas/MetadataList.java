@@ -242,7 +242,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 	public MetadataList onlyReferencesToType(String schemaTypeCode) {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
-			if (metadata.getType() == MetadataValueType.REFERENCE && metadata.getReferencedSchemaType().equals(schemaTypeCode)) {
+			if (metadata.getType() == MetadataValueType.REFERENCE && metadata.getReferencedSchemaTypeCode().equals(schemaTypeCode)) {
 				filteredMetadatasList.add(metadata);
 			}
 		}

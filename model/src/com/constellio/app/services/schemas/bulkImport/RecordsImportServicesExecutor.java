@@ -1139,7 +1139,7 @@ public class RecordsImportServicesExecutor {
 
 		Resolver resolver = toResolver(value);
 
-		final MetadataSchemaType targettedSchemaType = getMetadataSchemaType(metadata.getReferencedSchemaType());
+		final MetadataSchemaType targettedSchemaType = getMetadataSchemaType(metadata.getReferencedSchemaTypeCode());
 
 		int colonIndex = value.indexOf(":");
 		final Metadata resolverMetadata;
@@ -1237,7 +1237,7 @@ public class RecordsImportServicesExecutor {
 	private boolean isReferenceInReversedOrder(Metadata metadata) {
 		List<String> schemaTypes = schemasManager.getSchemaTypes(metadata.getCollection()).getSchemaTypesSortedByDependency();
 		int schemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getSchemaTypeCode());
-		int targettingSchemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getReferencedSchemaType());
+		int targettingSchemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getReferencedSchemaTypeCode());
 		return schemaTypeDependencyIndex < targettingSchemaTypeDependencyIndex;
 	}
 

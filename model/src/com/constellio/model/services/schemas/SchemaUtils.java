@@ -527,7 +527,7 @@ public class SchemaUtils {
 		MetadataSchemaType schemaType = allSchemaTypes.getSchemaType(schemaTypeCode);
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
 			if (metadata.isChildOfRelationship() || metadata.isTaxonomyRelationship()) {
-				String referencedSchemaType = metadata.getReferencedSchemaType();
+				String referencedSchemaType = metadata.getReferencedSchemaTypeCode();
 				if (schemaTypesInHierarchy.add(referencedSchemaType)) {
 					schemaTypesInHierarchy
 							.addAll(getSchemaTypesInHierarchyOf(referencedSchemaType, allSchemaTypes, schemaTypesInHierarchy));
@@ -536,5 +536,18 @@ public class SchemaUtils {
 		}
 
 		return schemaTypesInHierarchy;
+	}
+
+	public List<Metadata> buildListOfReferencesToSummaryCachedType(List<Metadata> metadatas,
+																   Set<String> typesWithSummaryCache) {
+
+		List<Metadata> returnedMetadatas = new ArrayList<>();
+		for (Metadata metadata : metadatas) {
+			if (metadata.getType() == REFERENCE && typesWithSummaryCache.contains(metadata.getReferencedSchemaTypeCode())) {
+				returnedMetadatas.add(metadata);
+			}
+		}
+
+		return returnedMetadatas;
 	}
 }
