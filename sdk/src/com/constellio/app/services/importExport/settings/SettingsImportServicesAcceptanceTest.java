@@ -557,7 +557,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 						.setHierarchical(false)));
 
 		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings("calculatedCloseDateUnknown")
-				.containsOnly("Le code de la collection est vide ou null")
+				.containsOnly("Le code de la collection est vide ou nul")
 				.doesNotContain("The collection's code is empty or null");
 
 		assertThatErrorsWhileImportingSettingsExtracting()

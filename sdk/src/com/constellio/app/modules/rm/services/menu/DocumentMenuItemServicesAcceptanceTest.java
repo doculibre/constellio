@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.menu;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -69,6 +70,8 @@ public class DocumentMenuItemServicesAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(rmRecords)
 						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
+
+		givenConfig(RMConfigs.AGENT_ENABLED, false);
 		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 
 		inCollection(zeCollection).giveWriteAccessTo(aliceWonderland);

@@ -233,7 +233,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		SystemCheckResults results = systemCheckManager.runSystemCheck(true);
 
 		assertThat(frenchMessages(results.errors))
-				.contains("Le schéma de l'enregistrement MyFolder n’a pas pu être modifié pour celui de son type");
+				.contains("Le schéma de l'enregistrement MyFolder n'a pas pu être modifié pour celui de son type");
 		assertThat(results.getRepairedRecords().size()).isEqualTo(0);
 		assertThat(results.getMetric(RMSystemCheckExtension.METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE).intValue()).isEqualTo(1);
 	}
@@ -407,8 +407,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordWithProblem2", "notGood")
 				);
 		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly(
-				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 référence un enregistrement inexistant : bad",
-				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 référence un enregistrement inexistant : notGood"
+				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 fait référence à un enregistrement inexistant : bad",
+				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 fait référence à un enregistrement inexistant : notGood"
 		);
 		assertThat(recordServices.getDocumentById("recordWithProblem1").<String>get(
 				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
@@ -491,8 +491,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordWithProblem2", "recordC")
 				);
 		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly(
-				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 référence un enregistrement inexistant : recordC",
-				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 référence un enregistrement inexistant : recordC"
+				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 fait référence à un enregistrement inexistant : recordC",
+				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 fait référence à un enregistrement inexistant : recordC"
 		);
 		assertThat(recordServices.getDocumentById("recordWithProblem1").<List<String>>get(
 				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
@@ -571,8 +571,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordD")
 				);
 		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly(
-				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema référence un enregistrement inexistant dans sa valeur par défaut : recordA",
-				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema référence un enregistrement inexistant dans sa valeur par défaut : recordD"
+				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema fait référence à un enregistrement inexistant dans sa valeur par défaut : recordA",
+				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema fait référence à un enregistrement inexistant dans sa valeur par défaut : recordD"
 		);
 
 		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
@@ -592,8 +592,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordD")
 				);
 		assertThat(frenchMessages(systemCheckResults.errors)).contains(
-				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema référence un enregistrement inexistant dans sa valeur par défaut : recordA",
-				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema référence un enregistrement inexistant dans sa valeur par défaut : recordD"
+				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema fait référence à un enregistrement inexistant dans sa valeur par défaut : recordA",
+				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema fait référence à un enregistrement inexistant dans sa valeur par défaut : recordD"
 		);
 
 		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
@@ -716,12 +716,12 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
 		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
 		assertThat(frenchMessages(systemCheckResults.errors)).contains(
-				"La métadonnée decommissioningList_default_folders de l'enregistrement list01 référence un enregistrement inexistant : zeFolder"
+				"La métadonnée decommissioningList_default_folders de l'enregistrement list01 fait référence à un enregistrement inexistant : zeFolder"
 		);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(true);
 		assertThat(frenchMessages(systemCheckResults.errors)).contains(
-				"La métadonnée decommissioningList_default_folders de l'enregistrement list01 référence un enregistrement inexistant : zeFolder"
+				"La métadonnée decommissioningList_default_folders de l'enregistrement list01 fait référence à un enregistrement inexistant : zeFolder"
 		);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
