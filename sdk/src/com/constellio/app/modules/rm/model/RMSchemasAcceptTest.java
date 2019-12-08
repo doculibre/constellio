@@ -80,26 +80,26 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 	}
 
 	private String[] EXPECTED_MULTILINGUAL_METADATAS = new String[]{
-			"administrativeUnit_default_description", "administrativeUnit_default_title",
-			"category_default_description", "category_default_keywords", "category_default_title",
-			"ddvContainerRecordType_default_description", "ddvContainerRecordType_default_title",
-			"ddvDocumentType_default_description", "ddvDocumentType_default_title",
-			"ddvFolderType_default_description", "ddvFolderType_default_title",
-			"ddvMediumType_default_description", "ddvMediumType_default_title",
-			"ddvStorageSpaceType_default_description", "ddvStorageSpaceType_default_title",
-			"ddvTaskStatus_default_description", "ddvTaskStatus_default_title",
-			"ddvTaskType_default_description", "ddvTaskType_default_title",
-			"ddvVariablePeriod_default_description", "ddvVariablePeriod_default_title",
-			"ddvYearType_default_description", "ddvYearType_default_title",
+			"administrativeUnit_default_description", "administrativeUnit_default_title", /*"administrativeUnit_default_abbreviation",*/
+			"category_default_description", "category_default_keywords", "category_default_title", /*"category_default_abbreviation",*/
+			"ddvContainerRecordType_default_description", "ddvContainerRecordType_default_title", "ddvContainerRecordType_default_abbreviation",
+			"ddvDocumentType_default_description", "ddvDocumentType_default_title", "ddvDocumentType_default_abbreviation",
+			"ddvFolderType_default_description", "ddvFolderType_default_title", "ddvFolderType_default_abbreviation",
+			"ddvMediumType_default_description", "ddvMediumType_default_title", "ddvMediumType_default_abbreviation",
+			"ddvStorageSpaceType_default_description", "ddvStorageSpaceType_default_title", "ddvStorageSpaceType_default_abbreviation",
+			"ddvTaskStatus_default_description", "ddvTaskStatus_default_title", "ddvTaskStatus_default_abbreviation",
+			"ddvTaskType_default_description", "ddvTaskType_default_title", "ddvTaskType_default_abbreviation",
+			"ddvVariablePeriod_default_description", "ddvVariablePeriod_default_title", "ddvVariablePeriod_default_abbreviation",
+			"ddvYearType_default_description", "ddvYearType_default_title", "ddvYearType_default_abbreviation",
 			"facet_default_title",
 			"retentionRule_default_title", "retentionRule_default_juridicReference", "retentionRule_default_generalComment",
-			"retentionRule_default_keywords", "retentionRule_default_copyRulesComment", "retentionRule_default_description",
+			"retentionRule_default_keywords", "retentionRule_default_copyRulesComment", "retentionRule_default_description", /*"retentionRule_default_abbreviation",*/
 			"report_default_title",
 			"uniformSubdivision_default_title",
 			"printable_default_title",
-			"ddvCapsuleLanguage_default_description",
+			"ddvCapsuleLanguage_default_description", "ddvCapsuleLanguage_default_abbreviation",
 			"ddvCapsuleLanguage_default_title",
-			"ddvUserFunction_default_description",
+			"ddvUserFunction_default_description", "ddvUserFunction_default_abbreviation",
 			"ddvUserFunction_default_title"
 
 	};

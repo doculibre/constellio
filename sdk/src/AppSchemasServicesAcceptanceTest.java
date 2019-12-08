@@ -220,7 +220,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(thirdSchemas.code()).get("zeProblematicReference")
 				.getAllowedReferences().getAllowedSchemas()).containsOnly("zeSchemaType_custom");
 		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")))
-				.containsOnly("Le schéma Ze french label ne peut pas être supprimé, car il est utilisé par la métadonnée zeProblematicReference du schéma aThirdSchemaType du type aThirdSchemaType.");
+				.containsOnly("Le schéma Ze french label ne peut pas être supprimé car il est utilisé par la métadonnée zeProblematicReference du schéma aThirdSchemaType du type aThirdSchemaType.");
 
 		appSchemasServices.modifySchemaCode(zeCollection, "zeSchemaType_custom", "zeSchemaType_custom2");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(thirdSchemas.code()).get("zeProblematicReference")
@@ -316,9 +316,9 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		setUpWithRecords();
 
 		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_default")))
-				.containsOnly("Le schéma zeSchemaType ne peut pas être supprimé, car il s’agit du schéma par défaut.");
+				.containsOnly("Le schéma zeSchemaType ne peut pas être supprimé car il s'agit du schéma par défaut.");
 		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")))
-				.containsOnly("Le schéma Ze french label ne peut pas être supprimé, car il est utilisé par 2 enregistrement(s).");
+				.containsOnly("Le schéma Ze french label ne peut pas être supprimé car il est utilisé par 2 enregistrement(s).");
 		try {
 			appSchemasServices.deleteSchemaCode(zeCollection, "zeSchemaType_custom");
 			fail("schema should not be deletable");
@@ -347,7 +347,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")).isNull();
 		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_default")))
-				.containsOnly("Le schéma zeSchemaType ne peut pas être supprimé, car il s’agit du schéma par défaut.");
+				.containsOnly("Le schéma zeSchemaType ne peut pas être supprimé car il s'agit du schéma par défaut.");
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
 				.containsOnly("zeSchemaType_default", "zeSchemaType_custom");

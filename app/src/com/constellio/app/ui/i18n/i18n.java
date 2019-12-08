@@ -201,7 +201,7 @@ public class i18n {
 			}
 		}
 
-		return message;
+		return message.replace("''", "'");
 
 	}
 
