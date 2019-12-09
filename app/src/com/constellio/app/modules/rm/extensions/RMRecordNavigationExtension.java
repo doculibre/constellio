@@ -16,6 +16,7 @@ import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -135,8 +136,14 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 		boolean activeLink;
 		String schemaTypeCode = navigationParams.getSchemaTypeCode();
 		if (isViewForSchemaTypeCode(schemaTypeCode)) {
-			String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-					.getSchemaType(schemaTypeCode).getLabel(Language.withLocale(currentLocale)).toLowerCase();
+			MetadataSchemaType schemaType = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(schemaTypeCode);
+			String schemaTypeLabel = schemaType.getLabel(Language.withLocale(currentLocale));
+			if (schemaTypeLabel == null && !schemaType.getLabels().isEmpty()) {
+				schemaTypeLabel = schemaType.getLabels().values().iterator().next();
+			} else {
+				schemaTypeLabel = schemaType.getCode();
+			}
+			schemaTypeLabel = schemaTypeLabel.toLowerCase();
 			Map<String, Object> params = new HashMap<>();
 			params.put("schemaType", schemaTypeLabel);
 			final String errorMessage = $("ReferenceDisplay.cannotDisplayLogicallyDeletedRecord", params);
