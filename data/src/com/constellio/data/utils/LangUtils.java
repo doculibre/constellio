@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterators;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -396,6 +397,33 @@ public class LangUtils {
 	public static List<String> listFilenames(File tempFolder) {
 		String[] files = tempFolder.list();
 		return files == null ? Collections.<String>emptyList() : Arrays.<String>asList(files);
+
+	}
+
+	public static long estimatedizeOfMapStructureBasedOnSize(Map aMap) {
+		if (aMap instanceof HashMap) {
+
+			int capacity = aMap.size();
+			//			try {
+			//				HashMap m = (HashMap) aMap;
+			//				Field tableField = HashMap.class.getDeclaredField("table");
+			//				tableField.setAccessible(true);
+			//				Object[] table = (Object[]) tableField.get(m);
+			//				capacity = table == null ? 0 : table.length;
+			//			} catch (Throwable t) {
+			//				t.printStackTrace();
+			//			}
+
+			return 32 * aMap.size() + 4 * capacity;
+
+
+		} else if (aMap instanceof TreeMap) {
+			return 40 * aMap.size();
+
+		} else {
+			//Unsupported, averaging to 40
+			return 40 * aMap.size();
+		}
 
 	}
 

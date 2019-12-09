@@ -172,6 +172,11 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	}
 
+	@Override
+	public MetadataIndexCacheDataStore getMetadataIndexCacheDataStore() {
+		return metadataIndexCacheDataStore;
+	}
+
 	public void register(RecordsCachesHook hook) {
 		hooks.register(hook);
 	}

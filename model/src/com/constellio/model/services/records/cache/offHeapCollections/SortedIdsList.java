@@ -44,4 +44,8 @@ public interface SortedIdsList {
 
 	boolean isSupportingLegacyId();
 
+	long valuesHeapLength();
+
+	long valuesOffHeapLength();
+
 }

@@ -137,6 +137,16 @@ public class SortedIntIdsList implements SortedIdsList {
 	}
 
 	@Override
+	public long valuesHeapLength() {
+		return 12 + Long.BYTES + Integer.BYTES + Short.BYTES;
+	}
+
+	@Override
+	public long valuesOffHeapLength() {
+		return (this.size + this.capacity) * 4;
+	}
+
+	@Override
 	public synchronized List<String> getValues() {
 		return getValuesWithoutSynchronizing();
 	}

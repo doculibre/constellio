@@ -135,4 +135,6 @@ public interface RecordsCaches {
 	<K> RecordIdsHookDataIndexRetriever<K> registerRecordIdsHook(
 			String collection, MetadataIndexCacheDataStoreHook hook);
 
+
+	MetadataIndexCacheDataStore getMetadataIndexCacheDataStore();
 }
