@@ -57,13 +57,14 @@ $(() => {
             const {docViewer} = instance;
             const annotManager = instance.annotManager;
 
-            annotManager.on('annotationChanged', (event, annotations, action) => {
+            annotManager.on('annotationChanged', async (event, annotations, action) => {
                 if (action === 'add' || action === 'modify' || action === 'delete') {
                      if(ignoreAnnotationChange) {
                         return;
                      }
 
-                    const annotationsFile = annotManager.exportAnnotations({links: false, widgets: false});
+                    const annotationsFile = await annotManager.exportAnnotations({links: false, widgets: false});
+
                     $.post(documentAnnotationCallBack, {
                         'resourceKey': documentAnnotationRK,
                         'data': annotationsFile
@@ -71,9 +72,10 @@ $(() => {
                 }
             });
 
-            docViewer.on('documentLoaded', () => {
+            docViewer.on('annotationsLoaded', () => {
                 instance.setFitMode(FitWidth);
                 $.get(documentAnnotationUrl, (data) => {
+
                     if(data) {
                         annotManager.importAnnotations(data);
                     }
