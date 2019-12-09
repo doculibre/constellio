@@ -328,7 +328,7 @@ public class MetadataSchemaTypes implements Serializable {
 	}
 
 	public boolean isRecordTypeMetadata(Metadata metadata) {
-		if ("type".equals(metadata.getCode()) || metadata.getType() == REFERENCE) {
+		if ("type".equals(metadata.getCode()) || (metadata.getType() == REFERENCE && !metadata.isMultivalue())) {
 			MetadataSchema referencedSchema = getDefaultSchema(metadata.getReferencedSchemaType());
 			return referencedSchema.hasMetadataWithCode("linkedSchema");
 		}
