@@ -8,6 +8,7 @@ import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.factories.LayerFactoryImpl;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.extensions.ModelReplicationFactorManagerExtension;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.Factory;
@@ -218,6 +219,9 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 				dataLayerFactory.getEventBusManager());
 		this.searchConfigurationsManager = add(new SearchConfigurationsManager(configManager, collectionsListManager, cacheManager));
 		this.synonymsConfigurationsManager = add(new SynonymsConfigurationsManager(configManager, collectionsListManager, cacheManager));
+
+		dataLayerFactory.getExtensions().getSystemWideExtensions().replicationFactorManagerExtensions
+				.add(new ModelReplicationFactorManagerExtension(this));
 
 	}
 

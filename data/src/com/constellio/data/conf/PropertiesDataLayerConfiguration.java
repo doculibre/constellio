@@ -146,6 +146,10 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setEnum(RECORD_TYPE, solrServerType);
 		}
 
+		public void setSolrMinimalReplicationFactor(int replicationFactor) {
+			setInt("replicationFactorLog.minimalReplicationFactor", replicationFactor);
+		}
+
 	}
 
 	public SolrServerType getRecordsDaoSolrServerType() {
@@ -375,6 +379,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	@Override
 	public Duration getSolrEventBusSendingServiceTypePollAndRetrieveFrequency() {
 		return getDuration("eventBus.solr.retrieveAndSendFrequency", Duration.standardSeconds(1));
+	}
+
+	@Override
+	public int getSolrMinimalReplicationFactor() {
+		return getInt("replicationFactorLog.minimalReplicationFactor", 2);
 	}
 
 	@Override

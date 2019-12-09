@@ -103,4 +103,6 @@ public interface DataLayerConfiguration {
 
 	Duration getSolrEventBusSendingServiceTypePollAndRetrieveFrequency();
 
+	int getSolrMinimalReplicationFactor();
+
 }

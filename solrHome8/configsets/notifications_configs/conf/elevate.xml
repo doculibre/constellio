@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<elevate>
+    <query text="abeil">
+        <doc exclude="true" id="00000000105"/>
+    </query>
+    <query text="abeille">
+        <doc exclude="false" id="A01"/>
+        <doc exclude="false" id="00000000105"/>
+        <doc exclude="true" id="00000000106"/>
+        <doc exclude="false" id="00000000219"/>
+    </query>
+</elevate>
