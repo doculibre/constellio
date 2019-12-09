@@ -109,4 +109,6 @@ public interface RecordsCaches {
 	void enableVolatileCache();
 
 	void disableVolatileCache();
+
+	MetadataIndexCacheDataStore getMetadataIndexCacheDataStore();
 }

@@ -7,21 +7,27 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.locks.SimpleReadLockMechanism;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedIdsList;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedIntIdsList;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedStringIdsList;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.rometools.utils.Strings;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Stream;
 
+import static com.constellio.data.utils.LangUtils.estimatedizeOfMapStructureBasedOnSize;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
@@ -37,6 +43,14 @@ public class MetadataIndexCacheDataStore {
 	private static MetadataIndex EMPTY_INDEX = new MetadataIndex(Collections.emptyMap());
 
 	private SimpleReadLockMechanism lockMechanism = new SimpleReadLockMechanism();
+
+	private CollectionsListManager collectionsListManager;
+	private MetadataSchemasManager metadataSchemasManager;
+
+	public MetadataIndexCacheDataStore(ModelLayerFactory modelLayerFactory) {
+		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
+	}
 
 	private static class MetadataIndex {
 
@@ -471,4 +485,70 @@ public class MetadataIndexCacheDataStore {
 	public SimpleReadLockMechanism getLockMechanism() {
 		return lockMechanism;
 	}
+
+
+	public List<MetadataIndexCacheDataStoreStat> compileMemoryConsumptionStats() {
+		lockMechanism.obtainSystemWideReadingPermit();
+		try {
+			List<MetadataIndexCacheDataStoreStat> stats = new ArrayList<>();
+			for (String collectionCode : collectionsListManager.getCollections()) {
+
+				buildCollectionCachedIndexedStats(stats, collectionCode);
+			}
+			return stats;
+		} finally {
+			lockMechanism.releaseSystemWideReadingPermit();
+		}
+
+	}
+
+	private void buildCollectionCachedIndexedStats(List<MetadataIndexCacheDataStoreStat> stats, String collectionCode) {
+
+
+		int collectionIndex = collectionsListManager.getCollectionInfo(collectionCode).getCollectionIndex();
+		Map<Short, MetadataIndex>[] cacheIndexMap = this.cacheIndexMaps[collectionIndex];
+		if (cacheIndexMap != null) {
+			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(collectionCode).getSchemaTypes()) {
+				Map<Short, MetadataIndex> metadataIndexes = cacheIndexMap[schemaType.getId()];
+				if (metadataIndexes != null) {
+
+					for (Entry<Short, MetadataIndex> entry : metadataIndexes.entrySet()) {
+						Metadata metadata = schemaType.getMetadata(entry.getKey());
+
+						String statName = collectionCode + ".metadataIndexes." + metadata.getCode();
+						stats.add(buildCachedIndexStats(entry, statName));
+					}
+
+				}
+			}
+
+		}
+	}
+
+	private MetadataIndexCacheDataStoreStat buildCachedIndexStats(Entry<Short, MetadataIndex> entry, String statName) {
+		//16 bytes for stocking an Integer
+		int keysCount = entry.getValue().map.size();
+		long keysHeapLength = keysCount * 16;
+		long valuesHeapLength = 0;
+		long valuesOffHeapLength = 0;
+		int valuesCount = 0;
+		for (SortedIdsList list : entry.getValue().map.values()) {
+			valuesHeapLength += list.valuesHeapLength();
+			valuesOffHeapLength += list.valuesOffHeapLength();
+			valuesCount += list.size();
+		}
+
+		long estimatedMapHeapLength = estimatedizeOfMapStructureBasedOnSize(entry.getValue().map);
+
+		return new MetadataIndexCacheDataStoreStat(
+				statName,
+				keysCount,
+				valuesCount,
+				keysHeapLength,
+				valuesHeapLength,
+				valuesOffHeapLength,
+				estimatedMapHeapLength
+		);
+	}
+
 }

@@ -115,7 +115,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 		this.memoryDiskDatabase = DBMaker.memoryDB().make();
 		this.hooks = new RecordsCachesHooks(modelLayerFactory);
-		this.metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		this.metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(modelLayerFactory);
 
 		ScheduledExecutorService executor =
 				Executors.newScheduledThreadPool(2);
@@ -146,6 +146,11 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	public void disableVolatileCache() {
 		volatileCache.setEnabled(false);
 
+	}
+
+	@Override
+	public MetadataIndexCacheDataStore getMetadataIndexCacheDataStore() {
+		return metadataIndexCacheDataStore;
 	}
 
 	public void register(RecordsCachesHook hook) {
@@ -636,6 +641,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
 				cacheLoadingProgression = null;
 
+				if (Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled() && !Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.isEnabled()) {
+					fileSystemDataStore.closeThenReopenWithoutMmap();
+				}
 			}).start();
 
 		} else {

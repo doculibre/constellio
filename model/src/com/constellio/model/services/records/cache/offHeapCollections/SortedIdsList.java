@@ -34,4 +34,8 @@ public interface SortedIdsList {
 
 	void clear();
 
+	long valuesHeapLength();
+
+	long valuesOffHeapLength();
+
 }
