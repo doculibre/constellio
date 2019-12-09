@@ -170,8 +170,11 @@ public class FoldersLocator {
 		return new File(getWrapperInstallationFolder(), "bat");
 	}
 
-	public File getSolrHomeConfFolder() {
-		return new File(getConstellioWebappFolder(), "solrHome5");
+	public File getSolrHomeConfFolder(double solrVersion) {
+		if (solrVersion < 8) {
+			return new File(getConstellioWebappFolder(), "solrHome5");
+		}
+		return new File(getConstellioWebappFolder(), "solrHome8");
 	}
 
 	public File getWrapperCommandFolder() {

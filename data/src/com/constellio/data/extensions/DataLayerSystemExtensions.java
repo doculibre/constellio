@@ -5,6 +5,8 @@ import com.constellio.data.events.Event;
 import com.constellio.data.events.EventBusManagerExtension;
 import com.constellio.data.events.ReceivedEventParams;
 import com.constellio.data.events.SentEventParams;
+import com.constellio.data.extensions.ReplicationFactorManagerExtension.TransactionReplayed;
+import com.constellio.data.extensions.ReplicationFactorManagerExtension.TransactionsReplayedParams;
 import com.constellio.data.extensions.extensions.configManager.AddUpdateConfigParams;
 import com.constellio.data.extensions.extensions.configManager.ConfigManagerExtension;
 import com.constellio.data.extensions.extensions.configManager.DeleteConfigParams;
@@ -19,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBooleanValue;
@@ -33,6 +36,7 @@ public class DataLayerSystemExtensions {
 	public VaultBehaviorsList<ConfigManagerExtension> configManagerExtensions = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<SupportedExtensionExtension> supportedExtensionExtensions = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<EventBusManagerExtension> eventBusManagerExtensions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<ReplicationFactorManagerExtension> replicationFactorManagerExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<BigVaultServerExtension> getBigVaultServerExtension() {
 		return bigVaultServerExtension;
@@ -158,6 +162,12 @@ public class DataLayerSystemExtensions {
 	public void onEventReceived(final Event event, boolean remoteEvent) {
 		for (EventBusManagerExtension extension : eventBusManagerExtensions) {
 			extension.onEventReceived(new ReceivedEventParams(event, remoteEvent));
+		}
+	}
+
+	public void onTransactionsReplayed(final Collection<TransactionReplayed> replayedTransactions) {
+		for (ReplicationFactorManagerExtension extension : replicationFactorManagerExtensions) {
+			extension.onTransactionsReplayed(new TransactionsReplayedParams(replayedTransactions));
 		}
 	}
 
