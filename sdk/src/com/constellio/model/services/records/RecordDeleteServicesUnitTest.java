@@ -12,6 +12,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
@@ -169,6 +170,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		when(type1.hasSecurity()).thenReturn(true);
 		when(type2.hasSecurity()).thenReturn(true);
 		when(folder.getCode()).thenReturn("folder");
+		when(folder.getCacheType()).thenReturn(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
 
 		when(schema1.getMetadatas()).thenReturn(metadataList1);
 		//		when(metadataList1.iterator()).thenReturn(new Iterator<Metadata>() {

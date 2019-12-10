@@ -2,7 +2,6 @@ package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
@@ -467,8 +466,12 @@ public class RecordDeleteServices {
 		if (taxonomy != null && !includeRecords) {
 			return getAllTaxonomyRecordsInHierarchy(record, taxonomy);
 		} else {
-			return recordHierarchyServices.getAllRecordsInHierarchy(record, SortOrder.DESCENDING);
+			return recordHierarchyServices.getAllRecordsInHierarchy(record, SortOrder.DESCENDING, false);
 		}
+	}
+
+	private boolean useSummary(Record record) {
+		return metadataSchemasManager.getSchemaTypeOf(record).getCacheType().isSummaryCache();
 	}
 
 	private List<Record> getAllRecordsInHierarchyForPhysicalDeletion(Record record,
@@ -738,7 +741,7 @@ public class RecordDeleteServices {
 	}
 
 	private boolean hasRecordInHierarchyReferencedOutsideOfHierarchy(Record record, List<Record> recordsHierarchy) {
-		if (record.getLoadedFieldsMode() == RecordDTOMode.SUMMARY) {
+		if (metadataSchemasManager.getSchemaTypeOf(record).getCacheType().isSummaryCache()) {
 			int referencesTotal = modelLayerFactory.getRecordUsageCounterHookRetriever(record.getCollection())
 					.countRecordsReferencing(record);
 
@@ -821,8 +824,7 @@ public class RecordDeleteServices {
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
 		List<Record> recordsHierarchy;
 		if (taxonomy == null) {
-			boolean useSummary = record.getLoadedFieldsMode() == RecordDTOMode.SUMMARY;
-			recordsHierarchy = new ArrayList<>(recordHierarchyServices.getAllRecordsInHierarchy(record, useSummary));
+			recordsHierarchy = new ArrayList<>(recordHierarchyServices.getAllRecordsInHierarchy(record, useSummary(record)));
 		} else {
 			recordsHierarchy = new ArrayList<>(getAllTaxonomyRecordsInHierarchy(record, taxonomy));
 		}

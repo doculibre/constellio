@@ -31,6 +31,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomySearchQueryConditionFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -321,7 +322,7 @@ public class RecordHierarchyServices {
 			LinkedList<Record> hierarchySummaryRecords = new LinkedList<>();
 			hierarchySummaryRecords.add(record);
 
-			addChildRecordRecursively(record, hierarchySummaryRecords, sortOrder);
+			addAllHierarchyChildren(record, hierarchySummaryRecords, sortOrder);
 
 			return hierarchySummaryRecords;
 		} else {
@@ -345,27 +346,36 @@ public class RecordHierarchyServices {
 		}
 	}
 
-	private void addChildRecordRecursively(Record record, LinkedList<Record> hierarchySummaryRecords, SortOrder order) {
-		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypeOf(record);
-		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection());
+	private void addAllHierarchyChildren(Record record, LinkedList<Record> hierarchySummaryRecords, SortOrder order) {
+		List<Record> currentRecords = Collections.singletonList(record);
 
-		for (MetadataSchemaType childSchemaType : schemaTypes.getClassifiedSchemaTypesIn(schemaType.getCode())) {
-			List<Metadata> parentMetadatas = new ArrayList<>(childSchemaType.getAllParentReferencesTo(schemaType.getCode()));
+		do {
+			List<Record> allChildRecords = new ArrayList<>();
 
-			for (Metadata parentMetadata : parentMetadatas) {
-				LogicalSearchQuery query = new LogicalSearchQuery()
-						.setCondition(from(childSchemaType).where(parentMetadata).isEqualTo(record.getId()))
-						.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
-				List<Record> childRecords = searchServices.search(query);
-				childRecords.forEach(childRecord -> {
-					if (order == SortOrder.DESCENDING) {
-						hierarchySummaryRecords.addFirst(childRecord);
-					} else {
-						hierarchySummaryRecords.addLast(childRecord);
+			for (Record currentRecord : currentRecords) {
+				MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypeOf(currentRecord);
+				MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(currentRecord.getCollection());
+
+				for (MetadataSchemaType childSchemaType : schemaTypes.getClassifiedSchemaTypesIn(schemaType.getCode())) {
+					List<Metadata> parentMetadatas = new ArrayList<>(childSchemaType.getAllParentReferencesTo(schemaType.getCode()));
+
+					for (Metadata parentMetadata : parentMetadatas) {
+						LogicalSearchQuery query = new LogicalSearchQuery()
+								.setCondition(from(childSchemaType).where(parentMetadata).isEqualTo(currentRecord.getId()))
+								.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
+						List<Record> childRecords = searchServices.search(query);
+						childRecords.forEach(childRecord -> {
+							if (order == SortOrder.DESCENDING) {
+								hierarchySummaryRecords.addFirst(childRecord);
+							} else {
+								hierarchySummaryRecords.addLast(childRecord);
+							}
+							allChildRecords.add(childRecord);
+						});
 					}
-					addChildRecordRecursively(childRecord, hierarchySummaryRecords, order);
-				});
+				}
 			}
-		}
+			currentRecords = allChildRecords;
+		} while (!currentRecords.isEmpty());
 	}
 }
