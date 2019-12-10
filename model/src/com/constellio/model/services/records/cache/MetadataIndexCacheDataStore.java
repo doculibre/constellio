@@ -8,6 +8,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
@@ -31,8 +32,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Stream;
 
+import static com.constellio.data.utils.LangUtils.estimatedizeOfMapStructureBasedOnSize;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
@@ -53,8 +56,11 @@ public class MetadataIndexCacheDataStore {
 
 	private MetadataSchemasManager schemasManager;
 
+	private CollectionsListManager collectionsListManager;
+
 	public MetadataIndexCacheDataStore(ModelLayerFactory modelLayerFactory) {
 		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 	}
 
 	public void onTypesModified(MetadataSchemaTypes types) {
@@ -575,7 +581,7 @@ public class MetadataIndexCacheDataStore {
 		int collectionIndex = collectionsListManager.getCollectionInfo(collectionCode).getCollectionIndex();
 		Map<Short, MetadataIndex>[] cacheIndexMap = this.cacheIndexMaps[collectionIndex];
 		if (cacheIndexMap != null) {
-			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(collectionCode).getSchemaTypes()) {
+			for (MetadataSchemaType schemaType : schemasManager.getSchemaTypes(collectionCode).getSchemaTypes()) {
 				Map<Short, MetadataIndex> metadataIndexes = cacheIndexMap[schemaType.getId()];
 				if (metadataIndexes != null) {
 
