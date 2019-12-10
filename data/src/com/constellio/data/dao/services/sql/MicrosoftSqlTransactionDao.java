@@ -11,6 +11,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDTO> {
@@ -143,7 +144,15 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 
 	@Override
 	public void deleteAll(int[] ids) throws SQLException {
-		throw new NotImplementedException();
+		if(ids.length > 0) {
+			String joinedIds = Arrays.toString(ids);
+
+			String inValues = joinedIds.substring(1, joinedIds.length()-1);
+
+			String deleteQuery = String.format("DELETE FROM " + fullTableName + " WHERE id IN (%s)",inValues);
+			queryRunner.execute(connector.getConnection(),
+					deleteQuery);
+		}
 	}
 
 	@Override
@@ -198,6 +207,11 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 		return version;
 	}
 
+	public void resetVersion() throws SQLException {
+
+		queryRunner.update(connector.getConnection(),
+				"UPDATE versions SET version = 1 WHERE name = 'transactionLog' ");
+	}
 
 	@Override
 	public void flush() {
@@ -206,10 +220,10 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 
 	@Override
 	public long getTableCount() throws SQLException {
-		ScalarHandler<Long> scalarHandler = new ScalarHandler<>();
+		ScalarHandler<Integer> scalarHandler = new ScalarHandler<>();
 		String fetchQuery = "SELECT COUNT(*) FROM "+fullTableName;
 
-		long count = queryRunner.query(connector.getConnection(),
+		int count = queryRunner.query(connector.getConnection(),
 				fetchQuery, scalarHandler);
 
 		return count;

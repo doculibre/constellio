@@ -7,7 +7,7 @@ public class TransactionDocumentLogContent {
 
 	private String id;
 
-	private Long version;
+	private String version;
 
 	private Map<String, String> fields;
 
@@ -23,11 +23,11 @@ public class TransactionDocumentLogContent {
 		this.id = id;
 	}
 
-	public Long getVersion() {
+	public String getVersion() {
 		return version;
 	}
 
-	public void setVersion(Long version) {
+	public void setVersion(String version) {
 		this.version = version;
 	}
 

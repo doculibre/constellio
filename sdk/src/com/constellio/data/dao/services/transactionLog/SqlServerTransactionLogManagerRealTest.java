@@ -4,6 +4,7 @@ import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
+import com.constellio.data.dao.dto.sql.RecordTransactionSqlDTO;
 import com.constellio.data.dao.dto.sql.TransactionSqlDTO;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
@@ -24,7 +25,9 @@ import com.constellio.data.dao.services.transactionLog.sql.TransactionLogContent
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.threads.BackgroundThreadsManager;
+import com.constellio.model.entities.records.Record;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.apache.commons.io.FileUtils;
@@ -45,6 +48,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -138,7 +142,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		when(bigVaultServer.countDocuments()).thenReturn(42L);
 		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
 				backgroundThreadsManager, dataLayerLogger, systemExtensions,
-				getDataLayerFactory().getTransactionLogRecoveryManager()));
+				getDataLayerFactory().getTransactionLogRecoveryManager(),true));
 		transactionLog.initialize();
 
 		record1 = newSolrInputDocument("record1", -1L);
@@ -310,8 +314,25 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
 				backgroundThreadsManager, dataLayerLogger, systemExtensions,
-				getDataLayerFactory().getTransactionLogRecoveryManager()));
+				getDataLayerFactory().getTransactionLogRecoveryManager(),true));
 		transactionLog.prepare(firstTransactionId, firstTransaction);
+
+	}
+
+
+	@Test
+	public void noRecordsWhenHeIsNotMasterNode()
+			throws Exception {
+
+		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
+				backgroundThreadsManager, dataLayerLogger, systemExtensions,
+				getDataLayerFactory().getTransactionLogRecoveryManager(),false));
+		transactionLog.initialize();
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		transactionLog.flush(firstTransactionId, null);
+
+		transactionLog.regroupAndMove();
+		assertThat(completeTLOG()).isEmpty();
 
 	}
 
@@ -487,4 +508,13 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 		return sb.toString();
 	}
+
+	private String completeTLOG() throws SQLException {
+		List<RecordTransactionSqlDTO> transactionLogs = getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).getAll();
+		int currentVersion = getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).getCurrentVersion();
+
+		return String.join("\n", transactionLogs.stream().filter(x -> x.getLogVersion() == currentVersion)
+				.map(x -> x.getContent()).collect(Collectors.toList()));
+	}
+
 }

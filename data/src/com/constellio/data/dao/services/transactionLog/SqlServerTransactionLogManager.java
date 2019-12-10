@@ -62,7 +62,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(XMLSecondTransactionLogManager.class);
 
-	static final String MERGE_LOGS_ACTION = XMLSecondTransactionLogManager.class.getSimpleName() + "_mergeLogs";
+	static final String MERGE_LOGS_ACTION = XMLSecondTransactionLogManager.class.getSimpleName() + "_trToRecords";
 	static final String BIG_LOG_TEMP_FILE = XMLSecondTransactionLogManager.class.getSimpleName() + "_bigLogTempFile";
 	static final String READ_LOG = XMLSecondTransactionLogManager.class.getSimpleName() + "_readLog";
 
@@ -102,12 +102,15 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	private boolean automaticRegroup = true;
 
+	private boolean isCurrentNodeLeader;
+
 	public SqlServerTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices,
 										  RecordDao recordDao, SqlRecordDaoFactory sqlRecordDaoFactory,
 										  ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager,
 										  DataLayerLogger dataLayerLogger,
 										  DataLayerSystemExtensions dataLayerSystemExtensions,
-										  TransactionLogRecoveryManager transactionLogRecoveryManager) {
+										  TransactionLogRecoveryManager transactionLogRecoveryManager,
+										  boolean isCurrentNodeLeader) {
 		this.configuration = configuration;
 		this.folder = configuration.getSecondTransactionLogBaseFolder();
 		this.ioServices = ioServices;
@@ -119,6 +122,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		this.dataLayerLogger = dataLayerLogger;
 		this.dataLayerSystemExtensions = dataLayerSystemExtensions;
 		this.transactionLogRecoveryManager = transactionLogRecoveryManager;
+		this.isCurrentNodeLeader = isCurrentNodeLeader;
 	}
 
 
@@ -215,91 +219,143 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	@Override
 	public synchronized String regroupAndMove() {
 
-		//get transactions
 
-		List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll());
+		if (this.isCurrentNodeLeader) {
 
-		//build record on json
-		try {
 
-			int logVersion = this.getLogVersion();
-			final List<RecordTransactionSqlDTO> records = extractRecordsFromTransaction(transactionsToConvert, logVersion);
+			//build record on json
+			try {
 
-			//save records
-			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(records);
-				return true;
-			});
+				//get transactions
+				List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
+						sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll());
+				int logVersion = this.getLogVersion();
+				final List<RecordTransactionSqlDTO> recordsToinsert = extractRecordsFromTransaction(transactionsToConvert, logVersion, false);
+				final List<RecordTransactionSqlDTO> recordsToUpdate = extractRecordsFromTransaction(transactionsToConvert, logVersion, true);
+				final List<String> updateTransactionIds = recordsToUpdate.stream().map(x -> x.getRecordId()).collect(Collectors.toList());
+				final List<String> recordsToDelete = extractRemoveRecordsFromTransaction(transactionsToConvert);
 
-		} catch (IOException e) {
-			exceptionOccured = true;
-			throw new RuntimeException(e);
-		} catch (SQLException e) {
-			exceptionOccured = true;
-			throw new RuntimeException(e);
+				//save new records
+				tryThreeTimes(() -> {
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(recordsToinsert);
+					return true;
+				});
+
+				//remove records to update
+				tryThreeTimes(() -> {
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(updateTransactionIds);
+					return true;
+				});
+
+				//save update records
+				tryThreeTimes(() -> {
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(recordsToUpdate);
+					return true;
+				});
+
+				//remove deleted records
+				tryThreeTimes(() -> {
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(recordsToDelete);
+					return true;
+				});
+
+				//Remove transactions
+				final int[] transactionsToRemove = transactionsToConvert.stream().mapToInt(x->x.getId()).toArray();
+
+				tryThreeTimes(() -> {
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll(transactionsToRemove);
+					return true;
+				});
+
+			} catch (IOException e) {
+				exceptionOccured = true;
+				throw new RuntimeException(e);
+			} catch (SQLException e) {
+				exceptionOccured = true;
+				throw new RuntimeException(e);
+			}catch (Exception ex){
+				exceptionOccured = true;
+				throw new RuntimeException(ex);
+			}
 		}
 
 		return "";
 	}
 
+	private List<String> extractRemoveRecordsFromTransaction(List<TransactionSqlDTO> transactions) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<String> documentsToDelete = transactions.stream().flatMap(x -> {
+			try {
+				if(x == null || x.getContent() == null) {
+					return new ArrayList<String>().stream();
+				}
+				TransactionLogContent content = objectMapper.readValue(x.getContent(), TransactionLogContent.class);
+				return content.getDeletedRecords().stream();
+			} catch (IOException e) {
+				e.printStackTrace();
+				return new ArrayList<String>().stream();
+			}
+		}).collect(Collectors.toList());
+		return documentsToDelete;
+	}
+
 	private List<RecordTransactionSqlDTO> extractRecordsFromTransaction(List<TransactionSqlDTO> transactions,
-																		int logVersion)
+																		int logVersion, boolean isUpdate)
 			throws IOException, SQLException {
 		List<RecordTransactionSqlDTO> records = new ArrayList<>();
 		ObjectMapper objectMapper = new ObjectMapper();
 
 		for (TransactionSqlDTO transactionSql : transactions) {
 			String jsonContent = transactionSql.getContent();
-			if (jsonContent != null && "".equals(jsonContent)) {
+			if (jsonContent != null && !"".equals(jsonContent)) {
 				TransactionLogContent transaction = objectMapper.readValue(jsonContent, TransactionLogContent.class);
 
-				records.addAll(mapBigVaultTransactionToRecordTransaction(transaction, logVersion));
-
-				//delete
-				List<String> deleteIds = transaction.getDeletedRecords();
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(deleteIds);
-
+				if (isUpdate) {
+					records.addAll(mapUpdateBigVaultTransactionToRecordTransaction(transaction, logVersion));
+				} else {
+					records.addAll(mapNewBigVaultTransactionToRecordTransaction(transaction, logVersion));
+				}
 			}
 		}
 		return records;
 	}
 
-	private List<RecordTransactionSqlDTO> mapBigVaultTransactionToRecordTransaction(
+	private List<RecordTransactionSqlDTO> mapNewBigVaultTransactionToRecordTransaction(
 			TransactionLogContent bigVaultServerTransaction, int logVersion)
 			throws SQLException {
 
 		String solrVersion = this.recordDao.getBigVaultServer().getVersion();
 
 		//new documents
-		List<RecordTransactionSqlDTO> records = bigVaultServerTransaction.getNewDocuments().stream().map(x -> {
-			try {
-				return new RecordTransactionSqlDTO( x.getId(), logVersion, solrVersion, toJson(x));
-			} catch (JsonProcessingException e) {
-				e.printStackTrace();
-			}
-			return new RecordTransactionSqlDTO();
-		}).collect(Collectors.toList());
-
-		//remove existing records
-		List<String> recordsUpdateIds = bigVaultServerTransaction.getUpdatedDocuments().stream()
-				.map(x -> x.getId()).collect(Collectors.toList());
-		sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(recordsUpdateIds);
-
-
-		//update documents
-		List<RecordTransactionSqlDTO> recordsUpdate = bigVaultServerTransaction.getUpdatedDocuments().stream().map(x -> {
+		Map<String, RecordTransactionSqlDTO> records = bigVaultServerTransaction.getNewDocuments().stream().map(x -> {
 			try {
 				return new RecordTransactionSqlDTO(x.getId(), logVersion, solrVersion, toJson(x));
 			} catch (JsonProcessingException e) {
 				e.printStackTrace();
 			}
 			return new RecordTransactionSqlDTO();
-		}).collect(Collectors.toList());
+	}).collect(Collectors.toMap(e -> e.getRecordId(), e -> e));
 
-		records.addAll(recordsUpdate);
+		return records.values().stream().collect(Collectors.toList());
+	}
 
-		return records;
+	private List<RecordTransactionSqlDTO> mapUpdateBigVaultTransactionToRecordTransaction(
+			TransactionLogContent bigVaultServerTransaction, int logVersion)
+			throws SQLException {
+
+		String solrVersion = this.recordDao.getBigVaultServer().getVersion();
+
+		//update documents
+		Map<String, RecordTransactionSqlDTO> recordsUpdate = bigVaultServerTransaction.getUpdatedDocuments().stream().map(x -> {
+			try {
+				return new RecordTransactionSqlDTO(x.getId(), logVersion, solrVersion, toJson(x));
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+			return new RecordTransactionSqlDTO();
+		}).collect(Collectors.toMap(e -> e.getRecordId(), e -> e));
+
+		return recordsUpdate.values().stream().collect(Collectors.toList());
 	}
 
 	@Override
@@ -307,11 +363,11 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 		this.transactionLogRecoveryManager.disableRollbackModeDuringSolrRestore();
 		try {
-//			if (!tLogs.isEmpty()) {
-//				clearSolrCollection();
-//				new TransactionLogReplayServices(newReadWriteServices(), bigVaultServer, dataLayerLogger)
-//						.replayTransactionLogs(tLogs);
-//			}
+			//			if (!tLogs.isEmpty()) {
+			//				clearSolrCollection();
+			//				new TransactionLogReplayServices(newReadWriteServices(), bigVaultServer, dataLayerLogger)
+			//						.replayTransactionLogs(tLogs);
+			//			}
 
 		} finally {
 		}
@@ -321,22 +377,32 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	public void transactionLOGReindexationStartStrategy() {
 		//table and schema backup is set up in SQL Server
 
-		tryThreeTimes(() -> {
-			sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).increaseVersion();
-			return true;
-		});
+		if (this.isCurrentNodeLeader) {
+			tryThreeTimes(() -> {
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).increaseVersion();
+				return true;
+			});
+		}
 
 	}
 
 	@Override
 	public void transactionLOGReindexationCleanupStrategy() {
 
-		tryThreeTimes(() -> {
-			int version = sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getCurrentVersion();
-			sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAllByLogVersion(version);
-			return true;
-		});
+		final String solrVersion = this.recordDao.getBigVaultServer().getVersion();
+		if (this.isCurrentNodeLeader) {
+			tryThreeTimes(() -> {
+				int version = sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getCurrentVersion();
 
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAllByLogVersion(version);
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAllByLogVersion(version);
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insert(
+						new RecordTransactionSqlDTO( "reindexation_v"+ version +"_solrv_"+solrVersion ,
+						version, this.recordDao.getBigVaultServer().getVersion(),  "Reindexation end")
+				);
+				return true;
+			});
+		}
 	}
 
 	@Override

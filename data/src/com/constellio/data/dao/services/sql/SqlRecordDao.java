@@ -38,6 +38,8 @@ public interface SqlRecordDao<Object> {
 
 	int getCurrentVersion() throws SQLException;
 
+	void resetVersion() throws SQLException;
+
 	void flush();
 
 	long getTableCount() throws SQLException;

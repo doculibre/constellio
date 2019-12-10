@@ -92,7 +92,16 @@ public class TransactionJsonMapperObjectWriterV1 {
 
 		TransactionDocumentLogContent transactionDocumentLogContent = new TransactionDocumentLogContent();
 		String id = (String) document.getFieldValue("id");
-		Long version = (Long) document.getFieldValue("_version_");
+		Object version = document.getFieldValue("_version_");
+		String version_s;
+		if (version instanceof String) {
+			version_s = (String) version;
+		} else if (version instanceof Long) {
+			version_s = ""+( version);
+		} else {
+			version_s = null;
+			//throw new ImpossibleRuntimeException("Invalid schema of type");
+		}
 
 		String schema_s;
 		Object schema = document.getFieldValue("schema_s");
@@ -107,7 +116,7 @@ public class TransactionJsonMapperObjectWriterV1 {
 		}
 		String collection_s = (String) document.getFieldValue("collection_s");
 		transactionDocumentLogContent.setId(id);
-		transactionDocumentLogContent.setVersion(version == null ? -1: version);
+		transactionDocumentLogContent.setVersion(version == null ? "-1": version_s);
 
 		Collection<String> fieldNames = document.getFieldNames();
 		for (String name : fieldNames) {

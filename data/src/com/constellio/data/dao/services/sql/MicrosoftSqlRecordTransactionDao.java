@@ -11,6 +11,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTransactionSqlDTO> {
@@ -138,12 +139,21 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 
 	@Override
 	public void deleteAll(int[] ids) throws SQLException {
-		throw new NotImplementedException();
+
+		if(ids.length > 0) {
+			String joinedIds = Arrays.toString(ids);
+
+			String inValues = joinedIds.substring(1, joinedIds.length()-1);
+
+			String deleteQuery = String.format("DELETE FROM " + fullTableName + " WHERE IN (%s)",inValues);
+			queryRunner.execute(connector.getConnection(),
+					deleteQuery);
+		}
 	}
 
 	@Override
 	public void deleteAll(List<String> ids) throws SQLException {
-		String deleteQuery = "DELETE FROM "+fullTableName+" WHERE recordId < ?";
+		String deleteQuery = "DELETE FROM "+fullTableName+" WHERE recordId = ?";
 		for (String id: ids) {
 			queryRunner.execute(connector.getConnection(),
 					deleteQuery, id);
@@ -196,6 +206,11 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 		}
 
 		return version;
+	}
+
+	@Override
+	public void resetVersion() throws SQLException {
+		throw new NotImplementedException();
 	}
 
 	@Override
