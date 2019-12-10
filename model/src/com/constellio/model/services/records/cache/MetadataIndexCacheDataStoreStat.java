@@ -59,4 +59,9 @@ public class MetadataIndexCacheDataStoreStat {
 	public long length() {
 		return keysHeapLength + valuesHeapLength + valuesOffHeapLength + estimatedMapHeapLength;
 	}
+
+	public long getTotalHeap() {
+		return this.keysHeapLength + this.valuesHeapLength + this.estimatedMapHeapLength;
+
+	}
 }

@@ -177,6 +177,10 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		return metadataIndexCacheDataStore;
 	}
 
+	public RecordsCachesDataStore getRecordsCachesDataStore() {
+		return memoryDataStore;
+	}
+
 	public void register(RecordsCachesHook hook) {
 		hooks.register(hook);
 	}

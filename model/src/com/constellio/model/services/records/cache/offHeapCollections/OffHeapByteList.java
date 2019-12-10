@@ -35,6 +35,14 @@ public class OffHeapByteList {
 		return adressesOfBatches.get(batch) + indexInBatch;
 	}
 
+	public int getHeapConsumption() {
+		return 12 + (12 + Long.BYTES * adressesOfBatches.size()) + Integer.BYTES;
+	}
+
+	public int getOffHeapConsumption() {
+		return adressesOfBatches.size() * batchSize;
+	}
+
 	public void set(int index, byte value) {
 
 		long address = getAdressOfIndex(index);

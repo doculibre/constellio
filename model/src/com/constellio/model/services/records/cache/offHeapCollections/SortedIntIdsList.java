@@ -143,7 +143,7 @@ public class SortedIntIdsList implements SortedIdsList {
 
 	@Override
 	public long valuesOffHeapLength() {
-		return (this.size + this.capacity) * 4;
+		return this.size;
 	}
 
 	@Override

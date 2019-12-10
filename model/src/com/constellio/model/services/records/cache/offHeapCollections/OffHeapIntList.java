@@ -34,6 +34,14 @@ public class OffHeapIntList {
 		return adressesOfBatches.get(batch) + indexInBatch * Integer.BYTES;
 	}
 
+	public int getHeapConsumption() {
+		return 12 + (12 + Long.BYTES * adressesOfBatches.size()) + Integer.BYTES;
+	}
+
+	public int getOffHeapConsumption() {
+		return adressesOfBatches.size() * batchSize * Integer.BYTES;
+	}
+
 	public void set(int index, int value) {
 		long address = getAdressOfIndex(index);
 		OffHeapMemoryAllocator.getUnsafe().putInt(address, value);
@@ -122,6 +130,7 @@ public class OffHeapIntList {
 			}
 		}.stream();
 	}
+
 
 	public void clear() {
 		for (int i = 0; i < this.adressesOfBatches.size(); i++) {

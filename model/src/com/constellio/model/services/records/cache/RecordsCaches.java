@@ -4,11 +4,7 @@ import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.records.RecordId;
-import com.constellio.model.services.records.cache.cacheIndexConditions.SortedIdsStreamer;
-import com.constellio.model.services.records.cache.cacheIndexHook.MetadataIndexCacheDataStoreHook;
-import com.constellio.model.services.records.cache.cacheIndexHook.RecordCountHookDataIndexRetriever;
-import com.constellio.model.services.records.cache.cacheIndexHook.RecordIdsHookDataIndexRetriever;
+import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
 import com.constellio.model.services.records.cache.hooks.RecordsCachesHook;
 
 import java.util.ArrayList;
@@ -29,17 +25,9 @@ public interface RecordsCaches {
 		return getRecordSummary(id, optionnalCollection, null);
 	}
 
-	default Record getRecordSummary(String id, String optionnalCollection, String optionnalSchemaType) {
-		return getRecordSummary(RecordId.toId(id), optionnalCollection, optionnalSchemaType);
-	}
-
-	Record getRecordSummary(RecordId id, String optionnalCollection, String optionnalSchemaType);
+	Record getRecordSummary(String id, String optionnalCollection, String optionnalSchemaType);
 
 	default Record getRecord(String id) {
-		return getRecord(id, null, null);
-	}
-
-	default Record getRecord(RecordId id) {
 		return getRecord(id, null, null);
 	}
 
@@ -47,11 +35,7 @@ public interface RecordsCaches {
 		return getRecord(id, optionnalCollection, null);
 	}
 
-	default Record getRecord(String id, String optionnalCollection, String optionnalSchemaType) {
-		return getRecord(RecordId.toId(id), optionnalCollection, optionnalSchemaType);
-	}
-
-	Record getRecord(RecordId id, String optionnalCollection, String optionnalSchemaType);
+	Record getRecord(String id, String optionnalCollection, String optionnalSchemaType);
 
 	default void invalidateVolatile() {
 		invalidateVolatile(MassiveCacheInvalidationReason.KEEP_INTEGRITY);
@@ -81,8 +65,6 @@ public interface RecordsCaches {
 
 		return statuses;
 	}
-
-	Stream<Record> stream(SortedIdsStreamer streamer);
 
 	Stream<Record> stream(MetadataSchemaType type);
 
@@ -129,12 +111,8 @@ public interface RecordsCaches {
 
 	void disableVolatileCache();
 
-	<K> RecordCountHookDataIndexRetriever<K> registerRecordCountHook(
-			String collection, MetadataIndexCacheDataStoreHook hook);
-
-	<K> RecordIdsHookDataIndexRetriever<K> registerRecordIdsHook(
-			String collection, MetadataIndexCacheDataStoreHook hook);
-
-
 	MetadataIndexCacheDataStore getMetadataIndexCacheDataStore();
+
+	RecordsCachesDataStore getRecordsCachesDataStore();
+
 }

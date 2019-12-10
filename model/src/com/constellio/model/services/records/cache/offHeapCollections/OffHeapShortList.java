@@ -35,6 +35,14 @@ public class OffHeapShortList {
 		return adressesOfBatches.get(batch) + indexInBatch * Short.BYTES;
 	}
 
+	public int getHeapConsumption() {
+		return 12 + (12 + Long.BYTES * adressesOfBatches.size()) + Integer.BYTES;
+	}
+
+	public int getOffHeapConsumption() {
+		return adressesOfBatches.size() * batchSize * Short.BYTES;
+	}
+
 	public void set(int index, short value) {
 		long address = getAdressOfIndex(index);
 		OffHeapMemoryAllocator.putShort(address, value);

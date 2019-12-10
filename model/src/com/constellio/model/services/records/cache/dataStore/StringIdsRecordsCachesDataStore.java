@@ -411,4 +411,13 @@ public class StringIdsRecordsCachesDataStore {
 		}
 
 	}
+
+	public List<RecordsCacheStat> compileMemoryConsumptionStats() {
+		List<RecordsCacheStat> stats = new ArrayList<>();
+
+		if (!allRecordsWithStringKey.isEmpty()) {
+			stats.add(new RecordsCacheStat("!!! Records with string ids are not calculated : " + allRecordsWithStringKey.size(), 1, 0));
+		}
+		return stats;
+	}
 }

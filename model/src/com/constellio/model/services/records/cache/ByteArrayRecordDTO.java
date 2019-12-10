@@ -3,6 +3,7 @@ package com.constellio.model.services.records.cache;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -131,6 +132,16 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		}
 
 		@Override
+		public long heapMemoryConsumption() {
+			return 0;
+		}
+
+		@Override
+		public long offHeapMemoryConsumption() {
+			return data.length;
+		}
+
+		@Override
 		public byte[] get() {
 			return SummaryCacheSingletons.dataStore.get(tenantId).loadIntKeyPersistedData(id);
 		}
@@ -182,6 +193,16 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		@Override
 		public String getId() {
 			return id;
+		}
+
+		@Override
+		public long heapMemoryConsumption() {
+			return LangUtils.sizeOf(id) + data.length;
+		}
+
+		@Override
+		public long offHeapMemoryConsumption() {
+			return 0;
 		}
 
 		@Override
