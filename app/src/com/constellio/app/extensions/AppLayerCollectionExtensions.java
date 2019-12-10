@@ -40,6 +40,7 @@ import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitEx
 import com.constellio.app.api.extensions.params.DocumentViewButtonExtensionParam;
 import com.constellio.app.api.extensions.params.ExportCollectionInfosSIPIsTaxonomySupportedParams;
 import com.constellio.app.api.extensions.params.ExtraMetadataToGenerateOnReferenceParams;
+import com.constellio.app.api.extensions.params.ExtraTabForSimpleSearchResultParams;
 import com.constellio.app.api.extensions.params.FieldBindingExtentionParam;
 import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
@@ -268,11 +269,11 @@ public class AppLayerCollectionExtensions {
 		}
 	}
 
-	public List<ExtraTabInfo> getExtraTabForSimpleSearchResult() {
+	public List<ExtraTabInfo> getExtraTabForSimpleSearchResult(ExtraTabForSimpleSearchResultParams params) {
 		List<ExtraTabInfo> extraTabInfoList = new ArrayList<>();
 
 		for (ExtraTabForSimpleSearchResultExtention extraTabForSimpleSearchResultExtention : extraTabsForSimpleSearchResultExtentions) {
-			extraTabInfoList.addAll(extraTabForSimpleSearchResultExtention.getExtraTabs());
+			extraTabInfoList.addAll(extraTabForSimpleSearchResultExtention.getExtraTabs(params));
 		}
 
 		return extraTabInfoList;

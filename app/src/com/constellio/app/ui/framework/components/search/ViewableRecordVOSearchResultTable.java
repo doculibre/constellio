@@ -5,10 +5,9 @@ import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
+import com.constellio.app.ui.framework.containers.LastQTime;
+import com.constellio.app.ui.framework.containers.PreLoader;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
-import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
-import com.constellio.app.ui.framework.containers.SearchResultContainer;
-import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.search.SearchPresenter;
 import com.constellio.app.ui.pages.search.SearchView;
@@ -39,7 +38,14 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 	public ViewableRecordVOSearchResultTable(RecordVOContainer container, TableMode tableMode,
 											 SearchPresenter<? extends SearchView> presenter,
 											 RecordListMenuBar recordListMenuBar) {
-		super(container, tableMode, recordListMenuBar);
+		this(container, tableMode, presenter, recordListMenuBar, true);
+	}
+
+	public ViewableRecordVOSearchResultTable(RecordVOContainer container, TableMode tableMode,
+											 SearchPresenter<? extends SearchView> presenter,
+											 RecordListMenuBar recordListMenuBar, boolean canChangeTableMode) {
+		super(container, tableMode, recordListMenuBar, canChangeTableMode);
+
 		this.presenter = presenter;
 		addStyleName(TABLE_STYLE);
 		addStyleName(SEARCH_RESULT_TABLE_STYLE);
@@ -94,6 +100,10 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 						presenter.fireSomeRecordsSelected();
 					}
 				} else if (event.isAllItemsSelected()) {
+
+					if (recordVOContainer instanceof PreLoader) {
+						((PreLoader) recordVOContainer).loadAll();
+					}
 
 					List lRecordIdList = recordVOContainer.getItemIds().stream().map(itemId -> getRecordVO(itemId).getId()).collect(Collectors.toList());
 
@@ -188,12 +198,10 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 	private double getLastCallQTime() {
 		double lastCallQTime;
 		RecordVOContainer recordVOContainer = getRecordVOContainer();
-		if (recordVOContainer instanceof RecordVOLazyContainer) {
-			lastCallQTime = ((RecordVOLazyContainer) recordVOContainer).getLastCallQTime();
-		} else if (recordVOContainer instanceof SearchResultVOLazyContainer) {
-			lastCallQTime = ((SearchResultVOLazyContainer) recordVOContainer).getLastCallQTime();
+		if (recordVOContainer instanceof LastQTime) {
+			lastCallQTime = ((LastQTime) recordVOContainer).getLastCallQTime();
 		} else {
-			lastCallQTime = ((SearchResultContainer) recordVOContainer).getLastCallQTime();
+			lastCallQTime = -1;
 		}
 		return lastCallQTime;
 	}

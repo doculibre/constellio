@@ -15,6 +15,7 @@ import com.constellio.app.ui.framework.components.table.columns.TableColumnsMana
 import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEvent;
 import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
+import com.constellio.app.ui.framework.containers.PreLoader;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -100,6 +101,7 @@ public class BaseTable extends Table implements SelectionComponent {
 	private ContextMenu contextMenu;
 
 	private int customPageLength = DEFAULT_PAGE_LENGTH;
+	private PreLoader preloader;
 
 	public BaseTable(String tableId) {
 		super();
@@ -118,6 +120,7 @@ public class BaseTable extends Table implements SelectionComponent {
 		this.tableId = tableId;
 		init();
 	}
+
 
 	private void init() {
 		addStyleName("base-table");
@@ -1171,6 +1174,10 @@ public class BaseTable extends Table implements SelectionComponent {
 
 	}
 
+	public void setPreLoader(PreLoader preloader) {
+		this.preloader = preloader;
+	}
+
 	public class MaxLengthSelectDeselectAllButton extends SelectDeselectAllButton {
 
 		private int rangeStart = -1;
@@ -1330,6 +1337,10 @@ public class BaseTable extends Table implements SelectionComponent {
 							SelectionChangeEvent deselectAllEvent = new SelectionChangeEvent();
 							deselectAllEvent.setAllItemsDeselected(true);
 							fireSelectionChangeEvent(deselectAllEvent);
+							if (preloader != null) {
+								int startIndex = pagedTableContainer.getStartIndex();
+								preloader.load(startIndex + realRangeStart, realRangeEnd - realRangeStart + 1);
+							}
 
 							List<Object> selectedItemIds = getItemIds(realRangeStart, realRangeEnd - realRangeStart + 1);
 							SelectionChangeEvent newSelectionEvent = new SelectionChangeEvent();

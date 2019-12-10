@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.search;
 
 import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.ExtraTabInfo;
+import com.constellio.app.api.extensions.params.ExtraTabForSimpleSearchResultParams;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
@@ -73,6 +74,8 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
+import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextField;
@@ -350,7 +353,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	private void createResultArea() {
-		List<ExtraTabInfo> extraTabInfoList = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getExtraTabForSimpleSearchResult();
+		List<ExtraTabInfo> extraTabInfoList = getConstellioFactories().getAppLayerFactory().getExtensions()
+				.forCollection(getCollection()).getExtraTabForSimpleSearchResult(new ExtraTabForSimpleSearchResultParams(presenter, presenter.getUserSearchExpression()));
 
 		resultsArea.removeAllComponents();
 		if (extraTabInfoList.isEmpty()) {
@@ -371,6 +375,16 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			for (ExtraTabInfo currentExtraTab : extraTabInfoList) {
 				resultTabSheet.addTab(currentExtraTab.getTabComponent(), currentExtraTab.getTabCaption());
 			}
+
+			resultTabSheet.addSelectedTabChangeListener(new SelectedTabChangeListener() {
+				@Override
+				public void selectedTabChange(SelectedTabChangeEvent event) {
+					Component currentTab = event.getTabSheet().getSelectedTab();
+					if (currentTab instanceof BaseViewImpl) {
+						((BaseViewImpl) currentTab).enter(null);
+					}
+				}
+			});
 
 			resultsArea.addComponent(resultTabSheet);
 		}

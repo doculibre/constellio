@@ -115,6 +115,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		this.modelLayerFactory = modelLayerFactory;
 
 		query = getQuery();
+
 		query.setLanguage(sessionContext.getCurrentLocale());
 		cache = new HashMap<>();
 	}

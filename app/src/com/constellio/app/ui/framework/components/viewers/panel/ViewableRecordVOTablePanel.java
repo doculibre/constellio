@@ -37,6 +37,7 @@ import com.constellio.app.ui.framework.components.table.RecordVOTable.RecordVOSe
 import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEvent;
 import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
+import com.constellio.app.ui.framework.containers.PreLoader;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -170,6 +171,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	private boolean allItemsVisible = false;
 
 	private ViewWindow viewWindow;
+	private boolean canChangeTableMode;
 
 	public ViewableRecordVOTablePanel(RecordVOContainer container) {
 		this(container, TableMode.LIST, null);
@@ -181,9 +183,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	public ViewableRecordVOTablePanel(RecordVOContainer container, TableMode tableMode,
 									  RecordListMenuBar recordListMenuBar) {
+		this(container, tableMode, recordListMenuBar, true);
+	}
+
+	public ViewableRecordVOTablePanel(RecordVOContainer container, TableMode tableMode,
+									  RecordListMenuBar recordListMenuBar, boolean canChangeTableMode) {
 		this.recordVOContainer = container;
 		this.tableMode = tableMode != null ? tableMode : TableMode.LIST;
 		this.initialSelectionActionsMenuBar = recordListMenuBar;
+		this.canChangeTableMode = canChangeTableMode;
 		buildUI();
 	}
 
@@ -228,8 +236,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		selectedItemCountLabel.setVisible(false);
 
 		viewerMetadataPanel = buildViewerMetadataPanel();
+
 		listModeButton = buildListModeButton();
+		listModeButton.setVisible(this.canChangeTableMode);
+
 		tableModeButton = buildTableModeButton();
+		tableModeButton.setVisible(this.canChangeTableMode);
+
 		previousButton = buildPreviousButton();
 		nextButton = buildNextButton();
 		closeViewerButton = buildCloseViewerButton();
@@ -591,6 +604,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				}
 			};
 			viewableRecordVOTable.setWidth("100%");
+			if (recordVOContainer instanceof PreLoader) {
+				viewableRecordVOTable.setPreLoader((PreLoader) recordVOContainer);
+			}
 
 			resultsTable = viewableRecordVOTable;
 			resultsTable.setContainerDataSource(new ContainerAdapter(viewableRecordVOContainer) {
