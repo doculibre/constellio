@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
+import com.constellio.app.api.extensions.params.SchemaDisplayParams;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
@@ -1273,9 +1274,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					view.enter(null);
 					panelContent = view;
 				} else {
-					UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
-					panelContent = new RecordDisplayFactory(currentUser).build(recordVO, true);
-					this.addStyleName("nested-view");
+					Component displayComponent = ViewableRecordVOTablePanel.this.getMainView()
+							.getConstellioFactories().getAppLayerFactory().getExtensions().getSystemWideExtensions().getSchemaDisplay(new SchemaDisplayParams(schemaTypeCode, recordVO));
+					if (displayComponent != null) {
+						panelContent = displayComponent;
+					} else {
+						UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
+						panelContent = new RecordDisplayFactory(currentUser).build(recordVO, true);
+						this.addStyleName("nested-view");
+					}
 				}
 				mainLayout.addComponent(panelContent);
 				Label spacer = new Label("");

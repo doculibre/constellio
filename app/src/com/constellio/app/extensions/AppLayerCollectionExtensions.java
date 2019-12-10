@@ -227,6 +227,7 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<ExtraTabForSimpleSearchResultExtention> extraTabsForSimpleSearchResultExtentions = new VaultBehaviorsList<>();
 
+
 	//Key : schema type code
 	//Values : record's code
 	public KeyListMap<String, String> lockedRecords = new KeyListMap<>();
@@ -255,6 +256,7 @@ public class AppLayerCollectionExtensions {
 
 		return availableSequences;
 	}
+
 
 	public void onWriteRecord(OnWriteRecordParams params) {
 		for (RecordExportExtension recordExportExtension : recordExportExtensions) {

@@ -3,11 +3,13 @@ package com.constellio.app.extensions;
 import com.constellio.app.api.extensions.BaseWindowExtension;
 import com.constellio.app.api.extensions.EmailExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
+import com.constellio.app.api.extensions.SchemaDisplayExtension;
 import com.constellio.app.api.extensions.UpdateModeExtension;
 import com.constellio.app.api.extensions.params.BaseWindowParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
+import com.constellio.app.api.extensions.params.SchemaDisplayParams;
 import com.constellio.app.extensions.api.GlobalGroupExtension;
 import com.constellio.app.extensions.api.GlobalGroupExtension.GlobalGroupExtensionActionPossibleParams;
 import com.constellio.app.extensions.api.UserCredentialExtension;
@@ -23,6 +25,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
+import com.vaadin.ui.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +46,8 @@ public class AppLayerSystemExtensions {
 
 	public VaultBehaviorsList<ConstellioUIExtention> constellioUIExtentions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<SchemaDisplayExtension> schemaDisplayExtensions = new VaultBehaviorsList<>();
+
 	public List<AvailableSequence> getAvailableSequences() {
 
 		AvailableSequenceForSystemParams params = new AvailableSequenceForSystemParams();
@@ -57,6 +62,21 @@ public class AppLayerSystemExtensions {
 		}
 
 		return availableSequences;
+	}
+
+
+	public Component getSchemaDisplay(SchemaDisplayParams schemaDisplayParams) {
+		Component display = null;
+
+		for (SchemaDisplayExtension schemaDisplayExtension : schemaDisplayExtensions) {
+			display = schemaDisplayExtension.getDisplay(schemaDisplayParams);
+
+			if (display != null) {
+				return display;
+			}
+		}
+
+		return display;
 	}
 
 	public void decorateView(PagesComponentsExtensionParams params) {
