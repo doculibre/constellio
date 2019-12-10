@@ -207,7 +207,7 @@ public class RecordDeleteServices {
 
 	public ValidationErrors validatePhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
 		ensureSameCollection(user, record);
-		List<Record> recordsHierarchy = loadRecordsHierarchyOf(record, true);
+		List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
 
@@ -238,7 +238,7 @@ public class RecordDeleteServices {
 	private ValidationErrors validatePhysicallyDeletableNoMatterTheStatus(final Record record, User user,
 																		  RecordPhysicalDeleteOptions options) {
 		ensureSameCollection(user, record);
-		final List<Record> recordsHierarchy = loadRecordsHierarchyOf(record, true);
+		final List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
 
@@ -519,7 +519,7 @@ public class RecordDeleteServices {
 			return validationErrors;
 		}
 
-		final List<Record> recordsHierarchy = loadRecordsHierarchyOf(record, true);
+		final List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
 
 		boolean logicallyDeletable =
 				!schemaType.hasSecurity() || authorizationsServices
@@ -638,7 +638,7 @@ public class RecordDeleteServices {
 	}
 
 	boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record principalConcept, User user) {
-		List<Record> recordsHierarchy = loadRecordsHierarchyOf(principalConcept, true);
+		List<Record> recordsHierarchy = loadRecordsHierarchyOf(principalConcept);
 		return authorizationsServices
 				.hasDeletePermissionOnPrincipalConceptHierarchy(user, principalConcept, false, recordsHierarchy,
 						metadataSchemasManager);
@@ -818,14 +818,11 @@ public class RecordDeleteServices {
 	}
 
 	public List<Record> loadRecordsHierarchyOf(Record record) {
-		return loadRecordsHierarchyOf(record, false);
-	}
-
-	public List<Record> loadRecordsHierarchyOf(Record record, boolean summary) {
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
 		List<Record> recordsHierarchy;
 		if (taxonomy == null) {
-			recordsHierarchy = new ArrayList<>(recordHierarchyServices.getAllRecordsInHierarchy(record, summary));
+			boolean useSummary = record.getLoadedFieldsMode() == RecordDTOMode.SUMMARY;
+			recordsHierarchy = new ArrayList<>(recordHierarchyServices.getAllRecordsInHierarchy(record, useSummary));
 		} else {
 			recordsHierarchy = new ArrayList<>(getAllTaxonomyRecordsInHierarchy(record, taxonomy));
 		}

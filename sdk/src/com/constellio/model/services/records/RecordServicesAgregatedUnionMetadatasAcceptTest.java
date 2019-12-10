@@ -17,6 +17,7 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.junit.runners.Parameterized;
@@ -71,7 +72,7 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 				{"noCache"}, {"fullyPermanent"}, {"summaryPermanent"}, {"summaryPermanentWithInsufficientSummaryMetadatas"}});
 	}
 
-	//TODO Infinite test @Test
+	@Test
 	public void givenUnionOfSingleValueStringMetadatasThenAllStringsAreCopiedWithoutDuplicates()
 			throws Exception {
 
@@ -86,11 +87,13 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 						.setEssentialInSummary(inputMetadatasEssentialInSummary);
 				MetadataBuilder zeSchema_Value2 = zeType.createMetadata("stringValue2").setType(STRING)
 						.setMultivalue(true).setEssentialInSummary(inputMetadatasEssentialInSummary);
-				MetadataBuilder zeSchema_zeRef = zeType.createMetadata("ref").defineReferencesTo(anotherType);
+				MetadataBuilder zeSchema_zeRef = zeType.createMetadata("ref")
+						.defineReferencesTo(anotherType).setCacheIndex(true);
 				MetadataBuilder anotherSchema_stringValuesUnion = anotherType.createMetadata("stringValuesUnion")
 						.setType(STRING).setEssentialInSummary(inputMetadatasEssentialInSummary)
 						.setMultivalue(true).defineDataEntry().asUnion(zeSchema_zeRef, zeSchema_value1, zeSchema_Value2);
-				MetadataBuilder anotherSchema_zeRef = anotherType.createMetadata("ref").defineReferencesTo(thirdType);
+				MetadataBuilder anotherSchema_zeRef = anotherType.createMetadata("ref")
+						.defineReferencesTo(thirdType).setCacheIndex(true);
 				MetadataBuilder anotherSchema_value = anotherType.createMetadata("stringValue").setType(STRING)
 						.setMultivalue(true).setEssentialInSummary(inputMetadatasEssentialInSummary);
 				thirdType.createMetadata("stringValuesUnion")
