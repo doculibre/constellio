@@ -6,6 +6,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -191,5 +192,15 @@ public class RecordsCachesDataStore {
 
 	public void close() {
 		intIdsDataStore.close();
+	}
+
+	public List<RecordsCacheStat> compileMemoryConsumptionStats() {
+		List<RecordsCacheStat> stats = new ArrayList<>();
+
+		stats.addAll(intIdsDataStore.compileMemoryConsumptionStats());
+		stats.addAll(stringIdsDataStore.compileMemoryConsumptionStats());
+
+		return stats;
+
 	}
 }

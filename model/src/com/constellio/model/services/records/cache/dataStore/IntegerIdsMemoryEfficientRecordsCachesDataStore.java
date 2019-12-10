@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
+import com.constellio.data.utils.KeyLongMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -18,11 +19,11 @@ import com.constellio.model.services.records.cache.offHeapCollections.OffHeapInt
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapLongList;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapShortList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -45,8 +46,6 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 	//TODO Replace List by another collection to save memory
 	List<RecordDTO> fullyCachedData = new ArrayList<>();
-
-	List<MetadataIndex>[][] indexes = new List[256][];
 
 	IntArrayList[][] typesIndexes = new IntArrayList[256][];
 
@@ -731,15 +730,62 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		}
 	}
 
-	private static class MetadataIndex {
+	public List<RecordsCacheStat> compileMemoryConsumptionStats() {
+		mechanism.obtainSystemWideReadingPermit();
+		try {
+			List<RecordsCacheStat> stats = new ArrayList<>();
 
-		short metadataId;
+			//OffHeapIntList ids = new OffHeapIntList();
+			stats.add(new RecordsCacheStat("datastore.ids", ids.getHeapConsumption(), ids.getOffHeapConsumption()));
+			stats.add(new RecordsCacheStat("datastore.versions", versions.getHeapConsumption(), versions.getOffHeapConsumption()));
+			stats.add(new RecordsCacheStat("datastore.schemas", schema.getHeapConsumption(), schema.getOffHeapConsumption()));
+			stats.add(new RecordsCacheStat("datastore.types", type.getHeapConsumption(), type.getOffHeapConsumption()));
+			stats.add(new RecordsCacheStat("datastore.collection", collection.getHeapConsumption(), collection.getOffHeapConsumption()));
+			stats.add(new RecordsCacheStat("datastore.summaryCachedData", summaryCachedData.getHeapConsumption(), summaryCachedData.getOffHeapConsumption()));
+			//OffHeapLongList versions = new OffHeapLongList();
+			//OffHeapShortList schema = new OffHeapShortList();
+			//OffHeapShortList type = new OffHeapShortList();
+			//OffHeapByteList collection = new OffHeapByteList();
+			//OffHeapByteArrayList summaryCachedData = new OffHeapByteArrayList();
 
-		Map<Object, IntArrayList> positionsWithValue;
+			//List<RecordDTO> fullyCachedData = new ArrayList<>();
 
-		public MetadataIndex(short metadataId) {
-			this.metadataId = metadataId;
-			this.positionsWithValue = new HashMap<>();
+			//Not accurate
+
+			KeyLongMap<String> schemaTypesConsumptions = new KeyLongMap<>();
+			long fullyCachedDataSize = 12 + 4 + 12 * fullyCachedData.size();
+			for (RecordDTO recordDTO : fullyCachedData) {
+				if (recordDTO instanceof SolrRecordDTO) {
+					long estimatedSize = recordDTO.heapMemoryConsumption();
+					fullyCachedDataSize += estimatedSize;
+					String typeCode = SchemaUtils.getSchemaTypeCode(recordDTO.getSchemaCode());
+					schemaTypesConsumptions.increment(typeCode, estimatedSize);
+				}
+
+			}
+			stats.add(new RecordsCacheStat("datastore.fullyCachedData", fullyCachedDataSize, 0));
+			for (Map.Entry<String, Long> entry : schemaTypesConsumptions.entriesSortedByDescValue()) {
+				stats.add(new RecordsCacheStat("datastore.fullyCachedData." + entry.getKey(), entry.getValue(), 0));
+			}
+
+			long typeIndexesSize = 12 + 12 * typesIndexes.length;
+			for (int i = 0; i < typesIndexes.length; i++) {
+				if (typesIndexes[i] != null) {
+					typeIndexesSize += 12 + 12 * typesIndexes[i].length;
+					for (int j = 0; j < typesIndexes[i].length; j++) {
+						if (typesIndexes[i][j] != null) {
+							//This is not totally accurate, but maybe not so bad either
+							typeIndexesSize += 12 + 4 + typesIndexes[i][j].size() * Integer.BYTES;
+						}
+					}
+				}
+			}
+			stats.add(new RecordsCacheStat("datastore.typeIndexes", typeIndexesSize, 0));
+
+			return stats;
+		} finally {
+			mechanism.releaseSystemWideReadingPermit();
 		}
 	}
+
 }

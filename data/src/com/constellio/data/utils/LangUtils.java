@@ -724,4 +724,50 @@ public class LangUtils {
 		String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp - 1) + (si ? "" : "i");
 		return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
 	}
+
+	/**
+	 * This method is far, very far from being complete!
+	 * Since the most important part of the data are strings
+	 *
+	 * @param object
+	 * @return
+	 */
+	public static long sizeOf(Object object) {
+
+		if (object == null) {
+			return 0;
+
+		} else if (object instanceof Integer) {
+			return 8;
+
+		} else if (object instanceof Float) {
+			return 8;
+
+		} else if (object instanceof Double) {
+			return 8;
+
+		} else if (object instanceof String) {
+			return 16 + 2 * ((String) object).length();
+
+		} else if (object instanceof List) {
+			int size = 4;
+			for (Object element : ((List) object)) {
+				size += sizeOf(element);
+			}
+			return size;
+
+		} else if (object instanceof Map) {
+			long size = estimatedizeOfMapStructureBasedOnSize((Map) object);
+			for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) object).entrySet()) {
+				size += sizeOf(entry.getKey());
+				size += sizeOf(entry.getValue());
+			}
+			return size;
+
+
+		}
+
+		return 0;
+	}
+
 }
