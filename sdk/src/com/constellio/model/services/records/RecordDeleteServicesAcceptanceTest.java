@@ -211,7 +211,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 	public void whenLogicallyDeletingThenSetLogicallyDeletedStatusToAllRecordInHierarchyAndExecuteTransaction()
 			throws Exception {
 
-		deleteService.logicallyDelete(folder2.getWrappedRecord(), users.adminIn(zeCollection));
+		deleteService.logicallyDelete(recordServices.getDocumentById(folder2.getId()), users.adminIn(zeCollection));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 
 		Record folderRecord2 = recordServices.getDocumentById(folder2.getId());
@@ -242,7 +242,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 				.set(Schemas.LOGICALLY_DELETED_ON, TimeProvider.getLocalDateTime()).getWrappedRecord());
 		recordServices.execute(transaction);
 
-		deleteService.restore(folder2.getWrappedRecord(), users.adminIn(zeCollection));
+		deleteService.restore(recordServices.getDocumentById(folder2.getId()), users.adminIn(zeCollection));
 
 		Record folderRecord2 = recordServices.getDocumentById(folder2.getId());
 		assertThat(folderRecord2.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isFalse();

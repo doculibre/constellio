@@ -2,6 +2,7 @@ package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
@@ -168,14 +169,17 @@ public class RecordDeleteServices {
 		transaction.getRecordUpdateOptions().setSkipUSRMetadatasRequirementValidations(true);
 		transaction.getRecordUpdateOptions().setSkippingReferenceToLogicallyDeletedValidation(true);
 
-		for (Record hierarchyRecord : recordHierarchyServices.getAllRecordsInHierarchy(record, SortOrder.ASCENDING)) {
-			if (Boolean.FALSE.equals(hierarchyRecord.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS))) {
+		for (Record hierarchyRecord : recordHierarchyServices.getAllRecordsInHierarchy(record, SortOrder.ASCENDING, useSummary(record))) {
+			Record currentHierarchyRecord = hierarchyRecord.getLoadedFieldsMode() != RecordDTOMode.FULLY_LOADED ?
+											recordServices.getDocumentById(hierarchyRecord.getId()) : hierarchyRecord;
+
+			if (Boolean.FALSE.equals(currentHierarchyRecord.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS))) {
 				continue;
 			}
-			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, false);
-			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, null);
-			if (!transaction.getRecordIds().contains(hierarchyRecord.getId())) {
-				transaction.add(hierarchyRecord);
+			currentHierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, false);
+			currentHierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, null);
+			if (!transaction.getRecordIds().contains(currentHierarchyRecord.getId())) {
+				transaction.add(currentHierarchyRecord);
 			}
 		}
 		if (!transaction.getRecordIds().contains(record.getId())) {
@@ -466,7 +470,7 @@ public class RecordDeleteServices {
 		if (taxonomy != null && !includeRecords) {
 			return getAllTaxonomyRecordsInHierarchy(record, taxonomy);
 		} else {
-			return recordHierarchyServices.getAllRecordsInHierarchy(record, SortOrder.DESCENDING, false);
+			return recordHierarchyServices.getAllRecordsInHierarchy(record, SortOrder.DESCENDING, useSummary(record));
 		}
 	}
 
@@ -493,7 +497,7 @@ public class RecordDeleteServices {
 		if (taxonomy != null && !includeRecords) {
 			return getAllTaxonomyRecordsInHierarchy(record, taxonomy);
 		} else {
-			return recordHierarchyServices.getAllRecordsInHierarchy(record, SortOrder.DESCENDING);
+			return recordHierarchyServices.getAllRecordsInHierarchy(record, SortOrder.DESCENDING, useSummary(record));
 		}
 	}
 
@@ -625,9 +629,12 @@ public class RecordDeleteServices {
 		removedDefaultValues(record.getCollection(), hierarchyRecords);
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 		for (Record hierarchyRecord : hierarchyRecords) {
-			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, true);
-			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, now);
-			transaction.add(hierarchyRecord);
+			Record currentHierarchyRecord = hierarchyRecord.getLoadedFieldsMode() != RecordDTOMode.FULLY_LOADED ?
+											recordServices.getDocumentById(hierarchyRecord.getId()) : hierarchyRecord;
+
+			currentHierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, true);
+			currentHierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, now);
+			transaction.add(currentHierarchyRecord);
 		}
 		transaction.setRecordFlushing(options.getRecordsFlushing());
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
