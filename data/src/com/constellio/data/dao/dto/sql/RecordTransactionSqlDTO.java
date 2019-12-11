@@ -2,7 +2,7 @@ package com.constellio.data.dao.dto.sql;
 
 public class RecordTransactionSqlDTO {
 
-	private int id;
+	private String id;
 
 	private String recordId;
 
@@ -22,11 +22,11 @@ public class RecordTransactionSqlDTO {
 	public RecordTransactionSqlDTO() {
 	}
 
-	public int getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 

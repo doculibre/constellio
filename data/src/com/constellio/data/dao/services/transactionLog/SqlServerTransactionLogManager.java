@@ -104,6 +104,8 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	private boolean isCurrentNodeLeader;
 
+	private Integer currentLogVersion = null;
+
 	public SqlServerTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices,
 										  RecordDao recordDao, SqlRecordDaoFactory sqlRecordDaoFactory,
 										  ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager,
@@ -137,6 +139,12 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		//idSequence = newIdSequence();
 		started = true;
 
+		if (this.currentLogVersion == null) {
+			tryThreeTimes(() -> {
+				this.currentLogVersion = getLogVersion();
+				return true;
+			});
+		}
 		flushOrCancelPreparedTransactions();
 
 		backgroundThreadsManager.configure(
@@ -186,11 +194,10 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		String content = transactionContentMap.remove(transactionId);
 
 		tryThreeTimes(() -> {
-			Integer logVersion = getLogVersion();
-			sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).insert(createTransactionSqlDto(transactionId, transactionInfo, content, logVersion));
+
+			sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).insert(createTransactionSqlDto(transactionId, transactionInfo, content, this.currentLogVersion));
 			return true;
 		});
-
 
 		if (!source.toFile().exists()) {
 			throw new RuntimeException("Source does not exist");
@@ -229,9 +236,9 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 				//get transactions
 				List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
 						sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll());
-				int logVersion = this.getLogVersion();
-				final List<RecordTransactionSqlDTO> recordsToinsert = extractRecordsFromTransaction(transactionsToConvert, logVersion, false);
-				final List<RecordTransactionSqlDTO> recordsToUpdate = extractRecordsFromTransaction(transactionsToConvert, logVersion, true);
+
+				final List<RecordTransactionSqlDTO> recordsToinsert = extractRecordsFromTransaction(transactionsToConvert, this.currentLogVersion, false);
+				final List<RecordTransactionSqlDTO> recordsToUpdate = extractRecordsFromTransaction(transactionsToConvert, this.currentLogVersion, true);
 				final List<String> updateTransactionIds = recordsToUpdate.stream().map(x -> x.getRecordId()).collect(Collectors.toList());
 				final List<String> recordsToDelete = extractRemoveRecordsFromTransaction(transactionsToConvert);
 
@@ -260,7 +267,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 				});
 
 				//Remove transactions
-				final int[] transactionsToRemove = transactionsToConvert.stream().mapToInt(x->x.getId()).toArray();
+				final String[] transactionsToRemove = transactionsToConvert.stream().map(x -> x.getId()).toArray(String[]::new);
 
 				tryThreeTimes(() -> {
 					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll(transactionsToRemove);
@@ -273,7 +280,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			} catch (SQLException e) {
 				exceptionOccured = true;
 				throw new RuntimeException(e);
-			}catch (Exception ex){
+			} catch (Exception ex) {
 				exceptionOccured = true;
 				throw new RuntimeException(ex);
 			}
@@ -286,7 +293,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<String> documentsToDelete = transactions.stream().flatMap(x -> {
 			try {
-				if(x == null || x.getContent() == null) {
+				if (x == null || x.getContent() == null) {
 					return new ArrayList<String>().stream();
 				}
 				TransactionLogContent content = objectMapper.readValue(x.getContent(), TransactionLogContent.class);
@@ -334,7 +341,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 				e.printStackTrace();
 			}
 			return new RecordTransactionSqlDTO();
-	}).collect(Collectors.toMap(e -> e.getRecordId(), e -> e));
+		}).collect(Collectors.toMap(e -> e.getRecordId(), e -> e));
 
 		return records.values().stream().collect(Collectors.toList());
 	}
@@ -362,15 +369,6 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	public void destroyAndRebuildSolrCollection() {
 
 		this.transactionLogRecoveryManager.disableRollbackModeDuringSolrRestore();
-		try {
-			//			if (!tLogs.isEmpty()) {
-			//				clearSolrCollection();
-			//				new TransactionLogReplayServices(newReadWriteServices(), bigVaultServer, dataLayerLogger)
-			//						.replayTransactionLogs(tLogs);
-			//			}
-
-		} finally {
-		}
 	}
 
 	@Override
@@ -380,6 +378,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		if (this.isCurrentNodeLeader) {
 			tryThreeTimes(() -> {
 				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).increaseVersion();
+				this.currentLogVersion++;
 				return true;
 			});
 		}
@@ -397,8 +396,8 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAllByLogVersion(version);
 				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAllByLogVersion(version);
 				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insert(
-						new RecordTransactionSqlDTO( "reindexation_v"+ version +"_solrv_"+solrVersion ,
-						version, this.recordDao.getBigVaultServer().getVersion(),  "Reindexation end")
+						new RecordTransactionSqlDTO("reindexation_v" + version + "_solrv_" + solrVersion,
+								version, this.recordDao.getBigVaultServer().getVersion(), "Reindexation end")
 				);
 				return true;
 			});

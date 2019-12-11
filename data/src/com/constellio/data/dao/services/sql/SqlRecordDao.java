@@ -22,11 +22,11 @@ public interface SqlRecordDao<Object> {
 
 	List<Object> getAll() throws SQLException ;
 
-	void delete(int id)throws SQLException;
+	void delete(String id)throws SQLException;
 
 	void deleteAll()throws SQLException;
 
-	void deleteAll(int[] ids) throws SQLException;
+	void deleteAll(String[] ids) throws SQLException;
 
 	void deleteAll(List<String> ids) throws SQLException;
 

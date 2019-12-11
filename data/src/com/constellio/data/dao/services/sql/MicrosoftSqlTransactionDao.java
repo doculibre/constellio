@@ -43,9 +43,9 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	@Override
 	public void insert(TransactionSqlDTO dto) throws SQLException {
 
-		String insertQuery = "INSERT INTO " + fullTableName
-							 + " (transactionUUID,timestamp, logVersion, transactionSummary, content) "
-							 + "VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)";
+		String insertQuery = "INSERT INTO " + fullTableName + " WITH (TABLOCK) "
+							 + " (id, transactionUUID,timestamp, logVersion, transactionSummary, content) "
+							 + "VALUES (default, ?, CURRENT_TIMESTAMP, ?, ?, ?)";
 
 		queryRunner.insert(connector.getConnection(),
 				insertQuery, defaultHandler, dto.getTransactionUUID(),
@@ -57,9 +57,9 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	@Override
 	public void insertBulk(List<TransactionSqlDTO> dtos) throws SQLException {
 
-		String insertQuery = "INSERT INTO " + fullTableName
-							 + " (transactionUUID,timestamp, logVersion, transactionSummary, content) "
-							 + "VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)";
+		String insertQuery = "INSERT INTO " + fullTableName+ " WITH (TABLOCK) "
+							 + " (id, transactionUUID,timestamp, logVersion, transactionSummary, content) "
+							 + "VALUES (default, ?, CURRENT_TIMESTAMP, ?, ?, ?)";
 
 		Connection connection = connector.getConnection();
 		PreparedStatement ps = connection.prepareStatement(insertQuery);
@@ -127,7 +127,7 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	}
 
 	@Override
-	public void delete(int id) throws SQLException {
+	public void delete(String id) throws SQLException {
 
 		String deleteQuery = "DELETE FROM "+fullTableName+" WHERE id =?";
 		queryRunner.execute(connector.getConnection(),
@@ -137,19 +137,17 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	@Override
 	public void deleteAll() throws SQLException {
 
-		String deleteQuery = "DELETE FROM "+fullTableName+" WHERE id > 0";
+		String deleteQuery = "DELETE FROM "+fullTableName+" WHERE id is not null";
 		queryRunner.execute(connector.getConnection(),
 				deleteQuery);
 	}
 
 	@Override
-	public void deleteAll(int[] ids) throws SQLException {
+	public void deleteAll(String[] ids) throws SQLException {
 		if(ids.length > 0) {
-			String joinedIds = Arrays.toString(ids);
+			String joinedIds = "'"+ String.join("','",ids)+"'";
 
-			String inValues = joinedIds.substring(1, joinedIds.length()-1);
-
-			String deleteQuery = String.format("DELETE FROM " + fullTableName + " WHERE id IN (%s)",inValues);
+			String deleteQuery = String.format("DELETE FROM " + fullTableName + " WHERE id IN (%s)",joinedIds);
 			queryRunner.execute(connector.getConnection(),
 					deleteQuery);
 		}
