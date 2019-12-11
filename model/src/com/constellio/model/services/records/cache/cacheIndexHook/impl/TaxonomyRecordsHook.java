@@ -15,15 +15,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.constellio.model.entities.schemas.Schemas.ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.PRINCIPALS_ANCESTORS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.SECONDARY_CONCEPTS_INT_IDS;
-import static com.constellio.model.entities.schemas.Schemas.ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
 import static com.constellio.model.services.records.RecordId.toId;
+import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.attachedRecordInPrincipalConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalAccessOnRecordInConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalConceptAuthGivingAccessToRecordInSecondaryConceptKey;
-import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.attachedRecordInPrincipalConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.recordInSecondaryConcept;
 import static java.util.stream.Collectors.toList;
 
@@ -125,6 +125,11 @@ public class TaxonomyRecordsHook implements MetadataIndexCacheDataStoreHook<Taxo
 	@Override
 	public Class<?> getKeyType() {
 		return TaxonomyRecordsHookKey.class;
+	}
+
+	@Override
+	public int getKeyMemoryLength() {
+		return Integer.BYTES + Integer.BYTES + 1 + 1;
 	}
 
 }

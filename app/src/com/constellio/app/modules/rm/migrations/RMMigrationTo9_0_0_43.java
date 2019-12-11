@@ -10,11 +10,11 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class RMMigrationTo9_0_0_5 extends MigrationHelper implements MigrationScript {
+public class RMMigrationTo9_0_0_43 extends MigrationHelper implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.0.0.3";
+		return "9.0.0.43";
 	}
 
 	@Override

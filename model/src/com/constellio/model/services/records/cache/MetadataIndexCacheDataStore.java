@@ -191,7 +191,6 @@ public class MetadataIndexCacheDataStore {
 
 	private Map<Short, MetadataIndex>[][] cacheIndexMaps = new Map[256][];
 
-	private Map<Short, MetadataIndex>[][] hookMaps = new Map[256][];
 
 	public Stream<String> stream(MetadataSchemaType schemaType, Metadata metadata, Object value) {
 		return search(schemaType, metadata, value).stream();
@@ -567,6 +566,7 @@ public class MetadataIndexCacheDataStore {
 			for (String collectionCode : collectionsListManager.getCollections()) {
 
 				buildCollectionCachedIndexedStats(stats, collectionCode);
+				buildCollectionHookStats(stats, collectionCode);
 			}
 			return stats;
 		} finally {
@@ -593,6 +593,20 @@ public class MetadataIndexCacheDataStore {
 					}
 
 				}
+			}
+
+		}
+	}
+
+	private void buildCollectionHookStats(List<MetadataIndexCacheDataStoreStat> stats, String collectionCode) {
+
+
+		byte collectionId = collectionsListManager.getCollectionInfo(collectionCode).getCollectionId();
+		List<IndexedCalculatedKeysHookHandler> hookHandlers = this.hooks.get(collectionId);
+		if (hookHandlers != null) {
+
+			for (IndexedCalculatedKeysHookHandler hookHandler : hookHandlers) {
+				stats.add(hookHandler.computerMetadataIndexCacheDataStoreStat());
 			}
 
 		}

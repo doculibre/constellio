@@ -1,9 +1,11 @@
 package com.constellio.model.services.records.cache.cacheIndexHook;
 
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordId;
+import com.constellio.model.services.records.cache.MetadataIndexCacheDataStoreStat;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedIdsList;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedIntIdsList;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedStringIdsList;
@@ -19,13 +21,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class IndexedCalculatedKeysHookHandler<K, V> {
 	protected Map<K, V> map = new HashMap<>();
 
-	private MetadataIndexCacheDataStoreHook<K> hook;
+	protected MetadataIndexCacheDataStoreHook<K> hook;
 
 	private byte[] typeHooked = new byte[MetadataSchemaTypes.LIMIT_OF_TYPES_IN_COLLECTION];
 
 	public IndexedCalculatedKeysHookHandler(MetadataIndexCacheDataStoreHook hook, MetadataSchemaTypes types) {
 		this.hook = hook;
 		this.onTypesModified(types);
+	}
+
+	public MetadataIndexCacheDataStoreHook<K> getHook() {
+		return hook;
 	}
 
 	public Set<String> onTypesModified(MetadataSchemaTypes types) {
@@ -131,6 +137,8 @@ public abstract class IndexedCalculatedKeysHookHandler<K, V> {
 
 	public abstract void clear();
 
+	public abstract MetadataIndexCacheDataStoreStat computerMetadataIndexCacheDataStoreStat();
+
 	public static class RecordCountHookHandler<K> extends IndexedCalculatedKeysHookHandler<K, AtomicInteger> {
 
 		public RecordCountHookHandler(MetadataIndexCacheDataStoreHook hook, MetadataSchemaTypes schemaTypes) {
@@ -156,9 +164,23 @@ public abstract class IndexedCalculatedKeysHookHandler<K, V> {
 			};
 		}
 
+
 		@Override
 		public void clear() {
 			map.clear();
+		}
+
+		public MetadataIndexCacheDataStoreStat computerMetadataIndexCacheDataStoreStat() {
+
+			long keyHeap = map.size() * (12 + hook.getKeyMemoryLength());
+			long valueHeap = map.size() * 16;
+			long mapHeapSize = LangUtils.estimatedizeOfMapStructureBasedOnSize(map);
+			long offHeap = 0;
+
+			String statName = hook.getCollection() + ".hooks." + hook.getClass().getName();
+
+			return new MetadataIndexCacheDataStoreStat(statName, map.size(), map.size(),
+					keyHeap, valueHeap, offHeap, mapHeapSize);
 		}
 
 	}
@@ -205,6 +227,26 @@ public abstract class IndexedCalculatedKeysHookHandler<K, V> {
 		public void clear() {
 			map.values().forEach(SortedIdsList::clear);
 			map.clear();
+		}
+
+		public MetadataIndexCacheDataStoreStat computerMetadataIndexCacheDataStoreStat() {
+
+			long keyHeap = map.size() * (12 + hook.getKeyMemoryLength());
+			long valueHeap = 0;
+			long mapHeapSize = LangUtils.estimatedizeOfMapStructureBasedOnSize(map);
+			long offHeap = 0;
+
+			int valuesCount = 0;
+			for (SortedIdsList sortedIdsList : map.values()) {
+				valuesCount += sortedIdsList.size();
+				valueHeap += sortedIdsList.valuesHeapLength();
+				offHeap += sortedIdsList.valuesOffHeapLength();
+			}
+
+			String statName = hook.getCollection() + ".hooks." + hook.getClass().getName();
+
+			return new MetadataIndexCacheDataStoreStat(statName, map.size(), valuesCount,
+					keyHeap, valueHeap, offHeap, mapHeapSize);
 		}
 	}
 }

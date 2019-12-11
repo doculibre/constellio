@@ -17,4 +17,6 @@ public interface MetadataIndexCacheDataStoreHook<K> {
 
 	Class<?> getKeyType();
 
+	int getKeyMemoryLength();
+
 }

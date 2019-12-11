@@ -98,6 +98,11 @@ public class RecordsCacheIndexCacheDataStoreHooksAcceptanceTest extends Constell
 		public Class<? extends Number> getKeyType() {
 			return Integer.class;
 		}
+
+		@Override
+		public int getKeyMemoryLength() {
+			return Integer.BYTES;
+		}
 	}
 
 	int letterId(char character) {

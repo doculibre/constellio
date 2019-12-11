@@ -54,4 +54,9 @@ public class RecordUsageCounterHook implements MetadataIndexCacheDataStoreHook<I
 		return Integer.class;
 	}
 
+	@Override
+	public int getKeyMemoryLength() {
+		return Integer.BYTES;
+	}
+
 }
