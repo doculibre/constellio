@@ -2082,6 +2082,11 @@ function webViewerInitialized() {
     fileInput.value = null;
   }
   var PDFJS = pdfjsLib.PDFJS;
+  if ('locale' in params) {
+	  PDFJS.locale = params.locale;
+	  mozL10n.setLanguage(PDFJS.locale);
+  }
+  
   if (PDFViewerApplication.viewerPrefs['pdfBugEnabled']) {
     var hash = document.location.hash.substring(1);
     var hashParams = parseQueryString(hash);

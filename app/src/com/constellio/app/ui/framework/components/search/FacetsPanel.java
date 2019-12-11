@@ -23,6 +23,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
@@ -135,6 +136,9 @@ public abstract class FacetsPanel extends VerticalLayout {
 		final Table table = new BaseTable("facet-" + facet.getId());
 		table.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		table.addContainerProperty("value", Component.class, null);
+		if (isRightToLeft()) {
+			table.setColumnAlignment("value", Align.RIGHT);
+		}
 		table.setWidth("100%");
 
 		List<FacetValueVO> values = facet.getValues();
