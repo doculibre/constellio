@@ -1,9 +1,10 @@
 package com.constellio.app.ui.application;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.dao.services.Stats;
+import com.constellio.data.dao.services.Stats.CallStatCompiler;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.CustomizedSystemMessages;
-import com.vaadin.server.DefaultSystemMessagesProvider;
 import com.vaadin.server.SystemMessages;
 import com.vaadin.server.SystemMessagesInfo;
 import com.vaadin.server.SystemMessagesProvider;
@@ -58,9 +59,13 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 			}
 			ConstellioFactories.getInstance().onRequestStarted();
 		}
+
+		CallStatCompiler statCompiler = Stats.compilerFor("Unknown");
+		long start = statCompiler.start();
 		try {
 			super.service(request, response);
 		} finally {
+			statCompiler.stop(start);
 			if (!staticResourceRequest) {
 				ConstellioFactories.getInstance().onRequestEnded();
 			}
@@ -109,7 +114,6 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 			}
 		});
 	}
-
 
 
 	public static ConstellioVaadinServlet getCurrent() {

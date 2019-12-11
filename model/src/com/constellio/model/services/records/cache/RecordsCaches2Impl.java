@@ -4,10 +4,12 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
+import com.constellio.data.utils.LazyIterator;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
@@ -19,12 +21,17 @@ import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithStringId;
 import com.constellio.model.services.records.cache.CacheRecordDTOUtils.CacheRecordDTOBytesArray;
+import com.constellio.model.services.records.cache.cacheIndexConditions.SortedIdsStreamer;
+import com.constellio.model.services.records.cache.cacheIndexHook.MetadataIndexCacheDataStoreHook;
+import com.constellio.model.services.records.cache.cacheIndexHook.RecordCountHookDataIndexRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.RecordIdsHookDataIndexRetriever;
 import com.constellio.model.services.records.cache.dataStore.CollectionSchemaTypeObjectHolder;
 import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
 import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
@@ -35,6 +42,7 @@ import com.constellio.model.services.records.cache.hooks.RecordsCachesHooks;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator;
 import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.MetadataSchemasManagerListener;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.Lazy;
@@ -51,6 +59,7 @@ import sun.misc.VM;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -115,7 +124,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 		this.memoryDiskDatabase = DBMaker.memoryDB().make();
 		this.hooks = new RecordsCachesHooks(modelLayerFactory);
-		this.metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		this.metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(modelLayerFactory);
 
 		ScheduledExecutorService executor =
 				Executors.newScheduledThreadPool(2);
@@ -324,7 +333,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 	@Override
-	public Record getRecord(String id, String optionnalCollection, String optionnalSchemaType) {
+	public Record getRecord(RecordId id, String optionnalCollection, String optionnalSchemaType) {
 
 		RecordDTO recordDTO = memoryDataStore.get(id);
 		Record returnedRecord = null;
@@ -338,7 +347,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			if (schemaType.getCacheType().isSummaryCache()) {
 
 				if (schemaType.getCacheType().hasVolatileCache()) {
-					recordDTO = volatileCache.get(id);
+					recordDTO = volatileCache.get(id.stringValue());
 					returnedRecord = recordDTO == null ? null : toRecord(schemaType, recordDTO);
 				}
 
@@ -346,7 +355,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				returnedRecord = toRecord(schemaType, recordDTO);
 			}
 		} else {
-			recordDTO = volatileCache.get(id);
+			recordDTO = volatileCache.get(id.stringValue());
 			if (recordDTO != null) {
 				String collectionCode = (String) recordDTO.getFields().get(COLLECTION.getDataStoreCode());
 				String schemaCode = (String) recordDTO.getFields().get(SCHEMA.getDataStoreCode());
@@ -379,7 +388,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		return returnedRecord;
 	}
 
-	public Record getRecordSummary(String id, String optionnalCollection, String optionnalSchemaType) {
+	public Record getRecordSummary(RecordId id, String optionnalCollection, String optionnalSchemaType) {
 		RecordDTO recordDTO = memoryDataStore.get(id);
 		Record returnedRecord = null;
 		if (recordDTO != null) {
@@ -443,6 +452,27 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	@Override
 	public Stream<Record> stream(MetadataSchemaType type) {
 		return memoryDataStore.stream(type.getCollectionInfo().getCollectionId(), type.getId()).map(this::toRecord);
+	}
+
+
+	@Override
+	public Stream<Record> stream(SortedIdsStreamer streamer) {
+
+		final Iterator<RecordId> recordIdStream = streamer.iterator();
+		return LangUtils.stream(new LazyIterator<Record>() {
+			@Override
+			protected Record getNextOrNull() {
+				if (recordIdStream.hasNext()) {
+					Record record = getRecord(recordIdStream.next());
+					if (record == null) {
+						record = getNextOrNull();
+					}
+					return record;
+				} else {
+					return null;
+				}
+			}
+		});
 	}
 
 
@@ -614,6 +644,15 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			LOGGER.info("Loading cache of '" + collection);
 			loadFullyPermanentCache(collection);
 		}
+
+		metadataSchemasManager.registerListener(new MetadataSchemasManagerListener() {
+			@Override
+			public void onCollectionSchemasModified(String collection) {
+				MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+				metadataIndexCacheDataStore.onTypesModified(types);
+			}
+		});
+
 		fullyPermanentInitialized = true;
 	}
 
@@ -627,16 +666,18 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 		if (!typesLoadedAsync.isEmpty()) {
 			new Thread(() -> {
-				//One loading at a time
-				synchronized (RecordsCaches2Impl.class) {
-					typesLoadedAsync.forEach(type -> loadSchemaType(type));
-				}
-				summaryCacheInitialized = true;
-				CacheRecordDTOUtils.stopCompilingDTOsStats();
-				LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
-				cacheLoadingProgression = null;
-
+				Stats.compilerFor("SummaryCacheLoading").log(() -> {
+					//One loading at a time
+					synchronized (RecordsCaches2Impl.class) {
+						typesLoadedAsync.forEach(type -> loadSchemaType(type));
+					}
+					summaryCacheInitialized = true;
+					CacheRecordDTOUtils.stopCompilingDTOsStats();
+					LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
+					cacheLoadingProgression = null;
+				});
 			}).start();
+
 
 		} else {
 			summaryCacheInitialized = true;
@@ -966,4 +1007,17 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		}
 
 	}
+
+	public <K> RecordCountHookDataIndexRetriever<K> registerRecordCountHook(
+			String collection, MetadataIndexCacheDataStoreHook hook) {
+		byte collectionId = collectionsListManager.getCollectionId(collection);
+		return metadataIndexCacheDataStore.registerRecordCountHook(collectionId, hook);
+	}
+
+	public <K> RecordIdsHookDataIndexRetriever<K> registerRecordIdsHook(
+			String collection, MetadataIndexCacheDataStoreHook hook) {
+		byte collectionId = collectionsListManager.getCollectionId(collection);
+		return metadataIndexCacheDataStore.registerRecordIdsHook(collectionId, hook);
+	}
+
 }

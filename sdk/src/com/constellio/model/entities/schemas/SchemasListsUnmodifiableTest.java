@@ -46,7 +46,7 @@ public class SchemasListsUnmodifiableTest extends ConstellioTest {
 		when(metadata2.getId()).thenReturn((short) 2);
 		Set<RecordValidator> validators = new HashSet<RecordValidator>();
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema((short) 1, "aCode", "aCode", zeCollectionInfo, labels, metadatas, false, true, validators,
+		MetadataSchema schema = new MetadataSchema((short) 1, (short) 1, "aCode", "aCode", zeCollectionInfo, labels, metadatas, false, true, validators,
 				null, DataStore.RECORDS, true);
 
 		schema.getMetadatas().clear();

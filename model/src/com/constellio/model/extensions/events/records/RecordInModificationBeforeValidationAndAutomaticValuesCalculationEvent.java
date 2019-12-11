@@ -4,13 +4,14 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.services.records.RecordImpl;
-import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent implements RecordEvent {
 
-	MetadataList modifiedMetadatas;
+	List<Metadata> modifiedMetadatas;
 
 	Record record;
 
@@ -21,7 +22,7 @@ public class RecordInModificationBeforeValidationAndAutomaticValuesCalculationEv
 	boolean isOnlyBeingPrepared;
 
 	public RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent(Record record,
-																				  MetadataList modifiedMetadatas,
+																				  List<Metadata> modifiedMetadatas,
 																				  ValidationErrors validationErrors,
 																				  User transactionUser,
 																				  boolean isOnlyBeingPrepared) {
@@ -40,7 +41,7 @@ public class RecordInModificationBeforeValidationAndAutomaticValuesCalculationEv
 		return record;
 	}
 
-	public MetadataList getModifiedMetadatas() {
+	public List<Metadata> getModifiedMetadatas() {
 		return modifiedMetadatas;
 	}
 
@@ -52,18 +53,8 @@ public class RecordInModificationBeforeValidationAndAutomaticValuesCalculationEv
 		isOnlyBeingPrepared = onlyBeingPrepared;
 	}
 
-	public <T> T getPreviousValue(String metadataLocalCode) {
-		Metadata metadata = modifiedMetadatas.getMetadataWithLocalCode(metadataLocalCode);
-		if (metadata == null) {
-			throw new UnModifiedMetadataRuntimeException(metadataLocalCode);
-		}
-
-		RecordImpl recordImpl = (RecordImpl) record;
-		return recordImpl.getCopyOfOriginalRecord().get(metadata);
-	}
-
 	public boolean hasModifiedMetadata(String metadataLocalCode) {
-		for (String code : modifiedMetadatas.toMetadatasCodesList()) {
+		for (String code : modifiedMetadatas.stream().map(Metadata::getCode).collect(Collectors.toList())) {
 			if (code.endsWith(metadataLocalCode)) {
 				return true;
 			}

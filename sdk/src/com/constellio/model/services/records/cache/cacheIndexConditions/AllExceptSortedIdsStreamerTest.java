@@ -4,7 +4,6 @@ import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.services.records.IntegerRecordId;
 import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.StringRecordId;
-import com.constellio.model.services.records.cache.MetadataIndexCacheDataStore;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 
@@ -25,11 +24,11 @@ public class AllExceptSortedIdsStreamerTest extends ConstellioTest {
 		SortedIdsStreamer s2 = createFromRecordIds(ids(1, 2, 3, 5, 6, 8, "42", "48"));
 		SortedIdsStreamer s3 = createFromRecordIds(ids(1, 3, 5, 6, 8, "42"));
 
-		assertThat(streamer(s1, s2).stream(null).collect(toList())).isEqualTo(ids(7, 9, "45"));
-		assertThat(streamer(s1, s3).stream(null).collect(toList())).isEqualTo(ids(2, 7, 9, "45"));
+		assertThat(streamer(s1, s2).stream().collect(toList())).isEqualTo(ids(7, 9, "45"));
+		assertThat(streamer(s1, s3).stream().collect(toList())).isEqualTo(ids(2, 7, 9, "45"));
 
-		assertThat(streamer(s2, s1).stream(null).collect(toList())).isEqualTo(ids(6, "48"));
-		assertThat(streamer(s3, s1).stream(null).collect(toList())).isEqualTo(ids(6));
+		assertThat(streamer(s2, s1).stream().collect(toList())).isEqualTo(ids(6, "48"));
+		assertThat(streamer(s3, s1).stream().collect(toList())).isEqualTo(ids(6));
 
 	}
 
@@ -41,7 +40,7 @@ public class AllExceptSortedIdsStreamerTest extends ConstellioTest {
 		SortedIdsStreamer s1 = new SortedIdsStreamer() {
 
 			@Override
-			public Iterator<RecordId> iterator(MetadataIndexCacheDataStore dataStore) {
+			public Iterator<RecordId> iterator() {
 				return new LazyIterator<RecordId>() {
 
 					int value;
@@ -58,7 +57,7 @@ public class AllExceptSortedIdsStreamerTest extends ConstellioTest {
 		SortedIdsStreamer s2 = new SortedIdsStreamer() {
 
 			@Override
-			public Iterator<RecordId> iterator(MetadataIndexCacheDataStore dataStore) {
+			public Iterator<RecordId> iterator() {
 				return new LazyIterator<RecordId>() {
 
 					int value;
@@ -75,7 +74,7 @@ public class AllExceptSortedIdsStreamerTest extends ConstellioTest {
 
 		for (int i = 0; i < 100; i++) {
 			System.out.println(i);
-			assertThat(streamer(s1, s2).hasResults(null)).isTrue();
+			assertThat(streamer(s1, s2).hasResults()).isTrue();
 			System.out.println(counter);
 			counter = 0;
 		}

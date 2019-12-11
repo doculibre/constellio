@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class Toggle {
 
-	public static AvailableToggle SDK_CACHE_INTEGRITY_VALIDATION = newToggle(true);
+	public static AvailableToggle SDK_CACHE_INTEGRITY_VALIDATION = newToggle(false);
 	public static AvailableToggle SDK_REQUEST_CACHE_VALIDATION = newToggle();
 
 	public static AvailableToggle ROLES_WITH_NEW_7_2_PERMISSIONS = newToggle();
@@ -89,13 +89,20 @@ public class Toggle {
 
 	public static AvailableToggle OFF_HEAP_ADDRESS_VALIDATOR = newToggle(false);
 
-	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(false);
+	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(true);
 
-	public static AvailableToggle PERFORMANCE_TESTING = newToggle(false);
+	public static AvailableToggle PERFORMANCE_TESTING = newToggle(true);
 
 	public static AvailableToggle OLD_DELETE_UNUSED_CONTENT_METHOD = newToggle(false);
 
-	public static AvailableToggle TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(false);
+	public static AvailableToggle TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(true);
+	public static AvailableToggle FORCE_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(false);
+
+	public static AvailableToggle DEBUG_TAXONOMY_RECORDS_HOOK = newToggle(false);
+
+	public static AvailableToggle DETACHABLE_RECORDS = newToggle(false);
+
+	public static AvailableToggle DEBUG_SOLR_TIMINGS = newToggle(false);
 
 	// ------------------------------------------------
 

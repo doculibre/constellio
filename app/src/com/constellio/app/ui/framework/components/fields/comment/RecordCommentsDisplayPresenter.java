@@ -13,6 +13,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
 import java.io.Serializable;
@@ -78,7 +79,11 @@ public class RecordCommentsDisplayPresenter implements Serializable {
 		}
 	}
 
-	public void commentAdded(Comment newComment) {
+	public boolean commentAdded(Comment newComment) {
+		if (StringUtils.isBlank(newComment.getMessage())) {
+			return false;
+		}
+
 		User user = presenterUtils.getCurrentUser();
 		newComment.setUser(user);
 		newComment.setDateTime(new LocalDateTime());
@@ -87,6 +92,7 @@ public class RecordCommentsDisplayPresenter implements Serializable {
 		newComments.add(0, newComment);
 
 		updateComments(newComments);
+		return true;
 	}
 
 	public void commentDeleted(Comment comment) {

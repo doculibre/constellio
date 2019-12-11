@@ -51,6 +51,7 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
+import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -138,7 +139,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public DisplayDocumentViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		this.nestedView = nestedView;
 		this.inWindow = inWindow;
-		presenter = new DisplayDocumentPresenter(this, recordVO, nestedView, inWindow);
+		presenter = Stats.compilerFor(getClass()).log(() -> new DisplayDocumentPresenter(this, recordVO, nestedView, inWindow));
 	}
 
 	public DisplayDocumentPresenter getDisplayDocumentPresenter() {
@@ -909,6 +910,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			return;
 		}
 	}
+
 	public void addEditWindowCloseListener(Window.CloseListener closeListener) {
 		this.editWindowCloseListeners.add(closeListener);
 	}

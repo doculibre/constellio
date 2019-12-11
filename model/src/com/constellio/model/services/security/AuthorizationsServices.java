@@ -57,6 +57,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.getAuthsReceivedBy;
@@ -601,20 +602,20 @@ public class AuthorizationsServices {
 	 * @param record A securable record to detach
 	 * @return A mapping of previous authorization ids to the new authorizations created by this service
 	 */
-	public Map<String, String> detach(Record record) {
-		recordServices.refresh(record);
-		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
-		if (principalTaxonomy.getSchemaTypes().contains(record.getTypeCode())) {
-			throw new CannotDetachConcept(record.getId());
+	public Map<String, String> detach(Supplier<Record> record) {
+		recordServices.refresh(record.get());
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.get().getCollection());
+		if (principalTaxonomy.getSchemaTypes().contains(record.get().getTypeCode())) {
+			throw new CannotDetachConcept(record.get().getId());
 		}
 
-		if (Boolean.TRUE.equals(record.get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
+		if (Boolean.TRUE.equals(record.get().get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
 			return Collections.emptyMap();
 
 		} else {
 			AuthTransaction transaction = new AuthTransaction();
-			Map<String, String> originalToCopyMap = setupAuthorizationsForDetachedRecord(transaction, record);
-			transaction.add(record);
+			Map<String, String> originalToCopyMap = setupAuthorizationsForDetachedRecord(transaction, record.get());
+			transaction.add(record.get());
 			executeTransaction(transaction);
 			return originalToCopyMap;
 		}

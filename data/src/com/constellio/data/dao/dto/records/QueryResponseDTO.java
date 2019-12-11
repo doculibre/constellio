@@ -18,6 +18,7 @@ public class QueryResponseDTO {
 	private Map<String, Map<String, Object>> fieldsStatistics;
 	private Map<String, Map<String, List<String>>> highlights;
 	private Map<String, Integer> queryFacetValues;
+	private Map<String, Object> debugMap;
 
 	private boolean correctlySpelt;
 	private List<String> spellCheckerSuggestions;
@@ -27,6 +28,7 @@ public class QueryResponseDTO {
 							Map<String, List<FacetPivotValue>> fieldFacetPivotValues,
 							Map<String, Map<String, Object>> fieldsStatistics,
 							Map<String, Integer> queryFacetValues, Map<String, Map<String, List<String>>> highlights,
+							Map<String, Object> debugMap,
 							boolean correctlySpelt,
 							List<String> spellCheckerSuggestions, List<MoreLikeThisDTO> moreLikeThisResults) {
 		this.results = results;
@@ -40,6 +42,7 @@ public class QueryResponseDTO {
 		this.correctlySpelt = correctlySpelt;
 		this.spellCheckerSuggestions = spellCheckerSuggestions;
 		this.moreLikeThisResults = moreLikeThisResults;
+		this.debugMap = debugMap;
 	}
 
 	public List<RecordDTO> getResults() {
@@ -84,5 +87,9 @@ public class QueryResponseDTO {
 
 	public Map<String, Map<String, Object>> getFieldsStatistics() {
 		return fieldsStatistics;
+	}
+
+	public Map<String, Object> getDebugMap() {
+		return debugMap;
 	}
 }

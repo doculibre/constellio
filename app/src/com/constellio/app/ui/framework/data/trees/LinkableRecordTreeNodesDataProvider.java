@@ -63,7 +63,6 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 		User currentUser = getCurrentUser(modelLayerFactory);
 
 		TaxonomiesSearchOptions taxonomiesSearchOptions = newTaxonomiesSearchOptions(maxSize, start, infos);
-		taxonomiesSearchOptions.setShowAllIfHasAccessToManageSecurity(isShowAllIfHasAccessToManageSecurity);
 		return modelLayerFactory.newTaxonomiesSearchService().getLinkableRootConceptResponse(
 				currentUser, currentUser.getCollection(), taxonomyCode, schemaTypeCode, taxonomiesSearchOptions);
 	}

@@ -35,12 +35,11 @@ import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
+import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
-import com.constellio.app.ui.framework.window.ConsultLinkWindow;
-import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -69,7 +68,6 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.FilenameUtils;
@@ -116,10 +114,7 @@ public class DocumentMenuItemActionBehaviors {
 	public void getConsultationLink(Document document, MenuItemActionBehaviorParams params) {
 		String constellioURL = getConstellioUrl(modelLayerFactory);
 
-		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(
-				new ConsultLinkParams(constellioURL + RMUrlUtil.getPathToConsultLinkForDocument(document.getId()),
-						document.getTitle())));
-		UI.getCurrent().addWindow(consultLinkWindow);
+		CopyToClipBoard.copyToClipBoard(constellioURL + RMUrlUtil.getPathToConsultLinkForDocument(document.getId()));
 	}
 
 	public void display(Document document, MenuItemActionBehaviorParams params) {

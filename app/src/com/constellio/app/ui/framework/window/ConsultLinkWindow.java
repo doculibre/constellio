@@ -11,8 +11,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 import java.util.List;
 
@@ -73,11 +71,23 @@ public class ConsultLinkWindow extends BaseWindow {
 	}
 
 
-	@Getter
-	@AllArgsConstructor
+
 	public static class ConsultLinkParams {
 		String link;
 		String title;
+
+		public ConsultLinkParams(String link, String title) {
+			this.link = link;
+			this.title = title;
+		}
+
+		public String getLink() {
+			return link;
+		}
+
+		public String getTitle() {
+			return title;
+		}
 	}
 
 

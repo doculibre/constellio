@@ -755,6 +755,9 @@ public class RecordAutomaticMetadataServices {
 		MetadataSchema recordSchema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 
 		List<Metadata> parentReferences = recordSchema.getParentReferences();
+		List<Integer> allAncestorsExceptPrincipals = new ArrayList<>();
+		List<Integer> secondaryConceptAncestors = new ArrayList<>();
+		List<Integer> principalAncestors = new ArrayList<>();
 		for (Metadata metadata : parentReferences) {
 			String referenceValue = record.get(metadata);
 			if (referenceValue != null) {
@@ -763,6 +766,10 @@ public class RecordAutomaticMetadataServices {
 				paths.addAll(parentPaths);
 				removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
 				attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+
+				secondaryConceptAncestors.addAll(referencedRecord.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
+				principalAncestors.addAll(referencedRecord.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS));
+				allAncestorsExceptPrincipals.addAll(referencedRecord.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
 			}
 		}
 		for (Taxonomy aTaxonomy : taxonomiesManager.getEnabledTaxonomies(record.getCollection())) {
@@ -794,7 +801,7 @@ public class RecordAutomaticMetadataServices {
 			}
 		}
 		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, removedAuthorizations,
-				attachedAncestors);
+				attachedAncestors, allAncestorsExceptPrincipals, secondaryConceptAncestors, principalAncestors);
 		values.put(dependency, value);
 		return true;
 	}

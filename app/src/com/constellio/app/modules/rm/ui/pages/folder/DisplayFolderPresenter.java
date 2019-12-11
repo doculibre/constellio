@@ -278,9 +278,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			@Override
 			public LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getTasksQuery();
-				addStarredSortToQuery(query);
-				query.sortDesc(Schemas.MODIFIED_ON);
-				return query;
+
+				if (searchServices().hasResults(query)) {
+					addStarredSortToQuery(query);
+					query.sortDesc(Schemas.MODIFIED_ON);
+					return query;
+
+				} else {
+					return LogicalSearchQuery.returningNoResults();
+				}
 			}
 
 			@Override

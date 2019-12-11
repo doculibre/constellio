@@ -3,16 +3,18 @@ package com.constellio.app.modules.rm.ui.pages.cart;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.vaadin.data.Container;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.ui.Table;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class DefaultFavoritesTable extends BaseTable {
 	List<MetadataSchemaVO> schemas;
@@ -25,7 +27,6 @@ public class DefaultFavoritesTable extends BaseTable {
 		setContainerDataSource(container);
 		setWidth("100%");
 		setVisibleColumns(CartItem.TITLE, CartItem.MODIFIED_ON, CartItem.CREATED_BY, CartItem.CREATED_ON, CartItem.MODIFIED_BY, CartItem.SHARED_WITH, CartItem.OWNER, CartItem.DISPLAY_BUTTON);
-		setColumnCollapsingAllowed(true);
 		setColumnHeader(CartItem.TITLE, $(CartItem.TITLE));
 		setColumnHeader(CartItem.CREATED_BY, $("CartsListView." + CartItem.CREATED_BY));
 		setColumnHeader(CartItem.CREATED_ON, $("CartsListView." + CartItem.CREATED_ON));
@@ -34,7 +35,7 @@ public class DefaultFavoritesTable extends BaseTable {
 		setColumnHeader(CartItem.SHARED_WITH, $("CartsListView." + CartItem.SHARED_WITH));
 		setColumnHeader(CartItem.OWNER, $("CartsListView." + CartItem.OWNER));
 		setColumnHeader(CartItem.DISPLAY_BUTTON, "");
-		new RecordVOTableColumnsManager().manage(this, tableId);
+		setColumnExpandRatio(CartItem.TITLE, 1);
 	}
 
 	public static class CartItem {
@@ -148,6 +149,19 @@ public class DefaultFavoritesTable extends BaseTable {
 	@Override
 	public boolean isSelectColumn() {
 		return false;
+	}
+
+	@Override
+	protected TableColumnsManager newColumnsManager() {
+		return new TableColumnsManager() {
+			@Override
+			protected List<String> getDefaultVisibleColumnIds(Table table) {
+				List<String> visibleColumnIds = new ArrayList<>();
+				visibleColumnIds.addAll(currentUser.getVisibleTableColumnsFor(table.getId()));
+				visibleColumnIds.addAll(asList(CartItem.TITLE, CartItem.MODIFIED_ON, CartItem.DISPLAY_BUTTON));
+				return visibleColumnIds;
+			}
+		};
 	}
 
 }

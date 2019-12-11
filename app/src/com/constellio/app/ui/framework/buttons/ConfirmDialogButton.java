@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.buttons;
 
+import com.constellio.data.dao.services.Stats;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.UI;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -8,6 +9,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class ConfirmDialogButton extends IconButton {
+
+	private String statName;
 
 	public static enum DialogMode {
 		TEXT, INFO, WARNING, ERROR, STOP
@@ -25,6 +28,7 @@ public abstract class ConfirmDialogButton extends IconButton {
 
 	public ConfirmDialogButton(Resource iconResource, String caption, boolean iconOnly) {
 		super(iconResource, caption, iconOnly);
+		this.statName = Stats.getCurrentName();
 	}
 
 	public DialogMode getDialogMode() {
@@ -45,11 +49,13 @@ public abstract class ConfirmDialogButton extends IconButton {
 				getConfirmDialogCancelCaption(),
 				new ConfirmDialog.Listener() {
 					public void onClose(ConfirmDialog dialog) {
-						if (dialog.isConfirmed()) {
-							confirmButtonClick(dialog);
-						} else {
-							dialogClosedWitoutConfirm(dialog);
-						}
+						Stats.compilerFor(statName).log(() -> {
+							if (dialog.isConfirmed()) {
+								confirmButtonClick(dialog);
+							} else {
+								dialogClosedWitoutConfirm(dialog);
+							}
+						});
 					}
 				});
 	}

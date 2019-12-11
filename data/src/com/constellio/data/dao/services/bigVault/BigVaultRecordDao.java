@@ -546,8 +546,13 @@ public class BigVaultRecordDao implements RecordDao {
 
 		long numfound = response.getResults() == null ? 0 : response.getResults().getNumFound();
 
+
 		return new QueryResponseDTO(documents, response.getQTime(), numfound, fieldFacetValues, fieldFacetPivotValues,
-				fieldsStatistics, facetQueries, highlights, correctlySpelt, spellcheckerSuggestions, resultWithMoreLikeThis);
+				fieldsStatistics, facetQueries, highlights, response.getDebugMap(), correctlySpelt, spellcheckerSuggestions, resultWithMoreLikeThis);
+	}
+
+	private Map<String, String> extractTimingInfos(QueryResponse response) {
+		return null;
 	}
 
 	private Map<String, Map<String, Object>> getFieldsStats(QueryResponse response) {

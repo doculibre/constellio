@@ -3,6 +3,7 @@ package com.constellio.model.services.records.cache.dataStore;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.LazyMergingIterator;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 
@@ -80,6 +81,15 @@ public class RecordsCachesDataStore {
 	}
 
 
+	public RecordDTO get(RecordId id) {
+		if (id.isInteger()) {
+			return intIdsDataStore.__get(id.intValue());
+
+		} else {
+			return stringIdsDataStore.get(id.stringValue());
+		}
+	}
+
 	public RecordDTO get(String id) {
 		int intId = RecordUtils.toIntKey(id);
 
@@ -99,6 +109,15 @@ public class RecordsCachesDataStore {
 
 		} else {
 			return intIdsDataStore.__get(collectionId, intId);
+		}
+	}
+
+	public RecordDTO get(byte collectionId, RecordId id) {
+		if (id.isInteger()) {
+			return intIdsDataStore.__get(collectionId, id.intValue());
+
+		} else {
+			return stringIdsDataStore.get(id.stringValue());
 		}
 	}
 

@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,6 +33,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
+import static java.lang.String.format;
 
 public class LangUtils {
 
@@ -686,6 +688,25 @@ public class LangUtils {
 		return negative ? result : -result;
 	}
 
+	public static String humanReadableTime(long ms) {
+		if (ms < 1000) {
+			return ms + "ms";
+
+		} else if (ms < 60_000) {
+			double secs = ((double) ms) / 1000;
+			return format("%.1f", secs) + "s";
+
+		} else if (ms < 3600_000) {
+			double mins = ((double) ms) / 60_000;
+			return format("%.1f", mins) + "m";
+
+		} else {
+			double hours = ((double) ms) / 3600_000;
+			return format("%.1f", hours) + "h";
+		}
+
+	}
+
 	//Thanks aioobe, found on https://stackoverflow.com/questions/3758606/how-to-convert-byte-size-into-human-readable-format-in-java
 	public static String humanReadableByteCount(long bytes, boolean si) {
 		int unit = si ? 1000 : 1024;
@@ -695,5 +716,78 @@ public class LangUtils {
 		int exp = (int) (Math.log(bytes) / Math.log(unit));
 		String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp - 1) + (si ? "" : "i");
 		return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+	}
+
+	public static <V extends Comparable> V findFirstMatchInSortedLists(List<V> list1, List<V> list2) {
+
+		int index1 = 0;
+		int index2 = 0;
+		while (index1 < list1.size() && index2 < list2.size()) {
+			int result = list1.get(index1).compareTo(list2.get(index2));
+			if (result < 0) {
+				index1++;
+			} else if (result > 0) {
+				index2++;
+			} else {
+				return list1.get(index1);
+			}
+		}
+
+		return null;
+	}
+
+	public static <V extends Comparable> List<V> findMatchesInSortedLists(List<V> list1, List<V> list2) {
+
+		int index1 = 0;
+		int index2 = 0;
+
+		List<V> matches = new ArrayList<>();
+
+		while (index1 < list1.size() && index2 < list2.size()) {
+			int result = list1.get(index1).compareTo(list2.get(index2));
+			if (result < 0) {
+				index1++;
+			} else if (result > 0) {
+				index2++;
+			} else {
+				matches.add(list1.get(index1));
+				index1++;
+				index2++;
+			}
+		}
+
+		return matches;
+	}
+
+	public static <V extends Comparable> void findMatchesInSortedLists(List<V> list1, List<V> list2,
+																	   Consumer<V> matchesConsumer,
+																	   Consumer<V> nonMatchedList1Consumer,
+																	   Consumer<V> nonMatchedList2Consumer) {
+
+		int index1 = 0;
+		int index2 = 0;
+
+		while (index1 < list1.size() && index2 < list2.size()) {
+			V v1 = list1.get(index1);
+			V v2 = list2.get(index2);
+			int result = v1.compareTo(v2);
+			if (result < 0) {
+				if (nonMatchedList1Consumer != null) {
+					nonMatchedList1Consumer.accept(v1);
+				}
+				index1++;
+			} else if (result > 0) {
+				if (nonMatchedList2Consumer != null) {
+					nonMatchedList2Consumer.accept(v2);
+				}
+				index2++;
+			} else {
+				if (matchesConsumer != null) {
+					matchesConsumer.accept(v1);
+				}
+				index1++;
+				index2++;
+			}
+		}
 	}
 }
