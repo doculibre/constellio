@@ -20,6 +20,7 @@ import com.constellio.app.extensions.sequence.SystemSequenceExtension;
 import com.constellio.app.extensions.ui.ConstellioUIExtention;
 import com.constellio.app.extensions.ui.ConstellioUIExtention.ConstellioUIExtentionParams;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.components.ViewWindow;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
@@ -64,6 +65,19 @@ public class AppLayerSystemExtensions {
 		return availableSequences;
 	}
 
+	public ViewWindow getWindowDisplay(SchemaDisplayParams schemaDisplayParams) {
+		ViewWindow windowDisplay = null;
+
+		for (SchemaDisplayExtension schemaDisplayExtension : schemaDisplayExtensions) {
+			windowDisplay = schemaDisplayExtension.getWindowDisplay(schemaDisplayParams);
+
+			if (windowDisplay != null) {
+				return windowDisplay;
+			}
+		}
+
+		return null;
+	}
 
 	public Component getSchemaDisplay(SchemaDisplayParams schemaDisplayParams) {
 		Component display = null;

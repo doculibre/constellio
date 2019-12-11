@@ -860,7 +860,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 				viewWindow = new DisplayDocumentWindow(recordVO);
 			} else {
-				viewWindow = new DisplaySchemaRecordWindow(recordVO);
+
+				ViewWindow viewWindowFromExt = ViewableRecordVOTablePanel.this.getMainView()
+						.getConstellioFactories().getAppLayerFactory().getExtensions().getSystemWideExtensions().getWindowDisplay(new SchemaDisplayParams(schemaTypeCode, recordVO));
+				if (viewWindowFromExt != null) {
+					viewWindow = viewWindowFromExt;
+				} else {
+					viewWindow = new DisplaySchemaRecordWindow(recordVO);
+				}
 			}
 
 			viewWindow.addCloseListener(new Window.CloseListener() {
