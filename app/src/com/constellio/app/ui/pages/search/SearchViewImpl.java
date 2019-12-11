@@ -356,7 +356,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	private void createResultArea() {
 		List<ExtraTabInfo> extraTabInfoList = getConstellioFactories().getAppLayerFactory().getExtensions()
-				.forCollection(getCollection()).getExtraTabForSimpleSearchResult(new ExtraTabForSimpleSearchResultParams(presenter, presenter.getUserSearchExpression()));
+				.forCollection(getCollection()).getExtraTabForSimpleSearchResult(new ExtraTabForSimpleSearchResultParams(presenter.getUserSearchExpression()));
 
 		resultsArea.removeAllComponents();
 		if (extraTabInfoList.isEmpty()) {
@@ -587,7 +587,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		} else {
 			tableMode = null;
 		}
-		ViewableRecordVOSearchResultTable viewerPanel = new ViewableRecordVOSearchResultTable(container, tableMode, presenter, getRecordListMenuBar()) {
+		ViewableRecordVOSearchResultTable viewerPanel = new ViewableRecordVOSearchResultTable(container, tableMode, presenter, getRecordListMenuBar(), this) {
 			@Override
 			public boolean isIndexVisible() {
 				return indexVisible;

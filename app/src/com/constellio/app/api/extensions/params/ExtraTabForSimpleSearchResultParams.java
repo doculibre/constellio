@@ -1,19 +1,10 @@
 package com.constellio.app.api.extensions.params;
 
-import com.constellio.app.ui.pages.search.SearchPresenter;
-import com.constellio.app.ui.pages.search.SearchView;
-
-public class ExtraTabForSimpleSearchResultParams<T extends SearchPresenter<? extends SearchView>> {
-	private T presenter;
+public class ExtraTabForSimpleSearchResultParams {
 	private String searchTerm;
 
-	public ExtraTabForSimpleSearchResultParams(T presenter, String searchTerm) {
-		this.presenter = presenter;
+	public ExtraTabForSimpleSearchResultParams(String searchTerm) {
 		this.searchTerm = searchTerm;
-	}
-
-	public T getPresenter() {
-		return presenter;
 	}
 
 	public String getSearchTerm() {

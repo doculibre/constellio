@@ -9,8 +9,8 @@ import com.constellio.app.ui.framework.containers.LastQTime;
 import com.constellio.app.ui.framework.containers.PreLoader;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.search.SearchPresenter;
-import com.constellio.app.ui.pages.search.SearchView;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.search.RecordSelectionObserver;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
@@ -32,21 +32,23 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 	private Set<String> selectedItemRecordId = new HashSet<>();
 	private Set<Object> deselectedItemIds = new HashSet<>();
 	private boolean allItemsSelected;
+	private BaseViewImpl searchView;
 
-	private SearchPresenter<? extends SearchView> presenter;
+	private RecordSelectionObserver recordSelectionObserver;
 
 	public ViewableRecordVOSearchResultTable(RecordVOContainer container, TableMode tableMode,
-											 SearchPresenter<? extends SearchView> presenter,
-											 RecordListMenuBar recordListMenuBar) {
-		this(container, tableMode, presenter, recordListMenuBar, true);
+											 RecordSelectionObserver recordSelectionObserver,
+											 RecordListMenuBar recordListMenuBar, BaseViewImpl searchView) {
+		this(container, tableMode, recordSelectionObserver, recordListMenuBar, true, searchView);
 	}
 
 	public ViewableRecordVOSearchResultTable(RecordVOContainer container, TableMode tableMode,
-											 SearchPresenter<? extends SearchView> presenter,
-											 RecordListMenuBar recordListMenuBar, boolean canChangeTableMode) {
+											 RecordSelectionObserver recordSelectionObserver,
+											 RecordListMenuBar recordListMenuBar, boolean canChangeTableMode,
+											 BaseViewImpl baseView) {
 		super(container, tableMode, recordListMenuBar, canChangeTableMode);
-
-		this.presenter = presenter;
+		this.searchView = baseView;
+		this.recordSelectionObserver = recordSelectionObserver;
 		addStyleName(TABLE_STYLE);
 		addStyleName(SEARCH_RESULT_TABLE_STYLE);
 		setSelectionActionButtons();
@@ -81,7 +83,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 						ViewableRecordVOSearchResultTable.this.deselectedItemIds.remove(selectedItemId);
 						ViewableRecordVOSearchResultTable.this.selectedItemRecordId.add(getRecordVO(selectedItemId).getId());
 					}
-					presenter.fireSomeRecordsSelected();
+					recordSelectionObserver.fireSomeRecordsSelected();
 				} else if (event.getDeselectedItemIds() != null) {
 					List<Object> deselectedItemIds = event.getDeselectedItemIds();
 
@@ -95,9 +97,9 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 						ViewableRecordVOSearchResultTable.this.deselectedItemIds.add(deselectedItemId);
 					}
 					if (selectedItemIds.isEmpty()) {
-						presenter.fireNoRecordSelected();
+						recordSelectionObserver.fireNoRecordSelected();
 					} else {
-						presenter.fireSomeRecordsSelected();
+						recordSelectionObserver.fireSomeRecordsSelected();
 					}
 				} else if (event.isAllItemsSelected()) {
 
@@ -111,12 +113,12 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 					ViewableRecordVOSearchResultTable.this.selectedItemIds.addAll(recordVOContainer.getItemIds());
 					ViewableRecordVOSearchResultTable.this.selectedItemRecordId.addAll(lRecordIdList);
 					ViewableRecordVOSearchResultTable.this.deselectedItemIds.clear();
-					presenter.fireSomeRecordsSelected();
+					recordSelectionObserver.fireSomeRecordsSelected();
 				} else if (event.isAllItemsDeselected()) {
 					ViewableRecordVOSearchResultTable.this.allItemsSelected = false;
 					ViewableRecordVOSearchResultTable.this.selectedItemIds.clear();
 					ViewableRecordVOSearchResultTable.this.deselectedItemIds.clear();
-					presenter.fireNoRecordSelected();
+					recordSelectionObserver.fireNoRecordSelected();
 				}
 			}
 
@@ -209,6 +211,6 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 
 	@Override
 	public BaseView getMainView() {
-		return presenter.getView();
+		return searchView;
 	}
 }
