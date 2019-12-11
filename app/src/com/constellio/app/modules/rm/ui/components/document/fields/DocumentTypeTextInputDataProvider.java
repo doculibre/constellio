@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -63,18 +64,17 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 			condition = from(type).returnAll();
 		}
 
-		List<String> newDocumentTypes = new ArrayList<>();
 		if (folderId != null) {
-			RetentionRule retentionRule = rm.getRetentionRule(rm.getFolder(folderId).getRetentionRule());
-			List<String> documentTypes = retentionRule.getDocumentTypes();
-			if (currentType != null && !documentTypes.contains(currentType)) {
-				newDocumentTypes.add(currentType);
+			List<String> newDocumentTypes = Collections.EMPTY_LIST;
+			if (rmConfigs.isTypeRestrictionEnabledInFolder()) {
+				newDocumentTypes = rm.getFolder(folderId).getAllowedDocumentTypes();
 			}
-			newDocumentTypes.addAll(documentTypes);
-			if (rmConfigs.getDocumentsTypesChoice()
-				== DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
-				|| (rmConfigs.getDocumentsTypesChoice()
-					== DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES && !newDocumentTypes.isEmpty())) {
+
+			if (newDocumentTypes.isEmpty()) {
+				newDocumentTypes = getDocumentTypesFilteredByRetentionRule();
+			}
+
+			if (!newDocumentTypes.isEmpty()) {
 				condition = condition.andWhere(Schemas.IDENTIFIER).isIn(newDocumentTypes);
 			}
 		}
@@ -94,5 +94,21 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 			}
 		}
 		return getModelLayerFactory().newSearchServices().query(query);
+	}
+
+	private List<String> getDocumentTypesFilteredByRetentionRule() {
+		List<String> newDocumentTypes = new ArrayList<>();
+		if (rmConfigs.getDocumentsTypesChoice()
+			== DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
+			|| rmConfigs.getDocumentsTypesChoice()
+			   == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
+			RetentionRule retentionRule = rm.getRetentionRule(rm.getFolder(folderId).getRetentionRule());
+			List<String> documentTypes = retentionRule.getDocumentTypes();
+			if (currentType != null && !documentTypes.contains(currentType)) {
+				newDocumentTypes.add(currentType);
+			}
+			newDocumentTypes.addAll(documentTypes);
+		}
+		return newDocumentTypes;
 	}
 }

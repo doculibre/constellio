@@ -25,6 +25,7 @@ import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemService
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_DELETE;
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_EDIT;
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_GENERATE_REPORT;
+import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_SHARE;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -113,6 +114,13 @@ public class TaskMenuItemServices {
 					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).generateReport(task, params));
 			menuItemActions.add(menuItemAction);
 		}
+		if (!filteredActionTypes.contains(TASK_SHARE.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(TASK_SHARE.name(),
+					isMenuItemActionPossible(TASK_SHARE.name(), task, user, params),
+					$("DisplayTaskView.share"), null, -1, 700,
+					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).shareTask(task, params));
+			menuItemActions.add(menuItemAction);
+		}
 
 		return menuItemActions;
 	}
@@ -140,6 +148,8 @@ public class TaskMenuItemServices {
 				return taskRecordActionsServices.isDeleteActionPossible(record, user);
 			case TASK_GENERATE_REPORT:
 				return taskRecordActionsServices.isGenerateReportActionPossible(record, user);
+			case TASK_SHARE:
+				return taskRecordActionsServices.isShareActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -168,6 +178,7 @@ public class TaskMenuItemServices {
 		TASK_CLOSE,
 		TASK_CREATE_SUB_TASK,
 		TASK_DELETE,
-		TASK_GENERATE_REPORT
+		TASK_GENERATE_REPORT,
+		TASK_SHARE
 	}
 }

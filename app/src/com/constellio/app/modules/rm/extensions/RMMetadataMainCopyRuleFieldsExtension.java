@@ -12,6 +12,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -48,16 +49,17 @@ public class RMMetadataMainCopyRuleFieldsExtension extends PagesComponentsExtens
 
 		MetadataSchemasManager manager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchema schema = manager.getSchemaTypes(collection).getSchema(schemaCode);
-		String ruleId = (String) schema.getMetadata(RETENTION_RULE_ENTERED).getDefaultValue();
-		if (StringUtils.isEmpty(ruleId)) {
-			return;
-		}
+		String defaultRuleId = (String) schema.getMetadata(RETENTION_RULE_ENTERED).getDefaultValue();
 
 		AddEditMetadataViewImpl view = (AddEditMetadataViewImpl) params.getMainComponent();
-		view.setFieldFactory(new MetadataMainCopyRuleFieldFactory(getCopyRetentionRule(ruleId)));
+		view.setFieldFactory(new MetadataMainCopyRuleFieldFactory(defaultRuleId, getCopyRetentionRule(defaultRuleId)));
 	}
 
 	private List<CopyRetentionRule> getCopyRetentionRule(String retentionRule) {
+		if (StringUtils.isEmpty(retentionRule)) {
+			return Collections.EMPTY_LIST;
+		}
+
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		return rm.getRetentionRule(retentionRule).getCopyRetentionRules();
 	}

@@ -92,7 +92,7 @@ public class MetadataBuilder {
 	private boolean dependencyOfAutomaticMetadata;
 	private Map<String, Object> customParameter;
 	private boolean fillEmptyLabelWithCode = true;
-	private short id;
+	short id;
 
 	MetadataBuilder(MetadataSchemaBuilder schemaBuilder) {
 		this.schemaBuilder = schemaBuilder;

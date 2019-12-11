@@ -1,5 +1,14 @@
 package com.constellio.app.modules.tasks.ui.entities;
 
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.ui.entities.GlobalGroupVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.UserVO;
+import org.joda.time.LocalDate;
+
+import java.util.List;
+
 import static com.constellio.app.modules.rm.wrappers.Document.IS_MODEL;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE_GROUPS_CANDIDATES;
@@ -10,16 +19,9 @@ import static com.constellio.app.modules.tasks.model.wrappers.Task.END_DATE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDERS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDER_FREQUENCY;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS_WRITE_AUTHORIZATIONS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_WRITE_AUTHORIZATIONS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
-
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
-import com.constellio.app.ui.entities.GlobalGroupVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.UserVO;
 
 public class TaskVO extends RecordVO {
 
@@ -113,4 +115,23 @@ public class TaskVO extends RecordVO {
 		return get(REMINDER_FREQUENCY);
 	}
 
+	public TaskVO setTaskCollaborators(List<String> taskCollaborators) {
+		set(Task.TASK_COLLABORATORS, taskCollaborators);
+		return this;
+	}
+
+	public TaskVO setTaskCollaboratorsWriteAuthorizations(List<Boolean> taskCollaboratorsWriteAuthorizations) {
+		set(TASK_COLLABORATORS_WRITE_AUTHORIZATIONS, taskCollaboratorsWriteAuthorizations);
+		return this;
+	}
+
+	public TaskVO setTaskCollaboratorsGroups(List<String> taskCollaborators) {
+		set(Task.TASK_COLLABORATORS_GROUPS, taskCollaborators);
+		return this;
+	}
+
+	public TaskVO settaskCollaboratorsGroupsWriteAuthorizations(List<Boolean> taskCollaboratorsWriteAuthorizations) {
+		set(TASK_COLLABORATORS_GROUPS_WRITE_AUTHORIZATIONS, taskCollaboratorsWriteAuthorizations);
+		return this;
+	}
 }

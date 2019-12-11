@@ -161,7 +161,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	public String getFavGroup() {
-		if(params != null) {
+		if (params != null) {
 			return params.get(RMViews.FAV_GROUP_ID_KEY);
 		} else {
 			return null;
@@ -253,20 +253,32 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			List<String> requiredPermissions = new ArrayList<>();
 			FolderStatus status = restrictedFolder.getPermissionStatus();
 			if (status != null && status.isSemiActive()) {
-				requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS);
-				if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
-					requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
+				if (isDuplicateAction) {
+					requiredPermissions.add(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER);
+				} else {
+					requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS);
+					if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
+						requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
+					}
 				}
 			}
 
 			if (status != null && status.isInactive()) {
-				requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS);
-				if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
-					requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
+				if (isDuplicateAction) {
+					requiredPermissions.add(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER);
+				} else {
+					requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS);
+					if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
+						requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
+					}
 				}
 			}
 
-			return user.hasAll(requiredPermissions).on(restrictedFolder) && user.hasWriteAccess().on(restrictedFolder);
+			if (isDuplicateAction) {
+				return user.hasAll(requiredPermissions).on(restrictedRecord) && user.hasReadAccess().on(restrictedFolder);
+			} else {
+				return user.hasAll(requiredPermissions).on(restrictedFolder) && user.hasWriteAccess().on(restrictedFolder);
+			}
 		}
 
 	}
@@ -463,6 +475,29 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		reloadForm();
 	}
 
+	void reloadFormAndPopulateCurrentMetadatasExcept(List<String> ignoredMetadataCodes) {
+		// Populate new record with previous record's metadata values
+
+		commitForm();
+
+		for (MetadataVO metadataVO : folderVO.getMetadatas()) {
+			String metadataCode = metadataVO.getCode();
+			String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
+			if (!ignoredMetadataCodes.contains(metadataCodeWithoutPrefix)) {
+				try {
+					MetadataVO matchingMetadata = folderVO.getMetadata(metadataCodeWithoutPrefix);
+					Object metadataValue = folderVO.get(metadataVO);
+					folderVO.set(matchingMetadata, metadataValue);
+				} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+					// Ignore
+				}
+			}
+		}
+
+		view.setRecord(folderVO);
+		reloadForm();
+	}
+
 	void reloadFormAfterParentFolderChanged() {
 		commitForm();
 		reloadForm();
@@ -566,7 +601,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		adjustAdministrativeUnitField();
 		adjustCategoryField(parentRemoved);
 		adjustUniformSubdivisionField(parentRemoved);
-		adjustRetentionRuleField();
+		adjustRetentionRuleField(customField);
 		adjustStatusCopyEnteredField(firstDraw);
 		adjustCopyRetentionRuleField();
 		adjustLinearSizeField();
@@ -696,7 +731,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 	}
 
-	void adjustRetentionRuleField() {
+	void adjustRetentionRuleField(CustomFolderField<?> changedCustomField) {
 		FolderRetentionRuleField retentionRuleField = (FolderRetentionRuleField) view.getForm().getCustomField(
 				Folder.RETENTION_RULE_ENTERED);
 		FolderCategoryField categoryField = (FolderCategoryField) view.getForm().getCustomField(Folder.CATEGORY_ENTERED);
@@ -752,6 +787,19 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 					uniformSubdivisionField.setRequired(false);
 				}
 			}
+		}
+
+		if (changedCustomField instanceof FolderRetentionRuleField) {
+			String ruleId = (String) view.getForm().getCustomField(RETENTION_RULE_ENTERED).getFieldValue();
+			folderVO.setRetentionRule(ruleId);
+			if (areDocumentRetentionRulesEnabled()) {
+				Folder record = rmSchemas().wrapFolder(toRecord(folderVO));
+				recordServices().recalculate(record);
+				folderVO.set(Folder.APPLICABLE_COPY_RULES, record.getApplicableCopyRules());
+			}
+			//List<String> ignoredMetadataCodes = asList(RETENTION_RULE_ENTERED);
+			//reloadFormAndPopulateCurrentMetadatasExcept(ignoredMetadataCodes);
+			view.getForm().getCustomField(RETENTION_RULE_ENTERED).focus();
 		}
 	}
 

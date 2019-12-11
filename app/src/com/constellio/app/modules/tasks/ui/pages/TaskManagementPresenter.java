@@ -23,6 +23,8 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
+import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorItem;
+import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorsGroupItem;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
@@ -83,6 +85,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 
 		tasksTabs = new ArrayList<>();
 		tasksTabs.add(TaskManagementView.TASKS_ASSIGNED_TO_CURRENT_USER);
+		tasksTabs.add(TaskManagementView.SHARED_TASKS);
 		tasksTabs.add(TaskManagementView.TASKS_ASSIGNED_BY_CURRENT_USER);
 		tasksTabs.add(TaskManagementView.TASKS_NOT_ASSIGNED);
 		tasksTabs.add(TaskManagementView.TASKS_RECENTLY_COMPLETED);
@@ -260,6 +263,12 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 	}
 
 	@Override
+	public void addCollaborators(List<TaskCollaboratorItem> taskCollaboratorItems,
+								 List<TaskCollaboratorsGroupItem> taskCollaboratorsGroupItems, RecordVO taskVO) {
+		taskPresenterServices.modifyCollaborators(taskCollaboratorItems, taskCollaboratorsGroupItems, taskVO, schemaPresenterUtils);
+	}
+
+	@Override
 	public boolean isCompleteButtonEnabled(RecordVO recordVO) {
 		return taskPresenterServices.isCompleteTaskButtonVisible(recordVO.getRecord(), getCurrentUser());
 	}
@@ -389,6 +398,22 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 						addStarredSortToQuery(query);
 					}
 				};
+			case TaskManagementView.SHARED_TASKS:
+				return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+					@Override
+					public LogicalSearchQuery getQuery() {
+						LogicalSearchQuery query = tasksSearchServices.getTasksSharedToUserQuery(getCurrentUser());
+						addTimeStampToQuery(query);
+						addStarredSortToQuery(query);
+						return query;
+					}
+
+					@Override
+					protected void clearSort(LogicalSearchQuery query) {
+						super.clearSort(query);
+						addStarredSortToQuery(query);
+					}
+				};
 			default:
 				throw new RuntimeException("BUG: Unknown tabId + " + tabId);
 		}
@@ -431,6 +456,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 			case TaskManagementView.TASKS_ASSIGNED_BY_CURRENT_USER:
 			case TaskManagementView.TASKS_NOT_ASSIGNED:
 			case TaskManagementView.TASKS_RECENTLY_COMPLETED:
+			case TaskManagementView.SHARED_TASKS:
 				return true;
 			default:
 				return false;
@@ -487,6 +513,16 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 				extension.beforeCompletionActions(task);
 			}
 		}
+	}
+
+	@Override
+	public boolean currentUserIsCollaborator(RecordVO recordVO) {
+		return taskPresenterServices.currentUserIsCollaborator(recordVO, getCurrentUserId());
+	}
+
+	@Override
+	public boolean currentUserHasWriteAuthorization(RecordVO taskVO) {
+		return getCurrentUser().hasWriteAccess().on(taskVO.getRecord());
 	}
 
 	@Override

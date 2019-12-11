@@ -250,9 +250,11 @@ public class RecordValidationServices {
 			throws ValidationException {
 		//Passe de l'ours temporaire!
 		if (hasSecurityOnSchema(record) && !"workflowExecution".equals(record.getTypeCode())) {
-			ValidationErrors validationErrors = validateUsingSecurityValidatorsReturningErrors(record, transaction);
-			if (!validationErrors.getValidationErrors().isEmpty()) {
-				throw new RecordServicesException.ValidationException(record, validationErrors);
+			if (!transaction.isSkippingUserAccessValidation()) {
+				ValidationErrors validationErrors = validateUsingSecurityValidatorsReturningErrors(record, transaction);
+				if (!validationErrors.getValidationErrors().isEmpty()) {
+					throw new RecordServicesException.ValidationException(record, validationErrors);
+				}
 			}
 		}
 	}

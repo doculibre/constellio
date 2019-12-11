@@ -999,7 +999,7 @@
  */
 
 .v-vaadin-version:after {
-	content: "7.7.5";
+	content: "7.7.17";
 }
 
 .v-widget {
@@ -1806,6 +1806,61 @@ div.v-layout.v-horizontal.v-widget {
 	content: "!";
 }
 
+.constellio .v-errorindicator-info {
+	color: #00a7f5;
+	font-weight: 600;
+	width: 19px;
+	text-align: center;
+}
+
+.constellio .v-errorindicator-info:before {
+	content: "!";
+}
+
+.constellio .v-errorindicator-warning {
+	color: #fc9c00;
+	font-weight: 600;
+	width: 19px;
+	text-align: center;
+}
+
+.constellio .v-errorindicator-warning:before {
+	content: "!";
+}
+
+.constellio .v-errorindicator-error {
+	color: #ed473b;
+	font-weight: 600;
+	width: 19px;
+	text-align: center;
+}
+
+.constellio .v-errorindicator-error:before {
+	content: "!";
+}
+
+.constellio .v-errorindicator-critical {
+	color: #fa007d;
+	font-weight: 600;
+	width: 19px;
+	text-align: center;
+}
+
+.constellio .v-errorindicator-critical:before {
+	content: "!";
+}
+
+.constellio .v-errorindicator-system {
+	color: #bb00ff;
+	font-weight: 600;
+	width: 19px;
+	text-align: center;
+}
+
+.constellio .v-errorindicator-system:before {
+	content: "!";
+}
+
 .constellio .v-required-field-indicator {
 	color: #ed473b;
 	padding: 0 0.2em;
@@ -1904,6 +1959,26 @@ div.v-layout.v-horizontal.v-widget {
 	line-height: inherit;
 }
 
+.constellio .v-tooltip .v-errormessage-info {
+	color: #00a7f5;
+}
+
+.constellio .v-tooltip .v-errormessage-warning {
+	color: #fc9c00;
+}
+
+.constellio .v-tooltip .v-errormessage-error {
+	color: #ed473b;
+}
+
+.constellio .v-tooltip .v-errormessage-critical {
+	color: #fa007d;
+}
+
+.constellio .v-tooltip .v-errormessage-system {
+	color: #bb00ff;
+}
+
 .constellio .v-tooltip .v-tooltip-text {
 	max-height: 10em;
 	overflow: auto;
@@ -1916,6 +1991,12 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-tooltip h1, .constellio .v-tooltip h2, .constellio .v-tooltip h3, .constellio .v-tooltip h4 {
 	color: inherit;
+}
+
+.constellio .v-tooltip pre.v-tooltip-pre {
+	font: inherit;
+	white-space: pre-wrap;
+	margin: 0;
 }
 
 .constellio .v-contextmenu {
@@ -2160,8 +2241,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -2253,8 +2334,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #ecf2f8;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #1362b1;
 	border-top-color: #156ab3;
@@ -2301,8 +2382,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #eaf4e9;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #227719;
 	border-top-color: #257d1a;
@@ -2342,8 +2423,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #f9f0ef;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #bb382e;
 	border-top-color: #bc3c31;
@@ -2480,10 +2561,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-tiny {
 	height: 28px;
 	padding: 0 13px;
-
-
+	
+	
 	font-size: 12px;
-
+	
 	border-radius: 4px;
 }
 
@@ -2498,10 +2579,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-small {
 	height: 31px;
 	padding: 0 14px;
-
-
+	
+	
 	font-size: 14px;
-
+	
 	border-radius: 4px;
 }
 
@@ -2516,10 +2597,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-large {
 	height: 44px;
 	padding: 0 19px;
-
-
+	
+	
 	font-size: 20px;
-
+	
 	border-radius: 4px;
 }
 
@@ -2534,10 +2615,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-huge {
 	height: 59px;
 	padding: 0 26px;
-
-
+	
+	
 	font-size: 26px;
-
+	
 	border-radius: 4px;
 }
 
@@ -2667,8 +2748,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 9px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -2797,8 +2878,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 7px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -2927,8 +3008,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 10px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -3020,7 +3101,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -3183,6 +3264,61 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-filterselect-error .v-filterselect-button {
 	color: #ed473b;
 	border-color: #ed473b;
+}
+
+.constellio .v-filterselect-error-info .v-filterselect-input {
+	border-color: #00a7f5 !important;
+	background: #fafdff;
+	color: #195774;
+}
+
+.constellio .v-filterselect-error-info .v-filterselect-button {
+	color: #00a7f5;
+	border-color: #00a7f5;
+}
+
+.constellio .v-filterselect-error-warning .v-filterselect-input {
+	border-color: #fc9c00 !important;
+	background: #fffdfa;
+	color: #745119;
+}
+
+.constellio .v-filterselect-error-warning .v-filterselect-button {
+	color: #fc9c00;
+	border-color: #fc9c00;
+}
+
+.constellio .v-filterselect-error-error .v-filterselect-input {
+	border-color: #ed473b !important;
+	background: #fffbfb;
+	color: #6c2621;
+}
+
+.constellio .v-filterselect-error-error .v-filterselect-button {
+	color: #ed473b;
+	border-color: #ed473b;
+}
+
+.constellio .v-filterselect-error-critical .v-filterselect-input {
+	border-color: #fa007d !important;
+	background: #fffafc;
+	color: #741947;
+}
+
+.constellio .v-filterselect-error-critical .v-filterselect-button {
+	color: #fa007d;
+	border-color: #fa007d;
+}
+
+.constellio .v-filterselect-error-system .v-filterselect-input {
+	border-color: #bb00ff !important;
+	background: #fefaff;
+	color: #5c1974;
+}
+
+.constellio .v-filterselect-error-system .v-filterselect-button {
+	color: #bb00ff;
+	border-color: #bb00ff;
 }
 
 .constellio .v-filterselect-suggestpopup {
@@ -3462,7 +3598,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-tiny {
 	height: 28px;
-
+	
 	font-size: 12px;
 }
 
@@ -3481,14 +3617,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
-
+	
 	padding: 3px 5px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3514,7 +3650,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-tiny span.v-icon {
-
+	
 	width: 28px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -3590,7 +3726,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-compact, .constellio .v-filterselect-small {
 	height: 31px;
-
+	
 }
 
 .constellio .v-filterselect-compact [class*="input"], .constellio .v-filterselect-small [class*="input"] {
@@ -3608,14 +3744,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
-
+	
 	padding: 3px 6px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3641,7 +3777,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-compact span.v-icon, .constellio .v-filterselect-small span.v-icon {
-
+	
 	width: 31px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -3721,7 +3857,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-large {
 	height: 44px;
-
+	
 	font-size: 20px;
 }
 
@@ -3740,14 +3876,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
-
+	
 	padding: 5px 8px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3773,7 +3909,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-large span.v-icon {
-
+	
 	width: 44px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -3849,7 +3985,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-huge {
 	height: 59px;
-
+	
 	font-size: 26px;
 }
 
@@ -3868,14 +4004,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
-
+	
 	padding: 7px 10px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3901,7 +4037,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-huge span.v-icon {
-
+	
 	width: 59px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -4199,13 +4335,13 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
 	border-radius: 0;
 	padding: 4px 7px;
-
+	
 	-webkit-box-shadow: none;
 	box-shadow: none;
 	-webkit-transition: box-shadow 180ms, border 180ms;
@@ -4294,7 +4430,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -4356,6 +4492,36 @@ div.v-layout.v-horizontal.v-widget {
 	color: #6c2621;
 }
 
+.constellio .v-textfield-error-info {
+	border-color: #00a7f5 !important;
+	background: #fafdff;
+	color: #195774;
+}
+
+.constellio .v-textfield-error-warning {
+	border-color: #fc9c00 !important;
+	background: #fffdfa;
+	color: #745119;
+}
+
+.constellio .v-textfield-error-error {
+	border-color: #ed473b !important;
+	background: #fffbfb;
+	color: #6c2621;
+}
+
+.constellio .v-textfield-error-critical {
+	border-color: #fa007d !important;
+	background: #fffafc;
+	color: #741947;
+}
+
+.constellio .v-textfield-error-system {
+	border-color: #bb00ff !important;
+	background: #fefaff;
+	color: #5c1974;
+}
+
 .constellio .v-textfield-borderless {
 	border: none;
 	border-radius: 0;
@@ -4388,14 +4554,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
 	border-radius: 4px;
 	padding: 3px 7px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4420,14 +4586,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
 	border-radius: 4px;
 	padding: 3px 8px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4455,14 +4621,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
 	border-radius: 4px;
 	padding: 5px 10px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4487,14 +4653,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
 	border-radius: 4px;
 	padding: 7px 12px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4761,7 +4927,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -4864,15 +5030,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
 	border-radius: 4px;
 	padding: 6px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4906,15 +5072,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
 	border-radius: 4px;
 	padding: 6px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4948,15 +5114,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
 	border-radius: 4px;
 	padding: 6px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4990,15 +5156,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
 	border-radius: 4px;
 	padding: 6px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5050,7 +5216,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -5192,6 +5358,61 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-datefield-error .v-datefield-button {
 	color: #ed473b;
 	border-color: #ed473b;
+}
+
+.constellio .v-datefield-error-info .v-datefield-textfield {
+	border-color: #00a7f5 !important;
+	background: #fafdff;
+	color: #195774;
+}
+
+.constellio .v-datefield-error-info .v-datefield-button {
+	color: #00a7f5;
+	border-color: #00a7f5;
+}
+
+.constellio .v-datefield-error-warning .v-datefield-textfield {
+	border-color: #fc9c00 !important;
+	background: #fffdfa;
+	color: #745119;
+}
+
+.constellio .v-datefield-error-warning .v-datefield-button {
+	color: #fc9c00;
+	border-color: #fc9c00;
+}
+
+.constellio .v-datefield-error-error .v-datefield-textfield {
+	border-color: #ed473b !important;
+	background: #fffbfb;
+	color: #6c2621;
+}
+
+.constellio .v-datefield-error-error .v-datefield-button {
+	color: #ed473b;
+	border-color: #ed473b;
+}
+
+.constellio .v-datefield-error-critical .v-datefield-textfield {
+	border-color: #fa007d !important;
+	background: #fffafc;
+	color: #741947;
+}
+
+.constellio .v-datefield-error-critical .v-datefield-button {
+	color: #fa007d;
+	border-color: #fa007d;
+}
+
+.constellio .v-datefield-error-system .v-datefield-textfield {
+	border-color: #bb00ff !important;
+	background: #fefaff;
+	color: #5c1974;
+}
+
+.constellio .v-datefield-error-system .v-datefield-button {
+	color: #bb00ff;
+	border-color: #bb00ff;
 }
 
 .constellio .v-datefield-full {
@@ -5692,15 +5913,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
 	border-radius: 4px;
 	padding: 3px 7px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5807,15 +6028,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
 	border-radius: 4px;
 	padding: 3px 8px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5927,15 +6148,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
 	border-radius: 4px;
 	padding: 5px 10px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -6043,15 +6264,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
 	border-radius: 4px;
 	padding: 7px 12px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -6370,7 +6591,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #191919;
 	font-weight: 400;
-
+	
 	cursor: default;
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
@@ -6452,7 +6673,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 15px;
 	color: inherit;
 	font-weight: 400;
-
+	
 	cursor: pointer;
 	border-radius: 0;
 	border: 1px solid #c5c5c5;
@@ -6549,9 +6770,9 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-menubar > .v-menubar-menuitem-selected {
 	color: #ecf2f8;
-
-
-
+	
+	
+	
 	border-radius: 0;
 	border: 1px solid #1362b1;
 	border-top-color: #156ab3;
@@ -6700,9 +6921,9 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-menubar-small {
 	height: 31px;
 	padding: 0 14px;
-
+	
 	font-weight: 400;
-
+	
 	cursor: default;
 	border-radius: 4px;
 	padding: 0;
@@ -6853,8 +7074,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 9px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7016,8 +7237,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 7px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7145,8 +7366,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 7px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7308,8 +7529,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 10px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7437,8 +7658,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 10px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -8275,6 +8496,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-table-body {
 	border: 1px solid #d4d4d4;
+	overflow-anchor: none;
 	-webkit-user-select: text;
 	-moz-user-select: text;
 	-ms-user-select: text;
@@ -8400,8 +8622,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -8513,8 +8735,8 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio tbody.v-drag-element tr {
 	display: block;
-
-
+	
+	
 	-webkit-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 	border-radius: 4px;
@@ -9779,13 +10001,13 @@ div.v-layout.v-horizontal.v-widget {
 	font-size: 2.4em;
 	margin-top: 1.4em;
 	margin-bottom: 1em;
-
+	
 	letter-spacing: -0.03em;
 }
 
 .constellio h2, .constellio .v-label-h2 {
 	font-size: 1.6em;
-
+	
 	margin-top: 1.6em;
 	margin-bottom: 0.77em;
 	letter-spacing: -0.02em;
@@ -9793,7 +10015,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio h3, .constellio .v-label-h3 {
 	font-size: 1.2em;
-
+	
 	margin-top: 1.8em;
 	margin-bottom: 0.77em;
 	letter-spacing: 0;
@@ -10065,7 +10287,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -11267,7 +11489,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .valo-menu .valo-menu-badge, .constellio .dashboard-view .notifications.unread .v-button-caption {
-
+	
 	-webkit-transition: background-color 300ms;
 	-moz-transition: background-color 300ms;
 	transition: background-color 300ms;
@@ -11920,6 +12142,10 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: auto;
 }
 
+.constellio .popupContent div[class*="v-filterselect-"] {
+	opacity: 1;
+}
+
 .constellio .valo-menu .valo-menu-part {
 	padding-top: inherit;
 	overflow-x: hidden;
@@ -12307,7 +12533,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .task-table-layout .clickable-row .v-table-body tr, .constellio .task-table-layout .clickable-row .v-table-body .reference-display {
-	cursor: default;
+	cursor: pointer !important;
 }
 
 .constellio .task-table-layout .clickable-row .v-table-body:hover {
@@ -12338,6 +12564,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .nicetitle-link-disabled:hover {
 	opacity: 0.5;
+	filter: alpha(opacity=50);
 	cursor: default;
 }
 
@@ -13930,8 +14157,8 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-slot-disabled-button {
-	opacity: 0.4;
-	filter: alpha(opacity=40);
+	opacity: 0.5;
+	filter: alpha(opacity=50);
 }
 
 .constellio .v-contextmenu .popupContent {
@@ -13999,11 +14226,6 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .base-display .display-caption, .constellio .base-display .display-value {
 	position: relative;
 	top: 4px;
-}
-
-.constellio .base-display .v-disabled {
-	opacity: inherit;
-	color: inherit;
 }
 
 .constellio .base-display .v-slot-display-value-full-width, .constellio .base-display .v-slot-record-comments, .constellio .base-display .v-caption-record-comments {
@@ -14175,7 +14397,11 @@ div.v-layout.v-horizontal.v-widget {
 	text-decoration: underline;
 }
 
-.constellio .v-disabled:hover {
+.constellio .v-button.v-disabled, .constellio .v-button-link.v-disabled {
+	color: black;
+}
+
+.constellio .v-button.v-disabled:hover, .constellio .v-button-link.v-disabled:hover {
 	text-decoration: none;
 }
 
@@ -14762,14 +14988,14 @@ div.v-layout.v-horizontal.v-widget {
 	width: 0px;
 }
 
-.constellio .v-multifileupload-dropzone {
+.constellio .v-multifileupload-dropzone, .constellio .v-multifileupload-no-dropzone {
 	width: 100%;
 	background-color: #fafafa;
 	background-image: none;
 	padding-top: 8px;
 }
 
-.constellio .v-multifileupload-dropzone .v-label {
+.constellio .v-multifileupload-dropzone .v-label, .constellio .v-multifileupload-no-dropzone .v-label {
 	font-size: inherit;
 }
 
@@ -14803,6 +15029,8 @@ div.v-layout.v-horizontal.v-widget {
 	border-left: none;
 	border-right: none;
 	border-radius: inherit;
+	padding-left: 10px;
+	padding-right: 10px;
 }
 
 .constellio .v-popupview-popup-header-popup .header-popup-content-wrapper .header-popup-content {
@@ -14826,7 +15054,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .header-selection-panel .selection-panel-top-layout .v-menubar .v-icon {
 	float: right;
 	margin-right: -4px;
-	margin-left: 4px;
+	margin-left: 8px;
 	margin-top: 2px;
 }
 
@@ -14855,7 +15083,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .clickable-row .v-table-body tr, .constellio .clickable-row .v-table-body .reference-display {
-	cursor: pointer;
+	cursor: pointer !important;
 	color: #696969;
 }
 
@@ -14866,8 +15094,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-table .v-table-body .v-disabled {
 	text-align: left;
-	opacity: 10%;
-	color: black;
 }
 
 .constellio .v-table .v-table-body .v-slot-icon-only .v-disabled {
@@ -15429,6 +15655,10 @@ div.v-layout.v-horizontal.v-widget {
 	content: "\f100";
 }
 
+.constellio .collapsible-horizontal-splitpanel-not-resizable .v-splitpanel-hsplitter-collapsible-horizontal-splitpanel {
+	cursor: pointer;
+}
+
 .constellio .page-size-layout {
 	padding-right: 20px;
 }
@@ -15586,10 +15816,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .reference-display {
 	white-space: normal;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .reference-display-link {
-	color: #197de1;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .visited-link {
@@ -16079,11 +16305,11 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: 23px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .search-result-record-folder .search-result-title .v-icon, .constellio .v-ui[width-range~="1101px-"] .search-result-record-task .search-result-title .v-icon {
+.constellio .v-ui[width-range~="1101px-"] .search-result-record-folder .search-result-title .v-icon, .constellio .v-ui[width-range~="1101px-"] .search-result-record-task .search-result-title .v-icon, .constellio .v-ui[width-range~="1101px-"] .search-result-record-containerRecord .search-result-title .v-icon {
 	display: none;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .search-result-record-folder .search-result-title .v-icon + span, .constellio .v-ui[width-range~="1101px-"] .search-result-record-task .search-result-title .v-icon + span {
+.constellio .v-ui[width-range~="1101px-"] .search-result-record-folder .search-result-title .v-icon + span, .constellio .v-ui[width-range~="1101px-"] .search-result-record-task .search-result-title .v-icon + span, .constellio .v-ui[width-range~="1101px-"] .search-result-record-containerRecord .search-result-title .v-icon + span {
 	margin-left: auto;
 }
 
@@ -16165,11 +16391,11 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: 23px;
 }
 
-.constellio .v-ui[width-range~="801-1100px"] .search-result-record-folder .search-result-title .v-icon, .constellio .v-ui[width-range~="801-1100px"] .search-result-record-task .search-result-title .v-icon {
+.constellio .v-ui[width-range~="801-1100px"] .search-result-record-folder .search-result-title .v-icon, .constellio .v-ui[width-range~="801-1100px"] .search-result-record-task .search-result-title .v-icon, .constellio .v-ui[width-range~="801-1100px"] .search-result-record-containerRecord .search-result-title .v-icon {
 	display: none;
 }
 
-.constellio .v-ui[width-range~="801-1100px"] .search-result-record-folder .search-result-title .v-icon + span, .constellio .v-ui[width-range~="801-1100px"] .search-result-record-task .search-result-title .v-icon + span {
+.constellio .v-ui[width-range~="801-1100px"] .search-result-record-folder .search-result-title .v-icon + span, .constellio .v-ui[width-range~="801-1100px"] .search-result-record-task .search-result-title .v-icon + span, .constellio .v-ui[width-range~="801-1100px"] .search-result-record-containerRecord .search-result-title .v-icon + span {
 	margin-left: auto;
 }
 

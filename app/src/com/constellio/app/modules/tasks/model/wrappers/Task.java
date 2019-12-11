@@ -14,6 +14,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Task extends RecordWrapper {
@@ -25,6 +26,10 @@ public class Task extends RecordWrapper {
 	public static final String ASSIGNER = "assigner";
 	public static final String ASSIGNEE_USERS_CANDIDATES = "assigneeUsersCandidates";
 	public static final String ASSIGNEE_GROUPS_CANDIDATES = "assigneeGroupsCandidates";
+	public static final String TASK_COLLABORATORS = "taskCollaborators";
+	public static final String TASK_COLLABORATORS_WRITE_AUTHORIZATIONS = "taskCollaboratorsWriteAuthorizations";
+	public static final String TASK_COLLABORATORS_GROUPS = "taskCollaboratorsGroups";
+	public static final String TASK_COLLABORATORS_GROUPS_WRITE_AUTHORIZATIONS = "taskCollaboratorsGroupsWriteAuthorizations";
 	public static final String ASSIGNED_ON = "assignedOn";
 	public static final String FOLLOWERS_IDS = "taskFollowersIds";
 	public static final String TASK_FOLLOWERS = "taskFollowers";
@@ -128,6 +133,93 @@ public class Task extends RecordWrapper {
 	public Task setAssigneeGroupsCandidates(List<String> groups) {
 		set(ASSIGNEE_GROUPS_CANDIDATES, groups);
 		return this;
+	}
+
+
+	public List<String> getTaskCollaborators() {
+		return Collections.unmodifiableList(this.<String>getList(TASK_COLLABORATORS));
+	}
+
+	public List<String> getTaskCollaboratorsGroups() {
+		return Collections.unmodifiableList(this.<String>getList(TASK_COLLABORATORS_GROUPS));
+	}
+
+	public List<Boolean> getTaskCollaboratorsWriteAuthorizations() {
+		return Collections.unmodifiableList(this.<Boolean>getList(TASK_COLLABORATORS_WRITE_AUTHORIZATIONS));
+	}
+
+	public List<Boolean> getTaskCollaboratorsGroupsWriteAuthorizations() {
+		return Collections.unmodifiableList(this.<Boolean>getList(TASK_COLLABORATORS_GROUPS_WRITE_AUTHORIZATIONS));
+	}
+
+	public Task addTaskCollaborator(String taskCollaborator, Boolean taskCollaboratorWriteAuthorization) {
+		if (getCollaboratorIndex(taskCollaborator, taskCollaboratorWriteAuthorization) == -1) {
+			List<String> taskCollaborators = new ArrayList<>(getTaskCollaborators());
+			List<Boolean> taskCollaboratorWriteAuthorizations = new ArrayList<>(getTaskCollaboratorsWriteAuthorizations());
+
+			taskCollaborators.add(taskCollaborator);
+			taskCollaboratorWriteAuthorizations.add(taskCollaboratorWriteAuthorization);
+
+			set(TASK_COLLABORATORS, taskCollaborators);
+			set(TASK_COLLABORATORS_WRITE_AUTHORIZATIONS, taskCollaboratorWriteAuthorizations);
+		}
+		return this;
+	}
+
+	public Task removeTaskCollaborator(String taskCollaborator, Boolean taskCollaboratorWriteAuthorization) {
+		int index;
+		if ((index = getCollaboratorIndex(taskCollaborator, taskCollaboratorWriteAuthorization)) != -1) {
+			List<String> taskCollaborators = new ArrayList<>(getTaskCollaborators());
+			List<Boolean> taskCollaboratorWriteAuthorizations = new ArrayList<>(getTaskCollaboratorsWriteAuthorizations());
+
+			taskCollaborators.remove(index);
+			taskCollaboratorWriteAuthorizations.remove(index);
+
+			set(TASK_COLLABORATORS, taskCollaborators);
+			set(TASK_COLLABORATORS_WRITE_AUTHORIZATIONS, taskCollaboratorWriteAuthorizations);
+		}
+		return this;
+	}
+
+	public Task addTaskCollaboratorGroup(String taskCollaboratorGroup,
+										 Boolean taskCollaboratorGroupWriteAuthorization) {
+		if (getCollaboratorsGroupsIndex(taskCollaboratorGroup, taskCollaboratorGroupWriteAuthorization) == -1) {
+			List<String> taskCollaboratorsGroups = new ArrayList<>(getTaskCollaboratorsGroups());
+			List<Boolean> taskCollaboratorsGroupsWriteAuthorizations = new ArrayList<>(getTaskCollaboratorsWriteAuthorizations());
+
+			taskCollaboratorsGroups.add(taskCollaboratorGroup);
+			taskCollaboratorsGroupsWriteAuthorizations.add(taskCollaboratorGroupWriteAuthorization);
+
+			set(TASK_COLLABORATORS_GROUPS, taskCollaboratorsGroups);
+			set(TASK_COLLABORATORS_GROUPS_WRITE_AUTHORIZATIONS, taskCollaboratorsGroupsWriteAuthorizations);
+		}
+		return this;
+	}
+
+	private int getCollaboratorIndex(String collaboratorId, Boolean writeAuthorization) {
+		List<String> collaborators = getTaskCollaborators();
+		List<Boolean> writeAuthorizations = getTaskCollaboratorsWriteAuthorizations();
+
+		for (int i = 0; i < collaborators.size(); i++) {
+			if (collaboratorId.equals(collaborators.get(i)) && writeAuthorization.equals(writeAuthorizations.get(i))) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	private int getCollaboratorsGroupsIndex(String collaboratorId, Boolean writeAuthorization) {
+		List<String> collaboratorsGroups = getTaskCollaboratorsGroups();
+		List<Boolean> writeAuthorizations = getTaskCollaboratorsGroupsWriteAuthorizations();
+
+		for (int i = 0; i < collaboratorsGroups.size(); i++) {
+			if (collaboratorId.equals(collaboratorsGroups.get(i)) && writeAuthorization.equals(writeAuthorizations.get(i))) {
+				return i;
+			}
+		}
+
+		return -1;
 	}
 
 	public LocalDate getAssignedOn() {

@@ -38,6 +38,10 @@ public class ResponsiveUtils {
 		return tablet;
 	}
 
+	public static boolean isMobile() {
+		return isPhone() || isTablet();
+	}
+
 	public static boolean isDesktop() {
 		boolean desktop;
 		if (isPhone() || isTablet()) {

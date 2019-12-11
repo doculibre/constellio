@@ -4,6 +4,8 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.modules.rm.services.reports.printableReport.PrintableReportXmlGenerator;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
@@ -79,6 +81,17 @@ public class GetXmlButtonV2 extends WindowButton {
 		} else {
 			this.elementLookUpField = getLookupFieldForCurrentSchema();
 		}
+
+		String caption;
+		if (currentSchema.getSchemaType().equals(Folder.SCHEMA_TYPE)) {
+			caption = $("GenerateXML.chooseFolder");
+		} else if (currentSchema.getSchemaType().equals(ContainerRecord.SCHEMA_TYPE)) {
+			caption = $("GenerateXML.chooseContainer");
+		} else {
+			caption = $("GenerateXML.chooseDocument");
+		}
+		this.elementLookUpField.setCaption(caption);
+
 		return new GetXmlFrom(new LabelParametersVO(new LabelTemplate()), this, this.elementLookUpField);
 	}
 
