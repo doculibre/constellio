@@ -46,6 +46,7 @@ import java.util.Map;
 
 import static com.constellio.app.ui.application.ConstellioUI.getCurrent;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class SearchResultDisplay extends VerticalLayout {
 
@@ -254,7 +255,13 @@ public class SearchResultDisplay extends VerticalLayout {
 						Component value = componentFactory.build(recordVO, metadataValue);
 						if (value != null) {
 							value.addStyleName("metadata-value");
-							Label caption = new Label(metadataVO.getLabel() + ":");
+							String captionText = metadataVO.getLabel();
+							if (isRightToLeft()) {
+								captionText = ":" + captionText;
+							} else {
+								captionText += ":";
+							}
+							Label caption = new Label(captionText);
 							caption.addStyleName("metadata-caption");
 							addComponents(caption, value);
 						}
@@ -278,8 +285,14 @@ public class SearchResultDisplay extends VerticalLayout {
 		if (stringDisplayValue != null) {
 			sb.append("<div class=\"search-result-metadata\">");
 			sb.append("<div class=\"metadata-caption\">");
+			if (isRightToLeft()) {
+				sb.append(":");
+			}
 			sb.append(label);
-			sb.append(":</div><div class=\"metadata-value\">");
+			if (!isRightToLeft()) {
+				sb.append(":");
+			}
+			sb.append("</div><div class=\"metadata-value\">");
 			sb.append(stringDisplayValue);
 			sb.append("</div>");
 			sb.append("</div>");

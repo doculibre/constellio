@@ -195,7 +195,7 @@ public class TableColumnsManager implements Serializable {
 		return propertyId.toString();
 	}
 
-	private Align adjustAlignment(Align alignment) {
+	protected Align adjustAlignment(Align alignment) {
 		Align result;
 		if (isRightToLeft()) {
 			if (Align.LEFT.equals(alignment)) {

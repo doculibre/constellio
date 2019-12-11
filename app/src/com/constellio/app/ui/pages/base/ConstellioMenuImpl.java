@@ -7,6 +7,7 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.components.layouts.I18NCssLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
@@ -412,7 +413,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	}
 
 	private Component buildBadgeWrapper(final Component menuItemButton, final Label badgeLabel) {
-		CssLayout badgeWrapper = new CssLayout(menuItemButton);
+		I18NCssLayout badgeWrapper = new I18NCssLayout(menuItemButton);
 		badgeWrapper.addStyleName("badgewrapper");
 		badgeWrapper.addStyleName(ValoTheme.MENU_ITEM);
 		badgeWrapper.setWidth(100.0f, Unit.PERCENTAGE);
