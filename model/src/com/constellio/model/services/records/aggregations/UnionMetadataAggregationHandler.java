@@ -1,7 +1,5 @@
 package com.constellio.model.services.records.aggregations;
 
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
@@ -29,23 +27,21 @@ public class UnionMetadataAggregationHandler implements MetadataAggregationHandl
 									   ReturnedMetadatasFilter.onlySummaryFields() :
 									   ReturnedMetadatasFilter.onlyMetadatas(params.getInputMetadatas()));
 
-			SearchResponseIterator<Record> iterator =
-					params.getSearchServices().recordsIterator(query, 10000);
-
-			while (iterator.hasNext()) {
-				Record record = iterator.next();
+			params.getSearchServices().stream(query, 10000).forEach(record -> {
 				for (Metadata inputMetadata : params.getInputMetadatas()) {
-					allValues.addAll(record.getValues(inputMetadata));
+					List<String> values = record.getValues(inputMetadata);
+					for (Comparable value : values) {
+						if (value != null) {
+							allValues.add(value);
+						}
+					}
 				}
-
-			}
+			});
 		}
 
 		List<Comparable> listValues = new ArrayList<>();
 		for (Comparable value : allValues) {
-			if (value != null) {
-				listValues.add(value);
-			}
+			listValues.add(value);
 		}
 		Collections.sort(listValues);
 
