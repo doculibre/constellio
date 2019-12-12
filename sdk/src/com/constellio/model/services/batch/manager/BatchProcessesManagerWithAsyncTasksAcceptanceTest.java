@@ -100,7 +100,7 @@ public class BatchProcessesManagerWithAsyncTasksAcceptanceTest extends Constelli
 			}
 
 			if (wordsToAdd.contains("!")) {
-				params.logError("ponctuationDetected", messageParams);
+				params.logWarning("ponctuationDetected", messageParams);
 			}
 
 			System.out.println("Adding words '" + words + "'");

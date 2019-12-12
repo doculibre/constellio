@@ -56,6 +56,10 @@ public abstract class ResourceService extends BaseService {
 		validationService.validateUserAccess(user, resourceRecord, method);
 	}
 
+	protected void validateUserDeleteAccessOnHierarchy(User user, Record resourceRecord) {
+		validationService.validateUserDeleteAccessOnHierarchy(user, resourceRecord);
+	}
+
 	protected void validateAuthorizations(List<AceDto> authorizations, String collection) {
 		validationService.validateAuthorizations(authorizations, collection);
 	}
