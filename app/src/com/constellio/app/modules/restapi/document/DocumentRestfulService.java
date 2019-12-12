@@ -134,6 +134,9 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			@Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileHeader,
 			@Parameter(description = "Fields to filter from the JSON response.", example = "[\"directAces\", \"inheritedAces\"]")
 			@QueryParam("filter") Set<String> filters,
+			@Parameter(description = "A document id list can be specified to activate the merge mode.<br>" +
+									 "The new document will be created by merging all documents provided in the list.")
+			@HeaderParam(CustomHttpHeaders.MERGE_SOURCE) Set<String> mergeSourceIds,
 			@Parameter(description = "The flushing mode indicates how the commits are executed in solr",
 					schema = @Schema(allowableValues = {"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
 			@HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,

@@ -21,11 +21,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -136,6 +138,41 @@ public class FolderRestfulService extends ResourceRestfulService {
 		return Response.status(Response.Status.CREATED).entity(createdFolder).tag(createdFolder.getETag()).build();
 	}
 
+	@PUT
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Update folder", description = "Update a folder (metadata only)")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name = "ETag", description = "Concurrency control version of the folder"),
+					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Folder"))),
+			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "409", description = "Conflict. When concurrency control mode (If-Matcher header) is inactive.",
+					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "412", description = "Precondition Failed. When concurrency control mode (If-Matcher header) is active.",
+					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+	public Response update(@Parameter(required = true, description = "Folder Id") @QueryParam("id") String id,
+						   @Parameter(required = true, description = "Service Key") @QueryParam("serviceKey") String serviceKey,
+						   @Parameter(required = true, description = "HTTP Method", schema = @Schema(allowableValues = {"PUT"})) @QueryParam("method") String method,
+						   @Parameter(required = true, description = "Date") @QueryParam("date") String date,
+						   @Parameter(required = true, description = "Expiration") @QueryParam("expiration") Integer expiration,
+						   @Parameter(required = true, description = "Signature") @QueryParam("signature") String signature,
+						   @Valid FolderDto folder,
+						   @Parameter(description = "Fields to filter from the JSON response.", example = "[\"directAces\", \"inheritedAces\"]")
+						   @QueryParam("filter") Set<String> filters,
+						   @Parameter(description = "An ETag value can be specified to activate the concurrency control mode.<br>" +
+													"Using that mode, a request cannot be fulfilled if the ETag value is not the latest concurrency control version of the folder.")
+						   @HeaderParam(HttpHeaders.IF_MATCH) String eTag,
+						   @Parameter(description = "The flushing mode indicates how the commits are executed in solr",
+								   schema = @Schema(allowableValues = {"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
+						   @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
+						   @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+
+		// TODO::JOLA --> Handle update request
+
+		return Response.noContent().build();
+	}
 
 	@PATCH
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -187,6 +224,27 @@ public class FolderRestfulService extends ResourceRestfulService {
 		FolderDto folderDto = folderService.update(host, id, serviceKey, method, date, expiration, signature, folder, true, flush, filters);
 
 		return Response.ok(folderDto).tag(folderDto.getETag()).build();
+	}
+
+	@DELETE
+	@Operation(summary = "Delete folder", description = "Delete a folder")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "204", description = "No Content"),
+			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+	public Response delete(@Parameter(required = true, description = "Folder Id") @QueryParam("id") String id,
+						   @Parameter(required = true, description = "Service Key") @QueryParam("serviceKey") String serviceKey,
+						   @Parameter(required = true, description = "HTTP Method", schema = @Schema(allowableValues = {"DELETE"})) @QueryParam("method") String method,
+						   @Parameter(required = true, description = "Date") @QueryParam("date") String date,
+						   @Parameter(required = true, description = "Expiration") @QueryParam("expiration") Integer expiration,
+						   @Parameter(description = "Folder must be physically deleted", schema = @Schema(type = "boolean", defaultValue = "false")) @QueryParam("physical") String physical,
+						   @Parameter(required = true, description = "Signature") @QueryParam("signature") String signature,
+						   @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+
+		// TODO::JOLA --> Handle delete request
+
+		return Response.noContent().build();
 	}
 
 	private void validateFolder(FolderDto folder) {
