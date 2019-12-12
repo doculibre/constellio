@@ -60,7 +60,8 @@ public class ConstellioTest extends AbstractConstellioTest {
 		///Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.enable();
 		Toggle.USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE.disable();
 		if (SystemUtils.IS_OS_WINDOWS) {
-			Toggle.USE_MMAP_WITHMAP_DB.disable();
+			Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.disable();
+			Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.disable();
 		}
 		Toggle.ROLES_WITH_NEW_7_2_PERMISSIONS.enable();
 

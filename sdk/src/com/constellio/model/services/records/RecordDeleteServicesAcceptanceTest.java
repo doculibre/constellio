@@ -20,7 +20,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
-import com.constellio.model.services.records.utils.SortOrder;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -28,13 +27,14 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.trash.TrashServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -66,12 +66,14 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 	private Folder folder, folder2;
 	private Document document, document2, document3;
 
+	private QueryCounter queryCounter;
+
 	@Before
 	public void setUp()
 			throws Exception {
 		givenBackgroundThreadsEnabled();
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 
@@ -99,6 +101,8 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		recordServices.add(document2);
 		document3 = records.newDocumentWithIdIn("fakeDocument2bb", folder2);
 		recordServices.add(document3);
+
+		queryCounter = new QueryCounter(getDataLayerFactory(), "RecordDeleteServicesAcceptanceTest");
 	}
 
 	private void createCustomTaskSchema() {
@@ -204,16 +208,53 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenRecordInHierarchyWhenGetAllRecordsInHierarchySortOrderAscendingThenRecordsSortedAscending() {
-		List<Record> orderedRecords =
-				deleteService.getAllRecordsInHierarchy(records.getFolder_A02().getWrappedRecord(), SortOrder.ASCENDING);
-		assertThat(orderedRecords.get(0)).isEqualTo(records.getFolder_A02().getWrappedRecord());
+	public void whenLogicallyDeletingThenSetLogicallyDeletedStatusToAllRecordInHierarchyAndExecuteTransaction()
+			throws Exception {
+
+		deleteService.logicallyDelete(recordServices.getDocumentById(folder2.getId()), users.adminIn(zeCollection));
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+
+		Record folderRecord2 = recordServices.getDocumentById(folder2.getId());
+		assertThat(folderRecord2.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isTrue();
+		assertThat(folderRecord2.<LocalDateTime>get(Schemas.LOGICALLY_DELETED_ON)).isNotNull();
+		Record documentRecord = recordServices.getDocumentById(document.getId());
+		assertThat(documentRecord.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isTrue();
+		assertThat(documentRecord.<LocalDateTime>get(Schemas.LOGICALLY_DELETED_ON)).isNotNull();
+		Record documentRecord2 = recordServices.getDocumentById(document2.getId());
+		assertThat(documentRecord2.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isTrue();
+		assertThat(documentRecord2.<LocalDateTime>get(Schemas.LOGICALLY_DELETED_ON)).isNotNull();
+		Record documentRecord3 = recordServices.getDocumentById(document3.getId());
+		assertThat(documentRecord3.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isTrue();
+		assertThat(documentRecord3.<LocalDateTime>get(Schemas.LOGICALLY_DELETED_ON)).isNotNull();
 	}
 
 	@Test
-	public void givenRecordInHierarchyWhenGetAllRecordsInHierarchySortOrderDescendingThenRecordsSortedDescending() {
-		List<Record> orderedRecords =
-				deleteService.getAllRecordsInHierarchy(records.getFolder_A02().getWrappedRecord(), SortOrder.DESCENDING);
-		assertThat(orderedRecords.get(orderedRecords.size() - 1)).isEqualTo(records.getFolder_A02().getWrappedRecord());
+	public void whenRestoringThenSetLogicallyDeletedStatusToAllRecordInHierarchyAndExecuteTransaction()
+			throws Exception {
+		Transaction transaction = new Transaction();
+		transaction.add(folder2.set(Schemas.LOGICALLY_DELETED_STATUS, true)
+				.set(Schemas.LOGICALLY_DELETED_ON, TimeProvider.getLocalDateTime()).getWrappedRecord());
+		transaction.add(document.set(Schemas.LOGICALLY_DELETED_STATUS, true)
+				.set(Schemas.LOGICALLY_DELETED_ON, TimeProvider.getLocalDateTime()).getWrappedRecord());
+		transaction.add(document2.set(Schemas.LOGICALLY_DELETED_STATUS, true)
+				.set(Schemas.LOGICALLY_DELETED_ON, TimeProvider.getLocalDateTime()).getWrappedRecord());
+		transaction.add(document3.set(Schemas.LOGICALLY_DELETED_STATUS, true)
+				.set(Schemas.LOGICALLY_DELETED_ON, TimeProvider.getLocalDateTime()).getWrappedRecord());
+		recordServices.execute(transaction);
+
+		deleteService.restore(recordServices.getDocumentById(folder2.getId()), users.adminIn(zeCollection));
+
+		Record folderRecord2 = recordServices.getDocumentById(folder2.getId());
+		assertThat(folderRecord2.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isFalse();
+		assertThat(folderRecord2.<LocalDateTime>get(Schemas.LOGICALLY_DELETED_ON)).isNull();
+		Record documentRecord = recordServices.getDocumentById(document.getId());
+		assertThat(documentRecord.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isFalse();
+		assertThat(documentRecord.<LocalDateTime>get(Schemas.LOGICALLY_DELETED_ON)).isNull();
+		Record documentRecord2 = recordServices.getDocumentById(document2.getId());
+		assertThat(documentRecord2.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isFalse();
+		assertThat(documentRecord2.<LocalDateTime>get(Schemas.LOGICALLY_DELETED_ON)).isNull();
+		Record documentRecord3 = recordServices.getDocumentById(document3.getId());
+		assertThat(documentRecord3.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isFalse();
+		assertThat(documentRecord3.<LocalDateTime>get(Schemas.LOGICALLY_DELETED_ON)).isNull();
 	}
 }

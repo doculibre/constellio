@@ -17,13 +17,13 @@ import com.constellio.model.extensions.events.records.RecordInCreationBeforeVali
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import org.apache.commons.collections.CollectionUtils;
@@ -211,7 +211,7 @@ public class RMFolderExtension extends RecordExtension {
 		Taxonomy principalTaxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(
 				rule.getCollection());
 		for (String unit : rule.getAdministrativeUnits()) {
-			List<String> currentUnits = new ConceptNodesTaxonomySearchServices(modelLayerFactory)
+			List<String> currentUnits = new RecordHierarchyServices(modelLayerFactory)
 					.getAllConceptIdsHierarchyOf(principalTaxonomy, rmSchema.getAdministrativeUnit(unit).getWrappedRecord());
 			returnSet.addAll(currentUnits);
 		}

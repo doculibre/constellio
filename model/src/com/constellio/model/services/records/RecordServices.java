@@ -82,6 +82,12 @@ public interface RecordServices {
 
 	Record getRecordSummaryByMetadata(Metadata metadata, String value);
 
+	default Record getRecordSummaryById(String collection, String id) {
+		return getRecordSummaryById(collection, id, true);
+	}
+
+	Record getRecordSummaryById(String collection, String id, boolean callExtensions);
+
 	default Record realtimeGetById(MetadataSchemaType schemaType, String id, Long version, boolean callExtensions) {
 		return realtimeGetById(schemaType.getDataStore(), id, version, callExtensions);
 	}
@@ -123,6 +129,11 @@ public interface RecordServices {
 	default Record realtimeGetRecordById(String id) {
 		return realtimeGetRecordById(id, true);
 	}
+
+	default Record realtimeGetRecordById(RecordId id) {
+		return realtimeGetRecordById(id.stringValue(), true);
+	}
+
 
 	default Record realtimeGetRecordById(String id, Long version) {
 		return realtimeGetRecordById(id, version, true);

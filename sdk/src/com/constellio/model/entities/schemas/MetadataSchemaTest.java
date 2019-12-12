@@ -81,7 +81,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
 		MetadataSchema schema = new MetadataSchema((short) 1, (short) 1, "default", "second_default", zeCollectionInfo, labels, metadatas, false,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, new HashSet<>());
 
 		MetadataSchemaType schemaType = new MetadataSchemaType((short) 0, "second", null, zeCollectionInfo, asMap(Language.French, "titre"),
 				new ArrayList<MetadataSchema>(), schema, true, true, RecordCacheType.NOT_CACHED, true, false, "records");
@@ -116,7 +116,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
 		MetadataSchema schema = new MetadataSchema((short) 1, (short) 1, "default", "zeType_default", zeCollectionInfo, labels, metadatas, false,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, new HashSet<>());
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
 		assertThat(returnedMetadatas).containsOnly(taxonomyRelationToT4, taxonomyRelationToT3Custom);
@@ -149,7 +149,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 						textMetadata, relationToT1, relationToT2);
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
 		MetadataSchema schema = new MetadataSchema((short) 1, (short) 1, "default", "t2_default", zeCollectionInfo, labels, metadatas, false,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, new HashSet<>());
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
 		assertThat(returnedMetadatas).containsOnly(taxonomyRelationToT4, taxonomyRelationToT3Custom);

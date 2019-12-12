@@ -142,9 +142,9 @@ public class BaseRecordTreeDataProvider extends AbstractDataProvider implements 
 		Record record = searchRecord.getRecord();
 		String schemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		String caption = getCaptionOf(record);
-		String description = record.get(Schemas.DESCRIPTION_STRING);
+		String description = (String) record.getRecordDTO().getFields().get(Schemas.DESCRIPTION_STRING.getDataStoreCode());
 		if (description == null) {
-			description = record.get(Schemas.DESCRIPTION_TEXT);
+			description = (String) record.getRecordDTO().getFields().get(Schemas.DESCRIPTION_TEXT.getDataStoreCode());
 		}
 
 		Resource collapsedIcon = getCollapsedIconOf(record);

@@ -5,9 +5,13 @@ import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.io.SolrClientCache;
+import org.apache.solr.client.solrj.io.stream.StreamContext;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.common.util.NamedList;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Random;
 
 public class FaultInjectorSolrServerFactory implements SolrServerFactory {
@@ -23,6 +27,19 @@ public class FaultInjectorSolrServerFactory implements SolrServerFactory {
 		SolrClient nestedSolrServer = nestedSolrServerFactory.newSolrServer(core);
 		return nestedSolrServer;
 		//return new FaultInjectionSolrServer(nestedSolrServer);
+	}
+
+	@Override
+	public TupleStream newTupleStream(String core, Map<String, String> props) {
+		TupleStream tupleStream = nestedSolrServerFactory.newTupleStream(core, props);
+
+
+		StreamContext streamContext = new StreamContext();
+		SolrClientCache solrClientCache = new SolrClientCache();
+		streamContext.setSolrClientCache(solrClientCache);
+		tupleStream.setStreamContext(streamContext);
+
+		return tupleStream;
 	}
 
 	@Override

@@ -30,6 +30,7 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 	public static final String THESAURUS_VALUE = "thesaurusValue";
 	public static final String SKOS_CONCEPTS = "skosConcepts";
 	public static final String SEARCH_EVENTS = "searchEvents";
+	public static final String CORE = "core";
 	public static final String FEATURED_LINKS = "featuredLinks";
 	public static final String FACET_LABELS = "facet_labels";
 	public static final String AUTOCOMPLETE = "autocomplete";
@@ -52,6 +53,7 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 		ModifiableSolrParams solrParams = new ModifiableSolrParams(SolrRequestParsers.parseQueryString(queryString));
 
 		solrParams.remove(SEARCH_EVENTS);
+		solrParams.remove(CORE);
 		solrParams.remove(THESAURUS_VALUE);
 		solrParams.remove(HttpServletRequestAuthenticator.USER_SERVICE_KEY);
 		solrParams.remove(HttpServletRequestAuthenticator.USER_TOKEN);
@@ -106,9 +108,9 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 		return getConstellioFactories().getModelLayerFactory();
 	}
 
-	protected QueryResponse getQueryResponse(ModifiableSolrParams solrParams, UserCredential user) {
+	protected QueryResponse getQueryResponse(String core, ModifiableSolrParams solrParams, UserCredential user) {
 		FreeTextSearchServices freeTextSearchServices = modelLayerFactory().newFreeTextSearchServices();
-		return freeTextSearchServices.search(new FreeTextQuery(solrParams).filteredByUser(user));
+		return freeTextSearchServices.search(core, new FreeTextQuery(solrParams).filteredByUser(user));
 	}
 
 	protected QueryResponse getEventQueryResponse(ModifiableSolrParams solrParams) {

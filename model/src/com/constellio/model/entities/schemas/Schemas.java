@@ -142,11 +142,7 @@ Schemas {
 	}
 
 	public static Metadata getSortMetadata(Metadata metadata) {
-
-		String dataStoreCode = metadata.getDataStoreCode().replace("_s", "_sort_s");
-		String schemaCode = metadata.getCode().replace("_" + metadata.getLocalCode(), "");
-		return new Metadata(metadata.id, schemaCode, dataStoreCode, STRING, metadata.isMultivalue(),
-				metadata.isMultiLingual());
+		return metadata.getSortMetadata();
 	}
 
 	public static Metadata getSearchableMetadata(Metadata metadata, String languageCode) {

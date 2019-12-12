@@ -64,11 +64,14 @@ public class MetadataSchema implements Serializable {
 
 	private final short typeId;
 
+	private List<Metadata> referencesToSummaryCachedType;
+
 	public MetadataSchema(short typeId, short id, String localCode, String code, CollectionInfo collectionInfo,
 						  Map<Language, String> labels,
 						  List<Metadata> metadatas,
 						  Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
-						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active) {
+						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active,
+						  Set<String> typesWithSummaryCache) {
 		super();
 		this.typeId = typeId;
 		this.id = id;
@@ -93,6 +96,7 @@ public class MetadataSchema implements Serializable {
 		this.collectionInfo = collectionInfo;
 		this.summaryMetadatas = new SchemaUtils().buildListOfSummaryMetadatas(metadatas);
 		this.cacheIndexMetadatas = new SchemaUtils().buildListOfCacheIndexMetadatas(metadatas);
+		this.referencesToSummaryCachedType = new SchemaUtils().buildListOfReferencesToSummaryCachedType(metadatas, typesWithSummaryCache);
 		this.hasEagerTransientMetadata = metadatas.stream().anyMatch((m) -> m.getTransiency() == MetadataTransiency.TRANSIENT_EAGER);
 
 	}
@@ -160,6 +164,10 @@ public class MetadataSchema implements Serializable {
 		} catch (MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType | MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema e) {
 			return false;
 		}
+	}
+
+	public List<Metadata> getReferencesToSummaryCachedType() {
+		return referencesToSummaryCachedType;
 	}
 
 	public Metadata get(String metadataCode) {

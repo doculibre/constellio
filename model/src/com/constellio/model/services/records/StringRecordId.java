@@ -8,7 +8,8 @@ import java.util.Objects;
 
 public class StringRecordId implements RecordId {
 
-	private static Map<Integer, String> mapping = new HashMap<>();
+	private static Map<Integer, String> isMapping = new HashMap<>();
+	private static Map<String, Integer> siMapping = new HashMap<>();
 
 	private int intValue;
 	private String id;
@@ -24,10 +25,11 @@ public class StringRecordId implements RecordId {
 				//Handling the zero hashcode
 				intValue -= 101;
 			}
-			String currentStrValue = mapping.get(intValue);
+			String currentStrValue = isMapping.get(intValue);
 			if (currentStrValue == null) {
-				synchronized (mapping) {
-					mapping.put(intValue, id);
+				synchronized (StringRecordId.class) {
+					isMapping.put(intValue, id);
+					siMapping.put(id, intValue);
 				}
 			} else if (!id.equals(currentStrValue)) {
 				throw new IllegalArgumentException("Id '" + id + "' has same hashcode value than id '" + currentStrValue + "' : " + intValue);
@@ -40,7 +42,7 @@ public class StringRecordId implements RecordId {
 	}
 
 	public StringRecordId(int id) {
-		this.id = mapping.get(id);
+		this.id = isMapping.get(id);
 		this.intValue = id;
 	}
 
@@ -130,5 +132,9 @@ public class StringRecordId implements RecordId {
 	@Override
 	public String toString() {
 		return id;
+	}
+
+	public static synchronized Map<String, Integer> getAnomaliesMap() {
+		return new HashMap<>(siMapping);
 	}
 }

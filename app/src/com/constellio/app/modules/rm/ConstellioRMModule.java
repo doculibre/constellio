@@ -73,6 +73,7 @@ import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo8_1_0_43;
+import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo9_0;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
 import com.constellio.app.modules.rm.migrations.records.RMFolderMigrationTo8_1_1_2;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -248,8 +249,12 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_2_1_5());
 		scripts.add(new RMMigrationTo9_0_0_42());
 		scripts.add(new RMMigrationTo9_0_0_4());
+		scripts.add(new RMMigrationTo9_0_0_43());
 		scripts.add(new RMMigrationTo9_0_0_33());
 		scripts.add(new RMMigrationTo9_0_0_42());
+		scripts.add(new RMMigrationTo9_0_46());
+		scripts.add(new RMMigrationTo9_0_48());
+
 		//scripts.add(new RMMigrationTo9_0_666());
 
 		return scripts;
@@ -264,6 +269,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMEmailMigrationTo7_7_1(collection, appLayerFactory));
 		scripts.add(new RMFolderMigrationTo8_1_1_2(collection, appLayerFactory));
 		scripts.add(new RMDocumentMigrationTo8_1_0_43(collection, appLayerFactory));
+		scripts.add(new RMDocumentMigrationTo9_0(collection, appLayerFactory));
 
 		return scripts;
 	}

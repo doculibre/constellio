@@ -6,6 +6,8 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -42,6 +44,7 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
@@ -155,9 +158,24 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		scripts.add(new RMMigrationTo8_1_2());
 		scripts.add(new RMMigrationTo8_1_4());
 		scripts.add(new RMMigrationTo8_2());
+		scripts.add(new RMMigrationTo8_2_42());
 		scripts.add(new RMMigrationTo8_2_1_4());
+		scripts.add(new RMMigrationTo8_2_1_5());
 		scripts.add(new RMMigrationTo8_2_2_4());
 		scripts.add(new RMMigrationTo8_2_2_5());
+		scripts.add(new RMMigrationTo8_2_3());
+		scripts.add(new RMMigrationTo8_3());
+		scripts.add(new RMMigrationTo8_3_1());
+		scripts.add(new RMMigrationTo8_3_1_1());
+		scripts.add(new RMMigrationTo8_3_2());
+		scripts.add(new RMMigrationTo8_3_2_1());
+		scripts.add(new RMMigrationTo8_3_2_2());
+		scripts.add(new RMMigrationTo9_0());
+		scripts.add(new RMMigrationTo9_0_0_1());
+		scripts.add(new RMMigrationTo8_2_1_5());
+		scripts.add(new RMMigrationTo9_0_0_4());
+		scripts.add(new RMMigrationTo9_0_0_33());
+		scripts.add(new RMMigrationTo9_0_0_42());
 
 		return scripts;
 	}
@@ -181,6 +199,9 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		generatedComboMigration.applyGeneratedRoles();
 		generatedComboMigration.applySchemasDisplay(appLayerFactory.getMetadataSchemasDisplayManager());
 		applySchemasDisplay2(collection, appLayerFactory.getMetadataSchemasDisplayManager());
+
+		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
+		rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withTitle("Administrateur / Administrator"));
 
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		MetadataSchemaTypes types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
@@ -211,6 +232,13 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		taxonomiesManager.editTaxonomy(taxonomiesManager.getEnabledTaxonomyWithCode(collection, "admUnits"));
 
 		RMMigrationTo7_2.reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
+
+		rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.MANAGER)
+				.withNewPermissions(asList(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)));
+
+		rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.RGD)
+				.withNewPermissions(asList(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST)));
+
 	}
 
 

@@ -34,6 +34,7 @@ import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -390,16 +391,47 @@ public class MetadataSchemaBuilder {
 			id = typeBuilder.nextSchemaId();
 		}
 
+		Set<String> typesWithSummaryCache = getTypesWithSummaryCache(typesBuilder);
+
 		MetadataSchema metadataSchema = new MetadataSchema(typeId, id, this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(),
 				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators),
-				schemaTypeBuilder.getDataStore(), this.isActive());
+				schemaTypeBuilder.getDataStore(), this.isActive(), typesWithSummaryCache);
 		return metadataSchema;
+	}
+
+	@NotNull
+	private Set<String> getTypesWithSummaryCache(MetadataSchemaTypesBuilder typesBuilder) {
+		Set<String> typesWithSummaryCache = new HashSet<>();
+		for (MetadataSchemaTypeBuilder aTypeBuilder : typesBuilder.getTypes()) {
+			if (aTypeBuilder.getRecordCacheType() != null && aTypeBuilder.getRecordCacheType().isSummaryCache()) {
+				typesWithSummaryCache.add(aTypeBuilder.getCode());
+			}
+		}
+		return typesWithSummaryCache;
 	}
 
 	public String getTypeCode() {
 
 		return schemaTypeBuilder.getCode();
+	}
+
+	public void resetAllIds(SchemasIdSequence sequenceForSchemaAndTypeId,
+							SchemasIdSequence metadataForSchemaAndTypeId) {
+		id = sequenceForSchemaAndTypeId.getNewId();
+
+		List<MetadataBuilder> metadatas = new ArrayList<>(getMetadatas());
+		metadatas.sort(Comparator.comparing(MetadataBuilder::getCode));
+
+		for (MetadataBuilder metadata : metadatas) {
+			if (metadata.getInheritance() != null) {
+				metadata.id = metadata.getInheritance().getId();
+			} else {
+				short newId = metadataForSchemaAndTypeId.getNewId();
+				metadata.id = newId;
+			}
+		}
+
 	}
 
 	private static class SchemaRecordSteps {
@@ -595,7 +627,7 @@ public class MetadataSchemaBuilder {
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		MetadataSchema metadataSchema = new MetadataSchema(typeId, this.getId(), this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(), inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators)
-				, schemaTypeBuilder.getDataStore(), this.isActive());
+				, schemaTypeBuilder.getDataStore(), this.isActive(), getTypesWithSummaryCache(typesBuilder));
 		return metadataSchema;
 	}
 

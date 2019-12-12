@@ -154,7 +154,7 @@ public class RecordUtils {
 	 * @param object
 	 * @return
 	 */
-	private static long sizeOf(Object object) {
+	public static long sizeOf(Object object) {
 
 		if (object == null) {
 			return 0;

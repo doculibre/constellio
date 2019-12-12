@@ -69,6 +69,7 @@ public class MetadataSchemaType implements Serializable {
 
 	private boolean hasEagerTransientMetadata;
 
+
 	public MetadataSchemaType(short id, String code, String smallCode, CollectionInfo collectionInfo,
 							  Map<Language, String> labels,
 							  List<MetadataSchema> customSchemas,
@@ -98,6 +99,7 @@ public class MetadataSchemaType implements Serializable {
 		this.schemasById = computeSchemasById(defaultSchema, customSchemas);
 		this.recordCacheType = recordCacheType;
 		this.allMetadatas = computeAllMetadatas(defaultSchema, customSchemas);
+
 		hasEagerTransientMetadata = allMetadatas.stream().anyMatch((m) -> m.getTransiency() == TRANSIENT_EAGER);
 	}
 

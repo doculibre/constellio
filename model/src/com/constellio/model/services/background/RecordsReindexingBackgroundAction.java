@@ -1,6 +1,7 @@
 package com.constellio.model.services.background;
 
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.records.Record;
@@ -46,10 +47,13 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 
 	public synchronized void run(boolean waitDuringOfficeHours) {
 
-		boolean officeHours = TimeProvider.getLocalDateTime().getHourOfDay() >= 7
+		boolean officeHours = new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER
+							  && TimeProvider.getLocalDateTime().getHourOfDay() >= 7
 							  && TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
 
-		if (ReindexingServices.getReindexingInfos() == null
+		if (!Toggle.PERFORMANCE_TESTING.isEnabled()
+
+			&& ReindexingServices.getReindexingInfos() == null
 			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
 			boolean found = false;
 			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {

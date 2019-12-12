@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.fromTypeIn;
+import static com.constellio.model.services.records.RecordHierarchyServices.fromTypeIn;
 
 public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyManagementSearchView> {
 

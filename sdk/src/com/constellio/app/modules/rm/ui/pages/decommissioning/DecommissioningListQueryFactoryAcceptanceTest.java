@@ -30,6 +30,14 @@ public class DecommissioningListQueryFactoryAcceptanceTest extends ConstellioTes
 	@Before
 	public void setUp()
 			throws Exception {
+
+		//		configure(new AppLayerConfigurationAlteration() {
+		//			@Override
+		//			public void alter(InMemoryAppLayerConfiguration configuration) {
+		//				configuration.setFastMigrationsEnabled(false);
+		//			}
+		//		});
+
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
@@ -186,6 +194,13 @@ public class DecommissioningListQueryFactoryAcceptanceTest extends ConstellioTes
 
 	@Test
 	public void givenUserWithApprovePermissionWhenSearchingListsPendingApprovalThenReturnNone() {
+
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
 		User gandalf_managerInABC = records.getGandalf_managerInABC();
 		LogicalSearchQuery query = queryFactory.getListsPendingApprovalQuery(gandalf_managerInABC);
 		List<Record> decommissioningListsProcessable = searchServices.search(query);

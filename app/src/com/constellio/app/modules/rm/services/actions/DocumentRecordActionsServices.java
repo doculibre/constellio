@@ -162,7 +162,7 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isCreatePdfActionPossible(Record record, User user) {
-		Document document = rm.getDocument(record.getId());
+		Document document = rm.wrapDocument(record);
 
 		if (!isCheckOutPossible(document) ||
 			document.getContent() == null ||
@@ -171,7 +171,7 @@ public class DocumentRecordActionsServices {
 			return false;
 		}
 
-		return rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm.wrapDocument(record), user);
+		return rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(document, user);
 	}
 
 	public boolean isAddToCartActionPossible(Record record, User user) {

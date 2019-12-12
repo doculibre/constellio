@@ -10,11 +10,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 
@@ -36,7 +36,7 @@ public class AvailableSpaceReportPresenter {
 	private TaxonomiesSearchServices taxonomiesSearchServices;
 	private SearchServices searchServices;
 	private RMSchemasRecordsServices rm;
-	private ConceptNodesTaxonomySearchServices conceptNodesTaxonomySearchServices;
+	private RecordHierarchyServices recordHierarchyServices;
 	private MetadataSchemaTypes types;
 	private boolean showFullSpaces;
 
@@ -57,8 +57,7 @@ public class AvailableSpaceReportPresenter {
 
 		AvailableSpaceReportModel model = new AvailableSpaceReportModel();
 		model.setShowFullSpaces(showFullSpaces);
-		List<Record> rootStorageSpaces = conceptNodesTaxonomySearchServices
-				.getRootConcept(collection, RMTaxonomies.STORAGES, searchOptions.setRows(10000));
+		List<Record> rootStorageSpaces = recordHierarchyServices.getRootConcept(collection, RMTaxonomies.STORAGES, searchOptions.setRows(10000));
 		searchOptions.setReturnedMetadatasFilter(searchOptions.getReturnedMetadatasFilter()
 				.withIncludedMetadatas(rm.storageSpace.capacity(), rm.storageSpace.availableSize()));
 
@@ -69,7 +68,7 @@ public class AvailableSpaceReportPresenter {
 				parent.setCode(storageSpace.getCode()).setTitle(rootRecord.getTitle()).setImage("etagere")
 						.setCapacity(storageSpace.getCapacity() != null ? storageSpace.getCapacity() : 0)
 						.setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
-				List<Record> childStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(rootRecord, searchOptions.setRows(10000));
+				List<Record> childStorageSpaces = recordHierarchyServices.getChildConcept(rootRecord, searchOptions.setRows(10000));
 				if (childStorageSpaces != null) {
 					createChildRow(parent, childStorageSpaces);
 				}
@@ -98,7 +97,7 @@ public class AvailableSpaceReportPresenter {
 				child.setCode(storageSpace.getCode()).setImage("etagere")
 						.setCapacity(storageSpace.getCapacity() != null ? storageSpace.getCapacity() : 0)
 						.setTitle(childRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
-				List<Record> subChildStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(childRecord, searchOptions.setRows(10000));
+				List<Record> subChildStorageSpaces = recordHierarchyServices.getChildConcept(childRecord, searchOptions.setRows(10000));
 				if (subChildStorageSpaces != null) {
 					createChildRow(child, subChildStorageSpaces);
 				}
@@ -138,7 +137,7 @@ public class AvailableSpaceReportPresenter {
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.allAndWithIncludedFields(acceptedFields));
 		taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
 		searchServices = modelLayerFactory.newSearchServices();
-		conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(modelLayerFactory);
+		recordHierarchyServices = new RecordHierarchyServices(modelLayerFactory);
 	}
 
 

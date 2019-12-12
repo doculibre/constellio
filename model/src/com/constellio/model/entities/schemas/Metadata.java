@@ -454,6 +454,18 @@ public class Metadata implements DataStoreField {
 		return hasNormalizedSortField() ? new DefaultStringSortFieldNormalizer() : null;
 	}
 
+	private Metadata cachedSortMetadata;
+
+	public Metadata getSortMetadata() {
+		if (cachedSortMetadata == null) {
+			String dataStoreCode = this.getDataStoreCode().replace("_s", "_sort_s");
+			String schemaCode = this.getCode().replace("_" + this.getLocalCode(), "");
+			cachedSortMetadata = new Metadata(this.id, schemaCode, dataStoreCode, STRING, this.isMultivalue(),
+					this.isMultiLingual());
+		}
+		return cachedSortMetadata;
+	}
+
 	public Object getDefaultValue() {
 		return defaultValue;
 	}
@@ -577,7 +589,7 @@ public class Metadata implements DataStoreField {
 	}
 
 	public Metadata getSortField() {
-		return hasNormalizedSortField() ? Schemas.getSortMetadata(this) : null;
+		return hasNormalizedSortField() ? getSortMetadata() : null;
 	}
 
 	public boolean isSameValueThan(Metadata otherMetadata) {

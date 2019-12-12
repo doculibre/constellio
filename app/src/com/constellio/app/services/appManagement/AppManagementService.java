@@ -171,6 +171,7 @@ public class AppManagementService {
 			LOGGER.info(currentStep);
 
 			File oldPluginsFolder = foldersLocator.getPluginsJarsFolder();
+			copyCurrentLibsIfPatchWar(foldersLocator.getConstellioWebappFolder(), tempFolder);
 			copyCurrentPlugins(oldPluginsFolder, tempFolder);
 			movePluginsToNewLib(oldPluginsFolder, tempFolder);
 			updatePluginsWithThoseInWar(tempFolder);
@@ -213,6 +214,25 @@ public class AppManagementService {
 			fileService.deleteQuietly(tempFolder);
 		}
 		progressInfo.setCurrentState(1);
+
+	}
+
+	private void copyCurrentLibsIfPatchWar(File constellioWebappFolder, File tempFolder) {
+		File newAppLibs = new File(new File(tempFolder, "WEB-INF"), "lib");
+		File currentAppLibs = new File(new File(constellioWebappFolder, "WEB-INF"), "lib");
+
+		if (newAppLibs.listFiles() != null && newAppLibs.listFiles().length < 10) {
+			for (File currentJarFile : currentAppLibs.listFiles()) {
+				if (!currentJarFile.getName().startsWith("core-")
+					&& !currentJarFile.getName().startsWith("plugin")) {
+					try {
+						FileUtils.copyFile(currentJarFile, new File(newAppLibs, currentJarFile.getName()));
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}
+		}
 
 	}
 

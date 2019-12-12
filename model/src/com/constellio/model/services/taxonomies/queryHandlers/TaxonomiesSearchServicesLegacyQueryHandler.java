@@ -40,6 +40,11 @@ import static com.constellio.data.utils.LangUtils.isTrueOrNull;
 import static com.constellio.model.entities.schemas.Schemas.LINKABLE;
 import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
 import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
+import static com.constellio.model.services.records.RecordHierarchyServices.directChildOf;
+import static com.constellio.model.services.records.RecordHierarchyServices.fromTypeIn;
+import static com.constellio.model.services.records.RecordHierarchyServices.notDirectChildOf;
+import static com.constellio.model.services.records.RecordHierarchyServices.recordInHierarchyOf;
+import static com.constellio.model.services.records.RecordHierarchyServices.visibleInTrees;
 import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
 import static com.constellio.model.services.search.StatusFilter.ACTIVES;
 import static com.constellio.model.services.search.StatusFilter.DELETED;
@@ -49,11 +54,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_SOLR;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsIn;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsNotIn;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.directChildOf;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.fromTypeIn;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.notDirectChildOf;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.recordInHierarchyOf;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.visibleInTrees;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static java.util.Arrays.asList;
 
@@ -87,10 +87,10 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 			options.setRows(10000);
 			options.setStartRow(0);
 			if (ctx.getRecord() == null) {
-				children = conceptNodesTaxonomySearchServices.getRootConceptResponse(
+				children = recordHierarchyServices.getRootConceptResponse(
 						ctx.getTaxonomy().getCollection(), ctx.getTaxonomy().getCode(), options).getRecords();
 			} else {
-				children = conceptNodesTaxonomySearchServices.getChildConcept(ctx.getRecord(), options);
+				children = recordHierarchyServices.getChildConcept(ctx.getRecord(), options);
 			}
 
 			LogicalSearchCondition condition = fromAllSchemasIn(ctx.getTaxonomy().getCollection())
@@ -224,7 +224,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 			return getVisibleChildrenRecords(ctx);
 		} else {
 
-			LogicalSearchQuery mainQuery = conceptNodesTaxonomySearchServices.getRootConceptsQuery(
+			LogicalSearchQuery mainQuery = recordHierarchyServices.getRootConceptsQuery(
 					ctx.getCollection(), ctx.taxonomy.getCode(), ctx.options);
 
 			mainQuery.filteredByStatus(ctx.options.getIncludeStatus())
@@ -400,7 +400,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 		//		SearchResponseIterator<Record> rootIterator = searchServices.recordsIteratorKeepingOrder(
 		//				mainQuery.setNumberOfRows(100000).setStartRow(0), 50);
 
-		LogicalSearchQuery mainQuery = conceptNodesTaxonomySearchServices.getRootConceptsQuery(ctx.getCollection(), ctx.getTaxonomy().getCode(), ctx.getOptions());
+		LogicalSearchQuery mainQuery = recordHierarchyServices.getRootConceptsQuery(ctx.getCollection(), ctx.getTaxonomy().getCode(), ctx.getOptions());
 
 		boolean selectingAConcept =
 				ctx.getForSelectionOfSchemaType() != null && ctx.getTaxonomy().getSchemaTypes().contains(ctx.getForSelectionOfSchemaType().getCode());
@@ -609,7 +609,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 		Iterator<List<Record>> iterator;
 		int lastIteratedRecordIndex = 0;
 		if (context.isConceptOfNavigatedTaxonomy(context.record)) {
-			LogicalSearchQuery mainQuery = conceptNodesTaxonomySearchServices.childConceptsQuery(context.record, context.taxonomy, context.options, types);
+			LogicalSearchQuery mainQuery = recordHierarchyServices.childConceptsQuery(context.record, context.taxonomy, context.options, types);
 
 			FastContinueInfos continueInfos = context.options.getFastContinueInfos();
 			if (continueInfos != null) {
@@ -761,7 +761,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 
 	protected ReturnedMetadatasFilter returnedMetadatasForRecordsIn(
 			GetChildrenContext context) {
-		return conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(context.getCollection(), context.options);
+		return recordHierarchyServices.returnedMetadatasForRecordsIn(context.getCollection(), context.options);
 	}
 
 
@@ -786,7 +786,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 		query.filteredWith(new UserFilter() {
 
 			@Override
-			public String buildFQ(SecurityTokenManager securityTokenManager) {
+			public String buildFQ(SecurityTokenManager securityTokenManager, LogicalSearchQuery query) {
 
 				return FilterUtils.userHierarchyFilter(ctx.user, securityTokenManager, ctx.options.getRequiredAccess(),
 						ctx.forSelectionOfSchemaType, ctx.options.isShowInvisibleRecordsInLinkingMode());
@@ -911,7 +911,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 				.setStartRow(options.getStartRow())
 				.setNumberOfRows(options.getRows())
 				.setReturnedMetadatas(
-						conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(condition.getCollection(), options))
+						recordHierarchyServices.returnedMetadatasForRecordsIn(condition.getCollection(), options))
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE);
 	}
 

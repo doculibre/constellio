@@ -1,6 +1,8 @@
 package com.constellio.model.services.search;
 
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.solr.SolrServers;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -10,11 +12,14 @@ import com.constellio.model.services.search.query.logical.FreeTextQuery;
 import com.constellio.model.services.security.SecurityTokenManager;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 public class FreeTextSearchServices {
 	Logger LOGGER = LoggerFactory.getLogger(FreeTextSearchServices.class);
@@ -25,17 +30,23 @@ public class FreeTextSearchServices {
 	UserServices userServices;
 	SecurityTokenManager securityTokenManager;
 	MetadataSchemasManager metadataSchemasManager;
+	SolrServers solrServers;
 
 	public FreeTextSearchServices(ModelLayerFactory modelLayerFactory) {
 		super();
 		this.recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
 		this.eventsDao = modelLayerFactory.getDataLayerFactory().newEventsDao();
+		this.solrServers = modelLayerFactory.getDataLayerFactory().getSolrServers();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.userServices = modelLayerFactory.newUserServices();
 		this.securityTokenManager = modelLayerFactory.getSecurityTokenManager();
 	}
 
 	public QueryResponse search(FreeTextQuery query) {
+		return search(DataStore.RECORDS, query);
+	}
+
+	public QueryResponse search(String core, FreeTextQuery query) {
 		ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams(query.getSolrParams());
 
 		if (query.getUserFilter() != null && isSecurityEnabled(modifiableSolrParams)) {
@@ -49,7 +60,18 @@ public class FreeTextSearchServices {
 			modifiableSolrParams.add("fq", "-schema_s:event*");
 		}
 		//LOGGER.info(LoggerUtils.toParamsString(modifiableSolrParams));
-		return recordDao.nativeQuery(modifiableSolrParams);
+
+		if (core == null || core.equals(DataStore.RECORDS)) {
+			return recordDao.nativeQuery(modifiableSolrParams);
+		} else {
+			try {
+				return solrServers.getSolrServer(core).getNestedSolrServer().query(modifiableSolrParams);
+			} catch (SolrServerException e) {
+				throw new RuntimeException(e);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	public boolean isSecurityEnabled(SolrParams params) {

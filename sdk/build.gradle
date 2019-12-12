@@ -1,6 +1,6 @@
 plugins {
-  id "org.sonarqube" version "2.6.2" 
-} 
+    id "org.sonarqube" version "2.6.2"
+}
 
 dependencies {
     compile project(":constellio:data")
@@ -19,11 +19,12 @@ dependencies {
     compile 'org.apache.chemistry.opencmis:chemistry-opencmis-client-impl:1.1.0'
     compile "com.squareup:javapoet:1.7.0"
     compile group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '7.4.1.jre8'
+    runtime 'org.projectlombok:lombok:1.18.2'
 }
 
 configurations.all {
     resolutionStrategy {
-    	def seleniumVersion = '3.141.59'
+        def seleniumVersion = '3.141.59'
         force 'org.seleniumhq.selenium:selenium-api:' + seleniumVersion
         force 'org.seleniumhq.selenium:selenium-chrome-driver:' + seleniumVersion
         force 'org.seleniumhq.selenium:selenium-edge-driver:' + seleniumVersion

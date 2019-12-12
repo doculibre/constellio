@@ -9,6 +9,7 @@ import com.constellio.model.services.records.cache.cacheIndexConditions.SortedId
 import com.constellio.model.services.records.cache.cacheIndexHook.MetadataIndexCacheDataStoreHook;
 import com.constellio.model.services.records.cache.cacheIndexHook.RecordCountHookDataIndexRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.RecordIdsHookDataIndexRetriever;
+import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
 import com.constellio.model.services.records.cache.hooks.RecordsCachesHook;
 
 import java.util.ArrayList;
@@ -134,5 +135,11 @@ public interface RecordsCaches {
 
 	<K> RecordIdsHookDataIndexRetriever<K> registerRecordIdsHook(
 			String collection, MetadataIndexCacheDataStoreHook hook);
+
+
+	MetadataIndexCacheDataStore getMetadataIndexCacheDataStore();
+
+	RecordsCachesDataStore getRecordsCachesDataStore();
+
 
 }

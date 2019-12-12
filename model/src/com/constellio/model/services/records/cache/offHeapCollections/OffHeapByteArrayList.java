@@ -1,5 +1,7 @@
 package com.constellio.model.services.records.cache.offHeapCollections;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class OffHeapByteArrayList {
 	private OffHeapShortList byteArraySizes = new OffHeapShortList();
 	private OffHeapLongList byteArrayMemoryAdresses = new OffHeapLongList();
@@ -7,6 +9,20 @@ public class OffHeapByteArrayList {
 	public OffHeapByteArrayList() {
 	}
 
+	public int getHeapConsumption() {
+		return byteArraySizes.getHeapConsumption() + byteArrayMemoryAdresses.getHeapConsumption();
+	}
+
+	public long getOffHeapConsumption() {
+		AtomicLong offHeap = new AtomicLong(
+				byteArraySizes.getOffHeapConsumption() + byteArrayMemoryAdresses.getOffHeapConsumption());
+
+		byteArraySizes.stream().filter((s) -> s > 0).forEach((s) -> {
+			offHeap.addAndGet(s);
+		});
+
+		return offHeap.get();
+	}
 
 	public void set(int index, byte[] value) {
 		long previousAddress = byteArrayMemoryAdresses.get(index);

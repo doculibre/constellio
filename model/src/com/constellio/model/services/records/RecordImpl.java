@@ -118,6 +118,10 @@ public class RecordImpl implements Record {
 		this(recordDTO, schema.getCollectionInfo(), typeId);
 	}
 
+	public RecordImpl(MetadataSchema schema, RecordDTO recordDTO) {
+		this(recordDTO, schema.getCollectionInfo(), schema.getTypeId());
+	}
+
 	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, short typeId) {
 		this.id = recordDTO.getId();
 		this.typeId = typeId;

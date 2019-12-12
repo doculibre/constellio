@@ -55,7 +55,16 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 	boolean isModified(Metadata metadata);
 
 	default boolean isAnyModified(Metadata... metadatas) {
-		for(Metadata metadata : metadatas) {
+		for (Metadata metadata : metadatas) {
+			if (isModified(metadata)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	default boolean isAnyModified(List<Metadata> metadatas) {
+		for (Metadata metadata : metadatas) {
 			if (isModified(metadata)) {
 				return true;
 			}
