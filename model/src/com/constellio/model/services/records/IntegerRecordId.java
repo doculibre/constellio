@@ -18,6 +18,11 @@ public class IntegerRecordId implements RecordId {
 	}
 
 	@Override
+	public int intValue() {
+		return id;
+	}
+
+	@Override
 	public boolean isInteger() {
 		return true;
 	}

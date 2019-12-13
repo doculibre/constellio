@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.model.services.records.RecordUtils.toStringId;
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.SortedIntIdsList_ID;
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.allocateMemory;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.copyAdding;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.putInt;
 
@@ -43,26 +45,26 @@ public class SortedIntIdsList implements SortedIdsList {
 				if (size == 0) {
 
 					size = (INITIAL_SIZE * Integer.BYTES);
-					address = OffHeapMemoryAllocator.allocateMemory(size);
+					address = allocateMemory(size, SortedIntIdsList_ID);
 					putInt(address, intId);
 					capacity = (short) (size - Integer.BYTES);
 
 				} else {
 					int newSize = Math.min(size * RESIZE_FACTOR, size + (Integer.BYTES * MAX_INCREMENTING_SIZE));
-					long newAddress = OffHeapMemoryAllocator.allocateMemory(newSize);
+					long newAddress = allocateMemory(newSize, SortedIntIdsList_ID);
 
 					try {
 						copyAdding(address, newAddress, size, placementIndex * Integer.BYTES, Integer.BYTES);
 						putInt(newAddress + placementIndex * Integer.BYTES, intId);
 
 					} catch (Throwable t) {
-						OffHeapMemoryAllocator.freeMemory(newAddress, newSize);
+						OffHeapMemoryAllocator.freeMemory(newAddress, newSize, SortedIntIdsList_ID);
 
 						throw t;
 					}
 
 
-					OffHeapMemoryAllocator.freeMemory(address, size);
+					OffHeapMemoryAllocator.freeMemory(address, size, SortedIntIdsList_ID);
 					capacity = (short) (newSize - size - Integer.BYTES);
 					address = newAddress;
 					size = newSize;
@@ -105,7 +107,7 @@ public class SortedIntIdsList implements SortedIdsList {
 	public synchronized void clear() {
 
 		if (size > 0) {
-			OffHeapMemoryAllocator.freeMemory(address, size);
+			OffHeapMemoryAllocator.freeMemory(address, size, SortedIntIdsList_ID);
 		}
 
 		address = 0;

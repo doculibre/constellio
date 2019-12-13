@@ -19,14 +19,16 @@ public class ImageUtils {
 
 	public static Dimension getImageDimension(File file) {
 		try (ImageInputStream in = ImageIO.createImageInputStream(file)) {
-			final Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
-			if (readers.hasNext()) {
-				ImageReader reader = readers.next();
-				try {
-					reader.setInput(in);
-					return new Dimension(reader.getWidth(0), reader.getHeight(0));
-				} finally {
-					reader.dispose();
+			if (in != null) {
+				final Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
+				if (readers.hasNext()) {
+					ImageReader reader = readers.next();
+					try {
+						reader.setInput(in);
+						return new Dimension(reader.getWidth(0), reader.getHeight(0));
+					} finally {
+						reader.dispose();
+					}
 				}
 			}
 		} catch (IOException e) {
