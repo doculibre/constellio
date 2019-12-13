@@ -11,12 +11,14 @@ import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
@@ -268,7 +270,13 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 														  InsertionReason insertionReason) {
 		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
 
-			RecordDTO dto = ((RecordImpl) record).getRecordDTO();
+			RecordDTO dto;
+			if (schemaType.getCode().equals(User.SCHEMA_TYPE) || schemaType.getCode().equals(UserCredential.SCHEMA_TYPE)) {
+				dto = toPersistedSummaryRecordDTO(record, insertionReason, false);
+			} else {
+				dto = ((RecordImpl) record).getRecordDTO();
+			}
+
 			if (dto.getLoadingMode() != RecordDTOMode.FULLY_LOADED) {
 				LOGGER.error("Record '" + record.getId() + "' of type should not exist in summary state, since it is fully cached");
 				return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED, null, insertion);
@@ -282,7 +290,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 
 		} else if (schemaType.getCacheType().isSummaryCache()) {
-			RecordDTO dto = toPersistedSummaryRecordDTO(record, insertionReason);
+			RecordDTO dto = toPersistedSummaryRecordDTO(record, insertionReason, true);
 
 			MetadataSchema metadataSchema = oldRecord != null ? schemaType.getSchema(oldRecord.getSchemaCode()) : schemaType.getSchema(record.getSchemaCode());
 
@@ -418,7 +426,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			}
 
 			if (returnedRecord != null && returnedRecord.getLoadedFieldsMode() == FULLY_LOADED) {
-				returnedRecord = toRecord(toPersistedSummaryRecordDTO(returnedRecord, null));
+				returnedRecord = toRecord(toPersistedSummaryRecordDTO(returnedRecord, null, true));
 			}
 		}
 
@@ -843,10 +851,10 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 
-	private RecordDTO toPersistedSummaryRecordDTO(Record record, InsertionReason reason) {
+	private RecordDTO toPersistedSummaryRecordDTO(Record record, InsertionReason reason, boolean summary) {
 
 		if (Toggle.USE_BYTE_ARRAY_DTOS_FOR_SUMMARY_CACHE.isEnabled()) {
-			RecordDTO byteArrayRecordDTO = prepareForCache(((RecordImpl) record).getRecordDTO(), reason);
+			RecordDTO byteArrayRecordDTO = prepareForCache(((RecordImpl) record).getRecordDTO(), reason, summary);
 
 			if (Toggle.VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION.isEnabled()) {
 				validate(record, byteArrayRecordDTO);
@@ -932,7 +940,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 
-	private RecordDTO prepareForCache(RecordDTO dto, InsertionReason reason) {
+	private RecordDTO prepareForCache(RecordDTO dto, InsertionReason reason, boolean summary) {
 
 		if (dto.getLoadingMode() == CUSTOM && reason != LOADING_CACHE) {
 			throw new IllegalStateException("Cannot create summary record from a customly loaded Record");
@@ -961,7 +969,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			} else if (reason != LOADING_CACHE) {
 				SummaryCacheSingletons.dataStore.get(instanceId).removeStringKey(dto.getId());
 			}
-			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), true,
+			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), summary,
 					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
 					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
 		} else {
@@ -971,7 +979,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			} else if (reason != LOADING_CACHE) {
 				SummaryCacheSingletons.dataStore.get(instanceId).removeIntKey(intId);
 			}
-			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), true,
+			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), summary,
 					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
 					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
 		}

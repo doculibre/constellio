@@ -123,13 +123,13 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		} finally {
 			mechanism.releaseSystemWideReadingPermit();
 		}
-		boolean summary = dto instanceof ByteArrayRecordDTO;
+		boolean storedAsByteArray = dto instanceof ByteArrayRecordDTO;
 		mechanism.obtainSchemaTypeWritingPermit(collectionId, typeId);
 		try {
 			synchronized (this) {
 				if (index >= 0) {
 
-					removeFromMainListsAndTypeIndex(collectionId, typeId, index, summary);
+					removeFromMainListsAndTypeIndex(collectionId, typeId, index, storedAsByteArray);
 				}
 			}
 		} finally {
@@ -140,8 +140,9 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 	/**
 	 * Always type write locked and synchronized
 	 */
-	private void removeFromMainListsAndTypeIndex(byte collectionId, short typeId, int index, boolean summary) {
-		int collectionIndex = removeFromMainLists(collectionId, index, summary);
+	private void removeFromMainListsAndTypeIndex(byte collectionId, short typeId, int index,
+												 boolean storedAsByteArray) {
+		int collectionIndex = removeFromMainLists(collectionId, index, storedAsByteArray);
 
 		IntArrayList typeIndexes = typesIndexes[collectionIndex][typeId];
 		typeIndexes.remove(index);
@@ -150,7 +151,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 	/**
 	 * Always write locked and synchronized
 	 */
-	private int removeFromMainLists(int collectionId, int index, boolean summary) {
+	private int removeFromMainLists(int collectionId, int index, boolean storedAsByteArray) {
 		//Important to set the schema first, since it is the first read
 		schema.set(index, (short) 0);
 		versions.set(index, 0L);
@@ -159,7 +160,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		int collectionIndex = collectionId - Byte.MIN_VALUE;
 
 
-		if (summary) {
+		if (storedAsByteArray) {
 			summaryCachedData.set(index, null);
 		} else {
 			fullyCachedData.set(index, null);
@@ -465,7 +466,8 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			MetadataSchemaType type = schemasManager.get(collectionId, typeId);
 			MetadataSchema schema = type.getSchema(schemaId);
 
-			return new ByteArrayRecordDTOWithIntegerId(id, modelLayerFactory.getMetadataSchemasManager(), version, true,
+			boolean summary = type.getCacheType().isSummaryCache();
+			return new ByteArrayRecordDTOWithIntegerId(id, modelLayerFactory.getMetadataSchemasManager(), version, summary,
 					tenantId, schema.getCollection(), collectionId, type.getCode(), typeId, schema.getCode(), schemaId, data);
 
 		} else {
@@ -486,8 +488,8 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 						if (collectionId != predicateCollectionId) {
 							continue;
 						}
-						boolean summary = dto instanceof ByteArrayRecordDTO;
-						removeFromMainLists(collectionId, i, summary);
+						boolean storedAsByteArray = dto instanceof ByteArrayRecordDTO;
+						removeFromMainLists(collectionId, i, storedAsByteArray);
 					}
 				}
 
@@ -533,8 +535,8 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 							continue;
 						}
 
-						boolean summary = dto instanceof ByteArrayRecordDTO;
-						removeFromMainListsAndTypeIndex(collectionId, typeId, i, summary);
+						boolean storedAsByteArray = dto instanceof ByteArrayRecordDTO;
+						removeFromMainListsAndTypeIndex(collectionId, typeId, i, storedAsByteArray);
 					}
 				}
 			}

@@ -17,7 +17,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
@@ -1249,7 +1248,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		userServices.physicallyRemoveUser(alice, zeCollection);
 		try {
-			userServices.getUserInCollection(alice.getUsername(), zeCollection);
+			userServices.getUserInCollection("alice", zeCollection);
 			fail();
 		} catch (UserServicesRuntimeException_UserIsNotInCollection e) {
 			//OK !

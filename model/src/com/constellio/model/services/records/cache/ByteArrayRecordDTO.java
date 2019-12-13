@@ -3,6 +3,7 @@ package com.constellio.model.services.records.cache;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -240,7 +241,8 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 
 	@Override
 	public RecordDTO createCopyWithDelta(RecordDeltaDTO recordDeltaDTO) {
-		throw new UnsupportedOperationException("createCopyWithDelta is not supported on summary record cache");
+		return new SolrRecordDTO(getId(), getFields(), getLoadingMode()).createCopyWithDelta(recordDeltaDTO);
+		//		throw new UnsupportedOperationException("createCopyWithDelta is not supported on summary record cache");
 	}
 
 	@Override
