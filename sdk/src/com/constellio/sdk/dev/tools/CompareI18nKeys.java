@@ -79,14 +79,20 @@ public class CompareI18nKeys {
 		return LangUtils.compare(defaultKeys, englishKeys);
 	}
 
-	public static ListComparisonResults<String> compareKeys(Language language, String folderName, String keysFileName)
+	public static ListComparisonResults<String> compareKeys(Language language, File i18nParentFolder,
+															String keysFileName)
 			throws Exception {
-		FoldersLocator foldersLocator = new FoldersLocator();
-		File i18nFolder = foldersLocator.getI18nFolder();
 		String languageFilename = keysFileName + "_" + language.getCode() + ".properties";
-		List<String> defaultKeys = loadI18nKeysWithValue(new File(new File(i18nFolder, folderName), keysFileName + ".properties"));
-		List<String> englishKeys = loadI18nKeysWithValue(new File(new File(i18nFolder, folderName), languageFilename));
+		List<String> defaultKeys = loadI18nKeysWithValue(new File(i18nParentFolder, keysFileName + ".properties"));
+		List<String> englishKeys = loadI18nKeysWithValue(new File(i18nParentFolder, languageFilename));
 		return LangUtils.compare(defaultKeys, englishKeys);
+	}
+
+	public static ListComparisonResults<String> compareKeys(File i18nArabicFile, File i18nFrenchFile)
+			throws Exception {
+		List<String> defaultKeys = loadI18nKeysWithValue(i18nFrenchFile);
+		List<String> arabicKeys = loadI18nKeysWithValue(i18nArabicFile);
+		return LangUtils.compare(defaultKeys, arabicKeys);
 	}
 
 	private static List<String> loadI18nKeysWithValue(File file)
