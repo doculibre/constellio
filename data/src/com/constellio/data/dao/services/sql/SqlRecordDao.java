@@ -34,7 +34,7 @@ public interface SqlRecordDao<Object> {
 
 	void update(Object dto) throws SQLException;
 
-	void increaseVersion() throws SQLException;
+	int increaseVersion() throws SQLException;
 
 	int getCurrentVersion() throws SQLException;
 

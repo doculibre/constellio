@@ -11,6 +11,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -123,6 +124,10 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 		List<TransactionSqlDTO> dto = queryRunner.query(connector.getConnection(),
 				fecthQuery, handler);
 
+		if(dto == null){
+			return new ArrayList<>();
+		}
+
 		return dto;
 	}
 
@@ -178,10 +183,12 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	}
 
 	@Override
-	public void increaseVersion() throws SQLException {
+	public int increaseVersion() throws SQLException {
 
 		queryRunner.update(connector.getConnection(),
 				"UPDATE versions SET version = version + 1 WHERE name = 'transactionLog' ");
+
+		return getCurrentVersion();
 	}
 
 	@Override

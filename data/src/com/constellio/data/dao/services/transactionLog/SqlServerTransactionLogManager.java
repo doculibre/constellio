@@ -11,6 +11,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLo
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.contents.ContentDao;
+import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
 import com.constellio.data.dao.services.sql.SqlRecordDaoFactory;
@@ -102,7 +103,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	private boolean automaticRegroup = true;
 
-	private boolean isCurrentNodeLeader;
+	private ObservableLeaderElectionManager leaderElectionManager;
 
 	private Integer currentLogVersion = null;
 
@@ -112,7 +113,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 										  DataLayerLogger dataLayerLogger,
 										  DataLayerSystemExtensions dataLayerSystemExtensions,
 										  TransactionLogRecoveryManager transactionLogRecoveryManager,
-										  boolean isCurrentNodeLeader) {
+										  ObservableLeaderElectionManager isCurrentNodeLeader) {
 		this.configuration = configuration;
 		this.folder = configuration.getSecondTransactionLogBaseFolder();
 		this.ioServices = ioServices;
@@ -124,7 +125,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		this.dataLayerLogger = dataLayerLogger;
 		this.dataLayerSystemExtensions = dataLayerSystemExtensions;
 		this.transactionLogRecoveryManager = transactionLogRecoveryManager;
-		this.isCurrentNodeLeader = isCurrentNodeLeader;
+		this.leaderElectionManager = isCurrentNodeLeader;
 	}
 
 
@@ -139,12 +140,11 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		//idSequence = newIdSequence();
 		started = true;
 
-		if (this.currentLogVersion == null) {
-			tryThreeTimes(() -> {
-				this.currentLogVersion = getLogVersion();
-				return true;
-			});
-		}
+		tryThreeTimes(() -> {
+			getLogVersion();
+			return true;
+		});
+
 		flushOrCancelPreparedTransactions();
 
 		backgroundThreadsManager.configure(
@@ -195,7 +195,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 		tryThreeTimes(() -> {
 
-			sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).insert(createTransactionSqlDto(transactionId, transactionInfo, content, this.currentLogVersion));
+			sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).insert(createTransactionSqlDto(transactionId, transactionInfo, content, getLogVersion()));
 			return true;
 		});
 
@@ -223,69 +223,76 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	}
 
+	private boolean isCurrentNodeLeader() {
+
+		try {
+			if (this.leaderElectionManager != null) {
+				return this.leaderElectionManager.isCurrentNodeLeader();
+			}
+		} catch (NullPointerException nullEx) {
+			//leaderElectionManager might be null and not instantiated during Constellio reboot.
+			return false;
+		} finally {
+			return false;
+		}
+	}
+
 	@Override
 	public synchronized String regroupAndMove() {
 
+		//build record on json
+		try {
 
-		if (this.isCurrentNodeLeader) {
+			//get transactions
+			List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll());
 
-
-			//build record on json
-			try {
-
-				//get transactions
-				List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
-						sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll());
-
-				final List<RecordTransactionSqlDTO> recordsToinsert = extractRecordsFromTransaction(transactionsToConvert, this.currentLogVersion, false);
-				final List<RecordTransactionSqlDTO> recordsToUpdate = extractRecordsFromTransaction(transactionsToConvert, this.currentLogVersion, true);
-				final List<String> updateTransactionIds = recordsToUpdate.stream().map(x -> x.getRecordId()).collect(Collectors.toList());
-				final List<String> recordsToDelete = extractRemoveRecordsFromTransaction(transactionsToConvert);
-
-				//save new records
-				tryThreeTimes(() -> {
-					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(recordsToinsert);
-					return true;
-				});
-
-				//remove records to update
-				tryThreeTimes(() -> {
-					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(updateTransactionIds);
-					return true;
-				});
-
-				//save update records
-				tryThreeTimes(() -> {
-					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(recordsToUpdate);
-					return true;
-				});
-
-				//remove deleted records
-				tryThreeTimes(() -> {
-					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(recordsToDelete);
-					return true;
-				});
-
-				//Remove transactions
-				final String[] transactionsToRemove = transactionsToConvert.stream().map(x -> x.getId()).toArray(String[]::new);
-
-				tryThreeTimes(() -> {
-					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll(transactionsToRemove);
-					return true;
-				});
-
-			} catch (IOException e) {
-				exceptionOccured = true;
-				throw new RuntimeException(e);
-			} catch (SQLException e) {
-				exceptionOccured = true;
-				throw new RuntimeException(e);
-			} catch (Exception ex) {
-				exceptionOccured = true;
-				throw new RuntimeException(ex);
+			if (transactionsToConvert.size() == 0) {
+				//end
+				return "";
 			}
-		}
 
+			final List<RecordTransactionSqlDTO> recordsToinsert = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), false);
+			final List<RecordTransactionSqlDTO> recordsToUpdate = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), true);
+			final List<String> updateTransactionIds = recordsToUpdate.stream().map(x -> x.getRecordId()).collect(Collectors.toList());
+			final List<String> recordsToDelete = extractRemoveRecordsFromTransaction(transactionsToConvert);
+
+			//save new records
+			tryThreeTimes(() -> {
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(recordsToinsert);
+				return true;
+			});
+
+			//remove records to update
+			tryThreeTimes(() -> {
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(updateTransactionIds);
+				return true;
+			});
+
+			//save update records
+			tryThreeTimes(() -> {
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(recordsToUpdate);
+				return true;
+			});
+
+			//remove deleted records
+			tryThreeTimes(() -> {
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(recordsToDelete);
+				return true;
+			});
+
+			//Remove transactions
+			final String[] transactionsToRemove = transactionsToConvert.stream().map(x -> x.getId()).toArray(String[]::new);
+
+			tryThreeTimes(() -> {
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll(transactionsToRemove);
+				return true;
+			});
+
+		} catch (Exception ex) {
+			exceptionOccured = true;
+			throw new RuntimeException(ex);
+		}
 		return "";
 	}
 
@@ -375,10 +382,10 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	public void transactionLOGReindexationStartStrategy() {
 		//table and schema backup is set up in SQL Server
 
-		if (this.isCurrentNodeLeader) {
+		if (isCurrentNodeLeader()) {
 			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).increaseVersion();
-				this.currentLogVersion++;
+				this.currentLogVersion =
+						sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).increaseVersion();
 				return true;
 			});
 		}
@@ -389,7 +396,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	public void transactionLOGReindexationCleanupStrategy() {
 
 		final String solrVersion = this.recordDao.getBigVaultServer().getVersion();
-		if (this.isCurrentNodeLeader) {
+		if (isCurrentNodeLeader()) {
 			tryThreeTimes(() -> {
 				int version = sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getCurrentVersion();
 
@@ -522,7 +529,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		return new Runnable() {
 			@Override
 			public void run() {
-				if (isAutomaticRegroup()) {
+				if (isAutomaticRegroup() && isCurrentNodeLeader()) {
 					regroupAndMove();
 				}
 			}
@@ -612,8 +619,11 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	private int getLogVersion() throws SQLException {
-		return sqlRecordDaoFactory
-				.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getCurrentVersion();
+		if (this.currentLogVersion == null) {
+			this.currentLogVersion = sqlRecordDaoFactory
+					.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getCurrentVersion();
+		}
+		return this.currentLogVersion;
 	}
 
 	public long getTableTransactionCount() throws SQLException {

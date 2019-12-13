@@ -256,7 +256,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 				secondTransactionLogManager = add(new SqlServerTransactionLogManager(dataLayerConfiguration,
 						ioServicesFactory.newIOServices(), newRecordDao(), sqlRecordDaoFactory ,contentDao, backgroundThreadsManager, dataLayerLogger,
-						dataLayerExtensions.getSystemWideExtensions(), transactionLogRecoveryManager, this.leaderElectionManager.isCurrentNodeLeader()));
+						dataLayerExtensions.getSystemWideExtensions(), transactionLogRecoveryManager, this.leaderElectionManager));
 			}
 			else {
 				secondTransactionLogManager = add(new XMLSecondTransactionLogManager(dataLayerConfiguration,

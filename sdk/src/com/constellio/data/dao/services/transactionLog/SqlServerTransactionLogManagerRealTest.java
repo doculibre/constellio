@@ -12,6 +12,8 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.dao.services.leaderElection.LeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
 import com.constellio.data.dao.services.sql.MicrosoftSqlTransactionDao;
@@ -118,6 +120,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	String expectedLogOfFirstTransaction, expectedLogOfSecondTransaction;
 
 	File firstTransactionTempFile, secondTransactionTempFile;
+	ObservableLeaderElectionManager electionManager;
 
 	@Before
 	public void setUp()
@@ -130,6 +133,22 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 		givenDisabledAfterTestValidations();
 		withSpiedServices(ContentDao.class);
+		electionManager=new ObservableLeaderElectionManager(new LeaderElectionManager() {
+			@Override
+			public boolean isCurrentNodeLeader() {
+				return true;
+			}
+
+			@Override
+			public void initialize() {
+
+			}
+
+			@Override
+			public void close() {
+
+			}
+		});
 
 		baseFolder = newTempFolder();
 		when(dataLayerConfiguration.getSecondTransactionLogBaseFolder()).thenReturn(baseFolder);
@@ -142,7 +161,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		when(bigVaultServer.countDocuments()).thenReturn(42L);
 		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
 				backgroundThreadsManager, dataLayerLogger, systemExtensions,
-				getDataLayerFactory().getTransactionLogRecoveryManager(),true));
+				getDataLayerFactory().getTransactionLogRecoveryManager(),electionManager));
 		transactionLog.initialize();
 
 		record1 = newSolrInputDocument("record1", -1L);
@@ -314,7 +333,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
 				backgroundThreadsManager, dataLayerLogger, systemExtensions,
-				getDataLayerFactory().getTransactionLogRecoveryManager(),true));
+				getDataLayerFactory().getTransactionLogRecoveryManager(),electionManager));
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 
 	}
@@ -324,9 +343,26 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	public void noRecordsWhenHeIsNotMasterNode()
 			throws Exception {
 
+		ObservableLeaderElectionManager election =electionManager=new ObservableLeaderElectionManager(new LeaderElectionManager() {
+			@Override
+			public boolean isCurrentNodeLeader() {
+				return false;
+			}
+
+			@Override
+			public void initialize() {
+
+			}
+
+			@Override
+			public void close() {
+
+			}
+		});
+
 		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
 				backgroundThreadsManager, dataLayerLogger, systemExtensions,
-				getDataLayerFactory().getTransactionLogRecoveryManager(),false));
+				getDataLayerFactory().getTransactionLogRecoveryManager(),election));
 		transactionLog.initialize();
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 		transactionLog.flush(firstTransactionId, null);
