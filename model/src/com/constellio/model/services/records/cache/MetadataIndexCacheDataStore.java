@@ -256,6 +256,7 @@ public class MetadataIndexCacheDataStore {
 			}
 
 			for (Metadata currentMetadata : schema.getCacheIndexMetadatas()) {
+
 				if (oldVersion == null) {
 					addRecordMetadata(newVersion, schemaType, currentMetadata);
 				} else if (newVersion == null) {
@@ -263,6 +264,7 @@ public class MetadataIndexCacheDataStore {
 				} else {
 					updateRecordMetadata(oldVersion, newVersion, schemaType, currentMetadata);
 				}
+
 			}
 
 		} finally {

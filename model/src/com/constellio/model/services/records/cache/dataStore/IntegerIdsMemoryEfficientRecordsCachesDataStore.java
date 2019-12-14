@@ -3,6 +3,7 @@ package com.constellio.model.services.records.cache.dataStore;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.data.utils.CacheStat;
 import com.constellio.data.utils.KeyLongMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LazyIterator;
@@ -737,18 +738,18 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		}
 	}
 
-	public List<RecordsCacheStat> compileMemoryConsumptionStats() {
+	public List<CacheStat> compileMemoryConsumptionStats() {
 		mechanism.obtainSystemWideReadingPermit();
 		try {
-			List<RecordsCacheStat> stats = new ArrayList<>();
+			List<CacheStat> stats = new ArrayList<>();
 
 			//OffHeapIntList ids = new OffHeapIntList();
-			stats.add(new RecordsCacheStat("datastore.ids", ids.getHeapConsumption(), ids.getOffHeapConsumption()));
-			stats.add(new RecordsCacheStat("datastore.versions", versions.getHeapConsumption(), versions.getOffHeapConsumption()));
-			stats.add(new RecordsCacheStat("datastore.schemas", schema.getHeapConsumption(), schema.getOffHeapConsumption()));
-			stats.add(new RecordsCacheStat("datastore.types", type.getHeapConsumption(), type.getOffHeapConsumption()));
-			stats.add(new RecordsCacheStat("datastore.collection", collection.getHeapConsumption(), collection.getOffHeapConsumption()));
-			stats.add(new RecordsCacheStat("datastore.summaryCachedData", summaryCachedData.getHeapConsumption(), summaryCachedData.getOffHeapConsumption()));
+			stats.add(new CacheStat("datastore.ids", ids.getHeapConsumption(), ids.getOffHeapConsumption()));
+			stats.add(new CacheStat("datastore.versions", versions.getHeapConsumption(), versions.getOffHeapConsumption()));
+			stats.add(new CacheStat("datastore.schemas", schema.getHeapConsumption(), schema.getOffHeapConsumption()));
+			stats.add(new CacheStat("datastore.types", type.getHeapConsumption(), type.getOffHeapConsumption()));
+			stats.add(new CacheStat("datastore.collection", collection.getHeapConsumption(), collection.getOffHeapConsumption()));
+			stats.add(new CacheStat("datastore.summaryCachedData", summaryCachedData.getHeapConsumption(), summaryCachedData.getOffHeapConsumption()));
 			//OffHeapLongList versions = new OffHeapLongList();
 			//OffHeapShortList schema = new OffHeapShortList();
 			//OffHeapShortList type = new OffHeapShortList();
@@ -770,9 +771,9 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 				}
 
 			}
-			stats.add(new RecordsCacheStat("datastore.fullyCachedData", fullyCachedDataSize, 0));
+			stats.add(new CacheStat("datastore.fullyCachedData", fullyCachedDataSize, 0));
 			for (Map.Entry<String, Long> entry : schemaTypesConsumptions.entriesSortedByDescValue()) {
-				stats.add(new RecordsCacheStat("datastore.fullyCachedData." + entry.getKey(), entry.getValue(), 0));
+				stats.add(new CacheStat("datastore.fullyCachedData." + entry.getKey(), entry.getValue(), 0));
 			}
 
 			long typeIndexesSize = 12 + 12 * typesIndexes.length;
@@ -787,7 +788,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 					}
 				}
 			}
-			stats.add(new RecordsCacheStat("datastore.typeIndexes", typeIndexesSize, 0));
+			stats.add(new CacheStat("datastore.typeIndexes", typeIndexesSize, 0));
 
 			return stats;
 		} finally {

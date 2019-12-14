@@ -18,8 +18,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.constellio.model.entities.schemas.Schemas.getSortMetadata;
-
 public class SortFieldsPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SortFieldsPopulator.class);
@@ -61,7 +59,7 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 					if (captionForRecord == null) {
 						LOGGER.warn("Record '" + referencedRecord.getSchemaIdTitle() + "' has no caption");
 					} else {
-						Metadata sortMetadata = getSortMetadata(metadata);
+						Metadata sortMetadata = metadata.getSortMetadata();
 						if (!locale.equals(types.getCollectionInfo().getMainSystemLocale())) {
 							sortMetadata = sortMetadata.getSecondaryLanguageField(locale.getLanguage());
 						}
@@ -75,7 +73,7 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 				e.printStackTrace();
 			}
 		} else {
-			Metadata sortMetadata = getSortMetadata(metadata);
+			Metadata sortMetadata = metadata.getSortMetadata();
 			if (!locale.equals(types.getCollectionInfo().getMainSystemLocale())) {
 				sortMetadata = sortMetadata.getSecondaryLanguageField(locale.getLanguage());
 			}

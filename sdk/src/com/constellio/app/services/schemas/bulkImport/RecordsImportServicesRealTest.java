@@ -42,6 +42,7 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.UserSerializedContentFactory;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.ContentImportVersion;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
@@ -278,6 +279,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withAllTest(users)
 		);
+		givenConfig(ConstellioEIMConfigs.LEGACY_IDENTIFIER_INDEXED_IN_MEMORY, true);
 		admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 
 		data.put(zeSchema.typeCode(), zeSchemaTypeRecords);
@@ -3289,7 +3291,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		services.bulkImport(importDataProvider, progressionListener, admin,
 				new BulkImportParams().setImportErrorsBehavior(CONTINUE));
 
-		assertThat(queriesCount.get()).isLessThan(4050);
+		assertThat(queriesCount.get()).isLessThan(4500);
 	}
 
 	@Test

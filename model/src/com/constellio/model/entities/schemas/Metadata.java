@@ -148,7 +148,6 @@ public class Metadata implements DataStoreField {
 		this.global = computeIsGlobal();
 		this.customParameter = Collections.unmodifiableMap(new HashMap<String, Object>());
 		this.schemaTypeCode = new SchemaUtils().getSchemaTypeCode(this);
-
 		this.secured = getAccessRestrictions() != null && getAccessRestrictions().getRequiredReadRoles() != null &&
 					   !getAccessRestrictions().getRequiredReadRoles().isEmpty();
 
@@ -460,13 +459,13 @@ public class Metadata implements DataStoreField {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this, "dataEntry", "structureFactory", "encryptionServicesFactory");
+		return HashCodeBuilder.reflectionHashCode(this, "dataEntry", "structureFactory", "encryptionServicesFactory", "cachedSortMetadata");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj, "dataEntry", "recordMetadataValidators", "structureFactory",
-				"encryptionServicesFactory");
+				"encryptionServicesFactory", "cachedSortMetadata");
 	}
 
 	@Override
@@ -629,5 +628,14 @@ public class Metadata implements DataStoreField {
 
 	public Short getTypeId() {
 		return typeId;
+	}
+
+	Metadata cachedSortMetadata;
+
+	public Metadata getSortMetadata() {
+		if (cachedSortMetadata == null) {
+			cachedSortMetadata = Schemas.getSortMetadata(this);
+		}
+		return cachedSortMetadata;
 	}
 }

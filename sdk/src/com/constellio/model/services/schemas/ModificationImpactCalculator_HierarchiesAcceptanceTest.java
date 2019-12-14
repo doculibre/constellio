@@ -579,14 +579,14 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 	private void assertAttachedAncestorsImpactInFolderAndDocumentSchema(TestRecord record,
 																		List<ModificationImpact> impacts) {
-		Metadata folderAuthorizations = folderSchema.attachedAncestors();
-		Metadata documentAuthorizations = documentSchema.attachedAncestors();
+		Metadata folderAttachedAncestors = folderSchema.attachedAncestors();
+		Metadata documentAttachedAncestors = documentSchema.attachedAncestors();
 
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(1).getMetadataToReindex())
-				.containsOnly(folderAuthorizations);
+				.containsOnly(folderAttachedAncestors);
 		assertThat(impacts.get(0).getMetadataToReindex())
-				.containsOnly(documentAuthorizations);
+				.containsOnly(documentAttachedAncestors);
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type()).whereAny(
 						asList(folderSchema.parent())).isIn(asList(record)));

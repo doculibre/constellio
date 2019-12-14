@@ -1,7 +1,9 @@
 package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.utils.CacheStat;
 import com.constellio.data.utils.LazyMergingIterator;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordId;
@@ -48,34 +50,36 @@ public class RecordsCachesDataStore {
 		this.intIdsDataStore = new IntegerIdsMemoryEfficientRecordsCachesDataStore(modelLayerFactory);
 		this.stringIdsDataStore = new StringIdsRecordsCachesDataStore(modelLayerFactory);
 
-		File idsList = new File(new FoldersLocator().getWorkFolder(), "integer-ids.txt");
-		List<RecordId> recordIds = null;
-		if (idsList.exists()) {
-			try {
-				recordIds = FileUtils.readLines(idsList, "UTF-8").stream().map((line) -> RecordId.toId(line)).collect(Collectors.toList());
-			} catch (IOException e) {
-				e.printStackTrace();
-				recordIds = null;
-			}
-		}
-
-		if (recordIds == null) {
-			LOGGER.info("Loading ids from solr... could take up to 30 minutes, please wait...");
-			Iterator<RecordId> recordIdIterator = modelLayerFactory.newSearchServices().recordsIdIteratorExceptEvents();
-			recordIds = IteratorUtils.toList(recordIdIterator);
-			List<String> lines = recordIds.stream().map(RecordId::stringValue).collect(Collectors.toList());
-
-			try {
-				FileUtils.writeLines(idsList, lines);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+		if (Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS.isEnabled()) {
+			File idsList = new File(new FoldersLocator().getWorkFolder(), "integer-ids.txt");
+			List<RecordId> recordIds = null;
+			if (idsList.exists()) {
+				try {
+					recordIds = FileUtils.readLines(idsList, "UTF-8").stream().map((line) -> RecordId.toId(line)).collect(Collectors.toList());
+				} catch (IOException e) {
+					e.printStackTrace();
+					recordIds = null;
+				}
 			}
 
-		}
+			if (recordIds == null) {
+				LOGGER.info("Loading ids from solr... could take up to 30 minutes, please wait...");
+				Iterator<RecordId> recordIdIterator = modelLayerFactory.newSearchServices().recordsIdIteratorExceptEvents();
+				recordIds = IteratorUtils.toList(recordIdIterator);
+				List<String> lines = recordIds.stream().map(RecordId::stringValue).collect(Collectors.toList());
 
-		LOGGER.info("Structuring cache based on ids...       - Current memory : " + humanReadableByteCount(OffHeapMemoryAllocator.getAllocatedMemory(), true));
-		intIdsDataStore.structureCacheUsingExistingIds(recordIds.iterator());
-		LOGGER.info("Structuring cache based on ids finished - Current memory : " + humanReadableByteCount(OffHeapMemoryAllocator.getAllocatedMemory(), true));
+				try {
+					FileUtils.writeLines(idsList, lines);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+
+			}
+
+			LOGGER.info("Structuring cache based on ids...       - Current memory : " + humanReadableByteCount(OffHeapMemoryAllocator.getAllocatedMemory(), true));
+			intIdsDataStore.structureCacheUsingExistingIds(recordIds.iterator());
+			LOGGER.info("Structuring cache based on ids finished - Current memory : " + humanReadableByteCount(OffHeapMemoryAllocator.getAllocatedMemory(), true));
+		}
 	}
 
 	public void insertWithoutReservingSpaceForPreviousIds(RecordDTO dto) {
@@ -236,8 +240,8 @@ public class RecordsCachesDataStore {
 		intIdsDataStore.close();
 	}
 
-	public List<RecordsCacheStat> compileMemoryConsumptionStats() {
-		List<RecordsCacheStat> stats = new ArrayList<>();
+	public List<CacheStat> compileMemoryConsumptionStats() {
+		List<CacheStat> stats = new ArrayList<>();
 
 		stats.addAll(intIdsDataStore.compileMemoryConsumptionStats());
 		stats.addAll(stringIdsDataStore.compileMemoryConsumptionStats());

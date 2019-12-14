@@ -6,4 +6,7 @@ public interface ImportFilePresenterInterface {
 	void uploadButtonClicked(TempFileUpload upload);
 
 	void backButtonClicked();
+
+	boolean isLegacyIdIndexDisabledWarningVisible();
+	
 }

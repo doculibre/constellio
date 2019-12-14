@@ -153,7 +153,7 @@ public class SearchServices {
 		this.logicalSearchQueryExecutorInCache = new LogicalSearchQueryExecutorInCache(this, recordsCaches,
 				metadataSchemasManager,
 				modelLayerFactory.getSearchConfigurationsManager(),
-				modelLayerFactory.getExtensions().getSystemWideExtensions(), mainDataLanguage);
+				modelLayerFactory.getExtensions().getSystemWideExtensions(), systemConfigs, mainDataLanguage);
 	}
 
 	public LogicalSearchQueryExecutorInCache getQueryExecutorInCache() {

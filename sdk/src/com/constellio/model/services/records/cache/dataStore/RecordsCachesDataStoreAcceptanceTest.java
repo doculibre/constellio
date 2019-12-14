@@ -510,6 +510,8 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		});
 		initTestVariables();
 
+		assertThat(dataStore.intIdsDataStore.ids.stream().collect(toList())).isEmpty();
+
 		ByteArrayRecordDTO dto1, dto2, dto3, dto6, dto8;
 		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), SUMMARY));
 		dto2 = create(new SolrRecordDTO(zeroPadded(2), 56L, fields("zeCollection", zeSchema.code()), SUMMARY));

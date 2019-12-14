@@ -1,6 +1,6 @@
-package com.constellio.model.services.records.cache.dataStore;
+package com.constellio.data.utils;
 
-public class RecordsCacheStat {
+public class CacheStat {
 
 	String name;
 
@@ -8,7 +8,7 @@ public class RecordsCacheStat {
 
 	long offHeapSize;
 
-	public RecordsCacheStat(String name, long heapSize, long offHeapSize) {
+	public CacheStat(String name, long heapSize, long offHeapSize) {
 		this.name = name;
 		this.heapSize = heapSize;
 		this.offHeapSize = offHeapSize;

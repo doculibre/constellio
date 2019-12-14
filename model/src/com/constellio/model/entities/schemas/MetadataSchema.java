@@ -5,6 +5,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -66,7 +67,8 @@ public class MetadataSchema implements Serializable {
 						  Map<Language, String> labels,
 						  List<Metadata> metadatas,
 						  Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
-						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active) {
+						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active,
+						  ConstellioEIMConfigs configs) {
 		super();
 		this.id = id;
 		this.localCode = localCode;
@@ -88,7 +90,7 @@ public class MetadataSchema implements Serializable {
 		this.dataStore = dataStore;
 		this.active = active;
 		this.collectionInfo = collectionInfo;
-		this.summaryMetadatas = new SchemaUtils().buildListOfSummaryMetadatas(metadatas);
+		this.summaryMetadatas = new SchemaUtils().buildListOfSummaryMetadatas(metadatas, configs);
 		this.cacheIndexMetadatas = new SchemaUtils().buildListOfCacheIndexMetadatas(metadatas);
 		this.hasEagerTransientMetadata = metadatas.stream().anyMatch((m) -> m.getTransiency() == MetadataTransiency.TRANSIENT_EAGER);
 
