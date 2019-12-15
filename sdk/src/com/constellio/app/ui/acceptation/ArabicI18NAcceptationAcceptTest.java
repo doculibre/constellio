@@ -152,7 +152,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageTasksMigrationFilesHaveSameKeys()
 			throws Exception {
-		//		assumeArabicLabels#Validated();
+		assumeArabicLabelsValidated();
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("################################################\n");
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("core", stringBuilder);
@@ -161,13 +161,9 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 		stringBuilder.append("################################################\n");
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("es_rm_robots", stringBuilder);
 		stringBuilder.append("################################################\n");
-		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("exchange", stringBuilder);
-		stringBuilder.append("################################################\n");
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("rm", stringBuilder);
 		stringBuilder.append("################################################\n");
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("robots", stringBuilder);
-		stringBuilder.append("################################################\n");
-		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("sharepoint", stringBuilder);
 		stringBuilder.append("################################################\n");
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("tasks", stringBuilder);
 		stringBuilder.append("################################################\n");
