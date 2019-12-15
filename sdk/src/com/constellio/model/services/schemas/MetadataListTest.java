@@ -338,10 +338,10 @@ public class MetadataListTest extends ConstellioTest {
 	public void whenFilterReferencesToThenReturnTwo()
 			throws Exception {
 
-		when(metadata1.getReferencedSchemaType()).thenReturn("type2");
-		when(metadata2.getReferencedSchemaType()).thenReturn("type2");
-		when(metadata3.getReferencedSchemaType()).thenReturn("type1");
-		when(USRmetadata4.getReferencedSchemaType()).thenReturn("type1");
+		when(metadata1.getReferencedSchemaTypeCode()).thenReturn("type2");
+		when(metadata2.getReferencedSchemaTypeCode()).thenReturn("type2");
+		when(metadata3.getReferencedSchemaTypeCode()).thenReturn("type1");
+		when(USRmetadata4.getReferencedSchemaTypeCode()).thenReturn("type1");
 		when(metadata1.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(metadata2.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(metadata3.getType()).thenReturn(MetadataValueType.REFERENCE);

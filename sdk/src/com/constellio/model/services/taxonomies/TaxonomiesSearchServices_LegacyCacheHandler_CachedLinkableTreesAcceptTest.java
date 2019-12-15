@@ -2913,7 +2913,7 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedLinkableTreesAcce
 				.has(resultsInOrder("childCategory"))
 				.has(itemsWithChildren("childCategory"))
 				.has(linkable("childCategory"))
-				.has(solrQueryCounts(1, 0, 1))
+				.has(solrQueryCounts(0, 0, 0))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy("childCategory", options)

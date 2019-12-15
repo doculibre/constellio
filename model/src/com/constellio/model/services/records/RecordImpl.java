@@ -87,7 +87,7 @@ public class RecordImpl implements Record {
 		if (schema == null) {
 			throw new IllegalArgumentException("Require schema");
 		}
-		this.typeId = schema.getTypeId();
+		this.typeId = schema.getSchemaType().getId();
 		this.collection = schema.getCollection();
 
 		this.id = id;
@@ -119,7 +119,7 @@ public class RecordImpl implements Record {
 	}
 
 	public RecordImpl(MetadataSchema schema, RecordDTO recordDTO) {
-		this(recordDTO, schema.getCollectionInfo(), schema.getTypeId());
+		this(recordDTO, schema.getCollectionInfo(), schema.getSchemaType().getId());
 	}
 
 	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, short typeId) {

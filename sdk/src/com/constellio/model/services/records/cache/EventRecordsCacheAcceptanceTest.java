@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
@@ -89,6 +90,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		givenCollection("zeCollection").withAllTestUsers();
 		givenCollection("anotherCollection").withAllTestUsers();
+		givenConfig(ConstellioEIMConfigs.LEGACY_IDENTIFIER_INDEXED_IN_MEMORY, true);
 
 		inCollection(zeCollection).giveWriteAccessTo(admin);
 		inCollection(anotherCollection).giveWriteAccessTo(admin);

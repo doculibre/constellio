@@ -229,7 +229,6 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	public CacheInsertionResponse insert(Record record, InsertionReason insertionReason) {
 
-
 		CacheInsertionStatus problemo = validateInsertable(record, insertionReason);
 		if (problemo != null) {
 			return new CacheInsertionResponse(problemo, null, DEFAULT_INSERT);

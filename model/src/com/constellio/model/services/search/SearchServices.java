@@ -104,6 +104,7 @@ import static com.constellio.model.services.search.query.ReturnedMetadatasFilter
 import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.onlySummaryFields;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.INEXISTENT_COLLECTION_42;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
 import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.DEFAULT;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -157,7 +158,7 @@ public class SearchServices {
 		this.logicalSearchQueryExecutorInCache = new LogicalSearchQueryExecutorInCache(this, recordsCaches,
 				metadataSchemasManager,
 				modelLayerFactory.getSearchConfigurationsManager(),
-				modelLayerFactory.getExtensions().getSystemWideExtensions(), mainDataLanguage);
+				modelLayerFactory.getExtensions().getSystemWideExtensions(), systemConfigs, mainDataLanguage);
 	}
 
 	public LogicalSearchQueryExecutorInCache getQueryExecutorInCache() {
@@ -1824,4 +1825,75 @@ public class SearchServices {
 	public Set<String> getHashesOf(LogicalSearchCondition condition) {
 		return getHashesOf(new LogicalSearchQuery(condition));
 	}
+
+
+	public Iterator<RecordId> recordsIdIteratorExceptEvents() {
+		LogicalSearchQuery query = new LogicalSearchQuery(LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection()
+				.where(Schemas.SCHEMA).isNot(startingWithText("event_")));
+		query.sortAsc(Schemas.IDENTIFIER);
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
+		Iterator<String> idIterator = recordsIdsIterator(query);
+
+		long rows = getResultsCount(query);
+		AtomicInteger progress = new AtomicInteger();
+		return new LazyIterator<RecordId>() {
+			@Override
+			protected RecordId getNextOrNull() {
+
+				if (progress.incrementAndGet() % 100000 == 0) {
+					LOGGER.info("loading ids " + progress.get() + "/" + rows);
+				}
+				return idIterator.hasNext() ? RecordId.toId(idIterator.next()) : null;
+			}
+		};
+
+		//		LOGGER.info("Fetching ids using tuple stream method...");
+		//		Map<String, String> props = new HashMap<>();
+		//		props.put("q", "-schema_s:" + "event_*");
+		//		//props.put("qt", "/export");
+		//		props.put("sort", "id asc");
+		//		props.put("fl", "id");
+		//		props.put("rows", "1000000");
+		//
+		//		TupleStream tupleStream = dataStoreDao(DataStore.RECORDS).tupleStream(props);
+		//
+		//		try {
+		//			tupleStream.open();
+		//		} catch (IOException e) {
+		//			throw new RuntimeException(e);
+		//		}
+		//
+		//		AtomicInteger count = new AtomicInteger();
+		//
+		//		return new LazyIterator<RecordId>() {
+		//
+		//			@Override
+		//			protected RecordId getNextOrNull() {
+		//
+		//				try {
+		//
+		//					Tuple tuple = tupleStream.read();
+		//					if (tuple.EOF) {
+		//						LOGGER.info("Fetching ids using tuple stream method finished : " + count.get());
+		//						tupleStream.close();
+		//						return null;
+		//					} else {
+		//						//LOGGER.info("Fetching ids and versions of schema type '" + schemaType.getCollection() + ":" + schemaType.getCode() + "' using tuple stream method ... : " + count.get());
+		//						count.incrementAndGet();
+		//						return RecordId.toId(tuple.getString("id"));
+		//					}
+		//				} catch (IOException e) {
+		//					try {
+		//						tupleStream.close();
+		//					} catch (IOException e1) {
+		//						throw new RuntimeException(e1);
+		//					}
+		//					throw new RuntimeException(e);
+		//				}
+		//			}
+		//		};
+
+
+	}
+
 }

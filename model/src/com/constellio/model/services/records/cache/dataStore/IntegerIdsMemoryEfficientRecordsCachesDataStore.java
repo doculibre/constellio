@@ -2,6 +2,8 @@ package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
+import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.data.utils.CacheStat;
 import com.constellio.data.utils.KeyLongMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LazyIterator;
@@ -9,6 +11,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 import com.constellio.model.services.records.cache.locks.SimpleReadLockMechanism;
@@ -21,6 +24,8 @@ import com.constellio.model.services.records.cache.offHeapCollections.OffHeapSho
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,12 +33,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.schemas.MetadataSchemaTypes.LIMIT_OF_TYPES_IN_COLLECTION;
 import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
 
 public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(IntegerIdsMemoryEfficientRecordsCachesDataStore.class);
 	//Memory structure of records with int id
 	//Level 0 : Collection id (max 256 values)
 	//Level 1 : Type id (max 1000 values)
@@ -730,18 +738,18 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		}
 	}
 
-	public List<RecordsCacheStat> compileMemoryConsumptionStats() {
+	public List<CacheStat> compileMemoryConsumptionStats() {
 		mechanism.obtainSystemWideReadingPermit();
 		try {
-			List<RecordsCacheStat> stats = new ArrayList<>();
+			List<CacheStat> stats = new ArrayList<>();
 
 			//OffHeapIntList ids = new OffHeapIntList();
-			stats.add(new RecordsCacheStat("datastore.ids", ids.getHeapConsumption(), ids.getOffHeapConsumption()));
-			stats.add(new RecordsCacheStat("datastore.versions", versions.getHeapConsumption(), versions.getOffHeapConsumption()));
-			stats.add(new RecordsCacheStat("datastore.schemas", schema.getHeapConsumption(), schema.getOffHeapConsumption()));
-			stats.add(new RecordsCacheStat("datastore.types", type.getHeapConsumption(), type.getOffHeapConsumption()));
-			stats.add(new RecordsCacheStat("datastore.collection", collection.getHeapConsumption(), collection.getOffHeapConsumption()));
-			stats.add(new RecordsCacheStat("datastore.summaryCachedData", summaryCachedData.getHeapConsumption(), summaryCachedData.getOffHeapConsumption()));
+			stats.add(new CacheStat("datastore.ids", ids.getHeapConsumption(), ids.getOffHeapConsumption()));
+			stats.add(new CacheStat("datastore.versions", versions.getHeapConsumption(), versions.getOffHeapConsumption()));
+			stats.add(new CacheStat("datastore.schemas", schema.getHeapConsumption(), schema.getOffHeapConsumption()));
+			stats.add(new CacheStat("datastore.types", type.getHeapConsumption(), type.getOffHeapConsumption()));
+			stats.add(new CacheStat("datastore.collection", collection.getHeapConsumption(), collection.getOffHeapConsumption()));
+			stats.add(new CacheStat("datastore.summaryCachedData", summaryCachedData.getHeapConsumption(), summaryCachedData.getOffHeapConsumption()));
 			//OffHeapLongList versions = new OffHeapLongList();
 			//OffHeapShortList schema = new OffHeapShortList();
 			//OffHeapShortList type = new OffHeapShortList();
@@ -763,9 +771,9 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 				}
 
 			}
-			stats.add(new RecordsCacheStat("datastore.fullyCachedData", fullyCachedDataSize, 0));
+			stats.add(new CacheStat("datastore.fullyCachedData", fullyCachedDataSize, 0));
 			for (Map.Entry<String, Long> entry : schemaTypesConsumptions.entriesSortedByDescValue()) {
-				stats.add(new RecordsCacheStat("datastore.fullyCachedData." + entry.getKey(), entry.getValue(), 0));
+				stats.add(new CacheStat("datastore.fullyCachedData." + entry.getKey(), entry.getValue(), 0));
 			}
 
 			long typeIndexesSize = 12 + 12 * typesIndexes.length;
@@ -780,7 +788,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 					}
 				}
 			}
-			stats.add(new RecordsCacheStat("datastore.typeIndexes", typeIndexesSize, 0));
+			stats.add(new CacheStat("datastore.typeIndexes", typeIndexesSize, 0));
 
 			return stats;
 		} finally {
@@ -788,4 +796,35 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		}
 	}
 
+	public void structureCacheUsingExistingIds(Iterator<RecordId> sortedExistingIdsIterator) {
+
+		BatchBuilderIterator<RecordId> batchIterator = new BatchBuilderIterator<>(sortedExistingIdsIterator, 10000);
+
+		if (ids.size() != 0) {
+			throw new IllegalStateException("Can only be called before cache loading");
+		}
+		LOGGER.info("structuring cache using id iterator");
+
+		mechanism.obtainSystemWideWritingPermit();
+		try {
+
+			int index = 0;
+			while (batchIterator.hasNext()) {
+				List<RecordId> ids = batchIterator.next().stream().filter(RecordId::isInteger).collect(Collectors.toList());
+				for (RecordId recordId : ids) {
+					this.ids.set(index, recordId.intValue());
+					this.versions.set(index, 0);
+					this.collection.set(index, (byte) 0);
+					this.type.set(index, (short) 0);
+					this.schema.set(index, (short) 0);
+					index++;
+				}
+
+			}
+
+		} finally {
+			mechanism.releaseSystemWideWritingPermit();
+		}
+		LOGGER.info("finished structuring cache using id iterator");
+	}
 }

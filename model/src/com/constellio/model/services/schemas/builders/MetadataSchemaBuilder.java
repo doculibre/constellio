@@ -393,10 +393,10 @@ public class MetadataSchemaBuilder {
 
 		Set<String> typesWithSummaryCache = getTypesWithSummaryCache(typesBuilder);
 
-		MetadataSchema metadataSchema = new MetadataSchema(typeId, id, this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
+		MetadataSchema metadataSchema = new MetadataSchema(id, this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(),
 				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators),
-				schemaTypeBuilder.getDataStore(), this.isActive(), typesWithSummaryCache);
+				schemaTypeBuilder.getDataStore(), this.isActive(), modelLayerFactory.getSystemConfigs(), typesWithSummaryCache);
 		return metadataSchema;
 	}
 
@@ -625,9 +625,9 @@ public class MetadataSchemaBuilder {
 		}
 
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
-		MetadataSchema metadataSchema = new MetadataSchema(typeId, this.getId(), this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
+		MetadataSchema metadataSchema = new MetadataSchema(this.getId(), this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(), inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators)
-				, schemaTypeBuilder.getDataStore(), this.isActive(), getTypesWithSummaryCache(typesBuilder));
+				, schemaTypeBuilder.getDataStore(), this.isActive(), modelLayerFactory.getSystemConfigs(), getTypesWithSummaryCache(typesBuilder));
 		return metadataSchema;
 	}
 

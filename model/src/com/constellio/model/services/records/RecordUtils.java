@@ -478,7 +478,7 @@ public class RecordUtils {
 	public static String getSchemaAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
 															  RecordProvider recordProvider, Metadata typeMetadata) {
 		MetadataSchema recordSchema = schemaTypes.getSchemaOf(record);
-		MetadataSchema referencedSchema = schemaTypes.getDefaultSchema(typeMetadata.getReferencedSchemaType());
+		MetadataSchema referencedSchema = schemaTypes.getDefaultSchema(typeMetadata.getReferencedSchemaTypeCode());
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		String typeId = record.get(typeMetadata);
 		String customSchema = null;
@@ -678,7 +678,9 @@ public class RecordUtils {
 
 			for (Metadata metadata : metadatas) {
 				for (String aReference : record.<String>getValues(metadata)) {
-					ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
+					if (ids.contains(aReference)) {
+						ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
+					}
 				}
 			}
 

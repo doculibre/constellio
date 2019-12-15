@@ -107,7 +107,8 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			throws Exception {
 
 		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()
-			&& new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isInBatchProcessesSchedule()) {
+			&& new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isInBatchProcessesSchedule()
+			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
 			final BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
 
 			if (batchProcess != null) {

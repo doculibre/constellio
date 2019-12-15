@@ -138,7 +138,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 
 	private boolean isDDVOrTaxonomy(Metadata metadata) {
 		if (metadata.getType() == MetadataValueType.REFERENCE) {
-			String referencedSchemaType = metadata.getReferencedSchemaType();
+			String referencedSchemaType = metadata.getReferencedSchemaTypeCode();
 			return referencedSchemaType.startsWith("taxo")
 				   || (metadata.getLocalCode().startsWith("USR") && referencedSchemaType.startsWith("ddv"));
 

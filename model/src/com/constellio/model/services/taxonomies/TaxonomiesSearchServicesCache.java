@@ -24,4 +24,6 @@ public interface TaxonomiesSearchServicesCache {
 
 	Boolean getCachedValue(String username, Record record, String mode);
 
+	long getHeapConsumption();
+
 }

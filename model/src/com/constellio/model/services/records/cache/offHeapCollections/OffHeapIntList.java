@@ -2,10 +2,21 @@ package com.constellio.model.services.records.cache.offHeapCollections;
 
 import com.constellio.data.utils.LazyIterator;
 import org.eclipse.collections.impl.list.mutable.primitive.LongArrayList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.stream.Stream;
 
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.OffHeapIntList_ID;
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.allocateMemory;
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.freeMemory;
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.getInt;
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.getUnsafe;
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.putInt;
+
 public class OffHeapIntList {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(OffHeapIntList.class);
 
 	private static int batchSize = 1000;
 
@@ -20,10 +31,10 @@ public class OffHeapIntList {
 
 		int batch = index / batchSize;
 		while (adressesOfBatches.size() < batch + 1) {
-			long address = OffHeapMemoryAllocator.allocateMemory(batchSize * Integer.BYTES);
+			long address = allocateMemory(batchSize * Integer.BYTES, OffHeapIntList_ID);
 
 			for (int i = 0; i < batchSize; i++) {
-				OffHeapMemoryAllocator.putInt(address + i * Integer.BYTES, 0);
+				putInt(address + i * Integer.BYTES, 0);
 			}
 
 			adressesOfBatches.add(address);
@@ -44,7 +55,7 @@ public class OffHeapIntList {
 
 	public void set(int index, int value) {
 		long address = getAdressOfIndex(index);
-		OffHeapMemoryAllocator.getUnsafe().putInt(address, value);
+		getUnsafe().putInt(address, value);
 		lastIndex = Math.max(index, lastIndex);
 	}
 
@@ -55,23 +66,25 @@ public class OffHeapIntList {
 	 * @param value
 	 */
 	public void insertValueShiftingAllFollowingValues(int index, int value) {
+		LOGGER.warn("insertValueShiftingAllFollowingValues : this should not happen and could consume a lot of memory");
 		LongArrayList newAddressesOfBatches = new LongArrayList();
 
 		for (int i = 0; i <= lastIndex; i++) {
 			int v = get(i);
 			long newAddress = readAddressOfIndex(newAddressesOfBatches, i < index ? i : (i + 1));
-			OffHeapMemoryAllocator.getUnsafe().putInt(newAddress, v);
+			getUnsafe().putInt(newAddress, v);
 		}
 
-
+		clear();
 		adressesOfBatches = newAddressesOfBatches;
 		set(index, value);
 		lastIndex++;
+		LOGGER.warn("insertValueShiftingAllFollowingValues : finished");
 	}
 
 	public int get(int index) {
 		long address = getAdressOfIndex(index);
-		return OffHeapMemoryAllocator.getInt(address);
+		return getInt(address);
 	}
 
 
@@ -134,7 +147,7 @@ public class OffHeapIntList {
 
 	public void clear() {
 		for (int i = 0; i < this.adressesOfBatches.size(); i++) {
-			OffHeapMemoryAllocator.freeMemory(adressesOfBatches.get(i), batchSize * Integer.BYTES);
+			freeMemory(adressesOfBatches.get(i), batchSize * Integer.BYTES, OffHeapIntList_ID);
 		}
 		this.adressesOfBatches.clear();
 	}

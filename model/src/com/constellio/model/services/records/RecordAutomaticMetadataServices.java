@@ -868,7 +868,18 @@ public class RecordAutomaticMetadataServices {
 			return false;
 		} else {
 			try {
-				referencedRecord = referenceValue == null ? null : recordProvider.getRecord(referenceValue);
+				referencedRecord = null;
+				if (referenceValue != null) {
+					if (referenceMetadata.getReferencedSchemaType().getCacheType().isSummaryCache()
+						&& referenceMetadata.getReferencedSchemaType().getDefaultSchema()
+								.getMetadata(dependency.getDependentMetadataCode()).isStoredInSummaryCache()) {
+
+						referencedRecord = recordProvider.getRecordSummary(referenceValue);
+
+					} else {
+						referencedRecord = recordProvider.getRecord(referenceValue);
+					}
+				}
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 				RuntimeException brokenReferenceException = new RecordServicesRuntimeException.BrokenReference(
 						record.getId(), referenceValue, referenceMetadata, e);
@@ -950,7 +961,12 @@ public class RecordAutomaticMetadataServices {
 									RecordUpdateOptions options) {
 		Object copiedValue;
 		try {
-			Record referencedRecord = recordProvider.getRecord(referencedRecordId);
+			Record referencedRecord;
+			if (copiedMetadata.getSchemaType().getCacheType().isSummaryCache() && copiedMetadata.isStoredInSummaryCache()) {
+				referencedRecord = recordProvider.getRecordSummary(referencedRecordId);
+			} else {
+				referencedRecord = recordProvider.getRecord(referencedRecordId);
+			}
 			copiedValue = referencedRecord.get(copiedMetadata);
 
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {

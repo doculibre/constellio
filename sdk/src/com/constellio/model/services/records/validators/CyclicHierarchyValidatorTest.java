@@ -72,8 +72,16 @@ public class CyclicHierarchyValidatorTest extends ConstellioTest {
 		when(recordProvider.getRecord("anAllowedRecordId")).thenReturn(anAllowedRecord);
 		when(recordProvider.getRecord("anUnallowedRecordId")).thenReturn(anUnallowedRecord);
 
+		when(recordProvider.getRecordSummary("theRecordId")).thenReturn(record);
+		when(recordProvider.getRecordSummary("aDescendantId")).thenReturn(descendantRecord);
+		when(recordProvider.getRecordSummary("anAllowedRecordId")).thenReturn(anAllowedRecord);
+		when(recordProvider.getRecordSummary("anUnallowedRecordId")).thenReturn(anUnallowedRecord);
+
 		when(anAllowedRecord.get(Schemas.PRINCIPAL_PATH)).thenReturn("/concept/anAllowedRecordId");
 		when(descendantRecord.get(Schemas.PRINCIPAL_PATH)).thenReturn("/concept/theRecordId/aDescendantId");
+
+		when(anAllowedRecord.getParentId()).thenReturn("anAllowedRecordId");
+		when(descendantRecord.getParentId()).thenReturn("theRecordId");
 
 		when(metadataWithoutReferences.getType()).thenReturn(MetadataValueType.STRING);
 		when(metadataWithAReference.getType()).thenReturn(MetadataValueType.REFERENCE);

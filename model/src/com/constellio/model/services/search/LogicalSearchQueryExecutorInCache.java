@@ -11,6 +11,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -57,12 +58,15 @@ public class LogicalSearchQueryExecutorInCache {
 	ModelLayerSystemExtensions modelLayerExtensions;
 	String mainDataLanguage;
 	SearchConfigurationsManager searchConfigurationsManager;
+	ConstellioEIMConfigs constellioEIMConfigs;
 
 	public LogicalSearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
 											 MetadataSchemasManager schemasManager,
 											 SearchConfigurationsManager searchConfigurationsManager,
 											 ModelLayerSystemExtensions modelLayerExtensions,
+											 ConstellioEIMConfigs constellioEIMConfigs,
 											 String mainDataLanguage) {
+		this.constellioEIMConfigs = constellioEIMConfigs;
 		this.searchServices = searchServices;
 		this.recordsCaches = recordsCaches;
 		this.schemasManager = schemasManager;
@@ -252,8 +256,15 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 	private boolean canDataGetByMetadata(DataStoreField dataStoreField, Object value) {
-		return value instanceof String
-			   && !dataStoreField.isEncrypted() && (dataStoreField.isUniqueValue() || dataStoreField.isCacheIndex());
+		if (value instanceof String
+			&& !dataStoreField.isEncrypted() && (dataStoreField.isUniqueValue() || dataStoreField.isCacheIndex())) {
+
+			if (dataStoreField.getLocalCode().equals(Schemas.LEGACY_ID.getLocalCode()) && !constellioEIMConfigs.isLegacyIdentifierIndexedInMemory()) {
+				return false;
+			}
+
+		}
+		return false;
 	}
 
 	@NotNull

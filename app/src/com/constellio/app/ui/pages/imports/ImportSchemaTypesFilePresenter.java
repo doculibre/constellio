@@ -20,6 +20,11 @@ public class ImportSchemaTypesFilePresenter extends ImportFilePresenter {
 	}
 
 	@Override
+	public boolean isLegacyIdIndexDisabledWarningVisible() {
+		return false;
+	}
+
+	@Override
 	protected ImportDataProvider getXMLImportDataProviderForSingleXMLFile(ModelLayerFactory modelLayerFactory,
 																		  File file,
 																		  String fileName) {

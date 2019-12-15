@@ -25,6 +25,8 @@ import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.extractions.DefaultMetadataPopulator;
 import com.constellio.model.services.records.extractions.MetadataPopulator;
 import com.constellio.model.services.records.extractions.MetadataToText;
@@ -36,6 +38,7 @@ import com.constellio.model.services.search.query.logical.criteria.MeasuringUnit
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -57,12 +60,16 @@ public class POJOEntitiesTest extends ConstellioTest {
 
 	Map<Language, String> labels;
 
+	@Mock ModelLayerFactory modelLayerFactory;
+	@Mock ConstellioEIMConfigs constellioEIMConfigs;
+
 	@Before
 	public void setUp()
 			throws Exception {
 		labels = new HashMap<>();
 		labels.put(Language.French, "a");
 
+		when(modelLayerFactory.getSystemConfigs()).thenReturn(constellioEIMConfigs);
 	}
 
 	@Test
@@ -150,10 +157,10 @@ public class POJOEntitiesTest extends ConstellioTest {
 	@Test
 	public void testThatMetadataSchemaHasValidEqualsHashcodeAndToStringBehaviors() {
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema o = new MetadataSchema((short) 1, (short) 0, "a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, new HashSet<>());
-		MetadataSchema o2 = new MetadataSchema((short) 1, (short) 0, "a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, new HashSet<>());
+		MetadataSchema o = new MetadataSchema((short) 0, "a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, constellioEIMConfigs, new HashSet<>());
+		MetadataSchema o2 = new MetadataSchema((short) 0, "a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, constellioEIMConfigs, new HashSet<>());
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 		assertThat(o).isInstanceOf(Serializable.class);
 	}
@@ -161,10 +168,10 @@ public class POJOEntitiesTest extends ConstellioTest {
 	@Test
 	public void testThatMetadataSchemaTypeHasValidEqualsHashcodeAndToStringBehaviors() {
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema defaultSchema = new MetadataSchema((short) 1, (short) 0, "a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, new HashSet<>());
-		MetadataSchema defaultSchema2 = new MetadataSchema((short) 1, (short) 0, "a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, new HashSet<>());
+		MetadataSchema defaultSchema = new MetadataSchema((short) 0, "a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, constellioEIMConfigs, new HashSet<>());
+		MetadataSchema defaultSchema2 = new MetadataSchema((short) 0, "a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, constellioEIMConfigs, new HashSet<>());
 		MetadataSchemaType o = new MetadataSchemaType((short) 0, "a", null, zeCollectionInfo, labels, new ArrayList<MetadataSchema>(),
 				defaultSchema, true, true, RecordCacheType.NOT_CACHED, true, false, "records");
 		MetadataSchemaType o2 = new MetadataSchemaType((short) 0, "a", null, zeCollectionInfo, labels, new ArrayList<MetadataSchema>(),

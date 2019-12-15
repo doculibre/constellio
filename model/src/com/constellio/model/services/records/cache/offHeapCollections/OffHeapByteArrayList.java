@@ -1,8 +1,17 @@
 package com.constellio.model.services.records.cache.offHeapCollections;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.atomic.AtomicLong;
 
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.OffHeapByteArrayList_ID;
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.allocateMemory;
+
 public class OffHeapByteArrayList {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(OffHeapByteArrayList.class);
+
 	private OffHeapShortList byteArraySizes = new OffHeapShortList();
 	private OffHeapLongList byteArrayMemoryAdresses = new OffHeapLongList();
 
@@ -31,7 +40,7 @@ public class OffHeapByteArrayList {
 		try {
 			if (value != null) {
 				synchronized (this) {
-					long address = OffHeapMemoryAllocator.allocateMemory(value.length);
+					long address = allocateMemory(value.length, OffHeapByteArrayList_ID);
 					if (address == 0) {
 						address = -1;
 					}
@@ -53,7 +62,7 @@ public class OffHeapByteArrayList {
 		} finally {
 			if (previousAddress != 0 && previousAddress != -1) {
 				synchronized (this) {
-					OffHeapMemoryAllocator.freeMemory(previousAddress, previousLength);
+					OffHeapMemoryAllocator.freeMemory(previousAddress, previousLength, OffHeapByteArrayList_ID);
 				}
 			}
 		}
@@ -72,9 +81,11 @@ public class OffHeapByteArrayList {
 	 * @param value
 	 */
 	public void insertValueShiftingAllFollowingValues(int index, byte[] value) {
+		LOGGER.warn("insertValueShiftingAllFollowingValues : this should not happen and could consume a lot of memory");
 		byteArraySizes.insertValueShiftingAllFollowingValues(index, (short) 0);
 		byteArrayMemoryAdresses.insertValueShiftingAllFollowingValues(index, 0L);
 		set(index, value);
+		LOGGER.warn("insertValueShiftingAllFollowingValues : finished");
 	}
 
 	public void clear() {
@@ -82,7 +93,7 @@ public class OffHeapByteArrayList {
 			long address = this.byteArrayMemoryAdresses.get(i);
 			long size = this.byteArraySizes.get(i);
 			if (address > 0 && size > 0) {
-				OffHeapMemoryAllocator.freeMemory(address, size);
+				OffHeapMemoryAllocator.freeMemory(address, size, OffHeapByteArrayList_ID);
 			}
 		}
 		this.byteArrayMemoryAdresses.clear();

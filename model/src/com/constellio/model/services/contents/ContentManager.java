@@ -88,14 +88,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_SIZE;
@@ -1364,6 +1367,45 @@ public class ContentManager implements StatefulService {
 
 		return files;
 	}
+
+	public Stream<VaultContentEntry> stream() {
+		Stream<Path> pathStream = modelLayerFactory.getContentManager().getContentDao().streamVaultContent((path) -> {
+
+			if (path.toFile().isDirectory()) {
+				return false;
+
+			} else {
+				String filename = path.toFile().getName();
+				if (path.endsWith("tlogs") || path.getParent().endsWith("tlogs")
+					|| filename.endsWith("tlogs-backup")) {
+					return false;
+
+				} else if (filename.endsWith(".preview") || filename.endsWith(".thumbnails") || filename.endsWith("__parsed")) {
+					return false;
+
+				} else {
+					return true;
+				}
+
+			}
+		});
+
+		return pathStream.map((p -> {
+			String hash = p.toFile().getName();
+			return new VaultContentEntry(p.toFile()) {
+				@Override
+				public Optional<ParsedContent> loadParsedContent() {
+					try {
+						return Optional.of(ContentManager.this.getParsedContent(hash));
+					} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
+						return Optional.empty();
+					}
+				}
+			};
+		}));
+	}
+
+	;
 
 	protected static class VaultScanResults {
 		private StringBuilder reportMessage = new StringBuilder();

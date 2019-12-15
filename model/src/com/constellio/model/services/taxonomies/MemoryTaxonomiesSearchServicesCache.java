@@ -2,10 +2,14 @@ package com.constellio.model.services.taxonomies;
 
 import com.constellio.model.entities.records.Record;
 
+import com.constellio.data.utils.LangUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.constellio.model.services.records.RecordUtils.sizeOf;
 
 public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServicesCache {
 
@@ -94,6 +98,17 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 		}
 	}
 
+	@Override
+	public synchronized long getHeapConsumption() {
+		long heapConsumption = 12 + LangUtils.estimatedizeOfMapStructureBasedOnSize(cache);
+
+		for (Map.Entry<String, TaxonomyRecordCache> entry : cache.entrySet()) {
+			heapConsumption += sizeOf(entry.getKey());
+			heapConsumption += sizeOf(12 + entry.getValue().getHeapConsumption());
+		}
+
+		return heapConsumption;
+	}
 
 	/**
 	 * For test purposes
@@ -161,6 +176,24 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 
 		public void invalidateUser(String username) {
 			userModesCache.remove(username);
+		}
+
+		public long getHeapConsumption() {
+			//Map<String, Map<String, Boolean>> userModesCache = new HashMap<>();
+
+			long heapConsumption = 12 + LangUtils.estimatedizeOfMapStructureBasedOnSize(userModesCache);
+			for (Map.Entry<String, Map<String, Boolean>> entry : userModesCache.entrySet()) {
+				heapConsumption += sizeOf(entry.getKey());
+				Map<String, Boolean> value = entry.getValue();
+				heapConsumption += 12 + LangUtils.estimatedizeOfMapStructureBasedOnSize(value);
+				for (Map.Entry<String, Boolean> entry2 : value.entrySet()) {
+					heapConsumption += sizeOf(entry2.getKey());
+					heapConsumption += 16;
+				}
+			}
+
+
+			return heapConsumption;
 		}
 	}
 

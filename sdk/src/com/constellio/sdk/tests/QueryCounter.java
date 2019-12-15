@@ -13,10 +13,29 @@ public class QueryCounter extends BigVaultServerExtension {
 	private AtomicInteger queryCounter = new AtomicInteger();
 	private AtomicInteger returnedResultsCounter = new AtomicInteger();
 
+	public QueryCounter(DataLayerFactory dataLayerFactory, Class<?> occuringFrom) {
+		this.filter = (AfterQueryParams p) -> {
+			for (StackTraceElement stackLine : Thread.currentThread().getStackTrace()) {
+				if (stackLine.getClassName().contains(occuringFrom.getSimpleName())) {
+					return true;
+				}
+			}
+			return false;
+		};
+		dataLayerFactory.getExtensions().getSystemWideExtensions().bigVaultServerExtension.add(this);
+	}
+
 	public QueryCounter(DataLayerFactory dataLayerFactory, final String name) {
 		this.filter = params -> params.getQueryName() != null && params.getQueryName().equals(name);
 		dataLayerFactory.getExtensions().getSystemWideExtensions().bigVaultServerExtension.add(this);
 	}
+
+
+	public QueryCounter(DataLayerFactory dataLayerFactory) {
+		this.filter = params -> true;
+		dataLayerFactory.getExtensions().getSystemWideExtensions().bigVaultServerExtension.add(this);
+	}
+
 
 	public QueryCounter(DataLayerFactory dataLayerFactory, Function<AfterQueryParams, Boolean> filter) {
 		this.filter = filter;

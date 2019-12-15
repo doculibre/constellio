@@ -5,9 +5,11 @@ import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 public class MetadataSchemaTest extends ConstellioTest {
 
+	@Mock ConstellioEIMConfigs constellioEIMConfigs;
 	Map<Language, String> labels;
 
 	@Before
@@ -80,8 +83,8 @@ public class MetadataSchemaTest extends ConstellioTest {
 		List<Taxonomy> taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema((short) 1, (short) 1, "default", "second_default", zeCollectionInfo, labels, metadatas, false,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, new HashSet<>());
+		MetadataSchema schema = new MetadataSchema((short) 1, "default", "second_default", zeCollectionInfo, labels, metadatas, false,
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, constellioEIMConfigs, new HashSet<>());
 
 		MetadataSchemaType schemaType = new MetadataSchemaType((short) 0, "second", null, zeCollectionInfo, asMap(Language.French, "titre"),
 				new ArrayList<MetadataSchema>(), schema, true, true, RecordCacheType.NOT_CACHED, true, false, "records");
@@ -115,8 +118,8 @@ public class MetadataSchemaTest extends ConstellioTest {
 						textMetadata);
 
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema((short) 1, (short) 1, "default", "zeType_default", zeCollectionInfo, labels, metadatas, false,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, new HashSet<>());
+		MetadataSchema schema = new MetadataSchema((short) 1, "default", "zeType_default", zeCollectionInfo, labels, metadatas, false,
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, constellioEIMConfigs, new HashSet<>());
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
 		assertThat(returnedMetadatas).containsOnly(taxonomyRelationToT4, taxonomyRelationToT3Custom);
@@ -148,8 +151,8 @@ public class MetadataSchemaTest extends ConstellioTest {
 				.asList(relationToT4, taxonomyRelationToT4, relationToT3Custom, taxonomyRelationToT3Custom, relationToOtherSchema,
 						textMetadata, relationToT1, relationToT2);
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema((short) 1, (short) 1, "default", "t2_default", zeCollectionInfo, labels, metadatas, false,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, new HashSet<>());
+		MetadataSchema schema = new MetadataSchema((short) 1, "default", "t2_default", zeCollectionInfo, labels, metadatas, false,
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true, constellioEIMConfigs, new HashSet<>());
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
 		assertThat(returnedMetadatas).containsOnly(taxonomyRelationToT4, taxonomyRelationToT3Custom);

@@ -5,12 +5,12 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.services.records.RecordProvider;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,15 +35,29 @@ public class CyclicHierarchyValidator implements Validator<Record> {
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
 		for (Metadata metadata : metadatas) {
+
 			if (metadata.getType() == MetadataValueType.REFERENCE && record.isModified(metadata)
 				&& record.get(metadata) != null) {
 				if (!metadata.isMultivalue()) {
 					String referenceValue = record.get(metadata);
 					Record referencedRecord = recordProvider.getRecord(referenceValue);
 					MetadataSchema schema = getSchema(referencedRecord);
+
+					List<String> ids = new ArrayList<>();
+
+					String referencedId = referenceValue;
+					while (referencedId != null) {
+						if (ids.contains(referencedId)) {
+							referencedId = null;
+						} else {
+							ids.add(referencedId);
+							Record referencedRecordSummary = recordProvider.getRecordSummary(referencedId);
+							referencedId = referencedRecordSummary.getParentId();
+						}
+					}
+
 					if (metadata.isChildOfRelationship()) {
-						String principalPath = (String) referencedRecord.get(Schemas.PRINCIPAL_PATH);
-						if (isInPrincipalPath(record.getId(), principalPath)) {
+						if (ids.contains(record.getId())) {
 							addValidationErrors(validationErrors, CANNOT_REFERENCE_A_DESCENDANT_IN_A_CHILD_OF_REFERENCE,
 									metadata, schema.getCode());
 						}
@@ -52,6 +66,7 @@ public class CyclicHierarchyValidator implements Validator<Record> {
 				}
 
 			}
+
 		}
 	}
 

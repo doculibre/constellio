@@ -247,18 +247,23 @@ public class FileSystemRecordsValuesCacheDataStore {
 	}
 
 	public void closeThenReopenWithoutMmap() {
-		busy = true;
+		if (Toggle.USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE.isEnabled()) {
+			//Otherwise, the case is safely in memory, no need to restart it
 
-		try {
-			Thread.sleep(10_000);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
+			LOGGER.info("closeThenReopenWithoutMmap");
+			busy = true;
+
+			try {
+				Thread.sleep(10_000);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+
+			close();
+			open(file, false);
+
+			busy = false;
 		}
-
-		close();
-		open(file, false);
-
-		busy = false;
 	}
 
 	private void ensureNotBusy() {

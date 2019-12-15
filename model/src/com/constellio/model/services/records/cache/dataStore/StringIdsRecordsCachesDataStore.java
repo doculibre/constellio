@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.utils.CacheStat;
 import com.constellio.data.utils.Holder;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LazyIterator;
@@ -412,11 +413,11 @@ public class StringIdsRecordsCachesDataStore {
 
 	}
 
-	public List<RecordsCacheStat> compileMemoryConsumptionStats() {
-		List<RecordsCacheStat> stats = new ArrayList<>();
+	public List<CacheStat> compileMemoryConsumptionStats() {
+		List<CacheStat> stats = new ArrayList<>();
 
 		if (!allRecordsWithStringKey.isEmpty()) {
-			stats.add(new RecordsCacheStat("!!! Records with string ids are not calculated : " + allRecordsWithStringKey.size(), 1, 0));
+			stats.add(new CacheStat("!!! Records with string ids are not calculated : " + allRecordsWithStringKey.size(), 1, 0));
 		}
 		return stats;
 	}

@@ -5,6 +5,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,18 +63,18 @@ public class MetadataSchema implements Serializable {
 
 	private boolean hasEagerTransientMetadata;
 
-	private final short typeId;
 
 	private List<Metadata> referencesToSummaryCachedType;
 
-	public MetadataSchema(short typeId, short id, String localCode, String code, CollectionInfo collectionInfo,
+	private MetadataSchemaType schemaType;
+
+	public MetadataSchema(short id, String localCode, String code, CollectionInfo collectionInfo,
 						  Map<Language, String> labels,
 						  List<Metadata> metadatas,
 						  Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
 						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active,
-						  Set<String> typesWithSummaryCache) {
+						  ConstellioEIMConfigs configs, Set<String> typesWithSummaryCache) {
 		super();
-		this.typeId = typeId;
 		this.id = id;
 		this.localCode = localCode;
 		this.code = code;
@@ -94,15 +95,22 @@ public class MetadataSchema implements Serializable {
 		this.dataStore = dataStore;
 		this.active = active;
 		this.collectionInfo = collectionInfo;
-		this.summaryMetadatas = new SchemaUtils().buildListOfSummaryMetadatas(metadatas);
+		this.summaryMetadatas = new SchemaUtils().buildListOfSummaryMetadatas(metadatas, configs);
 		this.cacheIndexMetadatas = new SchemaUtils().buildListOfCacheIndexMetadatas(metadatas);
 		this.referencesToSummaryCachedType = new SchemaUtils().buildListOfReferencesToSummaryCachedType(metadatas, typesWithSummaryCache);
 		this.hasEagerTransientMetadata = metadatas.stream().anyMatch((m) -> m.getTransiency() == MetadataTransiency.TRANSIENT_EAGER);
+		for (Metadata metadata : metadatas) {
+			metadata.setBuiltSchema(this);
+		}
 
 	}
 
-	public short getTypeId() {
-		return typeId;
+
+	public void setBuiltSchemaType(MetadataSchemaType schemaType) {
+		if (this.schemaType != null) {
+			throw new IllegalStateException("Schematype already");
+		}
+		this.schemaType = schemaType;
 	}
 
 	public List<Metadata> getSummaryMetadatas() {
@@ -260,12 +268,12 @@ public class MetadataSchema implements Serializable {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this, "schemaValidators", "calculatedInfos");
+		return HashCodeBuilder.reflectionHashCode(this, "schemaValidators", "calculatedInfos", "schemaType");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, "schemaValidators", "calculatedInfos");
+		return EqualsBuilder.reflectionEquals(this, obj, "schemaValidators", "calculatedInfos", "schemaType");
 	}
 
 	@Override
@@ -317,4 +325,7 @@ public class MetadataSchema implements Serializable {
 		return active;
 	}
 
+	public MetadataSchemaType getSchemaType() {
+		return schemaType;
+	}
 }

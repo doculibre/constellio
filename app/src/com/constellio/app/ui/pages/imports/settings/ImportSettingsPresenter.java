@@ -37,6 +37,11 @@ public class ImportSettingsPresenter extends BasePresenter<ImportFileView> imple
 		initTransientObjects();
 	}
 
+	@Override
+	public boolean isLegacyIdIndexDisabledWarningVisible() {
+		return false;
+	}
+
 	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();

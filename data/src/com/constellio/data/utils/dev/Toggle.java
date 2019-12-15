@@ -107,6 +107,8 @@ public class Toggle {
 
 	public static AvailableToggle DEBUG_SOLR_TIMINGS = newToggle(false);
 
+	public static AvailableToggle STRUCTURE_CACHE_BASED_ON_EXISTING_IDS = newToggle(true);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

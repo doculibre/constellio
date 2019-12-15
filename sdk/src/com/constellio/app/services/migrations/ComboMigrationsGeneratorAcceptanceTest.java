@@ -975,7 +975,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 							CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();
 
 							Metadata referenceMetadata = schema.getMetadata(dataEntry.getReferenceMetadata());
-							Metadata copiedMetadata = types.getSchemaType(referenceMetadata.getReferencedSchemaType()).
+							Metadata copiedMetadata = types.getSchemaType(referenceMetadata.getReferencedSchemaTypeCode()).
 									getDefaultSchema().getMetadata(dataEntry.getCopiedMetadata());
 
 							main.addStatement("$L.get($S).defineDataEntry().asCopied($L.get($S), typesBuilder.getMetadata($S))",

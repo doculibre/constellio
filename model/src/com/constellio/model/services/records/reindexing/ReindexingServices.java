@@ -126,17 +126,30 @@ public class ReindexingServices {
 
 	public void reindexCollections(ReindexationParams params) {
 
-		modelLayerFactory.getRecordsCaches().disableVolatileCache();
-		dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(false);
-		try {
-			if (params.isBackground()) {
-				BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-				for (MetadataSchemaType schemaType : params.getReindexedSchemaTypes()) {
-					BatchProcessAction action = ReindexMetadatasBatchProcessAction.allMetadatas();
-					batchProcessesManager.addPendingBatchProcess(from(schemaType).returnAll(), action, "reindexing");
+
+		if (params.isBackground()) {
+			BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+			for (MetadataSchemaType schemaType : params.getReindexedSchemaTypes()) {
+				BatchProcessAction action = ReindexMetadatasBatchProcessAction.allMetadatas();
+				batchProcessesManager.addPendingBatchProcess(from(schemaType).returnAll(), action, "reindexing");
+			}
+
+		} else {
+			try {
+				modelLayerFactory.getRecordsCaches().disableVolatileCache();
+				dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(false);
+				int waitedCounter = 0;
+				while (!modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+					if (waitedCounter++ % 6 == 0) {
+						LOGGER.info("Waiting end of cache loading to start reindexing");
+					}
+					try {
+						Thread.sleep(10000);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
 				}
 
-			} else {
 				SystemLogger.info("Reindexing started");
 				if (logManager != null && params.getReindexationMode().isFullRewrite()) {
 					logManager.regroupAndMoveInVault();
@@ -193,13 +206,14 @@ public class ReindexingServices {
 					}
 				}
 				SystemLogger.info("Reindexing finished");
+
+			} finally {
+
+				REINDEXING_INFOS = null;
+
+				dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(true);
+				modelLayerFactory.getRecordsCaches().enableVolatileCache();
 			}
-
-		} finally {
-			REINDEXING_INFOS = null;
-
-			dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(true);
-			modelLayerFactory.getRecordsCaches().enableVolatileCache();
 		}
 
 
