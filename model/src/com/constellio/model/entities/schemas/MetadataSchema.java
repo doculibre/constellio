@@ -63,20 +63,18 @@ public class MetadataSchema implements Serializable {
 
 	private boolean hasEagerTransientMetadata;
 
-	private final short typeId;
 
 	private List<Metadata> referencesToSummaryCachedType;
 
 	private MetadataSchemaType schemaType;
 
-	public MetadataSchema(short typeId, short id, String localCode, String code, CollectionInfo collectionInfo,
+	public MetadataSchema(short id, String localCode, String code, CollectionInfo collectionInfo,
 						  Map<Language, String> labels,
 						  List<Metadata> metadatas,
 						  Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
 						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active,
 						  ConstellioEIMConfigs configs) {
 		super();
-		this.typeId = typeId;
 		this.id = id;
 		this.localCode = localCode;
 		this.code = code;

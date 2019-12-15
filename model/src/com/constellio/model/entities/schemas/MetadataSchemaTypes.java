@@ -1,5 +1,6 @@
 package com.constellio.model.entities.schemas;
 
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;

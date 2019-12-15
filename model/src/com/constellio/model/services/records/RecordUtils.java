@@ -678,7 +678,9 @@ public class RecordUtils {
 
 			for (Metadata metadata : metadatas) {
 				for (String aReference : record.<String>getValues(metadata)) {
-					ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
+					if (ids.contains(aReference)) {
+						ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
+					}
 				}
 			}
 

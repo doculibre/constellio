@@ -1086,12 +1086,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 		MetadataSchema documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
 		references = documentSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 		Taxonomy taxonomy2 = getAppLayerFactory().getModelLayerFactory()
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_2_CODE);
@@ -1143,12 +1143,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 		MetadataSchema documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
 		references = documentSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 		importedTaxonomy1.setClassifiedTypes(toListOfString("document"));
 
@@ -1160,12 +1160,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 		documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
 		references = documentSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 	}
 
@@ -1324,12 +1324,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 		MetadataSchema documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
 		references = documentSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 	}
 
 	@Test

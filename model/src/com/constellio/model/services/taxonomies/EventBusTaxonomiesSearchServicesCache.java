@@ -39,6 +39,11 @@ public class EventBusTaxonomiesSearchServicesCache implements TaxonomiesSearchSe
 	}
 
 	@Override
+	public long getHeapConsumption() {
+		return nestedCache.getHeapConsumption();
+	}
+
+	@Override
 	public void invalidateAll() {
 		eventBus.send(INVALIDATE_ALL_EVENT_TYPE);
 	}

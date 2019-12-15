@@ -310,7 +310,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		doReturn(theReferencedMetadata).when(services).getDependentMetadataFromDependency(any(ReferenceDependency.class),
 				eq(otherRecord));
 		doReturn("otherRecordId").when(record).get(aReferenceMetadata, Locale.FRENCH, STRICT);
-		when(recordProvider.getRecord("otherRecordId")).thenReturn(otherRecord);
+		when(recordProvider.getRecordSummary("otherRecordId")).thenReturn(otherRecord);
 		doReturn("aValue").when(otherRecord).get(theReferencedMetadata, Locale.FRENCH, STRICT);
 
 		assertThat(services.addValueForReferenceDependency(record, recordProvider, aMap, aReferenceDependency, options,

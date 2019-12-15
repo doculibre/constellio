@@ -5,7 +5,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.services.records.RecordProvider;
@@ -43,11 +42,13 @@ public class CyclicHierarchyValidator implements Validator<Record> {
 					Record referencedRecord = recordProvider.getRecordSummary(referenceValue);
 					MetadataSchema schema = getSchema(referencedRecord);
 					if (metadata.isChildOfRelationship()) {
-						List<Integer> principalIds = referencedRecord.get(Schemas.PRINCIPALS_ANCESTORS_INT_IDS);
-						if (principalIds.contains(record.getRecordId().intValue())) {
-							addValidationErrors(validationErrors, CANNOT_REFERENCE_A_DESCENDANT_IN_A_CHILD_OF_REFERENCE,
-									metadata, schema.getCode());
-						}
+						//TODO Handle after the rebase to 9.0!
+						//						String principalPath = referencedRecord.get(Schemas.PRINCIPAL_PATH);
+						//						List<String> principalIds = principalPath == null ? Collections.emptyList() : Arrays.asList(principalPath.split("/"));
+						//						if (principalIds.contains(record.getId())) {
+						//							addValidationErrors(validationErrors, CANNOT_REFERENCE_A_DESCENDANT_IN_A_CHILD_OF_REFERENCE,
+						//									metadata, schema.getCode());
+						//						}
 
 					}
 
