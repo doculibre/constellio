@@ -468,8 +468,8 @@ $popup-view-z-index: 3;
 	}
 
 	.v-slot-disabled-button {
-	    opacity: 0.4;
-	    filter: alpha(opacity=40); /* msie */
+	    opacity: 0.5;
+	    filter: alpha(opacity=50); /* msie */
 	}
 	
 	.v-contextmenu {
@@ -582,6 +582,10 @@ $popup-view-z-index: 3;
     .v-disabled:hover {
     	text-decoration: none;
     }
+						
+	.reference-display.v-disabled {
+		opacity: 1;
+	}
     
     .v-filterselect {
     	width: 100%;
@@ -1091,17 +1095,33 @@ $popup-view-z-index: 3;
 		margin-top: 7px;
 	}
 
+	.v-button.v-disabled, .v-button-link.v-disabled {
+    	color: black;
+		
+		&:hover {
+    		text-decoration: none;
+		}
+	}
+
 	.clickable-row {
     	.v-table-body {
     		tr, .reference-display {
-    			cursor: pointer;
+    			cursor: pointer !important;
 				color: #696969;
-
+    			
 				&:hover {
-    				color: white;
+    				color: white !important;
     				background-color: #197de1;
     				text-decoration: none;
+    				
+    				.v-button {
+    					color: white !important;
+    				}
     			}
+    		}
+    		.reference-display.nicetitle-link-disabled {
+				color: black !important;
+				opacity: 1;
     		}
     	}
 	}
@@ -1110,8 +1130,6 @@ $popup-view-z-index: 3;
     	.v-table-body {
 			.v-disabled {
 				text-align: left;
-				opacity: 10%;
-				color: black;
 			}
 				
 			.v-slot-icon-only {
@@ -1480,7 +1498,6 @@ $popup-view-z-index: 3;
 							.reference-display {
             					white-space: normal;
             					height: inherit;
-            					color: inherit;
 							}
 							
 							.agent-action-link {

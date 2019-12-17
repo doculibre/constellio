@@ -1,5 +1,9 @@
 package com.constellio.app.ui.framework.components.breadcrumb;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
@@ -10,9 +14,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CustomComponent;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class BaseBreadcrumbTrail extends CustomComponent implements BreadcrumbTrail {
 
@@ -59,6 +60,18 @@ public abstract class BaseBreadcrumbTrail extends CustomComponent implements Bre
 	@Override
 	public List<BreadcrumbItem> getItems() {
 		return items;
+	}
+
+	@Override
+	public List<BreadcrumbItem> getItems(Class<? extends BreadcrumbItem> clazz) {
+		List<BreadcrumbItem> matches = new ArrayList<>();
+		for (Iterator<BreadcrumbItem> it = items.iterator(); it.hasNext();) {
+			BreadcrumbItem item = it.next();
+			if (clazz.isAssignableFrom(item.getClass())) {
+				matches.add(item);
+			}
+		}
+		return matches;
 	}
 
 	@Override

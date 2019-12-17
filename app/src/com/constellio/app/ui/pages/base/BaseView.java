@@ -10,9 +10,6 @@ public interface BaseView extends ViewComponent {
 
 	String getCollection();
 
-	//@Deprecated
-	//CoreViews navigateTo();
-
 	@Override
 	void showMessage(String message);
 
@@ -41,6 +38,8 @@ public interface BaseView extends ViewComponent {
 	MainLayout getMainLayout();
 
 	void removeViewEnterListener(ViewEnterListener listener);
+	
+	void setBackButtonVisible(boolean visible);
 
 	public interface ViewEnterListener extends Serializable {
 

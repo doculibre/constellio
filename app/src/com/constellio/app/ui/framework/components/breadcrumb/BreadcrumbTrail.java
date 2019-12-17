@@ -12,7 +12,9 @@ public interface BreadcrumbTrail extends Serializable, SessionContextProvider {
 	void addItem(BreadcrumbItem item);
 
 	List<BreadcrumbItem> getItems();
-
+	
+	List<BreadcrumbItem> getItems(Class<? extends BreadcrumbItem> clazz);
+	
 	@Deprecated
 	CoreViews navigateTo();
 
