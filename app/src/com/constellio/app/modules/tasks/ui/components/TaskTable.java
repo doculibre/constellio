@@ -30,6 +30,7 @@ import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorItem;
 import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorsGroupItem;
+import com.constellio.app.ui.framework.components.fields.lookup.GroupTextInputDataProvider;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
@@ -95,6 +96,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.vaadin.ui.themes.ValoTheme.LABEL_BOLD;
 
@@ -541,7 +544,7 @@ public class TaskTable extends VerticalLayout {
 
 	private ListAddRemoveCollaboratorsGroupsField buildCollaboratorGroupsField(RecordVO taskVO) {
 		boolean currentUserHasWriteAuthorisation = presenter.currentUserHasWriteAuthorization(taskVO);
-		ListAddRemoveCollaboratorsGroupsField collaboratorsGroupField = new ListAddRemoveCollaboratorsGroupsField(taskVO);
+		ListAddRemoveCollaboratorsGroupsField collaboratorsGroupField = new ListAddRemoveCollaboratorsGroupsField(taskVO, new GroupTextInputDataProvider(getInstance(), getCurrentSessionContext()));
 		collaboratorsGroupField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
 		collaboratorsGroupField.setCurrentUserIsCollaborator(presenter.currentUserIsCollaborator(taskVO));
 		return collaboratorsGroupField;

@@ -7,6 +7,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorsGroupItem;
+import com.constellio.app.ui.framework.components.fields.lookup.GroupTextInputDataProvider;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
 import com.vaadin.data.util.ObjectProperty;
@@ -29,14 +30,18 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 
 	private RecordVO taskVO;
 
+	private GroupTextInputDataProvider groupTextInputDataProvider;
+
 	private List<TaskCollaboratorsGroupItem> taskCollaboratorGroupItem;
 
 	private boolean currentUserIsCollaborator = false;
 
 	private boolean writeButtonVisible = true;
 
-	public ListAddRemoveCollaboratorsGroupsField(RecordVO taskVO) {
+	public ListAddRemoveCollaboratorsGroupsField(RecordVO taskVO,
+												 GroupTextInputDataProvider groupTextInputDataProvider) {
 		this.taskVO = taskVO;
+		this.groupTextInputDataProvider = groupTextInputDataProvider;
 		init();
 	}
 
@@ -54,7 +59,7 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 
 	@Override
 	protected TaskAssignationListCollaboratorsGoupsField newAddEditField() {
-		return new TaskAssignationListCollaboratorsGoupsField(writeButtonVisible);
+		return new TaskAssignationListCollaboratorsGoupsField(writeButtonVisible, groupTextInputDataProvider);
 	}
 
 	@SuppressWarnings("rawtypes")

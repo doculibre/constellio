@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.components.fields;
 
 import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorsGroupItem;
+import com.constellio.app.ui.framework.components.fields.lookup.GroupTextInputDataProvider;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
@@ -20,6 +21,8 @@ public class TaskAssignationListCollaboratorsGoupsField extends CustomField<Task
 
 	private TaskCollaboratorsGroupItem taskCollaboratorsGroupItem;
 
+	private GroupTextInputDataProvider groupTextInputDataProvider;
+
 	private I18NHorizontalLayout mainLayout;
 
 	private LookupField<String> lookupGroupField;
@@ -28,8 +31,10 @@ public class TaskAssignationListCollaboratorsGoupsField extends CustomField<Task
 
 	private boolean writeButtonVisible;
 
-	public TaskAssignationListCollaboratorsGoupsField(boolean writeButtonVisible) {
+	public TaskAssignationListCollaboratorsGoupsField(boolean writeButtonVisible,
+													  GroupTextInputDataProvider groupTextInputDataProvider) {
 		this.writeButtonVisible = writeButtonVisible;
+		this.groupTextInputDataProvider = groupTextInputDataProvider;
 	}
 
 	@Override
@@ -50,7 +55,7 @@ public class TaskAssignationListCollaboratorsGoupsField extends CustomField<Task
 		}
 		authorizationField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 
-		lookupGroupField = new LookupRecordField(Group.SCHEMA_TYPE);
+		lookupGroupField = new LookupRecordField(Group.SCHEMA_TYPE, Group.DEFAULT_SCHEMA, false, groupTextInputDataProvider);
 
 		if (taskCollaboratorsGroupItem != null) {
 			authorizationField.setValue(taskCollaboratorsGroupItem.isTaskCollaboratorGroupWriteAuthorization() ? WRITE : READ);

@@ -154,7 +154,7 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 				postBuild(field, metadata);
 				break;
 			case TASK_COLLABORATORS_GROUPS:
-				field = new ListAddRemoveCollaboratorsGroupsField(recordVO);
+				field = new ListAddRemoveCollaboratorsGroupsField(recordVO, new GroupTextInputDataProvider(getInstance(), getCurrentSessionContext()));
 				postBuild(field, metadata);
 				break;
 			case ASSIGNEE:
