@@ -58,11 +58,11 @@ public abstract class SeparatedFieldsPopulator implements FieldsPopulator {
 									Locale locale) {
 		Map<String, Object> values = populateCopyfields(modifiedMetadata, value, locale);
 		for (Map.Entry<String, Object> entry : values.entrySet()) {
-			if (entry.getValue() != null) {
-				fields.put(entry.getKey(), entry.getValue());
-			} else {
-				//throw new RecordImplException_PopulatorReturnedNullValue(this, entry.getKey());
-			}
+			//			if (entry.getValue() != null) {
+			fields.put(entry.getKey(), entry.getValue());
+			//			} else {
+			//throw new RecordImplException_PopulatorReturnedNullValue(this, entry.getKey());
+			//			}
 
 		}
 	}

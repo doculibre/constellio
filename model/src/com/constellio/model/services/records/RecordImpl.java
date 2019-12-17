@@ -28,7 +28,6 @@ import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.records.RecordImplRuntimeException.CannotGetListForSingleValue;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_CannotBuildStructureValue;
-import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_PopulatorReturnedNullValue;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_RecordCannotHaveTwoParents;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_UnsupportedOperationOnUnsavedRecord;
 import com.constellio.model.services.schemas.MetadataList;
@@ -739,7 +738,7 @@ public class RecordImpl implements Record {
 		for (FieldsPopulator populator : copyfieldsPopulators) {
 			for (Map.Entry<String, Object> entry : populator.populateCopyfields(schema, this).entrySet()) {
 				if (entry.getValue() == null) {
-					throw new RecordImplException_PopulatorReturnedNullValue(populator, entry.getKey());
+					//					throw new RecordImplException_PopulatorReturnedNullValue(populator, entry.getKey());
 				}
 				copyfields.put(entry.getKey(), entry.getValue());
 			}
