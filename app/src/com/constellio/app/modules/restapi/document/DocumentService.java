@@ -17,6 +17,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 
 import javax.inject.Inject;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Set;
 
 import static com.constellio.app.modules.restapi.core.util.ListUtils.isNullOrEmpty;
@@ -34,31 +35,63 @@ public class DocumentService extends ResourceService {
 	public DocumentDto create(String host, String folderId, String serviceKey, String method, String date,
 							  int expiration, String signature, DocumentDto document, InputStream contentInputStream,
 							  String flushMode, Set<String> filters) throws Exception {
-		validateParameters(host, folderId, serviceKey, method, date, expiration, null, null, null, signature);
 
 		Record folder = getRecord(folderId, true);
 		String collection = folder.getCollection();
 		User user = getUser(serviceKey, collection);
-		validateUserAccess(user, folder, method);
-
 		MetadataSchema documentSchema = documentDao.getLinkedMetadataSchema(document.getType(), collection);
-		validateExtendedAttributes(document.getExtendedAttributes(), documentSchema);
 
-		validateAuthorizations(document.getDirectAces(), collection);
+		validateDocument(host, folderId, serviceKey, method, date, expiration, signature, document, collection, folder,
+				user, documentSchema);
 
 		Content content = null;
 		if (document.getContent() != null) {
 			content = documentDao.uploadContent(user, null, document.getContent(), contentInputStream);
 		}
 
+		return createDocument(document, content, flushMode, filters, user, documentSchema);
+	}
+
+	public DocumentDto merge(String host, String folderId, String serviceKey, String method, String date,
+							 int expiration, String signature, DocumentDto document, List<String> mergeSourceIds,
+							 String flushMode, Set<String> filters) throws Exception {
+
+		Record folder = getRecord(folderId, true);
+		String collection = folder.getCollection();
+		User user = getUser(serviceKey, collection);
+		MetadataSchema documentSchema = documentDao.getLinkedMetadataSchema(document.getType(), collection);
+
+		validateDocument(host, folderId, serviceKey, method, date, expiration, signature, document, collection, folder,
+				user, documentSchema);
+
+		Content content = documentDao.mergeContent(document, mergeSourceIds, collection, user);
+
+		return createDocument(document, content, flushMode, filters, user, documentSchema);
+	}
+
+	private void validateDocument(String host, String folderId, String serviceKey, String method, String date,
+								  int expiration, String signature, DocumentDto document, String collection,
+								  Record folder, User user, MetadataSchema schema) throws Exception {
+
+		validateParameters(host, folderId, serviceKey, method, date, expiration, null, null, null, signature);
+
+		validateUserAccess(user, folder, method);
+
+		validateExtendedAttributes(document.getExtendedAttributes(), schema);
+
+		validateAuthorizations(document.getDirectAces(), collection);
+	}
+
+	private DocumentDto createDocument(DocumentDto document, Content content, String flushMode, Set<String> filters,
+									   User user, MetadataSchema schema) throws Exception {
 		try {
 			boolean acesModified = false;
-			Record createdDocumentRecord = documentDao.createDocument(user, documentSchema, document, content, flushMode);
+			Record createdDocumentRecord = documentDao.createDocument(user, schema, document, content, flushMode);
 			if (!isNullOrEmpty(document.getDirectAces())) {
 				aceService.addAces(user, createdDocumentRecord, document.getDirectAces());
 				acesModified = true;
 			}
-			return getAdaptor().adapt(document, createdDocumentRecord, documentSchema, acesModified, filters);
+			return getAdaptor().adapt(document, createdDocumentRecord, schema, acesModified, filters);
 		} catch (Exception e) {
 			if (content != null) {
 				documentDao.deleteContent(content);

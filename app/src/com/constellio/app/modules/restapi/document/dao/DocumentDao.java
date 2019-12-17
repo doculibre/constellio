@@ -1,5 +1,6 @@
 package com.constellio.app.modules.restapi.document.dao;
 
+import com.constellio.app.modules.restapi.core.exception.ConsolidationException;
 import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
@@ -9,9 +10,13 @@ import com.constellio.app.modules.restapi.document.dto.DocumentContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
 import com.constellio.app.modules.restapi.document.exception.DocumentContentNotFoundException;
 import com.constellio.app.modules.restapi.resource.dao.ResourceDao;
+import com.constellio.app.modules.rm.pdfgenerator.PdfGeneratorAsyncTask;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
+import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -19,6 +24,8 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentImplRuntimeException;
 import com.constellio.model.services.contents.ContentManager.ContentVersionDataSummaryResponse;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
@@ -27,8 +34,11 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.modules.restapi.document.enumeration.VersionType.MAJOR;
+import static com.constellio.app.modules.restapi.document.enumeration.VersionType.MINOR;
 
 public class DocumentDao extends ResourceDao {
 
@@ -157,6 +167,70 @@ public class DocumentDao extends ResourceDao {
 			return contentManager.createMajor(user, filename, contentResponse.getContentVersionDataSummary());
 		}
 		return contentManager.createMinor(user, filename, contentResponse.getContentVersionDataSummary());
+	}
+
+	public Content mergeContent(DocumentDto document, List<String> mergeSourceIds, String collection, User user) {
+		String language = ConstellioFactories.getInstance().getModelLayerConfiguration().getMainDataLanguage();
+		PdfGeneratorAsyncTask task = new PdfGeneratorAsyncTask(mergeSourceIds, "Consolidated.pdf", user.getUsername(), language);
+
+		Content content = null;
+		try {
+			task.execute(createMergeTaskParam(collection));
+			content = task.getConsolidatedContent();
+
+			if (content == null) {
+				throw new ConsolidationException("No content to consolidate.");
+			}
+
+			ContentDto contentDto = ContentDto.builder()
+					.filename(content.getCurrentVersion().getFilename())
+					.versionType(content.getCurrentVersion().isMajor() ? MAJOR : MINOR)
+					.version(content.getCurrentVersion().getVersion())
+					.hash(content.getCurrentVersion().getHash())
+					.build();
+			document.setContent(contentDto);
+		} catch (ValidationException e) {
+			throw new ConsolidationException(e.getMessage());
+		}
+
+		return content;
+	}
+
+	private AsyncTaskExecutionParams createMergeTaskParam(String collection) {
+		AsyncTaskExecutionParams param = new AsyncTaskExecutionParams() {
+			@Override
+			public String getCollection() {
+				return collection;
+			}
+
+			@Override
+			public void logWarning(String code, Map<String, Object> parameters) {
+
+			}
+
+			@Override
+			public void logError(String code, Map<String, Object> parameters) throws ValidationException {
+				ValidationErrors errors = new ValidationErrors();
+				errors.add(PdfGeneratorAsyncTask.class, code, parameters);
+				errors.throwIfNonEmpty();
+			}
+
+			@Override
+			public void incrementProgression(int numberToAdd) {
+
+			}
+
+			@Override
+			public void setProgressionUpperLimit(long progressionUpperLimit) {
+
+			}
+
+			@Override
+			public AsyncTaskBatchProcess getBatchProcess() {
+				return null;
+			}
+		};
+		return param;
 	}
 
 	private void updateDocumentMetadataValues(Record documentRecord, Record documentTypeRecord, MetadataSchema schema,

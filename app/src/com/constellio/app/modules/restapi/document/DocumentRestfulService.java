@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
@@ -39,6 +40,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 @Path("documents")
@@ -136,7 +139,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			@QueryParam("filter") Set<String> filters,
 			@Parameter(description = "A document id list can be specified to activate the merge mode.<br>" +
 									 "The new document will be created by merging all documents provided in the list.")
-			@HeaderParam(CustomHttpHeaders.MERGE_SOURCE) Set<String> mergeSourceIds,
+			@HeaderParam(CustomHttpHeaders.MERGE_SOURCE) String mergeSourceIds,
 			@Parameter(description = "The flushing mode indicates how the commits are executed in solr",
 					schema = @Schema(allowableValues = {"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
 			@HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
@@ -158,14 +161,23 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			throw new RequiredParameterException("document.title");
 		}
 
-		validateDocument(document, fileStream);
+		List<String> mergeSourceIdList = null;
+		if (!StringUtils.isBlank(mergeSourceIds)) {
+			mergeSourceIdList = Arrays.asList(mergeSourceIds.split(","));
+		}
+
+		validateContent(document, fileStream, mergeSourceIdList);
+		validateDocument(document);
 
 		if (document.getContent() != null && document.getContent().getFilename() == null) {
 			throw new RequiredParameterException("content.filename");
 		}
 
-		DocumentDto createdDocument = documentService.create(host, folderId, serviceKey, method, date, expiration,
-				signature, document, fileStream, flush, filters);
+		DocumentDto createdDocument = mergeSourceIds == null || mergeSourceIds.isEmpty() ?
+									  documentService.create(host, folderId, serviceKey, method, date, expiration,
+											  signature, document, fileStream, flush, filters) :
+									  documentService.merge(host, folderId, serviceKey, method, date, expiration,
+											  signature, document, mergeSourceIdList, flush, filters);
 
 		return Response.status(Response.Status.CREATED).entity(createdDocument).tag(createdDocument.getETag()).build();
 	}
@@ -222,7 +234,8 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			throw new RequiredParameterException("document.folderId");
 		}
 
-		validateDocument(document, fileStream);
+		validateContent(document, fileStream);
+		validateDocument(document);
 
 		validateETag(eTag);
 		document.setETag(unquoteETag(eTag));
@@ -278,7 +291,8 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			throw new ParametersMustMatchException("id", "document.id");
 		}
 
-		validateDocument(document, fileStream);
+		validateContent(document, fileStream);
+		validateDocument(document);
 
 		validateETag(eTag);
 		document.setETag(unquoteETag(eTag));
@@ -318,14 +332,29 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		return Response.noContent().build();
 	}
 
-	private void validateDocument(DocumentDto document, InputStream fileStream) {
+	private void validateContent(DocumentDto document, InputStream fileStream, List<String> mergeSourceIds) {
+		if (mergeSourceIds == null || mergeSourceIds.isEmpty()) {
+			validateContent(document, fileStream);
+		} else {
+			if (document.getContent() != null) {
+				throw new InvalidParameterCombinationException("mergeSourceIds", "content");
+			}
+			if (fileStream != null) {
+				throw new InvalidParameterCombinationException("mergeSourceIds", "fileStream");
+			}
+		}
+	}
+
+	private void validateContent(DocumentDto document, InputStream fileStream) {
 		if (document.getContent() == null && fileStream != null) {
 			throw new RequiredParameterException("document.content");
 		}
 		if (document.getContent() != null && fileStream == null) {
 			throw new RequiredParameterException("file");
 		}
+	}
 
+	private void validateDocument(DocumentDto document) {
 		if (document.getType() != null) {
 			if (Strings.isNullOrEmpty(document.getType().getId()) && Strings.isNullOrEmpty(document.getType().getCode())) {
 				throw new AtLeastOneParameterRequiredException("type.id", "type.code");

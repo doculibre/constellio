@@ -45,6 +45,7 @@ import org.junit.Test;
 
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Collections;
@@ -1073,9 +1074,140 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 	}
 
+	@Test
+	public void testCreateConsolidatedDocument() throws Exception {
+		prepareConsolidatedTest();
+
+		Response postResponse = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.MERGE_SOURCE, firstDocumentToMerge.getId())
+				.header(CustomHttpHeaders.MERGE_SOURCE, secondDocumentToMerge.getId())
+				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
+		DocumentDto result = postResponse.readEntity(DocumentDto.class);
+
+		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+		assertThat(result.getContent()).isNotNull();
+	}
+
+	@Test
+	public void testCreateConsolidatedDocumentWithNoDocument() throws Exception {
+		prepareConsolidatedTest();
+
+		Response postResponse = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.MERGE_SOURCE, "")
+				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
+		DocumentDto result = postResponse.readEntity(DocumentDto.class);
+
+		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+		assertThat(result.getContent()).isNull();
+	}
+
+	@Test
+	public void testCreateConsolidatedDocumentWithInvalidDocuments() throws Exception {
+		prepareConsolidatedTest();
+
+		// 1. A doc with no content
+		Response postResponse = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.MERGE_SOURCE, documentWithoutContent.getId())
+				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+		// 2. A doc with unparsable content
+		postResponse = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.MERGE_SOURCE, documentWithZipContent.getId())
+				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+		// 3. A non existing doc
+		postResponse = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.MERGE_SOURCE, "NonExistingId")
+				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+	}
+
+	@Test
+	public void testCreateConsolidatedDocumentWithContent() throws Exception {
+		prepareConsolidatedTest();
+
+		Response postResponse = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.MERGE_SOURCE, firstDocumentToMerge.getId())
+				.header(CustomHttpHeaders.MERGE_SOURCE, secondDocumentToMerge.getId())
+				.post(entity(buildMultiPart(fullDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+	}
+
+	@Test
+	public void testCreateConsolidatedDocumentWithFilestream() throws Exception {
+		prepareConsolidatedTest();
+
+		Response postResponse = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.MERGE_SOURCE, firstDocumentToMerge.getId())
+				.header(CustomHttpHeaders.MERGE_SOURCE, secondDocumentToMerge.getId())
+				.post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(postResponse.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+	}
+
 	//
 	// PRIVATE FUNCTIONS
 	//
+
+	private DocumentDto firstDocumentToMerge, secondDocumentToMerge;
+	private DocumentDto documentWithoutContent, documentWithZipContent;
+
+	private void prepareConsolidatedTest() throws Exception {
+		addUsrMetadata(MetadataValueType.STRING, null, null);
+
+		firstDocumentToMerge = createDocumentWithTextContent("file1.txt", "This is the content of file 1.");
+		secondDocumentToMerge = createDocumentWithTextContent("file2.txt", "This is the content of file 2.");
+		documentWithoutContent = createDocumentWithoutContent();
+		documentWithZipContent = createDocumentWithZipContent();
+	}
+
+	private DocumentDto createDocumentWithoutContent() throws Exception {
+		DocumentDto document = DocumentDto.builder()
+				.folderId(records.folder_A20)
+				.title("title")
+				.build();
+
+		Response response = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.FLUSH_MODE, "NOW")
+				.post(entity(buildMultiPart(document, null), MULTIPART_FORM_DATA_TYPE));
+		return response.readEntity(DocumentDto.class);
+	}
+
+	private DocumentDto createDocumentWithTextContent(String filename, String content) throws Exception {
+		DocumentDto document = DocumentDto.builder()
+				.folderId(records.folder_A20)
+				.title("title")
+				.content(ContentDto.builder().versionType(MAJOR).filename(filename).build())
+				.build();
+		File file = newTempFileWithContent(filename, content);
+
+		Response response = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.FLUSH_MODE, "NOW")
+				.post(entity(buildMultiPart(document, file), MULTIPART_FORM_DATA_TYPE));
+		return response.readEntity(DocumentDto.class);
+	}
+
+	private DocumentDto createDocumentWithZipContent() throws Exception {
+		String filename = "consolidatedDocumentTest.7z";
+
+		DocumentDto document = DocumentDto.builder()
+				.folderId(records.folder_A20)
+				.title("title")
+				.content(ContentDto.builder().versionType(MAJOR).filename(filename).build())
+				.build();
+		File file = new File("out\\test\\resources\\consolidatedDocumentTest.7z");
+
+		Response response = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.FLUSH_MODE, "NOW")
+				.post(entity(buildMultiPart(document, file), MULTIPART_FORM_DATA_TYPE));
+		return response.readEntity(DocumentDto.class);
+	}
 
 	private Response doPostQuery(String flushMode, DocumentDto document) throws Exception {
 		return buildPostQuery().request().header("host", host).header(CustomHttpHeaders.FLUSH_MODE, flushMode)

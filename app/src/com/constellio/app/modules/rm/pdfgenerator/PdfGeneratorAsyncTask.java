@@ -30,6 +30,7 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
 import net.sf.jasperreports.engine.JRException;
@@ -70,6 +71,8 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 	private Locale locale;
 	private String languageCode;
 
+	private Content consolidatedContent;
+
 
 	public static final String GLOBAL_ERROR_KEY = "PdfGeneratorAsyncTask.globalError";
 	private static final String TEMP_FILE_RESOURCE_NAME = "PdfGeneratorAsyncTaskTempResourceName";
@@ -86,6 +89,11 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 	private static final String DOCUMENT_INCLUDED_IN_CONSOLIDATED_PDF = "PdfGeneratorAsyncTask.documentIncludedInConsolidatedPdf";
 
 	public static final String READ_CONTENT_FOR_PREVIEW_CONVERSION = "PdfGeneratorAsyncTask-ReadContentForPreviewConversion";
+
+	public PdfGeneratorAsyncTask(List<String> documentIdList, String consolidatedName, String username,
+								 String languageCode) {
+		this(documentIdList, null, consolidatedName, null, username, false, languageCode);
+	}
 
 	public PdfGeneratorAsyncTask(List<String> documentIdList, String consolidatedId,
 								 String consolidatedName, String consolidatedTitle,
@@ -286,14 +294,15 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 		params.logWarning(document.getId(), messageParams);
 	}
 
-	private void logError(AsyncTaskExecutionParams params, Document document, String message) {
+	private void logError(AsyncTaskExecutionParams params, Document document, String message)
+			throws ValidationException {
 		Map<String, Object> messageParams = new HashMap<>();
 		messageParams.put("id", document.getId());
 		messageParams.put("messageKey", message);
 		params.logError(document.getId(), messageParams);
 	}
 
-	private void logGlobalError(AsyncTaskExecutionParams params, String message) {
+	private void logGlobalError(AsyncTaskExecutionParams params, String message) throws ValidationException {
 		Map<String, Object> messageParams = new HashMap<>();
 		messageParams.put("id", GLOBAL_ERROR_KEY);
 		messageParams.put("messageKey", message);
@@ -356,10 +365,17 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 				consolidatedPdf.save(consolidatedPdfFile);
 
 				try (InputStream resultInputStream = new FileInputStream(consolidatedPdfFile)) {
-					documentListPDF =
-							newDocumentListPdfWithContent(consolidatedId, consolidatedTitle, resultInputStream, consolidatedName,
-									contentManager, userServices.getUserInCollection(username, collection), schemasRecordsServices);
-					recordServices.add(documentListPDF);
+					consolidatedContent =
+							createContent(resultInputStream, consolidatedName, contentManager,
+									userServices.getUserInCollection(username, collection));
+
+					if (!StringUtils.isBlank(consolidatedId)) {
+						documentListPDF =
+								newDocumentListPdfWithContent(consolidatedId, consolidatedTitle, consolidatedContent,
+										userServices.getUserInCollection(username, collection), schemasRecordsServices);
+
+						recordServices.add(documentListPDF);
+					}
 				} finally {
 					ioServices.closeQuietly(consolidatedPdf);
 					for (IncludedDocument includedDocument : includedPdfDocuments) {
@@ -383,6 +399,9 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 		} catch (RecordServicesException e) {
 			errors.add(PdfGeneratorAsyncTask.class, RECORD_SERVICE_EXCEPTION);
 			errors.throwIfNonEmpty();
+		} catch (RecordServicesRuntimeException e) {
+			errors.add(PdfGeneratorAsyncTask.class, RECORD_SERVICE_EXCEPTION);
+			errors.throwIfNonEmpty();
 		} finally {
 			for (InputStream inputStream : inputStreamList) {
 				ioServices.closeQuietly(inputStream);
@@ -394,12 +413,13 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 		return contentManager.upload(resource, new ContentManager.UploadOptions(fileName)).getContentVersionDataSummary();
 	}
 
-	private DocumentListPDF newDocumentListPdfWithContent(String id, String title, InputStream inputStream,
-														  String fileName, ContentManager contentManager, User user,
-														  RMSchemasRecordsServices rmSchemasRecordsServices) {
+	private Content createContent(InputStream inputStream, String fileName, ContentManager contentManager, User user) {
 		ContentVersionDataSummary version01 = upload(inputStream, fileName, contentManager);
-		Content content = contentManager.createMajor(user, fileName, version01);
+		return contentManager.createMajor(user, fileName, version01);
+	}
 
+	private DocumentListPDF newDocumentListPdfWithContent(String id, String title, Content content, User user,
+														  RMSchemasRecordsServices rmSchemasRecordsServices) {
 		DocumentListPDF documentListPDF = rmSchemasRecordsServices.newDocumentListPDFWithId(id);
 		documentListPDF.setTitle(title).setContent(content);
 		documentListPDF.setCreatedBy(user.getId());
@@ -433,6 +453,10 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
 	public String getUserName() {
 		return username;
+	}
+
+	public Content getConsolidatedContent() {
+		return consolidatedContent;
 	}
 
 	@Override
