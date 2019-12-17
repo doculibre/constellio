@@ -76,6 +76,9 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 	private DocumentDto minDocumentToAdd, fullDocumentToAdd;
 	private File fileToAdd;
 
+	private DocumentDto firstDocumentToMerge, secondDocumentToMerge;
+	private DocumentDto documentWithoutContent, documentWithZipContent;
+
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
@@ -95,6 +98,11 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 						ExtendedAttributeDto.builder().key(fakeMetadata2).values(asList("value2a", "value2b")).build()))
 				.build();
 		fileToAdd = newTempFileWithContent("content.txt", fakeFileContentV1);
+
+		firstDocumentToMerge = createDocumentWithTextContent("file1.txt", "This is the content of file 1.");
+		secondDocumentToMerge = createDocumentWithTextContent("file2.txt", "This is the content of file 2.");
+		documentWithoutContent = createDocumentWithoutContent();
+		documentWithZipContent = createDocumentWithZipContent();
 	}
 
 	@Test
@@ -1076,7 +1084,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
 	@Test
 	public void testCreateConsolidatedDocument() throws Exception {
-		prepareConsolidatedTest();
+		addUsrMetadata(MetadataValueType.STRING, null, null);
 
 		Response postResponse = buildPostQuery().request().header("host", host)
 				.header(CustomHttpHeaders.MERGE_SOURCE, firstDocumentToMerge.getId())
@@ -1090,7 +1098,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
 	@Test
 	public void testCreateConsolidatedDocumentWithNoDocument() throws Exception {
-		prepareConsolidatedTest();
+		addUsrMetadata(MetadataValueType.STRING, null, null);
 
 		Response postResponse = buildPostQuery().request().header("host", host)
 				.header(CustomHttpHeaders.MERGE_SOURCE, "")
@@ -1103,7 +1111,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
 	@Test
 	public void testCreateConsolidatedDocumentWithInvalidDocuments() throws Exception {
-		prepareConsolidatedTest();
+		addUsrMetadata(MetadataValueType.STRING, null, null);
 
 		// 1. A doc with no content
 		Response postResponse = buildPostQuery().request().header("host", host)
@@ -1129,7 +1137,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
 	@Test
 	public void testCreateConsolidatedDocumentWithContent() throws Exception {
-		prepareConsolidatedTest();
+		addUsrMetadata(MetadataValueType.STRING, null, null);
 
 		Response postResponse = buildPostQuery().request().header("host", host)
 				.header(CustomHttpHeaders.MERGE_SOURCE, firstDocumentToMerge.getId())
@@ -1141,7 +1149,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
 	@Test
 	public void testCreateConsolidatedDocumentWithFilestream() throws Exception {
-		prepareConsolidatedTest();
+		addUsrMetadata(MetadataValueType.STRING, null, null);
 
 		Response postResponse = buildPostQuery().request().header("host", host)
 				.header(CustomHttpHeaders.MERGE_SOURCE, firstDocumentToMerge.getId())
@@ -1154,18 +1162,6 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 	//
 	// PRIVATE FUNCTIONS
 	//
-
-	private DocumentDto firstDocumentToMerge, secondDocumentToMerge;
-	private DocumentDto documentWithoutContent, documentWithZipContent;
-
-	private void prepareConsolidatedTest() throws Exception {
-		addUsrMetadata(MetadataValueType.STRING, null, null);
-
-		firstDocumentToMerge = createDocumentWithTextContent("file1.txt", "This is the content of file 1.");
-		secondDocumentToMerge = createDocumentWithTextContent("file2.txt", "This is the content of file 2.");
-		documentWithoutContent = createDocumentWithoutContent();
-		documentWithZipContent = createDocumentWithZipContent();
-	}
 
 	private DocumentDto createDocumentWithoutContent() throws Exception {
 		DocumentDto document = DocumentDto.builder()
