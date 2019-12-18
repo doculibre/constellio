@@ -32,6 +32,7 @@ import com.constellio.app.ui.framework.components.selection.SelectionComponent.S
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.components.table.BaseTable.DeselectAllButton;
 import com.constellio.app.ui.framework.components.table.BaseTable.PagingControls;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable.RecordVOSelectionManager;
@@ -225,7 +226,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		if (isSelectColumn()) {
 			selectDeselectAllToggleButton = newSelectDeselectAllToggleButton();
 			selectDeselectAllToggleButton.addStyleName(ValoTheme.BUTTON_LINK);
-			selectDeselectAllToggleButton.setVisible(!empty);
+			if (!(selectDeselectAllToggleButton instanceof DeselectAllButton)) {
+				selectDeselectAllToggleButton.setVisible(!empty);
+			}
 		}
 
 		countLabel = new Label();
@@ -324,8 +327,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	public void setCountCaption(String caption) {
-		countLabel.setValue(caption);
-		countLabel.setVisible(StringUtils.isNotBlank(caption));
+		if (!isUnknownEnd()) {
+			countLabel.setValue(caption);
+			countLabel.setVisible(StringUtils.isNotBlank(caption));
+		}
+	}
+
+	public boolean isUnknownEnd() {
+		return false;
 	}
 
 	public void setSelectedCountCaption(int numberOfSelected) {
@@ -557,6 +566,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					return finalSelectionManager;
 				}
 
+				@Override
+				public boolean isUnknownEnd() {
+					return ViewableRecordVOTablePanel.this.isUnknownEnd();
+				}
+
 				private SelectionManager createSelectionManagerWithSelectedCountCaption(
 						SelectionManager selectionManager) {
 					final SelectionManager finalSelectionManager = selectionManager;
@@ -584,7 +598,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 						@Override
 						public void selectionChanged(SelectionChangeEvent event) {
 							finalSelectionManager.selectionChanged(event);
-							setSelectedCountCaption(getAllSelectedItemIds().size());
+							setSelectedCountCaption(getSelectedSize());
 						}
 					};
 					return selectionManagerWithSelectedCount;
@@ -748,11 +762,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				selectionChangeEvent.setAllItemsSelected(refreshRenderedCellsEventParams.isAreAllItemSelected());
 
 				resultsTable.getSelectionManager().selectionChanged(selectionChangeEvent);
-				setSelectedCountCaption(resultsTable.getSelectionManager().getAllSelectedItemIds().size());
+				setSelectedCountCaption(getSelectedSize());
 			}
 		});
 
 		return resultsTable;
+	}
+
+	protected int getSelectedSize() {
+		return table.getSelectionManager().getAllSelectedItemIds().size();
 	}
 
 	public boolean isIndexVisible() {
@@ -809,7 +827,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 	}
 
-	private SelectDeselectAllButton newSelectDeselectAllToggleButton() {
+	protected SelectDeselectAllButton newSelectDeselectAllToggleButton() {
 		return table.newSelectDeselectAllToggleButton("", "");
 	}
 
