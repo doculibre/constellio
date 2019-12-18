@@ -307,6 +307,10 @@ public class Metadata implements DataStoreField {
 		return code;
 	}
 
+	public String getNoInheritanceCode() {
+		return inheritance == null ? code : inheritance.getCode();
+	}
+
 	public String getLocalCode() {
 		return localCode;
 	}
@@ -656,7 +660,7 @@ public class Metadata implements DataStoreField {
 	}
 
 	public boolean isStoredInSummaryCache() {
-		return SchemaUtils.isSummary(this);
+		return inheritance == null ? SchemaUtils.isSummary(this) : SchemaUtils.isSummary(inheritance);
 
 	}
 

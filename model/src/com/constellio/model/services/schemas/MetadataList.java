@@ -450,16 +450,6 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return this;
 	}
 
-	public MetadataList onlyEssentialInSummary() {
-
-		List<Metadata> filteredMetadatasList = new ArrayList<>();
-		for (Metadata metadata : nestedList) {
-			if (metadata.isEssentialInSummary()) {
-				filteredMetadatasList.add(metadata);
-			}
-		}
-		return new MetadataList(filteredMetadatasList).unModifiable();
-	}
 
 	public MetadataList onlyEssentialMetadatasAndCodeTitle() {
 

@@ -29,5 +29,9 @@ public abstract class VaultContentEntry {
 		return new File(file.getParentFile(), file.getName() + "__parsed");
 	}
 
+	public File getJpegConversion() {
+		return new File(file.getParentFile(), file.getName() + ".jpegConversion");
+	}
+
 	public abstract Optional<ParsedContent> loadParsedContent();
 }

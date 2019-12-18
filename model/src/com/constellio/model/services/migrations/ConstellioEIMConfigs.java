@@ -164,7 +164,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
 	public static final SystemConfiguration LEGACY_IDENTIFIER_INDEXED_IN_MEMORY;
 
-
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)

@@ -4,6 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class SystemLogger {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SystemLogger.class);
@@ -250,5 +253,18 @@ public class SystemLogger {
 
 	public static void error(Marker marker, String msg, Throwable t) {
 		LOGGER.error(marker, msg, t);
+	}
+
+	static Set<String> importantWarningsLogged = new HashSet<>();
+
+	public static void logImportantWarningOnce(String message) {
+		if (!importantWarningsLogged.contains(message)) {
+			synchronized (SystemLogger.class) {
+				if (!importantWarningsLogged.contains(message)) {
+					importantWarningsLogged.add(message);
+					warn(message);
+				}
+			}
+		}
 	}
 }
