@@ -49,7 +49,9 @@ import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.constellio.app.modules.restapi.core.util.HttpMethods.POST;
@@ -1086,9 +1088,12 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 	public void testCreateConsolidatedDocument() throws Exception {
 		addUsrMetadata(MetadataValueType.STRING, null, null);
 
+		Set<String> mergeSourceIds = new HashSet<>();
+		mergeSourceIds.add(firstDocumentToMerge.getId());
+		mergeSourceIds.add(secondDocumentToMerge.getId());
+
 		Response postResponse = buildPostQuery().request().header("host", host)
-				.header(CustomHttpHeaders.MERGE_SOURCE, firstDocumentToMerge.getId())
-				.header(CustomHttpHeaders.MERGE_SOURCE, secondDocumentToMerge.getId())
+				.header(CustomHttpHeaders.MERGE_SOURCE, mergeSourceIds)
 				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
 		DocumentDto result = postResponse.readEntity(DocumentDto.class);
 
@@ -1100,8 +1105,10 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 	public void testCreateConsolidatedDocumentWithNoDocument() throws Exception {
 		addUsrMetadata(MetadataValueType.STRING, null, null);
 
+		Set<String> mergeSourceIds = new HashSet<>();
+
 		Response postResponse = buildPostQuery().request().header("host", host)
-				.header(CustomHttpHeaders.MERGE_SOURCE, "")
+				.header(CustomHttpHeaders.MERGE_SOURCE, mergeSourceIds)
 				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
 		DocumentDto result = postResponse.readEntity(DocumentDto.class);
 
@@ -1114,22 +1121,31 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 		addUsrMetadata(MetadataValueType.STRING, null, null);
 
 		// 1. A doc with no content
+		Set<String> mergeSourceIds = new HashSet<>();
+		mergeSourceIds.add(documentWithoutContent.getId());
+
 		Response postResponse = buildPostQuery().request().header("host", host)
-				.header(CustomHttpHeaders.MERGE_SOURCE, documentWithoutContent.getId())
+				.header(CustomHttpHeaders.MERGE_SOURCE, mergeSourceIds)
 				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
 
 		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		// 2. A doc with unparsable content
+		mergeSourceIds = new HashSet<>();
+		mergeSourceIds.add(documentWithZipContent.getId());
+
 		postResponse = buildPostQuery().request().header("host", host)
-				.header(CustomHttpHeaders.MERGE_SOURCE, documentWithZipContent.getId())
+				.header(CustomHttpHeaders.MERGE_SOURCE, mergeSourceIds)
 				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
 
 		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		// 3. A non existing doc
+		mergeSourceIds = new HashSet<>();
+		mergeSourceIds.add("NonExistingId");
+
 		postResponse = buildPostQuery().request().header("host", host)
-				.header(CustomHttpHeaders.MERGE_SOURCE, "NonExistingId")
+				.header(CustomHttpHeaders.MERGE_SOURCE, mergeSourceIds)
 				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
 
 		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
@@ -1139,9 +1155,12 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 	public void testCreateConsolidatedDocumentWithContent() throws Exception {
 		addUsrMetadata(MetadataValueType.STRING, null, null);
 
+		Set<String> mergeSourceIds = new HashSet<>();
+		mergeSourceIds.add(firstDocumentToMerge.getId());
+		mergeSourceIds.add(secondDocumentToMerge.getId());
+
 		Response postResponse = buildPostQuery().request().header("host", host)
-				.header(CustomHttpHeaders.MERGE_SOURCE, firstDocumentToMerge.getId())
-				.header(CustomHttpHeaders.MERGE_SOURCE, secondDocumentToMerge.getId())
+				.header(CustomHttpHeaders.MERGE_SOURCE, mergeSourceIds)
 				.post(entity(buildMultiPart(fullDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
 
 		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
@@ -1151,9 +1170,12 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 	public void testCreateConsolidatedDocumentWithFilestream() throws Exception {
 		addUsrMetadata(MetadataValueType.STRING, null, null);
 
+		Set<String> mergeSourceIds = new HashSet<>();
+		mergeSourceIds.add(firstDocumentToMerge.getId());
+		mergeSourceIds.add(secondDocumentToMerge.getId());
+
 		Response postResponse = buildPostQuery().request().header("host", host)
-				.header(CustomHttpHeaders.MERGE_SOURCE, firstDocumentToMerge.getId())
-				.header(CustomHttpHeaders.MERGE_SOURCE, secondDocumentToMerge.getId())
+				.header(CustomHttpHeaders.MERGE_SOURCE, mergeSourceIds)
 				.post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
 
 		assertThat(postResponse.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());

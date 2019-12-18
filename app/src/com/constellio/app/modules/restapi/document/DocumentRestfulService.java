@@ -139,7 +139,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			@QueryParam("filter") Set<String> filters,
 			@Parameter(description = "A document id list can be specified to activate the merge mode.<br>" +
 									 "The new document will be created by merging all documents provided in the list.")
-			@HeaderParam(CustomHttpHeaders.MERGE_SOURCE) String mergeSourceIds,
+			@HeaderParam(CustomHttpHeaders.MERGE_SOURCE) Set<String> mergeSourceIds,
 			@Parameter(description = "The flushing mode indicates how the commits are executed in solr",
 					schema = @Schema(allowableValues = {"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
 			@HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
@@ -161,12 +161,16 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			throw new RequiredParameterException("document.title");
 		}
 
-		List<String> mergeSourceIdList = null;
-		if (!StringUtils.isBlank(mergeSourceIds)) {
-			mergeSourceIdList = Arrays.asList(mergeSourceIds.split(","));
+		List<String> documentIdsToMerge = null;
+		if (mergeSourceIds != null && !mergeSourceIds.isEmpty()) {
+			String ids = mergeSourceIds.iterator().next();
+			if (!StringUtils.isBlank(ids)) {
+				ids = ids.replaceAll("[\\[\\] ]", "");
+				documentIdsToMerge = Arrays.asList(ids.split(","));
+			}
 		}
 
-		validateContent(document, fileStream, mergeSourceIdList);
+		validateContent(document, fileStream, documentIdsToMerge);
 		validateDocument(document);
 
 		if (document.getContent() != null && document.getContent().getFilename() == null) {
@@ -177,7 +181,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 									  documentService.create(host, folderId, serviceKey, method, date, expiration,
 											  signature, document, fileStream, flush, filters) :
 									  documentService.merge(host, folderId, serviceKey, method, date, expiration,
-											  signature, document, mergeSourceIdList, flush, filters);
+											  signature, document, documentIdsToMerge, flush, filters);
 
 		return Response.status(Response.Status.CREATED).entity(createdDocument).tag(createdDocument.getETag()).build();
 	}
