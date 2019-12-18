@@ -31,6 +31,7 @@ public class CollectionsListManagerAcceptanceTest extends ConstellioTest {
 
 	@Test(expected = NoMoreCollectionAvalibleException.class)
 	public void whenAdd256CollectionThenThrow() throws NoMoreCollectionAvalibleException {
+		cacheIntegrityCheckedAfterTest = false;
 		for (int i = 0; i < 256; i++) {
 			String code = "collection" + i;
 			byte collectionId = collectionsListManager.registerPendingCollectionInfo(code, "fr", asList("fr"));
@@ -41,6 +42,7 @@ public class CollectionsListManagerAcceptanceTest extends ConstellioTest {
 	@Test()
 	public void whenAdd255CollectionRemoveOneAndAddAgainThenNextCollectionTakeRemovedCollectionId()
 			throws NoMoreCollectionAvalibleException {
+		cacheIntegrityCheckedAfterTest = false;
 		for (int i = 0; i < 255; i++) {
 			String code = "collection" + i;
 			byte collectionId = collectionsListManager.registerPendingCollectionInfo(code, "fr", asList("fr"));
