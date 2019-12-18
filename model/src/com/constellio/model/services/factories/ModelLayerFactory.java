@@ -180,4 +180,5 @@ public interface ModelLayerFactory extends LayerFactory {
 	TaxonomyRecordsHookRetriever getTaxonomyRecordsHookRetriever(String collection);
 
 	RecordUsageCounterHookRetriever getRecordUsageCounterHookRetriever(String collection);
+	void markForReindexing();
 }

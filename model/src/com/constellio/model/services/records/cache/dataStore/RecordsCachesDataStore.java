@@ -55,7 +55,8 @@ public class RecordsCachesDataStore {
 			List<RecordId> recordIds = null;
 			if (idsList.exists()) {
 				try {
-					recordIds = FileUtils.readLines(idsList, "UTF-8").stream().map((line) -> RecordId.toId(line)).collect(Collectors.toList());
+					recordIds = FileUtils.readLines(idsList, "UTF-8").stream().map((line) -> RecordId.toId(line))
+							.filter((id) -> id.isInteger()).collect(Collectors.toList());
 				} catch (IOException e) {
 					e.printStackTrace();
 					recordIds = null;
@@ -73,7 +74,6 @@ public class RecordsCachesDataStore {
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
-
 			}
 
 			LOGGER.info("Structuring cache based on ids...       - Current memory : " + humanReadableByteCount(OffHeapMemoryAllocator.getAllocatedMemory(), true));

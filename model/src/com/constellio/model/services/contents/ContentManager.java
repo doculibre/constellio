@@ -921,6 +921,11 @@ public class ContentManager implements StatefulService {
 				}
 				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder);
 				contentDao.moveFileToVault(pdfPreviewFile, hash + ".preview");
+
+			} catch (ContentDaoException_NoSuchContent e) {
+				//Missing content are not logged from the conversion thread. Instead, they are checked by system diagnostic and other mechanisms
+				return false;
+
 			} catch (Throwable t) {
 				LOGGER.warn("Cannot generate preview for content '" + filename + "' with hash '" + hash + "'", t);
 				return false;
@@ -929,7 +934,9 @@ public class ContentManager implements StatefulService {
 
 		if (mimeType.startsWith("image/")) {
 			Dimension dimension = ImageUtils.getImageDimension(contentDao.getFileOf(hash));
-			if ((mimeType.equals(MimeTypes.MIME_IMAGE_TIFF) || dimension.getHeight() > 1080) &&
+
+			boolean tiffSupported = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().areTiffFilesConvertedForPreview();
+			if (((tiffSupported && mimeType.equals(MimeTypes.MIME_IMAGE_TIFF)) || dimension.getHeight() > 1080) &&
 				!contentDao.isDocumentExisting(hash + ".jpegConversion")) {
 				try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
 					File convertedJPEGFile =
@@ -1380,7 +1387,8 @@ public class ContentManager implements StatefulService {
 					|| filename.endsWith("tlogs-backup")) {
 					return false;
 
-				} else if (filename.endsWith(".preview") || filename.endsWith(".thumbnails") || filename.endsWith("__parsed")) {
+				} else if (filename.endsWith(".preview") || filename.endsWith(".thumbnails")
+						   || filename.endsWith("__parsed") || filename.endsWith(".jpegConversion")) {
 					return false;
 
 				} else {

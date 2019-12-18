@@ -40,7 +40,7 @@ public class CyclicHierarchyValidator implements Validator<Record> {
 				&& record.get(metadata) != null) {
 				if (!metadata.isMultivalue()) {
 					String referenceValue = record.get(metadata);
-					Record referencedRecord = recordProvider.getRecord(referenceValue);
+					Record referencedRecord = recordProvider.getRecordSummary(referenceValue);
 					MetadataSchema schema = getSchema(referencedRecord);
 
 					List<String> ids = new ArrayList<>();

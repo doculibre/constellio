@@ -66,7 +66,7 @@ public class OffHeapIntList {
 	 * @param value
 	 */
 	public void insertValueShiftingAllFollowingValues(int index, int value) {
-		LOGGER.warn("insertValueShiftingAllFollowingValues : this should not happen and could consume a lot of memory");
+		LOGGER.warn("insertValueShiftingAllFollowingValues to insert value '" + value + "' at index '" + index + "' : this should not happen and could consume a lot of memory");
 		LongArrayList newAddressesOfBatches = new LongArrayList();
 
 		for (int i = 0; i <= lastIndex; i++) {

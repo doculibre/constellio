@@ -26,6 +26,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
@@ -107,8 +108,10 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			throws Exception {
 
 		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()
+			&& ReindexingServices.getReindexingInfos() == null
 			&& new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isInBatchProcessesSchedule()
-			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+			//	&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
+		) {
 			final BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
 
 			if (batchProcess != null) {

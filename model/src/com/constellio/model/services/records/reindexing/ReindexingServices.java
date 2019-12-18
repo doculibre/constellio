@@ -128,10 +128,15 @@ public class ReindexingServices {
 
 
 		if (params.isBackground()) {
-			BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-			for (MetadataSchemaType schemaType : params.getReindexedSchemaTypes()) {
-				BatchProcessAction action = ReindexMetadatasBatchProcessAction.allMetadatas();
-				batchProcessesManager.addPendingBatchProcess(from(schemaType).returnAll(), action, "reindexing");
+			try {
+				BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+				for (MetadataSchemaType schemaType : params.getReindexedSchemaTypes()) {
+					BatchProcessAction action = ReindexMetadatasBatchProcessAction.allMetadatas();
+					batchProcessesManager.addPendingBatchProcess(from(schemaType).returnAll(), action, "reindexing");
+				}
+
+			} finally {
+				REINDEXING_INFOS = null;
 			}
 
 		} else {
@@ -260,29 +265,35 @@ public class ReindexingServices {
 	}
 
 	public void reindexCollection(String collection, ReindexationMode reindexationMode) {
+
 		reindexCollection(collection, new ReindexationParams(reindexationMode));
 	}
 
 	public void reindexCollection(String collection, ReindexationParams params) {
 
-		if (!params.getReindexedSchemaTypes().isEmpty()) {
-			long count = getRecordCountOfType(collection, params.getReindexedSchemaTypes());
-			if (count == 0) {
-				return;
+		try {
+			if (!params.getReindexedSchemaTypes().isEmpty()) {
+				long count = getRecordCountOfType(collection, params.getReindexedSchemaTypes());
+				if (count == 0) {
+					return;
+				}
 			}
-		}
 
-		RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
-		transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
-				.setCatchExtensionsExceptions(true).setCatchBrokenReferenceErrors(true)
-				.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false)
-				.setRepopulate(params.isRepopulate());
-		if (params.getReindexationMode().isFullRecalculation()) {
-			transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
-		}
-		transactionOptions.setFullRewrite(params.getReindexationMode().isFullRewrite());
+			RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
+			transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
+					.setCatchExtensionsExceptions(true).setCatchBrokenReferenceErrors(true)
+					.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false)
+					.setRepopulate(params.isRepopulate());
+			if (params.getReindexationMode().isFullRecalculation()) {
+				transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+			}
+			transactionOptions.setFullRewrite(params.getReindexationMode().isFullRewrite());
 
-		reindexCollection(collection, params, transactionOptions);
+			reindexCollection(collection, params, transactionOptions);
+
+		} finally {
+			REINDEXING_INFOS = null;
+		}
 
 	}
 
@@ -332,6 +343,10 @@ public class ReindexingServices {
 
 				}
 				options.withRecordsPerBatch(batchSize);
+				int countOfBatchesFilledByASingleQuery = mainThreadQueryRows / batchSize;
+
+				//The reader thread must have enough space in the queue to store the entire query result
+				options.setQueueSize(countOfBatchesFilledByASingleQuery + 1);
 			}
 
 			BulkRecordTransactionHandler bulkTransactionHandler = new BulkRecordTransactionHandler(

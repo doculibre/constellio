@@ -80,6 +80,7 @@ import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static com.constellio.data.utils.systemLogger.SystemLogger.logImportantWarningOnce;
 import static com.constellio.model.entities.enums.GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD;
 import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -244,7 +245,8 @@ public class RecordAutomaticMetadataServices {
 					if (schemaType.getCacheType().isSummaryCache()) {
 						for (Metadata aMetadata : metadatas) {
 							if (!SchemaUtils.isSummary(aMetadata)) {
-								LOGGER.warn("Aggregated metadata '" + aggregatedMetadata.getCode() + "' should use cache for recalculation : metadata '" + aMetadata.getCode() + "' used to calculation is not summary");
+								String message = "Aggregated metadata '" + aggregatedMetadata.getNoInheritanceCode() + "' should use cache for recalculation : metadata '" + aMetadata.getCode() + "' used to calculation is not summary";
+								logImportantWarningOnce(message);
 								stream = searchServices.streamFromSolr(query);
 								break;
 							}
@@ -253,7 +255,8 @@ public class RecordAutomaticMetadataServices {
 						query.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
 						if (stream == null) {
 							if (!executorInCache.isQueryExecutableInCache(query)) {
-								LOGGER.warn("Aggregated metadata '" + aggregatedMetadata.getCode() + "' should use cache for recalculation : query unsupported in cache");
+								String message = "Aggregated metadata '" + aggregatedMetadata.getNoInheritanceCode() + "' should use cache for recalculation : query unsupported in cache";
+								logImportantWarningOnce(message);
 								stream = searchServices.streamFromSolr(query);
 
 							} else {
@@ -759,17 +762,50 @@ public class RecordAutomaticMetadataServices {
 		List<Integer> secondaryConceptAncestors = new ArrayList<>();
 		List<Integer> principalAncestors = new ArrayList<>();
 		for (Metadata metadata : parentReferences) {
+
 			String referenceValue = record.get(metadata);
 			if (referenceValue != null) {
-				Record referencedRecord = recordProvider.getRecord(referenceValue);
-				List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
-				paths.addAll(parentPaths);
-				removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
-				attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+//				Record referencedRecord = recordProvider.getRecord(referenceValue);
+//				List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
+//				paths.addAll(parentPaths);
+//				removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
+//				attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+//
+//				secondaryConceptAncestors.addAll(referencedRecord.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
+//				principalAncestors.addAll(referencedRecord.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS));
+//				allAncestorsExceptPrincipals.addAll(referencedRecord.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
 
-				secondaryConceptAncestors.addAll(referencedRecord.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
-				principalAncestors.addAll(referencedRecord.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS));
-				allAncestorsExceptPrincipals.addAll(referencedRecord.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
+
+				boolean retrievedUsingSummaryCached = false;
+				if (metadata.getReferencedSchemaType().getCacheType().isSummaryCache()
+					&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+					Metadata pathMetadata = metadata.getReferencedSchemaType().getDefaultSchema().getMetadata(Schemas.PATH.getLocalCode());
+					Metadata allRemovedAuthsMetadata = metadata.getReferencedSchemaType().getDefaultSchema().getMetadata(Schemas.ALL_REMOVED_AUTHS.getLocalCode());
+					Metadata attachedAncestorsMetadata = metadata.getReferencedSchemaType().getDefaultSchema().getMetadata(Schemas.ATTACHED_ANCESTORS.getLocalCode());
+
+					if (pathMetadata.isStoredInSummaryCache()
+						&& allRemovedAuthsMetadata.isStoredInSummaryCache()
+						&& attachedAncestorsMetadata.isStoredInSummaryCache()) {
+						retrievedUsingSummaryCached = true;
+
+						Record referencedRecord = recordProvider.getRecordSummary(referenceValue);
+						List<String> parentPaths = referencedRecord.getList(pathMetadata);
+						paths.addAll(parentPaths);
+						removedAuthorizations.addAll(referencedRecord.<String>getList(allRemovedAuthsMetadata));
+						attachedAncestors.addAll(referencedRecord.<String>getList(attachedAncestorsMetadata));
+					} else {
+						logImportantWarningOnce("Metadatas 'path, allRemovedAuths, attachedAncestors' of type '"
+												+ metadata.getReferencedSchemaType().getCode() + "' should be cached, it would avoid a getById");
+					}
+				}
+
+				if (!retrievedUsingSummaryCached) {
+					Record referencedRecord = recordProvider.getRecord(referenceValue);
+					List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
+					paths.addAll(parentPaths);
+					removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
+					attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+				}
 			}
 		}
 		for (Taxonomy aTaxonomy : taxonomiesManager.getEnabledTaxonomies(record.getCollection())) {
@@ -828,6 +864,7 @@ public class RecordAutomaticMetadataServices {
 					}
 				}
 			}
+
 		}
 		List<Object> referencedValues = new ArrayList<>();
 		SortedMap<String, Object> referencedValuesMap = new TreeMap<>();
@@ -870,13 +907,22 @@ public class RecordAutomaticMetadataServices {
 			try {
 				referencedRecord = null;
 				if (referenceValue != null) {
-					if (referenceMetadata.getReferencedSchemaType().getCacheType().isSummaryCache()
-						&& referenceMetadata.getReferencedSchemaType().getDefaultSchema()
-								.getMetadata(dependency.getDependentMetadataCode()).isStoredInSummaryCache()) {
+					Metadata dependentMetadata = referenceMetadata.getReferencedSchemaType().getDefaultSchema()
+							.getMetadata(dependency.getDependentMetadataCode());
+					if (referenceMetadata.getReferencedSchemaType().getCacheType().isSummaryCache()) {
 
-						referencedRecord = recordProvider.getRecordSummary(referenceValue);
+
+						if (dependentMetadata.isStoredInSummaryCache()) {
+							referencedRecord = recordProvider.getRecordSummary(referenceValue);
+						} else {
+							logImportantWarningOnce("Metadata '" + dependentMetadata.getNoInheritanceCode() + "' should be cached, it would avoid a getById");
+							referencedRecord = recordProvider.getRecord(referenceValue);
+						}
 
 					} else {
+						if (!dependentMetadata.getSchemaType().getCacheType().hasPermanentCache()) {
+							logImportantWarningOnce("Metadata '" + dependentMetadata.getNoInheritanceCode() + "' should be cached, it would avoid a getById");
+						}
 						referencedRecord = recordProvider.getRecord(referenceValue);
 					}
 				}
@@ -962,9 +1008,17 @@ public class RecordAutomaticMetadataServices {
 		Object copiedValue;
 		try {
 			Record referencedRecord;
-			if (copiedMetadata.getSchemaType().getCacheType().isSummaryCache() && copiedMetadata.isStoredInSummaryCache()) {
-				referencedRecord = recordProvider.getRecordSummary(referencedRecordId);
+			if (copiedMetadata.getSchemaType().getCacheType().isSummaryCache()) {
+				if (copiedMetadata.isStoredInSummaryCache()) {
+					referencedRecord = recordProvider.getRecordSummary(referencedRecordId);
+				} else {
+					logImportantWarningOnce("Metadata '" + copiedMetadata.getNoInheritanceCode() + "' should be cached, it would avoid a getById");
+					referencedRecord = recordProvider.getRecord(referencedRecordId);
+				}
 			} else {
+				if (!copiedMetadata.getSchemaType().getCacheType().hasPermanentCache()) {
+					logImportantWarningOnce("Metadata '" + copiedMetadata.getNoInheritanceCode() + "' should be cached, it would avoid a getById");
+				}
 				referencedRecord = recordProvider.getRecord(referencedRecordId);
 			}
 			copiedValue = referencedRecord.get(copiedMetadata);

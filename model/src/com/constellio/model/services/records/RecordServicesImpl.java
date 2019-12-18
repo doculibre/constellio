@@ -929,7 +929,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 							if (!migrations.getScripts().isEmpty()) {
 
 								for (RecordMigrationScript script : migrations.getScripts()) {
-									script.migrate(record);
+									if (script != null) {
+										script.migrate(record);
+									}
 								}
 								record.set(Schemas.MIGRATION_DATA_VERSION, migrations.getVersion());
 
@@ -1213,6 +1215,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 		}
+
+		List<Record> invalidatedRecords = new ArrayList<>(records);
 
 		invalidateTaxonomiesCache(records, types, recordProvider, modelLayerFactory.getTaxonomiesSearchServicesCache());
 

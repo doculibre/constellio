@@ -139,15 +139,19 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	private final ModelLayerCachesManager modelLayerCachesManager;
 
+	private final Runnable markForReindexingRunnable;
+
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 								 ModelLayerConfiguration modelLayerConfiguration,
 								 StatefullServiceDecorator statefullServiceDecorator,
 								 Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
 								 short instanceId,
-								 Factory<ModelLayerFactory> modelLayerFactoryFactory) {
+								 Factory<ModelLayerFactory> modelLayerFactoryFactory,
+								 Runnable markForReindexingRunnable) {
 
 		super(dataLayerFactory, statefullServiceDecorator, instanceName, instanceId);
 
+		this.markForReindexingRunnable = markForReindexingRunnable;
 		dataLayerFactory.getEventBusManager().getEventDataSerializer().register(new RecordEventDataSerializerExtension(this));
 
 		this.modelLayerCachesManager = new ModelLayerCachesManager();
@@ -513,4 +517,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		return taxonomiesSearchServicesCache;
 	}
 
+	@Override
+	public void markForReindexing() {
+		markForReindexingRunnable.run();
+	}
 }

@@ -9,6 +9,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.Holder;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
@@ -124,13 +125,18 @@ public class ConstellioFactories {
 		dataLayerFactory = decorator.decorateDataLayerFactory(new DataLayerFactory(ioServicesFactory, dataLayerConfiguration,
 				decorator.getStatefullServiceDecorator(), instanceName, instanceId, warVersion));
 
+		Holder<AppLayerFactory> appLayerFactoryHolder = new Holder<>();
+		Runnable markForReindexingRunnable = () -> {
+			appLayerFactoryHolder.get().getSystemGlobalConfigsManager().setReindexingRequired(true);
+		};
 		modelLayerFactory = decorator.decorateModelServicesFactory(new ModelLayerFactoryImpl(dataLayerFactory, foldersLocator,
 				modelLayerConfiguration, decorator.getStatefullServiceDecorator(), modulesManager, instanceName, instanceId,
-				new ModelLayerFactoryFactory()));
+				new ModelLayerFactoryFactory(), markForReindexingRunnable));
 
 		appLayerFactory = decorator.decorateAppServicesFactory(new AppLayerFactoryImpl(appLayerConfiguration, modelLayerFactory,
 				dataLayerFactory, decorator.getStatefullServiceDecorator(), instanceName, instanceId));
 
+		appLayerFactoryHolder.set(appLayerFactory);
 		modulesManager.set(appLayerFactory.getModulesManager());
 
 	}

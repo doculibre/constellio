@@ -666,7 +666,7 @@ public class RecordUtils {
 												  RecordProvider recordProvider) {
 		List<String> ids = new ArrayList<>();
 
-		Record record = recordProvider.getRecord(newReference);
+		Record record = recordProvider.getRecordSummary(newReference);
 		if (record.isSaved()) {
 			ids.add(record.getId());
 			List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
@@ -678,7 +678,7 @@ public class RecordUtils {
 
 			for (Metadata metadata : metadatas) {
 				for (String aReference : record.<String>getValues(metadata)) {
-					if (ids.contains(aReference)) {
+					if (!ids.contains(aReference)) {
 						ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
 					}
 				}

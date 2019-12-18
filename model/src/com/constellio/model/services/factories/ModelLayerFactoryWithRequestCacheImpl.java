@@ -360,6 +360,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	}
 
 	@Override
+	public void markForReindexing() {
+		modelLayerFactory.markForReindexing();
+	}
+
+	@Override
 	public SearchConfigurationsManager getSearchConfigurationsManager() {
 		return modelLayerFactory.getSearchConfigurationsManager();
 	}
