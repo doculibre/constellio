@@ -170,8 +170,12 @@ public class DocumentDao extends ResourceDao {
 	}
 
 	public Content mergeContent(DocumentDto document, List<String> mergeSourceIds, String collection, User user) {
+		String title = document.getTitle();
+		if (!title.endsWith(".pdf")) {
+			title += ".pdf";
+		}
 		String language = ConstellioFactories.getInstance().getModelLayerConfiguration().getMainDataLanguage();
-		PdfGeneratorAsyncTask task = new PdfGeneratorAsyncTask(mergeSourceIds, "Consolidated.pdf", user.getUsername(), language);
+		PdfGeneratorAsyncTask task = new PdfGeneratorAsyncTask(mergeSourceIds, title, user.getUsername(), language);
 
 		Content content = null;
 		try {
