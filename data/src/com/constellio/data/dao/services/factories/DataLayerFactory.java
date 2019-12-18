@@ -241,7 +241,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		IOServices ioServices = ioServicesFactory.newIOServices();
 		conversionManager = add(new ConversionManager(ioServices, dataLayerConfiguration.getConversionProcesses(),
-				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions()));
+				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions(), dataLayerConfiguration));
 		lastCreatedInstance = this;
 
 		dataLayerBackgroundThreadsManager = new DataLayerBackgroundThreadsManager(this);

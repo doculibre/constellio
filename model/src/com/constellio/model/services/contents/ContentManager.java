@@ -931,7 +931,9 @@ public class ContentManager implements StatefulService {
 
 		if (mimeType.startsWith("image/")) {
 			Dimension dimension = ImageUtils.getImageDimension(contentDao.getFileOf(hash));
-			if ((mimeType.equals(MimeTypes.MIME_IMAGE_TIFF) || dimension.getHeight() > 1080) &&
+
+			boolean tiffSupported = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().areTiffFilesConvertedForPreview();
+			if (((tiffSupported && mimeType.equals(MimeTypes.MIME_IMAGE_TIFF)) || dimension.getHeight() > 1080) &&
 				!contentDao.isDocumentExisting(hash + ".jpegConversion")) {
 				try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
 					File convertedJPEGFile =
