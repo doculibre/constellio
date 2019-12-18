@@ -14,7 +14,7 @@ import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException;
@@ -97,7 +97,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	private DataLayerSystemExtensions dataLayerSystemExtensions;
 
-	private final TransactionLogRecoveryManager transactionLogRecoveryManager;
+	private final TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager;
 	private boolean automaticRegroup = true;
 
 	public XMLSecondTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices,
@@ -105,7 +105,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 										  ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager,
 										  DataLayerLogger dataLayerLogger,
 										  DataLayerSystemExtensions dataLayerSystemExtensions,
-										  TransactionLogRecoveryManager transactionLogRecoveryManager) {
+										  TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager) {
 		this.configuration = configuration;
 		this.folder = configuration.getSecondTransactionLogBaseFolder();
 		this.ioServices = ioServices;
@@ -115,7 +115,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		this.backgroundThreadsManager = backgroundThreadsManager;
 		this.dataLayerLogger = dataLayerLogger;
 		this.dataLayerSystemExtensions = dataLayerSystemExtensions;
-		this.transactionLogRecoveryManager = transactionLogRecoveryManager;
+		this.transactionLogXmlRecoveryManager = transactionLogXmlRecoveryManager;
 	}
 
 	@Override
@@ -142,7 +142,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	@Override
 	public void destroyAndRebuildSolrCollection() {
-		this.transactionLogRecoveryManager.disableRollbackModeDuringSolrRestore();
+		this.transactionLogXmlRecoveryManager.disableRollbackModeDuringSolrRestore();
 		File recoveryFolder = ioServices.newTemporaryFolder(RECOVERY_FOLDER);
 		try {
 			List<File> tLogs = recoverTransactionLogs(recoveryFolder);

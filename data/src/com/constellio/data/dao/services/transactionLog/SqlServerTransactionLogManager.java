@@ -13,7 +13,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
 import com.constellio.data.dao.services.sql.SqlRecordDaoFactory;
 import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;
@@ -21,6 +21,7 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRunti
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogIsNotInitialized;
+import com.constellio.data.dao.services.transactionLog.replay.SqlTransactionLogReplayServices;
 import com.constellio.data.dao.services.transactionLog.sql.TransactionDocumentLogContent;
 import com.constellio.data.dao.services.transactionLog.sql.TransactionLogContent;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
@@ -99,7 +100,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	private SqlRecordDaoFactory sqlRecordDaoFactory;
 
-	private final TransactionLogRecoveryManager transactionLogRecoveryManager;
+	private final TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager;
 
 	private boolean automaticRegroup = true;
 
@@ -112,7 +113,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 										  ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager,
 										  DataLayerLogger dataLayerLogger,
 										  DataLayerSystemExtensions dataLayerSystemExtensions,
-										  TransactionLogRecoveryManager transactionLogRecoveryManager,
+										  TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager,
 										  ObservableLeaderElectionManager isCurrentNodeLeader) {
 		this.configuration = configuration;
 		this.folder = configuration.getSecondTransactionLogBaseFolder();
@@ -124,7 +125,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		this.backgroundThreadsManager = backgroundThreadsManager;
 		this.dataLayerLogger = dataLayerLogger;
 		this.dataLayerSystemExtensions = dataLayerSystemExtensions;
-		this.transactionLogRecoveryManager = transactionLogRecoveryManager;
+		this.transactionLogXmlRecoveryManager = transactionLogXmlRecoveryManager;
 		this.leaderElectionManager = isCurrentNodeLeader;
 	}
 
@@ -163,10 +164,9 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		ensureNoExceptionOccured();
 		File file = new File(getUnflushedFolder(), transactionId);
 		try {
-			String content = newReadWriteServices().toLogEntry(transaction);
-			ioServices.replaceFileContent(file, content);
-
-			newReadWriteServices().toLogEntry(transaction);
+			String contentUnflushed = newReadWriteServices().toLogEntry(transaction);
+			ioServices.replaceFileContent(file, contentUnflushed);
+			String content = newReadWriteSqlServices().toLogEntry(transaction);
 
 			transactionContentMap.put(transactionId, content);
 		} catch (IOException e) {
@@ -233,7 +233,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			//leaderElectionManager might be null and not instantiated during Constellio reboot.
 			return false;
 		} finally {
-			return false;
+			return true;
 		}
 	}
 
@@ -245,7 +245,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 			//get transactions
 			List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
-					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll());
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll(10));
 
 			if (transactionsToConvert.size() == 0) {
 				//end
@@ -375,8 +375,20 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	@Override
 	public void destroyAndRebuildSolrCollection() {
 
-		this.transactionLogRecoveryManager.disableRollbackModeDuringSolrRestore();
+		this.transactionLogXmlRecoveryManager.disableRollbackModeDuringSolrRestore();
+		File recoveryFolder = ioServices.newTemporaryFolder(RECOVERY_FOLDER);
+		try {
+			List<RecordTransactionSqlDTO> tRecords = recoverTransactionLogs();
+			if (!tRecords.isEmpty()) {
+				clearSolrCollection();
+				new SqlTransactionLogReplayServices(newReadWriteSqlServices(), bigVaultServer, dataLayerLogger)
+						.replayTransactionLogs(tRecords);
+			}
+		} finally {
+			ioServices.deleteQuietly(recoveryFolder);
+		}
 	}
+
 
 	@Override
 	public void transactionLOGReindexationStartStrategy() {
@@ -420,6 +432,24 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	public void deleteUnregroupedLog()
 			throws SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException {
 
+		List<TransactionSqlDTO> list = tryThreeTimesReturnList(() ->
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll());
+
+		for (TransactionSqlDTO transactionLog : list) {
+			tryThreeTimes(() -> {
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).delete(transactionLog.getId());
+				return true;
+			});
+		}
+
+		list = tryThreeTimesReturnList(() ->
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll());
+
+
+		if (!list.isEmpty()) {
+			throw new SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException(
+					list.stream().map(x -> x.getId()).collect(Collectors.toList()));
+		}
 	}
 
 	@Override
@@ -507,6 +537,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		} else {
 			return (currentVersion != -1 && currentVersion != versionBeforeUpdate);
 		}
+
 	}
 
 	private boolean isDeleteQueryCommitted(String query, RecordDao recordDao) {
@@ -581,8 +612,12 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	}
 
-	TransactionLogSqlReadWriteServices newReadWriteServices() {
+	TransactionLogSqlReadWriteServices newReadWriteSqlServices() {
 		return new TransactionLogSqlReadWriteServices(configuration, dataLayerSystemExtensions);
+	}
+
+	TransactionLogReadWriteServices newReadWriteServices() {
+		return new TransactionLogReadWriteServices(ioServices, configuration, dataLayerSystemExtensions);
 	}
 
 	private TransactionLogSqlReadWriteServices getTransactionLogReadWriteServices() {
@@ -629,6 +664,11 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	public long getTableTransactionCount() throws SQLException {
 		return sqlRecordDaoFactory
 				.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getTableCount();
+	}
+
+	private List<RecordTransactionSqlDTO> recoverTransactionLogs() {
+
+		return null;
 	}
 
 	//Command pattern

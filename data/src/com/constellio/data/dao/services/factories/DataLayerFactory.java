@@ -43,7 +43,7 @@ import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionM
 import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
 import com.constellio.data.dao.services.leaderElection.ZookeeperLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.dao.services.sequence.SolrSequencesManager;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
@@ -51,9 +51,7 @@ import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.SolrServers;
 import com.constellio.data.dao.services.solr.serverFactories.CloudSolrServerFactory;
 import com.constellio.data.dao.services.solr.serverFactories.HttpSolrServerFactory;
-import com.constellio.data.dao.services.sql.MicrosoftSqlTransactionDao;
 import com.constellio.data.dao.services.sql.SqlConnector;
-import com.constellio.data.dao.services.sql.SqlRecordDao;
 import com.constellio.data.dao.services.sql.SqlRecordDaoFactory;
 import com.constellio.data.dao.services.sql.SqlServerConnector;
 import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManager;
@@ -116,7 +114,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final ConstellioJobManager constellioJobManager;
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
-	final TransactionLogRecoveryManager transactionLogRecoveryManager;
+	final TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager;
 	private String constellioVersion;
 	private final ConversionManager conversionManager;
 	private final EventBusManager eventBusManager;
@@ -245,7 +243,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		updateContentDao();
 
-		transactionLogRecoveryManager = new TransactionLogRecoveryManager(this);
+		transactionLogXmlRecoveryManager = new TransactionLogXmlRecoveryManager(this);
 
 		if (dataLayerConfiguration.isSecondTransactionLogEnabled()) {
 			if (dataLayerConfiguration.getSecondTransactionLogMode() == SecondTransactionLogType.KAFKA) {
@@ -256,12 +254,12 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 				secondTransactionLogManager = add(new SqlServerTransactionLogManager(dataLayerConfiguration,
 						ioServicesFactory.newIOServices(), newRecordDao(), sqlRecordDaoFactory ,contentDao, backgroundThreadsManager, dataLayerLogger,
-						dataLayerExtensions.getSystemWideExtensions(), transactionLogRecoveryManager, this.leaderElectionManager));
+						dataLayerExtensions.getSystemWideExtensions(), transactionLogXmlRecoveryManager, this.leaderElectionManager));
 			}
 			else {
 				secondTransactionLogManager = add(new XMLSecondTransactionLogManager(dataLayerConfiguration,
 						ioServicesFactory.newIOServices(), newRecordDao(), contentDao, backgroundThreadsManager, dataLayerLogger,
-						dataLayerExtensions.getSystemWideExtensions(), transactionLogRecoveryManager));
+						dataLayerExtensions.getSystemWideExtensions(), transactionLogXmlRecoveryManager));
 			}
 		} else {
 			secondTransactionLogManager = null;
@@ -462,8 +460,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		}
 	}
 
-	public TransactionLogRecoveryManager getTransactionLogRecoveryManager() {
-		return this.transactionLogRecoveryManager;
+	public TransactionLogXmlRecoveryManager getTransactionLogXmlRecoveryManager() {
+		return this.transactionLogXmlRecoveryManager;
 	}
 
 	public SequencesManager getSequencesManager() {

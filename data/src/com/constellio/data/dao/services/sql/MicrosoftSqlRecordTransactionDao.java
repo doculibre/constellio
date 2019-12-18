@@ -127,6 +127,23 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	}
 
 	@Override
+	public List<RecordTransactionSqlDTO> getAll(int top) throws SQLException {
+
+		if(top<1){
+			return getAll();
+		}
+		ResultSetHandler<List<RecordTransactionSqlDTO>> handler = new BeanListHandler<>(RecordTransactionSqlDTO.class);
+
+		List<RecordTransactionSqlDTO> dto = queryRunner.query(connector.getConnection(),
+				"SELECT TOP("+top+") * FROM records", handler);
+
+		if(dto == null){
+			return new ArrayList<>();
+		}
+		return dto;
+	}
+
+	@Override
 	public void delete(String id) throws SQLException {
 		String deleteQuery = "DELETE FROM "+fullTableName+" WHERE id =?";
 		queryRunner.execute(connector.getConnection(),

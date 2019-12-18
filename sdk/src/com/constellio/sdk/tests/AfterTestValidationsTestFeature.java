@@ -5,7 +5,7 @@ import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
@@ -77,7 +77,7 @@ public class AfterTestValidationsTestFeature {
 							solrSDKTools.flushAndDeleteContentMarkers();
 							validateSecondTransactionLog(solrSDKTools);
 						} else if (isValidatingRollbackLog() && configuration.isSecondTransactionLogEnabled()) {
-							checkRecovery(solrSDKTools, dataLayerFactory.getTransactionLogRecoveryManager());
+							checkRecovery(solrSDKTools, dataLayerFactory.getTransactionLogXmlRecoveryManager());
 						}
 
 						if (isValidatingIntegrity()) {
@@ -96,9 +96,9 @@ public class AfterTestValidationsTestFeature {
 	}
 
 	private void checkRecovery(SolrSDKToolsServices tools,
-							   TransactionLogRecoveryManager transactionLogRecoveryManager) {
+							   TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager) {
 		if (snapshotBeforeReplay != null) {
-			transactionLogRecoveryManager.rollback(null);
+			transactionLogXmlRecoveryManager.rollback(null);
 			VaultSnapshot currentSnapShot = tools.snapshot();
 			tools.ensureSameSnapshots(rollbackReplayMessage, snapshotBeforeReplay, currentSnapShot);
 		}
@@ -164,12 +164,12 @@ public class AfterTestValidationsTestFeature {
 
 			if (factoriesTestFeatures.isInitialized()) {
 				DataLayerFactory dataLayerFactory = factoriesTestFeatures.getConstellioFactories().getDataLayerFactory();
-				if (dataLayerFactory.getTransactionLogRecoveryManager().isInRollbackMode()) {
-					dataLayerFactory.getTransactionLogRecoveryManager().stopRollbackMode();
+				if (dataLayerFactory.getTransactionLogXmlRecoveryManager().isInRollbackMode()) {
+					dataLayerFactory.getTransactionLogXmlRecoveryManager().stopRollbackMode();
 				}
 				batchProcessTestFeature.waitForAllBatchProcessesAcceptingErrors(null);
 
-				dataLayerFactory.getTransactionLogRecoveryManager().startRollbackMode();
+				dataLayerFactory.getTransactionLogXmlRecoveryManager().startRollbackMode();
 				snapshotBeforeReplay = new SolrSDKToolsServices(dataLayerFactory.newRecordDao()).snapshot();
 
 			}

@@ -14,7 +14,7 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
-public class TransactionLogReadWriteServices {
+public class TransactionLogReadWriteServices implements LogReaderWriterServices<File> {
 
 	static final String READ_LOG_FOR_REPLAY = XMLSecondTransactionLogManager.class.getSimpleName() + "_readLogForReplay";
 
@@ -29,6 +29,7 @@ public class TransactionLogReadWriteServices {
 		this.extensions = extensions;
 	}
 
+	@Override
 	public Iterator<BigVaultServerTransaction> newOperationsIterator(File tLog) {
 		final BufferedReader tLogBufferedReader = ioServices.newBufferedFileReader(tLog, READ_LOG_FOR_REPLAY);
 		Iterator<String> linesIterator = new ReaderLinesIteratorV1(ioServices, tLogBufferedReader);
@@ -36,14 +37,22 @@ public class TransactionLogReadWriteServices {
 		return new ReaderTransactionsIteratorV1(tLog.getName(), transactionLinesIterator, configuration);
 	}
 
+	@Override
+	public BigVaultServerTransaction newOperation(File log) {
+		return null;
+	}
+
+	@Override
 	public String toLogEntry(BigVaultServerTransaction transaction) {
 		return new TransactionWriterV1(configuration.isWriteZZRecords(), extensions).toLogEntry(transaction);
 	}
 
+	@Override
 	public String toSetSequenceLogEntry(String sequenceId, long value) {
 		return new TransactionWriterV1(configuration.isWriteZZRecords(), extensions).toSetSequenceLogEntry(sequenceId, value);
 	}
 
+	@Override
 	public String toNextSequenceLogEntry(String sequenceId) {
 		return new TransactionWriterV1(configuration.isWriteZZRecords(), extensions).toNextSequenceLogEntry(sequenceId);
 	}

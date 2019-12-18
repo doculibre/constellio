@@ -22,6 +22,8 @@ public interface SqlRecordDao<Object> {
 
 	List<Object> getAll() throws SQLException ;
 
+	List<Object> getAll(int top) throws SQLException ;
+
 	void delete(String id)throws SQLException;
 
 	void deleteAll()throws SQLException;

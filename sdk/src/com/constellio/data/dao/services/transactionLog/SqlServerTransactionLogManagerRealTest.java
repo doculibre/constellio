@@ -27,9 +27,7 @@ import com.constellio.data.dao.services.transactionLog.sql.TransactionLogContent
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.threads.BackgroundThreadsManager;
-import com.constellio.model.entities.records.Record;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.TestRecord;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.apache.commons.io.FileUtils;
@@ -161,7 +159,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		when(bigVaultServer.countDocuments()).thenReturn(42L);
 		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
 				backgroundThreadsManager, dataLayerLogger, systemExtensions,
-				getDataLayerFactory().getTransactionLogRecoveryManager(),electionManager));
+				getDataLayerFactory().getTransactionLogXmlRecoveryManager(),electionManager));
 		transactionLog.initialize();
 
 		record1 = newSolrInputDocument("record1", -1L);
@@ -333,7 +331,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
 				backgroundThreadsManager, dataLayerLogger, systemExtensions,
-				getDataLayerFactory().getTransactionLogRecoveryManager(),electionManager));
+				getDataLayerFactory().getTransactionLogXmlRecoveryManager(),electionManager));
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 
 	}
@@ -362,7 +360,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
 				backgroundThreadsManager, dataLayerLogger, systemExtensions,
-				getDataLayerFactory().getTransactionLogRecoveryManager(),election));
+				getDataLayerFactory().getTransactionLogXmlRecoveryManager(),election));
 		transactionLog.initialize();
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 		transactionLog.flush(firstTransactionId, null);

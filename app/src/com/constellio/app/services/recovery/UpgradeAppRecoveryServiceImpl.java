@@ -5,7 +5,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.systemProperties.SystemPropertiesServices;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -24,7 +24,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 	private static final String WORK_DIR_NAME = UpgradeAppRecoveryServiceImpl.class.getName() + "-settings";
 	public static long REQUIRED_MEMORY_IN_MO = 200;
 	public static double REQUIRED_SPACE_IN_GIG = 0.5;
-	private final TransactionLogRecoveryManager transactionLogRecoveryManager;
+	private final TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager;
 	private final AppLayerFactory appLayerFactory;
 	private final SystemPropertiesServices systemPropertiesServices;
 	private final IOServices ioServices;
@@ -35,8 +35,8 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 
 	public UpgradeAppRecoveryServiceImpl(AppLayerFactory appLayerFactory, IOServices ioServices) {
 		this.appLayerFactory = appLayerFactory;
-		this.transactionLogRecoveryManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory()
-				.getTransactionLogRecoveryManager();
+		this.transactionLogXmlRecoveryManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory()
+				.getTransactionLogXmlRecoveryManager();
 		this.ioServices = ioServices;
 		this.oldSetting = ioServices.newTemporaryFolder(WORK_DIR_NAME);
 		systemPropertiesServices = new SystemPropertiesServices(appLayerFactory.getModelLayerFactory().getFoldersLocator(),
@@ -69,7 +69,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 
 		// Synchronized since batch process may be running
 		synchronized (configManager) {
-			transactionLogRecoveryManager.startRollbackMode();
+			transactionLogXmlRecoveryManager.startRollbackMode();
 			saveSettings();
 		}
 	}
@@ -77,7 +77,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 	@Override
 	public void stopRollbackMode() {
 		deleteSavedSettings();
-		transactionLogRecoveryManager.stopRollbackMode();
+		transactionLogXmlRecoveryManager.stopRollbackMode();
 		upgradeAppRecoveryConfigManager.onVersionMigratedCorrectly();
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager();
@@ -87,7 +87,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 
 	@Override
 	public boolean isInRollbackMode() {
-		return transactionLogRecoveryManager.isInRollbackMode();
+		return transactionLogXmlRecoveryManager.isInRollbackMode();
 	}
 
 	public void rollback(Throwable t) {
@@ -97,8 +97,8 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		replaceSettingsByTheSavedOneButKeepRecoverySettings();
 		LOGGER.info("replaceSettingsByTheSavedOneButKeepRecoverySettings() finished");
 
-		transactionLogRecoveryManager.rollback(t);
-		LOGGER.info("transactionLogRecoveryManager.rollback() finished");
+		transactionLogXmlRecoveryManager.rollback(t);
+		LOGGER.info("transactionLogXmlRecoveryManager.rollback() finished");
 
 		prepareNextStartup(t);
 		LOGGER.info("prepareNextStartup() finished");
@@ -136,7 +136,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 	}
 
 	public void close() {
-		this.transactionLogRecoveryManager.close();
+		this.transactionLogXmlRecoveryManager.close();
 	}
 
 	private void deleteSavedSettings() {
