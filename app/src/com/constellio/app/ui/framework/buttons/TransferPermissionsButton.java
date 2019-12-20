@@ -43,7 +43,7 @@ public class TransferPermissionsButton extends WindowButton {
 	protected Component buildWindowContent() {
 		VerticalLayout mainLayout = new VerticalLayout();
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
-		label = new Label($("TransferAccessRights.ChooseDestinationUsers"));
+		label = new Label($("TransferPermissionsButton.chooseDestinationUsers"));
 		buildUsersSearchField();
 		buildRemoveCurrentUserRightsCheckbox();
 
@@ -63,13 +63,13 @@ public class TransferPermissionsButton extends WindowButton {
 
 	private void buildUsersSearchField() {
 		users = new ListAddRemoveRecordLookupField(User.SCHEMA_TYPE);
-		users.setCaption($("AuthorizationsView.users"));
+		users.setCaption($("TransferPermissionsButton.authorizedUsers"));
 		users.setId("users");
 	}
 
 	private void buildRemoveCurrentUserRightsCheckbox() {
 		removeUserAccessCheckbox = new CheckBox();
-		removeUserAccessCheckbox.setCaption($("TransferAccessRights.removeUserAccess"));
+		removeUserAccessCheckbox.setCaption($("TransferPermissionsButton.Title"));
 		removeUserAccessCheckbox.addValueChangeListener(
 				(ValueChangeListener) event -> presenter.setRemoveUserAccessCheckboxValue(removeUserAccessIsChecked()));
 	}
@@ -105,15 +105,8 @@ public class TransferPermissionsButton extends WindowButton {
 	}
 
 	private String buildUserListString() {
-		String selectedUsersString = "";
 		List<String> usersList = presenter.convertUserIdListToUserNames(users.getValue());
-		for (int i = 0; i < usersList.size(); i++) {
-			selectedUsersString += usersList.get(i);
-			if (i < usersList.size() - 1) {
-				selectedUsersString += ", ";
-			}
-		}
-		return selectedUsersString;
+		return String.join(", ", usersList);
 	}
 
 	private boolean validateUserInputInformation() {
@@ -132,7 +125,7 @@ public class TransferPermissionsButton extends WindowButton {
 			presenter.setRemoveUserAccessCheckboxValue(removeUserAccessIsChecked());
 			String confirmMessage = presenter.buildTransferRightsConfirmMessage(sourceUser.getTitle(), selectedUsersString,
 					users.getValue().size() > 1, removeUserAccessIsChecked());
-			ConfirmDialog.show(ConstellioUI.getCurrent(), $("TransferAccessRights.Title"), confirmMessage,
+			ConfirmDialog.show(ConstellioUI.getCurrent(), $("TransferPermissionsButton.Title"), confirmMessage,
 					$("Ok"), $("cancel"), (ConfirmDialog.Listener) dialog -> {
 						if (dialog.isConfirmed()) {
 							presenter.transferAccessSaveButtonClicked(sourceUser, users.getValue(), getWindow());

@@ -165,15 +165,15 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 		String confirmMessage;
 		if (multipleUsersSelected) {
 			if (removeUserAccess) {
-				confirmMessage = $("TransferAccessRights.ConfirmMessageMultipleAndRemoveAccess", sourceUserName, selectedUsersString);
+				confirmMessage = $("TransferPermissionsButton.confirmMessageMultipleAndRemoveAccess", sourceUserName, selectedUsersString);
 			} else {
-				confirmMessage = $("TransferAccessRights.ConfirmMessageMultiple", sourceUserName, selectedUsersString);
+				confirmMessage = $("TransferPermissionsButton.confirmMessageMultiple", sourceUserName, selectedUsersString);
 			}
 		} else {
 			if (removeUserAccess) {
-				confirmMessage = $("TransferAccessRights.ConfirmMessageMultipleAndRemoveAccess", sourceUserName, selectedUsersString);
+				confirmMessage = $("TransferPermissionsButton.confirmMessageMultipleAndRemoveAccess", sourceUserName, selectedUsersString);
 			} else {
-				confirmMessage = $("TransferAccessRights.ConfirmMessageMultiple", sourceUserName, selectedUsersString);
+				confirmMessage = $("TransferPermissionsButton.confirmMessageMultiple", sourceUserName, selectedUsersString);
 			}
 		}
 		return confirmMessage;
@@ -205,13 +205,13 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 	public void validateAccessTransfer(Record sourceUser, List<String> destUsers) throws Exception {
 		errorsList = new ArrayList<>();
 		if (destUsers.isEmpty()) {
-			errorsList.add($("TransferAccessRights.emptyDestinationListError"));
+			errorsList.add($("TransferPermissionsButton.emptyDestinationListError"));
 		}
 		if (destUsers.contains(sourceUser.getId())) {
-			errorsList.add($("TransferAccessRights.userCannotBeSelected", sourceUser.getTitle()));
+			errorsList.add($("TransferPermissionsButton.userCannotBeSelected", sourceUser.getTitle()));
 		}
 		if (!isDeletionEnabled() && removeUserAccess) {
-			errorsList.add($("TransferAccessRights.cannotRemovePermissions", sourceUser.getTitle()));
+			errorsList.add($("TransferPermissionsButton.cannotRemovePermissions", sourceUser.getTitle()));
 		}
 
 		if (errorsList.size() > 0) {
