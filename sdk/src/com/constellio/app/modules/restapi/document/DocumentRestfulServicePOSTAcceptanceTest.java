@@ -1,5 +1,6 @@
 package com.constellio.app.modules.restapi.document;
 
+import com.constellio.app.modules.restapi.core.exception.CannotReadContentException;
 import com.constellio.app.modules.restapi.core.exception.InvalidDateCombinationException;
 import com.constellio.app.modules.restapi.core.exception.InvalidDateFormatException;
 import com.constellio.app.modules.restapi.core.exception.InvalidMetadataValueException;
@@ -9,6 +10,7 @@ import com.constellio.app.modules.restapi.core.exception.MetadataNotFoundExcepti
 import com.constellio.app.modules.restapi.core.exception.MetadataNotMultivalueException;
 import com.constellio.app.modules.restapi.core.exception.MetadataReferenceNotAllowedException;
 import com.constellio.app.modules.restapi.core.exception.ParametersMustMatchException;
+import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
@@ -33,6 +35,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -59,6 +62,7 @@ import static com.constellio.app.modules.restapi.core.util.Permissions.READ;
 import static com.constellio.app.modules.restapi.core.util.Permissions.WRITE;
 import static com.constellio.app.modules.restapi.document.enumeration.VersionType.MAJOR;
 import static com.constellio.app.modules.restapi.document.enumeration.VersionType.MINOR;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.comparingListAnyOrder;
@@ -79,7 +83,6 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 	private File fileToAdd;
 
 	private DocumentDto firstDocumentToMerge, secondDocumentToMerge;
-	private DocumentDto documentWithoutContent, documentWithZipContent;
 
 	@Before
 	public void setUp() throws Exception {
@@ -103,8 +106,6 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
 		firstDocumentToMerge = createDocumentWithTextContent("file1.txt", "This is the content of file 1.");
 		secondDocumentToMerge = createDocumentWithTextContent("file2.txt", "This is the content of file 2.");
-		documentWithoutContent = createDocumentWithoutContent();
-		documentWithZipContent = createDocumentWithZipContent();
 	}
 
 	@Test
@@ -1117,11 +1118,14 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 	}
 
 	@Test
-	public void testCreateConsolidatedDocumentWithInvalidDocuments() throws Exception {
+	public void testCreateConsolidatedDocumentWithEmptyContent() throws Exception {
 		addUsrMetadata(MetadataValueType.STRING, null, null);
 
-		// 1. A doc with no content
+		DocumentDto documentWithoutContent = createDocumentWithoutContent();
+
 		Set<String> mergeSourceIds = new HashSet<>();
+		mergeSourceIds.add(firstDocumentToMerge.getId());
+		mergeSourceIds.add(secondDocumentToMerge.getId());
 		mergeSourceIds.add(documentWithoutContent.getId());
 
 		Response postResponse = buildPostQuery().request().header("host", host)
@@ -1130,25 +1134,125 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
 		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
-		// 2. A doc with unparsable content
-		mergeSourceIds = new HashSet<>();
+		RestApiErrorResponse error = postResponse.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
+				.isEqualTo(i18n.$(new CannotReadContentException(documentWithoutContent.getId()).getValidationError()));
+	}
+
+	@Test
+	public void testCreateConsolidatedDocumentWithUnsupportedContent() throws Exception {
+		addUsrMetadata(MetadataValueType.STRING, null, null);
+
+		DocumentDto documentWithZipContent = createDocumentWithZipContent();
+
+		Set<String> mergeSourceIds = new HashSet<>();
+		mergeSourceIds.add(firstDocumentToMerge.getId());
+		mergeSourceIds.add(secondDocumentToMerge.getId());
 		mergeSourceIds.add(documentWithZipContent.getId());
 
-		postResponse = buildPostQuery().request().header("host", host)
+		Response postResponse = buildPostQuery().request().header("host", host)
 				.header(CustomHttpHeaders.MERGE_SOURCE, mergeSourceIds)
 				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
 
 		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
-		// 3. A non existing doc
-		mergeSourceIds = new HashSet<>();
-		mergeSourceIds.add("NonExistingId");
+		RestApiErrorResponse error = postResponse.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
+				.isEqualTo(i18n.$(new CannotReadContentException(documentWithZipContent.getId()).getValidationError()));
+	}
 
-		postResponse = buildPostQuery().request().header("host", host)
+	@Test
+	public void testCreateConsolidatedDocumentWithNonExistingDocument() throws Exception {
+		addUsrMetadata(MetadataValueType.STRING, null, null);
+
+		String fakeId = "fakeId";
+
+		Set<String> mergeSourceIds = new HashSet<>();
+		mergeSourceIds.add(firstDocumentToMerge.getId());
+		mergeSourceIds.add(secondDocumentToMerge.getId());
+		mergeSourceIds.add(fakeId);
+
+		Response postResponse = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.MERGE_SOURCE, mergeSourceIds)
+				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+
+		RestApiErrorResponse error = postResponse.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
+				.isEqualTo(i18n.$(new RecordNotFoundException(fakeId).getValidationError()));
+	}
+
+	@Test
+	public void testCreateConsolidatedDocumentWithoutDocumentAccess() throws Exception {
+		addUsrMetadata(MetadataValueType.STRING, null, null);
+
+		Record record = recordServices.getDocumentById(firstDocumentToMerge.getId());
+		User bobUser = userServices.getUserInCollection(bob, record.getCollection());
+		authorizationsServices.add(authorizationForUsers(bobUser).on(record).givingNegativeReadWriteAccess());
+
+		Set<String> mergeSourceIds = new HashSet<>();
+		mergeSourceIds.add(firstDocumentToMerge.getId());
+		mergeSourceIds.add(secondDocumentToMerge.getId());
+
+		Response postResponse = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.MERGE_SOURCE, mergeSourceIds)
+				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+
+		RestApiErrorResponse error = postResponse.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
+				.isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
+	}
+
+	@Test
+	public void testCreateConsolidatedDocumentWithLogicallyDeletedDocument() throws Exception {
+		addUsrMetadata(MetadataValueType.STRING, null, null);
+
+		String secondDocumentToMergeId = secondDocumentToMerge.getId();
+
+		Set<String> mergeSourceIds = new HashSet<>();
+		mergeSourceIds.add(firstDocumentToMerge.getId());
+		mergeSourceIds.add(secondDocumentToMergeId);
+
+		Record record = recordServices.getDocumentById(secondDocumentToMergeId);
+		recordServices.logicallyDelete(record, User.GOD);
+
+		Response postResponse = buildPostQuery().request().header("host", host)
 				.header(CustomHttpHeaders.MERGE_SOURCE, mergeSourceIds)
 				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
 
 		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = postResponse.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
+				.isEqualTo(i18n.$(new RecordLogicallyDeletedException(secondDocumentToMergeId).getValidationError()));
+	}
+
+	@Test
+	public void testCreateConsolidatedDocumentWithPhysicallyDeletedDocument() throws Exception {
+		addUsrMetadata(MetadataValueType.STRING, null, null);
+
+		String secondDocumentToMergeId = secondDocumentToMerge.getId();
+
+		Set<String> mergeSourceIds = new HashSet<>();
+		mergeSourceIds.add(firstDocumentToMerge.getId());
+		mergeSourceIds.add(secondDocumentToMergeId);
+
+		Record record = recordServices.getDocumentById(secondDocumentToMergeId);
+		recordServices.logicallyDelete(record, User.GOD);
+		recordServices.physicallyDelete(record, User.GOD);
+
+		Response postResponse = buildPostQuery().request().header("host", host)
+				.header(CustomHttpHeaders.MERGE_SOURCE, mergeSourceIds)
+				.post(entity(buildMultiPart(minDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+
+		RestApiErrorResponse error = postResponse.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
+				.isEqualTo(i18n.$(new RecordNotFoundException(secondDocumentToMergeId).getValidationError()));
 	}
 
 	@Test
@@ -1164,10 +1268,14 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 				.post(entity(buildMultiPart(fullDocumentToAdd, null), MULTIPART_FORM_DATA_TYPE));
 
 		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = postResponse.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
+				.isEqualTo(i18n.$(new InvalidParameterCombinationException("mergeSourceIds", "content").getValidationError()));
 	}
 
 	@Test
-	public void testCreateConsolidatedDocumentWithFilestream() throws Exception {
+	public void testCreateConsolidatedDocumentWithFile() throws Exception {
 		addUsrMetadata(MetadataValueType.STRING, null, null);
 
 		Set<String> mergeSourceIds = new HashSet<>();
@@ -1179,6 +1287,10 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 				.post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
 
 		assertThat(postResponse.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = postResponse.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
+				.isEqualTo(i18n.$(new InvalidParameterCombinationException("mergeSourceIds", "file").getValidationError()));
 	}
 
 	//

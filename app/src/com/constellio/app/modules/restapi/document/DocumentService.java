@@ -2,6 +2,7 @@ package com.constellio.app.modules.restapi.document;
 
 import com.constellio.app.modules.restapi.ace.AceService;
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
+import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
 import com.constellio.app.modules.restapi.document.adaptor.DocumentAdaptor;
 import com.constellio.app.modules.restapi.document.dao.DocumentDao;
@@ -63,6 +64,11 @@ public class DocumentService extends ResourceService {
 
 		validateDocument(host, folderId, serviceKey, method, date, expiration, signature, document, collection, folder,
 				user, documentSchema);
+
+		for (String recordId : mergeSourceIds) {
+			Record record = getRecord(recordId, true);
+			validateUserAccess(user, record, HttpMethods.GET);
+		}
 
 		Content content = documentDao.mergeContent(document, mergeSourceIds, collection, user);
 

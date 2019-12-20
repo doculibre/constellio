@@ -164,9 +164,11 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		List<String> documentIdsToMerge = null;
 		if (mergeSourceIds != null && !mergeSourceIds.isEmpty()) {
 			String ids = mergeSourceIds.iterator().next();
-			if (!StringUtils.isBlank(ids)) {
+			if (ids != null) {
 				ids = ids.replaceAll("[\\[\\] ]", "");
-				documentIdsToMerge = Arrays.asList(ids.split(","));
+				if (!StringUtils.isBlank(ids)) {
+					documentIdsToMerge = Arrays.asList(ids.split(","));
+				}
 			}
 		}
 
@@ -177,7 +179,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			throw new RequiredParameterException("content.filename");
 		}
 
-		DocumentDto createdDocument = mergeSourceIds == null || mergeSourceIds.isEmpty() ?
+		DocumentDto createdDocument = documentIdsToMerge == null || documentIdsToMerge.isEmpty() ?
 									  documentService.create(host, folderId, serviceKey, method, date, expiration,
 											  signature, document, fileStream, flush, filters) :
 									  documentService.merge(host, folderId, serviceKey, method, date, expiration,
@@ -344,7 +346,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 				throw new InvalidParameterCombinationException("mergeSourceIds", "content");
 			}
 			if (fileStream != null) {
-				throw new InvalidParameterCombinationException("mergeSourceIds", "fileStream");
+				throw new InvalidParameterCombinationException("mergeSourceIds", "file");
 			}
 		}
 	}

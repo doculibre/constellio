@@ -349,6 +349,8 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 				PDDocument previewWithoutBookmarks = getPreviewWithoutBookmarks(document, tempFolder, params);
 				if (previewWithoutBookmarks != null) {
 					includedPdfDocumentsForCurrentDocument.add(previewWithoutBookmarks);
+				} else {
+					logError(params, document, CANNOT_READ_CONTENT);
 				}
 
 				if (!includedPdfDocumentsForCurrentDocument.isEmpty()) {

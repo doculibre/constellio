@@ -1,5 +1,6 @@
 package com.constellio.app.modules.restapi.document.dao;
 
+import com.constellio.app.modules.restapi.core.exception.CannotReadContentException;
 import com.constellio.app.modules.restapi.core.exception.ConsolidationException;
 import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
@@ -24,6 +25,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentImplRuntimeException;
@@ -183,7 +185,7 @@ public class DocumentDao extends ResourceDao {
 			content = task.getConsolidatedContent();
 
 			if (content == null) {
-				throw new ConsolidationException("No content to consolidate.");
+				throw new ConsolidationException();
 			}
 
 			ContentDto contentDto = ContentDto.builder()
@@ -194,7 +196,28 @@ public class DocumentDao extends ResourceDao {
 					.build();
 			document.setContent(contentDto);
 		} catch (ValidationException e) {
-			throw new ConsolidationException(e.getMessage());
+			ValidationErrors validationErrors = e.getValidationErrors();
+			if (validationErrors == null) {
+				throw new ConsolidationException();
+			}
+
+			List<ValidationError> errors = validationErrors.getValidationErrors();
+			if (errors == null || errors.isEmpty()) {
+				throw new ConsolidationException();
+			}
+
+			ValidationError error = errors.get(0);
+			if (error == null) {
+				throw new ConsolidationException();
+			}
+
+			String documentId = (String) error.getParameter("id");
+			String msg = (String) error.getParameter("messageKey");
+			if (documentId == null || msg == null || !msg.equals(CannotReadContentException.CODE)) {
+				throw new ConsolidationException();
+			}
+
+			throw new CannotReadContentException(documentId);
 		}
 
 		return content;
