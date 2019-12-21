@@ -225,7 +225,7 @@ public class TaskMenuItemActionBehaviors {
 		boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
 		ListAddRemoveCollaboratorsGroupsField collaboratorsGroupField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO(), new GroupTextInputDataProvider(getInstance(), getCurrentSessionContext()));
 		collaboratorsGroupField.writeButtonIsVisible(userHasWriteAuthorization);
-		collaboratorsGroupField.setCurrentUserIsCollaborator(taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+		collaboratorsGroupField.setCurrentUserCanModifyDelete(taskPresenterServices.currentUserHasWriteAuthorisationWithoutBeingCollaborator(params.getRecordVO(), params.getUser().getId()));
 		return collaboratorsGroupField;
 	}
 
@@ -233,7 +233,7 @@ public class TaskMenuItemActionBehaviors {
 		boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
 		ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(params.getRecordVO());
 		collaboratorsField.writeButtonIsVisible(userHasWriteAuthorization);
-		collaboratorsField.setCurrentUserIsCollaborator(taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+		collaboratorsField.setCurrentUserCanModifyDelete(taskPresenterServices.currentUserHasWriteAuthorisationWithoutBeingCollaborator(params.getRecordVO(), params.getUser().getId()));
 		return collaboratorsField;
 	}
 

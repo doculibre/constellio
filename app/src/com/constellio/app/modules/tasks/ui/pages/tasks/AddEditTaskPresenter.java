@@ -30,6 +30,8 @@ import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationEnumField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListCollaboratorsField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListCollaboratorsGoupsField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListRecordLookupField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
@@ -80,15 +82,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
 import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.READ;
 import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.WRITE;
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
@@ -811,12 +810,13 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 						.isIn(asList(BorrowRequest.SCHEMA_NAME, ReturnRequest.SCHEMA_NAME, ExtensionRequest.SCHEMA_NAME, ReactivationRequest.SCHEMA_NAME))) : null;
 	}
 
-	private boolean currentUserIsCollaborator() {
-		if (((List) taskVO.get(TASK_COLLABORATORS)).contains(getCurrentUser().getId())) {
-			return true;
-		} else {
-			return !Collections.disjoint(getCurrentUser().getUserGroups(), taskVO.get(TASK_COLLABORATORS_GROUPS));
+	private boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator() {
+		boolean isModel = false;
+		if (taskVO.get(RMTask.IS_MODEL) != null) {
+			isModel = taskVO.get(RMTask.IS_MODEL);
 		}
+		String currentUserId = getCurrentUser().getId();
+		return currentUserId.equals(taskVO.get(Task.ASSIGNEE)) || currentUserId.equals(taskVO.get(Task.ASSIGNER)) || isModel || !isEditMode();
 	}
 
 	private boolean currentUserHasWriteAuthorisation() {
@@ -824,58 +824,64 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private void adjustFieldsForCollaborators() {
-		boolean currentUserIsCollaborator = currentUserIsCollaborator();
+		boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator = currentUserHasWriteAuthorizationWithoutBeingCollaborator();
 
 		TaskAssignationListRecordLookupField assigneeGroupCandidatesField = (TaskAssignationListRecordLookupField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
 		if (assigneeGroupCandidatesField != null) {
-			assigneeGroupCandidatesField.setVisible(!currentUserIsCollaborator);
+			assigneeGroupCandidatesField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		TaskAssignationListRecordLookupField assigneeUserCandidatesField = (TaskAssignationListRecordLookupField) view.getForm().getField(Task.ASSIGNEE_USERS_CANDIDATES);
 		if (assigneeUserCandidatesField != null) {
-			assigneeUserCandidatesField.setVisible(!currentUserIsCollaborator);
+			assigneeUserCandidatesField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		LookupRecordField assignerField = (LookupRecordField) view.getForm().getField(Task.ASSIGNER);
 		if (assignerField != null) {
-			assignerField.setVisible(!currentUserIsCollaborator);
+			assignerField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		LookupRecordField assigneeField = (LookupRecordField) view.getForm().getField(Task.ASSIGNEE);
 		if (assigneeField != null) {
-			assigneeField.setVisible(!currentUserIsCollaborator);
+			assigneeField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		TaskAssignationEnumField assignationModesField = (TaskAssignationEnumField) view.getForm().getField(ASSIGNATION_MODES);
 		if (assignationModesField != null) {
-			assignationModesField.setVisible(!currentUserIsCollaborator);
+			assignationModesField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		Field<?> statusField = view.getForm().getField(STATUS);
 		if (statusField != null) {
-			statusField.setVisible(!currentUserIsCollaborator);
+			statusField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		boolean currentUserHasWriteAuthorisation = currentUserHasWriteAuthorisation();
 		ListAddRemoveCollaboratorsField taskCollaboratorsField = (ListAddRemoveCollaboratorsField) view.getForm().getField(Task.TASK_COLLABORATORS);
 		if (taskCollaboratorsField != null) {
 			taskCollaboratorsField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
-			taskCollaboratorsField.setCurrentUserIsCollaborator(currentUserIsCollaborator());
-			OptionGroup authorizationField = taskCollaboratorsField.getAddEditField().getAuthorizationField();
-			if (authorizationField != null && !currentUserHasWriteAuthorisation) {
-				authorizationField.removeItem(WRITE);
-				authorizationField.setValue(READ);
+			taskCollaboratorsField.setCurrentUserCanModifyDelete(currentUserHasWriteAuthorizationWithoutBeingCollaborator());
+			TaskAssignationListCollaboratorsField addEditField = taskCollaboratorsField.getAddEditField();
+			if (addEditField != null) {
+				OptionGroup authorizationField = addEditField.getAuthorizationField();
+				if (authorizationField != null && !currentUserHasWriteAuthorisation) {
+					authorizationField.removeItem(WRITE);
+					authorizationField.setValue(READ);
+				}
 			}
 		}
 
 		ListAddRemoveCollaboratorsGroupsField taskCollaboratorGroupsField = (ListAddRemoveCollaboratorsGroupsField) view.getForm().getField(Task.TASK_COLLABORATORS_GROUPS);
 		if (taskCollaboratorGroupsField != null) {
 			taskCollaboratorGroupsField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
-			taskCollaboratorGroupsField.setCurrentUserIsCollaborator(currentUserIsCollaborator);
-			OptionGroup authorizationField = taskCollaboratorGroupsField.getAddEditField().getAuthorizationField();
-			if (authorizationField != null && !currentUserHasWriteAuthorisation) {
-				authorizationField.removeItem(WRITE);
-				authorizationField.setValue(READ);
+			taskCollaboratorGroupsField.setCurrentUserCanModifyDelete(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
+			TaskAssignationListCollaboratorsGoupsField addEditField = taskCollaboratorGroupsField.getAddEditField();
+			if (addEditField != null) {
+				OptionGroup authorizationField = addEditField.getAuthorizationField();
+				if (authorizationField != null && !currentUserHasWriteAuthorisation) {
+					authorizationField.removeItem(WRITE);
+					authorizationField.setValue(READ);
+				}
 			}
 		}
 	}
