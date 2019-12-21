@@ -26,8 +26,10 @@ public class ViewableRecordVOTableColumnsManager extends RecordVOTableColumnsMan
 				visibleColumnsList.remove(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID);
 			}
 			if (isRightToLeft()) {
-				visibleColumnsList.remove(BaseTable.SELECT_PROPERTY_ID);
-				visibleColumnsList.add(0, BaseTable.SELECT_PROPERTY_ID);
+				if (visibleColumnsList.contains(BaseTable.SELECT_PROPERTY_ID)) {
+					visibleColumnsList.remove(BaseTable.SELECT_PROPERTY_ID);
+					visibleColumnsList.add(0, BaseTable.SELECT_PROPERTY_ID);
+				}
 				visibleColumnsList.remove(ViewableRecordVOContainer.THUMBNAIL_PROPERTY);
 				visibleColumnsList.add(1, ViewableRecordVOContainer.THUMBNAIL_PROPERTY);
 				Collections.reverse(visibleColumnsList);
@@ -36,8 +38,10 @@ public class ViewableRecordVOTableColumnsManager extends RecordVOTableColumnsMan
 			table.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 			viewableRecordVOTable.setTitleColumnWidth(366);
 		} else {
-			visibleColumnsList.remove(BaseTable.SELECT_PROPERTY_ID);
-			visibleColumnsList.add(0, BaseTable.SELECT_PROPERTY_ID);
+			if (visibleColumnsList.contains(BaseTable.SELECT_PROPERTY_ID)) {
+				visibleColumnsList.remove(BaseTable.SELECT_PROPERTY_ID);
+				visibleColumnsList.add(0, BaseTable.SELECT_PROPERTY_ID);
+			}
 			visibleColumnsList.add(RecordVOTable.MENUBAR_PROPERTY_ID);
 			super.manage(table, tableId);
 //			if (visibleColumns.contains(SearchResultContainer.THUMBNAIL_PROPERTY)) {
