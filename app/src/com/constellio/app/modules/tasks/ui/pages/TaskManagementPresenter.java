@@ -516,8 +516,8 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 	}
 
 	@Override
-	public boolean currentUserIsCollaborator(RecordVO recordVO) {
-		return taskPresenterServices.currentUserIsCollaborator(recordVO, getCurrentUserId());
+	public boolean currentUserHasWriteAuthorisationWithoutBeingCollaborator(RecordVO recordVO) {
+		return taskPresenterServices.currentUserHasWriteAuthorisationWithoutBeingCollaborator(recordVO, getCurrentUserId());
 	}
 
 	@Override

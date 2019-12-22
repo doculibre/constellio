@@ -7,6 +7,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.extensions.behaviors.RecordExtension;
@@ -22,8 +23,10 @@ import org.apache.commons.collections4.ListUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForGroups;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+import static java.util.Arrays.asList;
 
 public class RMTaskRecordExtension extends RecordExtension {
 
@@ -47,13 +50,20 @@ public class RMTaskRecordExtension extends RecordExtension {
 		if (!event.isSchemaType(RMTask.SCHEMA_TYPE)) {
 			return;
 		}
-
 		RMTask task = rmSchema.wrapRMTask(event.getRecord());
 
 		List<String> recordIds = new ArrayList<>();
 		recordIds.addAll(task.getLinkedFolders());
 		recordIds.addAll(task.getLinkedDocuments());
-		createMissingAuthorizations(task, recordIds, getUser(task));
+
+		List<User> usersToAuthorize = getUsersToAuthorize(task);
+		if (!usersToAuthorize.isEmpty()) {
+			createUsersMissingAuthorizations(task, recordIds, usersToAuthorize);
+		}
+		List<Group> collaboratorsToAuthorize = getGroupsToAuthorize(task);
+		if (!collaboratorsToAuthorize.isEmpty()) {
+			createGroupsMissingAuthorizations(task, recordIds, collaboratorsToAuthorize);
+		}
 	}
 
 	@Override
@@ -69,6 +79,14 @@ public class RMTaskRecordExtension extends RecordExtension {
 			User currentUser = getUser(task.getAssignee());
 
 			onAssigneeModificationEvent(task, previousUser, currentUser);
+		}
+
+		if (event.hasModifiedMetadata(Task.TASK_COLLABORATORS)) {
+			onTaskCollaboratorsModificationEvent(task);
+		}
+
+		if (event.hasModifiedMetadata(Task.TASK_COLLABORATORS_GROUPS)) {
+			onTaskCollaboratorsGroupsModificationEvent(task);
 		}
 
 		if (event.hasModifiedMetadata(Task.LINKED_DOCUMENTS)) {
@@ -98,13 +116,31 @@ public class RMTaskRecordExtension extends RecordExtension {
 		}
 	}
 
+	private void onTaskCollaboratorsGroupsModificationEvent(RMTask task) {
+		deleteAllCreatedAuthorizations(task);
+
+		List<String> recordIds = new ArrayList<>();
+		recordIds.addAll(task.getLinkedFolders());
+		recordIds.addAll(task.getLinkedDocuments());
+		createGroupsMissingAuthorizations(task, recordIds, getGroupsToAuthorize(task));
+	}
+
+	private void onTaskCollaboratorsModificationEvent(RMTask task) {
+		deleteAllCreatedAuthorizations(task);
+
+		List<String> recordIds = new ArrayList<>();
+		recordIds.addAll(task.getLinkedFolders());
+		recordIds.addAll(task.getLinkedDocuments());
+		createUsersMissingAuthorizations(task, recordIds, getUsersToAuthorize(task));
+	}
+
 	private void onAssigneeModificationEvent(RMTask task, User previousUser, User currentUser) {
 		deleteAllCreatedAuthorizations(task);
 
 		List<String> recordIds = new ArrayList<>();
 		recordIds.addAll(task.getLinkedFolders());
 		recordIds.addAll(task.getLinkedDocuments());
-		createMissingAuthorizations(task, recordIds, currentUser);
+		createUsersMissingAuthorizations(task, recordIds, asList(currentUser));
 	}
 
 	private void onLinkedDocumentsModificationEvent(RMTask task, List<String> addedDocuments,
@@ -113,7 +149,14 @@ public class RMTaskRecordExtension extends RecordExtension {
 			deleteCreatedAuthorizations(task, removedDocuments);
 		}
 		if (!addedDocuments.isEmpty()) {
-			createMissingAuthorizations(task, addedDocuments, getUser(task));
+			List<User> usersToAuthorize = getUsersToAuthorize(task);
+			if (!usersToAuthorize.isEmpty()) {
+				createUsersMissingAuthorizations(task, addedDocuments, usersToAuthorize);
+			}
+			List<Group> collaboratorsToAuthorize = getGroupsToAuthorize(task);
+			if (!collaboratorsToAuthorize.isEmpty()) {
+				createGroupsMissingAuthorizations(task, addedDocuments, collaboratorsToAuthorize);
+			}
 		}
 	}
 
@@ -123,7 +166,14 @@ public class RMTaskRecordExtension extends RecordExtension {
 			deleteCreatedAuthorizations(task, removedFolders);
 		}
 		if (!addedFolders.isEmpty()) {
-			createMissingAuthorizations(task, addedFolders, getUser(task));
+			List<User> usersToAuthorize = getUsersToAuthorize(task);
+			if (!usersToAuthorize.isEmpty()) {
+				createUsersMissingAuthorizations(task, addedFolders, usersToAuthorize);
+			}
+			List<Group> collaboratorsToAuthorize = getGroupsToAuthorize(task);
+			if (!collaboratorsToAuthorize.isEmpty()) {
+				createGroupsMissingAuthorizations(task, addedFolders, collaboratorsToAuthorize);
+			}
 		}
 	}
 
@@ -131,8 +181,15 @@ public class RMTaskRecordExtension extends RecordExtension {
 		deleteAllCreatedAuthorizations(task);
 	}
 
-	private User getUser(RMTask task) {
-		return getUser(task.getAssignee());
+	private List<User> getUsersToAuthorize(RMTask task) {
+		List<User> taskUsers = new ArrayList<>();
+		taskUsers.addAll(getUsers(task.getTaskCollaborators()));
+		taskUsers.add(getUser(task.getAssignee()));
+		return taskUsers;
+	}
+
+	private List<Group> getGroupsToAuthorize(RMTask task) {
+		return getGroups(task.getTaskCollaboratorsGroups());
 	}
 
 	private User getUser(String userId) {
@@ -142,18 +199,56 @@ public class RMTaskRecordExtension extends RecordExtension {
 		return rmSchema.wrapUser(recordServices.getDocumentById(userId));
 	}
 
-	private void createMissingAuthorizations(RMTask task, List<String> recordIds, User user) {
-		if (user == null || !isCreateMissingAuthorizationsForTaskEnabled()) {
+	private List<User> getUsers(List<String> usersIds) {
+		if (usersIds == null && usersIds.isEmpty()) {
+			return null;
+		}
+		return rmSchema.wrapUsers(recordServices.getRecordsById(collection, usersIds));
+	}
+
+	private List<Group> getGroups(List<String> groupsIds) {
+		if (groupsIds == null && groupsIds.isEmpty()) {
+			return null;
+		}
+		return rmSchema.wrapGroups(recordServices.getRecordsById(collection, groupsIds));
+	}
+
+	private void createUsersMissingAuthorizations(RMTask task, List<String> recordIds, List<User> users) {
+		if (users == null || !isCreateMissingAuthorizationsForTaskEnabled()) {
+			return;
+		}
+
+		List<String> addedAuthorizationIds = new ArrayList<>();
+		for (User user : users) {
+			for (String recordId : recordIds) {
+				Record record = recordServices.getDocumentById(recordId);
+				if (!user.hasReadAccess().on(record)) {
+					AuthorizationAddRequest request = authorizationForUsers(user).on(record).givingReadAccess();
+					addedAuthorizationIds.add(authorizationsServices.add(request));
+				}
+			}
+		}
+
+		if (!addedAuthorizationIds.isEmpty()) {
+			task.addCreatedAuthorizations(addedAuthorizationIds);
+			try {
+				recordServices.update(task);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	private void createGroupsMissingAuthorizations(RMTask task, List<String> recordIds, List<Group> groups) {
+		if (groups == null || !isCreateMissingAuthorizationsForTaskEnabled()) {
 			return;
 		}
 
 		List<String> addedAuthorizationIds = new ArrayList<>();
 		for (String recordId : recordIds) {
 			Record record = recordServices.getDocumentById(recordId);
-			if (!user.hasReadAccess().on(record)) {
-				AuthorizationAddRequest request = authorizationForUsers(user).on(record).givingReadAccess();
-				addedAuthorizationIds.add(authorizationsServices.add(request));
-			}
+			AuthorizationAddRequest request = authorizationForGroups(groups).on(record).givingReadAccess();
+			addedAuthorizationIds.add(authorizationsServices.add(request));
 		}
 
 		if (!addedAuthorizationIds.isEmpty()) {

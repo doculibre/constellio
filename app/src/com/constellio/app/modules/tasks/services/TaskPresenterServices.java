@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.services;
 
+import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
@@ -36,13 +37,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
 
 public class TaskPresenterServices {
 	private static Logger LOGGER = LoggerFactory.getLogger(TaskPresenterServices.class);
@@ -305,13 +302,12 @@ public class TaskPresenterServices {
 				.isEmpty()) && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().isEmpty());
 	}
 
-	public boolean currentUserIsCollaborator(RecordVO recordVO, String currentUserId) {
-		Record currentUserRecord = tasksSchemas.getAppLayerFactory().getModelLayerFactory().newRecordServices().getDocumentById(currentUserId);
-		if (((List) recordVO.get(TASK_COLLABORATORS)).contains(currentUserId)) {
-			return true;
-		} else {
-			return !Collections.disjoint(tasksSchemas.wrapUser(currentUserRecord).getUserGroups(), recordVO.get(TASK_COLLABORATORS_GROUPS));
+	public boolean currentUserHasWriteAuthorisationWithoutBeingCollaborator(RecordVO recordVO, String currentUserId) {
+		boolean isModel = false;
+		if (recordVO.get(RMTask.IS_MODEL) != null) {
+			isModel = recordVO.get(RMTask.IS_MODEL);
 		}
+		return currentUserId.equals(recordVO.get(Task.ASSIGNEE)) || currentUserId.equals(recordVO.get(Task.ASSIGNER)) || isModel;
 	}
 
 	public void modifyCollaborators(List<TaskCollaboratorItem> taskCollaboratorItems,
