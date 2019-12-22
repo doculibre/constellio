@@ -1,6 +1,7 @@
 package com.constellio.model.extensions.behaviors;
 
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
+import com.constellio.model.extensions.events.schemas.PreparePhysicalDeleteFromTrashParams;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
 import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -27,5 +28,8 @@ public class SchemaExtension {
 
 	public Object populateSearchField(SearchFieldPopulatorParams params) {
 		return NOT_APPLICABLE;
+	}
+
+	public void preparePhysicalDeleteFromTrash(PreparePhysicalDeleteFromTrashParams params) {
 	}
 }
