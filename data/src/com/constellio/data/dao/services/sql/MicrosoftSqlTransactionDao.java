@@ -85,6 +85,33 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	}
 
 	@Override
+	public void updateBulk(List<TransactionSqlDTO> dtos) throws SQLException {
+
+		String updateQuery = "UPDATE " + fullTableName + " WITH (TABLOCK) "
+							 + "SET timestamp = CURRENT_TIMESTAMP, logVersion = ?, content= ?)) "
+							 + "WHERE transactionUUID = ? ";
+
+		Connection connection = connector.getConnection();
+		PreparedStatement ps = connection.prepareStatement(updateQuery);
+
+		final int batchSize = 1000;
+		int count = 0;
+
+		for (TransactionSqlDTO transactions : dtos) {
+
+			ps.setInt(1, transactions.getLogVersion());
+			ps.setString(2, transactions.getContent());
+			ps.setString(3, transactions.getTransactionUUID());
+			ps.addBatch();
+
+			if (++count % batchSize == 0) {
+				ps.executeBatch();
+			}
+		}
+		ps.executeBatch();
+	}
+
+	@Override
 	public TransactionSqlDTO get(int id) throws SQLException {
 
 		ResultSetHandler<TransactionSqlDTO> handler = new BeanHandler<>(TransactionSqlDTO.class);
@@ -248,8 +275,8 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 		ScalarHandler<Integer> scalarHandler = new ScalarHandler<>();
 		String fetchQuery = "SELECT COUNT(*) FROM "+fullTableName;
 
-		int count = queryRunner.query(connector.getConnection(),
-				fetchQuery, scalarHandler);
+		long count = ((Number)queryRunner.query(connector.getConnection(),
+				fetchQuery, scalarHandler)).longValue();
 
 		return count;
 	}

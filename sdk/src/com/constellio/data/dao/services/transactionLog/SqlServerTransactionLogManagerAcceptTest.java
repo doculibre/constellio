@@ -102,8 +102,8 @@ public class SqlServerTransactionLogManagerAcceptTest extends ConstellioTest {
 				configuration.setSecondTransactionLogMergeFrequency(Duration.standardSeconds(5));
 				configuration.setSecondTransactionLogBackupCount(3);
 				configuration.setReplayTransactionStartVersion(0L);
-				configuration.setMicrosoftSqlServerUrl("jdbc:sqlserver://158.69.69.3:1433");
-				configuration.setMicrosoftSqlServerDatabase("CONSTELLIO");
+				configuration.setMicrosoftSqlServerUrl("jdbc:sqlserver://localhost:1433");
+				configuration.setMicrosoftSqlServerDatabase("constellio");
 				configuration.setMicrosoftSqlServeruser("sa");
 				configuration.setMicrosoftSqlServerpassword("ncix123$");
 				configuration.setMicrosoftSqlServerencrypt(false);
@@ -322,47 +322,47 @@ public class SqlServerTransactionLogManagerAcceptTest extends ConstellioTest {
 		threads.joinAll();
 
 		//onTick();
-//		int i = 0;
-//		while (true) {
-//			Thread.sleep(100);
-//			i++;
-//			if (i > 300) {
-//				if (log.getTableTransactionCount() != 0) {
-//					fail("Never committed");
-//				}
-//				break;
-//			}
-//		}
+		//		int i = 0;
+		//		while (true) {
+		//			Thread.sleep(100);
+		//			i++;
+		//			if (i > 300) {
+		//				if (log.getTableTransactionCount() != 0) {
+		//					fail("Never committed");
+		//				}
+		//				break;
+		//			}
+		//		}
 
-//		List<String> stringMetadataLines = new ArrayList<>();
-//		List<RecordTransactionSqlDTO> transactionLogs = completeRecordsLOG();
-//
-//		for (RecordTransactionSqlDTO record : transactionLogs) {
-//			InputStream logStream = getDataLayerFactory().getContentsDao().getContentInputStream(record.getRecordId(), SDK_STREAM);
-//			for (String line : IOUtils.readLines(logStream)) {
-//				stringMetadataLines.add(line);
-//			}
-//		}
-//
-//		for (String value : recordTextValues) {
-//			assertThat(stringMetadataLines).contains(zeSchema.stringMetadata().getDataStoreCode() + "=" + value);
-//		}
-//
-//
-//		RecordDao recordDao = getDataLayerFactory().newRecordDao();
-//		SolrSDKToolsServices solrSDKTools = new SolrSDKToolsServices(recordDao);
-//		VaultSnapshot beforeRebuild = solrSDKTools.snapshot();
-//
-//		alterSomeDocuments();
-//
-//		log.destroyAndRebuildSolrCollection();
-//
-//		VaultSnapshot afterRebuild = solrSDKTools.snapshot();
-//		solrSDKTools.ensureSameSnapshots("vault altered", beforeRebuild, afterRebuild);
-//
-//		for (String text : recordTextValues) {
-//			assertThat(getRecordsByStringMetadata(text)).hasSize(1);
-//		}
+		//		List<String> stringMetadataLines = new ArrayList<>();
+		//		List<RecordTransactionSqlDTO> transactionLogs = completeRecordsLOG();
+		//
+		//		for (RecordTransactionSqlDTO record : transactionLogs) {
+		//			InputStream logStream = getDataLayerFactory().getContentsDao().getContentInputStream(record.getRecordId(), SDK_STREAM);
+		//			for (String line : IOUtils.readLines(logStream)) {
+		//				stringMetadataLines.add(line);
+		//			}
+		//		}
+		//
+		//		for (String value : recordTextValues) {
+		//			assertThat(stringMetadataLines).contains(zeSchema.stringMetadata().getDataStoreCode() + "=" + value);
+		//		}
+		//
+		//
+		//		RecordDao recordDao = getDataLayerFactory().newRecordDao();
+		//		SolrSDKToolsServices solrSDKTools = new SolrSDKToolsServices(recordDao);
+		//		VaultSnapshot beforeRebuild = solrSDKTools.snapshot();
+		//
+		//		alterSomeDocuments();
+		//
+		//		log.destroyAndRebuildSolrCollection();
+		//
+		//		VaultSnapshot afterRebuild = solrSDKTools.snapshot();
+		//		solrSDKTools.ensureSameSnapshots("vault altered", beforeRebuild, afterRebuild);
+		//
+		//		for (String text : recordTextValues) {
+		//			assertThat(getRecordsByStringMetadata(text)).hasSize(1);
+		//		}
 
 	}
 

@@ -18,9 +18,15 @@ import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.Const
 import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_MustSelectAtLeastOneModule;
 import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_TasksCannotBeTheOnlySelectedModule;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.SecondTransactionLogType;
+import com.constellio.data.dao.dto.sql.RecordTransactionSqlDTO;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.data.dao.services.transactionLog.TransactionLogReadWriteServices;
+import com.constellio.data.dao.services.transactionLog.TransactionLogSqlReadWriteServices;
+import com.constellio.data.dao.services.transactionLog.replay.SqlTransactionLogReplayServices;
 import com.constellio.data.dao.services.transactionLog.replay.TransactionLogReplayServices;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
@@ -285,12 +291,17 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 				try {
 					extractSaveState(zipService, saveStateFile, tempFolder);
 					copyExtractedFiles(tempFolder, ioServices, settingsFolder, contentsFolder);
-					List<File> tLogFiles = getTLogs(tempFolder);
 
-					TransactionLogReadWriteServices readWriteServices = new TransactionLogReadWriteServices(ioServices,
-							dataLayerConfiguration, dataLayerSystemExtensions);
-					new TransactionLogReplayServices(readWriteServices, bigVaultServer, new DataLayerLogger())
-							.replayTransactionLogs(tLogFiles);
+					if(dataLayerConfiguration.getSecondTransactionLogMode() == SecondTransactionLogType.SQL_SERVER){
+						replaySqlLogs(dataLayerConfiguration, bigVaultServer, dataLayerSystemExtensions);
+					}
+					else{
+						List<File> tLogFiles = getTLogs(tempFolder);
+						TransactionLogReadWriteServices readWriteServices = new TransactionLogReadWriteServices(ioServices,
+								dataLayerConfiguration, dataLayerSystemExtensions);
+						new TransactionLogReplayServices(readWriteServices, bigVaultServer, new DataLayerLogger())
+								.replayTransactionLogs(tLogFiles);
+					}
 				} catch (Throwable t) {
 					revertState(ioServices, settingsFolder, contentsFolder);
 					ConstellioFactories.start();
@@ -305,6 +316,21 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		} catch (Throwable t) {
 			LOGGER.info("Error when trying to load system from a saved state", t);
 			throw new ConstellioSetupPresenterException_CannotLoadSaveState();
+		}
+	}
+
+	private void replaySqlLogs(DataLayerConfiguration dataLayerConfiguration, BigVaultServer bigVaultServer,
+							   DataLayerSystemExtensions dataLayerSystemExtensions) throws java.sql.SQLException {
+		DataLayerFactory dataLayerFactory = view.getConstellioFactories().getDataLayerFactory();
+		for(long i = 0; i < dataLayerFactory.
+				getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).getTableCount(); i= i + 1000) {
+			List<RecordTransactionSqlDTO> sqlRecords = dataLayerFactory.
+					getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).getAll(1000);
+			TransactionLogSqlReadWriteServices readWriteServices = new TransactionLogSqlReadWriteServices(
+					dataLayerConfiguration, dataLayerSystemExtensions);
+			new SqlTransactionLogReplayServices(readWriteServices, bigVaultServer, new DataLayerLogger())
+					.replayTransactionLogs(sqlRecords);
+			LOGGER.info("Replayed 1000 sql records successfully.");
 		}
 	}
 

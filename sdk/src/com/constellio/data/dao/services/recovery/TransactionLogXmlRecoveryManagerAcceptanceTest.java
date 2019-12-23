@@ -12,7 +12,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class TransactionLogXmlRecoveryManagerAcceptanceTest extends ConstellioTest {
-	TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager;
+	TransactionLogRecovery transactionLogXmlRecoveryManager;
 
 	DataLayerFactory dataLayerFactory;
 

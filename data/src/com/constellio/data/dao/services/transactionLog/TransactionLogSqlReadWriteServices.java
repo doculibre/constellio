@@ -31,7 +31,7 @@ public class TransactionLogSqlReadWriteServices implements LogReaderWriterServic
 	}
 
 	@Override
-	public Iterator<BigVaultServerTransaction> newOperationsIterator(RecordTransactionSqlDTO tLog) {
+	public Iterator<BigVaultServerTransaction> newOperationsIterator(RecordTransactionSqlDTO log) {
 
 		return null;
 	}
@@ -39,7 +39,7 @@ public class TransactionLogSqlReadWriteServices implements LogReaderWriterServic
 	@Override
 	public BigVaultServerTransaction newOperation(RecordTransactionSqlDTO log) {
 		TransactionJsonMapperObjectReaderV1 writer = new TransactionJsonMapperObjectReaderV1(this.configuration);
-		return writer.reBuildBigVaultServerTransaction(log.getContent());
+		return writer.reBuildBigVaultServerTransactionArray(log.getContent());
 	}
 
 	@Override

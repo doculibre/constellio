@@ -77,7 +77,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	String shishOclock = SolrUtils.convertLocalDateTimeToSolrDate(shishOclockLocalDateTime);
 	String tockOClock = SolrUtils.convertLocalDateTimeToSolrDate(tockOClockLocalDateTime);
 
-	SolrInputDocument record1, record2, record5, record3, record6, record4 = new SolrInputDocument();
+	SolrInputDocument record1, record2, record5, record3, record6,record1Mod, record4 = new SolrInputDocument();
 	String deletedRecord6 = "deletedRecord6";
 	String deletedRecord7 = "deletedRecord7";
 	@Mock QueryResponseDTO queryResponseDTO;
@@ -115,7 +115,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 			secondTransactionNewRecords,
 			secondTransactionModifiedRecords, secondTransactionDeletedRecords, secondTransactionDeletedByQueries);
 
-	String expectedLogOfFirstTransaction, expectedLogOfSecondTransaction;
+	String expectedLogOfFirstTransaction, expectedLogOfSecondTransaction, expectedLogOfFirstTransactionUnflushed;
 
 	File firstTransactionTempFile, secondTransactionTempFile;
 	ObservableLeaderElectionManager electionManager;
@@ -187,6 +187,10 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		record6.setField("text_s", "aValue");
 		record6.setField("date_dt", tockOClock);
 
+		record1Mod = newSolrInputDocument("record1", 56L);
+		record1Mod.setField("text_s", "bValue");
+		record1Mod.setField("date_dt", tockOClock);
+
 		firstTransactionNewRecords.add(record1);
 		firstTransactionNewRecords.add(record2);
 		firstTransactionModifiedRecords.add(record3);
@@ -199,12 +203,15 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 		secondTransactionNewRecords.add(record5);
 		secondTransactionModifiedRecords.add(record3);
+		secondTransactionModifiedRecords.add(record1Mod);
 		secondTransactionDeletedRecords.add(deletedRecord6);
 		secondTransactionDeletedRecords.add(deletedRecord7);
 
 		expectedLogOfFirstTransaction = buildTransactionExampleString();
 
 		expectedLogOfSecondTransaction = buildSecondTransactionExampleString();
+
+		expectedLogOfFirstTransactionUnflushed = buildFirstTransactionUnflushedExampleString();
 
 		firstTransactionTempFile = new File(unflushed, firstTransactionId);
 		secondTransactionTempFile = new File(unflushed, secondTransactionId);
@@ -227,7 +234,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 		File firstTransactionTempFile = new File(unflushed, firstTransactionId);
 
-		assertThat(firstTransactionTempFile).has(content(expectedLogOfFirstTransaction));
+		assertThat(firstTransactionTempFile).has(content(expectedLogOfFirstTransactionUnflushed));
 
 	}
 
@@ -336,40 +343,6 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 	}
 
-
-	@Test
-	public void noRecordsWhenHeIsNotMasterNode()
-			throws Exception {
-
-		ObservableLeaderElectionManager election =electionManager=new ObservableLeaderElectionManager(new LeaderElectionManager() {
-			@Override
-			public boolean isCurrentNodeLeader() {
-				return false;
-			}
-
-			@Override
-			public void initialize() {
-
-			}
-
-			@Override
-			public void close() {
-
-			}
-		});
-
-		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
-				backgroundThreadsManager, dataLayerLogger, systemExtensions,
-				getDataLayerFactory().getTransactionLogXmlRecoveryManager(),election));
-		transactionLog.initialize();
-		transactionLog.prepare(firstTransactionId, firstTransaction);
-		transactionLog.flush(firstTransactionId, null);
-
-		transactionLog.regroupAndMove();
-		assertThat(completeTLOG()).isEmpty();
-
-	}
-
 	@Test(expected = SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized.class)
 	public void givenInitializedTransactionLogWhenStartASecondTimeThenException() {
 
@@ -389,14 +362,14 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 		String id = transactionLog.regroupAndMove();
 
-		TransactionSqlDTO transactionLogs1 = (TransactionSqlDTO) getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).get(firstTransactionId);
-		TransactionSqlDTO transactionLogs2 = (TransactionSqlDTO) getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).get(secondTransactionId);
+		RecordTransactionSqlDTO transactionLogs1 = (RecordTransactionSqlDTO) getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).get("record1");
+		RecordTransactionSqlDTO transactionLogs2 = (RecordTransactionSqlDTO) getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).get("record5");
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		String transactionLogs1Content = transactionLogs1.getContent();
 		String transactionLogs2Content = transactionLogs2.getContent();
 
-		assertThat(transactionLogs1Content+transactionLogs2Content).isEqualTo(expectedLogOfFirstTransaction+expectedLogOfSecondTransaction);
+		assertThat(transactionLogs1Content+transactionLogs2Content).isEqualTo(buildRecord1And5ExampleString());
 
 	}
 
@@ -407,8 +380,6 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		givenTimeIs(new LocalDateTime(2345, 6, 7, 8, 9, 10, 11));
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 		transactionLog.flush(firstTransactionId, null);
-
-		String id = transactionLog.regroupAndMove();
 
 		TransactionSqlDTO transactionLogs1 = (TransactionSqlDTO) getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).get(firstTransactionId);
 
@@ -539,6 +510,61 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		sb.append("  \"deletedRecords\" : [ \"deletedRecord6\", \"deletedRecord7\" ],\r\n");
 		sb.append("  \"deletedQueries\" : [ ]\r\n");
 		sb.append("}");
+
+		return sb.toString();
+	}
+
+	private String buildRecord1And5ExampleString(){
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("[{\r\n");
+		sb.append("  \"id\" : \"record1\",\r\n");
+		sb.append("  \"version\" : \"-1\",\r\n");
+		sb.append("  \"fields\" : {\r\n");
+		sb.append("    \"date_dt\" : \""+shishOclock+"\",\r\n");
+		sb.append("    \"text_s\" : \"aValue\"\r\n");
+		sb.append("  }\r\n");
+		sb.append("},{\r\n");
+		sb.append("  \"id\" : \"record1\",\r\n");
+		sb.append("  \"version\" : \"56\",\r\n");
+		sb.append("  \"fields\" : {\r\n");
+		sb.append("    \"date_dt\" : \""+tockOClock+"\",\r\n");
+		sb.append("    \"text_s\" : \"bValue\"\r\n");
+		sb.append("  }\r\n");
+		sb.append("}][{\r\n");
+		sb.append("  \"id\" : \"record5\",\r\n");
+		sb.append("  \"version\" : \"56\",\r\n");
+		sb.append("  \"fields\" : {\r\n");
+		sb.append("    \"date_dt\" : \""+tockOClock+"\",\r\n");
+		sb.append("    \"text_s\" : \"aValue\"\r\n");
+		sb.append("  }\r\n");
+		sb.append("}]");
+
+		return sb.toString();
+	}
+
+	private String buildFirstTransactionUnflushedExampleString() {
+
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("--transaction--\n");
+		sb.append("addUpdate record1 -1\n");
+		sb.append("text_s=aValue\n");
+		sb.append("date_dt="+shishOclock+"\n");
+		sb.append("addUpdate record2 -1\n");
+		sb.append("text_s=anotherValue\n");
+		sb.append("otherfield_ss=true\n");
+		sb.append("otherfield_ss=false\n");
+		sb.append("addUpdate record3 34\n");
+		sb.append("text_s=line1__LINEBREAK__line2\n");
+		sb.append("addUpdate record4 45\n");
+		sb.append("text_s=value3\n");
+		sb.append("otherfield_ss=false\n");
+		sb.append("otherfield_ss=true\n");
+		sb.append("deletequery ((zeQuery) AND (firstFilter) AND (secondFilter))\n");
+		sb.append("deletequery ((anotherQuery) AND (firstFilter) AND (secondFilter) AND (thirdFilter))\n");
 
 		return sb.toString();
 	}

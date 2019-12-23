@@ -6,4 +6,13 @@ import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerQu
 public interface TransactionLogRecovery extends RecoveryService, BigVaultServerAddEditListener,
 		BigVaultServerQueryListener {
 
+	void disableRollbackModeDuringSolrRestore();
+
+	void close();
+
+	void realStopRollback();
+
+	void realRollback(Throwable t);
+
+	void realStartRollback();
 }

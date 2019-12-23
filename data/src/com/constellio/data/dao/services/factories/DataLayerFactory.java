@@ -43,6 +43,7 @@ import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionM
 import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
 import com.constellio.data.dao.services.leaderElection.ZookeeperLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.recovery.TransactionLogRecovery;
 import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.dao.services.sequence.SolrSequencesManager;
@@ -114,7 +115,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final ConstellioJobManager constellioJobManager;
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
-	final TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager;
+	final TransactionLogRecovery transactionLogXmlRecoveryManager;
 	private String constellioVersion;
 	private final ConversionManager conversionManager;
 	private final EventBusManager eventBusManager;
@@ -460,7 +461,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		}
 	}
 
-	public TransactionLogXmlRecoveryManager getTransactionLogXmlRecoveryManager() {
+	public TransactionLogRecovery getTransactionLogXmlRecoveryManager() {
 		return this.transactionLogXmlRecoveryManager;
 	}
 

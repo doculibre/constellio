@@ -60,7 +60,8 @@ public class TransactionLogXmlRecoveryManager implements TransactionLogRecovery 
 		}
 	}
 
-	void realStartRollback() {
+	@Override
+	public void realStartRollback() {
 		loadedRecordsIds = new HashSet<>();
 		fullyLoadedRecordsIds = new HashSet<>();
 		newRecordsIds = new HashSet<>();
@@ -89,7 +90,8 @@ public class TransactionLogXmlRecoveryManager implements TransactionLogRecovery 
 		}
 	}
 
-	void realStopRollback() {
+	@Override
+	public void realStopRollback() {
 		dataLayerFactory.getRecordsVaultServer().unregisterListener(this);
 		deleteRecoveryFile();
 		inRollbackMode = false;
@@ -108,6 +110,7 @@ public class TransactionLogXmlRecoveryManager implements TransactionLogRecovery 
 		return inRollbackMode;
 	}
 
+	@Override
 	public void disableRollbackModeDuringSolrRestore() {
 		stopRollbackMode();
 	}
@@ -123,7 +126,8 @@ public class TransactionLogXmlRecoveryManager implements TransactionLogRecovery 
 		}
 	}
 
-	void realRollback(Throwable t) {
+	@Override
+	public void realRollback(Throwable t) {
 		dataLayerFactory.getRecordsVaultServer().unregisterListener(this);
 		recover();
 		LOGGER.info("Rollback - recovered solr");

@@ -84,6 +84,34 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	}
 
 	@Override
+	public void updateBulk(List<RecordTransactionSqlDTO> dtos) throws SQLException {
+
+		String updateQuery = "UPDATE " + fullTableName + " WITH (TABLOCK) "
+							 + "SET logVersion = ?, solrVersion= ?, content= JSON_MODIFY(content,'append $', JSON_QUERY(?)) "
+							 + "WHERE recordId = ? ";
+
+		Connection connection = connector.getConnection();
+		PreparedStatement ps = connection.prepareStatement(updateQuery);
+
+		final int batchSize = 1000;
+		int count = 0;
+
+		for (RecordTransactionSqlDTO transactions: dtos) {
+
+			ps.setInt(1, transactions.getLogVersion());
+			ps.setString(2, transactions.getSolrVersion());
+			ps.setString(3, transactions.getContent());
+			ps.setString(4, transactions.getRecordId());
+			ps.addBatch();
+
+			if(++count % batchSize == 0) {
+				ps.executeBatch();
+			}
+		}
+		ps.executeBatch();
+	}
+
+	@Override
 	public RecordTransactionSqlDTO get(int id) throws SQLException {
 
 		ResultSetHandler<RecordTransactionSqlDTO> handler = new BeanHandler<>(RecordTransactionSqlDTO.class);
@@ -100,7 +128,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	public RecordTransactionSqlDTO get(String recordId) throws SQLException {
 
 		ResultSetHandler<RecordTransactionSqlDTO> handler = new BeanHandler<>(RecordTransactionSqlDTO.class);
-		String fetchQuery = "SELECT TOP 1 * FROM "+fullTableName+" WHERE transactionUUID=?";
+		String fetchQuery = "SELECT TOP 1 * FROM "+fullTableName+" WHERE recordId=?";
 
 		RecordTransactionSqlDTO dto = queryRunner.query(connector.getConnection(),
 				fetchQuery, handler, recordId);
@@ -244,8 +272,8 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 		ScalarHandler<Long> scalarHandler = new ScalarHandler<>();
 		String fetchQuery = "SELECT COUNT(*) FROM "+fullTableName;
 
-		long count = queryRunner.query(connector.getConnection(),
-				fetchQuery, scalarHandler);
+		long count = ((Number)queryRunner.query(connector.getConnection(),
+				fetchQuery, scalarHandler)).longValue();
 
 		return count;
 	}

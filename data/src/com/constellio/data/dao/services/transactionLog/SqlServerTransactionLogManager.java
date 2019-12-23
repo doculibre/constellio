@@ -13,6 +13,8 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.recovery.TransactionLogRecovery;
+import com.constellio.data.dao.services.recovery.TransactionLogSqlRecoveryManager;
 import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
 import com.constellio.data.dao.services.sql.SqlRecordDaoFactory;
 import com.constellio.data.dao.services.sql.SqlRecordDaoType;
@@ -100,7 +102,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	private SqlRecordDaoFactory sqlRecordDaoFactory;
 
-	private final TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager;
+	private final TransactionLogRecovery transactionLogSqlRecoveryManager;
 
 	private boolean automaticRegroup = true;
 
@@ -113,7 +115,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 										  ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager,
 										  DataLayerLogger dataLayerLogger,
 										  DataLayerSystemExtensions dataLayerSystemExtensions,
-										  TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager,
+										  TransactionLogRecovery transactionLogSqlRecoveryManager,
 										  ObservableLeaderElectionManager isCurrentNodeLeader) {
 		this.configuration = configuration;
 		this.folder = configuration.getSecondTransactionLogBaseFolder();
@@ -125,7 +127,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		this.backgroundThreadsManager = backgroundThreadsManager;
 		this.dataLayerLogger = dataLayerLogger;
 		this.dataLayerSystemExtensions = dataLayerSystemExtensions;
-		this.transactionLogXmlRecoveryManager = transactionLogXmlRecoveryManager;
+		this.transactionLogSqlRecoveryManager = transactionLogSqlRecoveryManager;
 		this.leaderElectionManager = isCurrentNodeLeader;
 	}
 
@@ -245,7 +247,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 			//get transactions
 			List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
-					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll(10));
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll(1000));
 
 			if (transactionsToConvert.size() == 0) {
 				//end
@@ -263,15 +265,9 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 				return true;
 			});
 
-			//remove records to update
-			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(updateTransactionIds);
-				return true;
-			});
-
 			//save update records
 			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(recordsToUpdate);
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).updateBulk(recordsToUpdate);
 				return true;
 			});
 
@@ -343,7 +339,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		//new documents
 		Map<String, RecordTransactionSqlDTO> records = bigVaultServerTransaction.getNewDocuments().stream().map(x -> {
 			try {
-				return new RecordTransactionSqlDTO(x.getId(), logVersion, solrVersion, toJson(x));
+				return new RecordTransactionSqlDTO(x.getId(), logVersion, solrVersion, toJsonArray(x));
 			} catch (JsonProcessingException e) {
 				e.printStackTrace();
 			}
@@ -375,18 +371,23 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	@Override
 	public void destroyAndRebuildSolrCollection() {
 
-		this.transactionLogXmlRecoveryManager.disableRollbackModeDuringSolrRestore();
-		File recoveryFolder = ioServices.newTemporaryFolder(RECOVERY_FOLDER);
+		this.transactionLogSqlRecoveryManager.disableRollbackModeDuringSolrRestore();
 		try {
-			List<RecordTransactionSqlDTO> tRecords = recoverTransactionLogs();
-			if (!tRecords.isEmpty()) {
-				clearSolrCollection();
-				new SqlTransactionLogReplayServices(newReadWriteSqlServices(), bigVaultServer, dataLayerLogger)
-						.replayTransactionLogs(tRecords);
+			long recordsCount =this.sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).getTableCount();
+			for (long i = 0; i < recordsCount; i = i + 1000){
+				List<RecordTransactionSqlDTO> tRecords = this.sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).getAll(1000);
+				if (!tRecords.isEmpty()) {
+					clearSolrCollection();
+					new SqlTransactionLogReplayServices(newReadWriteSqlServices(), bigVaultServer, dataLayerLogger)
+							.replayTransactionLogs(tRecords);
+				}
 			}
+		} catch (SQLException e) {
+			e.printStackTrace();
 		} finally {
-			ioServices.deleteQuietly(recoveryFolder);
+
 		}
+
 	}
 
 
@@ -653,6 +654,16 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		return ow.writeValueAsString(inputDocument);
 	}
 
+	private String toJsonArray(TransactionDocumentLogContent inputDocument) throws JsonProcessingException {
+
+		if (inputDocument == null) {
+			return "[]";
+		}
+		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+
+		return "["+ow.writeValueAsString(inputDocument)+"]";
+	}
+
 	private int getLogVersion() throws SQLException {
 		if (this.currentLogVersion == null) {
 			this.currentLogVersion = sqlRecordDaoFactory
@@ -664,11 +675,6 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	public long getTableTransactionCount() throws SQLException {
 		return sqlRecordDaoFactory
 				.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getTableCount();
-	}
-
-	private List<RecordTransactionSqlDTO> recoverTransactionLogs() {
-
-		return null;
 	}
 
 	//Command pattern

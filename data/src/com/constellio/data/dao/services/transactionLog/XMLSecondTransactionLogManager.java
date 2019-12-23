@@ -14,6 +14,7 @@ import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.recovery.TransactionLogRecovery;
 import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault;
@@ -97,7 +98,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	private DataLayerSystemExtensions dataLayerSystemExtensions;
 
-	private final TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager;
+	private final TransactionLogRecovery transactionLogXmlRecoveryManager;
 	private boolean automaticRegroup = true;
 
 	public XMLSecondTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices,
@@ -105,7 +106,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 										  ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager,
 										  DataLayerLogger dataLayerLogger,
 										  DataLayerSystemExtensions dataLayerSystemExtensions,
-										  TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager) {
+										  TransactionLogRecovery transactionLogXmlRecoveryManager) {
 		this.configuration = configuration;
 		this.folder = configuration.getSecondTransactionLogBaseFolder();
 		this.ioServices = ioServices;

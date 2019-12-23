@@ -13,6 +13,8 @@ public interface SqlRecordDao<Object> {
 
 	void insertBulk(List<Object> dtos) throws SQLException;
 
+	void updateBulk(List<Object> dtos) throws SQLException;
+
 	Object get(int id)
 			throws SQLException;
 	Object get(String transactionId) throws SQLException;

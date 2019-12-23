@@ -11,13 +11,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class SqlTransactionLogReplayServices {
+public class SqlTransactionLogReplayServices implements TransactionLogReplay<RecordTransactionSqlDTO> {
 
 	public static int PARALLELISM = 8;
 
 	public static int MAX_TRANSACTION_SIZE = BigVaultServerTransactionCombinator.DEFAULT_MAX_TRANSACTION_SIZE;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(TransactionLogReplayServices.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SqlTransactionLogReplayServices.class);
 
 	private TransactionLogSqlReadWriteServices readWriteServices;
 
@@ -36,7 +36,7 @@ public class SqlTransactionLogReplayServices {
 
 	private void replayTransactionLog(BigVaultServerTransaction transaction,
 									  BigVaultLogAddUpdater addUpdater) {
-			addUpdater.add(transaction);
+		addUpdater.add(transaction);
 	}
 
 	public void replayTransactionLogs(List<RecordTransactionSqlDTO> records) {
@@ -46,7 +46,7 @@ public class SqlTransactionLogReplayServices {
 		BigVaultLogAddUpdater addUpdater = new BigVaultLogAddUpdater(transactionsLogImportHandler);
 		TransactionLogSqlReadWriteServices readerFactory = readWriteServices;
 		for (RecordTransactionSqlDTO record : records) {
-			LOGGER.info("Replaying tlog '" + record.getRecordId() + "'");
+			LOGGER.info("Replaying record '" + record.getRecordId() + "'");
 			replayTransactionLog(readerFactory.newOperation(record), addUpdater);
 		}
 		addUpdater.close();

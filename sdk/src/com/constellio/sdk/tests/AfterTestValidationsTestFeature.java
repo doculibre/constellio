@@ -5,6 +5,7 @@ import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.recovery.TransactionLogRecovery;
 import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.utils.TimeProvider;
@@ -96,7 +97,7 @@ public class AfterTestValidationsTestFeature {
 	}
 
 	private void checkRecovery(SolrSDKToolsServices tools,
-							   TransactionLogXmlRecoveryManager transactionLogXmlRecoveryManager) {
+							   TransactionLogRecovery transactionLogXmlRecoveryManager) {
 		if (snapshotBeforeReplay != null) {
 			transactionLogXmlRecoveryManager.rollback(null);
 			VaultSnapshot currentSnapShot = tools.snapshot();

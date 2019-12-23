@@ -10,11 +10,14 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRunti
 import com.constellio.data.dao.services.transactionLog.sql.TransactionDocumentLogContent;
 import com.constellio.data.dao.services.transactionLog.sql.TransactionLogContent;
 import com.constellio.data.utils.KeyListMap;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.solr.common.SolrInputDocument;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -42,8 +45,21 @@ public class TransactionJsonMapperObjectReaderV1 {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {
-			TransactionDocumentLogContent transactionLogs1Content = objectMapper.readValue(json, TransactionDocumentLogContent.class);
-			return transactionLogs1Content;
+			TransactionDocumentLogContent transactionLogsContent = objectMapper.readValue(json, TransactionDocumentLogContent.class);
+			return transactionLogsContent;
+		} catch (IOException e) {
+			throw new SecondTransactionLogRuntimeException_CannotParseJsonLogCommand(json, e);
+		}
+	}
+
+
+	public List<TransactionDocumentLogContent>  transactionDocumentLogSqlContentArrayDeserialize(String json) {
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		try {
+			List<TransactionDocumentLogContent> transactionLogsContent = Arrays.asList(objectMapper.readValue(json,
+					TransactionDocumentLogContent[].class));
+			return transactionLogsContent;
 		} catch (IOException e) {
 			throw new SecondTransactionLogRuntimeException_CannotParseJsonLogCommand(json, e);
 		}
@@ -57,13 +73,35 @@ public class TransactionJsonMapperObjectReaderV1 {
 	public BigVaultServerTransaction reBuildBigVaultServerTransaction(
 			TransactionDocumentLogContent transactionDocumentLogContent) {
 
-		if (transactionDocumentLogContent != null) {
+		if (transactionDocumentLogContent == null) {
 			return null;
 		}
 		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW());
 
 
 		addOperationToTransaction(transaction, transactionDocumentLogContent);
+
+
+		return transaction;
+	}
+
+
+	public BigVaultServerTransaction reBuildBigVaultServerTransactionArray(String content) {
+		return reBuildBigVaultServerTransactionArray(transactionDocumentLogSqlContentArrayDeserialize(content));
+	}
+
+
+	public BigVaultServerTransaction reBuildBigVaultServerTransactionArray(
+			List<TransactionDocumentLogContent> transactionDocumentLogContent) {
+
+		if (transactionDocumentLogContent == null) {
+			return null;
+		}
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW());
+
+
+
+		addOperationsToTransaction(transaction, transactionDocumentLogContent);
 
 
 		return transaction;
@@ -77,6 +115,20 @@ public class TransactionJsonMapperObjectReaderV1 {
 		String version = transactionDocumentLogContent.getVersion();
 		SolrInputDocument document = buildAddUpdateDocument(transactionDocumentLogContent.getFields(), id);
 		addUpdate(transaction, document, version);
+
+	}
+
+	private void addOperationsToTransaction(BigVaultServerTransaction transaction,
+										   List<TransactionDocumentLogContent> transactionDocumentLogContents) {
+
+
+		for(TransactionDocumentLogContent transactionDocumentLogContent : transactionDocumentLogContents) {
+			String id = transactionDocumentLogContent.getId();
+			String version = transactionDocumentLogContent.getVersion();
+			SolrInputDocument document = buildAddUpdateDocument(transactionDocumentLogContent.getFields(), id);
+
+			addUpdate(transaction, document, version);
+		}
 
 	}
 
@@ -140,4 +192,5 @@ public class TransactionJsonMapperObjectReaderV1 {
 		}
 		return inputDocument;
 	}
+
 }
