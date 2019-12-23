@@ -15214,16 +15214,16 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-menubar-submenu.menubar-rtl .v-menubar-menuitem {
 	clear: both;
-}
-
-.constellio .v-menubar-submenu.menubar-rtl .v-menubar-menuitem .v-menubar-menuitem-caption {
 	text-align: right;
-	float: right;
 }
 
 .constellio .v-menubar-submenu.menubar-rtl .v-menubar-menuitem .v-menubar-menuitem-caption .v-icon {
 	float: right;
 	padding-left: 10px;
+}
+
+.constellio .v-multifileupload-uploads {
+	float: left;
 }
 
 .constellio .header-action-menu.v-menubar-submenu.menubar-rtl .v-menubar-menuitem, .constellio .header-collection-menu.v-menubar-submenu.menubar-rtl .v-menubar-menuitem {
@@ -16844,6 +16844,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .right-to-left .viewable-record-table-panel .viewable-record-table .metadata-value .v-icon + .v-captiontext, .constellio .right-to-left .viewable-record-table-panel .viewable-record-table .metadata-value .v-icon + span {
 	margin-left: initial;
 	margin-right: 7px;
+}
+
+.constellio .right-to-left .viewable-record-table-panel .viewable-record-table .search-result-title {
+	text-align: right;
 }
 
 .constellio .right-to-left .viewable-record-table-panel .viewable-record-table .search-result-with-elevation-buttons .search-result-title {
