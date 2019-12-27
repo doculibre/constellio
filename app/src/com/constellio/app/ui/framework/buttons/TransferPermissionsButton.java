@@ -69,7 +69,7 @@ public class TransferPermissionsButton extends WindowButton {
 
 	private void buildRemoveCurrentUserRightsCheckbox() {
 		removeUserAccessCheckbox = new CheckBox();
-		removeUserAccessCheckbox.setCaption($("TransferPermissionsButton.Title"));
+		removeUserAccessCheckbox.setCaption($("TransferPermissionsButton.removeUserAccess"));
 		removeUserAccessCheckbox.addValueChangeListener(
 				(ValueChangeListener) event -> presenter.setRemoveUserAccessCheckboxValue(removeUserAccessIsChecked()));
 	}

@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.buttons.TransferPermissionsButton;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenter;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
@@ -65,11 +66,11 @@ public class CollectionUserViewImpl extends BaseViewImpl implements CollectionUs
 		};
 		buttons.add(roles);
 
-
+		TransferPermissionPresenter transferPermissionPresenter = new TransferPermissionPresenter(this, presenter.recordId);
 		Button transferUserPermissions = new TransferPermissionsButton(
 				$("TransferPermissionsButton.Title"),
 				$("TransferPermissionsButton.Title"),
-				presenter);
+				transferPermissionPresenter);
 		transferUserPermissions.setIcon(FontAwesome.EXCHANGE);
 		buttons.add(transferUserPermissions);
 
