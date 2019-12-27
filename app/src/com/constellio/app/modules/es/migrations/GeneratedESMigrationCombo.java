@@ -1,7 +1,19 @@
 package com.constellio.app.modules.es.migrations;
 
-import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.model.entities.schemas.RecordCacheType;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import com.constellio.model.services.security.roles.RolesManager;
+import java.util.ArrayList;
+import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
+import static java.util.Arrays.asList;
+
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.es.connectors.smb.LastFetchedStatus;
 import com.constellio.app.modules.es.connectors.smb.model.SmbFolderPathPartsCalculator;
@@ -18,9 +30,7 @@ import com.constellio.app.modules.es.model.connectors.structures.TraversalSchedu
 import com.constellio.app.modules.es.services.mapping.ConnectorFieldFactory;
 import com.constellio.app.modules.es.services.mapping.ConnectorFieldValidator;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -36,11 +46,7 @@ import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
 import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
 import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
-import com.constellio.model.services.security.roles.RolesManager;
-
-import java.util.ArrayList;
-
-import static java.util.Arrays.asList;
+import java.lang.String;
 
 public final class GeneratedESMigrationCombo {
   String collection;
@@ -100,7 +106,7 @@ public final class GeneratedESMigrationCombo {
     MetadataSchemaBuilder userDocumentSchema = userDocumentSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder userFolderSchemaType = typesBuilder.getSchemaType("userFolder");
     MetadataSchemaBuilder userFolderSchema = userFolderSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder connectorHttpDocumentSchemaType = typesBuilder.createNewSchemaType("connectorHttpDocument",false).setInTransactionLog(false);
+    MetadataSchemaTypeBuilder connectorHttpDocumentSchemaType = typesBuilder.createNewSchemaType("connectorHttpDocument",false).setInTransactionLog(false).setRecordCacheType(RecordCacheType.NOT_CACHED);
     MetadataSchemaBuilder connectorHttpDocumentSchema = connectorHttpDocumentSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder connectorInstanceSchemaType = typesBuilder.createNewSchemaType("connectorInstance",false);
     MetadataSchemaBuilder connectorInstance_httpSchema = connectorInstanceSchemaType.createCustomSchema("http");
@@ -109,9 +115,9 @@ public final class GeneratedESMigrationCombo {
     MetadataSchemaBuilder connectorInstanceSchema = connectorInstanceSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder connectorLdapUserDocumentSchemaType = typesBuilder.createNewSchemaType("connectorLdapUserDocument",false).setInTransactionLog(false);
     MetadataSchemaBuilder connectorLdapUserDocumentSchema = connectorLdapUserDocumentSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder connectorSmbDocumentSchemaType = typesBuilder.createNewSchemaType("connectorSmbDocument",false).setInTransactionLog(false);
+    MetadataSchemaTypeBuilder connectorSmbDocumentSchemaType = typesBuilder.createNewSchemaType("connectorSmbDocument",false).setInTransactionLog(false).setRecordCacheType(RecordCacheType.NOT_CACHED);
     MetadataSchemaBuilder connectorSmbDocumentSchema = connectorSmbDocumentSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder connectorSmbFolderSchemaType = typesBuilder.createNewSchemaType("connectorSmbFolder",false).setInTransactionLog(false);
+    MetadataSchemaTypeBuilder connectorSmbFolderSchemaType = typesBuilder.createNewSchemaType("connectorSmbFolder",false).setInTransactionLog(false).setRecordCacheType(RecordCacheType.NOT_CACHED);
     MetadataSchemaBuilder connectorSmbFolderSchema = connectorSmbFolderSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder connectorTypeSchemaType = typesBuilder.createNewSchemaType("connectorType",false);
     MetadataSchemaBuilder connectorTypeSchema = connectorTypeSchemaType.getDefaultSchema();
@@ -276,11 +282,14 @@ public final class GeneratedESMigrationCombo {
     connectorType_errorOnPhysicalDeletion.setSystemReserved(true);
     connectorType_errorOnPhysicalDeletion.setUndeletable(true);
     connectorType_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder connectorType_estimatedSize = connectorTypeSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
-	  connectorType_estimatedSize.setSystemReserved(true);
-	  connectorType_estimatedSize.setUndeletable(true);
-	  connectorType_estimatedSize.setMultiLingual(false);
+    MetadataBuilder connectorType_estimatedSize = connectorTypeSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    connectorType_estimatedSize.setSystemReserved(true);
+    connectorType_estimatedSize.setUndeletable(true);
+    connectorType_estimatedSize.setMultiLingual(false);
+    MetadataBuilder connectorType_hidden = connectorTypeSchema.create("hidden").setType(MetadataValueType.BOOLEAN);
+    connectorType_hidden.setSystemReserved(true);
+    connectorType_hidden.setUndeletable(true);
+    connectorType_hidden.setMultiLingual(false);
     MetadataBuilder connectorType_id = connectorTypeSchema.create("id").setType(MetadataValueType.STRING);
     connectorType_id.setDefaultRequirement(true);
     connectorType_id.setSystemReserved(true);
@@ -486,11 +495,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorHttpDocument_errorsCount = connectorHttpDocumentSchema.create("errorsCount").setType(MetadataValueType.NUMBER);
     connectorHttpDocument_errorsCount.setUndeletable(true);
     connectorHttpDocument_errorsCount.setDefaultValue(0);
-	  MetadataBuilder connectorHttpDocument_estimatedSize = connectorHttpDocumentSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
-	  connectorHttpDocument_estimatedSize.setSystemReserved(true);
-	  connectorHttpDocument_estimatedSize.setUndeletable(true);
-	  connectorHttpDocument_estimatedSize.setMultiLingual(false);
+    MetadataBuilder connectorHttpDocument_estimatedSize = connectorHttpDocumentSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    connectorHttpDocument_estimatedSize.setSystemReserved(true);
+    connectorHttpDocument_estimatedSize.setUndeletable(true);
+    connectorHttpDocument_estimatedSize.setMultiLingual(false);
     MetadataBuilder connectorHttpDocument_fetchDelay = connectorHttpDocumentSchema.create("fetchDelay").setType(MetadataValueType.NUMBER);
     connectorHttpDocument_fetchDelay.setUndeletable(true);
     connectorHttpDocument_fetchDelay.setDefaultValue(10);
@@ -502,6 +510,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorHttpDocument_frequency = connectorHttpDocumentSchema.create("frequency").setType(MetadataValueType.ENUM);
     connectorHttpDocument_frequency.setUndeletable(true);
     connectorHttpDocument_frequency.defineAsEnum(FetchFrequency.class);
+    MetadataBuilder connectorHttpDocument_hidden = connectorHttpDocumentSchema.create("hidden").setType(MetadataValueType.BOOLEAN);
+    connectorHttpDocument_hidden.setSystemReserved(true);
+    connectorHttpDocument_hidden.setUndeletable(true);
+    connectorHttpDocument_hidden.setMultiLingual(false);
     MetadataBuilder connectorHttpDocument_id = connectorHttpDocumentSchema.create("id").setType(MetadataValueType.STRING);
     connectorHttpDocument_id.setDefaultRequirement(true);
     connectorHttpDocument_id.setSystemReserved(true);
@@ -734,11 +746,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorSmbFolder_errorsCount = connectorSmbFolderSchema.create("errorsCount").setType(MetadataValueType.NUMBER);
     connectorSmbFolder_errorsCount.setUndeletable(true);
     connectorSmbFolder_errorsCount.setDefaultValue(0);
-	  MetadataBuilder connectorSmbFolder_estimatedSize = connectorSmbFolderSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
-	  connectorSmbFolder_estimatedSize.setSystemReserved(true);
-	  connectorSmbFolder_estimatedSize.setUndeletable(true);
-	  connectorSmbFolder_estimatedSize.setMultiLingual(false);
+    MetadataBuilder connectorSmbFolder_estimatedSize = connectorSmbFolderSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    connectorSmbFolder_estimatedSize.setSystemReserved(true);
+    connectorSmbFolder_estimatedSize.setUndeletable(true);
+    connectorSmbFolder_estimatedSize.setMultiLingual(false);
     MetadataBuilder connectorSmbFolder_fetchDelay = connectorSmbFolderSchema.create("fetchDelay").setType(MetadataValueType.NUMBER);
     connectorSmbFolder_fetchDelay.setUndeletable(true);
     connectorSmbFolder_fetchDelay.setDefaultValue(10);
@@ -750,6 +761,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorSmbFolder_frequency = connectorSmbFolderSchema.create("frequency").setType(MetadataValueType.ENUM);
     connectorSmbFolder_frequency.setUndeletable(true);
     connectorSmbFolder_frequency.defineAsEnum(FetchFrequency.class);
+    MetadataBuilder connectorSmbFolder_hidden = connectorSmbFolderSchema.create("hidden").setType(MetadataValueType.BOOLEAN);
+    connectorSmbFolder_hidden.setSystemReserved(true);
+    connectorSmbFolder_hidden.setUndeletable(true);
+    connectorSmbFolder_hidden.setMultiLingual(false);
     MetadataBuilder connectorSmbFolder_id = connectorSmbFolderSchema.create("id").setType(MetadataValueType.STRING);
     connectorSmbFolder_id.setDefaultRequirement(true);
     connectorSmbFolder_id.setSystemReserved(true);
@@ -1038,6 +1053,8 @@ public final class GeneratedESMigrationCombo {
     connectorInstance_smb_password.setEncrypted(true);
     MetadataBuilder connectorInstance_smb_resumeUrl = connectorInstance_smbSchema.create("resumeUrl").setType(MetadataValueType.STRING);
     connectorInstance_smb_resumeUrl.setUndeletable(true);
+    MetadataBuilder connectorInstance_smb_skipContentAndACL = connectorInstance_smbSchema.create("skipContentAndACL").setType(MetadataValueType.BOOLEAN);
+    connectorInstance_smb_skipContentAndACL.setDefaultValue(false);
     MetadataBuilder connectorInstance_smb_skipShareAccessControl = connectorInstance_smbSchema.create("skipShareAccessControl").setType(MetadataValueType.BOOLEAN);
     connectorInstance_smb_skipShareAccessControl.setDefaultValue(false);
     MetadataBuilder connectorInstance_smb_smbSeeds = connectorInstance_smbSchema.create("smbSeeds").setType(MetadataValueType.STRING);
@@ -1120,11 +1137,14 @@ public final class GeneratedESMigrationCombo {
     connectorInstance_errorOnPhysicalDeletion.setSystemReserved(true);
     connectorInstance_errorOnPhysicalDeletion.setUndeletable(true);
     connectorInstance_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder connectorInstance_estimatedSize = connectorInstanceSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
-	  connectorInstance_estimatedSize.setSystemReserved(true);
-	  connectorInstance_estimatedSize.setUndeletable(true);
-	  connectorInstance_estimatedSize.setMultiLingual(false);
+    MetadataBuilder connectorInstance_estimatedSize = connectorInstanceSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    connectorInstance_estimatedSize.setSystemReserved(true);
+    connectorInstance_estimatedSize.setUndeletable(true);
+    connectorInstance_estimatedSize.setMultiLingual(false);
+    MetadataBuilder connectorInstance_hidden = connectorInstanceSchema.create("hidden").setType(MetadataValueType.BOOLEAN);
+    connectorInstance_hidden.setSystemReserved(true);
+    connectorInstance_hidden.setUndeletable(true);
+    connectorInstance_hidden.setMultiLingual(false);
     MetadataBuilder connectorInstance_id = connectorInstanceSchema.create("id").setType(MetadataValueType.STRING);
     connectorInstance_id.setDefaultRequirement(true);
     connectorInstance_id.setSystemReserved(true);
@@ -1261,7 +1281,8 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorInstance_http_detachedauthorizations = connectorInstance_httpSchema.get("detachedauthorizations");
     MetadataBuilder connectorInstance_http_enabled = connectorInstance_httpSchema.get("enabled");
     MetadataBuilder connectorInstance_http_errorOnPhysicalDeletion = connectorInstance_httpSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder connectorInstance_http_estimatedSize = connectorInstance_httpSchema.get("estimatedSize");
+    MetadataBuilder connectorInstance_http_estimatedSize = connectorInstance_httpSchema.get("estimatedSize");
+    MetadataBuilder connectorInstance_http_hidden = connectorInstance_httpSchema.get("hidden");
     MetadataBuilder connectorInstance_http_id = connectorInstance_httpSchema.get("id");
     MetadataBuilder connectorInstance_http_lastTraversalOn = connectorInstance_httpSchema.get("lastTraversalOn");
     MetadataBuilder connectorInstance_http_legacyIdentifier = connectorInstance_httpSchema.get("legacyIdentifier");
@@ -1302,7 +1323,8 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorInstance_ldap_detachedauthorizations = connectorInstance_ldapSchema.get("detachedauthorizations");
     MetadataBuilder connectorInstance_ldap_enabled = connectorInstance_ldapSchema.get("enabled");
     MetadataBuilder connectorInstance_ldap_errorOnPhysicalDeletion = connectorInstance_ldapSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder connectorInstance_ldap_estimatedSize = connectorInstance_ldapSchema.get("estimatedSize");
+    MetadataBuilder connectorInstance_ldap_estimatedSize = connectorInstance_ldapSchema.get("estimatedSize");
+    MetadataBuilder connectorInstance_ldap_hidden = connectorInstance_ldapSchema.get("hidden");
     MetadataBuilder connectorInstance_ldap_id = connectorInstance_ldapSchema.get("id");
     MetadataBuilder connectorInstance_ldap_lastTraversalOn = connectorInstance_ldapSchema.get("lastTraversalOn");
     MetadataBuilder connectorInstance_ldap_legacyIdentifier = connectorInstance_ldapSchema.get("legacyIdentifier");
@@ -1343,7 +1365,8 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorInstance_smb_detachedauthorizations = connectorInstance_smbSchema.get("detachedauthorizations");
     MetadataBuilder connectorInstance_smb_enabled = connectorInstance_smbSchema.get("enabled");
     MetadataBuilder connectorInstance_smb_errorOnPhysicalDeletion = connectorInstance_smbSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder connectorInstance_smb_estimatedSize = connectorInstance_smbSchema.get("estimatedSize");
+    MetadataBuilder connectorInstance_smb_estimatedSize = connectorInstance_smbSchema.get("estimatedSize");
+    MetadataBuilder connectorInstance_smb_hidden = connectorInstance_smbSchema.get("hidden");
     MetadataBuilder connectorInstance_smb_id = connectorInstance_smbSchema.get("id");
     MetadataBuilder connectorInstance_smb_lastTraversalOn = connectorInstance_smbSchema.get("lastTraversalOn");
     MetadataBuilder connectorInstance_smb_legacyIdentifier = connectorInstance_smbSchema.get("legacyIdentifier");
@@ -1471,11 +1494,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorLdapUserDocument_errorsCount = connectorLdapUserDocumentSchema.create("errorsCount").setType(MetadataValueType.NUMBER);
     connectorLdapUserDocument_errorsCount.setUndeletable(true);
     connectorLdapUserDocument_errorsCount.setDefaultValue(0);
-	  MetadataBuilder connectorLdapUserDocument_estimatedSize = connectorLdapUserDocumentSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
-	  connectorLdapUserDocument_estimatedSize.setSystemReserved(true);
-	  connectorLdapUserDocument_estimatedSize.setUndeletable(true);
-	  connectorLdapUserDocument_estimatedSize.setMultiLingual(false);
+    MetadataBuilder connectorLdapUserDocument_estimatedSize = connectorLdapUserDocumentSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    connectorLdapUserDocument_estimatedSize.setSystemReserved(true);
+    connectorLdapUserDocument_estimatedSize.setUndeletable(true);
+    connectorLdapUserDocument_estimatedSize.setMultiLingual(false);
     MetadataBuilder connectorLdapUserDocument_fetchDelay = connectorLdapUserDocumentSchema.create("fetchDelay").setType(MetadataValueType.NUMBER);
     connectorLdapUserDocument_fetchDelay.setUndeletable(true);
     connectorLdapUserDocument_fetchDelay.setDefaultValue(10);
@@ -1490,6 +1512,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorLdapUserDocument_frequency = connectorLdapUserDocumentSchema.create("frequency").setType(MetadataValueType.ENUM);
     connectorLdapUserDocument_frequency.setUndeletable(true);
     connectorLdapUserDocument_frequency.defineAsEnum(FetchFrequency.class);
+    MetadataBuilder connectorLdapUserDocument_hidden = connectorLdapUserDocumentSchema.create("hidden").setType(MetadataValueType.BOOLEAN);
+    connectorLdapUserDocument_hidden.setSystemReserved(true);
+    connectorLdapUserDocument_hidden.setUndeletable(true);
+    connectorLdapUserDocument_hidden.setMultiLingual(false);
     MetadataBuilder connectorLdapUserDocument_id = connectorLdapUserDocumentSchema.create("id").setType(MetadataValueType.STRING);
     connectorLdapUserDocument_id.setDefaultRequirement(true);
     connectorLdapUserDocument_id.setSystemReserved(true);
@@ -1657,9 +1683,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder task_approval_detachedauthorizations = task_approvalSchema.get("detachedauthorizations");
     MetadataBuilder task_approval_dueDate = task_approvalSchema.get("dueDate");
     MetadataBuilder task_approval_errorOnPhysicalDeletion = task_approvalSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder task_approval_estimatedSize = task_approvalSchema.get("estimatedSize");
+    MetadataBuilder task_approval_estimatedSize = task_approvalSchema.get("estimatedSize");
     MetadataBuilder task_approval_finishedBy = task_approvalSchema.get("finishedBy");
     MetadataBuilder task_approval_finishedOn = task_approvalSchema.get("finishedOn");
+    MetadataBuilder task_approval_hidden = task_approvalSchema.get("hidden");
     MetadataBuilder task_approval_id = task_approvalSchema.get("id");
     MetadataBuilder task_approval_legacyIdentifier = task_approvalSchema.get("legacyIdentifier");
     MetadataBuilder task_approval_logicallyDeletedOn = task_approvalSchema.get("logicallyDeletedOn");
@@ -1718,8 +1745,8 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_destructionDate = temporaryRecord_batchProcessReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_batchProcessReport_detachedauthorizations = temporaryRecord_batchProcessReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_errorOnPhysicalDeletion = temporaryRecord_batchProcessReportSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema
-			  .get("estimatedSize");
+    MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_batchProcessReport_hidden = temporaryRecord_batchProcessReportSchema.get("hidden");
     MetadataBuilder temporaryRecord_batchProcessReport_id = temporaryRecord_batchProcessReportSchema.get("id");
     MetadataBuilder temporaryRecord_batchProcessReport_legacyIdentifier = temporaryRecord_batchProcessReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_batchProcessReport_logicallyDeletedOn = temporaryRecord_batchProcessReportSchema.get("logicallyDeletedOn");
@@ -1755,7 +1782,8 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_destructionDate = temporaryRecord_exportAuditSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_exportAudit_detachedauthorizations = temporaryRecord_exportAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_exportAudit_errorOnPhysicalDeletion = temporaryRecord_exportAuditSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_exportAudit_hidden = temporaryRecord_exportAuditSchema.get("hidden");
     MetadataBuilder temporaryRecord_exportAudit_id = temporaryRecord_exportAuditSchema.get("id");
     MetadataBuilder temporaryRecord_exportAudit_legacyIdentifier = temporaryRecord_exportAuditSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_exportAudit_logicallyDeletedOn = temporaryRecord_exportAuditSchema.get("logicallyDeletedOn");
@@ -1791,7 +1819,8 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_destructionDate = temporaryRecord_importAuditSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_importAudit_detachedauthorizations = temporaryRecord_importAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_importAudit_errorOnPhysicalDeletion = temporaryRecord_importAuditSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_importAudit_hidden = temporaryRecord_importAuditSchema.get("hidden");
     MetadataBuilder temporaryRecord_importAudit_id = temporaryRecord_importAuditSchema.get("id");
     MetadataBuilder temporaryRecord_importAudit_legacyIdentifier = temporaryRecord_importAuditSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_importAudit_logicallyDeletedOn = temporaryRecord_importAuditSchema.get("logicallyDeletedOn");
@@ -1827,7 +1856,8 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_destructionDate = temporaryRecord_scriptReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_scriptReport_detachedauthorizations = temporaryRecord_scriptReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_scriptReport_errorOnPhysicalDeletion = temporaryRecord_scriptReportSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_scriptReport_hidden = temporaryRecord_scriptReportSchema.get("hidden");
     MetadataBuilder temporaryRecord_scriptReport_id = temporaryRecord_scriptReportSchema.get("id");
     MetadataBuilder temporaryRecord_scriptReport_legacyIdentifier = temporaryRecord_scriptReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_scriptReport_logicallyDeletedOn = temporaryRecord_scriptReportSchema.get("logicallyDeletedOn");
@@ -1863,7 +1893,8 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_destructionDate = temporaryRecord_vaultScanReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_vaultScanReport_detachedauthorizations = temporaryRecord_vaultScanReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_errorOnPhysicalDeletion = temporaryRecord_vaultScanReportSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder temporaryRecord_vaultScanReport_estimatedSize = temporaryRecord_vaultScanReportSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_vaultScanReport_estimatedSize = temporaryRecord_vaultScanReportSchema.get("estimatedSize");
+    MetadataBuilder temporaryRecord_vaultScanReport_hidden = temporaryRecord_vaultScanReportSchema.get("hidden");
     MetadataBuilder temporaryRecord_vaultScanReport_id = temporaryRecord_vaultScanReportSchema.get("id");
     MetadataBuilder temporaryRecord_vaultScanReport_legacyIdentifier = temporaryRecord_vaultScanReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_vaultScanReport_logicallyDeletedOn = temporaryRecord_vaultScanReportSchema.get("logicallyDeletedOn");
@@ -1904,9 +1935,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder facet_field_detachedauthorizations = facet_fieldSchema.get("detachedauthorizations");
     MetadataBuilder facet_field_elementPerPage = facet_fieldSchema.get("elementPerPage");
     MetadataBuilder facet_field_errorOnPhysicalDeletion = facet_fieldSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder facet_field_estimatedSize = facet_fieldSchema.get("estimatedSize");
+    MetadataBuilder facet_field_estimatedSize = facet_fieldSchema.get("estimatedSize");
     MetadataBuilder facet_field_facetType = facet_fieldSchema.get("facetType");
     MetadataBuilder facet_field_fieldDatastoreCode = facet_fieldSchema.get("fieldDatastoreCode");
+    MetadataBuilder facet_field_hidden = facet_fieldSchema.get("hidden");
     MetadataBuilder facet_field_id = facet_fieldSchema.get("id");
     MetadataBuilder facet_field_legacyIdentifier = facet_fieldSchema.get("legacyIdentifier");
     MetadataBuilder facet_field_logicallyDeletedOn = facet_fieldSchema.get("logicallyDeletedOn");
@@ -1946,9 +1978,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder facet_query_detachedauthorizations = facet_querySchema.get("detachedauthorizations");
     MetadataBuilder facet_query_elementPerPage = facet_querySchema.get("elementPerPage");
     MetadataBuilder facet_query_errorOnPhysicalDeletion = facet_querySchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder facet_query_estimatedSize = facet_querySchema.get("estimatedSize");
+    MetadataBuilder facet_query_estimatedSize = facet_querySchema.get("estimatedSize");
     MetadataBuilder facet_query_facetType = facet_querySchema.get("facetType");
     MetadataBuilder facet_query_fieldDatastoreCode = facet_querySchema.get("fieldDatastoreCode");
+    MetadataBuilder facet_query_hidden = facet_querySchema.get("hidden");
     MetadataBuilder facet_query_id = facet_querySchema.get("id");
     MetadataBuilder facet_query_legacyIdentifier = facet_querySchema.get("legacyIdentifier");
     MetadataBuilder facet_query_logicallyDeletedOn = facet_querySchema.get("logicallyDeletedOn");
@@ -2061,11 +2094,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorSmbDocument_errorsCount = connectorSmbDocumentSchema.create("errorsCount").setType(MetadataValueType.NUMBER);
     connectorSmbDocument_errorsCount.setUndeletable(true);
     connectorSmbDocument_errorsCount.setDefaultValue(0);
-	  MetadataBuilder connectorSmbDocument_estimatedSize = connectorSmbDocumentSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
-	  connectorSmbDocument_estimatedSize.setSystemReserved(true);
-	  connectorSmbDocument_estimatedSize.setUndeletable(true);
-	  connectorSmbDocument_estimatedSize.setMultiLingual(false);
+    MetadataBuilder connectorSmbDocument_estimatedSize = connectorSmbDocumentSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    connectorSmbDocument_estimatedSize.setSystemReserved(true);
+    connectorSmbDocument_estimatedSize.setUndeletable(true);
+    connectorSmbDocument_estimatedSize.setMultiLingual(false);
     MetadataBuilder connectorSmbDocument_extension = connectorSmbDocumentSchema.create("extension").setType(MetadataValueType.STRING);
     connectorSmbDocument_extension.setUndeletable(true);
     connectorSmbDocument_extension.setSearchable(true);
@@ -2080,6 +2112,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorSmbDocument_frequency = connectorSmbDocumentSchema.create("frequency").setType(MetadataValueType.ENUM);
     connectorSmbDocument_frequency.setUndeletable(true);
     connectorSmbDocument_frequency.defineAsEnum(FetchFrequency.class);
+    MetadataBuilder connectorSmbDocument_hidden = connectorSmbDocumentSchema.create("hidden").setType(MetadataValueType.BOOLEAN);
+    connectorSmbDocument_hidden.setSystemReserved(true);
+    connectorSmbDocument_hidden.setUndeletable(true);
+    connectorSmbDocument_hidden.setMultiLingual(false);
     MetadataBuilder connectorSmbDocument_id = connectorSmbDocumentSchema.create("id").setType(MetadataValueType.STRING);
     connectorSmbDocument_id.setDefaultRequirement(true);
     connectorSmbDocument_id.setSystemReserved(true);
@@ -2261,7 +2297,7 @@ public final class GeneratedESMigrationCombo {
     transaction.add(manager.getMetadata(collection, "connectorHttpDocument_default_path").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "connectorHttpDocument_default_title").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(true).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "connectorHttpDocument_default_url").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-    transaction.add(manager.getType(collection, "connectorInstance").withSimpleSearchStatus(false).withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("connectors.executionTab", "connectors.advanced", "default:connectors.configurationTab", "connectors.ldapUserTab", "connectors.credentialsTab"))));
+    transaction.add(manager.getType(collection, "connectorInstance").withSimpleSearchStatus(false).withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("connectors.advanced", "connectors.credentialsTab", "connectors.executionTab", "connectors.ldapUserTab", "default:connectors.configurationTab"))));
     transaction.add(manager.getSchema(collection, "connectorInstance_http").withFormMetadataCodes(asList("connectorInstance_http_code", "connectorInstance_http_title", "connectorInstance_http_connectorType", "connectorInstance_http_traversalCode", "connectorInstance_http_lastTraversalOn", "connectorInstance_http_enabled", "connectorInstance_http_availableFields", "connectorInstance_http_propertiesMapping", "connectorInstance_http_traversalSchedule", "connectorInstance_http_authenticationScheme", "connectorInstance_http_daysBeforeRefetching", "connectorInstance_http_documentsPerJobs", "connectorInstance_http_domain", "connectorInstance_http_jobsInParallel", "connectorInstance_http_maxLevel", "connectorInstance_http_password", "connectorInstance_http_username", "connectorInstance_http_onDemands", "connectorInstance_http_seeds", "connectorInstance_http_includePatterns", "connectorInstance_http_excludePatterns")).withDisplayMetadataCodes(asList("connectorInstance_http_code", "connectorInstance_http_title", "connectorInstance_http_connectorType", "connectorInstance_http_traversalCode", "connectorInstance_http_createdBy", "connectorInstance_http_createdOn", "connectorInstance_http_modifiedBy", "connectorInstance_http_enabled", "connectorInstance_http_lastTraversalOn", "connectorInstance_http_authenticationScheme", "connectorInstance_http_daysBeforeRefetching", "connectorInstance_http_documentsPerJobs", "connectorInstance_http_domain", "connectorInstance_http_jobsInParallel", "connectorInstance_http_maxLevel", "connectorInstance_http_onDemands", "connectorInstance_http_password", "connectorInstance_http_seeds", "connectorInstance_http_username", "connectorInstance_http_modifiedOn", "connectorInstance_http_includePatterns", "connectorInstance_http_excludePatterns")).withSearchResultsMetadataCodes(asList("connectorInstance_http_title", "connectorInstance_http_connectorType", "connectorInstance_http_traversalCode")).withTableMetadataCodes(new ArrayList<String>()));
     transaction.add(manager.getMetadata(collection, "connectorInstance_http_authenticationScheme").withMetadataGroup("connectors.credentialsTab").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "connectorInstance_http_daysBeforeRefetching").withMetadataGroup("connectors.executionTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
@@ -2304,12 +2340,13 @@ public final class GeneratedESMigrationCombo {
     transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_url").withMetadataGroup("default:connectors.configurationTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_username").withMetadataGroup("connectors.ldapUserTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_usersBaseContextList").withMetadataGroup("default:connectors.configurationTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-    transaction.add(manager.getSchema(collection, "connectorInstance_smb").withFormMetadataCodes(asList("connectorInstance_smb_code", "connectorInstance_smb_title", "connectorInstance_smb_domain", "connectorInstance_smb_username", "connectorInstance_smb_password", "connectorInstance_smb_smbSeeds", "connectorInstance_smb_exclusions", "connectorInstance_smb_inclusions", "connectorInstance_smb_enabled", "connectorInstance_smb_traversalSchedule", "connectorInstance_smb_skipShareAccessControl")).withDisplayMetadataCodes(asList("connectorInstance_smb_code", "connectorInstance_smb_title", "connectorInstance_smb_domain", "connectorInstance_smb_username", "connectorInstance_smb_smbSeeds", "connectorInstance_smb_exclusions", "connectorInstance_smb_inclusions")).withSearchResultsMetadataCodes(asList("connectorInstance_smb_title", "connectorInstance_smb_connectorType", "connectorInstance_smb_traversalCode")).withTableMetadataCodes(new ArrayList<String>()));
+    transaction.add(manager.getSchema(collection, "connectorInstance_smb").withFormMetadataCodes(asList("connectorInstance_smb_code", "connectorInstance_smb_title", "connectorInstance_smb_domain", "connectorInstance_smb_username", "connectorInstance_smb_password", "connectorInstance_smb_smbSeeds", "connectorInstance_smb_exclusions", "connectorInstance_smb_inclusions", "connectorInstance_smb_enabled", "connectorInstance_smb_traversalSchedule", "connectorInstance_smb_skipShareAccessControl", "connectorInstance_smb_skipContentAndACL")).withDisplayMetadataCodes(asList("connectorInstance_smb_code", "connectorInstance_smb_title", "connectorInstance_smb_domain", "connectorInstance_smb_username", "connectorInstance_smb_smbSeeds", "connectorInstance_smb_exclusions", "connectorInstance_smb_inclusions")).withSearchResultsMetadataCodes(asList("connectorInstance_smb_title", "connectorInstance_smb_connectorType", "connectorInstance_smb_traversalCode")).withTableMetadataCodes(new ArrayList<String>()));
     transaction.add(manager.getMetadata(collection, "connectorInstance_smb_enabled").withMetadataGroup("connectors.executionTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "connectorInstance_smb_id").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(true).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "connectorInstance_smb_legacyIdentifier").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(true).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "connectorInstance_smb_password").withMetadataGroup("").withInputType(MetadataInputType.PASSWORD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "connectorInstance_smb_path").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
+    transaction.add(manager.getMetadata(collection, "connectorInstance_smb_skipContentAndACL").withMetadataGroup("connectors.advanced").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "connectorInstance_smb_skipShareAccessControl").withMetadataGroup("connectors.advanced").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "connectorInstance_smb_title").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(true).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "connectorInstance_smb_traversalSchedule").withMetadataGroup("connectors.executionTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
@@ -2371,6 +2408,6 @@ public final class GeneratedESMigrationCombo {
 
   public void applyGeneratedRoles() {
     RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();;
-    rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.useExternalAPIS", "core.viewEvents", "core.viewSystemBatchProcesses")));
+    rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.useExternalAPIS", "core.viewEvents", "core.viewLoginNotificationAlert", "core.viewSystemBatchProcesses", "core.viewSystemState")));
   }
 }

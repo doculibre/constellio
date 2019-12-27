@@ -5,6 +5,7 @@ import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.ClickableNotification;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Item;
 import com.vaadin.event.UIEvents.PollEvent;
@@ -84,6 +85,8 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 	public static final String COMPLETE_STYLE_NAME = "base-multifileupload-completed";
 
 	private String dropZoneCaption = $("BaseMultiFileUpload.dropZoneCaption");
+
+	private String noDropZoneCaption = $("BaseMultiFileUpload.noDropZoneCaption");
 
 	private int uiPollIntervalBefore = -1;
 
@@ -357,6 +360,8 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 		super.attach();
 		if (supportsFileDrops()) {
 			prepareDropZone();
+		} else {
+			prepareNoDropZone();
 		}
 
 		UI.getCurrent().getNavigator().addViewChangeListener(this);
@@ -395,19 +400,32 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 			dropZone.setDropHandler(this);
 			addStyleName("no-horizontal-drag-hints");
 			addStyleName("no-vertical-drag-hints");
+		} else {
+			prepareNoDropZone();
 		}
 	}
 
+	private void prepareNoDropZone() {
+		Component label = new Label(noDropZoneCaption, Label.CONTENT_XHTML);
+		label.setSizeUndefined();
+		label.addStyleName("v-multifileupload-no-dropzone");
+		//addComponent(dropZone, 1);
+		addComponent(label, 0);
+		addStyleName("no-horizontal-drag-hints");
+		addStyleName("no-vertical-drag-hints");
+	}
+
 	protected boolean supportsFileDrops() {
+		boolean supportsFileDrops;
 		WebBrowser browser = getUI().getPage().getWebBrowser();
-		if (browser.isChrome()) {
-			return true;
-		} else if (browser.isFirefox()) {
-			return true;
-		} else if (browser.isSafari()) {
-			return true;
+		if (ResponsiveUtils.isMobile()) {
+			supportsFileDrops = false;
+		} else if (browser.isChrome() || browser.isFirefox() || browser.isSafari()) {
+			supportsFileDrops = true;
+		} else {
+			supportsFileDrops = false;
 		}
-		return false;
+		return supportsFileDrops;
 	}
 
 	abstract protected void handleFile(File file, String fileName,
