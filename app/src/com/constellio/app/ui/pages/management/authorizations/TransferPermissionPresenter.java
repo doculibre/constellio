@@ -4,9 +4,15 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.collection.CollectionUserView;
+import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenterException.TransferPermissionPresenterException_CannotRemovePermission;
+import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenterException.TransferPermissionPresenterException_CannotSelectUser;
+import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenterException.TransferPermissionPresenterException_CannotUpdateUser;
+import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenterException.TransferPermissionPresenterException_EmptyDestinationList;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.vaadin.ui.Window;
 
@@ -16,7 +22,6 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TransferPermissionPresenter extends SingleSchemaBasePresenter {
-	private ArrayList<String> errorsList;
 	private boolean removeUserAccess;
 	private String recordId;
 
@@ -25,7 +30,8 @@ public class TransferPermissionPresenter extends SingleSchemaBasePresenter {
 		recordId = selectedUserRecord;
 	}
 
-	public void copyUserAuthorizations(Record sourceUserRecord, List<String> destUsers) throws Exception {
+	public void copyUserAuthorizations(Record sourceUserRecord, List<String> destUsers)
+			throws TransferPermissionPresenterException {
 		validateAccessTransfer(sourceUserRecord, destUsers);
 		List<Authorization> authorizationsList = getUserAuthorizationsList(sourceUserRecord);
 		for (Authorization authorization : authorizationsList) {
@@ -101,34 +107,26 @@ public class TransferPermissionPresenter extends SingleSchemaBasePresenter {
 				removeAllAuthorizationsOfUser(sourceUser);
 			}
 			window.close();
-		} catch (Exception e) {
-			displayErrorMessage();
+		} catch (TransferPermissionPresenterException e) {
+			displayErrorMessage(e.getMessage());
 		}
 	}
 
-	public void validateAccessTransfer(Record sourceUser, List<String> destUsers) throws Exception {
-		errorsList = new ArrayList<>();
+	public void validateAccessTransfer(Record sourceUser, List<String> destUsers)
+			throws TransferPermissionPresenterException {
 		if (destUsers.isEmpty()) {
-			errorsList.add($("TransferPermissionsButton.emptyDestinationListError"));
+			throw new TransferPermissionPresenterException_EmptyDestinationList();
 		}
 		if (destUsers.contains(sourceUser.getId())) {
-			errorsList.add($("TransferPermissionsButton.userCannotBeSelected", sourceUser.getTitle()));
+			throw new TransferPermissionPresenterException_CannotSelectUser(sourceUser.getTitle());
 		}
 		if (!isDeletionEnabled() && removeUserAccess) {
-			errorsList.add($("TransferPermissionsButton.cannotRemovePermissions", sourceUser.getTitle()));
-		}
-
-		if (errorsList.size() > 0) {
-			throw new Exception(errorsList.toString());
+			throw new TransferPermissionPresenterException_CannotRemovePermission(sourceUser.getTitle());
 		}
 	}
 
-	public void displayErrorMessage() {
-		String errorString = "";
-		for (String errorMessage : errorsList) {
-			errorString += errorMessage;
-		}
-		view.showErrorMessage(errorString);
+	public void displayErrorMessage(String message) {
+		view.showErrorMessage(message);
 	}
 
 	public List<Authorization> getUserAuthorizationsList(Record userVO) {
@@ -147,42 +145,28 @@ public class TransferPermissionPresenter extends SingleSchemaBasePresenter {
 	}
 
 
-	public ArrayList<String> getErrorsList() {
-		return errorsList;
-	}
-
 	private void updateAuthorizationPrincipalsList(Authorization authorization, List<String> newPrincipalsList) {
 		authorization.setPrincipals(newPrincipalsList);
 		addOrUpdate(authorization.getWrappedRecord());
 	}
 
-	public void copyUserGroups(RecordVO sourceUserVO, List<String> destUsers) {
+	public void copyUserGroups(RecordVO sourceUserVO, List<String> destUsers)
+			throws TransferPermissionPresenterException {
 		User sourceUser = wrapUser(sourceUserVO.getRecord());
 		List<String> groupsList = sourceUser.getUserGroups();
-
+		Transaction transaction = new Transaction();
 		for (String destUserId : destUsers) {
 			User user = coreSchemas().getUser(destUserId);
 			user.setUserGroups(groupsList);
-			addOrUpdate(user.getWrappedRecord());
+			transaction.add(user.getWrappedRecord());
+		}
+		try {
+			schemaPresenterUtils.recordServices().execute(transaction);
+		} catch (RecordServicesException e) {
+			throw new TransferPermissionPresenterException_CannotUpdateUser();
 		}
 	}
 
-	public void copyUserRoles(RecordVO sourceUserVO, List<String> destUsers) {
-		User sourceUser = wrapUser(sourceUserVO.getRecord());
-		List<String> rolesList = sourceUser.getUserRoles();
-
-		for (String destUserId : destUsers) {
-			User user = coreSchemas().getUser(destUserId);
-			user.setUserRoles(rolesList);
-			addOrUpdate(user.getWrappedRecord());
-		}
-	}
-
-	private void removeAllRolesOfUser(RecordVO userVO) {
-		User user = wrapUser(userVO.getRecord());
-		user.setUserRoles("");
-		addOrUpdate(user.getWrappedRecord());
-	}
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {

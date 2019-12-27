@@ -4,6 +4,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenter;
+import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenterException;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
@@ -113,8 +114,8 @@ public class TransferPermissionsButton extends WindowButton {
 		try {
 			presenter.validateAccessTransfer(sourceUser.getRecord(), users.getValue());
 			return true;
-		} catch (Exception e) {
-			presenter.displayErrorMessage();
+		} catch (TransferPermissionPresenterException e) {
+			presenter.displayErrorMessage(e.getMessage());
 			return false;
 		}
 	}
