@@ -108,7 +108,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private Window documentVersionWindow;
 
-	private I18NHorizontalLayout contentAndFacetsLayout; 
+	private I18NHorizontalLayout contentAndFacetsLayout;
 
 	private RecordVODataProvider folderContentDataProvider;
 	private RecordVODataProvider tasksDataProvider;
@@ -393,6 +393,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				@Override
 				protected void facetValueSelected(String facetId, String value) {
 					presenter.facetValueSelected(facetId, value);
+				}
+
+				@Override
+				protected void facetValuesChanged(KeySetMap<String, String> facets) {
+					presenter.facetValuesChanged(facets);
 				}
 
 				@Override

@@ -1263,6 +1263,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.refreshFolderContentAndFacets();
 	}
 
+	public void facetValuesChanged(KeySetMap<String, String> facets) {
+		facetSelections.clear();
+		facetSelections.addAll(facets);
+		folderContentDataProvider.fireDataRefreshEvent();
+		view.refreshFolderContentAndFacets();
+	}
+
 	public void facetValueDeselected(String facetId, String facetValue) {
 		facetSelections.get(facetId).remove(facetValue);
 		folderContentDataProvider.fireDataRefreshEvent();

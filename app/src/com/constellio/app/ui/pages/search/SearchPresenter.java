@@ -575,6 +575,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		view.refreshSearchResultsAndFacets();
 	}
 
+	public void facetValuesChanged(KeySetMap<String, String> facetValues) {
+		facetSelections.clear();
+		facetSelections.addAll(facetValues);
+		view.refreshSearchResultsAndFacets();
+	}
+
 	public void facetValueDeselected(String facetId, String facetValue) {
 		facetSelections.get(facetId).remove(facetValue);
 		view.refreshSearchResultsAndFacets();

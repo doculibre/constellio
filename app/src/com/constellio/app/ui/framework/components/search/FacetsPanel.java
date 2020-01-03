@@ -27,18 +27,23 @@ import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public abstract class FacetsPanel extends VerticalLayout {
 
+	private final static KeySetMap<String, String> facetValuesSelectedMap = new KeySetMap<>();
+
 	public FacetsPanel() {
 		addStyleName("search-result-facets");
 		setWidth("250px");
 		setSpacing(true);
+		//facetValuesSelectedMap.clear();
 	}
 
 	public void refresh(List<FacetVO> facets, KeySetMap<String, String> facetSelections,
@@ -104,14 +109,17 @@ public abstract class FacetsPanel extends VerticalLayout {
 	}
 
 	private Component buildFacetComponent(final FacetVO facet, Set<String> selectedFacetValues) {
+		Button apply = new Button($("apply"));
 		CheckBox deselect = new CheckBox();
 		deselect.setValue(!selectedFacetValues.isEmpty());
 		deselect.setEnabled(!selectedFacetValues.isEmpty());
 		deselect.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				facetDeselected(facet.getId());
+				facetValuesSelectedMap.remove(facet.getId());
+				facetValuesChanged(facetValuesSelectedMap);
 			}
+
 		});
 
 		Label title = new Label(facet.getLabel());
@@ -137,6 +145,17 @@ public abstract class FacetsPanel extends VerticalLayout {
 		table.addContainerProperty("value", Component.class, null);
 		table.setWidth("100%");
 
+		apply.addStyleName(ValoTheme.BUTTON_SMALL);
+		apply.addStyleName("facet-apply");
+		apply.setVisible(false);
+		apply.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+
+				facetValuesChanged(facetValuesSelectedMap);
+			}
+		});
+
 		List<FacetValueVO> values = facet.getValues();
 		for (final FacetValueVO facetValue : values) {
 			final CheckBox checkBox = new CheckBox();
@@ -148,10 +167,12 @@ public abstract class FacetsPanel extends VerticalLayout {
 				@Override
 				public void valueChange(ValueChangeEvent event) {
 					if (checkBox.getValue()) {
-						facetValueSelected(facetValue.getFacetId(), facetValue.getValue());
+						facetValuesSelectedMap.add(facetValue.getFacetId(), facetValue.getValue());
+
 					} else {
-						facetValueDeselected(facetValue.getFacetId(), facetValue.getValue());
+						facetValuesSelectedMap.remove(facetValue.getFacetId(), facetValue.getValue());
 					}
+					apply.setVisible(true);
 				}
 			});
 
@@ -187,6 +208,7 @@ public abstract class FacetsPanel extends VerticalLayout {
 		});
 
 		layout.addComponent(table);
+		layout.addComponent(apply);
 		layout.setVisible(!facet.getValues().isEmpty());
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
 			layout.addStyleName("facet-box-viewer");
@@ -196,11 +218,20 @@ public abstract class FacetsPanel extends VerticalLayout {
 		return layout;
 	}
 
+	private void formHasChanged() {
+	}
+
+	private void formHasChanged(int facetCount) {
+	}
+
+
 	protected abstract void sortCriterionSelected(String sortCriterion, SortOrder sortOrder);
 
 	protected abstract void facetDeselected(String id);
 
 	protected abstract void facetValueSelected(String facetId, String value);
+
+	protected abstract void facetValuesChanged(KeySetMap<String, String> facets);
 
 	protected abstract void facetValueDeselected(String facetId, String value);
 
