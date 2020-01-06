@@ -126,7 +126,7 @@ public class TransferPermissionsButton extends WindowButton {
 			presenter.setRemoveUserAccessCheckboxValue(removeUserAccessIsChecked());
 			String confirmMessage = presenter.buildTransferRightsConfirmMessage(sourceUser.getTitle(), selectedUsersString,
 					users.getValue().size() > 1, removeUserAccessIsChecked());
-			ConfirmDialog.show(ConstellioUI.getCurrent(), $("TransferPermissionsButton.Title"), confirmMessage,
+			ConfirmDialog.show(ConstellioUI.getCurrent(), $("TransferPermissionsButton.title"), confirmMessage,
 					$("Ok"), $("cancel"), (ConfirmDialog.Listener) dialog -> {
 						if (dialog.isConfirmed()) {
 							presenter.transferAccessSaveButtonClicked(sourceUser, users.getValue(), getWindow());

@@ -68,8 +68,8 @@ public class CollectionUserViewImpl extends BaseViewImpl implements CollectionUs
 
 		TransferPermissionPresenter transferPermissionPresenter = new TransferPermissionPresenter(this, presenter.recordId);
 		Button transferUserPermissions = new TransferPermissionsButton(
-				$("TransferPermissionsButton.Title"),
-				$("TransferPermissionsButton.Title"),
+				$("TransferPermissionsButton.title"),
+				$("TransferPermissionsButton.title"),
 				transferPermissionPresenter);
 		transferUserPermissions.setIcon(FontAwesome.EXCHANGE);
 		buttons.add(transferUserPermissions);
