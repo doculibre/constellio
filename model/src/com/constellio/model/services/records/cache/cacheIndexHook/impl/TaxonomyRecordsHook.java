@@ -50,7 +50,8 @@ public class TaxonomyRecordsHook implements MetadataIndexCacheDataStoreHook<Taxo
 	@Override
 	public boolean isHooked(MetadataSchemaType schemaType) {
 		List<Taxonomy> taxonomies = taxonomiesManager.getEnabledTaxonomies(schemaType.getCollection());
-		return !schemaType.getAllReferencesToTaxonomySchemas(taxonomies).isEmpty();
+		//TODO Francis : Corriger cette passe de l'ours épouvantable
+		return !schemaType.getAllReferencesToTaxonomySchemas(taxonomies).isEmpty() || "document".equals(schemaType.getCode());
 	}
 
 	@Override

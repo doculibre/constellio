@@ -41,6 +41,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -72,6 +73,7 @@ import static com.constellio.app.modules.rm.model.validators.FolderValidator.RUL
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.records.RecordId.toStringIds;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
@@ -126,6 +128,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	RMSchemasRecordsServices rm;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	RecordServices recordServices;
+	AuthorizationsServices authorizationsServices;
 
 	Transaction transaction = new Transaction();
 
@@ -157,6 +160,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
+		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 
 		zeCategory = records.categoryId_ZE42;
 		aPrincipalAdminUnit = records.unitId_10a;
@@ -556,6 +560,96 @@ public class FolderAcceptanceTest extends ConstellioTest {
 				childFolder.getId(), childFolderDoc.getId());
 		assertThat(childFolderDoc.getList(Schemas.ATTACHED_ANCESTORS)).containsOnly(
 				childFolder.getId(), childFolderDoc.getId(), "-" + folder.getId());
+
+	}
+
+	@Test
+	public void givenParentFolderHaveAuthThenHookCountersOkForUsers()
+			throws Exception {
+
+		TaxonomyRecordsHookRetriever retriever = getModelLayerFactory().getTaxonomyRecordsHookRetriever(zeCollection);
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10().getWrappedRecord(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10a().getWrappedRecord(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X().getWrappedRecordId(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X110().getWrappedRecordId(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X120().getWrappedRecordId(), false, false)).isFalse();
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X120);
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setTitle("Ze folder");
+		folder.setOpenDate(november4_2009);
+		recordServices.add(folder);
+
+		Folder childFolder = rm.newFolderWithId("zeFolder").setTitle("Folder")
+				.setParentFolder(folder).setOpenDate(LocalDate.now());
+		recordServices.add(childFolder);
+
+		authorizationsServices.add(authorizationForUsers(users.robinIn(zeCollection))
+				.on(folder).givingReadAccess(), users.adminIn(zeCollection));
+
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10().getWrappedRecord(), false, false)).isTrue();
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10a().getWrappedRecord(), false, false)).isTrue();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X().getWrappedRecordId(), false, false)).isTrue();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X110().getWrappedRecordId(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X120().getWrappedRecordId(), false, false)).isTrue();
+
+	}
+
+	@Test
+	public void givenChildFolderHaveAuthThenHookCountersOkForUsers()
+			throws Exception {
+
+		TaxonomyRecordsHookRetriever retriever = getModelLayerFactory().getTaxonomyRecordsHookRetriever(zeCollection);
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10().getWrappedRecord(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10a().getWrappedRecord(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X().getWrappedRecordId(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X110().getWrappedRecordId(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X120().getWrappedRecordId(), false, false)).isFalse();
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X120);
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setTitle("Ze folder");
+		folder.setOpenDate(november4_2009);
+		recordServices.add(folder);
+
+		Folder childFolder = rm.newFolderWithId("zeFolder").setTitle("Folder")
+				.setParentFolder(folder).setOpenDate(LocalDate.now());
+		recordServices.add(childFolder);
+
+		authorizationsServices.add(authorizationForUsers(users.robinIn(zeCollection))
+				.on(childFolder).givingReadAccess(), users.adminIn(zeCollection));
+
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10().getWrappedRecord(), false, false)).isTrue();
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10a().getWrappedRecord(), false, false)).isTrue();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X().getWrappedRecordId(), false, false)).isTrue();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X110().getWrappedRecordId(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X120().getWrappedRecordId(), false, false)).isTrue();
 
 	}
 

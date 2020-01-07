@@ -248,16 +248,16 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				tuple("folder3", asSortedList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3")),
 				tuple("folder1_doc1", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1", "folder1_doc1")),
 				tuple("folder3_doc1", asSortedList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3", "folder3_doc1")),
-				tuple("folder4", asSortedList("folder4", "-taxo1_fond1", "-taxo1_category2")),
-				tuple("folder4_1", asSortedList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_1")),
-				tuple("folder4_2", asSortedList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2")),
-				tuple("folder4_1_doc1", asSortedList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_1", "folder4_1_doc1")),
-				tuple("folder4_2_doc1", asSortedList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2", "folder4_2_doc1")),
-				tuple("folder2", asSortedList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1")),
-				tuple("folder2_1", asSortedList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_1")),
-				tuple("folder2_2", asSortedList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_2")),
-				tuple("folder2_2_doc2", asSortedList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_2", "folder2_2_doc2")),
-				tuple("folder2_2_doc1", asSortedList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_2", "folder2_2_doc1"))
+				tuple("folder4", asSortedList("folder4")),
+				tuple("folder4_1", asSortedList("folder4", "folder4_1")),
+				tuple("folder4_2", asSortedList("folder4", "folder4_2")),
+				tuple("folder4_1_doc1", asSortedList("folder4", "folder4_1", "folder4_1_doc1")),
+				tuple("folder4_2_doc1", asSortedList("folder4", "folder4_2", "folder4_2_doc1")),
+				tuple("folder2", asSortedList("folder2")),
+				tuple("folder2_1", asSortedList("folder2", "folder2_1")),
+				tuple("folder2_2", asSortedList("folder2", "folder2_2")),
+				tuple("folder2_2_doc2", asSortedList("folder2", "folder2_2", "folder2_2_doc2")),
+				tuple("folder2_2_doc1", asSortedList("folder2", "folder2_2", "folder2_2_doc1"))
 		);
 
 		reset(FOLDER2);
@@ -279,11 +279,11 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				tuple("folder2_2", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2")),
 				tuple("folder2_2_doc2", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2", "folder2_2_doc2")),
 				tuple("folder2_2_doc1", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2", "folder2_2_doc1")),
-				tuple("folder4_1", asSortedList("folder4_1", "-folder4", "--taxo1_fond1", "--taxo1_category2")),
-				tuple("folder4_1_doc1", asSortedList("folder4_1", "-folder4", "--taxo1_fond1", "--taxo1_category2", "folder4_1_doc1")),
-				tuple("folder4", asSortedList("folder4", "-taxo1_fond1", "-taxo1_category2")),
-				tuple("folder4_2", asSortedList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2")),
-				tuple("folder4_2_doc1", asSortedList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2", "folder4_2_doc1"))
+				tuple("folder4_1", asSortedList("folder4_1", "-folder4")),
+				tuple("folder4_1_doc1", asSortedList("folder4_1", "-folder4", "folder4_1_doc1")),
+				tuple("folder4", asSortedList("folder4")),
+				tuple("folder4_2", asSortedList("folder4", "folder4_2")),
+				tuple("folder4_2_doc1", asSortedList("folder4", "folder4_2", "folder4_2_doc1"))
 		);
 	}
 

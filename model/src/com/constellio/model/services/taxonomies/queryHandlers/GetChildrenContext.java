@@ -367,6 +367,7 @@ public class GetChildrenContext {
 			if ((metadata.getType() == MetadataValueType.REFERENCE)
 				&& fromType.getCode().equals(metadata.getReferencedSchemaTypeCode())
 				&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
+				&& (metadata.isChildOfRelationship() || metadata.isTaxonomyRelationship())
 			) {
 				return metadata;
 			}

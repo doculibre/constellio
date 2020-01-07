@@ -232,10 +232,12 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 		transaction.add(rm.newFolderType().setCode("newType").setTitle("newType")
 				.setLinkedSchema("folder_mySchema"));
 		recordServices.execute(transaction);
-		recordServices.add(rm.newFolderWithType(rm.getFolderTypeWithCode("newType")).setTitle("test")
+		Folder record = rm.newFolderWithType(rm.getFolderTypeWithCode("newType")).setTitle("test")
 				.setAdministrativeUnitEntered(rmRecords.unitId_10).setCategoryEntered(rmRecords.categoryId_X)
 				.setOpenDate(LocalDate.now())
-				.setRetentionRuleEntered(rmRecords.ruleId_1));
+				.setRetentionRuleEntered(rmRecords.ruleId_1);
+		recordServices.add(record);
+		assertThat(record.getSchema().getCode()).isEqualTo("folder_mySchema");
 		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 		assertThat(allowedMetadatas).extracting("code").contains("folder_default_myMetadata");
 	}
