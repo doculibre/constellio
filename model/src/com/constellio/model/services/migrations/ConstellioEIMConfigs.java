@@ -340,8 +340,8 @@ public class ConstellioEIMConfigs {
 
 		add(DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES = search.createBooleanFalseByDefault("displayOnlySummaryMetadatasInTables"));
 
-		add(SEARCH_USING_EDISMAX = search.createBooleanFalseByDefault("searchUsingEDismax"));
-		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanFalseByDefault("searchUsingBQ"));
+		add(SEARCH_USING_EDISMAX = search.createBooleanTrueByDefault("searchUsingEDismax"));
+		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanTrueByDefault("searchUsingBQ"));
 
 	}
 

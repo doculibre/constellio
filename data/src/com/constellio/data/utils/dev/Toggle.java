@@ -93,7 +93,7 @@ public class Toggle {
 
 	public static AvailableToggle OFF_HEAP_ADDRESS_VALIDATOR = newToggle(false);
 
-	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(true);
+	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(false);
 
 	public static AvailableToggle PERFORMANCE_TESTING = newToggle(false);
 
@@ -104,7 +104,7 @@ public class Toggle {
 
 	public static AvailableToggle DEBUG_TAXONOMY_RECORDS_HOOK = newToggle(false);
 
-	public static AvailableToggle DETACHABLE_RECORDS = newToggle(false);
+	public static AvailableToggle DETACHABLE_RECORDS = newToggle(true);
 
 	public static AvailableToggle DEBUG_SOLR_TIMINGS = newToggle(false);
 

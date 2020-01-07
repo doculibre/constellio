@@ -178,10 +178,12 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		assertThat(response.getImpacts()).hasSize(2);
 		assertThat(response.getImpacts().get(1).getMetadataToReindex()).extracting("localCode")
 				.containsOnly("allRemovedAuths", "folderMetaWithTaxoDependency", "attachedAncestors", "path",
-						"attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds");
+						"attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds",
+						"detachedPrincipalAncestorsIntIds", "principalConceptsIntIds");
 		assertThat(response.getImpacts().get(0).getMetadataToReindex()).extracting("localCode")
 				.containsOnly("allRemovedAuths", "attachedAncestors", "path", "taxo1SecondSchemaMetaWithTaxoDependency",
-						"attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds");
+						"attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds",
+						"detachedPrincipalAncestorsIntIds", "principalConceptsIntIds");
 		assertThat(response.getImpacts().get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type()).whereAny(
 						asList(taxonomy1SecondSchema.parentOfType2())).isIn(asList(record)));
@@ -408,7 +410,8 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 		assertThat(response.getImpacts().get(0).getMetadataToReindex()).extracting("localCode")
 				.containsOnly("allRemovedAuths", "taxo1SecondSchemaMetaWithTaxoDependency", "attachedAncestors", "path",
-						"attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds");
+						"attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds",
+						"detachedPrincipalAncestorsIntIds", "principalConceptsIntIds");
 
 		assertThat(response.getImpacts().get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type())
@@ -450,7 +453,9 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 		assertThat(response.getImpacts()).hasSize(1);
 		assertThat(response.getImpacts().get(0).getMetadataToReindex()).extracting("localCode")
-				.containsOnly("allRemovedAuths", "folderMetaWithTaxoDependency", "attachedAncestors", "path", "attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds");
+				.containsOnly("allRemovedAuths", "folderMetaWithTaxoDependency", "attachedAncestors", "path",
+						"attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds",
+						"detachedPrincipalAncestorsIntIds", "principalConceptsIntIds");
 		assertThat(response.getImpacts().get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type())
 						.whereAny(asList(folderSchema.taxonomy1())).isIn(asList(record)));
@@ -619,10 +624,12 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(0).getMetadataToReindex()).extracting("localCode")
 				.containsOnly("allRemovedAuths", "attachedAncestors", "path", "taxo1FirstSchemaMetaWithTaxoDependency",
-						"attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds");
+						"attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds",
+						"detachedPrincipalAncestorsIntIds", "principalConceptsIntIds");
 		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")
 				.containsOnly("allRemovedAuths", "taxo1SecondSchemaMetaWithTaxoDependency", "attachedAncestors", "path",
-						"attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds");
+						"attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds",
+						"detachedPrincipalAncestorsIntIds", "principalConceptsIntIds");
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1FirstSchema.type()).whereAny(
 						asList(taxonomy1FirstSchema.parent())).isIn(asList(record)));
@@ -653,10 +660,12 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")
 				.containsOnly("folderMetaWithTaxoDependency", ALL_REMOVED_AUTHS,
-						ATTACHED_ANCESTORS, "path", "attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds");
+						ATTACHED_ANCESTORS, "path", "attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds",
+						"principalAncestorsIntIds", "detachedPrincipalAncestorsIntIds", "principalConceptsIntIds");
 		assertThat(impacts.get(0).getMetadataToReindex()).extracting("localCode")
 				.containsOnly("documentMetaWithTaxoDependency", ALL_REMOVED_AUTHS,
-						ATTACHED_ANCESTORS, "path", "attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds", "principalAncestorsIntIds");
+						ATTACHED_ANCESTORS, "path", "attachedPrincipalAncestorsIntIds", "secondaryConceptsIntIds",
+						"principalAncestorsIntIds", "detachedPrincipalAncestorsIntIds", "principalConceptsIntIds");
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.usingComparator(comparatorBasedOnSolrQuery())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type()).whereAny(

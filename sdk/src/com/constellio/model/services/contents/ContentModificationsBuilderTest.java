@@ -78,6 +78,8 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 		MetadataList metadatas = new MetadataList(textMetadata, singleValueContentMetadata, multiValueContentMetadata);
 		when(schema.getMetadatas()).thenReturn(
 				metadatas);
+		when(schema.getContentMetadatasForPopulate()).thenReturn(
+				metadatas);
 		when(types.getMetadata("type_default_singleValue")).thenReturn(singleValueContentMetadata);
 		when(types.getMetadata("type_default_multivalueValue")).thenReturn(multiValueContentMetadata);
 		when(user.getUsername()).thenReturn(username);

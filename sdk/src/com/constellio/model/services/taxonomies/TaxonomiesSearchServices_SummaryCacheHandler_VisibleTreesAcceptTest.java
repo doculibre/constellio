@@ -848,7 +848,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 				.has(solrQueryCounts(1, 2, 0))
 				.has(secondSolrQueryCounts(1, 2, 0));
 
-		assertThat(queryCount.get()).isEqualTo(2);
+		assertThat(queryCount.get()).isEqualTo(0);
 	}
 
 	@Test

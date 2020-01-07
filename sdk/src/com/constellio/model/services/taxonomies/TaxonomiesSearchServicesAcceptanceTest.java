@@ -1,5 +1,6 @@
 package com.constellio.model.services.taxonomies;
 
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -145,6 +146,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCheckingIfHasNonTaxonomyRecordsThenWorkWithAllLevels()
 			throws Exception {
+		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.disable();
 		givenFoldersAndDocuments();
 		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo1_firstTypeItem1, options)).isFalse();
 		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo1_firstTypeItem2, options)).isTrue();
@@ -173,6 +175,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenGettingVisibleChildThenOnlyVisibleConceptReturned()
 			throws Exception {
+		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.disable();
 		givenFoldersAndDocuments();
 
 		addAuthorizationWithoutDetaching(asList(Role.READ), asList(bob.getId()),
@@ -324,6 +327,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenGetVisibleRootRecordsWithAuthorizationThenReturnOnlyRecordsOfGivenTaxonomy()
 			throws Exception {
+		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.disable();
 		givenFoldersAndDocuments();
 
 		addAuthorizationWithoutDetaching(asList(Role.READ), asList(bob.getId()),

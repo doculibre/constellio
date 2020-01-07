@@ -221,7 +221,7 @@ public class AppManagementService {
 		File newAppLibs = new File(new File(tempFolder, "WEB-INF"), "lib");
 		File currentAppLibs = new File(new File(constellioWebappFolder, "WEB-INF"), "lib");
 
-		if (newAppLibs.listFiles() != null && newAppLibs.listFiles().length < 10) {
+		if (newAppLibs.listFiles() != null && currentAppLibs.listFiles() != null && newAppLibs.listFiles().length < 10) {
 			for (File currentJarFile : currentAppLibs.listFiles()) {
 				if (!currentJarFile.getName().startsWith("core-")
 					&& !currentJarFile.getName().startsWith("plugin")) {

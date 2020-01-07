@@ -695,10 +695,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 
 		assertThat(metadatas).extracting("localCode")
 				.isEqualTo(
-						asList("allReferences", "allRemovedAuths", "attachedAncestors", "autocomplete",
-								"m2", "path", "tokens", "m1", "pathParts", "principalpath",
-								"tokensHierarchy", "zeSchemaType_default_attachedPrincipalAncestorsIntIds",
-								"zeSchemaType_default_secondaryConceptsIntIds", "zeSchemaType_default_principalAncestorsIntIds"));
+						asList("allReferences", "allRemovedAuths", "autocomplete", "m2", "path", "tokens", "m1", "pathParts", "principalpath", "tokensHierarchy", "attachedPrincipalAncestorsIntIds", "detachedPrincipalAncestorsIntIds", "principalAncestorsIntIds", "principalConceptsIntIds", "secondaryConceptsIntIds", "attachedAncestors"));
 
 	}
 

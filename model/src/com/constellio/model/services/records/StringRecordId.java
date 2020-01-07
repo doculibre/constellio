@@ -2,39 +2,21 @@ package com.constellio.model.services.records;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class StringRecordId implements RecordId {
 
-	private static Map<Integer, String> isMapping = new HashMap<>();
-	private static Map<String, Integer> siMapping = new HashMap<>();
+	private static StringRecordIdLegacyMapping mapping;
 
 	private int intValue;
 	private String id;
 
+	public static void setMapping(StringRecordIdLegacyMapping mapping) {
+		StringRecordId.mapping = mapping;
+	}
+
 	public StringRecordId(String id) {
 		this.id = id;
-
-		if (!isUUID(id)) {
-
-			this.intValue = Math.abs(id.hashCode()) * -1;
-			//The first 100 ids are reserved to handle eventual conflicts
-			if (intValue > -100) {
-				//Handling the zero hashcode
-				intValue -= 101;
-			}
-			String currentStrValue = isMapping.get(intValue);
-			if (currentStrValue == null) {
-				synchronized (StringRecordId.class) {
-					isMapping.put(intValue, id);
-					siMapping.put(id, intValue);
-				}
-			} else if (!id.equals(currentStrValue)) {
-				throw new IllegalArgumentException("Id '" + id + "' has same hashcode value than id '" + currentStrValue + "' : " + intValue);
-			}
-		}
 	}
 
 	private boolean isUUID(String id) {
@@ -42,7 +24,7 @@ public class StringRecordId implements RecordId {
 	}
 
 	public StringRecordId(int id) {
-		this.id = isMapping.get(id);
+		this.id = mapping.getStringId(id);
 		this.intValue = id;
 	}
 
@@ -54,7 +36,7 @@ public class StringRecordId implements RecordId {
 	@Override
 	public int intValue() {
 		if (intValue == 0) {
-			throw new IllegalStateException("UUIDs do not have an integer value");
+			intValue = mapping.getIntId(id);
 		}
 		return intValue;
 	}
@@ -109,7 +91,11 @@ public class StringRecordId implements RecordId {
 			return false;
 		}
 		StringRecordId that = (StringRecordId) o;
-		return Objects.equals(intValue, that.intValue);
+		if (intValue != 0 && that.intValue != 0) {
+			return Objects.equals(intValue, that.intValue);
+		} else {
+			return Objects.equals(id, that.id);
+		}
 	}
 
 	@Override
@@ -134,7 +120,4 @@ public class StringRecordId implements RecordId {
 		return id;
 	}
 
-	public static synchronized Map<String, Integer> getAnomaliesMap() {
-		return new HashMap<>(siMapping);
-	}
 }

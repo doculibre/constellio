@@ -29,11 +29,15 @@ public class BatchProcessTestFeature {
 	}
 
 	public void waitForAllBatchProcesses(Runnable batchProcessRuntimeAction, boolean acceptErrors) {
+		waitForAllBatchProcesses(batchProcessRuntimeAction, acceptErrors, -1);
+	}
+
+	public void waitForAllBatchProcesses(Runnable batchProcessRuntimeAction, boolean acceptErrors, long timeout) {
 		BatchProcessesManager batchProcessesManager = factoriesTestFeatures.newModelServicesFactory(DEFAULT_NAME)
 				.getBatchProcessesManager();
 		boolean batchProcessRuntimeActionExecuted = false;
 		if (!ConstellioTest.IS_FIRST_EXECUTED_TEST) {
-			batchProcessesManager.waitUntilAllFinished();
+			batchProcessesManager.waitUntilAllFinished(timeout);
 		}
 		List<BatchProcess> batchProcesses = batchProcessesManager.getAllNonFinishedBatchProcesses();
 		batchProcesses.addAll(batchProcessesManager.getFinishedBatchProcesses());
@@ -88,7 +92,7 @@ public class BatchProcessTestFeature {
 			factoriesTestFeatures.getConstellioFactories().getDataLayerFactory().getDataLayerLogger()
 					.setPrintAllQueriesLongerThanMS(10000);
 			factoriesTestFeatures.getConstellioFactories().getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(false);
-			waitForAllBatchProcesses(null, false);
+			waitForAllBatchProcesses(null, false, 2000);
 		}
 		//		if (started) {
 		//

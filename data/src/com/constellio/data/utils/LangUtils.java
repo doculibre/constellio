@@ -427,6 +427,12 @@ public class LangUtils {
 
 	}
 
+	public static <T> List<T> toSortedList(Set<T> values) {
+		List<T> sortedValues = new ArrayList<>(values);
+		sortedValues.sort(null);
+		return sortedValues;
+	}
+
 	public static class StringReplacer {
 
 		List<StringReplacement> stringReplacements = new ArrayList<>();
@@ -785,6 +791,12 @@ public class LangUtils {
 		}
 
 		return matches;
+	}
+
+	public static <T> List<T> asSortedList(T... values) {
+		List<T> sortedList = new ArrayList<T>(Arrays.asList(values));
+		sortedList.sort(null);
+		return sortedList;
 	}
 
 	public static <V extends Comparable> void findMatchesInSortedLists(List<V> list1, List<V> list2,

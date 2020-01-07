@@ -102,7 +102,7 @@ public class TaxonomyRecordsHookRetriever implements StatefulService {
 		SecurityModel securityModel = modelLayerFactory.newRecordServices().getSecurityModel(user.getCollection());
 
 		Set<RecordId> principalConceptsGivingAccess = new HashSet<>();
-		Set<Integer> ancestors = new HashSet<>(principalConcept.getList(Schemas.ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS));
+		Set<Integer> ancestors = new HashSet<>(principalConcept.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS));
 		ancestors.add(principalConcept.getRecordId().intValue());
 
 		Set<Integer> ancestorsSelfAndChildren = new HashSet<>(ancestors);

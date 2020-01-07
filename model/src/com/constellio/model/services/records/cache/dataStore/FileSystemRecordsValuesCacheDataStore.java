@@ -127,8 +127,11 @@ public class FileSystemRecordsValuesCacheDataStore {
 		try {
 			objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
 			objectOutputStream.writeInt(persistedData.length);
+			objectOutputStream.flush();
 			objectOutputStream.writeLong(memoryRecordDTO.getVersion());
+			objectOutputStream.flush();
 			objectOutputStream.write(persistedData);
+			objectOutputStream.flush();
 			objectOutputStream.writeShort(memoryRecordDTO.getTenantId());
 			objectOutputStream.writeByte(memoryRecordDTO.getCollectionId());
 			objectOutputStream.writeShort(memoryRecordDTO.getTypeId());
@@ -177,7 +180,13 @@ public class FileSystemRecordsValuesCacheDataStore {
 			int dataLength = objectInputStream.readInt();
 			objectInputStream.skipBytes(Long.BYTES);
 			byte[] returnedBytes = new byte[dataLength];
-			objectInputStream.read(returnedBytes);
+			for (int i = 0; i < returnedBytes.length; i++) {
+				returnedBytes[i] = objectInputStream.readByte();
+			}
+
+			//System.arraycopy(bytes, Integer.BYTES + Long.BYTES, returnedBytes, 0, returnedBytes.length);
+			//int results = objectInputStream.read(returnedBytes);
+			//System.out.println(results);
 			return returnedBytes;
 		} catch (IOException e) {
 			throw new RuntimeException(e);

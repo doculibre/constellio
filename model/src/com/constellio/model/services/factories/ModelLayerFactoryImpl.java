@@ -1,5 +1,6 @@
 package com.constellio.model.services.factories;
 
+import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
@@ -38,6 +39,9 @@ import com.constellio.model.services.parser.ForkParsers;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
+import com.constellio.model.services.records.StringRecordId;
+import com.constellio.model.services.records.StringRecordIdLegacyMemoryMapping;
+import com.constellio.model.services.records.StringRecordIdLegacyPersistedMapping;
 import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHook;
@@ -155,8 +159,28 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		dataLayerFactory.getEventBusManager().getEventDataSerializer().register(new RecordEventDataSerializerExtension(this));
 
 		this.modelLayerCachesManager = new ModelLayerCachesManager();
-
 		this.dataLayerFactory = dataLayerFactory;
+
+		add(new StatefulService() {
+			@Override
+			public void initialize() {
+				if (FoldersLocator.usingAppWrapper()) {
+					//Keeping mapping between runtimes
+					StringRecordId.setMapping(new StringRecordIdLegacyPersistedMapping(dataLayerFactory.getConfigManager()));
+
+				} else {
+					//Faster for tests
+					StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping());
+				}
+			}
+
+			@Override
+			public void close() {
+				StringRecordId.setMapping(null);
+			}
+		});
+
+
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
@@ -288,6 +312,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	@Override
 	public void postInitialization() {
 		recordsCaches.onPostLayerInitialization();
+
 
 	}
 

@@ -2,6 +2,7 @@ package com.constellio.model.entities.calculators.dependencies;
 
 import com.constellio.model.entities.Taxonomy;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,26 +13,24 @@ public class HierarchyDependencyValue {
 
 	private Taxonomy taxonomy;
 
-	private List<String> paths;
-	private List<String> removedAuthorizationIds;
-	private List<String> attachedAncestors;
-	private List<Integer> allAncestorExceptPrincipal;
-	private List<Integer> secondaryConceptAncestors;
-	private List<Integer> principalConceptAncestors;
+	private List<String> paths = new ArrayList<>();
+	private List<String> removedAuthorizationIds = new ArrayList<>();
+	private List<String> attachedAncestors = new ArrayList<>();
 
-	public HierarchyDependencyValue(Taxonomy taxonomy, List<String> paths,
-									List<String> removedAuthorizationIds,
-									List<String> attachedAncestors,
-									List<Integer> allAncestorExceptPrincipal,
-									List<Integer> secondaryConceptAncestors,
-									List<Integer> principalConceptAncestors) {
+	//private List<Integer> attachedPrincipalConceptsIntIds = new ArrayList<>();
+	private List<Integer> attachedPrincipalConceptsIntIdsFromParent = new ArrayList<>();
+
+	private List<Integer> principalAncestorsIntIds = new ArrayList<>();
+	private List<Integer> principalAncestorsIntIdsFromParent = new ArrayList<>();
+
+	private List<Integer> principalConceptsIntIds = new ArrayList<>();
+	private List<Integer> principalConceptsIntIdsFromParent = new ArrayList<>();
+
+	private List<Integer> secondaryConceptsIntIds = new ArrayList<>();
+	private List<Integer> secondaryConceptsIntIdsFromParent = new ArrayList<>();
+
+	public HierarchyDependencyValue(Taxonomy taxonomy) {
 		this.taxonomy = taxonomy;
-		this.paths = paths;
-		this.removedAuthorizationIds = removedAuthorizationIds;
-		this.attachedAncestors = attachedAncestors;
-		this.allAncestorExceptPrincipal = allAncestorExceptPrincipal;
-		this.secondaryConceptAncestors = secondaryConceptAncestors;
-		this.principalConceptAncestors = principalConceptAncestors;
 	}
 
 	public Taxonomy getTaxonomy() {
@@ -50,15 +49,31 @@ public class HierarchyDependencyValue {
 		return attachedAncestors;
 	}
 
-	public List<Integer> getSecondaryConceptAncestors() {
-		return secondaryConceptAncestors;
+	public List<Integer> getAttachedPrincipalConceptsIntIdsFromParent() {
+		return attachedPrincipalConceptsIntIdsFromParent;
 	}
 
-	public List<Integer> getPrincipalConceptAncestors() {
-		return principalConceptAncestors;
+	public List<Integer> getPrincipalAncestorsIntIds() {
+		return principalAncestorsIntIds;
 	}
 
-	public List<Integer> getAllAncestorExceptPrincipal() {
-		return allAncestorExceptPrincipal;
+	public List<Integer> getPrincipalAncestorsIntIdsFromParent() {
+		return principalAncestorsIntIdsFromParent;
+	}
+
+	public List<Integer> getPrincipalConceptsIntIds() {
+		return principalConceptsIntIds;
+	}
+
+	public List<Integer> getPrincipalConceptsIntIdsFromParent() {
+		return principalConceptsIntIdsFromParent;
+	}
+
+	public List<Integer> getSecondaryConceptsIntIds() {
+		return secondaryConceptsIntIds;
+	}
+
+	public List<Integer> getSecondaryConceptsIntIdsFromParent() {
+		return secondaryConceptsIntIdsFromParent;
 	}
 }

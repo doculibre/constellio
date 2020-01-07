@@ -76,21 +76,23 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 
 	Record set(Metadata metadata, Locale locale, Object value);
 
-	<T> T get(Metadata metadata);
+	<T> T get(Metadata metadata, GetMetadataOption... option);
 
-	<T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode);
+	<T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode, GetMetadataOption... option);
 
-	<T> T get(Metadata metadata, Locale locale);
+	<T> T get(Metadata metadata, Locale locale, GetMetadataOption... option);
 
-	<T> T getNonNullValueIn(List<Metadata> metadatas);
+	<T> T getNonNullValueIn(List<Metadata> metadatas, GetMetadataOption... option);
 
-	<T> List<T> getList(Metadata metadata);
+	<T> List<T> getList(Metadata metadata, GetMetadataOption... option);
 
-	<T> List<T> getList(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode);
+	<T> List<T> getList(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode,
+						GetMetadataOption... option);
 
-	<T> List<T> getValues(Metadata metadata);
+	<T> List<T> getValues(Metadata metadata, GetMetadataOption... option);
 
-	<T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode);
+	<T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode,
+						  GetMetadataOption... option);
 
 	MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes);
 
@@ -139,5 +141,9 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 	}
 
 	RecordDTO getRecordDTO();
+
+	enum GetMetadataOption {
+		NO_SUMMARY_METADATA_VALIDATION;
+	}
 
 }

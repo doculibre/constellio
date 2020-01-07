@@ -50,6 +50,10 @@ public class LocalDependency<T> implements Dependency {
 		return new LocalDependency<>(metadataCode, false, true, MetadataValueType.ENUM, false);
 	}
 
+	public static <T> LocalDependency<List<T>> toAnIntegerList(String metadataCode) {
+		return new LocalDependency<>(metadataCode, false, true, MetadataValueType.INTEGER, false);
+	}
+
 	public static LocalDependency<List<String>> toAStringList(String metadataCode) {
 		return new LocalDependency<>(metadataCode, false, true, MetadataValueType.STRING, false);
 	}

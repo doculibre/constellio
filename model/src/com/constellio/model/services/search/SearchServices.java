@@ -1330,11 +1330,14 @@ public class SearchServices {
 			params.add(CommonParams.SORT, sort);
 		}
 
-		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()
-			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
-			params.set(CommonParams.FL, "id");
-
-		} else if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().getAcceptedFields() != null) {
+		//		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()
+		//			&& modelLayerFactory != null
+		//			&& modelLayerFactory.getRecordsCaches() != null
+		//			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+		//			params.set(CommonParams.FL, "id");
+		//
+		//		} else
+		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().getAcceptedFields() != null) {
 			List<String> fields = new ArrayList<>();
 			fields.add("id");
 			fields.add("schema_s");

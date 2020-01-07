@@ -14,6 +14,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.services.records.RecordId;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -26,15 +27,45 @@ import static com.constellio.model.entities.security.TransactionSecurityModel.ha
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.DETACHED_AUTHORIZATIONS;
 import static java.util.Arrays.asList;
 
-public class AttachedAncestorsCalculator extends AbstractMetadataValueCalculator<List<String>> {
+public class AttachedAncestorsCalculator2 extends AbstractMetadataValueCalculator<List<String>> {
 
+	LocalDependency<List<Integer>> attachedDependency = LocalDependency.toAnIntegerList(CommonMetadataBuilder.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS);
+	LocalDependency<List<Integer>> detachedDependency = LocalDependency.toAnIntegerList(CommonMetadataBuilder.DETACHED_PRINCIPALS_ANCESTORS_INT_IDS);
+
+	//Required to fix a problem with calculator dependencies, but not directly used by this calculator
 	SpecialDependency<HierarchyDependencyValue> taxonomiesParam = SpecialDependencies.HIERARCHY;
+
 	LocalDependency<Boolean> isDetachedAuthsParams = LocalDependency.toABoolean(DETACHED_AUTHORIZATIONS);
 	SpecialDependency<SecurityModel> securityModelDependency = SpecialDependencies.SECURITY_MODEL;
 	MetadatasProvidingSecurityDynamicDependency metadatasProvidingSecurityParams = new MetadatasProvidingSecurityDynamicDependency();
 
+
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
+		Set<String> ancestors = new HashSet<>();
+
+		for (Integer attachedAncestor : parameters.get(attachedDependency)) {
+			if (attachedAncestor != 0) {
+				ancestors.add(RecordId.toId(attachedAncestor).stringValue());
+			}
+		}
+
+		for (Integer detachedAncestor : parameters.get(detachedDependency)) {
+			if (detachedAncestor != 0) {
+				ancestors.add("-" + RecordId.toId(detachedAncestor).stringValue());
+			}
+		}
+
+		List<String> legacyValues = legacyCalculate(parameters);
+		legacyValues.sort(null);
+
+
+		List<String> values = LangUtils.toSortedList(ancestors);
+		return values;
+	}
+
+
+	public List<String> legacyCalculate(CalculatorParameters parameters) {
 		SecurityModel securityModel = parameters.get(securityModelDependency);
 		HierarchyDependencyValue hierarchyDependencyValue = parameters.get(taxonomiesParam);
 
@@ -106,6 +137,6 @@ public class AttachedAncestorsCalculator extends AbstractMetadataValueCalculator
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return asList(taxonomiesParam, isDetachedAuthsParams, securityModelDependency, metadatasProvidingSecurityParams);
+		return asList(attachedDependency, detachedDependency, taxonomiesParam, isDetachedAuthsParams, securityModelDependency, metadatasProvidingSecurityParams);
 	}
 }

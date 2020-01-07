@@ -4,11 +4,11 @@ import com.constellio.model.entities.calculators.CalculatorParameters;
 
 import java.util.List;
 
-public class IntegerAttachedPrincipalConceptsAncestorsCalculator extends AbstractAncestorCalculator {
+public class IntegerDetachedPrincipalConceptsAncestorsCalculator extends AbstractAncestorCalculator {
 
 	@Override
 	public List<Integer> calculate(CalculatorParameters parameters) {
-		return (List<Integer>) calculateAttachedAndDetached(parameters).get("attached");
+		return (List<Integer>) calculateAttachedAndDetached(parameters).get("detached");
 	}
 
 }

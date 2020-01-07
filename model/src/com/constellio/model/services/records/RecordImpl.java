@@ -53,6 +53,7 @@ import java.util.Set;
 
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.NO_SUMMARY_METADATA_VALIDATION;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
@@ -355,24 +356,26 @@ public class RecordImpl implements Record {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T get(Metadata metadata, Locale locale) {
+	public <T> T get(Metadata metadata, Locale locale, GetMetadataOption... options) {
 		return get(metadata, locale == null ? collectionInfo.getMainSystemLocale().getLanguage() : locale.getLanguage(),
-				PREFERRING);
+				PREFERRING, options);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
-		return get(metadata, locale == null ? collectionInfo.getMainSystemLanguage().getCode() : locale.getLanguage(), mode);
+	public <T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode,
+					 GetMetadataOption... options) {
+		return get(metadata, locale == null ? collectionInfo.getMainSystemLanguage().getCode() : locale.getLanguage(), mode, options);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T get(Metadata metadata) {
-		return get(metadata, collectionInfo.getMainSystemLanguage().getCode(), STRICT);
+	public <T> T get(Metadata metadata, GetMetadataOption... options) {
+		return get(metadata, collectionInfo.getMainSystemLanguage().getCode(), STRICT, options);
 	}
 
-	private <T> T get(Metadata metadata, String language, LocalisedRecordMetadataRetrieval mode) {
+	private <T> T get(Metadata metadata, String language, LocalisedRecordMetadataRetrieval mode,
+					  GetMetadataOption... options) {
 
 		if (metadata == null) {
 			throw new RecordRuntimeException.RequiredMetadataArgument();
@@ -384,7 +387,8 @@ public class RecordImpl implements Record {
 		String codeAndType;
 
 
-		if (recordDTO != null && recordDTO.getLoadingMode() == RecordDTOMode.SUMMARY && !SchemaUtils.isSummary(metadata)) {
+		if (recordDTO != null && recordDTO.getLoadingMode() == RecordDTOMode.SUMMARY &&
+			!hasOption(options, NO_SUMMARY_METADATA_VALIDATION) && !metadata.isStoredInSummaryCache()) {
 			throw new IllegalArgumentException("Non summary metadata '" + metadata.getCode() + "' cannot be obtained on summary record");
 		}
 
@@ -415,7 +419,7 @@ public class RecordImpl implements Record {
 
 		String mainDataLanguage = collectionInfo.getMainSystemLanguage().getCode();
 		if (mode == PREFERRING && LangUtils.isNullOrEmptyCollection(returnedValue) && !language.equals(mainDataLanguage)) {
-			returnedValue = get(metadata, mainDataLanguage, STRICT);
+			returnedValue = get(metadata, mainDataLanguage, STRICT, options);
 		}
 
 		if (metadata.getEnumClass() != null && returnedValue != null) {
@@ -440,6 +444,13 @@ public class RecordImpl implements Record {
 		}
 
 		return returnedValue;
+	}
+
+	private boolean hasOption(GetMetadataOption[] options, GetMetadataOption option) {
+		for (int i = 0; i < options.length; i++) {
+			return options[i] == option;
+		}
+		return false;
 	}
 
 	private <T> T convertEnumValue(Metadata metadata, T returnedValue) {
@@ -529,10 +540,10 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
-	public <T> T getNonNullValueIn(List<Metadata> metadatas) {
+	public <T> T getNonNullValueIn(List<Metadata> metadatas, GetMetadataOption... options) {
 		T nonNullValue = null;
 		for (Metadata metadata : metadatas) {
-			Object value = get(metadata);
+			Object value = get(metadata, options);
 			if (value != null) {
 				if (nonNullValue == null) {
 					nonNullValue = (T) value;
@@ -546,8 +557,8 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
-	public <T> List<T> getList(Metadata metadata) {
-		Object value = get(metadata);
+	public <T> List<T> getList(Metadata metadata, GetMetadataOption... options) {
+		Object value = get(metadata, options);
 		if (value == null) {
 			return Collections.emptyList();
 		} else {
@@ -560,8 +571,9 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
-	public <T> List<T> getList(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
-		Object value = get(metadata, locale, mode);
+	public <T> List<T> getList(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode,
+							   GetMetadataOption... options) {
+		Object value = get(metadata, locale, mode, options);
 		if (value == null) {
 			return Collections.emptyList();
 		} else {
@@ -573,8 +585,8 @@ public class RecordImpl implements Record {
 		}
 	}
 
-	public <T> List<T> getValues(Metadata metadata) {
-		Object value = get(metadata);
+	public <T> List<T> getValues(Metadata metadata, GetMetadataOption... options) {
+		Object value = get(metadata, options);
 		if (value == null) {
 			return Collections.emptyList();
 		} else {
@@ -587,8 +599,9 @@ public class RecordImpl implements Record {
 		}
 	}
 
-	public <T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
-		Object value = get(metadata, locale, mode);
+	public <T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode,
+								 GetMetadataOption... options) {
+		Object value = get(metadata, locale, mode, options);
 		if (value == null) {
 			return Collections.emptyList();
 		} else {

@@ -365,7 +365,7 @@ public class GetChildrenContext {
 
 		for (Metadata metadata : classifiedType.getDefaultSchema().getMetadatas()) {
 			if ((metadata.getType() == MetadataValueType.REFERENCE)
-				&& fromType.getCode().equals(metadata.getReferencedSchemaType())
+				&& fromType.getCode().equals(metadata.getReferencedSchemaTypeCode())
 				&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
 			) {
 				return metadata;

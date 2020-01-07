@@ -1895,7 +1895,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 				.has(solrQueryCounts(1, 2, 0))
 				.has(secondSolrQueryCounts(1, 2, 0));
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(10000).setQueryDebuggingMode(false);
-		assertThat(queryCount.get()).isEqualTo(3);
+		assertThat(queryCount.get()).isEqualTo(1);
 	}
 
 	@Test

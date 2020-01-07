@@ -15,8 +15,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.constellio.model.entities.schemas.Schemas.ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS;
+import static com.constellio.model.entities.schemas.Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.PRINCIPALS_ANCESTORS_INT_IDS;
+import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_CONCEPTS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.SECONDARY_CONCEPTS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
@@ -54,7 +55,7 @@ public class TaxonomyRecordsHook implements MetadataIndexCacheDataStoreHook<Taxo
 
 	@Override
 	public boolean requiresDataUpdate(Record record) {
-		return record.isAnyModified(TOKENS, VISIBLE_IN_TREES, ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS, SECONDARY_CONCEPTS_INT_IDS);
+		return record.isAnyModified(TOKENS, VISIBLE_IN_TREES, ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS, SECONDARY_CONCEPTS_INT_IDS);
 	}
 
 	@Override
@@ -68,10 +69,13 @@ public class TaxonomyRecordsHook implements MetadataIndexCacheDataStoreHook<Taxo
 
 		List<RecordId> principalConcepts = record.<Integer>getList(PRINCIPALS_ANCESTORS_INT_IDS)
 				.stream().map(RecordId::toId).collect(toList());
-		List<RecordId> attachedPrincipalConcepts = record.<Integer>getList(ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS)
+		List<RecordId> attachedPrincipalConcepts = record.<Integer>getList(ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS)
 				.stream().map(RecordId::toId).collect(toList());
-		List<RecordId> allAncestorsExceptPrincipals = record.<Integer>getList(SECONDARY_CONCEPTS_INT_IDS)
+		List<RecordId> secondaryConceptsIntIds = record.<Integer>getList(SECONDARY_CONCEPTS_INT_IDS)
 				.stream().map(RecordId::toId).collect(toList());
+		List<RecordId> principalConceptsIntIds = record.<Integer>getList(PRINCIPAL_CONCEPTS_INT_IDS)
+				.stream().map(RecordId::toId).collect(toList());
+
 
 		Set<RecordId> principalIdsWithTokenReadAccess = new HashSet<>();
 		Set<RecordId> principalIdsWithTokenWriteAccess = new HashSet<>();
@@ -79,9 +83,15 @@ public class TaxonomyRecordsHook implements MetadataIndexCacheDataStoreHook<Taxo
 		for (String token : record.<String>getList(TOKENS)) {
 			if (token != null) {
 				if (token.startsWith("w_")) {
-					principalIdsWithTokenWriteAccess.add(toId(StringUtils.substringAfterLast(token, "_")));
+					RecordId recordId = toId(StringUtils.substringAfterLast(token, "_"));
+					//if (principalConceptsIntIds.contains(recordId)) {
+					principalIdsWithTokenWriteAccess.add(recordId);
+					//}
 				} else if (token.startsWith("r_")) {
-					principalIdsWithTokenReadAccess.add(toId(StringUtils.substringAfterLast(token, "_")));
+					RecordId recordId = toId(StringUtils.substringAfterLast(token, "_"));
+					//if (principalConceptsIntIds.contains(recordId)) {
+					principalIdsWithTokenReadAccess.add(recordId);
+					//}
 				}
 			}
 		}
@@ -89,7 +99,7 @@ public class TaxonomyRecordsHook implements MetadataIndexCacheDataStoreHook<Taxo
 		Set<TaxonomyRecordsHookKey> keys = new HashSet<>();
 		principalIdsWithTokenReadAccess.removeAll(principalIdsWithTokenWriteAccess);
 
-		for (RecordId secondaryTaxonomyRecordId : allAncestorsExceptPrincipals) {
+		for (RecordId secondaryTaxonomyRecordId : secondaryConceptsIntIds) {
 			keys.add(recordInSecondaryConcept(secondaryTaxonomyRecordId, visible));
 			for (RecordId principalId : principalIdsWithTokenReadAccess) {
 				keys.add(principalAccessOnRecordInConcept(principalId, secondaryTaxonomyRecordId, false, visible));
@@ -100,22 +110,30 @@ public class TaxonomyRecordsHook implements MetadataIndexCacheDataStoreHook<Taxo
 			}
 
 			for (RecordId principalRecordId : attachedPrincipalConcepts) {
-				keys.add(principalConceptAuthGivingAccessToRecordInSecondaryConceptKey(principalRecordId, secondaryTaxonomyRecordId, visible));
+				if (principalConceptsIntIds.contains(principalRecordId)) {
+					keys.add(principalConceptAuthGivingAccessToRecordInSecondaryConceptKey(principalRecordId, secondaryTaxonomyRecordId, visible));
+				}
 			}
 		}
 
-		for (RecordId secondaryTaxonomyRecordId : principalConcepts) {
+		for (RecordId principalRecordId : principalConcepts) {
 			for (RecordId principalId : principalIdsWithTokenReadAccess) {
-				keys.add(principalAccessOnRecordInConcept(principalId, secondaryTaxonomyRecordId, false, visible));
+				if (principalConceptsIntIds.contains(principalRecordId)) {
+					keys.add(principalAccessOnRecordInConcept(principalId, principalRecordId, false, visible));
+				}
 			}
 
 			for (RecordId principalId : principalIdsWithTokenWriteAccess) {
-				keys.add(principalAccessOnRecordInConcept(principalId, secondaryTaxonomyRecordId, true, visible));
+				if (principalConceptsIntIds.contains(principalRecordId)) {
+					keys.add(principalAccessOnRecordInConcept(principalId, principalRecordId, true, visible));
+				}
 			}
 		}
 
 		for (RecordId principalRecordId : attachedPrincipalConcepts) {
-			keys.add(attachedRecordInPrincipalConcept(principalRecordId, visible));
+			if (principalConceptsIntIds.contains(principalRecordId)) {
+				keys.add(attachedRecordInPrincipalConcept(principalRecordId, visible));
+			}
 		}
 
 		return keys;

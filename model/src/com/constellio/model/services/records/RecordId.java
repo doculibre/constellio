@@ -73,4 +73,14 @@ public interface RecordId extends Comparable, Serializable {
 			return new IntegerRecordId(intValue);
 		}
 	}
+
+	static List<String> toStringIds(List<Integer> intIds) {
+		List<String> stringIds = new ArrayList<>();
+
+		for (int intId : intIds) {
+			stringIds.add(RecordId.toId(intId).stringValue());
+		}
+
+		return stringIds;
+	}
 }

@@ -128,7 +128,11 @@ public class ConstellioTestSession {
 		}
 
 		if (batchProcessTestFeature != null) {
-			batchProcessTestFeature.afterTest();
+			try {
+				batchProcessTestFeature.afterTest();
+			} catch (RuntimeException e) {
+				exception = e;
+			}
 		}
 
 		if (saveStateFeature != null) {

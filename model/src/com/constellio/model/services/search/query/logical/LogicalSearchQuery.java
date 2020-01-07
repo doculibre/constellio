@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS_OF_HIERARCHY;
 import static com.constellio.model.entities.security.SecurityModelUtils.hasNegativeAccessOnSecurisedRecord;
 import static com.constellio.model.services.search.VisibilityStatusFilter.VISIBLES;
@@ -751,7 +750,6 @@ public class LogicalSearchQuery implements SearchQuery {
 
 			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(record).getDefaultSchema();
 
-			List<String> recordTokens = record.getList(schema.getMetadata(TOKENS.getLocalCode()));
 			List<String> tokensHierarchy = record.getList(schema.getMetadata(TOKENS_OF_HIERARCHY.getLocalCode()));
 
 			if (user.isActiveUser() && !user.hasCollectionAccess(this.access == null ? Role.READ : this.access)) {

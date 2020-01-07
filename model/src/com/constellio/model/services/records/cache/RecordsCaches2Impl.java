@@ -1108,7 +1108,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			}
 
 			if (stringBuilder.length() > 0) {
-				throw new IllegalArgumentException("Not same fields : " + stringBuilder.toString());
+				throw new IllegalArgumentException("Not same fields : " + stringBuilder.toString() + " for id '" + record.getId() + "'");
 			}
 
 		} else {

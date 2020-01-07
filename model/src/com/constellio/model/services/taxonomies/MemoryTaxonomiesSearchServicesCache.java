@@ -52,7 +52,7 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 	public synchronized void invalidateWithoutChildren(String recordId) {
 		if (recordId != null) {
 			TaxonomyRecordCache taxonomyRecordCache = cache.get(recordId);
-			if (taxonomyRecordCache != null) {
+  			if (taxonomyRecordCache != null) {
 				taxonomyRecordCache.removeWithoutChildren();
 			}
 		}

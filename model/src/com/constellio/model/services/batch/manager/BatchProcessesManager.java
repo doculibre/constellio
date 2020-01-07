@@ -17,6 +17,7 @@ import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.services.background.RecordsReindexingBackgroundAction;
 import com.constellio.model.services.batch.controller.BatchProcessState;
+import com.constellio.model.services.batch.manager.BatchProcessesManagerRuntimeException.BatchProcessesManagerRuntimeException_Timeout;
 import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -503,7 +505,12 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	public void waitUntilAllFinished() {
+		waitUntilAllFinished(-1);
+	}
 
+	public void waitUntilAllFinished(long timeout) {
+
+		long start = new Date().getTime();
 
 		for (int i = 0; i < 10; i++) {
 			for (BatchProcess batchProcess : getAllNonFinishedBatchProcesses()) {
@@ -524,7 +531,11 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 				while (searchServices.hasResults(query)
 					   && modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
-					recordsReindexingBackgroundAction.run(false);
+					if (timeout == -1 || new Date().getTime() - start < timeout) {
+						recordsReindexingBackgroundAction.run(false);
+					} else {
+						throw new BatchProcessesManagerRuntimeException_Timeout();
+					}
 				}
 			}
 		}

@@ -34,6 +34,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
@@ -61,6 +62,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
@@ -730,10 +732,12 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedLinkableTreesAcce
 		createFoldersAndSubFoldersWithNegativeAuths(records.getUnit20(), records.getCategory_X13());
 		waitForBatchProcess();
 
+		reindex();
 
 		assertThat(tokensOf("f1")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
 		assertThat(hierarchyTokensOf("f1")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
 		assertThat(tokensOf("f2")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(detachedAncestorIds("f3")).isEmpty();
 		assertThat(hierarchyTokensOf("f2")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
 		assertThat(tokensOf("f3")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
 		assertThat(hierarchyTokensOf("f3")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
@@ -755,6 +759,8 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedLinkableTreesAcce
 		assertThat(hierarchyTokensOf("f11")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks");
 		assertThat(tokensOf("f21")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
 		assertThat(hierarchyTokensOf("f21")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(detachedAncestorIds("f31")).containsOnly("f3");
+		assertThat(attachedAncestorIds("f31")).containsOnly("f31");
 		assertThat(tokensOf("f31")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_chuck", "nr_chuck", "nw_chuck", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
 		assertThat(hierarchyTokensOf("f31")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_chuck", "nr_chuck", "nw_chuck", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
 		assertThat(tokensOf("f32")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
@@ -836,6 +842,18 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedLinkableTreesAcce
 
 	private List<String> tokensOf(String recordId) {
 		return transformTokens(record(recordId).<String>getList(Schemas.TOKENS));
+	}
+
+
+	private List<String> detachedAncestorIds(String recordId) {
+		return record(recordId).<Integer>getList(Schemas.DETACHED_PRINCIPAL_ANCESTORS_INT_IDS)
+				.stream().map((intId) -> RecordId.id(intId).stringValue()).collect(Collectors.toList());
+	}
+
+
+	private List<String> attachedAncestorIds(String recordId) {
+		return record(recordId).<Integer>getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS)
+				.stream().map((intId) -> RecordId.id(intId).stringValue()).collect(Collectors.toList());
 	}
 
 

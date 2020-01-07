@@ -7,6 +7,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -49,6 +50,10 @@ public interface RecordsCache {
 
 	default void invalidateVolatileReloadPermanent(List<String> schemaTypes) {
 		invalidateVolatileReloadPermanent(schemaTypes, false);
+	}
+
+	default void invalidateVolatile(boolean onlyLocally) {
+		invalidateVolatileReloadPermanent(Collections.emptyList(), onlyLocally);
 	}
 
 	void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally);

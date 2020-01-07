@@ -94,9 +94,10 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 
 		//A01 is visible (active)
 
-		System.out.println("ALL_ANCESTORS_EXCEPT_PRINCIPALS:" + casquetteExpo.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
+		System.out.println("SECONDARY_CONCEPTS_INT_IDS:" + casquetteExpo.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
 		System.out.println("PRINCIPAL ANCESTORS:" + casquetteExpo.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS));
-		System.out.println("ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS:" + casquetteExpo.getList(Schemas.ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS));
+		System.out.println("ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS:" + casquetteExpo.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS));
+		System.out.println("PRINCIPAL_CONCEPTS:" + casquetteExpo.getList(Schemas.PRINCIPAL_CONCEPTS_INT_IDS));
 
 		TaxonomyRecordsHook hook = new TaxonomyRecordsHook(zeCollection, getModelLayerFactory());
 		assertThat(hook.getKeys(record(records.folder_A01))).containsOnly(
@@ -196,10 +197,11 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 
 		authServices.detach(casquetteExpo);
 		getModelLayerFactory().newRecordServices().refresh(casquetteExpo, gabriel);
-
-		System.out.println("ALL_ANCESTORS_EXCEPT_PRINCIPALS:" + casquetteExpo.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
+		System.out.println("--------");
+		System.out.println("SECONDARY_CONCEPTS_INT_IDS:" + casquetteExpo.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
 		System.out.println("PRINCIPAL ANCESTORS:" + casquetteExpo.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS));
-		System.out.println("ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS:" + casquetteExpo.getList(Schemas.ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS));
+		System.out.println("ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS:" + casquetteExpo.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS));
+		System.out.println("PRINCIPAL_CONCEPTS:" + casquetteExpo.getList(Schemas.PRINCIPAL_CONCEPTS_INT_IDS));
 
 		//bob_userInAC, charles_userInA, admin_userIdWithAllAccess);
 		//		List<String> managerInUnit10 = asList(dakota_managerInA_userInB, gandalf_managerInABC
@@ -455,9 +457,9 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 
 		//A01 is visible (active)
 
-		System.out.println("ALL_ANCESTORS_EXCEPT_PRINCIPALS:" + casquetteExpo.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
+		System.out.println("SECONDARY_CONCEPTS_INT_IDS:" + casquetteExpo.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
 		System.out.println("PRINCIPAL ANCESTORS:" + casquetteExpo.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS));
-		System.out.println("ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS:" + casquetteExpo.getList(Schemas.ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS));
+		System.out.println("ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS:" + casquetteExpo.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS));
 
 		TaxonomyRecordsHook hook = new TaxonomyRecordsHook(zeCollection, getModelLayerFactory());
 		assertThat(hook.getKeys(record(records.folder_A01))).containsOnly(
@@ -557,9 +559,9 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 		authServices.detach(casquetteExpo);
 		getModelLayerFactory().newRecordServices().refresh(casquetteExpo, gabriel);
 
-		System.out.println("ALL_ANCESTORS_EXCEPT_PRINCIPALS:" + casquetteExpo.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
+		System.out.println("SECONDARY_CONCEPTS_INT_IDS:" + casquetteExpo.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
 		System.out.println("PRINCIPAL ANCESTORS:" + casquetteExpo.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS));
-		System.out.println("ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS:" + casquetteExpo.getList(Schemas.ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS));
+		System.out.println("ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS:" + casquetteExpo.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS));
 
 		//bob_userInAC, charles_userInA, admin_userIdWithAllAccess);
 		//		List<String> managerInUnit10 = asList(dakota_managerInA_userInB, gandalf_managerInABC
@@ -912,7 +914,7 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 		authServices.add(AuthorizationAddRequest.authorizationForUsers(users.sasquatchIn(zeCollection)).on(rootUnusedAdministrativeUnit).givingReadAccess());
 		authServices.add(AuthorizationAddRequest.authorizationForUsers(users.sasquatchIn(zeCollection)).on(rootAdministrativeUnit).givingReadAccess());
 
-		assertThat(records.getUnit10a().<Integer>getList(Schemas.ATTACHED_PRINCIPAL_CONCEPTS_INT_IDS))
+		assertThat(records.getUnit10a().<Integer>getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS))
 				.containsOnly(RecordId.toIntId(records.unitId_10), RecordId.toIntId(records.unitId_10a));
 
 

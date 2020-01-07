@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.validators.FolderValidator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -20,11 +21,16 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.data.utils.Builder;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
@@ -37,6 +43,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.GetByIdCounter;
 import com.constellio.sdk.tests.QueryCounter;
@@ -63,6 +70,10 @@ import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE
 import static com.constellio.app.modules.rm.model.validators.FolderValidator.CATEGORY_CODE;
 import static com.constellio.app.modules.rm.model.validators.FolderValidator.RULE_CODE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.CODE;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.RecordId.toStringIds;
+import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.TestUtils.frenchMessages;
@@ -397,6 +408,156 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(childFolder.getCopyStatusEntered()).isNull();
 	}
 
+
+	@Test
+	public void givenFolderChildFolderAndDocumentsThenValidIntIdsMetadatas()
+			throws Exception {
+		ValueListServices valueListServices = new ValueListServices(getAppLayerFactory(), zeCollection);
+		Taxonomy taxonomy = valueListServices.createTaxonomy(asMap(Language.French, "test"), false);
+
+		MetadataSchema customTaxonomy = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getSchemaType(taxonomy.getSchemaTypes().get(0)).getDefaultSchema();
+
+		Transaction tx = new Transaction();
+
+		tx.add(recordServices.newRecordWithSchema(customTaxonomy, "v1").set(CODE, "v1").set(TITLE, "valeur 1"));
+		tx.add(recordServices.newRecordWithSchema(customTaxonomy, "v2").set(CODE, "v2").set(TITLE, "valeur 2"));
+		tx.add(recordServices.newRecordWithSchema(customTaxonomy, "v2a").set(CODE, "v2a").set(TITLE, "valeur 2a")
+				.set(customTaxonomy.get(HierarchicalValueListItem.PARENT), "v2"));
+		tx.add(recordServices.newRecordWithSchema(customTaxonomy, "v3").set(CODE, "v3").set(TITLE, "valeur 3"));
+		execute(tx);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema().create("taxo")
+						.defineTaxonomyRelationshipToType(types.getSchemaType(taxonomy.getSchemaTypes().get(0)));
+			}
+		});
+
+		Metadata folderCustomTaxoMetadata = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema().getMetadata("taxo");
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_11b);
+		folder.setDescription("Ze description");
+		folder.setCategoryEntered(records.categoryId_X110);
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setTitle("Ze folder");
+		folder.setMediumTypes(Arrays.asList(PA, MV));
+		folder.setUniformSubdivisionEntered(records.subdivId_2);
+		folder.setOpenDate(november4_2009);
+		folder.setCloseDateEntered(december12_2009);
+		folder.set(folderCustomTaxoMetadata, "v2a");
+		folder = saveAndLoad(folder);
+
+		Folder childFolder = rm.newFolder();
+		childFolder.setParentFolder(folder);
+		childFolder.setOpenDate(november4_2009);
+		childFolder.setTitle("Ze child folder");
+		childFolder.set(folderCustomTaxoMetadata, "v3");
+		childFolder = saveAndLoad(childFolder);
+
+		Folder childChildFolder = rm.newFolder();
+		childChildFolder.setParentFolder(childFolder);
+		childChildFolder.setOpenDate(november4_2009);
+		childChildFolder.setTitle("Ze child child folder");
+		childChildFolder = saveAndLoad(childChildFolder);
+
+		Document childFolderDoc = rm.newDocumentWithId("childFolderDoc");
+		childFolderDoc.setFolder(childFolder);
+		childFolderDoc.setTitle("Ze child child folder");
+		recordServices.add(childFolderDoc);
+
+		//SECONDARY_CONCEPTS_INT_IDS + PRINCIPALS_ANCESTORS_INT_IDS => PATH_PARTS
+
+		assertThat(toStringIds(folder.getList(Schemas.PRINCIPAL_CONCEPTS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10);
+		assertThat(toStringIds(folder.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS))).containsOnly(
+				records.categoryId_X110, records.categoryId_X100, records.categoryId_X, "v2a", "v2");
+		assertThat(toStringIds(folder.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10);
+		assertThat(toStringIds(folder.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId());
+		assertThat(folder.getList(Schemas.ATTACHED_ANCESTORS)).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId());
+
+
+		assertThat(toStringIds(childFolder.getList(Schemas.PRINCIPAL_CONCEPTS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10);
+		assertThat(toStringIds(childFolder.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS))).containsOnly(
+				records.categoryId_X110, records.categoryId_X100, records.categoryId_X, "v2a", "v2", "v3");
+		assertThat(toStringIds(childFolder.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId());
+		assertThat(toStringIds(childFolder.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId(), childFolder.getId());
+		assertThat(childFolder.getList(Schemas.ATTACHED_ANCESTORS)).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId(), childFolder.getId());
+
+
+		assertThat(toStringIds(childChildFolder.getList(Schemas.PRINCIPAL_CONCEPTS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10);
+		assertThat(toStringIds(childChildFolder.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS))).containsOnly(
+				records.categoryId_X110, records.categoryId_X100, records.categoryId_X, "v2a", "v2", "v3");
+		assertThat(toStringIds(childChildFolder.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId(), childFolder.getId());
+		assertThat(toStringIds(childChildFolder.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId(),
+				childFolder.getId(), childFolder.getId(), childChildFolder.getId());
+		assertThat(childChildFolder.getList(Schemas.ATTACHED_ANCESTORS)).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId(),
+				childFolder.getId(), childFolder.getId(), childChildFolder.getId());
+
+		assertThat(toStringIds(childFolderDoc.getList(Schemas.PRINCIPAL_CONCEPTS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10);
+		assertThat(toStringIds(childFolderDoc.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS))).containsOnly(
+				records.categoryId_X110, records.categoryId_X100, records.categoryId_X, "v2a", "v2", "v3");
+		assertThat(toStringIds(childFolderDoc.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId(), childFolder.getId());
+		assertThat(toStringIds(childFolderDoc.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId(),
+				childFolder.getId(), childFolder.getId(), childFolderDoc.getId());
+		assertThat(childFolderDoc.getList(Schemas.ATTACHED_ANCESTORS)).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId(),
+				childFolder.getId(), childFolder.getId(), childFolderDoc.getId());
+
+
+		new AuthorizationsServices(getModelLayerFactory()).detach(childFolder);
+		recordServices.refresh(childFolder, childChildFolder, childFolderDoc);
+
+		assertThat(toStringIds(childFolder.getList(Schemas.PRINCIPAL_CONCEPTS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10);
+		assertThat(toStringIds(childFolder.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS))).containsOnly(
+				records.categoryId_X110, records.categoryId_X100, records.categoryId_X, "v2a", "v2", "v3");
+		assertThat(toStringIds(childFolder.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId());
+		assertThat(toStringIds(childFolder.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS))).containsOnly(childFolder.getId());
+		assertThat(childFolder.getList(Schemas.ATTACHED_ANCESTORS)).containsOnly(childFolder.getId(), "-" + folder.getId());
+
+		assertThat(toStringIds(childChildFolder.getList(Schemas.PRINCIPAL_CONCEPTS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10);
+		assertThat(toStringIds(childChildFolder.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS))).containsOnly(
+				records.categoryId_X110, records.categoryId_X100, records.categoryId_X, "v2a", "v2", "v3");
+		assertThat(toStringIds(childChildFolder.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId(), childFolder.getId());
+		assertThat(toStringIds(childChildFolder.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS))).containsOnly(
+				childFolder.getId(), childChildFolder.getId());
+		assertThat(childChildFolder.getList(Schemas.ATTACHED_ANCESTORS)).containsOnly(
+				childFolder.getId(), childChildFolder.getId(), "-" + folder.getId());
+
+		assertThat(toStringIds(childFolderDoc.getList(Schemas.PRINCIPAL_CONCEPTS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10);
+		assertThat(toStringIds(childFolderDoc.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS))).containsOnly(
+				records.categoryId_X110, records.categoryId_X100, records.categoryId_X, "v2a", "v2", "v3");
+		assertThat(toStringIds(childFolderDoc.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS))).containsOnly(
+				records.unitId_11b, records.unitId_11, records.unitId_10, folder.getId(), childFolder.getId());
+		assertThat(toStringIds(childFolderDoc.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS))).containsOnly(
+				childFolder.getId(), childFolderDoc.getId());
+		assertThat(childFolderDoc.getList(Schemas.ATTACHED_ANCESTORS)).containsOnly(
+				childFolder.getId(), childFolderDoc.getId(), "-" + folder.getId());
+
+	}
 
 	@Test
 	public void givenChildFolderWhenChangingEnteredValuesThenNoQueries()

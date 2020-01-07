@@ -259,10 +259,7 @@ public class LogicalSearchQueryExecutorInCache {
 		if (value instanceof String
 			&& !dataStoreField.isEncrypted() && (dataStoreField.isUniqueValue() || dataStoreField.isCacheIndex())) {
 
-			if (dataStoreField.getLocalCode().equals(Schemas.LEGACY_ID.getLocalCode()) && !constellioEIMConfigs.isLegacyIdentifierIndexedInMemory()) {
-				return false;
-			}
-
+			return !(dataStoreField.getLocalCode().equals(Schemas.LEGACY_ID.getLocalCode()) && !constellioEIMConfigs.isLegacyIdentifierIndexedInMemory());
 		}
 		return false;
 	}
