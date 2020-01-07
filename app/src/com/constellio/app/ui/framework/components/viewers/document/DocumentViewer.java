@@ -9,6 +9,7 @@ import com.constellio.model.services.contents.ContentManager;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ResourceReference;
+import com.vaadin.server.VaadinService;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
@@ -165,7 +166,12 @@ public class DocumentViewer extends CustomComponent {
 				String contentURL = contentResourceReference.getURL();
 
 				String localeStr = getLocale().getLanguage();
-				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/pdfjs/web/viewer.html?locale=" + localeStr + "&file=../../../../../" + contentURL + "\" width=\"100%\" height=\"100%\" allowfullscreen webkitallowfullscreen></iframe>";
+				String contextPath = VaadinService.getCurrentRequest().getContextPath();
+				if (!StringUtils.endsWith(contextPath, "/")) {
+					contextPath += "/";
+				}
+
+				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/pdfjs/web/viewer.html?locale=" + localeStr + "&file=" + contextPath + contentURL + "\" width=\"100%\" height=\"100%\" allowfullscreen webkitallowfullscreen></iframe>";
 				compositionRoot = new Label(iframeHTML, ContentMode.HTML);
 				compositionRoot.setWidth(widthStr);
 				compositionRoot.setHeight(heightStr);

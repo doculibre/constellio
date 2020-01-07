@@ -2421,17 +2421,19 @@ $popup-view-z-index: 3;
     .v-menubar-submenu.menubar-rtl {
     	.v-menubar-menuitem {
     		clear: both;
+    		text-align: right;
 
 	    	.v-menubar-menuitem-caption {
-	    		text-align: right;
-	    		float: right;
-	    		
 	    		.v-icon {
 	    			float: right;
 	    			padding-left: 10px;
 	    		}
 	    	}
     	}
+    }
+    
+    .v-multifileupload-uploads {
+    	float: left;
     }
     
     .header-action-menu.v-menubar-submenu.menubar-rtl, .header-collection-menu.v-menubar-submenu.menubar-rtl {
@@ -4356,6 +4358,10 @@ $popup-view-z-index: 3;
 					}
 				}
 				
+				.search-result-title {
+					text-align: right;
+				}
+				
 				.search-result-with-elevation-buttons .search-result-title {
 					padding-right: initial;
 					padding-left: 30px;
@@ -4739,7 +4745,7 @@ $popup-view-z-index: 3;
 			.gwt-MenuBar {
 				overflow-y: auto;
 			}
-
+		
 			.action-menu {
 		        right: inherit;
 		        left: 20px;
