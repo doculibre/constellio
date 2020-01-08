@@ -70,9 +70,7 @@ public class ContentVersionVOTable extends BaseTable {
 		this.isShowingSystemFileName = isShowingSystemFileName;
 		this.selectedContentVersions = new HashSet<>();
 
-		if (isSelectionColumn()) {
-			addContainerProperty(CHECK_BOX, CheckBox.class, null);
-		}
+		addContainerProperty(CHECK_BOX, CheckBox.class, null);
 		addContainerProperty(FILE_NAME, DownloadContentVersionLink.class, null);
 		addContainerProperty(VERSION, String.class, null);
 		addContainerProperty(LENGTH, String.class, null);
@@ -129,14 +127,6 @@ public class ContentVersionVOTable extends BaseTable {
 		return false;
 	}
 
-	protected boolean isSelectionColumn() {
-		return false;
-	}
-
-	protected boolean isSelectionPossible(ContentVersionVO contentVersionVO) {
-		return isDeletePossible(contentVersionVO);
-	}
-
 	protected boolean isDeletePossible(ContentVersionVO contentVersionVO) {
 		return false;
 	}
@@ -177,12 +167,7 @@ public class ContentVersionVOTable extends BaseTable {
 
 			final Object itemId = addItem();
 			Item item = getItem(itemId);
-			final CheckBox checkBox = new CheckBox() {
-				@Override
-				public boolean isVisible() {
-					return isSelectionPossible(contentVersion);
-				}
-			};
+			final CheckBox checkBox = new CheckBox();
 			checkBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
@@ -196,10 +181,7 @@ public class ContentVersionVOTable extends BaseTable {
 			});
 			checkBox.setValue(selectedContentVersions.contains(contentVersion));
 
-			if (isSelectionColumn()) {
-				item.getItemProperty(CHECK_BOX).setValue(checkBox);
-			}
-
+			item.getItemProperty(CHECK_BOX).setValue(checkBox);
 			item.getItemProperty(FILE_NAME).setValue(new DownloadContentVersionLink(contentVersion, fileName));
 			item.getItemProperty(VERSION).setValue(version);
 			item.getItemProperty(LENGTH).setValue(lengthCaption);
