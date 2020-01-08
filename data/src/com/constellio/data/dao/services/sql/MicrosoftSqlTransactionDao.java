@@ -58,7 +58,7 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	@Override
 	public void insertBulk(List<TransactionSqlDTO> dtos) throws SQLException {
 
-		String insertQuery = "INSERT INTO " + fullTableName+ " WITH (TABLOCK) "
+		String insertQuery = "INSERT INTO " + fullTableName + " WITH (TABLOCK) "
 							 + " (id, transactionUUID,timestamp, logVersion, transactionSummary, content) "
 							 + "VALUES (default, ?, CURRENT_TIMESTAMP, ?, ?, ?)";
 
@@ -129,7 +129,7 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 
 		ResultSetHandler<TransactionSqlDTO> handler = new BeanHandler<>(TransactionSqlDTO.class);
 
-		String fetchQuery = "SELECT TOP 1 * FROM "+fullTableName+" WHERE transactionUUID=?";
+		String fetchQuery = "SELECT TOP 1 * FROM " + fullTableName + " WHERE transactionUUID=?";
 
 		TransactionSqlDTO dto = queryRunner.query(connector.getConnection(),
 				fetchQuery, handler, transactionId);
@@ -146,12 +146,12 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	public List<TransactionSqlDTO> getAll() throws SQLException {
 		ResultSetHandler<List<TransactionSqlDTO>> handler = new BeanListHandler<>(TransactionSqlDTO.class);
 
-		String fecthQuery = "SELECT * FROM "+fullTableName;
+		String fecthQuery = "SELECT * FROM " + fullTableName;
 
 		List<TransactionSqlDTO> dto = queryRunner.query(connector.getConnection(),
 				fecthQuery, handler);
 
-		if(dto == null){
+		if (dto == null) {
 			return new ArrayList<>();
 		}
 
@@ -161,17 +161,17 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	@Override
 	public List<TransactionSqlDTO> getAll(int top) throws SQLException {
 
-		if(top<1){
+		if (top < 1) {
 			return getAll();
 		}
 		ResultSetHandler<List<TransactionSqlDTO>> handler = new BeanListHandler<>(TransactionSqlDTO.class);
 
-		String fecthQuery = "SELECT TOP("+top+") * FROM "+fullTableName;
+		String fecthQuery = "SELECT TOP(" + top + ") * FROM " + fullTableName;
 
 		List<TransactionSqlDTO> dto = queryRunner.query(connector.getConnection(),
 				fecthQuery, handler);
 
-		if(dto == null){
+		if (dto == null) {
 			return new ArrayList<>();
 		}
 
@@ -181,7 +181,7 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	@Override
 	public void delete(String id) throws SQLException {
 
-		String deleteQuery = "DELETE FROM "+fullTableName+" WHERE id =?";
+		String deleteQuery = "DELETE FROM " + fullTableName + " WHERE id =?";
 		queryRunner.execute(connector.getConnection(),
 				deleteQuery, id);
 	}
@@ -189,17 +189,17 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	@Override
 	public void deleteAll() throws SQLException {
 
-		String deleteQuery = "DELETE FROM "+fullTableName+" WHERE id is not null";
+		String deleteQuery = "DELETE FROM " + fullTableName + "";
 		queryRunner.execute(connector.getConnection(),
 				deleteQuery);
 	}
 
 	@Override
 	public void deleteAll(String[] ids) throws SQLException {
-		if(ids.length > 0) {
-			String joinedIds = "'"+ String.join("','",ids)+"'";
+		if (ids.length > 0) {
+			String joinedIds = "'" + String.join("','", ids) + "'";
 
-			String deleteQuery = String.format("DELETE FROM " + fullTableName + " WHERE id IN (%s)",joinedIds);
+			String deleteQuery = String.format("DELETE FROM " + fullTableName + " WHERE id IN (%s)", joinedIds);
 			queryRunner.execute(connector.getConnection(),
 					deleteQuery);
 		}
@@ -212,7 +212,7 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 
 	@Override
 	public void deleteAllByLogVersion(int logVersion) throws SQLException {
-		String deleteQuery = "DELETE FROM "+fullTableName+" WHERE logVersion < ?";
+		String deleteQuery = "DELETE FROM " + fullTableName + " WHERE logVersion < ?";
 
 		queryRunner.execute(connector.getConnection(),
 				deleteQuery, logVersion);
@@ -222,7 +222,7 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	@Override
 	public void update(TransactionSqlDTO dto) throws SQLException {
 
-		String updateQuery = "UPDATE "+fullTableName+" tr "
+		String updateQuery = "UPDATE " + fullTableName + " tr "
 							 + "SET tr.transactionUUID=?, tr.timestamp=?, tr.logVersion=?, tr.transactionSummary=?, tr.content=?) "
 							 + "WHERE id=?";
 		queryRunner.update(connector.getConnection(), updateQuery,
@@ -273,9 +273,9 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	@Override
 	public long getTableCount() throws SQLException {
 		ScalarHandler<Integer> scalarHandler = new ScalarHandler<>();
-		String fetchQuery = "SELECT COUNT(*) FROM "+fullTableName;
+		String fetchQuery = "SELECT COUNT(*) FROM " + fullTableName;
 
-		long count = ((Number)queryRunner.query(connector.getConnection(),
+		long count = ((Number) queryRunner.query(connector.getConnection(),
 				fetchQuery, scalarHandler)).longValue();
 
 		return count;

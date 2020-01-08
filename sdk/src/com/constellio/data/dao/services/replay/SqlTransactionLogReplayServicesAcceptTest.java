@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -87,7 +88,7 @@ public class SqlTransactionLogReplayServicesAcceptTest extends ConstellioTest {
 
 		givenCollection(zeCollection).withAllTestUsers();
 
-		defineSchemasManager().using(schemas.withAStringMetadata().withAContentMetadata(whichIsSearchable));
+		defineSchemasManager().using(schemas.withAStringMetadata().withATitle().withAContentMetadata(whichIsSearchable).withAMultivaluedLargeTextMetadata().withABooleanMetadata());
 
 		reindexServices = getModelLayerFactory().newReindexingServices();
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -140,10 +141,33 @@ public class SqlTransactionLogReplayServicesAcceptTest extends ConstellioTest {
 		assertThat(content).isEqualTo("Guide d'architecture logiciel");
 	}
 
-	@After
-	public void tearDown() throws SQLException {
-		getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).resetVersion();
-		getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll();
-		getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).deleteAll();
+	@Test
+	public void givenRecordWithParsedContentWithMultipleValuesWithAnUpdateThenCanReplayWithoutProblems()
+			throws Exception {
+
+		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		ContentVersionDataSummary data = contentManager
+				.upload(getTestResourceInputStreamFactory("guide.pdf").create(SDK_STREAM));
+
+		Record record1 = new TestRecord(zeSchema, "zeRecord");
+		record1.set(zeSchema.stringMetadata(), "Guide d'architecture");
+		record1.set(zeSchema.contentMetadata(), contentManager.createMajor(admin, "guide.pdf", data));
+		record1.set(zeSchema.booleanMetadata(), true);
+		record1.set(zeSchema.title(), "zeRecord");
+		record1.set(zeSchema.multivaluedLargeTextMetadata(), Arrays.asList(new String[]{"PDF", "DOCX", "TXT"}));
+		recordServices.add(record1);
+
+		record1.set(zeSchema.stringMetadata(), "Guide d'architecture logiciel");
+		record1.set(zeSchema.multivaluedLargeTextMetadata(), Arrays.asList(new String[]{"PDF", "DOCX"}));
+		recordServices.update(record1);
+
+		log.regroupAndMove();
+		log.destroyAndRebuildSolrCollection();
+
+		String content = recordServices.getDocumentById("zeRecord").get(zeSchema.stringMetadata());
+		assertThat(content).isEqualTo("Guide d'architecture logiciel");
 	}
+
+
 }

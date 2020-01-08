@@ -1,6 +1,12 @@
 package com.constellio.data.dao.services.transactionLog.sql;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class TransactionDocumentLogContent {
@@ -39,7 +45,26 @@ public class TransactionDocumentLogContent {
 		this.fields = fields;
 	}
 
-	public void addField(String key, String fieldValue) {
-		this.fields.put(key,fieldValue);
+	public void addField(String key, String fieldValue) throws IOException {
+		if (this.fields.containsKey(key)) {
+			fieldValue = buildMultiValue(key, fieldValue);
+		}
+		this.fields.put(key, fieldValue);
+	}
+
+	private String buildMultiValue(String key, String fieldValue) throws IOException {
+		String oldValue = this.fields.get(key);
+		List<String> multiValue = new ArrayList<>();
+		ObjectMapper mapper = new ObjectMapper();
+		if (!oldValue.startsWith("[")) {
+
+			multiValue.add(oldValue);
+			multiValue.add(fieldValue);
+		} else {
+			multiValue = new ArrayList<String>(Arrays.asList(mapper.readValue(oldValue, String[].class)));
+			multiValue.add(fieldValue);
+		}
+		fieldValue = mapper.writeValueAsString(multiValue);
+		return fieldValue;
 	}
 }

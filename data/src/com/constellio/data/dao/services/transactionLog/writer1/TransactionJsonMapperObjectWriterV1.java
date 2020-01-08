@@ -12,6 +12,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -43,21 +44,22 @@ public class TransactionJsonMapperObjectWriterV1 {
 		return ow.writeValueAsString(content);
 	}
 
-	public String toJsonString(BigVaultServerTransaction content) throws JsonProcessingException{
+	public String toJsonString(BigVaultServerTransaction content) throws IOException {
 
 		return toJsonString(toJsonContentEntry(content));
 	}
+
 	public String toLogEntry(BigVaultServerTransaction transaction) {
 
 		try {
 			return toJsonString(transaction);
-		} catch (JsonProcessingException e) {
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 
 	}
 
-	public TransactionLogContent toJsonContentEntry(BigVaultServerTransaction transaction) {
+	public TransactionLogContent toJsonContentEntry(BigVaultServerTransaction transaction) throws IOException {
 
 		TransactionLogContent transactionLogContent = new TransactionLogContent();
 		transactionLogContent.setTransactionId(transaction.getTransactionId());
@@ -88,7 +90,7 @@ public class TransactionJsonMapperObjectWriterV1 {
 		return transactionLogContent;
 	}
 
-	protected TransactionDocumentLogContent appendAddUpdateSolrDocument(SolrDocumentBase document) {
+	protected TransactionDocumentLogContent appendAddUpdateSolrDocument(SolrDocumentBase document) throws IOException {
 
 		TransactionDocumentLogContent transactionDocumentLogContent = new TransactionDocumentLogContent();
 		String id = (String) document.getFieldValue("id");
@@ -97,7 +99,7 @@ public class TransactionJsonMapperObjectWriterV1 {
 		if (version instanceof String) {
 			version_s = (String) version;
 		} else if (version instanceof Long) {
-			version_s = ""+( version);
+			version_s = "" + (version);
 		} else {
 			version_s = null;
 			//throw new ImpossibleRuntimeException("Invalid schema of type");
@@ -116,7 +118,7 @@ public class TransactionJsonMapperObjectWriterV1 {
 		}
 		String collection_s = (String) document.getFieldValue("collection_s");
 		transactionDocumentLogContent.setId(id);
-		transactionDocumentLogContent.setVersion(version == null ? "-1": version_s);
+		transactionDocumentLogContent.setVersion(version == null ? "-1" : version_s);
 
 		Collection<String> fieldNames = document.getFieldNames();
 		for (String name : fieldNames) {
@@ -129,6 +131,7 @@ public class TransactionJsonMapperObjectWriterV1 {
 					for (Object item : value) {
 
 						String fieldLogName = name;
+
 						if (item instanceof Map) {
 							Map<String, Object> mapItemValue = ((Map<String, Object>) item);
 							String firstKey = mapItemValue.keySet().iterator().next();
@@ -182,11 +185,13 @@ public class TransactionJsonMapperObjectWriterV1 {
 		}
 	}
 
-	private void appendValue(TransactionDocumentLogContent transactionDocumentLogContent, String fieldLogName, Object item) {
+	private void appendValue(TransactionDocumentLogContent transactionDocumentLogContent, String fieldLogName,
+							 Object item)
+			throws IOException {
 		//if (!"".equals(item)) {
 		String correctedValue = correct(item);
 		if (correctedValue != null) {
-			transactionDocumentLogContent.addField(fieldLogName,correctedValue);
+			transactionDocumentLogContent.addField(fieldLogName, correctedValue);
 		}
 		//}
 	}

@@ -44,7 +44,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	@Override
 	public void insert(RecordTransactionSqlDTO dto) throws SQLException {
 
-		String insertQuery = "INSERT INTO "+fullTableName
+		String insertQuery = "INSERT INTO " + fullTableName
 							 + " (id, recordId, solrVersion, content) WITH (TABLOCK) "
 							 + "VALUES ( default , ?, ?, ?)";
 
@@ -68,7 +68,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 		final int batchSize = 1000;
 		int count = 0;
 
-		for (RecordTransactionSqlDTO transactions: dtos) {
+		for (RecordTransactionSqlDTO transactions : dtos) {
 
 			ps.setString(1, transactions.getRecordId());
 			ps.setInt(2, transactions.getLogVersion());
@@ -76,7 +76,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 			ps.setString(4, transactions.getContent());
 			ps.addBatch();
 
-			if(++count % batchSize == 0) {
+			if (++count % batchSize == 0) {
 				ps.executeBatch();
 			}
 		}
@@ -96,7 +96,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 		final int batchSize = 1000;
 		int count = 0;
 
-		for (RecordTransactionSqlDTO transactions: dtos) {
+		for (RecordTransactionSqlDTO transactions : dtos) {
 
 			ps.setInt(1, transactions.getLogVersion());
 			ps.setString(2, transactions.getSolrVersion());
@@ -104,7 +104,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 			ps.setString(4, transactions.getRecordId());
 			ps.addBatch();
 
-			if(++count % batchSize == 0) {
+			if (++count % batchSize == 0) {
 				ps.executeBatch();
 			}
 		}
@@ -128,7 +128,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	public RecordTransactionSqlDTO get(String recordId) throws SQLException {
 
 		ResultSetHandler<RecordTransactionSqlDTO> handler = new BeanHandler<>(RecordTransactionSqlDTO.class);
-		String fetchQuery = "SELECT TOP 1 * FROM "+fullTableName+" WHERE recordId=?";
+		String fetchQuery = "SELECT TOP 1 * FROM " + fullTableName + " WHERE recordId=?";
 
 		RecordTransactionSqlDTO dto = queryRunner.query(connector.getConnection(),
 				fetchQuery, handler, recordId);
@@ -148,7 +148,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 		List<RecordTransactionSqlDTO> dto = queryRunner.query(connector.getConnection(),
 				"SELECT * FROM records", handler);
 
-		if(dto == null){
+		if (dto == null) {
 			return new ArrayList<>();
 		}
 		return dto;
@@ -157,15 +157,15 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	@Override
 	public List<RecordTransactionSqlDTO> getAll(int top) throws SQLException {
 
-		if(top<1){
+		if (top < 1) {
 			return getAll();
 		}
 		ResultSetHandler<List<RecordTransactionSqlDTO>> handler = new BeanListHandler<>(RecordTransactionSqlDTO.class);
 
 		List<RecordTransactionSqlDTO> dto = queryRunner.query(connector.getConnection(),
-				"SELECT TOP("+top+") * FROM records", handler);
+				"SELECT TOP(" + top + ") * FROM records", handler);
 
-		if(dto == null){
+		if (dto == null) {
 			return new ArrayList<>();
 		}
 		return dto;
@@ -173,7 +173,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 
 	@Override
 	public void delete(String id) throws SQLException {
-		String deleteQuery = "DELETE FROM "+fullTableName+" WHERE id =?";
+		String deleteQuery = "DELETE FROM " + fullTableName + " WHERE id =?";
 		queryRunner.execute(connector.getConnection(),
 				deleteQuery, id);
 	}
@@ -181,7 +181,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	@Override
 	public void deleteAll() throws SQLException {
 
-		String deleteQuery = "DELETE FROM "+fullTableName+" WHERE id is not null";
+		String deleteQuery = "DELETE FROM " + fullTableName + "";
 		queryRunner.execute(connector.getConnection(),
 				deleteQuery);
 	}
@@ -189,10 +189,10 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	@Override
 	public void deleteAll(String[] ids) throws SQLException {
 
-		if(ids.length > 0) {
-			String joinedIds = "'"+ String.join("','",ids)+"'";
+		if (ids.length > 0) {
+			String joinedIds = "'" + String.join("','", ids) + "'";
 
-			String deleteQuery = String.format("DELETE FROM " + fullTableName + " WHERE IN (%s)",joinedIds);
+			String deleteQuery = String.format("DELETE FROM " + fullTableName + " WHERE IN (%s)", joinedIds);
 			queryRunner.execute(connector.getConnection(),
 					deleteQuery);
 		}
@@ -200,8 +200,8 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 
 	@Override
 	public void deleteAll(List<String> ids) throws SQLException {
-		String deleteQuery = "DELETE FROM "+fullTableName+" WHERE recordId = ?";
-		for (String id: ids) {
+		String deleteQuery = "DELETE FROM " + fullTableName + " WHERE recordId = ?";
+		for (String id : ids) {
 			queryRunner.execute(connector.getConnection(),
 					deleteQuery, id);
 		}
@@ -209,17 +209,17 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 
 	@Override
 	public void deleteAllByLogVersion(int logVersion) throws SQLException {
-		String deleteQuery = "DELETE FROM "+fullTableName+" WHERE logVersion < ?";
+		String deleteQuery = "DELETE FROM " + fullTableName + " WHERE logVersion < ?";
 
-			queryRunner.execute(connector.getConnection(),
-					deleteQuery, logVersion);
+		queryRunner.execute(connector.getConnection(),
+				deleteQuery, logVersion);
 
 	}
 
 	@Override
 	public void update(RecordTransactionSqlDTO dto) throws SQLException {
 
-		String updateQuery = "UPDATE "+fullTableName+" tr "
+		String updateQuery = "UPDATE " + fullTableName + " tr "
 							 + "SET tr.recordId=?, vtr.solrVersion=?, tr.content=?) "
 							 + "WHERE id=?";
 		queryRunner.update(connector.getConnection(), updateQuery, dto.getRecordId(),
@@ -270,9 +270,9 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	public long getTableCount() throws SQLException {
 
 		ScalarHandler<Long> scalarHandler = new ScalarHandler<>();
-		String fetchQuery = "SELECT COUNT(*) FROM "+fullTableName;
+		String fetchQuery = "SELECT COUNT(*) FROM " + fullTableName;
 
-		long count = ((Number)queryRunner.query(connector.getConnection(),
+		long count = ((Number) queryRunner.query(connector.getConnection(),
 				fetchQuery, scalarHandler)).longValue();
 
 		return count;

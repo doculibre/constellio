@@ -53,7 +53,7 @@ public class TransactionJsonMapperObjectReaderV1 {
 	}
 
 
-	public List<TransactionDocumentLogContent>  transactionDocumentLogSqlContentArrayDeserialize(String json) {
+	public List<TransactionDocumentLogContent> transactionDocumentLogSqlContentArrayDeserialize(String json) {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {
@@ -65,13 +65,14 @@ public class TransactionJsonMapperObjectReaderV1 {
 		}
 	}
 
-	public BigVaultServerTransaction reBuildBigVaultServerTransaction(String transactionDocumentLogContent) {
+	public BigVaultServerTransaction reBuildBigVaultServerTransaction(String transactionDocumentLogContent)
+			throws IOException {
 
 		return reBuildBigVaultServerTransaction(transactionDocumentLogSqlContentDeserialize(transactionDocumentLogContent));
 	}
 
 	public BigVaultServerTransaction reBuildBigVaultServerTransaction(
-			TransactionDocumentLogContent transactionDocumentLogContent) {
+			TransactionDocumentLogContent transactionDocumentLogContent) throws IOException {
 
 		if (transactionDocumentLogContent == null) {
 			return null;
@@ -99,16 +100,18 @@ public class TransactionJsonMapperObjectReaderV1 {
 		}
 		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW());
 
-
-
-		addOperationsToTransaction(transaction, transactionDocumentLogContent);
-
+		try {
+			addOperationsToTransaction(transaction, transactionDocumentLogContent);
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
 
 		return transaction;
 	}
 
 	private void addOperationToTransaction(BigVaultServerTransaction transaction,
-										   TransactionDocumentLogContent transactionDocumentLogContent) {
+										   TransactionDocumentLogContent transactionDocumentLogContent)
+			throws IOException {
 
 
 		String id = transactionDocumentLogContent.getId();
@@ -119,10 +122,11 @@ public class TransactionJsonMapperObjectReaderV1 {
 	}
 
 	private void addOperationsToTransaction(BigVaultServerTransaction transaction,
-										   List<TransactionDocumentLogContent> transactionDocumentLogContents) {
+											List<TransactionDocumentLogContent> transactionDocumentLogContents)
+			throws IOException {
 
 
-		for(TransactionDocumentLogContent transactionDocumentLogContent : transactionDocumentLogContents) {
+		for (TransactionDocumentLogContent transactionDocumentLogContent : transactionDocumentLogContents) {
 			String id = transactionDocumentLogContent.getId();
 			String version = transactionDocumentLogContent.getVersion();
 			SolrInputDocument document = buildAddUpdateDocument(transactionDocumentLogContent.getFields(), id);
@@ -132,8 +136,9 @@ public class TransactionJsonMapperObjectReaderV1 {
 
 	}
 
-	private SolrInputDocument buildAddUpdateDocument(Map<String, String> currentAddUpdateLines, String id) {
-		KeyListMap<String, Object> fieldValues = new KeyListMap<>();
+	private SolrInputDocument buildAddUpdateDocument(Map<String, String> currentAddUpdateLines, String id)
+			throws IOException {
+		KeyListMap<String, String> fieldValues = new KeyListMap<>();
 
 
 		for (Entry<String, String> documentField : currentAddUpdateLines.entrySet()) {
@@ -163,10 +168,11 @@ public class TransactionJsonMapperObjectReaderV1 {
 		}
 	}
 
-	private SolrInputDocument buildAddUpdateDocument(String id, KeyListMap<String, Object> fieldValues) {
+	private SolrInputDocument buildAddUpdateDocument(String id, KeyListMap<String, String> fieldValues)
+			throws IOException {
 		SolrInputDocument inputDocument = new ConstellioSolrInputDocument();
 		inputDocument.setField("id", id);
-		for (Map.Entry<String, List<Object>> entry : fieldValues.getMapEntries()) {
+		for (Map.Entry<String, List<String>> entry : fieldValues.getMapEntries()) {
 			String fieldName = entry.getKey();
 			String atomicOperation = null;
 			int indexOfSpace = fieldName.indexOf(" ");
@@ -175,10 +181,11 @@ public class TransactionJsonMapperObjectReaderV1 {
 				fieldName = fieldName.substring(indexOfSpace + 1);
 			}
 
-			List<Object> values = entry.getValue();
-
-			Object value = entry.getValue();
-			if (!SolrUtils.isMultivalue(fieldName)) {
+			Object value;
+			if (entry.getValue().get(0).startsWith("[")) {
+				ObjectMapper mapper = new ObjectMapper();
+				value = Arrays.asList(mapper.readValue(entry.getValue().get(0), String[].class));
+			} else {
 				value = entry.getValue().get(0);
 			}
 

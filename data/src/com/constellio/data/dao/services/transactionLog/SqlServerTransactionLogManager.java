@@ -373,19 +373,20 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 		this.transactionLogSqlRecoveryManager.disableRollbackModeDuringSolrRestore();
 		try {
-			long recordsCount =this.sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).getTableCount();
-			for (long i = 0; i < recordsCount; i = i + 1000){
+			long recordsCount = this.sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).getTableCount();
+			for (long i = 0; i < recordsCount; i = i + 1000) {
 				List<RecordTransactionSqlDTO> tRecords = this.sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).getAll(1000);
 				if (!tRecords.isEmpty()) {
 					clearSolrCollection();
 					new SqlTransactionLogReplayServices(newReadWriteSqlServices(), bigVaultServer, dataLayerLogger)
 							.replayTransactionLogs(tRecords);
+
+					this.sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(tRecords.stream().map(x -> x.getId()).collect(Collectors.toList()));
 				}
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-
 		}
 
 	}
@@ -661,7 +662,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		}
 		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 
-		return "["+ow.writeValueAsString(inputDocument)+"]";
+		return "[" + ow.writeValueAsString(inputDocument) + "]";
 	}
 
 	private int getLogVersion() throws SQLException {
