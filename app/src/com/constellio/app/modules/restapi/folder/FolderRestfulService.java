@@ -2,6 +2,7 @@ package com.constellio.app.modules.restapi.folder;
 
 import com.constellio.app.modules.restapi.core.exception.AtLeastOneParameterRequiredException;
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterCombinationException;
+import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
 import com.constellio.app.modules.restapi.core.exception.ParametersMustMatchException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
@@ -141,7 +142,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(summary = "Update folder", description = "Update a folder (metadata only)")
+	@Operation(summary = "Update folder", description = "Update a folder")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name = "ETag", description = "Concurrency control version of the folder"),
 					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Folder"))),
@@ -169,15 +170,42 @@ public class FolderRestfulService extends ResourceRestfulService {
 						   @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
 						   @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
-		// TODO::JOLA --> Handle update request
+		validateRequiredParametersIncludingId(id, serviceKey, method, date, expiration, signature);
+		validateRequiredParameter(folder, "folder");
+		validateFlushValue(flush);
+		validateFilterValues(FolderDto.class, filters);
+		validateHttpMethod(method, HttpMethods.PUT);
 
-		return Response.noContent().build();
+		if (!id.equals(folder.getId())) {
+			throw new ParametersMustMatchException("id", "folder.id");
+		}
+		if (Strings.isNullOrEmpty(folder.getTitle())) {
+			throw new RequiredParameterException("folder.title");
+		}
+		if (folder.getCategory() == null) {
+			throw new RequiredParameterException("folder.category");
+		}
+		if (folder.getAdministrativeUnit() == null) {
+			throw new RequiredParameterException("folder.administrativeUnit");
+		}
+		if (folder.getOpeningDate() == null) {
+			throw new RequiredParameterException("folder.openingDate");
+		}
+
+		validateFolder(folder);
+
+		validateETag(eTag);
+		folder.setETag(unquoteETag(eTag));
+
+		FolderDto folderDto = folderService.update(host, id, serviceKey, method, date, expiration, signature, folder, true, flush, filters);
+
+		return Response.ok(folderDto).tag(folderDto.getETag()).build();
 	}
 
 	@PATCH
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(summary = "Patch folder", description = "Update a folder partially (metadata only)")
+	@Operation(summary = "Patch folder", description = "Update a folder partially")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name = "ETag", description = "Concurrency control version of the folder"),
 					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Folder"))),
@@ -242,7 +270,15 @@ public class FolderRestfulService extends ResourceRestfulService {
 						   @Parameter(required = true, description = "Signature") @QueryParam("signature") String signature,
 						   @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
-		// TODO::JOLA --> Handle delete request
+		validateRequiredParametersIncludingId(id, serviceKey, method, date, expiration, signature);
+		validateHttpMethod(method, HttpMethods.DELETE);
+
+		if (physical != null && !physical.equals("true") && !physical.equals("false")) {
+			throw new InvalidParameterException("physical", physical);
+		}
+		Boolean physicalValue = physical != null ? Boolean.valueOf(physical) : null;
+
+		folderService.delete(host, id, serviceKey, method, date, expiration, physicalValue, signature);
 
 		return Response.noContent().build();
 	}

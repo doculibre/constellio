@@ -123,6 +123,17 @@ public class FolderService extends ResourceService {
 		return getAdaptor().adapt(folderDto, copiedFolderRecord, folderSchema, acesModified, filters);
 	}
 
+	public void delete(String host, String id, String serviceKey, String method, String date, int expiration,
+					   Boolean physical, String signature) throws Exception {
+		validateParameters(host, id, serviceKey, method, date, expiration, null, physical, null, signature);
+
+		Record folder = getRecord(id, false);
+		User user = getUser(serviceKey, folder.getCollection());
+		validateUserAccess(user, folder, method);
+
+		folderDao.deleteFolder(user, folder, Boolean.TRUE.equals(physical));
+	}
+
 	@Override
 	protected BaseDao getDao() {
 		return folderDao;

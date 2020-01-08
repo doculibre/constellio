@@ -1085,6 +1085,10 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 	}
 
+	//
+	// MERGE
+	//
+
 	@Test
 	public void testCreateConsolidatedDocument() throws Exception {
 		addUsrMetadata(MetadataValueType.STRING, null, null);
