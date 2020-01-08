@@ -894,6 +894,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	protected boolean saveSearch(String title, boolean publicAccess, List<String> sharedUsers,
 								 List<String> sharedGroups) {
+		if (StringUtils.isBlank(title)) {
+			view.showErrorMessage($("SearchView.errorSearchTitleEmpty"));
+			return false;
+		}
+
 		Record record = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		SavedSearch search = new SavedSearch(record, types())
 				.setTitle(title)
