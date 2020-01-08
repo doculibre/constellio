@@ -49,6 +49,10 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		addCompressedProperties();
 	}
 
+	protected boolean isShowThumbnailCol() {
+		return true;
+	}
+
 	public RecordVOContainer getRecordVOContainer() {
 		return recordVOContainer;
 	}
@@ -66,7 +70,7 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		for (Object propertyId : propertyIds) {
 			removeContainerProperty(propertyId);
 		}
-		if (!ResponsiveUtils.isPhone()) {
+		if (!ResponsiveUtils.isPhone() && isShowThumbnailCol()) {
 			addContainerProperty(THUMBNAIL_PROPERTY, Image.class, null);
 		}
 		addContainerProperty(SEARCH_RESULT_PROPERTY, Component.class, null);
@@ -86,8 +90,8 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		}
 		return result;
 	}
-	
-	private Property<Image> newThumbnailProperty(final Object itemId) {
+
+	protected Property<Image> newThumbnailProperty(final Object itemId) {
 		return new AbstractProperty<Image>() {
 			@Override
 			public Image getValue() {
