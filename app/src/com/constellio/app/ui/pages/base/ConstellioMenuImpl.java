@@ -346,6 +346,13 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		String firstName = currentUser.getFirstName();
 		String lastName = currentUser.getLastName();
 
+		StringBuilder userNameBuilder = new StringBuilder();
+		userNameBuilder.append(firstName);
+		if (StringUtils.isNotBlank(lastName)) {
+			userNameBuilder.append(" ");
+			userNameBuilder.append(lastName);
+		}
+
 		//		if (currentUser.getEmail() != null && currentUser.getEmail().startsWith("elizabeth.madera")) {
 		//			userSettingsItem = userMenu.addItem("", new ThemeResource("images/profiles/egg2.jpg"), null);
 		//
@@ -363,7 +370,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			StreamResource resource = new StreamResource(source, currentUser.getUsername() + ".png");
 			userSettingsItem = userMenu.addItem("", resource, null);
 		}
-		userSettingsItem.setText("<span class=\"user-caption\">" + firstName + " " + lastName + "</span>");
+		userSettingsItem.setText("<span class=\"user-caption\">" + userNameBuilder.toString() + "</span>");
 		userSettingsItem.setStyleName(STYLE_USER_SETTINGS);
 
 		userSettingsItem.addItem($("ConstellioMenu.editProfile"), new Command() {
