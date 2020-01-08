@@ -133,7 +133,7 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 		commentsLayout.addComponent(addCommentsComponent);
 		commentsLayout.setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
 
-		final Label noCommentLabel = new Label($("TaskTable.details.noComment"));
+		final Label noCommentLabel = new Label($("RecordCommentsDisplayImpl.noComment"));
 		noCommentLabel.addStyleName("record-no-comment");
 		if (comments.isEmpty()) {
 			commentsLayout.addComponent(noCommentLabel);
@@ -147,7 +147,7 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 
 	protected Component newCommentForm(final Comment newComment, final Window window,
 									   final VerticalLayout commentsLayout) {
-		BaseTextArea commentField = new BaseTextArea();
+		BaseTextArea commentField = new BaseTextArea($("comment"));
 		commentField.setWidth("100%");
 		FieldAndPropertyId commentFieldAndPropertyId = new FieldAndPropertyId(commentField, "message");
 		BaseForm<Comment> commentForm = new BaseForm<Comment>(newComment, Arrays.asList(commentFieldAndPropertyId)) {
@@ -155,6 +155,8 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 			protected void saveButtonClick(Comment newComment) throws ValidationException {
 				if (commentAdded(newComment)) {
 					window.close();
+				} else {
+					showErrorMessage($("RecordCommentsDisplayImpl.errorBlankComment"));
 				}
 			}
 
@@ -168,7 +170,7 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 	}
 
 	protected Component newAddCommentComponent(final VerticalLayout commentsLayout) {
-		addCommentButton = new WindowButton($("TaskTable.details.addComment"), $("TaskTable.details.addComment"), WindowConfiguration.modalDialog("400px", "280px")) {
+		addCommentButton = new WindowButton($("RecordCommentsDisplayImpl.addComment"), $("RecordCommentsDisplayImpl.addComment"), WindowConfiguration.modalDialog("400px", "280px")) {
 			@Override
 			protected Component buildWindowContent() {
 				Comment newComment = new Comment();
