@@ -130,6 +130,7 @@ public class FolderService extends ResourceService {
 		Record folder = getRecord(id, false);
 		User user = getUser(serviceKey, folder.getCollection());
 		validateUserAccess(user, folder, method);
+		validateUserDeleteAccessOnHierarchy(user, folder);
 
 		folderDao.deleteFolder(user, folder, Boolean.TRUE.equals(physical));
 	}

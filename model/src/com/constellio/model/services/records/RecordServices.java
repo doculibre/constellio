@@ -236,4 +236,5 @@ public interface RecordServices {
 
 	boolean isValueAutomaticallyFilled(Metadata metadata, Supplier<Record> record);
 
+	RecordDeleteServices newRecordDeleteServices();
 }

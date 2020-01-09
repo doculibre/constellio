@@ -21,6 +21,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 
 import javax.annotation.PostConstruct;
@@ -39,6 +40,7 @@ public abstract class BaseDao {
 	protected RecordServices recordServices;
 	protected SearchServices searchServices;
 	protected UserServices userServices;
+	protected AuthorizationsServices authorizationServices;
 	protected SchemasRecordsServices schemas;
 
 	@PostConstruct
@@ -53,6 +55,7 @@ public abstract class BaseDao {
 		recordServices = modelLayerFactory.newRecordServices();
 		searchServices = modelLayerFactory.newSearchServices();
 		userServices = modelLayerFactory.newUserServices();
+		authorizationServices = modelLayerFactory.newAuthorizationsServices();
 		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
