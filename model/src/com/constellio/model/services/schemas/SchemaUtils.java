@@ -33,8 +33,10 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.entities.schemas.Schemas.MIGRATION_DATA_VERSION;
+import static com.constellio.model.entities.schemas.Schemas.MODIFIED_ON;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 
 public class SchemaUtils {
@@ -308,6 +310,7 @@ public class SchemaUtils {
 			case STRING:
 				summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
 						  || LEGACY_ID.isSameLocalCode(metadata)
+						  || CREATED_ON.isSameLocalCode(metadata) || MODIFIED_ON.isSameLocalCode(metadata)
 						  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary()
 						  || metadata.isCacheIndex() || Schemas.TOKENS.getLocalCode().equals(metadata.getLocalCode())
 						  || Schemas.ALL_REMOVED_AUTHS.getLocalCode().equals(metadata.getLocalCode())
