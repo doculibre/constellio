@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -17,9 +10,16 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.PendingAlert;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Folder extends RMObject {
 	public static final String SCHEMA_TYPE = "folder";
@@ -952,6 +952,10 @@ public class Folder extends RMObject {
 
 	public boolean hasContent() {
 		return getBooleanWithDefaultValue(HAS_CONTENT, false);
+	}
+
+	public boolean isSummary() {
+		return getWrappedRecord().getLoadedFieldsMode() != RecordDTOMode.FULLY_LOADED;
 	}
 }
 

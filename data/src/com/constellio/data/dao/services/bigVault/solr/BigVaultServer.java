@@ -151,6 +151,7 @@ public class BigVaultServer implements Cloneable {
 			throws BigVaultException.CouldNotExecuteQuery {
 		int currentAttempt = 0;
 		long start = new Date().getTime();
+
 		final QueryResponse response = tryQuery(params, currentAttempt);
 		if (response.getResults() != null) {
 			final int resultsSize = response.getResults().size();

@@ -14,21 +14,21 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator2;
 
-public class RMMigrationTo9_0_49 implements MigrationScript {
+public class RMMigrationTo9_0_50 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.0.49";
+		return "9.0.40";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
-		new SchemaAlterationFor9_0_49(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor9_0_50(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	private class SchemaAlterationFor9_0_49 extends MetadataSchemasAlterationHelper {
-		SchemaAlterationFor9_0_49(String collection, MigrationResourcesProvider migrationResourcesProvider,
+	private class SchemaAlterationFor9_0_50 extends MetadataSchemasAlterationHelper {
+		SchemaAlterationFor9_0_50(String collection, MigrationResourcesProvider migrationResourcesProvider,
 								  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}

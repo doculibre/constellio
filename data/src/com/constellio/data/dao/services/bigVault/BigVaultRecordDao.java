@@ -509,6 +509,16 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	public QueryResponseDTO query(String queryName, SolrParams params) {
+
+		String[] fqs = params.getParams("fq");
+		if (fqs != null) {
+			for (String fq : fqs) {
+				if ("collection_s:inexistentCollection42".equals(fq)) {
+					return QueryResponseDTO.EMPTY;
+				}
+			}
+		}
+
 		QueryResponse response = nativeQuery(queryName, params);
 		boolean partialFields = params.get(CommonParams.FL) != null;
 

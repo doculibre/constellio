@@ -1,5 +1,6 @@
 package com.constellio.data.dao.dto.records;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +23,10 @@ public class QueryResponseDTO {
 
 	private boolean correctlySpelt;
 	private List<String> spellCheckerSuggestions;
+
+	public static QueryResponseDTO EMPTY = new QueryResponseDTO(Collections.emptyList(), 0, 0L, Collections.emptyMap(),
+			Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(),
+			Collections.emptyMap(), true, Collections.emptyList(), Collections.emptyList());
 
 	public QueryResponseDTO(List<RecordDTO> results, int qtime, long numFound,
 							Map<String, List<FacetValue>> fieldFacetValues,
