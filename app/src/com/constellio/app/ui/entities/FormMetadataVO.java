@@ -30,6 +30,7 @@ public class FormMetadataVO implements Serializable {
 	boolean facet;
 	boolean highlight;
 	boolean autocomplete;
+	boolean availableInSummary;
 	boolean enabled;
 	String metadataGroup;
 	MetadataInputType input;
@@ -50,7 +51,7 @@ public class FormMetadataVO implements Serializable {
 						  boolean advancedSearch,
 						  boolean facet,
 						  MetadataInputType input, MetadataDisplayType displayType, boolean highlight,
-						  boolean autocomplete, boolean enabled,
+						  boolean autocomplete, boolean availableInSummary, boolean enabled,
 						  String metadataGroup,
 						  Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue,
 						  Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual) {
@@ -75,6 +76,7 @@ public class FormMetadataVO implements Serializable {
 		this.displayType = displayType;
 		this.highlight = highlight;
 		this.autocomplete = autocomplete;
+		this.availableInSummary = availableInSummary;
 		this.enabled = enabled;
 		this.metadataGroup = metadataGroup;
 		this.defaultValue = defaultValue;
@@ -106,6 +108,7 @@ public class FormMetadataVO implements Serializable {
 		this.displayType = null;
 		this.highlight = false;
 		this.autocomplete = false;
+		this.availableInSummary = false;
 		this.enabled = true;
 		this.metadataGroup = "";
 		this.inputMask = "";
@@ -288,6 +291,14 @@ public class FormMetadataVO implements Serializable {
 
 	public void setAutocomplete(boolean autocomplete) {
 		this.autocomplete = autocomplete;
+	}
+
+	public boolean isAvailableInSummary() {
+		return availableInSummary;
+	}
+
+	public void setAvailableInSummary(boolean availableInSummary) {
+		this.availableInSummary = availableInSummary;
 	}
 
 	public void setRequired(boolean required) {

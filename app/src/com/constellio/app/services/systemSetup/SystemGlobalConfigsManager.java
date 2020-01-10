@@ -11,9 +11,12 @@ public class SystemGlobalConfigsManager implements StatefulService {
 
 	public final static String SYSTEM_GLOBAL_PROPERTIES = "/globalProperties";
 	final static String MARKED_FOR_REINDEXING = "markedForReindexing";
+	final static String MARKED_FOR_CACHE_REBUILD = "markedForCacheRebuild";
 	final static String REINDEXING_REQUIRED = "reindexingRequired";
+	final static String CACHE_REBUILD_REQUIRED = "cacheRebuildRequired";
 	final static String RESTART_REQUIRED = "restartRequired";
 	final static String LAST_REINDEXING_FAILED = "lastReindexingFailed";
+	final static String FAIL_SAFE_MODE_ENABLED = "failSafeModeEnabled";
 	final static String MAIN_DATA_LANGUAGE = "mainLanguage";
 	final static String TOKEN_DURATION = "tokenDuration";
 	final static String NOTIFICATION_MINUTES = "notificationMinutes";
@@ -67,6 +70,31 @@ public class SystemGlobalConfigsManager implements StatefulService {
 	public void setReindexingRequired(boolean value) {
 		setProperty(REINDEXING_REQUIRED, value ? "true" : "false");
 	}
+
+	public boolean isCacheRebuildRequired() {
+		return "true".equals(getGlobalProperties().get(CACHE_REBUILD_REQUIRED));
+	}
+
+	public void setCacheRebuildRequired(boolean value) {
+		setProperty(CACHE_REBUILD_REQUIRED, value ? "true" : "false");
+	}
+
+	public boolean isMarkedForCacheRebuild() {
+		return "true".equals(getGlobalProperties().get(MARKED_FOR_CACHE_REBUILD));
+	}
+
+	public void setMarkedForCacheRebuild(boolean value) {
+		setProperty(MARKED_FOR_CACHE_REBUILD, value ? "true" : "false");
+	}
+
+	public boolean isFailSafeModeEnabled() {
+		return "true".equals(getGlobalProperties().get(FAIL_SAFE_MODE_ENABLED));
+	}
+
+	public void setFailSafeModeEnabled(boolean value) {
+		setProperty(FAIL_SAFE_MODE_ENABLED, value ? "true" : "false");
+	}
+
 
 	public boolean isRestartRequired() {
 		return "true".equals(getGlobalProperties().get(RESTART_REQUIRED));

@@ -56,6 +56,7 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.factories.ModelPostInitializationParams;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexationParams;
@@ -359,13 +360,23 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 	}
 
 	public void postInitialization() {
-		modelLayerFactory.postInitialization();
+		modelLayerFactory.postInitialization(new ModelPostInitializationParams()
+				.setRebuildCacheFromSolr(systemGlobalConfigsManager.isMarkedForCacheRebuild())
+				.setCacheLoadingFinishedCallback(() -> {
+					if (systemGlobalConfigsManager.isMarkedForCacheRebuild()) {
+						systemGlobalConfigsManager.setMarkedForCacheRebuild(false);
+						systemGlobalConfigsManager.setCacheRebuildRequired(false);
+					}
+				}));
+
 		pluginManager.configure();
 
 		if (modelLayerFactory.newReindexingServices().isLockFileExisting()) {
 			//Last reindexing was interrupted...
 			systemGlobalConfigsManager.setLastReindexingFailed(true);
-			dataLayerFactory.getSecondTransactionLogManager().moveLastBackupAsCurrentLog();
+			if (dataLayerFactory.getSecondTransactionLogManager() != null) {
+				dataLayerFactory.getSecondTransactionLogManager().moveLastBackupAsCurrentLog();
+			}
 			modelLayerFactory.newReindexingServices().removeLockFile();
 		}
 

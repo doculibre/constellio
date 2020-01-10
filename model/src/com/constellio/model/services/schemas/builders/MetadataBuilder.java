@@ -71,6 +71,7 @@ public class MetadataBuilder {
 	private boolean sortable = false;
 	private boolean encrypted = false;
 	private boolean essentialInSummary = false;
+	private boolean availableInSummary = false;
 	private boolean multiLingual;
 	private boolean markedForDeletion = false;
 	private boolean increasedDependencyLevel = false;
@@ -231,6 +232,7 @@ public class MetadataBuilder {
 		builder.encrypted = metadata.isEncrypted();
 		builder.essential = metadata.isEssential();
 		builder.essentialInSummary = metadata.isEssentialInSummary();
+		builder.availableInSummary = metadata.isAvailableInSummary();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
 		builder.relationshipProvidingSecurity = metadata.isRelationshipProvidingSecurity();
@@ -282,6 +284,7 @@ public class MetadataBuilder {
 		builder.essential = metadata.isEssential();
 		builder.cacheIndex = metadata.isCacheIndex();
 		builder.essentialInSummary = metadata.isEssentialInSummary();
+		builder.availableInSummary = metadata.isAvailableInSummary();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
 		builder.relationshipProvidingSecurity = metadata.isRelationshipProvidingSecurity();
@@ -549,6 +552,11 @@ public class MetadataBuilder {
 		return inheritance == null ? essentialInSummary : inheritance.essentialInSummary;
 	}
 
+	public boolean isAvailableInSummary() {
+		return inheritance == null ? availableInSummary : inheritance.availableInSummary;
+	}
+
+
 	public MetadataBuilder setEssential(boolean essential) {
 		ensureCanModify("essential");
 		this.essential = essential;
@@ -561,6 +569,12 @@ public class MetadataBuilder {
 	public MetadataBuilder setEssentialInSummary(boolean essentialInSummary) {
 		ensureCanModify("essentialInSummary");
 		this.essentialInSummary = essentialInSummary;
+		return this;
+	}
+
+	public MetadataBuilder setAvailableInSummary(boolean availableInSummary) {
+		ensureCanModify("availableInSummary");
+		this.availableInSummary = availableInSummary;
 		return this;
 	}
 
@@ -582,6 +596,7 @@ public class MetadataBuilder {
 		ensureCanModify("markedForDeletion");
 		if (markedForDeletion) {
 			setEssentialInSummary(false);
+			setAvailableInSummary(false);
 			setEssential(false);
 			setDefaultRequirement(false);
 			setEnabled(false);
@@ -824,7 +839,7 @@ public class MetadataBuilder {
 				.instanciateWithoutExpectableExceptions(structureFactoryClass);
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
-				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion, customAttributes,
+				essential, encrypted, essentialInSummary, availableInSummary, multiLingual, markedForDeletion, customAttributes,
 				increasedDependencyLevel, relationshipProvidingSecurity, transiency, dependencyOfAutomaticMetadata, cacheIndex);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();

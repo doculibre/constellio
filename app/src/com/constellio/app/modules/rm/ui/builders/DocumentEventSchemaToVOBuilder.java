@@ -40,7 +40,8 @@ public class DocumentEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 											   Object defaultValue, String inputMask,
 											   Set<String> customAttributes, boolean isMultiLingual, Locale locale,
 											   Map<String, Object> customParameters,
-											   CollectionInfoVO collectionInfoVO, boolean sortable) {
+											   CollectionInfoVO collectionInfoVO, boolean sortable,
+											   boolean summaryMetadata) {
 				MetadataVO metadataVO;
 				String modifiedOnCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(Schemas.MODIFIED_ON.getCode());
 				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
@@ -56,7 +57,7 @@ public class DocumentEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									metadataDisplayType, allowedReferences,
 									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
-									isMultiLingual, locale, customParameters, collectionInfoVO, sortable);
+									isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata);
 				} else {
 					metadataVO = super
 							.newMetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue,
@@ -64,7 +65,7 @@ public class DocumentEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									metadataDisplayType, allowedReferences,
 									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
-									isMultiLingual, locale, customParameters, collectionInfoVO, sortable);
+									isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata);
 				}
 				return metadataVO;
 			}

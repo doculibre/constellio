@@ -4,6 +4,7 @@ import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.factories.ModelPostInitializationParams;
 import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.cache.cacheIndexConditions.SortedIdsStreamer;
 import com.constellio.model.services.records.cache.cacheIndexHook.MetadataIndexCacheDataStoreHook;
@@ -115,7 +116,7 @@ public interface RecordsCaches {
 
 	Stream<Record> getRecordsSummaryByIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata, String value);
 
-	void onPostLayerInitialization();
+	void onPostLayerInitialization(ModelPostInitializationParams params);
 
 	void markAsInitialized(MetadataSchemaType schemaType);
 
@@ -135,7 +136,6 @@ public interface RecordsCaches {
 
 	<K> RecordIdsHookDataIndexRetriever<K> registerRecordIdsHook(
 			String collection, MetadataIndexCacheDataStoreHook hook);
-
 
 	MetadataIndexCacheDataStore getMetadataIndexCacheDataStore();
 

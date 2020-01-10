@@ -112,7 +112,7 @@ public class Metadata implements DataStoreField {
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false,
 				multivalue, false, false, false, false, false,
-				false, false, false, false, false,
+				false, false, false, false, false, false,
 				false, multiLingual, false, new HashSet<String>(), false,
 				false, PERSISTED, false, false);
 		this.defaultRequirement = false;
@@ -444,6 +444,10 @@ public class Metadata implements DataStoreField {
 
 	public boolean isEssentialInSummary() {
 		return getInheritedMetadataBehaviors().isEssentialInSummary();
+	}
+
+	public boolean isAvailableInSummary() {
+		return getInheritedMetadataBehaviors().isAvailableInSummary();
 	}
 
 	public boolean isEncrypted() {

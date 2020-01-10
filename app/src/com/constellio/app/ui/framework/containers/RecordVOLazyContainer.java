@@ -222,7 +222,17 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements RecordV
 							if (schemaVOTableMetadataVOs.contains(metadataVO)) {
 								tablePropertyMetadataVOs.add(metadataVO);
 							} else {
-								extraPropertyMetadataVOs.add(metadataVO);
+								if (modelLayerFactory.getSystemConfigs().isOnlySummaryMetadatasDisplayedInTables()
+									&& metadataVO.getSchema().getCacheType() != null
+									&& metadataVO.getSchema().getCacheType().isSummaryCache()) {
+
+									if (metadataVO.isSummaryMetadata()) {
+										extraPropertyMetadataVOs.add(metadataVO);
+									}
+
+								} else {
+									extraPropertyMetadataVOs.add(metadataVO);
+								}
 							}
 						}
 					}

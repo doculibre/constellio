@@ -24,6 +24,7 @@ import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.factories.ModelPostInitializationParams;
 import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
@@ -180,6 +181,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	public RecordsCachesDataStore getRecordsCachesDataStore() {
 		return memoryDataStore;
 	}
+
 
 	public void register(RecordsCachesHook hook) {
 		hooks.register(hook);
@@ -582,7 +584,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		if (potentialIds != null && !potentialIds.isEmpty()) {
 			return potentialIds.stream().map((id) -> {
 				return toRecord(schemaType, memoryDataStore.get(id));
-			}).filter((r) -> metadata.isMultivalue() ? r.getList(metadata).contains(value) : value.equals(r.get(metadata)));
+			}).filter((r) -> r != null && metadata.isMultivalue() ? r.getList(metadata).contains(value) : value.equals(r.get(metadata)));
 		} else {
 			return Stream.empty();
 		}
@@ -819,7 +821,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		fullyPermanentInitialized = true;
 	}
 
-	public void onPostLayerInitialization() {
+	public void onPostLayerInitialization(ModelPostInitializationParams params) {
 		List<MetadataSchemaType> typesLoadedAsync = new ArrayList<>();
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
 			LOGGER.info("Loading cache of '" + collection);
@@ -832,7 +834,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				Stats.compilerFor("SummaryCacheLoading").log(() -> {
 					//One loading at a time
 					synchronized (RecordsCaches2Impl.class) {
-						typesLoadedAsync.forEach(type -> loadSchemaType(type, !fileSystemDataStore.isRecreated()));
+						boolean useMapDb = !fileSystemDataStore.isRecreated() && !params.isRebuildCacheFromSolr();
+						typesLoadedAsync.forEach(type -> loadSchemaType(type, useMapDb));
 					}
 					summaryCacheInitialized = true;
 					CacheRecordDTOUtils.stopCompilingDTOsStats();
@@ -842,6 +845,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 				if (Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled() && !Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.isEnabled()) {
 					fileSystemDataStore.closeThenReopenWithoutMmap();
+				}
+				if (params.getCacheLoadingFinishedCallback() != null) {
+					params.getCacheLoadingFinishedCallback().run();
 				}
 			}).start();
 
@@ -932,15 +938,15 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 
 	protected Record toRecord(RecordDTO dto) {
-		return recordServices.get().toRecord(dto, dto.getLoadingMode() == FULLY_LOADED);
+		return dto == null ? null : recordServices.get().toRecord(dto, dto.getLoadingMode() == FULLY_LOADED);
 	}
 
 	protected Record toRecord(MetadataSchemaType schemaType, RecordDTO dto) {
-		return recordServices.get().toRecord(schemaType, dto, dto.getLoadingMode() == FULLY_LOADED);
+		return dto == null ? null : recordServices.get().toRecord(schemaType, dto, dto.getLoadingMode() == FULLY_LOADED);
 	}
 
 	protected Record toRecord(MetadataSchema schema, RecordDTO dto) {
-		return recordServices.get().toRecord(schema, dto, dto.getLoadingMode() == FULLY_LOADED);
+		return dto == null ? null : recordServices.get().toRecord(schema, dto, dto.getLoadingMode() == FULLY_LOADED);
 	}
 
 	@Override

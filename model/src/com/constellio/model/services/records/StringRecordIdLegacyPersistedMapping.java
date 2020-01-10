@@ -24,6 +24,9 @@ public class StringRecordIdLegacyPersistedMapping implements StringRecordIdLegac
 			synchronized (StringRecordIdLegacyPersistedMapping.class) {
 				if (configManager.exist(PATH)) {
 					reload();
+				} else {
+					isMapping = new HashMap<>();
+					siMapping = new HashMap<>();
 				}
 			}
 		}

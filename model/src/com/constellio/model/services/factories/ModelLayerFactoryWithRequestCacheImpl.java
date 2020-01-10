@@ -340,8 +340,8 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	}
 
 	@Override
-	public void postInitialization() {
-		modelLayerFactory.postInitialization();
+	public void postInitialization(ModelPostInitializationParams params) {
+		modelLayerFactory.postInitialization(params);
 	}
 
 	@Override

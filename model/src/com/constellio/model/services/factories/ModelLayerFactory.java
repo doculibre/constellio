@@ -173,12 +173,13 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	ModelLayerCachesManager getCachesManager();
 
-	void postInitialization();
+	void postInitialization(ModelPostInitializationParams params);
 
 	void onCollectionInitialized(String collection);
 
 	TaxonomyRecordsHookRetriever getTaxonomyRecordsHookRetriever(String collection);
 
 	RecordUsageCounterHookRetriever getRecordUsageCounterHookRetriever(String collection);
+
 	void markForReindexing();
 }

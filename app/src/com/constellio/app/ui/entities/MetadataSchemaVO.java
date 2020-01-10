@@ -1,6 +1,7 @@
 package com.constellio.app.ui.entities;
 
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,21 +27,22 @@ public class MetadataSchemaVO implements Serializable {
 	final List<String> tableMetadataCodes;
 	final String localCode;
 	final CollectionInfoVO collectionInfoVO;
+	final RecordCacheType cacheType;
 
 	public MetadataSchemaVO(String code, String collection, Map<Locale, String> labels,
 							CollectionInfoVO collectionInfoVO) {
-		this(code, collection, null, null, null, null, null, null, labels, collectionInfoVO);
+		this(code, collection, null, null, null, null, null, null, labels, collectionInfoVO, null);
 	}
 
 	public MetadataSchemaVO(String code, String collection, String localCode, Map<Locale, String> labels,
 							CollectionInfoVO collectionInfoVO) {
-		this(code, collection, localCode, null, null, null, null, null, labels, collectionInfoVO);
+		this(code, collection, localCode, null, null, null, null, null, labels, collectionInfoVO, null);
 	}
 
 	public MetadataSchemaVO(String code, String collection, String localCode, List<String> formMetadataCodes,
 							List<String> hiddenFormMetadataCodes, List<String> displayMetadataCodes,
 							List<String> tableMetadataCodes, List<String> searchMetadataCodes,
-							Map<Locale, String> labels, CollectionInfoVO collectionInfoVO) {
+							Map<Locale, String> labels, CollectionInfoVO collectionInfoVO, RecordCacheType cacheType) {
 		super();
 		this.code = code;
 		this.collection = collection;
@@ -52,6 +54,11 @@ public class MetadataSchemaVO implements Serializable {
 		this.labels = labels;
 		this.localCode = localCode;
 		this.collectionInfoVO = collectionInfoVO;
+		this.cacheType = cacheType;
+	}
+
+	public RecordCacheType getCacheType() {
+		return cacheType;
 	}
 
 	public String getLocalCode() {

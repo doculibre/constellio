@@ -171,6 +171,11 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		view.navigate().to().serviceMonitoring();
 	}
 
+	public void restartAndRebuildCache() {
+		appLayerFactory.newApplicationService().markCacheForRebuild();
+		restart();
+	}
+
 	public void restartAndReindex(boolean repopulate) {
 		FoldersLocator foldersLocator = new FoldersLocator();
 		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
@@ -207,6 +212,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			}
 		} else {
 			appLayerFactory.newApplicationService().markForReindexing();
+			appLayerFactory.newApplicationService().markCacheForRebuildIfRequired();
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 			Record eventRestarting = rm.newEvent()
 					.setType(EventType.RESTARTING)
@@ -351,6 +357,10 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		} else {
 			return !recoveryModeEnabled() || !FoldersLocator.usingAppWrapper();
 		}
+	}
+
+	public boolean isRestartWithCacheRebuildEnabled() {
+		return true;
 	}
 
 	private boolean recoveryModeEnabled() {

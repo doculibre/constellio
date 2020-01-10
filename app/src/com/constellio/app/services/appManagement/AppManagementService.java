@@ -700,6 +700,16 @@ public class AppManagementService {
 		systemGlobalConfigsManager.setMarkedForReindexing(true);
 	}
 
+	public void markCacheForRebuildIfRequired() {
+		if (systemGlobalConfigsManager.isCacheRebuildRequired()) {
+			systemGlobalConfigsManager.setMarkedForCacheRebuild(true);
+		}
+	}
+
+	public void markCacheForRebuild() {
+		systemGlobalConfigsManager.setMarkedForCacheRebuild(true);
+	}
+
 	public boolean isLicensedForAutomaticUpdate() {
 		return getLicenseInfo() != null;
 	}

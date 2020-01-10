@@ -61,7 +61,8 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	private Button standardUpdate;
 	private Button alternateUpdate;
 	private WindowButton lastAlert;
-	private ConfirmDialogButton reindex;
+	private ConfirmDialogButton reindexButton;
+	private ConfirmDialogButton rebuildCacheButton;
 	FoldersLocator locator = new FoldersLocator();
 
 	public UpdateManagerViewImpl() {
@@ -91,7 +92,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		restart.setDialogMode(ConfirmDialogButton.DialogMode.WARNING);
 		buttons.add(restart);
 
-		reindex = new ConfirmDialogButton($("UpdateManagerViewImpl.restartAndReindexButton")) {
+		reindexButton = new ConfirmDialogButton($("UpdateManagerViewImpl.restartAndReindexButton")) {
 			@Override
 			protected String getConfirmDialogMessage() {
 				return $("UpdateManagerViewImpl.reindexwarning");
@@ -102,10 +103,26 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				presenter.restartAndReindex(false);
 			}
 		};
-		reindex.setDialogMode(ConfirmDialogButton.DialogMode.WARNING);
-		reindex.setEnabled(presenter.isRestartWithReindexButtonEnabled());
-		buttons.add(reindex);
 
+		rebuildCacheButton = new ConfirmDialogButton($("UpdateManagerViewImpl.restartAndRebuildCacheButton")) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("UpdateManagerViewImpl.rebuildCacheWarning");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				presenter.restartAndRebuildCache();
+			}
+		};
+
+		reindexButton.setDialogMode(ConfirmDialogButton.DialogMode.WARNING);
+		reindexButton.setEnabled(presenter.isRestartWithReindexButtonEnabled());
+		buttons.add(reindexButton);
+
+		rebuildCacheButton.setDialogMode(ConfirmDialogButton.DialogMode.WARNING);
+		rebuildCacheButton.setEnabled(presenter.isRestartWithCacheRebuildEnabled());
+		buttons.add(rebuildCacheButton);
 
 		standardUpdate = new Button($("UpdateManagerViewImpl.automatic"));
 		standardUpdate.addClickListener(new ClickListener() {
@@ -369,7 +386,8 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		Component updatePanel = handler.buildUpdatePanel();
 		layout.replaceComponent(panel, updatePanel);
 		license.setEnabled(true);
-		reindex.setEnabled(presenter.isRestartWithReindexButtonEnabled());
+		reindexButton.setEnabled(presenter.isRestartWithReindexButtonEnabled());
+		rebuildCacheButton.setEnabled(presenter.isRestartWithCacheRebuildEnabled());
 		standardUpdate.setEnabled(presenter.isUpdateEnabled());
 		alternateUpdate.setEnabled(false);
 		panel = updatePanel;
@@ -380,7 +398,8 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		Component licensePanel = buildLicenseUploadPanel();
 		layout.replaceComponent(panel, licensePanel);
 		license.setEnabled(false);
-		reindex.setEnabled(presenter.isRestartWithReindexButtonEnabled());
+		reindexButton.setEnabled(presenter.isRestartWithReindexButtonEnabled());
+		rebuildCacheButton.setEnabled(presenter.isRestartWithCacheRebuildEnabled());
 		boolean uploadPossible = presenter.isUpdateEnabled();
 		standardUpdate.setEnabled(uploadPossible);
 		alternateUpdate.setEnabled(uploadPossible);
@@ -392,7 +411,8 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		Component restartPanel = buildRestartRequiredPanel();
 		layout.replaceComponent(panel, restartPanel);
 		license.setEnabled(false);
-		reindex.setEnabled(presenter.isRestartWithReindexButtonEnabled());
+		reindexButton.setEnabled(presenter.isRestartWithReindexButtonEnabled());
+		rebuildCacheButton.setEnabled(presenter.isRestartWithCacheRebuildEnabled());
 		standardUpdate.setEnabled(false);
 		alternateUpdate.setEnabled(false);
 		panel = restartPanel;

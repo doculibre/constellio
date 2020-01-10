@@ -190,8 +190,9 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		List<Record> subListOfRecords = records.subList(startIndex, Math.min(startIndex + numberOfItems, records.size()));
 
 		int searchResultIndex = startIndex;
-		for (Record record : subListOfRecords) {
-			RecordVO recordVO = voBuilder.build(record, VIEW_MODE.SEARCH, sessionContext);
+		for (Record recordId : subListOfRecords) {
+			Record recordSummary = modelLayerFactory.newRecordServices().realtimeGetRecordSummaryById(recordId.getId());
+			RecordVO recordVO = voBuilder.build(recordSummary, VIEW_MODE.SEARCH, sessionContext);
 			SearchResultVO searchResultVO = new SearchResultVO(searchResultIndex, recordVO, response.getHighlighting(recordVO.getId()));
 			results.add(searchResultVO);
 			searchResultIndex++;

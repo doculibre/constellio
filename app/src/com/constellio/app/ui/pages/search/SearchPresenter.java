@@ -695,8 +695,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		//		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(
 		//				schemasDisplayManager.getReturnedFieldsForSearch(collection)));
-		if (Toggle.TEMP_FRANCIS.isEnabled()) {
-			query.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
+		if (modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+			query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
 		} else {
 			query.setReturnedMetadatas(ReturnedMetadatasFilter.allExceptContentAndLargeText());
 		}

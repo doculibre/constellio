@@ -23,6 +23,7 @@ public class InheritedMetadataBehaviors implements Serializable {
 	final boolean essential;
 	final boolean encrypted;
 	final boolean essentialInSummary;
+	final boolean availableInSummary;
 	final boolean multiLingual;
 	final boolean markedForDeletion;
 	final boolean reverseDependency;
@@ -37,7 +38,7 @@ public class InheritedMetadataBehaviors implements Serializable {
 									  boolean uniqueValue, boolean childOfRelationship, boolean taxonomyRelationship,
 									  boolean sortable,
 									  boolean searchable, boolean schemaAutocomplete, boolean essential,
-									  boolean encrypted, boolean essentialInSummary,
+									  boolean encrypted, boolean essentialInSummary, boolean availableInSummary,
 									  boolean multiLingual, boolean markedForDeletion, Set<String> customAttributes,
 									  boolean reverseDependency,
 									  boolean relationshipProvidingSecurity, MetadataTransiency volatility,
@@ -55,6 +56,7 @@ public class InheritedMetadataBehaviors implements Serializable {
 		this.essential = essential;
 		this.encrypted = encrypted;
 		this.essentialInSummary = essentialInSummary;
+		this.availableInSummary = availableInSummary;
 		this.multiLingual = multiLingual;
 		this.markedForDeletion = markedForDeletion;
 		this.customAttributes = Collections.unmodifiableSet(customAttributes);
@@ -79,6 +81,10 @@ public class InheritedMetadataBehaviors implements Serializable {
 
 	public boolean isEssentialInSummary() {
 		return essentialInSummary;
+	}
+
+	public boolean isAvailableInSummary() {
+		return availableInSummary;
 	}
 
 	@Override

@@ -307,24 +307,21 @@ public class SchemaUtils {
 			case DATE:
 			case DATE_TIME:
 			case STRING:
-				summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
+				summary = metadata.isEssentialInSummary() || metadata.isUniqueValue() || metadata.isAvailableInSummary()
 						  || LEGACY_ID.isSameLocalCode(metadata)
 						  || TITLE.isSameLocalCode(metadata)
 						  || metadata.isCacheIndex() || Schemas.TOKENS.getLocalCode().equals(metadata.getLocalCode())
-						  || Schemas.ALL_REMOVED_AUTHS.getLocalCode().equals(metadata.getLocalCode())
-				//		  || Schemas.ATTACHED_ANCESTORS.getLocalCode().equals(metadata.getLocalCode())
-				;
-				;
+						  || Schemas.ALL_REMOVED_AUTHS.getLocalCode().equals(metadata.getLocalCode());
 				break;
 
 			case STRUCTURE:
 			case CONTENT:
 				//TODO Based on summary flag, support these typestype
-				summary = metadata.isEssentialInSummary();
+				summary = metadata.isEssentialInSummary() || metadata.isAvailableInSummary();
 				break;
 
 			case TEXT:
-				summary = metadata.isEssentialInSummary();
+				summary = metadata.isEssentialInSummary() || metadata.isAvailableInSummary();
 				break;
 
 			case INTEGER:

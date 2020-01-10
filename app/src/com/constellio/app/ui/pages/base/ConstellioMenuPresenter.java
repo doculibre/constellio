@@ -247,8 +247,16 @@ public class ConstellioMenuPresenter implements Serializable {
 			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 			User user = new PresenterService(modelLayerFactory).getCurrentUser(ConstellioUI.getCurrentSessionContext());
 			return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally() ? $("MainLayout.reindexingRequired") : null;
+
+		} else if (manager.isCacheRebuildRequired()) {
+			//A reindexing includes a cache rebuild, no need to add this message if a reindexing is required
+
+			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+			User user = new PresenterService(modelLayerFactory).getCurrentUser(ConstellioUI.getCurrentSessionContext());
+			return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally() ? $("MainLayout.cacheRebuildRequired") : null;
 		}
+
 		return null;
 	}
-	
+
 }

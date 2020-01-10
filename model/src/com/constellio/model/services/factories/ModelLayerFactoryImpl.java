@@ -310,8 +310,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	@Override
-	public void postInitialization() {
-		recordsCaches.onPostLayerInitialization();
+	public void postInitialization(ModelPostInitializationParams params) {
+		recordsCaches.onPostLayerInitialization(params);
 
 
 	}

@@ -14,21 +14,21 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator2;
 
-public class RMMigrationTo9_0_50 implements MigrationScript {
+public class RMMigrationTo9_0_51 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.0.40";
+		return "9.0.51";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
-		new SchemaAlterationFor9_0_50(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor9_0_51(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	private class SchemaAlterationFor9_0_50 extends MetadataSchemasAlterationHelper {
-		SchemaAlterationFor9_0_50(String collection, MigrationResourcesProvider migrationResourcesProvider,
+	private class SchemaAlterationFor9_0_51 extends MetadataSchemasAlterationHelper {
+		SchemaAlterationFor9_0_51(String collection, MigrationResourcesProvider migrationResourcesProvider,
 								  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
@@ -40,6 +40,11 @@ public class RMMigrationTo9_0_50 implements MigrationScript {
 
 			MetadataSchemaBuilder folder = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
 			folder.get(Schemas.TOKENS_OF_HIERARCHY).setEssentialInSummary(true);
+			folder.get(Schemas.MODIFIED_ON).setEssentialInSummary(true);
+			folder.get(Folder.FORM_CREATED_ON).setEssentialInSummary(true);
+			folder.get(Folder.FORM_MODIFIED_ON).setEssentialInSummary(true);
+			folder.get(Folder.OPENING_DATE).setEssentialInSummary(true);
+			folder.get(Folder.CLOSING_DATE).setEssentialInSummary(true);
 			folder.get(Folder.CATEGORY).setTaxonomyRelationship(false);
 			folder.get(Folder.CATEGORY_ENTERED).setTaxonomyRelationship(true);
 
@@ -49,6 +54,9 @@ public class RMMigrationTo9_0_50 implements MigrationScript {
 
 			MetadataSchemaBuilder document = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
 			document.get(Schemas.TOKENS_OF_HIERARCHY).setEssentialInSummary(true);
+			document.get(Schemas.MODIFIED_ON).setEssentialInSummary(true);
+			document.get(Document.FORM_CREATED_ON).setEssentialInSummary(true);
+			document.get(Document.FORM_MODIFIED_ON).setEssentialInSummary(true);
 
 			document.get(Document.FOLDER_CATEGORY).setTaxonomyRelationship(false);
 			document.get(Document.FOLDER_ADMINISTRATIVE_UNIT).setTaxonomyRelationship(false);
@@ -59,6 +67,8 @@ public class RMMigrationTo9_0_50 implements MigrationScript {
 							.defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
 				}
 			}
+
+			appLayerFactory.getSystemGlobalConfigsManager().setCacheRebuildRequired(true);
 		}
 	}
 }
