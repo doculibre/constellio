@@ -152,7 +152,11 @@ public abstract class FacetsPanel extends VerticalLayout {
 			});
 
 			String caption = facetValue.getLabel();
-			caption += " (" + facetValue.getCount() + ")";
+			if (isRightToLeft()) {
+				caption = "(" + facetValue.getCount() + ") " + caption;
+			} else {
+				caption += " (" + facetValue.getCount() + ")";
+			}
 			checkBox.setCaption(caption);
 
 			@SuppressWarnings("unchecked")
