@@ -25,24 +25,40 @@ public class ViewableRecordVOTableColumnsManager extends RecordVOTableColumnsMan
 			if (visibleColumnsList.contains(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID)) {
 				visibleColumnsList.remove(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID);
 			}
+			if (viewableRecordVOTable.isSelectColumn()) {
+				visibleColumnsList.remove(BaseTable.SELECT_PROPERTY_ID);
+				visibleColumnsList.add(0, BaseTable.SELECT_PROPERTY_ID);
+			}
 			if (isRightToLeft()) {
 				if (visibleColumnsList.contains(BaseTable.SELECT_PROPERTY_ID)) {
-					visibleColumnsList.remove(BaseTable.SELECT_PROPERTY_ID);
-					visibleColumnsList.add(0, BaseTable.SELECT_PROPERTY_ID);
+					visibleColumnsList.remove(ViewableRecordVOContainer.THUMBNAIL_PROPERTY);
+					visibleColumnsList.add(1, ViewableRecordVOContainer.THUMBNAIL_PROPERTY);
+				} else {
+					visibleColumnsList.remove(ViewableRecordVOContainer.THUMBNAIL_PROPERTY);
+					visibleColumnsList.add(0, ViewableRecordVOContainer.THUMBNAIL_PROPERTY);
 				}
-				visibleColumnsList.remove(ViewableRecordVOContainer.THUMBNAIL_PROPERTY);
-				visibleColumnsList.add(1, ViewableRecordVOContainer.THUMBNAIL_PROPERTY);
 				Collections.reverse(visibleColumnsList);
 			}
 			table.setVisibleColumns(visibleColumnsList.toArray(new Object[0]));
 			table.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 			viewableRecordVOTable.setTitleColumnWidth(366);
 		} else {
-			if (visibleColumnsList.contains(BaseTable.SELECT_PROPERTY_ID)) {
+			if (viewableRecordVOTable.isSelectColumn()) {
 				visibleColumnsList.remove(BaseTable.SELECT_PROPERTY_ID);
 				visibleColumnsList.add(0, BaseTable.SELECT_PROPERTY_ID);
 			}
 			visibleColumnsList.add(RecordVOTable.MENUBAR_PROPERTY_ID);
+			if (isRightToLeft()) {
+				if (visibleColumnsList.contains(BaseTable.SELECT_PROPERTY_ID)) {
+					visibleColumnsList.remove(ViewableRecordVOContainer.THUMBNAIL_PROPERTY);
+					visibleColumnsList.add(1, ViewableRecordVOContainer.THUMBNAIL_PROPERTY);
+				} else {
+					visibleColumnsList.remove(ViewableRecordVOContainer.THUMBNAIL_PROPERTY);
+					visibleColumnsList.add(0, ViewableRecordVOContainer.THUMBNAIL_PROPERTY);
+				}
+				Collections.reverse(visibleColumnsList);
+			}
+			
 			super.manage(table, tableId);
 //			if (visibleColumns.contains(SearchResultContainer.THUMBNAIL_PROPERTY)) {
 //				table.setColumnCollapsed(SearchResultContainer.THUMBNAIL_PROPERTY, false);
