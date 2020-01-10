@@ -106,6 +106,8 @@ public class Toggle {
 
 	public static AvailableToggle DEBUG_SOLR_TIMINGS = newToggle(false);
 
+	public static AvailableToggle ENABLE_PDTRON_TRIAL = newToggle(false);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

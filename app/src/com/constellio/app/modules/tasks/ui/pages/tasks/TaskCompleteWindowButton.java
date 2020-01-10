@@ -340,7 +340,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			if (isInclusiveDecision) {
 				decisionMetadata = recordVO.getMetadata(AddEditTaskPresenter.INCLUSIVE_DECISION);
 			}
-			decisionField = fieldFactory.build(decisionMetadata);
+			decisionField = fieldFactory.build(decisionMetadata, recordVO.getId());
 			decisionField.setRequired(true);
 
 			List<String> decisionCodes = new ArrayList<>();
@@ -386,7 +386,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		Field acceptedField = null;
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		if (tasksSchemas.isRequestTask(task)) {
-			acceptedField = fieldFactory.build(recordVO.getMetadata(RequestTask.ACCEPTED));
+			acceptedField = fieldFactory.build(recordVO.getMetadata(RequestTask.ACCEPTED), recordVO.getId());
 			acceptedField.setRequired(true);
 			fieldLayout.addComponent(acceptedField);
 		}
@@ -398,7 +398,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		Field reasonField = null;
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		if (tasksSchemas.isRequestTask(task)) {
-			reasonField = fieldFactory.build(recordVO.getMetadata(RequestTask.REASON));
+			reasonField = fieldFactory.build(recordVO.getMetadata(RequestTask.REASON), recordVO.getId());
 			reasonField.setWidth("100%");
 			fieldLayout.addComponent(reasonField);
 		}
@@ -431,7 +431,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		for (MetadataValueVO metadataValueVO : CollectionUtils.emptyIfNull(formMetadataValues)) {
 			MetadataVO m = metadataValueVO.getMetadata();
 			if (m.isRequired() && m.isEnabled() && m.getDefaultValue() == null && metadataValueVO.getValue() == null) {
-				Field<?> field = fieldFactory.build(m);
+				Field<?> field = fieldFactory.build(m, recordVO.getId());
 				field.setWidth("100%");
 				fieldLayout.addComponent(field);
 				fields.put(m, field);

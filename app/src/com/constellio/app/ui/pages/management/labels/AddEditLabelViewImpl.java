@@ -197,7 +197,7 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
 					field = createComboBox(metadataVO);
 					break;
 				default:
-					field = new MetadataFieldFactory().build(metadataVO, locale);
+					field = new MetadataFieldFactory().build(metadataVO, recordVO != null ? recordVO.getId() : null, locale);
 					if (metadataVO.codeMatches(Printable.JASPERFILE)) {
 						field.addValidator(new Validator() {
 							@Override

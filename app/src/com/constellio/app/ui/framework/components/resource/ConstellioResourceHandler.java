@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -41,7 +42,7 @@ import java.util.UUID;
 public class ConstellioResourceHandler implements RequestHandler {
 
 	public enum ResourceType {
-		NORMAL, PREVIEW, THUMBNAIL, JPEG_CONVERSION;
+		NORMAL, PREVIEW, THUMBNAIL, JPEG_CONVERSION, ANNOTATION;
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -62,6 +63,8 @@ public class ConstellioResourceHandler implements RequestHandler {
 			String preview = paramsMap.get("preview");
 			String thumbnail = paramsMap.get("thumbnail");
 			String jpegConversion = paramsMap.get("jpegConversion");
+			String annotation = paramsMap.get("annotation");
+			String contentId = paramsMap.get("contentId");
 			String filePath = paramsMap.get("file");
 			String hashParam = paramsMap.get("hash");
 			String filenameParam = paramsMap.get("z-filename");
@@ -92,7 +95,21 @@ public class ConstellioResourceHandler implements RequestHandler {
 						|| user.hasReadAccess().on(record)) {
 						String schemaCode = record.getSchemaCode();
 						Metadata metadata = types.getMetadata(schemaCode + "_" + metadataCode);
+
 						Object metadataValue = record.get(metadata);
+
+						if (metadataValue instanceof List && contentId != null && ((List) metadataValue).size() > 0) {
+							List listValue = (List) metadataValue;
+							if (listValue.get(0) instanceof Content) {
+								for (Content currentContent : (List<Content>) listValue) {
+									if (contentId.equals(currentContent.getId())) {
+										metadataValue = currentContent;
+									}
+								}
+							}
+
+						}
+
 						if (metadataValue instanceof Content) {
 							Content content = (Content) metadataValue;
 							ContentVersion contentVersion = content.getVersion(version);
@@ -114,6 +131,12 @@ public class ConstellioResourceHandler implements RequestHandler {
 							} else if ("true".equals(jpegConversion)) {
 								if (contentManager.hasContentJpegConversion(hash)) {
 									in = contentManager.getContentJpegConversionInputStream(hash, getClass().getSimpleName() + ".handleRequest");
+								} else {
+									in = null;
+								}
+							} else if ("true".equals(annotation)) {
+								if (contentManager.hasContentAnnotation(hash, recordId, version)) {
+									in = contentManager.getContentAnnotationInputStream(hash, recordId, version, getClass().getSimpleName() + ".handleRequest");
 								} else {
 									in = null;
 								}
@@ -179,6 +202,11 @@ public class ConstellioResourceHandler implements RequestHandler {
 		return createResource(recordId, metadataCode, version, filename, ResourceType.JPEG_CONVERSION);
 	}
 
+	public static Resource createAnnotationResource(String recordId, String metadataCode, String version,
+													String fileName, String contentId) {
+		return createResource(recordId, metadataCode, version, fileName, ResourceType.ANNOTATION, false, contentId);
+	}
+
 	private static Resource createResource(String recordId, String metadataCode, String version, String filename,
 										   ResourceType resourceType) {
 		return createResource(recordId, metadataCode, version, filename, resourceType, false);
@@ -186,12 +214,21 @@ public class ConstellioResourceHandler implements RequestHandler {
 
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
 										  ResourceType resourceType, boolean useBrowserCache) {
+		return createResource(recordId, metadataCode, version, filename, resourceType, useBrowserCache, null);
+	}
+
+	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
+										  ResourceType resourceType, boolean useBrowserCache, String contentId) {
 		Map<String, String> params = new LinkedHashMap<>();
 		params.put("recordId", recordId);
 		params.put("metadataCode", metadataCode);
 		params.put("preview", "" + (resourceType == ResourceType.PREVIEW));
 		params.put("thumbnail", "" + (resourceType == ResourceType.THUMBNAIL));
 		params.put("jpegConversion", "" + (resourceType == ResourceType.JPEG_CONVERSION));
+		params.put("annotation", "" + (resourceType == ResourceType.ANNOTATION));
+		if (contentId != null) {
+			params.put("contentId", contentId);
+		}
 		params.put("version", version);
 		params.put("z-filename", filename);
 		if (!useBrowserCache) {

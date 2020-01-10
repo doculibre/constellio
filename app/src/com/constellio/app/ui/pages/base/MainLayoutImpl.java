@@ -14,7 +14,6 @@ import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.pages.base.ConstellioMenuImpl.ConstellioMenuButton;
 import com.constellio.app.ui.util.ComponentTreeUtils;
-import com.constellio.app.ui.util.PlatformDetectionUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.navigator.Navigator;
@@ -125,7 +124,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		dragAndDropWrapper = new DragAndDropWrapper(mainMenuContentFooterLayout) {
 			@Override
 			public void setDropHandler(DropHandler dropHandler) {
-				if (PlatformDetectionUtils.isDesktop()) {
+				if (ResponsiveUtils.isDesktop()) {
 					super.setDropHandler(dropHandler);
 				}
 			}

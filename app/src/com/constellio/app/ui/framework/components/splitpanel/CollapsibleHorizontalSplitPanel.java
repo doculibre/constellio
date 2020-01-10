@@ -1,5 +1,7 @@
 package com.constellio.app.ui.framework.components.splitpanel;
 
+import com.constellio.app.ui.util.ResponsiveUtils;
+import com.vaadin.server.Page;
 import com.vaadin.server.VaadinService;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -13,6 +15,8 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 	private static final String COOKIE_PREFIX = "collapsible-horizontal-splitpanel-show-";
 	
 	private static final String STYLE_NAME = "collapsible-horizontal-splitpanel";
+
+	private static final String STYLE_NAME_NOT_RESIZABLE = STYLE_NAME + "-not-resizable";
 	
 	private static final String STYLE_NAME_SECOND_VISIBLE = STYLE_NAME + "-second-visible";
 	
@@ -45,6 +49,8 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 	private float secondComponentHeight = -1;
 
 	private Unit secondComponentHeightUnit = Unit.PERCENTAGE;
+
+	private boolean resizable;
 	
 	public CollapsibleHorizontalSplitPanel(String panelId) {
 		this.panelId = panelId;
@@ -56,7 +62,12 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 		addStyleName(STYLE_NAME_SECOND_VISIBLE);
 		
 		setSizeFull();
+
 		setLocked(false);
+		resizable = computeResizable();
+		if (!resizable) {
+			addStyleName(STYLE_NAME_NOT_RESIZABLE);
+		}
 		
 		addSplitterClickListener(new SplitterClickListener() {
 			@Override
@@ -67,6 +78,10 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 		
 		boolean secondComponentVisibleFromCookie = getCookieValue();
 		setSecondComponentVisible(secondComponentVisibleFromCookie);
+	}
+
+	private boolean computeResizable() {
+		return ResponsiveUtils.isDesktop() && !Page.getCurrent().getWebBrowser().isIE();
 	}
 
 	public float getFirstComponentWidth() {
@@ -99,6 +114,10 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 		if (firstComponentContainer != null) {
 			firstComponentContainer.setHeight(height, unit);
 		}
+	}
+
+	public Component getFirstComponentContainer() {
+		return this.firstComponentContainer;
 	}
 
 	public float getSecondComponentWidth() {
@@ -149,10 +168,18 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 		}
 		if (secondComponentVisible) {
 			setSplitPosition(secondComponentWidth, secondComponentWidthUnit, true);
+			//			if (!resizable) {
+			//				setMinSplitPosition(secondComponentWidth, secondComponentWidthUnit);
+			//				setMaxSplitPosition(secondComponentWidth, secondComponentWidthUnit);
+			//			}
 			removeStyleName(STYLE_NAME_SECOND_HIDDEN);
 			addStyleName(STYLE_NAME_SECOND_VISIBLE);
 		} else {
 			setSplitPosition(100, Unit.PERCENTAGE);
+			//			if (!resizable) {
+			//				setMinSplitPosition(100, Unit.PERCENTAGE);
+			//				setMaxSplitPosition(100, Unit.PERCENTAGE);
+			//			}
 			removeStyleName(STYLE_NAME_SECOND_VISIBLE);
 			addStyleName(STYLE_NAME_SECOND_HIDDEN);
 		}

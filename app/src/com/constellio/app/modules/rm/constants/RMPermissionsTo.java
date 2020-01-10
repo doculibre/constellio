@@ -25,6 +25,7 @@ public class RMPermissionsTo {
 	public static final String SHARE_A_INACTIVE_FOLDER = permission(FOLDER_GROUP, "shareInactiveFolders");
 	public static final String SHARE_A_IMPORTED_FOLDER = permission(FOLDER_GROUP, "shareImportedFolders");
 
+
 	public static final String CREATE_SUB_FOLDERS = permission(FOLDER_GROUP, "createSubFolders");
 	public static final String CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS = permission(FOLDER_GROUP,
 			"createSubFoldersInSemiActiveFolders");

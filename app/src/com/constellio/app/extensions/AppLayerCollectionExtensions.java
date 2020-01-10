@@ -825,7 +825,8 @@ public class AppLayerCollectionExtensions {
 				return component;
 			}
 		}
-		return new MetadataFieldFactory().build(metadataFieldExtensionParams.getMetadataVO());
+		RecordVO recordVO = metadataFieldExtensionParams.getRecordVO();
+		return new MetadataFieldFactory().build(metadataFieldExtensionParams.getMetadataVO(), recordVO != null ? recordVO.getId() : null);
 	}
 
 	public Object getMetadataDisplayCustomValueExtention(

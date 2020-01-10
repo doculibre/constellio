@@ -46,11 +46,11 @@ public class BagInfoSIPForm extends BaseViewImpl {
 
 	MetadataFieldFactory factory = new MetadataFieldFactory() {
 		@Override
-		public Field<?> build(MetadataVO metadata, Locale locale) {
+		public Field<?> build(MetadataVO metadata, String recordId, Locale locale) {
 			if (metadata.getLocalCode().equals("title")) {
 				return null;
 			}
-			return super.build(metadata, locale);
+			return super.build(metadata, recordId, locale);
 		}
 	};
 

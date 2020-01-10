@@ -753,7 +753,7 @@ public class TaskTable extends VerticalLayout {
 					formLayout.addStyleName("no-scroll");
 					formLayout.setSpacing(true);
 
-					final ContentVersionUploadField uploadField = new ContentVersionUploadField(true);
+					final ContentVersionUploadField uploadField = new ContentVersionUploadField(true, taskVO != null ? taskVO.getId() : null, Task.CONTENTS);
 					uploadField.setCaption($("TaskTable.details.addDocuments.files"));
 					uploadField.setMajorVersionFieldVisible(false);
 
@@ -825,7 +825,7 @@ public class TaskTable extends VerticalLayout {
 
 				for (ContentVersionVO contentVersionVO : contents) {
 					String filename = contentVersionVO.getFileName();
-					DownloadContentVersionLink downloadContentLink = new DownloadContentVersionLink(contentVersionVO, filename);
+					DownloadContentVersionLink downloadContentLink = new DownloadContentVersionLink(contentVersionVO, filename, taskVO.getId(), Task.CONTENTS, false);
 					contentsLayout.addComponent(downloadContentLink);
 				}
 				contentsComponent = contentsLayout;
@@ -854,7 +854,7 @@ public class TaskTable extends VerticalLayout {
 				Component linkComponent;
 
 				if (agentURL != null && isUserAuthorized) {
-					linkComponent = new ConstellioAgentLink(agentURL, documentVO, contentVersionVO, documentVO.getTitle(), false, new BaseUpdatableContentVersionPresenter());
+					linkComponent = new ConstellioAgentLink(agentURL, documentVO, contentVersionVO, documentVO.getTitle(), false, new BaseUpdatableContentVersionPresenter(), Document.CONTENT);
 					((ConstellioAgentLink) linkComponent).addVisitedClickListener(documentVO.getId());
 				} else {
 					linkComponent = new ReferenceDisplay(documentVO);

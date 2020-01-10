@@ -104,6 +104,7 @@ public class DocumentContentVersionPresenter implements Serializable {
 		window.setAgentURL(agentURL);
 	}
 
+
 	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
@@ -122,7 +123,8 @@ public class DocumentContentVersionPresenter implements Serializable {
 		documentVOBuilder = new DocumentToVOBuilder(modelLayerFactory);
 	}
 
-	private boolean hasWritePermission() {
+
+	protected boolean hasWritePermission() {
 		User currentUser = presenterUtils.getCurrentUser();
 		Record record = presenterUtils.getRecord(documentVO.getId());
 		return currentUser.hasWriteAccess().on(record);
