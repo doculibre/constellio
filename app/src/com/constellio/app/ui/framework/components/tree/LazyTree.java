@@ -6,7 +6,6 @@ import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellK
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.ObjectsResponse;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.vaadin.client.MouseEventDetailsBuilder;
 import com.vaadin.data.Container;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Item;
@@ -19,15 +18,20 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.server.Extension;
 import com.vaadin.server.Resource;
 import com.vaadin.shared.MouseEventDetails;
-import com.vaadin.ui.*;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.AbstractSelect.ItemDescriptionGenerator;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomField;
+import com.vaadin.ui.Tree;
 import com.vaadin.ui.Tree.CollapseEvent;
 import com.vaadin.ui.Tree.CollapseListener;
 import com.vaadin.ui.Tree.ExpandEvent;
 import com.vaadin.ui.Tree.ExpandListener;
 import com.vaadin.ui.Tree.ItemStyleGenerator;
 import com.vaadin.ui.Tree.TreeDragMode;
+import com.vaadin.ui.TreeTable;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.peter.contextmenu.ContextMenu;
 
@@ -364,9 +368,11 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 						if (selected && !listValue.contains(object)) {
 							listValue.add(object);
 							setValue(listValue);
+							fireValueChange(true);
 						} else if (!selected && listValue.contains(object)) {
 							listValue.remove(object);
 							setValue(listValue);
+							fireValueChange(true);
 						}
 					}
 				});
