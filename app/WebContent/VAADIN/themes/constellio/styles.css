@@ -15035,6 +15035,8 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-popupview-popup-header-popup .header-popup-content-wrapper .header-popup-content {
 	width: 97%;
+	max-height: calc(100vh - 55px);
+	overflow-y: auto;
 	padding-top: 10px;
 	padding-bottom: 10px;
 }
@@ -16818,6 +16820,15 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: center;
 }
 
+.constellio .right-to-left .header-selection-table .v-icon {
+	left: 2px;
+}
+
+.constellio .right-to-left .header-selection-table .v-icon + .v-captiontext, .constellio .right-to-left .header-selection-table .v-icon + span {
+	margin-left: initial;
+	margin-right: 7px;
+}
+
 .constellio .right-to-left .i18n-horizontal-layout-right-to-left .v-slot-close-viewer-button {
 	text-align: left !important;
 }
@@ -16968,6 +16979,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .i18n-horizontal-layout-right-to-left .v-slot {
 	text-align: right;
+}
+
+.constellio .right-to-left .i18n-horizontal-layout-right-to-left .v-slot-menubar-rtl {
+	text-align: left;
 }
 
 .constellio .right-to-left .base-display .display-value {

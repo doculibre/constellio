@@ -2196,6 +2196,8 @@ $popup-view-z-index: 3;
 
 			.header-popup-content {
 				width: 97%;
+				max-height: calc(100vh - 55px);
+				overflow-y: auto;
 				padding-top: 10px;
 				padding-bottom: 10px;
 
@@ -4328,6 +4330,17 @@ $popup-view-z-index: 3;
 			text-align: center;
 		}
 		
+		.header-selection-table {
+			.v-icon {
+				left: 2px;
+			}
+			
+			.v-icon + .v-captiontext, .v-icon + span {
+				margin-left: initial;
+				margin-right: 7px;
+			}
+		}
+		
 		.i18n-horizontal-layout-right-to-left {
 			.v-slot-close-viewer-button {
 				text-align: left !important;
@@ -4523,6 +4536,10 @@ $popup-view-z-index: 3;
 	
 			.v-slot {
 				text-align: right;
+			}
+			
+			.v-slot-menubar-rtl {
+				text-align: left;
 			}
 			
 		}	
