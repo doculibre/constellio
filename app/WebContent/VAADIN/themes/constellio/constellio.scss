@@ -1801,13 +1801,6 @@ $popup-view-z-index: 3;
 				height: initial;
 			}
 			
-			.v-window-header {
-				float: right;
-			    margin-right: initial;
-			    padding-right: 12px;
-			    padding-left: initial;
-			}
-
 			.v-window-closebox {
 				height: initial;
 			}
@@ -2430,10 +2423,6 @@ $popup-view-z-index: 3;
 	    		}
 	    	}
     	}
-    }
-    
-    .v-multifileupload-uploads {
-    	float: left;
     }
     
     .header-action-menu.v-menubar-submenu.menubar-rtl, .header-collection-menu.v-menubar-submenu.menubar-rtl {
@@ -4147,6 +4136,15 @@ $popup-view-z-index: 3;
 	}
 
 	.right-to-left {
+		.popupContent {
+			.v-window-header {
+				float: right;
+			    margin-right: initial;
+			    padding-right: 12px;
+			    padding-left: initial;
+			}
+		}
+			
 		.v-window-maximizebox {    
 			left: 33px;
 		    padding-left: initial;
@@ -4172,6 +4170,10 @@ $popup-view-z-index: 3;
 				right: initial;
 			}
 		}
+		
+	    .v-multifileupload-uploads {
+	    	float: left;
+	    }
 		
 		.-facets-sliderpanel .v-sliderpanel-wrapper .v-sliderpanel-content {
 			left: -40px !important;
@@ -4250,23 +4252,23 @@ $popup-view-z-index: 3;
     	}
 
 		.v-radiobutton > input {
-			left: inherit;
+			left: initial;
 			right: -16px;
 		}
 
 		.v-radiobutton > input:checked ~ label:after {
-			left: inherit;
+			left: initial;
 			right: -13px;
 		}
 
 		.v-radiobutton > input ~ label:before, .v-radiobutton > input ~ label:after {
-			left: inherit;
+			left: initial;
 			right: -19px;
 		}
 
 		.v-checkbox {
 			//padding-left: 25px;
-			padding-left: inherit;
+			padding-left: initial;
 		}
 
 		.v-checkbox > label {
@@ -4275,11 +4277,12 @@ $popup-view-z-index: 3;
 		}
 
 		.v-checkbox > input {
-			left: 0.2em;
+			left: initial;
+			right: 0.2em;
 		}
 
 		.v-checkbox > input ~ label:before, .v-checkbox > input ~ label:after {
-			left: inherit;
+			left: initial;
 			right: 0;
 		}
 
@@ -4292,7 +4295,7 @@ $popup-view-z-index: 3;
 			.v-table-cell-content {
 				.v-checkbox > input ~ label:before, .v-checkbox > input ~ label:after {
 					left: 0;
-					right: inherit;
+					right: initial;
 				}
 			}
 		}
@@ -4432,11 +4435,11 @@ $popup-view-z-index: 3;
 				outline: 1px solid #197de1;
 	    		outline-offset: -1px;
 
-	    		background-color: inherit;
-	    		background-image: inherit;
-	    		background-origin: inherit;
-	    		text-shadow: inherit;
-	    		color: inherit;
+	    		background-color: initial;
+	    		background-image: initial;
+	    		background-origin: initial;
+	    		text-shadow: initial;
+	    		color: initial;
 				//background-color: #197de1;
 				//background-image: -webkit-linear-gradient(top, #1b87e3 2%, #166ed5 98%);
 				//background-image: linear-gradient(to bottom,#1b87e3 2%, #166ed5 98%);
@@ -4531,7 +4534,7 @@ $popup-view-z-index: 3;
 		}
 
 		.back-button {
-			right: inherit;
+			right: initial;
 			left: 20px;
 			direction: rtl;
 			
@@ -4543,6 +4546,15 @@ $popup-view-z-index: 3;
 		.xbreadcrumbs {
 			direction: rtl;
 		
+			.current {
+				float: right;
+				
+				.v-icon {
+					position: relative;
+					top: 6px;
+				}
+			}
+			
 			LI {
 				transform: rotate(180deg);
 				
@@ -4611,7 +4623,7 @@ $popup-view-z-index: 3;
 			direction: rtl;
 
 			span {
-				padding-right: inherit;
+				padding-right: initial;
 			}
 		}
 
@@ -4624,7 +4636,7 @@ $popup-view-z-index: 3;
 				}
 
 				.v-treetable-treespacer {
-					margin-left: inherit;
+					margin-left: initial;
 					margin-right: -14px;
 				}
 
@@ -4643,7 +4655,7 @@ $popup-view-z-index: 3;
 				}
 
 				.v-treetable-treespacer {
-					margin-left: inherit;
+					margin-left: initial;
 					margin-right: -14px;
 				}
 
@@ -4693,22 +4705,22 @@ $popup-view-z-index: 3;
 				border-right: none;
 	
 				.v-widget {
-					text-align: inherit;
+					text-align: initial;
 				}
 			}
 			
 			.header-selection-button {
-				right: inherit;
+				right: initial;
 				left: 80px;
 			}
 			
 			.header-collection-menu {
-				right: inherit;
+				right: initial;
 				left: 150px;
 			}
 			
 			.header-action-menu {
-				right: inherit;
+				right: initial;
 				left: 10px;
 			}
 		}
@@ -4731,7 +4743,7 @@ $popup-view-z-index: 3;
 							}
 						
 						    .main-component {
-								padding-left: inherit;
+								padding-left: initial;
 								padding-right: 5px;
 							}
 						}
@@ -4747,7 +4759,7 @@ $popup-view-z-index: 3;
 			}
 		
 			.action-menu {
-		        right: inherit;
+		        right: initial;
 		        left: 20px;
 	
 				.v-button {
@@ -4778,22 +4790,22 @@ $popup-view-z-index: 3;
 				.base-display {
 					.v-slot-display-value {
 						.display-value {
-	            			padding-right: inherit;
+	            			padding-right: initial;
 	            			//padding-left: 300px;
 	            			
 	            			.agent-link {
-	            				padding-right: inherit;
+	            				padding-right: initial;
 	            				padding-left: 26px;
 	            			}
 						}
 					
 						.v-label-display-value {
-	            			margin-right: inherit;
+	            			margin-right: initial;
 	            			margin-left: 300px;
 						}
 						
 						.reference-display {
-	            			padding-right: inherit;
+	            			padding-right: initial;
 	            			//padding-left: 300px;
 						}
 					}
@@ -4801,7 +4813,7 @@ $popup-view-z-index: 3;
 					.record-comments-layout {
 						.v-slot-list-add-remove-comment {
 							.list-add-remove-comment {
-								padding-left: inherit;
+								padding-left: initial;
 								padding-right: 0px;
 							}
 						}
@@ -4811,7 +4823,7 @@ $popup-view-z-index: 3;
 				.retention-rule-display {
 					.v-slot-display-value {
 						.display-value-retentionRule_default_copyRetentionRules, .display-value-retentionRule_default_documentCopyRetentionRules {
-							padding-right: inherit;
+							padding-right: initial;
 							padding-left: 0px;
 						}
 					}
@@ -4839,18 +4851,18 @@ $popup-view-z-index: 3;
 			padding-left: 30px;
 
 			.header-search {
-				margin-left: inherit;
+				margin-left: initial;
 				margin-right: 5px;
 			}
     	}
     	
         .action-menu-wrapper {
-            padding-right: inherit;
+            padding-right: initial;
             padding-left: 260px;
         
 		    .action-menu {
 		    	direction: rtl;
-		        right: inherit;
+		        right: initial;
 		        left: 20px;
 		        
 				.v-button {
@@ -4861,22 +4873,22 @@ $popup-view-z-index: 3;
 			.base-display {
 				.v-slot-display-value {
 					.display-value {
-            			padding-right: inherit;
+            			padding-right: initial;
             			//padding-left: 300px;
             			
             			.agent-link {
-            				padding-right: inherit;
+            				padding-right: initial;
             				padding-left: 26px;
             			}
 					}
 				
 					.v-label-display-value {
-            			margin-right: inherit;
+            			margin-right: initial;
             			margin-left: 300px;
 					}
 					
 					.reference-display {
-            			padding-right: inherit;
+            			padding-right: initial;
             			//padding-left: 300px;
 					}
 				}
@@ -4887,7 +4899,7 @@ $popup-view-z-index: 3;
 				.v-slot-display-value {
 				
 					.display-value-retentionRule_default_copyRetentionRules, .display-value-retentionRule_default_documentCopyRetentionRules {
-						padding-right: inherit;
+						padding-right: initial;
 					}
 					
 				}
@@ -4900,7 +4912,7 @@ $popup-view-z-index: 3;
 		}
 
     	.v-slot-suggestions-summary-results {
-            padding-right: inherit;
+            padding-right: initial;
             padding-left: 320px;
     	}
     	
@@ -4932,12 +4944,12 @@ $popup-view-z-index: 3;
     	}
 
         .action-menu-wrapper {
-            padding-right: inherit;
+            padding-right: initial;
             padding-left: 260px;
 
 			.base-display {
 				.base-display-main-layout {
-            		padding-right: inherit;
+            		padding-right: initial;
             		padding-left: 260px;
 				}
 			
@@ -4945,7 +4957,7 @@ $popup-view-z-index: 3;
         }
 
 	    .action-menu {
-	        right: inherit;
+	        right: initial;
 	        left: 20px;
 	    }
 		
@@ -4955,7 +4967,7 @@ $popup-view-z-index: 3;
 		}
 
     	.v-slot-suggestions-summary-results {
-            padding-right: inherit;
+            padding-right: initial;
             padding-left: 320px;
     	}
     	
@@ -4969,17 +4981,17 @@ $popup-view-z-index: 3;
 
     	.header {
 			.header-selection-button {
-				right: inherit;
+				right: initial;
 				left: 220px;
 			}
 			
 			.header-collection-menu {
-				right: inherit;
+				right: initial;
 				left: 290px;
 			}
 			
 			.header-action-menu {
-				right: inherit;
+				right: initial;
 				left: 150px;
 			}
     	}
@@ -4995,12 +5007,12 @@ $popup-view-z-index: 3;
 	    }
 
 		.back-button {
-			right: inherit;
+			right: initial;
 			left: 0px;
 		}
 
 		.search-button:before {
-		    margin-left: inherit;
+		    margin-left: initial;
 		    margin-right: -14px;
 		}
 
