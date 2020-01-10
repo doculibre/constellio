@@ -416,6 +416,18 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return true;
 	}
 
+	public List<RecordVO> getSelectedRecordVOs() {
+		List<RecordVO> selectedRecords;
+		if (table.getSelectionManager() instanceof RecordVOSelectionManager) {
+			RecordVOSelectionManager recordVOSelectionManager = (RecordVOSelectionManager) table.getSelectionManager();
+			selectedRecords = recordVOSelectionManager.getSelectedRecordVOs();
+		} else {
+			List<Object> selectedItemIds = table.getSelectionManager().getAllSelectedItemIds();
+			selectedRecords = recordVOContainer.getRecordsVO(selectedItemIds);
+		}
+		return selectedRecords;
+	}
+
 	public List<Record> getSelectedRecords() {
 		List<Record> selectedRecords;
 		if (table.getSelectionManager() instanceof RecordVOSelectionManager) {
