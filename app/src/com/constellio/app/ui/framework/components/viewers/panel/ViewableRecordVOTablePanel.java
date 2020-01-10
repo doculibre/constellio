@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
+import com.constellio.app.api.extensions.params.SchemaDisplayParams;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
@@ -31,12 +32,14 @@ import com.constellio.app.ui.framework.components.selection.SelectionComponent.S
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.components.table.BaseTable.DeselectAllButton;
 import com.constellio.app.ui.framework.components.table.BaseTable.PagingControls;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable.RecordVOSelectionManager;
 import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEvent;
 import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
+import com.constellio.app.ui.framework.containers.PreLoader;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -170,6 +173,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	private boolean allItemsVisible = false;
 
 	private ViewWindow viewWindow;
+	private boolean canChangeTableMode;
 
 	public ViewableRecordVOTablePanel(RecordVOContainer container) {
 		this(container, TableMode.LIST, null);
@@ -181,9 +185,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	public ViewableRecordVOTablePanel(RecordVOContainer container, TableMode tableMode,
 									  RecordListMenuBar recordListMenuBar) {
+		this(container, tableMode, recordListMenuBar, true);
+	}
+
+	public ViewableRecordVOTablePanel(RecordVOContainer container, TableMode tableMode,
+									  RecordListMenuBar recordListMenuBar, boolean canChangeTableMode) {
 		this.recordVOContainer = container;
 		this.tableMode = tableMode != null ? tableMode : TableMode.LIST;
 		this.initialSelectionActionsMenuBar = recordListMenuBar;
+		this.canChangeTableMode = canChangeTableMode;
 		buildUI();
 	}
 
@@ -216,7 +226,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		if (isSelectColumn()) {
 			selectDeselectAllToggleButton = newSelectDeselectAllToggleButton();
 			selectDeselectAllToggleButton.addStyleName(ValoTheme.BUTTON_LINK);
-			selectDeselectAllToggleButton.setVisible(!empty);
+			if (!(selectDeselectAllToggleButton instanceof DeselectAllButton)) {
+				selectDeselectAllToggleButton.setVisible(!empty);
+			}
 		}
 
 		countLabel = new Label();
@@ -228,8 +240,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		selectedItemCountLabel.setVisible(false);
 
 		viewerMetadataPanel = buildViewerMetadataPanel();
+
 		listModeButton = buildListModeButton();
+		listModeButton.setVisible(this.canChangeTableMode);
+
 		tableModeButton = buildTableModeButton();
+		tableModeButton.setVisible(this.canChangeTableMode);
+
 		previousButton = buildPreviousButton();
 		nextButton = buildNextButton();
 		closeViewerButton = buildCloseViewerButton();
@@ -310,8 +327,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	public void setCountCaption(String caption) {
-		countLabel.setValue(caption);
-		countLabel.setVisible(StringUtils.isNotBlank(caption));
+		if (!isUnknownEnd()) {
+			countLabel.setValue(caption);
+			countLabel.setVisible(StringUtils.isNotBlank(caption));
+		}
+	}
+
+	public boolean isUnknownEnd() {
+		return false;
 	}
 
 	public void setSelectedCountCaption(int numberOfSelected) {
@@ -543,6 +566,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					return finalSelectionManager;
 				}
 
+				@Override
+				public boolean isUnknownEnd() {
+					return ViewableRecordVOTablePanel.this.isUnknownEnd();
+				}
+
 				private SelectionManager createSelectionManagerWithSelectedCountCaption(
 						SelectionManager selectionManager) {
 					final SelectionManager finalSelectionManager = selectionManager;
@@ -570,7 +598,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 						@Override
 						public void selectionChanged(SelectionChangeEvent event) {
 							finalSelectionManager.selectionChanged(event);
-							setSelectedCountCaption(getAllSelectedItemIds().size());
+							setSelectedCountCaption(getSelectedSize());
 						}
 					};
 					return selectionManagerWithSelectedCount;
@@ -591,6 +619,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				}
 			};
 			viewableRecordVOTable.setWidth("100%");
+			if (recordVOContainer instanceof PreLoader) {
+				viewableRecordVOTable.setPreLoader((PreLoader) recordVOContainer);
+			}
 
 			resultsTable = viewableRecordVOTable;
 			resultsTable.setContainerDataSource(new ContainerAdapter(viewableRecordVOContainer) {
@@ -731,11 +762,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				selectionChangeEvent.setAllItemsSelected(refreshRenderedCellsEventParams.isAreAllItemSelected());
 
 				resultsTable.getSelectionManager().selectionChanged(selectionChangeEvent);
-				setSelectedCountCaption(resultsTable.getSelectionManager().getAllSelectedItemIds().size());
+				setSelectedCountCaption(getSelectedSize());
 			}
 		});
 
 		return resultsTable;
+	}
+
+	protected int getSelectedSize() {
+		return table.getSelectionManager().getAllSelectedItemIds().size();
 	}
 
 	public boolean isIndexVisible() {
@@ -792,7 +827,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 	}
 
-	private SelectDeselectAllButton newSelectDeselectAllToggleButton() {
+	protected SelectDeselectAllButton newSelectDeselectAllToggleButton() {
 		return table.newSelectDeselectAllToggleButton("", "");
 	}
 
@@ -843,7 +878,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 				viewWindow = new DisplayDocumentWindow(recordVO);
 			} else {
-				viewWindow = new DisplaySchemaRecordWindow(recordVO);
+
+				ViewWindow viewWindowFromExt = ViewableRecordVOTablePanel.this.getMainView()
+						.getConstellioFactories().getAppLayerFactory().getExtensions().getSystemWideExtensions().getWindowDisplay(new SchemaDisplayParams(schemaTypeCode, recordVO));
+				if (viewWindowFromExt != null) {
+					viewWindow = viewWindowFromExt;
+				} else {
+					viewWindow = new DisplaySchemaRecordWindow(recordVO);
+				}
 			}
 
 			viewWindow.addCloseListener(new Window.CloseListener() {
@@ -1257,9 +1299,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					view.enter(null);
 					panelContent = view;
 				} else {
-					UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
-					panelContent = new RecordDisplayFactory(currentUser).build(recordVO, true);
-					this.addStyleName("nested-view");
+					Component displayComponent = ViewableRecordVOTablePanel.this.getMainView()
+							.getConstellioFactories().getAppLayerFactory().getExtensions().getSystemWideExtensions().getSchemaDisplay(new SchemaDisplayParams(schemaTypeCode, recordVO));
+					if (displayComponent != null) {
+						panelContent = displayComponent;
+					} else {
+						UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
+						panelContent = new RecordDisplayFactory(currentUser).build(recordVO, true);
+						this.addStyleName("nested-view");
+					}
 				}
 				mainLayout.addComponent(panelContent);
 				Label spacer = new Label("");

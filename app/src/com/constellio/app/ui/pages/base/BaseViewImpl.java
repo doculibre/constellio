@@ -434,29 +434,29 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
 		}
 
-		if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
+		if (isOnlyQuickMenuActionVisible()) {
+			List<Button> quickActionButtons = getQuickActionMenuButtons();
+			if (quickActionButtons != null && !quickActionButtons.isEmpty()) {
+				int visibleButtons = addQuickActionButton(quickActionButtons);
+
+				if (visibleButtons > 0) {
+					result = actionMenuBarLayout;
+				} else {
+					result = null;
+				}
+			} else {
+				result = null;
+			}
+		} else if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
 			result = null;
 		} else {
 			if (isActionMenuBar()) {
 				MenuBar menuBar = newActionMenuBar();
 				List<Button> quickActionButtons = getQuickActionMenuButtons();
 				if (quickActionButtons != null && !quickActionButtons.isEmpty()) {
-					actionMenuBarLayout = new I18NHorizontalLayout();
-					actionMenuBarLayout.addStyleName("action-menu-bar-layout");
-					actionMenuBarLayout.setSpacing(true);
+					int quickActionVisibleButtonsCount = addQuickActionButton(quickActionButtons);
 
-					int visibleButtons = 0;
-					for (Button quickActionButton : quickActionButtons) {
-						if (quickActionButton.isVisible()) {
-							quickActionButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-							quickActionButton.addStyleName(ValoTheme.BUTTON_LINK);
-							quickActionButton.addStyleName("action-menu-bar-button");
-							actionMenuBarLayout.addComponent(quickActionButton);
-							visibleButtons++;
-						}
-					}
-
-					if (visibleButtons == 0) {
+					if (quickActionVisibleButtonsCount == 0) {
 						result = menuBar;
 					} else {
 						actionMenuBarLayout.addComponent(menuBar);
@@ -495,6 +495,24 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		//			result.addStyleName("action-menu");
 		//        }
 		return result;
+	}
+
+	private int addQuickActionButton(List<Button> quickActionButtons) {
+		actionMenuBarLayout = new I18NHorizontalLayout();
+		actionMenuBarLayout.addStyleName("action-menu-bar-layout");
+		actionMenuBarLayout.setSpacing(true);
+
+		int visibleButtons = 0;
+		for (Button quickActionButton : quickActionButtons) {
+			if (quickActionButton.isVisible()) {
+				quickActionButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+				quickActionButton.addStyleName(ValoTheme.BUTTON_LINK);
+				quickActionButton.addStyleName("action-menu-bar-button");
+				actionMenuBarLayout.addComponent(quickActionButton);
+				visibleButtons++;
+			}
+		}
+		return visibleButtons;
 	}
 
 	protected void actionButtonStateChanged(Button actionMenuButton) {
@@ -640,6 +658,10 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	protected boolean isBreadcrumbsVisible() {
 		return true;
+	}
+
+	protected boolean isOnlyQuickMenuActionVisible() {
+		return false;
 	}
 
 	@Override

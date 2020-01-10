@@ -3,6 +3,7 @@ package com.constellio.app.ui.entities;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class SearchResultVO implements Serializable {
 
@@ -26,5 +27,23 @@ public class SearchResultVO implements Serializable {
 
 	public Map<String, List<String>> getHighlights() {
 		return highlights;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		SearchResultVO that = (SearchResultVO) o;
+		return index == that.index &&
+			   Objects.equals(recordVO, that.recordVO);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(index, recordVO);
 	}
 }

@@ -18,20 +18,22 @@ public class RecordDisplayFactory implements Serializable {
 	private UserVO currentUser;
 	private MetadataDisplayFactory componentFactory;
 	private Map<String, String> extraParameters;
+	private boolean noElevationAndExclusion;
 
 	public RecordDisplayFactory(UserVO currentUser, MetadataDisplayFactory componentFactory,
-								Map<String, String> extraParameters) {
+								Map<String, String> extraParameters, boolean noElevationAndExclusion) {
 		this.currentUser = currentUser;
 		this.componentFactory = componentFactory;
 		this.extraParameters = extraParameters;
+		this.noElevationAndExclusion = noElevationAndExclusion;
 	}
 
 	public RecordDisplayFactory(UserVO currentUser, Map<String, String> extraParameters) {
-		this(currentUser, new MetadataDisplayFactory(), extraParameters);
+		this(currentUser, new MetadataDisplayFactory(), extraParameters, false);
 	}
 
 	public RecordDisplayFactory(UserVO currentUser) {
-		this(currentUser, new MetadataDisplayFactory(), new HashMap());
+		this(currentUser, new MetadataDisplayFactory(), new HashMap(), false);
 	}
 
 	public RecordDisplay build(RecordVO recordVO) {
@@ -54,7 +56,7 @@ public class RecordDisplayFactory implements Serializable {
 		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 
 		if (searchResultDisplay == null) {
-			result = new SearchResultDisplay(searchResultVO, componentFactory, appLayerFactory, query, extraParameters, configs.isNoLinksInSearchResults());
+			result = new SearchResultDisplay(searchResultVO, componentFactory, appLayerFactory, query, extraParameters, configs.isNoLinksInSearchResults(), this.noElevationAndExclusion);
 		} else {
 			result = searchResultDisplay;
 		}
