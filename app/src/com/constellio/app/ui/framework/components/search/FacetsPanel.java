@@ -13,19 +13,11 @@ import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.List;
@@ -160,11 +152,7 @@ public abstract class FacetsPanel extends VerticalLayout {
 			});
 
 			String caption = facetValue.getLabel();
-			if (isRightToLeft()) {
-				caption = "(" + facetValue.getCount() + ") " + caption;
-			} else {
-				caption += " (" + facetValue.getCount() + ")";
-			}
+			caption += " (" + facetValue.getCount() + ")";
 			checkBox.setCaption(caption);
 
 			@SuppressWarnings("unchecked")
