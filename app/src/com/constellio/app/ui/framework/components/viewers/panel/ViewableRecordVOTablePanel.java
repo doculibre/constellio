@@ -72,6 +72,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.JavaScriptFunction;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
 import com.vaadin.ui.VerticalLayout;
@@ -415,6 +416,18 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return true;
 	}
 
+	public List<RecordVO> getSelectedRecordVOs() {
+		List<RecordVO> selectedRecords;
+		if (table.getSelectionManager() instanceof RecordVOSelectionManager) {
+			RecordVOSelectionManager recordVOSelectionManager = (RecordVOSelectionManager) table.getSelectionManager();
+			selectedRecords = recordVOSelectionManager.getSelectedRecordVOs();
+		} else {
+			List<Object> selectedItemIds = table.getSelectionManager().getAllSelectedItemIds();
+			selectedRecords = recordVOContainer.getRecordsVO(selectedItemIds);
+		}
+		return selectedRecords;
+	}
+
 	public List<Record> getSelectedRecords() {
 		List<Record> selectedRecords;
 		if (table.getSelectionManager() instanceof RecordVOSelectionManager) {
@@ -465,7 +478,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					if (!closeButtonViewerMetadataLayout.isVisible()) {
 						int compressedWidth = computeCompressedWidth();
 						if (table != null) {
-							int searchResultPropertyWidth = compressedWidth - BaseTable.SELECT_PROPERTY_WIDTH - ViewableRecordVOContainer.THUMBNAIL_WIDTH - 3;
+							int searchResultPropertyWidth = compressedWidth - BaseTable.SELECT_PROPERTY_WIDTH - (isShowThumbnailCol() ? ViewableRecordVOContainer.THUMBNAIL_WIDTH : 0) - 3;
 							table.setColumnWidth(ViewableRecordVOContainer.SEARCH_RESULT_PROPERTY, searchResultPropertyWidth);
 							table.addStyleName(compressedStyleName);
 						}
@@ -535,6 +548,18 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 	}
 
+	protected boolean isShowThumbnailCol() {
+		return true;
+	}
+
+	protected boolean isNewMenuBarDefined() {
+		return false;
+	}
+
+	protected MenuBar newMenuBar(RecordVO itemId) {
+		return null;
+	}
+
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	private BaseTable buildResultsTable() {
 		BaseTable resultsTable;
@@ -547,6 +572,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 						recordDisplay = super.getRecordDisplay(itemId);
 					}
 					return recordDisplay;
+				}
+
+				@Override
+				protected boolean isShowThumbnailCol() {
+					return ViewableRecordVOTablePanel.this.isShowThumbnailCol();
 				}
 			};
 
@@ -564,6 +594,18 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					}
 					SelectionManager finalSelectionManager = createSelectionManagerWithSelectedCountCaption(selectionManager);
 					return finalSelectionManager;
+				}
+
+				@Override
+				protected MenuBar newMenuBar(Object itemId) {
+					if (isNewMenuBarDefined()) {
+						Item item = getItem(itemId);
+						RecordVO recordVO = getRecordVOForTitleColumn(item);
+
+						return ViewableRecordVOTablePanel.this.newMenuBar(recordVO);
+					} else {
+						return super.newMenuBar(itemId);
+					}
 				}
 
 				@Override
