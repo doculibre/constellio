@@ -4,6 +4,7 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.utils.PropertyFileUtils;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 
 public class SystemLocalConfigsManager implements StatefulService {
@@ -28,7 +29,11 @@ public class SystemLocalConfigsManager implements StatefulService {
 
 	@Override
 	public void initialize() {
-		this.properties = PropertyFileUtils.loadKeyValues(propertyFile);
+		if (propertyFile.exists()) {
+			this.properties = new HashMap<>(PropertyFileUtils.loadKeyValues(propertyFile));
+		} else {
+			this.properties = new HashMap<>();
+		}
 	}
 
 	public boolean isMarkedForReindexing() {

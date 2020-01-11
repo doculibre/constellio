@@ -39,6 +39,14 @@ public class StringRecordIdLegacyPersistedMapping implements StringRecordIdLegac
 
 				value = siMapping.get(id);
 				if (value == null) {
+					if (!configManager.exist(PATH)) {
+						configManager.createPropertiesDocumentIfInexistent(PATH, new PropertiesAlteration() {
+							@Override
+							public void alter(Map<String, String> properties) {
+
+							}
+						});
+					}
 					configManager.updateProperties(PATH, new PropertiesAlteration() {
 						@Override
 						public void alter(Map<String, String> properties) {
