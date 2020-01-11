@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.base;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
+import com.constellio.app.services.systemSetup.SystemLocalConfigsManager;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.i18n.i18n;
@@ -237,18 +238,19 @@ public class ConstellioMenuPresenter implements Serializable {
 
 	public String getSystemStateImportantMessage() {
 		AppLayerFactory appLayerFactory = constellioMenu.getConstellioFactories().getAppLayerFactory();
-		SystemGlobalConfigsManager manager = appLayerFactory.getSystemGlobalConfigsManager();
-		if (manager.hasLastReindexingFailed()) {
+		SystemGlobalConfigsManager globalConfigsManager = appLayerFactory.getSystemGlobalConfigsManager();
+		SystemLocalConfigsManager localConfigsManager = appLayerFactory.getSystemLocalConfigsManager();
+		if (globalConfigsManager.hasLastReindexingFailed()) {
 			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 			User user = new PresenterService(modelLayerFactory).getCurrentUser(ConstellioUI.getCurrentSessionContext());
 			return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally() ? $("MainLayout.reindexingFailed") : null;
 		}
-		if (manager.isReindexingRequired()) {
+		if (globalConfigsManager.isReindexingRequired()) {
 			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 			User user = new PresenterService(modelLayerFactory).getCurrentUser(ConstellioUI.getCurrentSessionContext());
 			return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally() ? $("MainLayout.reindexingRequired") : null;
 
-		} else if (manager.isCacheRebuildRequired()) {
+		} else if (localConfigsManager.isCacheRebuildRequired()) {
 			//A reindexing includes a cache rebuild, no need to add this message if a reindexing is required
 
 			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();

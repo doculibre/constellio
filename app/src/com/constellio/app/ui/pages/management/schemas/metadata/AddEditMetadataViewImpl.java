@@ -504,6 +504,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		availableInSummary.setRequired(false);
 		availableInSummary.setId("availableInSummary");
 		availableInSummary.addStyleName("availableInSummary");
+		availableInSummary.setVisible(presenter.isAvailableInSummaryFlagButtonVisible());
 		availableInSummary.setEnabled(!inherited && presenter.isAvailableInSummaryFlagButtonEnabled(
 				formMetadataVO.getValueType()));
 		if (presenter.isAvailableInSummaryFlagAlwaysTrue(formMetadataVO.getValueType())) {

@@ -30,6 +30,7 @@ import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
+import com.constellio.app.services.systemSetup.SystemLocalConfigsManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.containers.ContainerButtonListener;
 import com.constellio.app.ui.i18n.i18n;
@@ -98,6 +99,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	private SystemGlobalConfigsManager systemGlobalConfigsManager;
 
+	private SystemLocalConfigsManager systemLocalConfigsManager;
+
 	private List<ContainerButtonListener> containerButtonListeners;
 	private SchemasDisplayManager metadataSchemasDisplayManager;
 
@@ -157,7 +160,9 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		Delayed<MigrationServices> migrationServicesDelayed = new Delayed<>();
 		this.modulesManager = add(new ConstellioModulesManagerImpl(this, pluginManager, migrationServicesDelayed));
 
+
 		this.systemGlobalConfigsManager = add(new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory()));
+		this.systemLocalConfigsManager = add(new SystemLocalConfigsManager(new FoldersLocator().getLocalConfigsFile(), systemGlobalConfigsManager));
 		this.collectionsManager = add(
 				new CollectionsManager(this, modulesManager, migrationServicesDelayed, systemGlobalConfigsManager));
 		migrationServicesDelayed.set(newMigrationServices());
@@ -361,11 +366,11 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	public void postInitialization() {
 		modelLayerFactory.postInitialization(new ModelPostInitializationParams()
-				.setRebuildCacheFromSolr(systemGlobalConfigsManager.isMarkedForCacheRebuild())
+				.setRebuildCacheFromSolr(systemLocalConfigsManager.isMarkedForCacheRebuild())
 				.setCacheLoadingFinishedCallback(() -> {
-					if (systemGlobalConfigsManager.isMarkedForCacheRebuild()) {
-						systemGlobalConfigsManager.setMarkedForCacheRebuild(false);
-						systemGlobalConfigsManager.setCacheRebuildRequired(false);
+					if (systemLocalConfigsManager.isMarkedForCacheRebuild()) {
+						systemLocalConfigsManager.setMarkedForCacheRebuild(false);
+						systemLocalConfigsManager.markLocalCacheAsRebuilt();
 					}
 				}));
 
@@ -380,8 +385,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			modelLayerFactory.newReindexingServices().removeLockFile();
 		}
 
-		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
-			systemGlobalConfigsManager.setMarkedForReindexing(false);
+		if (systemLocalConfigsManager.isMarkedForReindexing()) {
+			systemLocalConfigsManager.setMarkedForReindexing(false);
 
 			try {
 				modelLayerFactory.newReindexingServices().createLockFile();
@@ -398,7 +403,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 				dataLayerFactory.getSecondTransactionLogManager().moveLastBackupAsCurrentLog();
 			}
 		}
-		systemGlobalConfigsManager.setRestartRequired(false);
+		systemLocalConfigsManager.setRestartRequired(false);
 	}
 
 	public void restart()
@@ -458,6 +463,10 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	public SystemGlobalConfigsManager getSystemGlobalConfigsManager() {
 		return this.systemGlobalConfigsManager;
+	}
+
+	public SystemLocalConfigsManager getSystemLocalConfigsManager() {
+		return systemLocalConfigsManager;
 	}
 
 	public CollectionsManager getCollectionsManager() {

@@ -103,6 +103,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 				duplicable, uniqueValue,
 				metadata.getCustomAttributes(),
 				sessionContext, isMultiLingual);
+
 		if (metadata.getInheritance() != null) {
 			formMetadataVO.setInheritance(
 					this.build(metadata.getInheritance(), schemaVO, configManager, schemaTypeCode, sessionContext));

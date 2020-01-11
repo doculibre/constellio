@@ -152,7 +152,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	public FormMetadataVO getFormMetadataVO() {
-		FormMetadataVO found = null;
+		FormMetadataVO form = null;
 
 		if (metadataCode == null || metadataCode.isEmpty()) {
 			return null;
@@ -164,10 +164,13 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			Metadata metadata = types.getMetadata(metadataCode);
 
 			MetadataToFormVOBuilder voBuilder = new MetadataToFormVOBuilder(view.getSessionContext());
-			found = voBuilder.build(metadata, displayManager, schemaTypeCode, view.getSessionContext());
+			form = voBuilder.build(metadata, displayManager, schemaTypeCode, view.getSessionContext());
+			if (isAvailableInSummaryFlagAlwaysTrue(form.getValueType())) {
+				form.setAvailableInSummary(true);
+			}
 		}
 
-		return found;
+		return form;
 	}
 
 	public List<RoleVO> getAllCollectionRole() {
@@ -368,6 +371,21 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 									}
 								}
 							});
+
+				} else if (cacheRebuildRequired) {
+					String confirmDialogMessage = $("AddEditMetadataPresenter.saveButton.cacheRebuildRequired");
+
+					ConfirmDialog.show(UI.getCurrent(), $("AddEditMetadataPresenter.saveButton.cacheRebuildRequiredTitle"), confirmDialogMessage,
+							$("confirm"), $("cancel"), new ConfirmDialog.Listener() {
+								@Override
+								public void onClose(ConfirmDialog dialog) {
+									if (dialog.isConfirmed()) {
+										saveButtonClicked(formMetadataVO, editMode, schemaCode,
+												schemasManager, types, code, reindexRequired, cacheRebuildRequired, builder);
+									}
+								}
+							});
+
 				} else {
 					isSaveButtonClicked = true;
 				}
@@ -377,7 +395,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 			if (isSaveButtonClicked) {
 				saveButtonClicked(formMetadataVO, editMode, schemaCode,
-						schemasManager, types, code, false, cacheRebuildRequired, builder);
+						schemasManager, types, code, false, false, builder);
 			}
 		}
 	}
@@ -461,7 +479,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			view.showMessage($("AddEditMetadataView.reindexRequired"));
 
 		} else if (cacheRebuildRequired) {
-			appLayerFactory.getSystemGlobalConfigsManager().setCacheRebuildRequired(true);
+			appLayerFactory.getSystemGlobalConfigsManager().markLocalCachesAsRequiringRebuild();
 			view.showMessage($("AddEditMetadataView.cacheRebuildRequired"));
 
 		}
@@ -731,6 +749,10 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public boolean isAvailableInSummaryFlagAlwaysTrue(MetadataValueType type) {
 		return type == BOOLEAN || type == INTEGER || type == NUMBER || type == REFERENCE;
+	}
+
+	public boolean isAvailableInSummaryFlagButtonVisible() {
+		return schemaType(schemaTypeCode).getCacheType().isSummaryCache();
 	}
 
 

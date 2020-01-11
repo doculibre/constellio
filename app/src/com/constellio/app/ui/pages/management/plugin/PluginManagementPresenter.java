@@ -51,13 +51,13 @@ public class PluginManagementPresenter extends BasePresenter<PluginManagementVie
 	public PluginActivationFailureCause installPlugin(File tempFile) {
 		PluginActivationFailureCause cause = pluginManager().prepareInstallablePlugin(tempFile);
 		if (cause == null) {
-			appLayerFactory.getSystemGlobalConfigsManager().setRestartRequired(true);
+			appLayerFactory.getSystemLocalConfigsManager().setRestartRequired(true);
 		}
 		return cause;
 	}
 
 	boolean isRestartMessageVisible() {
-		return appLayerFactory.getSystemGlobalConfigsManager().isRestartRequired();
+		return appLayerFactory.getSystemLocalConfigsManager().isRestartRequired();
 	}
 
 	private ConstellioPluginManager pluginManager() {

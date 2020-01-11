@@ -18,6 +18,7 @@ import com.constellio.app.services.migrations.VersionsComparator;
 import com.constellio.app.services.recovery.ConstellioVersionInfo;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
+import com.constellio.app.services.systemSetup.SystemLocalConfigsManager;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
@@ -85,6 +86,7 @@ public class AppManagementService {
 	private final PluginServices pluginServices;
 	private final ConstellioPluginManager pluginManager;
 	private final SystemGlobalConfigsManager systemGlobalConfigsManager;
+	private final SystemLocalConfigsManager systemLocalConfigsManager;
 	private final FileService fileService;
 	private final ZipService zipService;
 	private final IOServices ioServices;
@@ -95,6 +97,7 @@ public class AppManagementService {
 	public AppManagementService(AppLayerFactory appLayerFactory, FoldersLocator foldersLocator) {
 
 		this.systemGlobalConfigsManager = appLayerFactory.getSystemGlobalConfigsManager();
+		this.systemLocalConfigsManager = appLayerFactory.getSystemLocalConfigsManager();
 		this.pluginManager = appLayerFactory.getPluginManager();
 		this.fileService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService();
 		this.zipService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newZipService();
@@ -697,17 +700,17 @@ public class AppManagementService {
 	}
 
 	public void markForReindexing() {
-		systemGlobalConfigsManager.setMarkedForReindexing(true);
+		systemLocalConfigsManager.setMarkedForReindexing(true);
 	}
 
 	public void markCacheForRebuildIfRequired() {
-		if (systemGlobalConfigsManager.isCacheRebuildRequired()) {
-			systemGlobalConfigsManager.setMarkedForCacheRebuild(true);
+		if (systemLocalConfigsManager.isCacheRebuildRequired()) {
+			systemLocalConfigsManager.setMarkedForCacheRebuild(true);
 		}
 	}
 
 	public void markCacheForRebuild() {
-		systemGlobalConfigsManager.setMarkedForCacheRebuild(true);
+		systemLocalConfigsManager.setMarkedForCacheRebuild(true);
 	}
 
 	public boolean isLicensedForAutomaticUpdate() {

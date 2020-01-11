@@ -68,7 +68,7 @@ public class RMMigrationTo9_0_51 implements MigrationScript {
 				}
 			}
 
-			appLayerFactory.getSystemGlobalConfigsManager().setCacheRebuildRequired(true);
+			appLayerFactory.getSystemGlobalConfigsManager().markLocalCachesAsRequiringRebuild();
 		}
 	}
 }
