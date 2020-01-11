@@ -80,6 +80,7 @@ public class SearchResultDisplay extends VerticalLayout {
 	private String query;
 	private Map<String, String> extraParam;
 	boolean noLinks;
+	private boolean noElevationAndExclusion;
 
 	private Component titleLink;
 
@@ -87,12 +88,18 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 							   AppLayerFactory appLayerFactory, String query, boolean noLinks) {
-		this(searchResultVO, componentFactory, appLayerFactory, query, null, noLinks);
+		this(searchResultVO, componentFactory, appLayerFactory, query, null, noLinks, false);
 	}
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 							   AppLayerFactory appLayerFactory, String query, Map<String, String> extraParam,
 							   boolean noLinks) {
+		this(searchResultVO, componentFactory, appLayerFactory, query, extraParam, noLinks, false);
+	}
+
+	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
+							   AppLayerFactory appLayerFactory, String query, Map<String, String> extraParam,
+							   boolean noLinks, boolean noElevationAndExclusion) {
 		this.searchResultVO = searchResultVO;
 		this.componentFactory = componentFactory;
 		this.appLayerFactory = appLayerFactory;
@@ -101,6 +108,7 @@ public class SearchResultDisplay extends VerticalLayout {
 				getAppLayerFactory().getModelLayerFactory());
 		this.query = query;
 		this.noLinks = noLinks;
+		this.noElevationAndExclusion = noElevationAndExclusion;
 		searchConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSearchConfigurationsManager();
 
 		this.sessionContext = getCurrent().getSessionContext();
@@ -159,8 +167,8 @@ public class SearchResultDisplay extends VerticalLayout {
 		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
 				.has(currentSessionContext.getCurrentUser().getUsername());
 
-		if (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
-			&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
+		if (!noElevationAndExclusion && (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
+										 && userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT))) {
 			//			titleLink.setWidth("90%");
 
 			addStyleName("search-result-with-elevation-buttons");

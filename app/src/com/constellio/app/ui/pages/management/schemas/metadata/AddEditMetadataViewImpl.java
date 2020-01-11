@@ -558,7 +558,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		Field<?> previousDefaultValueField = defaultValueField;
 		if (defaultValueMetadataVO != null && presenter.isDefaultValuePossible(formMetadataVO)) {
 			try {
-				defaultValueField = fieldFactory.build(defaultValueMetadataVO);
+				defaultValueField = fieldFactory.build(defaultValueMetadataVO, null);
 			} catch (Exception e) {
 				e.printStackTrace();
 				defaultValueField = null;

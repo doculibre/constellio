@@ -110,7 +110,7 @@ import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRa
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
+public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter, RecordSelectionObserver {
 
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
 	public static final String SEARCH_EVENT_DWELL_TIME = "SEARCH_EVENT_DWELL_TIME";

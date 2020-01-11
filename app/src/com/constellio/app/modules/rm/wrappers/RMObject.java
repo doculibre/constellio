@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.wrappers;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.joda.time.LocalDateTime;
 
@@ -32,12 +33,22 @@ public abstract class RMObject extends RecordWrapper {
 		return get(FORM_CREATED_BY);
 	}
 
+	public RMObject setFormCreatedBy(User user) {
+		set(FORM_CREATED_BY, user);
+		return this;
+	}
+
 	public LocalDateTime getFormCreatedOn() {
 		return get(FORM_CREATED_ON);
 	}
 
 	public String getFormModifiedBy() {
 		return get(FORM_MODIFIED_BY);
+	}
+
+	public RMObject setFormModifiedBy(User user) {
+		set(FORM_MODIFIED_BY, user);
+		return this;
 	}
 
 	public LocalDateTime getFormModifiedOn() {

@@ -184,7 +184,6 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 					if (contentManager.hasContentPreview(hash)) {
 						documentPreviewIn = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + hash + ".PdfGenerator");
 					} else {
-
 						// The document's preview is about to be generated
 						record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, true);
 						try {

@@ -1,0 +1,27 @@
+AddType image/vnd.microsoft.icon .cur
+AddType application/json .json
+AddType text/cache-manifest .appcache
+AddType application/octet-stream .mem
+AddType application/octet-stream .res
+AddType application/x-pnacl .pexe
+AddType application/octet-stream .nmf
+AddType application/wasm .wasm
+
+<IfModule mod_headers.c>
+    <FilesMatch ".*\.(gz)\..*">
+        # Serve correct encoding type.
+        # We make the assumption that gzip is always supported.
+        Header set Content-Encoding gzip
+        # Force proxies to cache gzipped & non-gzipped files separately.
+        Header set Vary Accept-Encoding
+    </FilesMatch>
+
+    <FilesMatch ".*\.(br)\..*">
+        # Serve correct encoding type.
+        # Note that we only serve the brotli file with Content-Encoding: br if the client told us it supports it.
+        SetEnvIf Accept-Encoding ".*br.*" SUPPORT_BROTLI
+        Header set Content-Encoding br env=SUPPORT_BROTLI
+        # Force proxies to cache brotli encoded & non-brotli encoded files separately.
+        Header set Vary Accept-Encoding
+    </FilesMatch>
+</IfModule>

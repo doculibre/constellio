@@ -69,18 +69,18 @@ public class MetadataFieldFactory implements Serializable {
 		this.isViewOnly = isViewOnly;
 	}
 
-	public final Field<?> build(MetadataVO metadata) {
-		return build(metadata, null);
+	public final Field<?> build(MetadataVO metadata, String recordId) {
+		return build(metadata, recordId, null);
 	}
 
-	public Field<?> build(MetadataVO metadata, Locale locale) {
+	public Field<?> build(MetadataVO metadata, String recordId, Locale locale) {
 		Field<?> field;
 
 		boolean multivalue = metadata.isMultivalue();
 		if (multivalue) {
-			field = newMultipleValueField(metadata);
+			field = newMultipleValueField(metadata, recordId);
 		} else {
-			field = newSingleValueField(metadata);
+			field = newSingleValueField(metadata, recordId);
 		}
 		// FIXME Temporary workaround for inconsistencies
 		if (metadata.getJavaType() == null) {
@@ -107,7 +107,7 @@ public class MetadataFieldFactory implements Serializable {
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	protected Field<?> newSingleValueField(MetadataVO metadata) {
+	protected Field<?> newSingleValueField(MetadataVO metadata, String recordId) {
 		Field<?> field;
 
 		String collection = metadata.getCollection();
@@ -239,10 +239,10 @@ public class MetadataFieldFactory implements Serializable {
 					// Two input types : CONTENTS OR CONTENT_CHECK_IN_CHECK_OUT
 					switch (metadataInputType) {
 						case CONTENT_CHECK_IN_CHECK_OUT:
-							field = new ContentVersionUploadField();
+							field = new ContentVersionUploadField(recordId, metadata.getLocalCode());
 							break;
 						default:
-							field = new ContentVersionUploadField();
+							field = new ContentVersionUploadField(recordId, metadata.getLocalCode());
 							((ContentVersionUploadField) field).setMajorVersionFieldVisible(false);
 							break;
 					}
@@ -260,7 +260,7 @@ public class MetadataFieldFactory implements Serializable {
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	protected Field<?> newMultipleValueField(MetadataVO metadata) {
+	protected Field<?> newMultipleValueField(MetadataVO metadata, String recordId) {
 		Field<?> field;
 
 		String collection = metadata.getCollection();
@@ -384,10 +384,10 @@ public class MetadataFieldFactory implements Serializable {
 				case CONTENT:
 					switch (metadataInputType) {
 						case CONTENT_CHECK_IN_CHECK_OUT:
-							field = new ContentVersionUploadField(true, false, isViewOnly);
+							field = new ContentVersionUploadField(true, false, isViewOnly, recordId, metadata.getLocalCode());
 							break;
 						default:
-							field = new ContentVersionUploadField(true, true, isViewOnly);
+							field = new ContentVersionUploadField(true, true, isViewOnly, recordId, metadata.getLocalCode());
 							((ContentVersionUploadField) field).setMajorVersionFieldVisible(false);
 							break;
 					}

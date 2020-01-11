@@ -131,6 +131,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private Component contentMetadataComponent;
 
 	private CollapsibleHorizontalSplitPanel splitPanel;
+	private String searchTerm;
+
 
 	public DisplayDocumentViewImpl() {
 		this(null, false, false);
@@ -144,6 +146,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	public DisplayDocumentPresenter getDisplayDocumentPresenter() {
 		return presenter;
+	}
+
+	public void setSearchTerm(String searchTerm) {
+		this.searchTerm = searchTerm;
 	}
 
 	@Override
@@ -178,7 +184,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private ContentViewer newContentViewer() {
 		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
-		final ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
+		final ContentViewer contentViewer = new ContentViewer(presenter.getAppLayerFactory(),
+				documentVO, Document.CONTENT, contentVersionVO);
+
+		contentViewer.setSearchTerm(searchTerm);
+
 		if (inWindow && !isViewerInSeparateTab()) {
 			//			int viewerHeight = Page.getCurrent().getBrowserWindowHeight() - 125;
 			//			contentViewer.setHeight(viewerHeight + "px");
@@ -205,6 +215,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			js.append(functionId + "(splitterDivHeight);");
 			JavaScript.getCurrent().execute(js.toString());
 		}
+
+		if (inWindow) {
+			contentViewer.setSpecialCaseHeight("100%");
+			contentViewer.setHeight("100%");
+			mainLayout.setHeight("100%");
+		}
+
 		return contentViewer;
 	}
 
@@ -222,6 +239,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					isContentViewerInSplitPanel = true;
 					contentViewer = newContentViewer;
 					Component splitPanel = createSplitPanel();
+
 					mainLayout.replaceComponent(contentMetadataComponent, splitPanel);
 					contentMetadataComponent = splitPanel;
 				}
@@ -264,7 +282,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory(), Toggle.SEARCH_RESULTS_VIEWER.isEnabled());
 		recordDisplay.setSizeFull();
 
-		versionTable = new ContentVersionVOTable("DocumentVersions", presenter.getAppLayerFactory(), presenter.hasCurrentUserPermissionToViewFileSystemName()) {
+		ContentVersionVO contentVersionVO
+				= (ContentVersionVO) documentVO.get(Document.CONTENT);
+		versionTable = new ContentVersionVOTable("DocumentVersions", new ArrayList<>(), presenter.getAppLayerFactory(),
+				presenter.hasCurrentUserPermissionToViewFileSystemName(),
+				getRecordVO().getId(),
+				Document.CONTENT,
+				presenter.canEditOldVersion() && presenter.hasWritePermission(), contentVersionVO != null ? contentVersionVO.getVersion() : null) {
 			@Override
 			protected boolean isSelectionColumn() {
 				return isDeleteColumn();
@@ -361,6 +385,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		splitPanel.setFirstComponent(contentViewer);
 		splitPanel.setSecondComponent(tabSheet);
 		splitPanel.setSecondComponentWidth(RECORD_DISPLAY_WIDTH, RECORD_DISPLAY_WIDTH_UNIT);
+
+		if (inWindow) {
+			splitPanel.getFirstComponentContainer().setHeightUndefined();
+		}
+
 		return splitPanel;
 	}
 
@@ -606,6 +635,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		displayDocumentButton = new DisplayButton($("DisplayDocumentView.displayDocument"), false) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				contentViewer.releaseRessource();
 				presenter.displayDocumentButtonClicked();
 			}
 		};
@@ -625,7 +655,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		if (((DocumentVO) documentVO).getContent() != null) {
 			downloadDocumentButton = new DownloadContentVersionLink(((DocumentVO) documentVO).getContent(),
-					$("DisplayDocumentView.downloadDocument"));
+					$("DisplayDocumentView.downloadDocument"), documentVO.getId(), Document.CONTENT, false);
 			downloadDocumentButton.addStyleName("download-document-link");
 
 			openDocumentButton.setIcon(downloadDocumentButton.getIcon());
@@ -635,6 +665,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		editDocumentButton = new EditButton($("DisplayDocumentView.editDocument")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				contentViewer.releaseRessource();
 				presenter.editDocumentButtonClicked();
 			}
 		};

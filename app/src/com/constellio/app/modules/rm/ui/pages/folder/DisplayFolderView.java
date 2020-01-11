@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -45,8 +44,6 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 	void setBorrowedMessage(String borrowedMessage);
 
 	void refreshFolderContentTab();
-
-	void openDocumentContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO);
 
 	void closeDocumentContentVersionWindow();
 

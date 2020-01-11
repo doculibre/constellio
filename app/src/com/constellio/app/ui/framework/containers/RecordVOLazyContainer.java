@@ -32,7 +32,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @SuppressWarnings("serial")
-public class RecordVOLazyContainer extends LazyQueryContainer implements RecordVOContainer {
+public class RecordVOLazyContainer extends LazyQueryContainer implements RecordVOContainer, LastQTime {
 
 	private String statName;
 	private List<RecordVODataProvider> dataProviders;

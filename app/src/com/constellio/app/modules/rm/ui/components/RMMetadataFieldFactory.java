@@ -12,14 +12,14 @@ import java.util.Locale;
 public class RMMetadataFieldFactory extends MetadataFieldFactory {
 
 	@Override
-	public Field<?> build(MetadataVO metadata, Locale locale) {
+	public Field<?> build(MetadataVO metadata, String recordId, Locale locale) {
 		Field<?> field;
 		String schemaTypeCode = metadata.getSchemaTypeCode();
 		MetadataInputType inputType = metadata.getMetadataInputType();
 		if (inputType == MetadataInputType.LOOKUP && Folder.SCHEMA_TYPE.equals(schemaTypeCode) && !metadata.isMultivalue()) {
 			field = new LookupFolderField();
 		} else {
-			field = super.build(metadata, locale);
+			field = super.build(metadata, recordId, locale);
 		}
 		if (field instanceof LookupFolderField) {
 			postBuild(field, metadata);

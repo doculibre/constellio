@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.search;
 
+import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.ExtraTabInfo;
+import com.constellio.app.api.extensions.params.ExtraTabForSimpleSearchResultParams;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
@@ -71,6 +73,10 @@ import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
+import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
+import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextField;
@@ -126,6 +132,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private boolean lazyLoadedSearchResults;
 	private List<SelectionChangeListener> selectionChangeListenerStorage = new ArrayList<>();
 	private boolean facetsOpened;
+	private TabSheet resultTabSheet;
+	private boolean hideFacette;
 
 	@Override
 	public void attach() {
@@ -333,13 +341,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			((SearchResultDetailedTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		}*/
 
+
 		boolean detailedView = isDetailedView();
-		resultsArea.removeAllComponents();
-		if (lazyLoadedSearchResults) {
-			resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
-		} else {
-			resultsArea.addComponent(resultsTable);
-		}
+		createResultArea();
+
 		if (detailedView) {
 			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		}
@@ -347,6 +352,49 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		refreshCapsule();
 
 		return dataProvider;
+	}
+
+	private void createResultArea() {
+		List<ExtraTabInfo> extraTabInfoList = getConstellioFactories().getAppLayerFactory().getExtensions()
+				.forCollection(getCollection()).getExtraTabForSimpleSearchResult(new ExtraTabForSimpleSearchResultParams(presenter.getUserSearchExpression()));
+
+		resultsArea.removeAllComponents();
+		if (extraTabInfoList.isEmpty()) {
+			if (lazyLoadedSearchResults) {
+				resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
+			} else {
+				resultsArea.addComponent(resultsTable);
+			}
+		} else {
+			resultTabSheet = new TabSheet();
+			Tab constellioTab;
+
+			if (lazyLoadedSearchResults) {
+				constellioTab = resultTabSheet.addTab(new LazyLoadWrapper(resultsTable), $("SearchView.constellioResultTab"));
+			} else {
+				constellioTab = resultTabSheet.addTab(resultsTable, $("SearchView.constellioResultTab"));
+			}
+
+			for (ExtraTabInfo currentExtraTab : extraTabInfoList) {
+				resultTabSheet.addTab(currentExtraTab.getTabComponent(), currentExtraTab.getTabCaption());
+			}
+
+			resultTabSheet.addSelectedTabChangeListener(new SelectedTabChangeListener() {
+				@Override
+				public void selectedTabChange(SelectedTabChangeEvent event) {
+					Component currentTab = event.getTabSheet().getSelectedTab();
+					hideFacette = currentTab != constellioTab.getComponent();
+					facetsSliderPanel.setVisible(!hideFacette);
+
+					if (currentTab instanceof BaseViewImpl) {
+						((BaseViewImpl) currentTab).enter(null);
+					}
+
+				}
+			});
+
+			resultsArea.addComponent(resultTabSheet);
+		}
 	}
 
 	@Override
@@ -370,7 +418,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			facetsSliderPanel.setHeightUndefined();
 		}
 		presenter.setPageNumber(1);
-		facetsSliderPanel.setVisible(dataProvider.size() > 0 || !facetSelections.isEmpty());
+		facetsSliderPanel.setVisible(!hideFacette && (dataProvider.size() > 0 || !facetSelections.isEmpty()));
 	}
 
 	@Override
@@ -468,7 +516,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		});
 		facetsSliderPanel.setHeight("800px");
-		facetsSliderPanel.setVisible(true);
+		facetsSliderPanel.setVisible(!hideFacette);
+		facetsSliderPanel.setImmediate(true);
 
 		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsSliderPanel);
 		body.addStyleName("search-result-and-facets-container");
@@ -538,7 +587,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		} else {
 			tableMode = null;
 		}
-		ViewableRecordVOSearchResultTable viewerPanel = new ViewableRecordVOSearchResultTable(container, tableMode, presenter, getRecordListMenuBar()) {
+		ViewableRecordVOSearchResultTable viewerPanel = new ViewableRecordVOSearchResultTable(container, tableMode, presenter, getRecordListMenuBar(), this) {
 			@Override
 			public boolean isIndexVisible() {
 				return indexVisible;
@@ -603,6 +652,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				};
 			}
 		};
+		viewerPanel.setSearchTerm(presenter.getUserSearchExpression());
 		viewerPanel.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {

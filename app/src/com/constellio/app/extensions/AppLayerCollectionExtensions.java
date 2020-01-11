@@ -6,6 +6,8 @@ import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisp
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
 import com.constellio.app.api.extensions.DocumentViewButtonExtension;
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
+import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention;
+import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.ExtraTabInfo;
 import com.constellio.app.api.extensions.FieldBindingExtention;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.LabelTemplateExtension;
@@ -38,6 +40,7 @@ import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitEx
 import com.constellio.app.api.extensions.params.DocumentViewButtonExtensionParam;
 import com.constellio.app.api.extensions.params.ExportCollectionInfosSIPIsTaxonomySupportedParams;
 import com.constellio.app.api.extensions.params.ExtraMetadataToGenerateOnReferenceParams;
+import com.constellio.app.api.extensions.params.ExtraTabForSimpleSearchResultParams;
 import com.constellio.app.api.extensions.params.FieldBindingExtentionParam;
 import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
@@ -222,6 +225,8 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<TabSheetInDisplayAndFormExtention> tabSheetCaptionToHide = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<ExtraTabForSimpleSearchResultExtention> extraTabsForSimpleSearchResultExtentions = new VaultBehaviorsList<>();
+
 
 	//Key : schema type code
 	//Values : record's code
@@ -252,6 +257,7 @@ public class AppLayerCollectionExtensions {
 		return availableSequences;
 	}
 
+
 	public void onWriteRecord(OnWriteRecordParams params) {
 		for (RecordExportExtension recordExportExtension : recordExportExtensions) {
 			recordExportExtension.onWriteRecord(params);
@@ -263,6 +269,16 @@ public class AppLayerCollectionExtensions {
 		for (XmlGeneratorExtension xmlGeneratorExtension1 : xmlGeneratorExtensions) {
 			xmlGeneratorExtension1.getExtraMetadataToGenerateOnReference(extraMetadataToGenerateOnReferenceParams);
 		}
+	}
+
+	public List<ExtraTabInfo> getExtraTabForSimpleSearchResult(ExtraTabForSimpleSearchResultParams params) {
+		List<ExtraTabInfo> extraTabInfoList = new ArrayList<>();
+
+		for (ExtraTabForSimpleSearchResultExtention extraTabForSimpleSearchResultExtention : extraTabsForSimpleSearchResultExtentions) {
+			extraTabInfoList.addAll(extraTabForSimpleSearchResultExtention.getExtraTabs(params));
+		}
+
+		return extraTabInfoList;
 	}
 
 	public Map<String, Object> convertStructureToMap(ConvertStructureToMapParams params) {
@@ -809,7 +825,8 @@ public class AppLayerCollectionExtensions {
 				return component;
 			}
 		}
-		return new MetadataFieldFactory().build(metadataFieldExtensionParams.getMetadataVO());
+		RecordVO recordVO = metadataFieldExtensionParams.getRecordVO();
+		return new MetadataFieldFactory().build(metadataFieldExtensionParams.getMetadataVO(), recordVO != null ? recordVO.getId() : null);
 	}
 
 	public Object getMetadataDisplayCustomValueExtention(

@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
+import com.constellio.app.api.extensions.params.SchemaDisplayParams;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
@@ -31,12 +32,14 @@ import com.constellio.app.ui.framework.components.selection.SelectionComponent.S
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.components.table.BaseTable.DeselectAllButton;
 import com.constellio.app.ui.framework.components.table.BaseTable.PagingControls;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable.RecordVOSelectionManager;
 import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEvent;
 import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
+import com.constellio.app.ui.framework.containers.PreLoader;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -69,6 +72,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.JavaScriptFunction;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
 import com.vaadin.ui.VerticalLayout;
@@ -170,6 +174,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	private boolean allItemsVisible = false;
 
 	private ViewWindow viewWindow;
+	private boolean canChangeTableMode;
+
+	private String searchTerm = null;
 
 	public ViewableRecordVOTablePanel(RecordVOContainer container) {
 		this(container, TableMode.LIST, null);
@@ -181,9 +188,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	public ViewableRecordVOTablePanel(RecordVOContainer container, TableMode tableMode,
 									  RecordListMenuBar recordListMenuBar) {
+		this(container, tableMode, recordListMenuBar, true);
+	}
+
+	public ViewableRecordVOTablePanel(RecordVOContainer container, TableMode tableMode,
+									  RecordListMenuBar recordListMenuBar, boolean canChangeTableMode) {
 		this.recordVOContainer = container;
 		this.tableMode = tableMode != null ? tableMode : TableMode.LIST;
 		this.initialSelectionActionsMenuBar = recordListMenuBar;
+		this.canChangeTableMode = canChangeTableMode;
 		buildUI();
 	}
 
@@ -205,6 +218,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return recordVOContainer;
 	}
 
+
+	public void setSearchTerm(String searchTerm) {
+		this.searchTerm = searchTerm;
+	}
+
 	private void buildUI() {
 		setWidth("100%");
 		//		setSpacing(true);
@@ -216,7 +234,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		if (isSelectColumn()) {
 			selectDeselectAllToggleButton = newSelectDeselectAllToggleButton();
 			selectDeselectAllToggleButton.addStyleName(ValoTheme.BUTTON_LINK);
-			selectDeselectAllToggleButton.setVisible(!empty);
+			if (!(selectDeselectAllToggleButton instanceof DeselectAllButton)) {
+				selectDeselectAllToggleButton.setVisible(!empty);
+			}
 		}
 
 		countLabel = new Label();
@@ -228,8 +248,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		selectedItemCountLabel.setVisible(false);
 
 		viewerMetadataPanel = buildViewerMetadataPanel();
+
 		listModeButton = buildListModeButton();
+		listModeButton.setVisible(this.canChangeTableMode);
+
 		tableModeButton = buildTableModeButton();
+		tableModeButton.setVisible(this.canChangeTableMode);
+
 		previousButton = buildPreviousButton();
 		nextButton = buildNextButton();
 		closeViewerButton = buildCloseViewerButton();
@@ -310,8 +335,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	public void setCountCaption(String caption) {
-		countLabel.setValue(caption);
-		countLabel.setVisible(StringUtils.isNotBlank(caption));
+		if (!isUnknownEnd()) {
+			countLabel.setValue(caption);
+			countLabel.setVisible(StringUtils.isNotBlank(caption));
+		}
+	}
+
+	public boolean isUnknownEnd() {
+		return false;
 	}
 
 	public void setSelectedCountCaption(int numberOfSelected) {
@@ -392,6 +423,18 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return true;
 	}
 
+	public List<RecordVO> getSelectedRecordVOs() {
+		List<RecordVO> selectedRecords;
+		if (table.getSelectionManager() instanceof RecordVOSelectionManager) {
+			RecordVOSelectionManager recordVOSelectionManager = (RecordVOSelectionManager) table.getSelectionManager();
+			selectedRecords = recordVOSelectionManager.getSelectedRecordVOs();
+		} else {
+			List<Object> selectedItemIds = table.getSelectionManager().getAllSelectedItemIds();
+			selectedRecords = recordVOContainer.getRecordsVO(selectedItemIds);
+		}
+		return selectedRecords;
+	}
+
 	public List<Record> getSelectedRecords() {
 		List<Record> selectedRecords;
 		if (table.getSelectionManager() instanceof RecordVOSelectionManager) {
@@ -442,7 +485,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					if (!closeButtonViewerMetadataLayout.isVisible()) {
 						int compressedWidth = computeCompressedWidth();
 						if (table != null) {
-							int searchResultPropertyWidth = compressedWidth - BaseTable.SELECT_PROPERTY_WIDTH - ViewableRecordVOContainer.THUMBNAIL_WIDTH - 3;
+							int searchResultPropertyWidth = compressedWidth - BaseTable.SELECT_PROPERTY_WIDTH - (isShowThumbnailCol() ? ViewableRecordVOContainer.THUMBNAIL_WIDTH : 0) - 3;
 							table.setColumnWidth(ViewableRecordVOContainer.SEARCH_RESULT_PROPERTY, searchResultPropertyWidth);
 							table.addStyleName(compressedStyleName);
 						}
@@ -512,6 +555,18 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 	}
 
+	protected boolean isShowThumbnailCol() {
+		return true;
+	}
+
+	protected boolean isNewMenuBarDefined() {
+		return false;
+	}
+
+	protected MenuBar newMenuBar(RecordVO itemId) {
+		return null;
+	}
+
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	private BaseTable buildResultsTable() {
 		BaseTable resultsTable;
@@ -524,6 +579,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 						recordDisplay = super.getRecordDisplay(itemId);
 					}
 					return recordDisplay;
+				}
+
+				@Override
+				protected boolean isShowThumbnailCol() {
+					return ViewableRecordVOTablePanel.this.isShowThumbnailCol();
 				}
 			};
 
@@ -541,6 +601,23 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					}
 					SelectionManager finalSelectionManager = createSelectionManagerWithSelectedCountCaption(selectionManager);
 					return finalSelectionManager;
+				}
+
+				@Override
+				protected MenuBar newMenuBar(Object itemId) {
+					if (isNewMenuBarDefined()) {
+						Item item = getItem(itemId);
+						RecordVO recordVO = getRecordVOForTitleColumn(item);
+
+						return ViewableRecordVOTablePanel.this.newMenuBar(recordVO);
+					} else {
+						return super.newMenuBar(itemId);
+					}
+				}
+
+				@Override
+				public boolean isUnknownEnd() {
+					return ViewableRecordVOTablePanel.this.isUnknownEnd();
 				}
 
 				private SelectionManager createSelectionManagerWithSelectedCountCaption(
@@ -570,7 +647,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 						@Override
 						public void selectionChanged(SelectionChangeEvent event) {
 							finalSelectionManager.selectionChanged(event);
-							setSelectedCountCaption(getAllSelectedItemIds().size());
+							setSelectedCountCaption(getSelectedSize());
 						}
 					};
 					return selectionManagerWithSelectedCount;
@@ -591,6 +668,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				}
 			};
 			viewableRecordVOTable.setWidth("100%");
+			if (recordVOContainer instanceof PreLoader) {
+				viewableRecordVOTable.setPreLoader((PreLoader) recordVOContainer);
+			}
 
 			resultsTable = viewableRecordVOTable;
 			resultsTable.setContainerDataSource(new ContainerAdapter(viewableRecordVOContainer) {
@@ -731,11 +811,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				selectionChangeEvent.setAllItemsSelected(refreshRenderedCellsEventParams.isAreAllItemSelected());
 
 				resultsTable.getSelectionManager().selectionChanged(selectionChangeEvent);
-				setSelectedCountCaption(resultsTable.getSelectionManager().getAllSelectedItemIds().size());
+				setSelectedCountCaption(getSelectedSize());
 			}
 		});
 
 		return resultsTable;
+	}
+
+	protected int getSelectedSize() {
+		return table.getSelectionManager().getAllSelectedItemIds().size();
 	}
 
 	public boolean isIndexVisible() {
@@ -792,7 +876,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 	}
 
-	private SelectDeselectAllButton newSelectDeselectAllToggleButton() {
+	protected SelectDeselectAllButton newSelectDeselectAllToggleButton() {
 		return table.newSelectDeselectAllToggleButton("", "");
 	}
 
@@ -843,7 +927,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 				viewWindow = new DisplayDocumentWindow(recordVO);
 			} else {
-				viewWindow = new DisplaySchemaRecordWindow(recordVO);
+
+				ViewWindow viewWindowFromExt = ViewableRecordVOTablePanel.this.getMainView()
+						.getConstellioFactories().getAppLayerFactory().getExtensions().getSystemWideExtensions().getWindowDisplay(new SchemaDisplayParams(schemaTypeCode, recordVO));
+				if (viewWindowFromExt != null) {
+					viewWindow = viewWindowFromExt;
+				} else {
+					viewWindow = new DisplaySchemaRecordWindow(recordVO);
+				}
 			}
 
 			viewWindow.addCloseListener(new Window.CloseListener() {
@@ -1236,6 +1327,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				String schemaTypeCode = recordVO.getSchema().getTypeCode();
 				if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, true, false);
+					view.setSearchTerm(searchTerm);
 					view.enter(null);
 					view.addEditWindowCloseListener(new Window.CloseListener() {
 						@Override
@@ -1257,9 +1349,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					view.enter(null);
 					panelContent = view;
 				} else {
-					UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
-					panelContent = new RecordDisplayFactory(currentUser).build(recordVO, true);
-					this.addStyleName("nested-view");
+					Component displayComponent = ViewableRecordVOTablePanel.this.getMainView()
+							.getConstellioFactories().getAppLayerFactory().getExtensions().getSystemWideExtensions().getSchemaDisplay(new SchemaDisplayParams(schemaTypeCode, recordVO));
+					if (displayComponent != null) {
+						panelContent = displayComponent;
+					} else {
+						UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
+						panelContent = new RecordDisplayFactory(currentUser).build(recordVO, true);
+						this.addStyleName("nested-view");
+					}
 				}
 				mainLayout.addComponent(panelContent);
 				Label spacer = new Label("");

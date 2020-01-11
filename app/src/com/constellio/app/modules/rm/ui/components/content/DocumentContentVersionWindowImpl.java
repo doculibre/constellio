@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentWindow;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
@@ -80,7 +81,8 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 			openOrDownloadLink.addStyleName(ValoTheme.BUTTON_LINK);
 		} else {
 			openOrDownloadLink = new DownloadContentVersionLink(contentVersionVO,
-					$("DocumentContentVersionWindow.downloadLinkCaption"));
+					$("DocumentContentVersionWindow.downloadLinkCaption"), recordVO.getId(), Document.CONTENT,
+					presenter.hasWritePermission());
 		}
 
 		checkOutLink = new Button($("DocumentContentVersionWindow.checkOutLinkCaption"), new ClickListener() {

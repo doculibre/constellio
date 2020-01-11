@@ -157,7 +157,7 @@ public class BatchProcessingModifyingOneMetadataButton extends WindowButton {
 	}
 
 	private Field buildValueField() {
-		final Field field = factory.build((MetadataVO) metadata.getValue());
+		final Field field = factory.build((MetadataVO) metadata.getValue(), null);
 		field.setCaption(null);
 		field.setWidthUndefined();
 		field.setPropertyDataSource(new ObjectProperty<>(null, Object.class));

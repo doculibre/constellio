@@ -44,7 +44,7 @@ public class DocumentFieldFactory extends RMRecordFieldFactory {
 				field = new DocumentTypeFieldLookupImpl(folderId, currentType);
 				break;
 			case CONTENT:
-				field = new DocumentContentFieldImpl(isViewOnly);
+				field = new DocumentContentFieldImpl(isViewOnly, recordVO != null ? recordVO.getId() : null);
 				break;
 			case FOLDER:
 				field = new DocumentFolderFieldImpl();

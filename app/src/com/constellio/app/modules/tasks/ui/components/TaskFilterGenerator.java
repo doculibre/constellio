@@ -57,7 +57,7 @@ public class TaskFilterGenerator implements FilterGenerator {
 				customFilterComponent = new NumberFilterPopup(new TaskFilterDecorator());
 			} else {
 				MetadataFieldFactory factory = new TaskFieldFactory(false);
-				final Field<?> field = factory.build(metadataVO);
+				final Field<?> field = factory.build(metadataVO, null);
 				if (field != null) {
 					if (field instanceof AbstractTextField || field instanceof ComboBox) {
 						customFilterComponent = (AbstractField) field;

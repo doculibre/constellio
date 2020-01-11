@@ -106,7 +106,8 @@ subprojects {
         compile name: 'mets-api'
         compile 'com.ithit.webdav:webdav-server:4.2.2812'
         compile 'com.ithit.webdav.integration:servlet-integration:4.2.2812'
-
+        
+        
         testCompile 'nl.jqno.equalsverifier:equalsverifier:1.4.1'
     }
 
@@ -172,7 +173,7 @@ war {
                              ":constellio-plugins:plugin020", ":constellio-plugins:plugin027", ":constellio-plugins:plugin028", ":constellio-plugins:plugin030",
                              ":constellio-plugins:plugin032", ":constellio-plugins:plugin033", ":constellio-plugins:plugin034", ":constellio-plugins:plugin035",
                              ":constellio-plugins:plugin036", ":constellio-plugins:plugin038", ":constellio-plugins:plugin039", ":constellio-plugins:plugin040",
-                             ":constellio-plugins:plugin041", ":constellio-plugins:plugin042", ":constellio-plugins:plugin044"]
+                             ":constellio-plugins:plugin041", ":constellio-plugins:plugin042", ":constellio-plugins:plugin044", ":constellio-plugins:plugin045"]
         def installPlugins = [":constellio-plugins:plugin023", ":constellio-plugins:plugin025"]
 
         from(files(updatePlugins.collect { project(it).jar.outputs.files })) {

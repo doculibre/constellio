@@ -465,6 +465,10 @@ public class ContentManager implements StatefulService {
 		return getContentDao().isDocumentExisting(hash + ".preview");
 	}
 
+	public boolean hasContentAnnotation(String hash, String id, String version) {
+		return getContentDao().isDocumentExisting(hash + ".annotation." + id + "." + version);
+	}
+
 	public boolean hasContentThumbnail(String hash) {
 		return getContentDao().isDocumentExisting(hash + ".thumbnail");
 	}
@@ -486,6 +490,14 @@ public class ContentManager implements StatefulService {
 			return getContentDao().getContentInputStream(hash + ".preview", streamName);
 		} catch (ContentDaoException_NoSuchContent e) {
 			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoPreview(hash);
+		}
+	}
+
+	public InputStream getContentAnnotationInputStream(String hash, String id, String version, String streamName) {
+		try {
+			return getContentDao().getContentInputStream(hash + ".annotation." + id + "." + version, streamName);
+		} catch (ContentDaoException_NoSuchContent e) {
+			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoAnnotation(hash);
 		}
 	}
 
