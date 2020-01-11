@@ -22,6 +22,10 @@ public class FileService {
 
 	public FileService(File tempFolder) {
 		this.tempFolder = tempFolder;
+
+		if(this.tempFolder != null) {
+			this.tempFolder.mkdirs();
+		}
 	}
 
 	public void copyDirectory(File srcDir, File destDir)
