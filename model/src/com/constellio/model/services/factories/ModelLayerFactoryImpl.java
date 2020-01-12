@@ -166,14 +166,14 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		add(new StatefulService() {
 			@Override
 			public void initialize() {
-				if (FoldersLocator.usingAppWrapper()) {
+				//if (FoldersLocator.usingAppWrapper()) {
 					//Keeping mapping between runtimes
 					StringRecordId.setMapping(new StringRecordIdLegacyPersistedMapping(dataLayerFactory.getConfigManager()));
 
-				} else {
+				//} else {
 					//Faster for tests
-					StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping());
-				}
+				//	StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping());
+				//}
 			}
 
 			@Override
