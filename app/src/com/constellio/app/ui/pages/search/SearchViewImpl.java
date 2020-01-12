@@ -4,16 +4,8 @@ import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.
 import com.constellio.app.api.extensions.params.ExtraTabForSimpleSearchResultParams;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.FacetVO;
-import com.constellio.app.ui.entities.FacetValueVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.SearchResultVO;
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.BaseLink;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
@@ -61,39 +53,20 @@ import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.ComponentContainer;
-import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.jetbrains.annotations.Nullable;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.sliderpanel.SliderPanel;
 import org.vaadin.sliderpanel.client.SliderPanelListener;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -354,12 +327,19 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return dataProvider;
 	}
 
-	private void createResultArea() {
-		List<ExtraTabInfo> extraTabInfoList = getConstellioFactories().getAppLayerFactory().getExtensions()
-				.forCollection(getCollection()).getExtraTabForSimpleSearchResult(new ExtraTabForSimpleSearchResultParams(presenter.getUserSearchExpression()));
+	protected boolean getExtraTab() {
+		return false;
+	}
 
+	private void createResultArea() {
+		List<ExtraTabInfo> extraTabInfoList = null;
+
+		if (getExtraTab()) {
+			extraTabInfoList = getConstellioFactories().getAppLayerFactory().getExtensions()
+					.forCollection(getCollection()).getExtraTabForSimpleSearchResult(new ExtraTabForSimpleSearchResultParams(presenter.getUserSearchExpression()));
+		}
 		resultsArea.removeAllComponents();
-		if (extraTabInfoList.isEmpty()) {
+		if (extraTabInfoList == null || extraTabInfoList.isEmpty()) {
 			if (lazyLoadedSearchResults) {
 				resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
 			} else {

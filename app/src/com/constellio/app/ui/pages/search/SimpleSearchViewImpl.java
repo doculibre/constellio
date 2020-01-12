@@ -27,4 +27,8 @@ public class SimpleSearchViewImpl extends SearchViewImpl<SimpleSearchPresenter> 
 		return $("searchResults");
 	}
 
+	@Override
+	protected boolean getExtraTab() {
+		return true;
+	}
 }
