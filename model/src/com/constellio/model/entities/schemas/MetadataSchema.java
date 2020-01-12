@@ -328,4 +328,8 @@ public class MetadataSchema implements Serializable {
 	public MetadataSchemaType getSchemaType() {
 		return schemaType;
 	}
+
+	public String getNoInheritanceCode() {
+		return getSchemaType().getDefaultSchema().getCode();
+	}
 }

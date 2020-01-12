@@ -2,27 +2,27 @@ package com.constellio.model.entities.calculators;
 
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CalculatorIsUsingAnForbiddenMetadata;
-import com.constellio.model.services.schemas.MetadataList;
-import com.constellio.model.services.schemas.SchemaUtils;
 
 import java.util.List;
 import java.util.Map;
+
+import static java.util.stream.Collectors.toList;
 
 public class DynamicDependencyValues {
 
 	Map<String, Object> values;
 	private MetadataValueCalculator calculator;
-	private MetadataList availableMetadatas;
+	private List<Metadata> availableMetadatas;
 	private List<String> availableMetadatasLocalCodes;
-	private MetadataList availableMetadatasWithValue;
+	private List<Metadata> availableMetadatasWithValue;
 
 	public DynamicDependencyValues(MetadataValueCalculator calculator, Map<String, Object> values,
-								   MetadataList availableMetadatas,
-								   MetadataList availableMetadatasWithValue) {
+								   List<Metadata> availableMetadatas,
+								   List<Metadata> availableMetadatasWithValue) {
 		this.calculator = calculator;
 		this.values = values;
 		this.availableMetadatas = availableMetadatas;
-		this.availableMetadatasLocalCodes = availableMetadatas.toLocalCodesList();
+		this.availableMetadatasLocalCodes = availableMetadatas.stream().map((m) -> m.getLocalCode()).collect(toList());
 		this.availableMetadatasWithValue = availableMetadatasWithValue;
 	}
 
@@ -44,16 +44,12 @@ public class DynamicDependencyValues {
 		return (T) values.get(localCode);
 	}
 
-	public MetadataList getAvailableMetadatas() {
+	public List<Metadata> getAvailableMetadatas() {
 		return availableMetadatas;
 	}
 
-	public MetadataList getAvailableMetadatasWithAValue() {
+	public List<Metadata> getAvailableMetadatasWithAValue() {
 		return availableMetadatasWithValue;
 	}
 
-	public boolean isAvailable(String metadata) {
-		String localCode = new SchemaUtils().getLocalCodeFromMetadataCode(metadata);
-		return getAvailableMetadatas().containsMetadataWithLocalCode(localCode);
-	}
 }

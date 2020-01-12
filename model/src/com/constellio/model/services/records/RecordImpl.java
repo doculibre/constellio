@@ -784,14 +784,15 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
-	public MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes) {
-		MetadataList modifiedMetadatas = new MetadataList();
+	public List<Metadata> getModifiedMetadataList(MetadataSchemaTypes schemaTypes) {
+		List<Metadata> modifiedMetadatas = new ArrayList<>();
 
+		MetadataSchema schema = schemaTypes.getSchemaOf(this);
 		for (String modifiedMetadataDataStoreCode : getModifiedValues().keySet()) {
 
 			try {
 
-				Metadata metadata = schemaTypes.getSchemaOf(this).getMetadataByDatastoreCode(modifiedMetadataDataStoreCode);
+				Metadata metadata = schema.getMetadataByDatastoreCode(modifiedMetadataDataStoreCode);
 				if (metadata == null) {
 					String localCode = SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
 					metadata = schemaTypes.getSchemaOf(this).getMetadata(localCode);
@@ -849,7 +850,12 @@ public class RecordImpl implements Record {
 			}
 		}
 
-		return modifiedMetadatas.unModifiable();
+		return modifiedMetadatas;
+	}
+
+	@Override
+	public MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes) {
+		return new MetadataList(getModifiedMetadataList(schemaTypes)).unModifiable();
 	}
 
 	public RecordDeltaDTO toRecordDeltaDTO(MetadataSchema schema, List<FieldsPopulator> copyfieldsPopulators) {

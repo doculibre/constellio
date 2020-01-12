@@ -37,6 +37,7 @@ public class StringRecordIdLegacyPersistedMapping implements StringRecordIdLegac
 		if (value == null) {
 			synchronized (StringRecordIdLegacyPersistedMapping.class) {
 
+
 				value = siMapping.get(id);
 				if (value == null) {
 					if (!configManager.exist(PATH)) {

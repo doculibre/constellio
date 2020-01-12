@@ -1,5 +1,7 @@
 package com.constellio.model.services.records;
 
+import com.constellio.data.dao.services.Stats;
+import com.constellio.data.dao.services.Stats.CallStatCompiler;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.Taxonomy;
@@ -51,7 +53,6 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.LogicalSearchQueryExecutorInCache;
@@ -152,6 +153,7 @@ public class RecordAutomaticMetadataServices {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchemaOf(record);
 		for (String metadata : automaticMetadatas) {
+
 			updateAutomaticMetadata(context, record, recordProvider, schema.get(metadata), reindexation, types, transaction);
 		}
 	}
@@ -160,27 +162,30 @@ public class RecordAutomaticMetadataServices {
 								 Metadata metadata,
 								 TransactionRecordsReindexation reindexation, MetadataSchemaTypes types,
 								 Transaction transaction) {
-		if (metadata.isMarkedForDeletion()) {
-			record.updateAutomaticValue(metadata, null);
+		CallStatCompiler statCompiler = Stats.compilerFor("updateAutomaticMetadata:" + record.getSchemaCode() + "_*_" + metadata);
+		statCompiler.log(() -> {
+			if (metadata.isMarkedForDeletion()) {
+				record.updateAutomaticValue(metadata, null);
 
-		} else if (metadata.getDataEntry().getType() == DataEntryType.COPIED) {
-			setCopiedValuesInRecords(record, metadata, recordProvider, reindexation, transaction.getRecordUpdateOptions());
+			} else if (metadata.getDataEntry().getType() == DataEntryType.COPIED) {
+				setCopiedValuesInRecords(record, metadata, recordProvider, reindexation, transaction.getRecordUpdateOptions());
 
-		} else if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
-			setCalculatedValuesInRecords(context, record, metadata, recordProvider, reindexation, types,
-					transaction);
+			} else if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
+				setCalculatedValuesInRecords(context, record, metadata, recordProvider, reindexation, types,
+						transaction);
 
-		} else if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
-			//We don't want to calculate this metadata during record imports
+			} else if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
+				//We don't want to calculate this metadata during record imports
 
-			if (!record.isSaved()) {
-				setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(context, record, metadata, transaction, types);
+				if (!record.isSaved()) {
+					setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(context, record, metadata, transaction, types);
 
-			} else if (transaction.getRecordUpdateOptions().isUpdateAggregatedMetadatas()) {
-				setAggregatedValuesInRecords(record, metadata, types);
+				} else if (transaction.getRecordUpdateOptions().isUpdateAggregatedMetadatas()) {
+					setAggregatedValuesInRecords(record, metadata, types);
+				}
+
 			}
-
-		}
+		});
 	}
 
 	private void setAggregatedValuesInRecords(RecordImpl record, Metadata metadata, MetadataSchemaTypes types) {
@@ -335,6 +340,7 @@ public class RecordAutomaticMetadataServices {
 	boolean calculatorDependencyModified(RecordImpl record, MetadataValueCalculator<?> calculator,
 										 MetadataSchemaTypes types,
 										 Metadata calculatedMetadata) {
+		List<Metadata> modifiedMetadatas = record.getModifiedMetadataList(types);
 		boolean calculatorDependencyModified = !record.isSaved();
 		for (Dependency dependency : calculator.getDependencies()) {
 			if (SpecialDependencies.HIERARCHY.equals(dependency)) {
@@ -354,7 +360,7 @@ public class RecordAutomaticMetadataServices {
 
 			} else if (dependency instanceof DynamicLocalDependency) {
 				DynamicLocalDependency dynamicLocalDependency = (DynamicLocalDependency) dependency;
-				for (Metadata metadata : record.getModifiedMetadatas(types)) {
+				for (Metadata metadata : modifiedMetadatas) {
 					if (new SchemaUtils().isDependentMetadata(calculatedMetadata, metadata, dynamicLocalDependency)) {
 						calculatorDependencyModified = true;
 						break;
@@ -486,8 +492,8 @@ public class RecordAutomaticMetadataServices {
 
 		Map<String, Object> dynamicDependencyValues = new HashMap<>();
 
-		MetadataList availableMetadatas = new MetadataList();
-		MetadataList availableMetadatasWithValue = new MetadataList();
+		List<Metadata> availableMetadatas = new ArrayList<>();
+		List<Metadata> availableMetadatasWithValue = new ArrayList();
 		for (Metadata metadata : types.getSchemaOf(record).getMetadatas()) {
 
 			if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
@@ -513,8 +519,8 @@ public class RecordAutomaticMetadataServices {
 			}
 		}
 		MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) calculatedMetadata.getDataEntry()).getCalculator();
-		values.put(dependency, new DynamicDependencyValues(calculator, dynamicDependencyValues, availableMetadatas.unModifiable(),
-				availableMetadatasWithValue.unModifiable()));
+		values.put(dependency, new DynamicDependencyValues(calculator, dynamicDependencyValues, availableMetadatas,
+				availableMetadatasWithValue));
 
 	}
 

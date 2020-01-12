@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 
@@ -40,7 +41,8 @@ public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator
 	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words,
 															 DynamicDependencyValues autocompleteMetadatasValues,
 															 AutocompleteSplitCriteria autocompleteSplitCriteria) {
-		for (Metadata metadata : autocompleteMetadatasValues.getAvailableMetadatasWithAValue().onlySchemaAutocomplete()) {
+		for (Metadata metadata : autocompleteMetadatasValues.getAvailableMetadatasWithAValue().stream()
+				.filter((m) -> m.isSchemaAutocomplete()).collect(Collectors.toList())) {
 			splitInLowerCasedTermsRemovingAccents(words, (Object) autocompleteMetadatasValues.getValue(metadata),
 					autocompleteSplitCriteria);
 		}
