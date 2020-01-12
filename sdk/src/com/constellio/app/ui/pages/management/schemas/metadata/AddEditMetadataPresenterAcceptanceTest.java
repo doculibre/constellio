@@ -239,6 +239,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 				true, "default",
 				null, null, false, false, new HashSet<String>(), view.getSessionContext(), false);
 
+		presenter.metadata = stringMeta;
 		presenter.preSaveButtonClicked(newMetadataForm, true);
 
 		Metadata result = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getMetadata(

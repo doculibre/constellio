@@ -87,7 +87,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	private Map<String, String> parameters;
 	private String metadataCode = "";
 	private MetadataSchemaTypes types;
-	private Metadata metadata;
+	Metadata metadata;
 
 	public AddEditMetadataPresenter(AddEditMetadataView view) {
 		super(view);
