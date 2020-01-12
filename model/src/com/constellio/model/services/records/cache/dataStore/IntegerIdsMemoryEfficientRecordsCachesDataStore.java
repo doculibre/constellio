@@ -313,6 +313,9 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			collection.insertValueShiftingAllFollowingValues(insertAtIndex, (byte) 0);
 
 			if (fullyCached) {
+				while(fullyCachedData.size() < insertAtIndex) {
+					fullyCachedData.add(null);
+				}
 				fullyCachedData.add(insertAtIndex, null);
 			} else {
 				summaryCachedData.insertValueShiftingAllFollowingValues(insertAtIndex, new byte[0]);
