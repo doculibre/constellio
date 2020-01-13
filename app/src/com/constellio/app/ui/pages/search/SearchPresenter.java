@@ -173,6 +173,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		initSortParameters();
 		correctorExcluderManager = appLayerFactory.getCorrectorExcluderManager();
 		thesaurusManager = modelLayerFactory.getThesaurusManager();
+		highlighter = modelLayerFactory.getSystemConfigs().isSearchResultsHighlightingEnabled();
 
 	}
 
@@ -396,7 +397,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				view.getSessionContext(), this::getSelectedPageLength) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				LogicalSearchQuery query = getSearchQuery().setHighlighting(highlighter).setOverridedQueryParams(extraSolrParams);
+				LogicalSearchQuery query = getSearchQuery().setOverridedQueryParams(extraSolrParams)
+						.setHighlighting(highlighter);
+
 				if (facets) {
 					service.configureQueryToComputeFacets(query);
 				}
@@ -692,7 +695,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		//		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(
 		//				schemasDisplayManager.getReturnedFieldsForSearch(collection)));
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.allExceptContentAndLargeText());
+		if (modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+			query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
+		} else {
+			query.setReturnedMetadatas(ReturnedMetadatasFilter.allExceptContentAndLargeText());
+		}
+
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		LogicalSearchQueryFacetFilters filters = query.getFacetFilters();

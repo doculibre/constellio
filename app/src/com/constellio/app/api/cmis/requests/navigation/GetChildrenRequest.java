@@ -78,7 +78,7 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 				.setLinkableFlagCalculated(false);
 
 		List<Record> childRecords;
-		if (collection.equals(folderId) || collection.equals(LEGACY_ROOT_ID)) {
+		if (collection.equals(folderId) || folderId.equals(LEGACY_ROOT_ID)) {
 			List<Taxonomy> taxonomies = taxonomiesManager.getEnabledTaxonomies(collection);
 			for (Taxonomy taxonomy : taxonomies) {
 				ObjectData object = newTaxonomyObjectBuilder().build(taxonomy, objectInfo, Language.withCode(modelLayerFactory.getCollectionsListManager().getMainDataLanguage()));
@@ -113,7 +113,8 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 	}
 
 	private void addFoldersToChildren(ObjectInFolderList children, List<Record> childRecords) {
-		for (Record childRecord : childRecords) {
+		for (Record childSummaryRecord : childRecords) {
+			Record childRecord = modelLayerFactory.newRecordServices().realtimeGetRecordById(childSummaryRecord.getId());
 			ObjectData object = newObjectDataBuilder().build(childRecord, filter, includeAllowableActions, false, objectInfo);
 			children.getObjects().add(new ObjectInFolderDataImpl(object));
 		}

@@ -32,11 +32,11 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 
@@ -136,10 +136,10 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 				LogicalSearchQuery query;
 				if (conceptId != null) {
 					Record record = recordServices().getDocumentById(conceptId);
-					ConceptNodesTaxonomySearchServices conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(modelLayerFactory);
-					query = conceptNodesTaxonomySearchServices.childNodesQuery(record, new TaxonomiesSearchOptions(), types, false);
+					RecordHierarchyServices recordHierarchyServices = new RecordHierarchyServices(modelLayerFactory);
+					query = recordHierarchyServices.childNodesQuery(record, new TaxonomiesSearchOptions(), types, false);
 				} else {
-					query = new ConceptNodesTaxonomySearchServices(modelLayerFactory)
+					query = new RecordHierarchyServices(modelLayerFactory)
 							.getRootConceptsQuery(view.getSessionContext().getCurrentCollection(), taxonomy.getCode(),
 									new TaxonomiesSearchOptions());
 				}

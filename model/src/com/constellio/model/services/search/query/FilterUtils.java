@@ -1,6 +1,7 @@
 package com.constellio.model.services.search.query;
 
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils;
@@ -68,7 +69,7 @@ public class FilterUtils {
 				}
 
 				filter.append(" OR (");
-				filter.append(userReadFilter(user, securityTokenManager));
+				filter.append(userReadFilter(user, securityTokenManager, null));
 				filter.append(")");
 
 			}
@@ -77,7 +78,7 @@ public class FilterUtils {
 		return filter.toString();
 	}
 
-	public static String userWriteFilter(User user, SecurityTokenManager securityTokenManager) {
+	public static String userWriteFilter(User user, SecurityTokenManager securityTokenManager, List<String> fromTypes) {
 
 		SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningFalseIfEmpty();
 		SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
@@ -131,14 +132,16 @@ public class FilterUtils {
 			}
 
 			for (String publicType : securityTokenManager.getSchemaTypesWithoutSecurity()) {
-				filterBuilder.append(SCHEMA, publicType + "_*");
+				if (fromTypes == null || fromTypes.contains(publicType)) {
+					filterBuilder.append(SCHEMA, publicType + "_*");
+				}
 			}
 		}
 		filterBuilder.closeGroup();
 		return filterBuilder.toString();
 	}
 
-	public static String userReadFilter(User user, SecurityTokenManager securityTokenManager) {
+	public static String userReadFilter(User user, SecurityTokenManager securityTokenManager, List<String> fromTypes) {
 		SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningFalseIfEmpty();
 		SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
 				.newRecordServices().getSecurityModel(user.getCollection());
@@ -197,7 +200,9 @@ public class FilterUtils {
 			}
 
 			for (String publicType : securityTokenManager.getSchemaTypesWithoutSecurity()) {
-				filterBuilder.append(SCHEMA, publicType + "_*");
+				if (fromTypes == null || fromTypes.contains(publicType)) {
+					filterBuilder.append(SCHEMA, publicType + "_*");
+				}
 			}
 
 			filterBuilder.append(TOKENS, Record.PUBLIC_TOKEN);
@@ -413,16 +418,21 @@ public class FilterUtils {
 		//Specific auths are excluded, they are handled with tokens
 		KeySetMap<String, String> removedAuthsGroupedByTarget = retrieveUserTokens(user, includeSpecifics, filter);
 
-		for (Map.Entry<String, Set<String>> token : removedAuthsGroupedByTarget.getNestedMap().entrySet()) {
-			filterBuilder.openANDGroupRemovedIfEmpty();
-			filterBuilder.append(Schemas.ATTACHED_ANCESTORS, token.getKey());
-			//TODO Tester!
-			for (Iterator<String> iterator = token.getValue().iterator(); iterator.hasNext(); ) {
-				String removedAuth = iterator.next();
-				filterBuilder.appendNegative(Schemas.ALL_REMOVED_AUTHS, removedAuth);
-			}
 
-			filterBuilder.closeGroup();
+		for (Map.Entry<String, Set<String>> token : removedAuthsGroupedByTarget.getNestedMap().entrySet()) {
+			if (Toggle.DETACHABLE_RECORDS.isEnabled()) {
+				filterBuilder.openANDGroupRemovedIfEmpty();
+				filterBuilder.append(Schemas.ATTACHED_ANCESTORS, token.getKey());
+				//TODO Tester!
+				for (Iterator<String> iterator = token.getValue().iterator(); iterator.hasNext(); ) {
+					String removedAuth = iterator.next();
+					filterBuilder.appendNegative(Schemas.ALL_REMOVED_AUTHS, removedAuth);
+				}
+
+				filterBuilder.closeGroup();
+			} else {
+				filterBuilder.append(Schemas.ATTACHED_ANCESTORS, token.getKey());
+			}
 		}
 
 	}

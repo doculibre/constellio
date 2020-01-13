@@ -187,7 +187,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		labelTitle.put(Language.French, "Taxo1");
 
 		Map<Language, String> labelAbv = new HashMap<>();
-		labelTitle.put(Language.French, "T1");
+		labelAbv.put(Language.French, "T1");
 
 		Taxonomy taxonomy1 = services.createTaxonomy(labelTitle, labelAbv, userIds, groupIds, true, true);
 
@@ -372,7 +372,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		} catch (ValidationException e) {
 			assertThat(extractingSimpleCode(e.getValidationErrors())).containsOnly("ValueListServices_valueListHasRecords");
 			assertThat(frenchMessages(e.getValidationErrors()))
-					.containsOnly("Le domaine de valeurs «zora» ne peut pas être supprimé, car il n'est pas vide");
+					.containsOnly("Le domaine de valeurs «zora» ne peut pas être supprimé car il n'est pas vide");
 		}
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).hasType("ddvUSRZora")).isTrue();

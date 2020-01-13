@@ -78,6 +78,8 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 		MetadataList metadatas = new MetadataList(textMetadata, singleValueContentMetadata, multiValueContentMetadata);
 		when(schema.getMetadatas()).thenReturn(
 				metadatas);
+		when(schema.getContentMetadatasForPopulate()).thenReturn(
+				metadatas);
 		when(types.getMetadata("type_default_singleValue")).thenReturn(singleValueContentMetadata);
 		when(types.getMetadata("type_default_multivalueValue")).thenReturn(multiValueContentMetadata);
 		when(user.getUsername()).thenReturn(username);
@@ -324,7 +326,7 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 		params.put("collection_s", zeCollection);
 		RecordDTO recordDTO = new SolrRecordDTO("zeId", 3L, null, params, RecordDTOMode.FULLY_LOADED);
 
-		return new TestRecord(recordDTO, collectionInfo);
+		return new TestRecord(recordDTO, collectionInfo, (short) 1);
 	}
 
 	private ContentImpl createMajor(String id, User user, String filename, ContentVersionDataSummary newVersion) {

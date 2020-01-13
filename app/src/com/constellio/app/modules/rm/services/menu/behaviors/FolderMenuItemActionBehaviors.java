@@ -66,14 +66,12 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
-import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.Roles;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -123,6 +121,7 @@ public class FolderMenuItemActionBehaviors {
 	private MetadataSchemaTypes schemaTypes;
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
+	private RecordHierarchyServices recordHierarchyServices;
 
 	public static final String USER_LOOKUP = "user-lookup";
 
@@ -142,14 +141,17 @@ public class FolderMenuItemActionBehaviors {
 		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+		recordHierarchyServices = new RecordHierarchyServices(modelLayerFactory);
 	}
 
 	public void getConsultationLink(Folder folder, MenuItemActionBehaviorParams params) {
+		folder = loadingFullRecordIfSummary(folder);
 		String constellioURL = getConstellioUrl(modelLayerFactory);
 		CopyToClipBoard.copyToClipBoard(constellioURL + RMUrlUtil.getPathToConsultLinkForFolder(folder.getId()));
 	}
 
-	public void addToDocument(Folder folder, MenuItemActionBehaviorParams params) {
+	public void addToDocument(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		Button addDocumentButton = new AddButton($("DisplayFolderView.addDocument")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -223,24 +225,14 @@ public class FolderMenuItemActionBehaviors {
 				appLayerFactory, collection);
 	}
 
-	public void delete(Folder folder, MenuItemActionBehaviorParams params) {
+	public void delete(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		boolean needAReasonToDeleteFolder = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager())
 				.isNeedingAReasonBeforeDeletingFolders();
 
 		Button deleteFolderButton;
 
-		LogicalSearchQuery searchDocument = new LogicalSearchQuery();
-		searchDocument.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
-
-		LogicalSearchCondition logicalSearchQuery = from(rm.document.schemaType(), rm.folder.schemaType()).where(Schemas.PATH_PARTS).isContaining(asList(folder.getId()));
-
-		searchDocument.setCondition(logicalSearchQuery);
-
-		SPEQueryResponse speQueryResponse = searchServices.query(searchDocument);
-		List<Record> folderAndDocument = new ArrayList<>(speQueryResponse.getRecords());
-
-		// Dossier qu'on essai de supprimer
-		folderAndDocument.add(0, folder.getWrappedRecord());
+		List<Record> folderAndDocument = recordHierarchyServices.getAllRecordsInHierarchy(folder.getWrappedRecord(), true);
 
 		List<RecordVO> checkoutRecords = getCheckoutRecordsAsVO(folderAndDocument, params.getView().getSessionContext());
 		if (!needAReasonToDeleteFolder) {
@@ -266,8 +258,9 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	@NotNull
-	private Button getDeleteWithJustificationButton(Folder folder, MenuItemActionBehaviorParams params,
+	private Button getDeleteWithJustificationButton(Folder folderSummary, MenuItemActionBehaviorParams params,
 													List<RecordVO> checkoutRecords) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		Button deleteFolderButton;
 		deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false, WindowConfiguration.modalDialog("650px", null)) {
 			@Override
@@ -314,6 +307,7 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	private List<RecordVO> getCheckoutRecordsAsVO(List<Record> folderAndDocument, SessionContext sessionContext) {
+
 		List<RecordVO> checktedMessage = new ArrayList<>();
 		RecordToVOBuilder recordToVOBuilder = new RecordToVOBuilder();
 
@@ -400,7 +394,8 @@ public class FolderMenuItemActionBehaviors {
 			   + $("FolderMenuItemActionBehaviors.borrowedRecords") + "<br>";
 	}
 
-	public void copy(Folder folder, MenuItemActionBehaviorParams params) {
+	public void copy(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		Button duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
 				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy"),
 				WindowConfiguration.modalDialog("50%", "20%")) {
@@ -468,7 +463,8 @@ public class FolderMenuItemActionBehaviors {
 		addAuthorizationButton.click();
 	}
 
-	public void share(Folder folder, MenuItemActionBehaviorParams params) {
+	public void share(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		Button shareFolderButton = new LinkButton($("DisplayFolderView.shareFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -482,11 +478,13 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	public void addToCart(Folder folder, MenuItemActionBehaviorParams params) {
+		folder = loadingFullRecordIfSummary(folder);
 		CartWindowButton cartWindowButton = new CartWindowButton(folder.getWrappedRecord(), params, AddedRecordType.FOLDER);
 		cartWindowButton.addToCart();
 	}
 
-	public void borrow(Folder folder, MenuItemActionBehaviorParams params) {
+	public void borrow(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		Button borrowButton = new WindowButton($("DisplayFolderView.borrow"),
 				$("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "500px")) {
 			@Override
@@ -597,7 +595,8 @@ public class FolderMenuItemActionBehaviors {
 		borrowButton.click();
 	}
 
-	public void returnFolder(Folder folder, MenuItemActionBehaviorParams params) {
+	public void returnFolder(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		Button returnButton = new WindowButton($("DisplayFolderView.returnFolder"),
 				$("DisplayFolderView.returnFolder")) {
 			@Override
@@ -647,7 +646,8 @@ public class FolderMenuItemActionBehaviors {
 		returnButton.click();
 	}
 
-	public void sendReturnRemainder(Folder folder, MenuItemActionBehaviorParams params) {
+	public void sendReturnRemainder(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		Button reminderReturnFolderButton = new BaseButton($("DisplayFolderView.reminderReturnFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -697,7 +697,8 @@ public class FolderMenuItemActionBehaviors {
 		reminderReturnFolderButton.click();
 	}
 
-	public void sendAvailableAlert(Folder folder, MenuItemActionBehaviorParams params) {
+	public void sendAvailableAlert(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		Button alertWhenAvailableButton = new BaseButton($("RMObject.alertWhenAvailable")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -746,7 +747,8 @@ public class FolderMenuItemActionBehaviors {
 		}
 	}
 
-	public void generateReport(Folder folder, MenuItemActionBehaviorParams params) {
+	public void generateReport(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		// FIXME refactor so that we don't we need to instanciate a presenter
 		RMSelectionPanelReportPresenter reportPresenter =
 				new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
@@ -773,13 +775,11 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	public void addToSelection(Folder folder, MenuItemActionBehaviorParams params) {
-		params.getView().getSessionContext().addSelectedRecordId(folder.getId(),
-				params.getRecordVO().getSchema().getTypeCode());
+		params.getView().getSessionContext().addSelectedRecordId(folder.getId(), Folder.SCHEMA_TYPE);
 	}
 
 	public void removeFromSelection(Folder folder, MenuItemActionBehaviorParams params) {
-		params.getView().getSessionContext().removeSelectedRecordId(folder.getId(),
-				params.getRecordVO().getSchema().getTypeCode());
+		params.getView().getSessionContext().removeSelectedRecordId(folder.getId(), Folder.SCHEMA_TYPE);
 	}
 
 	protected void deleteFolder(Folder folder, String reason, MenuItemActionBehaviorParams params) {
@@ -911,6 +911,7 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	public boolean returnFolder(Folder folder, LocalDate returnDate, MenuItemActionBehaviorParams params) {
+		folder = loadingFullRecordIfSummary(folder);
 		LocalDateTime borrowDateTime = folder.getBorrowDate();
 		LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
 		return returnFolder(folder, returnDate, borrowDate, params);
@@ -928,5 +929,14 @@ public class FolderMenuItemActionBehaviors {
 		MetadataSchema schema = schemaTypes.getSchemaType(EmailToSend.SCHEMA_TYPE).getDefaultSchema();
 		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
 		return new EmailToSend(emailToSendRecord, schemaTypes);
+	}
+
+	private Folder loadingFullRecordIfSummary(Folder folder) {
+		if (folder.isSummary()) {
+			return rm.getFolder(folder.getId());
+		} else {
+			return folder;
+		}
+
 	}
 }

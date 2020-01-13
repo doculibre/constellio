@@ -3,6 +3,7 @@ package com.constellio.model.services.records.cache;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -96,21 +97,17 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
 				SummaryCacheSingletons.dataStore.get(instanceId).saveStringKey(dto.getId(), bytesArray.bytesToPersist);
-			} else {
-				//SummaryCacheSingletons.dataStore.removeStringKey(dto.getId());
 			}
 			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
 					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
 					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
 		} else {
-			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
-				SummaryCacheSingletons.dataStore.get(instanceId).saveIntKey(intId, bytesArray.bytesToPersist);
-			} else {
-				//SummaryCacheSingletons.dataStore.removeIntKey(intId);
-			}
-			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
+
+			ByteArrayRecordDTOWithIntegerId byteArrayRecordDTO = new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
 					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),
 					type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+			SummaryCacheSingletons.dataStore.get(instanceId).saveIntKeyPersistedAndMemoryData(intId, bytesArray.bytesToPersist, byteArrayRecordDTO);
+			return byteArrayRecordDTO;
 		}
 
 	}
@@ -135,8 +132,18 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		}
 
 		@Override
+		public long heapMemoryConsumption() {
+			return 0;
+		}
+
+		@Override
+		public long offHeapMemoryConsumption() {
+			return data.length;
+		}
+
+		@Override
 		public byte[] get() {
-			return SummaryCacheSingletons.dataStore.get(tenantId).loadIntKey(id);
+			return SummaryCacheSingletons.dataStore.get(tenantId).loadIntKeyPersistedData(id);
 		}
 
 		@Override
@@ -186,6 +193,16 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		@Override
 		public String getId() {
 			return id;
+		}
+
+		@Override
+		public long heapMemoryConsumption() {
+			return LangUtils.sizeOf(id) + data.length;
+		}
+
+		@Override
+		public long offHeapMemoryConsumption() {
+			return 0;
 		}
 
 		@Override
@@ -277,7 +294,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		}
 
 		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-		return CacheRecordDTOUtils.readMetadata(data, schema, (String) key, this);
+		return CacheRecordDTOUtils.readMetadata(getId(), data, schema, (String) key, this);
 	}
 
 	@Nullable
@@ -315,7 +332,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	@Override
 	public Collection<Object> values() {
 		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-		Set<Object> values = CacheRecordDTOUtils.getStoredValues(data, schema, this);
+		Set<Object> values = CacheRecordDTOUtils.getStoredValues(getId(), data, schema, this);
 		values.add(getCollection());
 		values.add(getSchemaCode());
 		return values;
@@ -326,7 +343,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	public Set<Entry<String, Object>> entrySet() {
 
 		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-		Set<Entry<String, Object>> entries = CacheRecordDTOUtils.toEntrySet(data, schema, this);
+		Set<Entry<String, Object>> entries = CacheRecordDTOUtils.toEntrySet(getId(), data, schema, this);
 
 		entries.add(new SimpleEntry("collection_s", getCollection()));
 		entries.add(new SimpleEntry("schema_s", getSchemaCode()));

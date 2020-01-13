@@ -196,7 +196,8 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(list01.getFoldersMediaTypes()).containsExactly(ANALOG, HYBRID, UNKNOWN, ELECTRONIC, ANALOG, UNKNOWN);
 		assertThat(list01.getStatus()).isEqualTo(DecomListStatus.GENERATED);
 		assertThat(list01.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
-		assertThat(list01.getFolders()).containsOnlyOnce(records.folder_A(42, 47));
+		assertThat(list01.getFolders()).containsOnlyOnce(records.folder_A42, records.folder_A43, records.folder_A44,
+				records.folder_A45, records.folder_A46, records.folder_A47);
 		assertThat(list01.getContainers()).containsOnlyOnce(records.containerId_bac18, records.containerId_bac19);
 
 		assertThat(records.getList11().getContainers()).isEmpty();
@@ -219,7 +220,6 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(list15.getFoldersMediaTypes()).containsExactly(ELECTRONIC, ELECTRONIC, ELECTRONIC);
 		assertThat(list15.getStatus()).isEqualTo(DecomListStatus.PROCESSED);
 		assertThat(list15.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
-		assertThat(list15.getFolders()).containsOnlyOnce(records.folder_A(94, 96));
 		assertThat(list15.getContainers()).containsOnlyOnce(records.containerId_bac04);
 
 		assertThat(getListOrNull(records.list_30)).isNull();
@@ -1062,6 +1062,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 
 		assertThat(records.getFolder_C07())
 				.has(openDate(2000, 10, 4))
+
 				.has(closeDate(2001, 10, 31))
 				.has(planifiedTransferDate(2002, 10, 31))
 				.has(planifiedDepositDate(2006, 10, 31))

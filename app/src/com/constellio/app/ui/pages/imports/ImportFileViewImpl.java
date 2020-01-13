@@ -36,6 +36,7 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 	private Button uploadButton;
 	private ProgressBar progressBar;
 	private Panel messagesPanel;
+	private Label legacyIdIndexDisabledWarning;
 	private EnumWithSmallCodeComboBox mode;
 	private VerticalLayout messagesLayout;
 	private CheckBox allowReferencesToNonExistingUsersCheckBox;
@@ -88,7 +89,10 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 		messagesPanel = new Panel($("ImportFileView.errors"), messagesLayout);
 		messagesPanel.setVisible(false);
 
-		mainLayout.addComponents(mode, allowReferencesToNonExistingUsersCheckBox, uploadField, uploadButton, progressBar, messagesPanel);
+		legacyIdIndexDisabledWarning = new Label($("ImportFileView.legacyIdIndexDisabledWarning"));
+		legacyIdIndexDisabledWarning.addStyleName("system-state-component-important-message");
+		legacyIdIndexDisabledWarning.setVisible(presenter.isLegacyIdIndexDisabledWarningVisible());
+		mainLayout.addComponents(legacyIdIndexDisabledWarning, mode, allowReferencesToNonExistingUsersCheckBox, uploadField, uploadButton, progressBar, messagesPanel);
 		mainLayout.setExpandRatio(messagesPanel, 1);
 		//mainLayout.setComponentAlignment(exampleExcelFileLink, Alignment.TOP_RIGHT);
 		mainLayout.setComponentAlignment(uploadButton, Alignment.BOTTOM_RIGHT);

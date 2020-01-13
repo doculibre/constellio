@@ -245,7 +245,10 @@ public class SearchResultDisplay extends VerticalLayout {
 					}
 				}
 			}
-			this.addComponent(addSearchResultMetadatas(sb));
+			Label label = addSearchResultMetadatas(sb);
+			if (label != null) {
+				this.addComponent(label);
+			}
 		} else {
 			for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
 				if (recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {

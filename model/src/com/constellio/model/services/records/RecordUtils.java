@@ -154,7 +154,7 @@ public class RecordUtils {
 	 * @param object
 	 * @return
 	 */
-	private static long sizeOf(Object object) {
+	public static long sizeOf(Object object) {
 
 		if (object == null) {
 			return 0;
@@ -478,7 +478,7 @@ public class RecordUtils {
 	public static String getSchemaAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
 															  RecordProvider recordProvider, Metadata typeMetadata) {
 		MetadataSchema recordSchema = schemaTypes.getSchemaOf(record);
-		MetadataSchema referencedSchema = schemaTypes.getDefaultSchema(typeMetadata.getReferencedSchemaType());
+		MetadataSchema referencedSchema = schemaTypes.getDefaultSchema(typeMetadata.getReferencedSchemaTypeCode());
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		String typeId = record.get(typeMetadata);
 		String customSchema = null;
@@ -666,23 +666,26 @@ public class RecordUtils {
 												  RecordProvider recordProvider) {
 		List<String> ids = new ArrayList<>();
 
-		Record record = recordProvider.getRecord(newReference);
+		Record record = recordProvider.getRecordSummary(newReference);
+
 		if (record.isSaved()) {
 			ids.add(record.getId());
-			List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
-				@Override
-				public boolean isReturned(Metadata metadata) {
-					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
-				}
-			});
+		}
+		List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
+			@Override
+			public boolean isReturned(Metadata metadata) {
+				return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
+			}
+		});
 
-			for (Metadata metadata : metadatas) {
-				for (String aReference : record.<String>getValues(metadata)) {
+		for (Metadata metadata : metadatas) {
+			for (String aReference : record.<String>getValues(metadata)) {
+				if (!ids.contains(aReference)) {
 					ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
 				}
 			}
-
 		}
+
 		return ids;
 	}
 

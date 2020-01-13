@@ -17,6 +17,7 @@ import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.services.background.RecordsReindexingBackgroundAction;
 import com.constellio.model.services.batch.controller.BatchProcessState;
+import com.constellio.model.services.batch.manager.BatchProcessesManagerRuntimeException.BatchProcessesManagerRuntimeException_Timeout;
 import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
@@ -24,6 +25,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -33,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -501,6 +505,13 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	public void waitUntilAllFinished() {
+		waitUntilAllFinished(-1);
+	}
+
+	public void waitUntilAllFinished(long timeout) {
+
+		long start = new Date().getTime();
+
 		for (int i = 0; i < 10; i++) {
 			for (BatchProcess batchProcess : getAllNonFinishedBatchProcesses()) {
 				waitUntilFinished(batchProcess);
@@ -513,13 +524,23 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 			if (recordsReindexingBackgroundAction != null
 				&& ReindexingServices.getReindexingInfos() == null) {
 
-				while (searchServices.hasResults(fromEveryTypesOfEveryCollection().where(MARKED_FOR_REINDEXING).isTrue())
+				LogicalSearchQuery query = new LogicalSearchQuery(fromEveryTypesOfEveryCollection().where(MARKED_FOR_REINDEXING).isTrue());
+				query.filteredByStatus(StatusFilter.ALL);
+				query.filteredByVisibilityStatus(VisibilityStatusFilter.ALL);
+				query.setName("*SDK* BatchProcessesManager.waitUntilAllFinished()");
+
+				while (searchServices.hasResults(query)
 					   && modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
-					recordsReindexingBackgroundAction.run(false);
+					if (timeout == -1 || new Date().getTime() - start < timeout) {
+						recordsReindexingBackgroundAction.run(false);
+					} else {
+						throw new BatchProcessesManagerRuntimeException_Timeout();
+					}
 				}
 			}
 		}
 	}
+
 
 	public void waitUntilFinished(BatchProcess batchProcess) {
 

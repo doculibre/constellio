@@ -74,6 +74,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 
@@ -150,7 +152,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	public FormMetadataVO getFormMetadataVO() {
-		FormMetadataVO found = null;
+		FormMetadataVO form = null;
 
 		if (metadataCode == null || metadataCode.isEmpty()) {
 			return null;
@@ -162,10 +164,13 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			Metadata metadata = types.getMetadata(metadataCode);
 
 			MetadataToFormVOBuilder voBuilder = new MetadataToFormVOBuilder(view.getSessionContext());
-			found = voBuilder.build(metadata, displayManager, schemaTypeCode, view.getSessionContext());
+			form = voBuilder.build(metadata, displayManager, schemaTypeCode, view.getSessionContext());
+			if (isAvailableInSummaryFlagAlwaysTrue(form.getValueType())) {
+				form.setAvailableInSummary(true);
+			}
 		}
 
-		return found;
+		return form;
 	}
 
 	public List<RoleVO> getAllCollectionRole() {
@@ -322,16 +327,25 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				}
 			}
 			code = schemaCode + "_" + "USR" + formMetadataVO.getLocalcode();
-			saveButtonClicked(formMetadataVO, editMode, schemaCode, schemasManager, types, code, false, builder);
+			saveButtonClicked(formMetadataVO, editMode, schemaCode, schemasManager, types, code, false, false, builder);
 		} else {
 			builder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
 			code = formMetadataVO.getCode();
+			final boolean cacheRebuildRequired = !isInherited(code)
+												 && !builder.isAvailableInSummary()
+												 && formMetadataVO.isAvailableInSummary()
+												 && !isAvailableInSummaryFlagAlwaysTrue(metadata.getType());
+
 			if (!isInherited(code)) {
 
 				builder.setCustomAttributes(formMetadataVO.getCustomAttributes());
 				final boolean reindexRequired = builder.isSortable() != formMetadataVO.isSortable() ||
 												builder.isSearchable() != formMetadataVO.isSearchable();
+
+				final boolean availableInSummaryBuilderValue = !isAvailableInSummaryFlagAlwaysTrue(metadata.getType())
+															   && formMetadataVO.isAvailableInSummary();
 				builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
+				builder.setAvailableInSummary(availableInSummaryBuilderValue);
 
 				setReadRoleAccessRestriction(formMetadataVO, builder);
 
@@ -351,11 +365,27 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 									if (dialog.isConfirmed()) {
 										builder.setSearchable(formMetadataVO.isSearchable());
 										builder.setSortable(formMetadataVO.isSortable());
+
 										saveButtonClicked(formMetadataVO, editMode, schemaCode,
-												schemasManager, types, code, reindexRequired, builder);
+												schemasManager, types, code, reindexRequired, cacheRebuildRequired, builder);
 									}
 								}
 							});
+
+				} else if (cacheRebuildRequired) {
+					String confirmDialogMessage = $("AddEditMetadataPresenter.saveButton.cacheRebuildRequired");
+
+					ConfirmDialog.show(UI.getCurrent(), $("AddEditMetadataPresenter.saveButton.cacheRebuildRequiredTitle"), confirmDialogMessage,
+							$("confirm"), $("cancel"), new ConfirmDialog.Listener() {
+								@Override
+								public void onClose(ConfirmDialog dialog) {
+									if (dialog.isConfirmed()) {
+										saveButtonClicked(formMetadataVO, editMode, schemaCode,
+												schemasManager, types, code, reindexRequired, cacheRebuildRequired, builder);
+									}
+								}
+							});
+
 				} else {
 					isSaveButtonClicked = true;
 				}
@@ -365,7 +395,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 			if (isSaveButtonClicked) {
 				saveButtonClicked(formMetadataVO, editMode, schemaCode,
-						schemasManager, types, code, false, builder);
+						schemasManager, types, code, false, false, builder);
 			}
 		}
 	}
@@ -382,7 +412,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	private void saveButtonClicked(FormMetadataVO formMetadataVO, boolean editMode, String schemaCode,
 								   MetadataSchemasManager schemasManager, MetadataSchemaTypesBuilder types, String code,
-								   boolean reindexRequired,
+								   boolean reindexRequired, boolean cacheRebuildRequired,
 								   MetadataBuilder builder) {
 		builder.setDefaultValue(formMetadataVO.getDefaultValue());
 		builder.setInputMask(formMetadataVO.getInputMask());
@@ -447,6 +477,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		if (reindexRequired) {
 			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 			view.showMessage($("AddEditMetadataView.reindexRequired"));
+
+		} else if (cacheRebuildRequired) {
+			appLayerFactory.getSystemGlobalConfigsManager().markLocalCachesAsRequiringRebuild();
+			view.showMessage($("AddEditMetadataView.cacheRebuildRequired"));
+
 		}
 
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
@@ -682,7 +717,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 					new HashMap<Locale, String>(), enumClass, new String[]{}, formMetadataVO.getReference(), inputType, displayType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),
 					formMetadataVO.getDefaultValue(), false, formMetadataVO.getCustomAttributes(),
-					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), collectionInfoVO, formMetadataVO.isSortable());
+					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), collectionInfoVO, formMetadataVO.isSortable(), true);
 			return metadataVO;
 		} catch (Exception ex) {
 			log.error("error", ex);
@@ -710,5 +745,18 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 
 		return new ArrayList<>();
+	}
+
+	public boolean isAvailableInSummaryFlagAlwaysTrue(MetadataValueType type) {
+		return type == BOOLEAN || type == INTEGER || type == NUMBER || type == REFERENCE;
+	}
+
+	public boolean isAvailableInSummaryFlagButtonVisible() {
+		return schemaType(schemaTypeCode).getCacheType().isSummaryCache();
+	}
+
+
+	public boolean isAvailableInSummaryFlagButtonEnabled(MetadataValueType type) {
+		return !isAvailableInSummaryFlagAlwaysTrue(type);
 	}
 }

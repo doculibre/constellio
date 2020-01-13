@@ -23,6 +23,9 @@ import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
+import org.apache.solr.client.solrj.io.SolrClientCache;
+import org.apache.solr.client.solrj.io.stream.StreamContext;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.client.solrj.request.GenericSolrRequest;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -148,6 +151,7 @@ public class BigVaultServer implements Cloneable {
 			throws BigVaultException.CouldNotExecuteQuery {
 		int currentAttempt = 0;
 		long start = new Date().getTime();
+
 		final QueryResponse response = tryQuery(params, currentAttempt);
 		if (response.getResults() != null) {
 			final int resultsSize = response.getResults().size();
@@ -155,7 +159,7 @@ public class BigVaultServer implements Cloneable {
 		long end = new Date().getTime();
 
 		final long qtime = end - start;
-		extensions.afterQuery(params, queryName, qtime, response.getResults() == null ? 0 : response.getResults().size());
+		extensions.afterQuery(params, queryName, qtime, response.getResults() == null ? 0 : response.getResults().size(), response.getDebugMap());
 
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerQueryListener) {
@@ -771,5 +775,15 @@ public class BigVaultServer implements Cloneable {
 			t.printStackTrace();
 			return false;
 		}
+	}
+
+	public TupleStream tupleStream(Map<String, String> props) {
+
+		StreamContext streamContext = new StreamContext();
+		SolrClientCache solrClientCache = new SolrClientCache();
+		streamContext.setSolrClientCache(solrClientCache);
+		TupleStream tupleStream = solrServerFactory.newTupleStream(name, props);
+		tupleStream.setStreamContext(streamContext);
+		return tupleStream;
 	}
 }

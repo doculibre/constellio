@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -402,5 +403,9 @@ public class Document extends RMObject {
 		favorites.addAll(getFavorites());
 		favorites.removeAll(favoritesToDelete);
 		set(FAVORITES, favorites);
+	}
+
+	public boolean isSummary() {
+		return getWrappedRecord().getLoadedFieldsMode() != RecordDTOMode.FULLY_LOADED;
 	}
 }

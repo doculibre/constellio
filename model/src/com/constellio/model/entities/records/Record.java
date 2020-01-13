@@ -8,6 +8,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.schemas.MetadataList;
 
 import java.io.Serializable;
@@ -20,6 +21,12 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 	String PUBLIC_TOKEN = "__public__";
 
 	String getId();
+
+	short getTypeId();
+
+	default RecordId getRecordId() {
+		return RecordId.toId(getId());
+	}
 
 	String getTitle();
 
@@ -47,25 +54,45 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 
 	boolean isModified(Metadata metadata);
 
+	default boolean isAnyModified(Metadata... metadatas) {
+		for (Metadata metadata : metadatas) {
+			if (isModified(metadata)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	default boolean isAnyModified(List<Metadata> metadatas) {
+		for (Metadata metadata : metadatas) {
+			if (isModified(metadata)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	Record set(Metadata metadata, Object value);
 
 	Record set(Metadata metadata, Locale locale, Object value);
 
-	<T> T get(Metadata metadata);
+	<T> T get(Metadata metadata, GetMetadataOption... option);
 
-	<T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode);
+	<T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode, GetMetadataOption... option);
 
-	<T> T get(Metadata metadata, Locale locale);
+	<T> T get(Metadata metadata, Locale locale, GetMetadataOption... option);
 
-	<T> T getNonNullValueIn(List<Metadata> metadatas);
+	<T> T getNonNullValueIn(List<Metadata> metadatas, GetMetadataOption... option);
 
-	<T> List<T> getList(Metadata metadata);
+	<T> List<T> getList(Metadata metadata, GetMetadataOption... option);
 
-	<T> List<T> getList(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode);
+	<T> List<T> getList(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode,
+						GetMetadataOption... option);
 
-	<T> List<T> getValues(Metadata metadata);
+	<T> List<T> getValues(Metadata metadata, GetMetadataOption... option);
 
-	<T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode);
+	<T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode,
+						  GetMetadataOption... option);
 
 	MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes);
 
@@ -114,5 +141,9 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 	}
 
 	RecordDTO getRecordDTO();
+
+	enum GetMetadataOption {
+		NO_SUMMARY_METADATA_VALIDATION;
+	}
 
 }

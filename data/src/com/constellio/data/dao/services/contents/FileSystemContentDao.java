@@ -34,6 +34,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public class FileSystemContentDao implements StatefulService, ContentDao {
 
@@ -601,5 +603,14 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	@Override
 	public void close() {
 
+	}
+
+
+	public Stream<Path> streamVaultContent(Predicate<? super Path> filter) {
+		try {
+			return Files.walk(rootFolder.toPath(), 5).filter(filter);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

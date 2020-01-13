@@ -32,7 +32,6 @@ import com.constellio.data.dao.services.cache.map.ConstellioMapCacheManager;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCacheManager;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
-import com.constellio.data.dao.services.contents.HadoopContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
@@ -242,7 +241,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		IOServices ioServices = ioServicesFactory.newIOServices();
 		conversionManager = add(new ConversionManager(ioServices, dataLayerConfiguration.getConversionProcesses(),
-				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions()));
+				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions(), dataLayerConfiguration));
 		lastCreatedInstance = this;
 
 		dataLayerBackgroundThreadsManager = new DataLayerBackgroundThreadsManager(this);
@@ -431,10 +430,6 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	public void updateContentDao() {
 		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
 			contentDao = add(new FileSystemContentDao(this));
-		} else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
-			String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
-			String hadoopUser = dataLayerConfiguration.getContentDaoHadoopUser();
-			contentDao = new HadoopContentDao(hadoopUrl, hadoopUser);
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ContentDaoType");

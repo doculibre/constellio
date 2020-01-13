@@ -8,7 +8,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataList;
 
 import java.util.ArrayList;
@@ -55,7 +54,7 @@ public class ContentModificationsBuilder {
 	List<Content> getAllContentsOfRecords(Record record) {
 		List<Content> contents = new ArrayList<>();
 		MetadataSchema schema = metadataSchemaTypes.getSchemaOf(record);
-		for (Metadata metadata : new MetadataList(schema.getMetadatas()).onlyWithType(MetadataValueType.CONTENT)) {
+		for (Metadata metadata : new MetadataList(schema.getContentMetadatasForPopulate())) {
 			if (metadata.isMultivalue()) {
 				List<ContentImpl> metadataContents = record.getList(metadata);
 				for (ContentImpl metadataContent : metadataContents) {

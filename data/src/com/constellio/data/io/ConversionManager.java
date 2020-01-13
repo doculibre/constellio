@@ -1,5 +1,6 @@
 package com.constellio.data.io;
 
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
@@ -227,12 +228,15 @@ public class ConversionManager implements StatefulService {
 	private ExecutorService executor;
 	private static DataLayerSystemExtensions extensions;
 
+	private boolean tiffFilesSupported;
+
 	public ConversionManager(IOServices ioServices, int numberOfProcesses, String onlineConversionUrl,
-							 DataLayerSystemExtensions extensions) {
+							 DataLayerSystemExtensions extensions, DataLayerConfiguration dataLayerConfiguration) {
 		this.ioServices = ioServices;
 		this.numberOfProcesses = numberOfProcesses;
 		this.onlineConversionUrl = onlineConversionUrl;
 		this.extensions = extensions;
+		this.tiffFilesSupported = dataLayerConfiguration.areTiffFilesConvertedForPreview();
 	}
 
 	public static String[] getSupportedExtensions() {
@@ -510,7 +514,12 @@ public class ConversionManager implements StatefulService {
 		return pdfaFormat;
 	}
 
-	public static boolean isSupportedExtension(String ext) {
+	public boolean isSupportedExtension(String ext) {
+		if (!tiffFilesSupported) {
+			if ("tif".equalsIgnoreCase(ext) || "tiff".equalsIgnoreCase(ext)) {
+				return false;
+			}
+		}
 		for (String aSupportedExtension : getSupportedExtensions()) {
 			if (aSupportedExtension.equalsIgnoreCase(ext)) {
 				return true;

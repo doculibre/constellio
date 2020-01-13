@@ -9,12 +9,20 @@ public class IntegerRecordId implements RecordId {
 	private int id;
 
 	public IntegerRecordId(int id) {
+		if (id < 0) {
+			throw new IllegalArgumentException("Id cannot be negative");
+		}
 		this.id = id;
 	}
 
 	@Override
 	public String stringValue() {
 		return RecordUtils.toStringId(id);
+	}
+
+	@Override
+	public int intValue() {
+		return id;
 	}
 
 	@Override

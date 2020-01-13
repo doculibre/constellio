@@ -597,6 +597,10 @@ public class FoldersLocator {
 		}
 	}
 
+	public File getLocalConfigsFile() {
+		return new File(getConfFolder(), "local-configs.properties");
+	}
+
 	/*
 	public File getBuildDataFile() {
 		return new File(getConstellioWebappFolder(), "data.txt");

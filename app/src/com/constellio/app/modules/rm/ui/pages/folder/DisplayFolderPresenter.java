@@ -100,7 +100,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryFace
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
-import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -177,7 +176,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	KeySetMap<String, String> facetSelections = new KeySetMap<>();
 	Map<String, Boolean> facetStatus = new HashMap<>();
 	String sortCriterion;
-	SortOrder sortOrder;
+	SortOrder sortOrder = SortOrder.ASCENDING;
 
 	private RecordVO returnRecordVO;
 	private Integer returnIndex;
@@ -263,6 +262,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			public LogicalSearchQuery getQuery() {
 				return getFolderContentQuery();
 			}
+
+			@Override
+			public boolean isSearchCache() {
+				return eimConfigs.isOnlySummaryMetadatasDisplayedInTables();
+			}
 		};
 		//		folderContentDataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory, view.getSessionContext()) {
 		//			@Override
@@ -278,9 +282,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			@Override
 			public LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getTasksQuery();
-				addStarredSortToQuery(query);
-				query.sortDesc(Schemas.MODIFIED_ON);
-				return query;
+
+				if (searchServices().hasResults(query)) {
+					addStarredSortToQuery(query);
+					query.sortDesc(Schemas.MODIFIED_ON);
+					return query;
+				} else {
+					return LogicalSearchQuery.returningNoResults();
+				}
 			}
 
 			@Override
@@ -324,19 +333,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.filteredWithUser(getCurrentUser());
-		query.filteredByStatus(StatusFilter.ACTIVES);
-		query.sortAsc(Schemas.TITLE);
-		return query;
-	}
-
-	private LogicalSearchQuery getSubFoldersQuery() {
-		Record record = getRecord(folderVO.getId());
-		MetadataSchemaType foldersSchemaType = getFoldersSchemaType();
-		MetadataSchema foldersSchema = getFoldersSchema();
-		Metadata parentFolderMetadata = foldersSchema.getMetadata(Folder.PARENT_FOLDER);
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(from(foldersSchemaType).where(parentFolderMetadata).is(record));
 		query.filteredWithUser(getCurrentUser());
 		query.filteredByStatus(StatusFilter.ACTIVES);
 		query.sortAsc(Schemas.TITLE);
@@ -390,18 +386,44 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		// Folder, Document
 		query.sortDesc(Schemas.SCHEMA);
 
-		if (sortCriterion == null) {
-			if (new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isAddingSecondarySortWhenSortingByScore()) {
-				return sortOrder == SortOrder.ASCENDING ?
-					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(true)).sortAsc(Schemas.IDENTIFIER) :
-					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(false)).sortDesc(Schemas.IDENTIFIER);
-			} else {
-				return query;
-			}
+		addSortCriteriaForFolderContentQuery(query);
+
+		if (eimConfigs.isOnlySummaryMetadatasDisplayedInTables()) {
+			LogicalSearchQuery folderCacheableQuery = new LogicalSearchQuery(from(foldersSchemaType)
+					.where(rm.folder.parentFolder()).is(record))
+					.filteredWithUser(getCurrentUser())
+					.filteredByStatus(StatusFilter.ACTIVES)
+					.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
+			LogicalSearchQuery documentCacheableQuery = new LogicalSearchQuery(from(documentsSchemaType)
+					.where(rm.document.folder()).is(record))
+					.filteredWithUser(getCurrentUser())
+					.filteredByStatus(StatusFilter.ACTIVES)
+					.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
+
+			addSortCriteriaForFolderContentQuery(folderCacheableQuery);
+			addSortCriteriaForFolderContentQuery(documentCacheableQuery);
+
+			query.setCacheableQueries(asList(folderCacheableQuery, documentCacheableQuery));
 		}
 
-		Metadata metadata = getMetadata(sortCriterion);
-		return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
+		return query;
+	}
+
+	private void addSortCriteriaForFolderContentQuery(LogicalSearchQuery query) {
+		if (sortCriterion == null) {
+			if (sortOrder == SortOrder.ASCENDING) {
+				query.sortAsc(Schemas.TITLE);
+			} else {
+				query.sortDesc(Schemas.TITLE);
+			}
+		} else {
+			Metadata metadata = getMetadata(sortCriterion);
+			if (sortOrder == SortOrder.ASCENDING) {
+				query.sortAsc(metadata);
+			} else {
+				query.sortDesc(metadata);
+			}
+		}
 	}
 
 	private LogicalSearchQuery getTasksQuery() {
@@ -411,6 +433,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		query.setCondition(from(tasks.userTask.schemaType()).where(taskFolderMetadata).is(folderVO.getId()));
 		query.filteredByStatus(StatusFilter.ACTIVES);
 		query.filteredWithUser(getCurrentUser());
+
 		return query;
 	}
 
@@ -1125,6 +1148,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					addStarredSortToQuery(query);
 					query.sortDesc(Schemas.MODIFIED_ON);
 					return query;
+				}
+
+				@Override
+				public boolean isSearchCache() {
+					return eimConfigs.isOnlySummaryMetadatasDisplayedInTables();
 				}
 
 				@Override

@@ -33,95 +33,96 @@ public class RecordsCachesUtils {
 	public static String buildCacheDTOStatsReport(ModelLayerFactory modelLayerFactory) {
 
 		CompiledDTOStats stats = CacheRecordDTOUtils.getLastCompiledDTOStats();
-		if (stats == null) {
-			return "No compiled stats available";
-		}
+		if (stats == null /*|| !SummaryCacheSingletons.getDataStore().isRecreated()*/) {
+			return "No compiled stats available - they are only accessible after a full cache rebuild from solr";
 
-		StringBuilder sb = new StringBuilder();
-		sb.append("---------------------------------------------------------\n");
-		sb.append("Size of cache data by collections\n");
-		sb.append("---------------------------------------------------------\n");
-		Map<Byte, CompiledCollectionDTOStats> collectionStats = stats.getCollectionStats();
-		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
-			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
-			CompiledCollectionDTOStats collectionDTOStats = collectionStats.get(collectionInfo.getCollectionId());
-			if (collectionDTOStats != null) {
-				sb.append(collection);
-				sb.append(" : ");
-				sb.append(humanReadableByteCount(collectionDTOStats.getMemoryDataSize(), false) + " in memory,");
-				sb.append(humanReadableByteCount(collectionDTOStats.getPersistedDataSize(), false) + " persisted");
-				sb.append("\n");
-			}
-		}
-		sb.append("\n");
-
-		KeyLongMap<String> persistedLengthPerSchemaTypes = new KeyLongMap<>();
-		KeyLongMap<String> memoryLengthPerSchemaTypes = new KeyLongMap<>();
-
-		KeyLongMap<String> persistedLengthPerMetadatas = new KeyLongMap<>();
-		KeyLongMap<String> memoryLengthPerMetadatas = new KeyLongMap<>();
-
-		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
-			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
-			CompiledCollectionDTOStats collectionDTOStats = collectionStats.get(collectionInfo.getCollectionId());
-
-			if (collectionDTOStats != null) {
-				for (Map.Entry<Short, CompiledSchemaTypeDTOStats> entry : collectionDTOStats.getSchemaTypeStats().entrySet()) {
-					MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
-							.getSchemaTypes(collection).getSchemaType(entry.getKey());
-
-					CompiledSchemaTypeDTOStats schemaTypeDTOStats = entry.getValue();
-					persistedLengthPerSchemaTypes.increment(schemaType.getCode(), schemaTypeDTOStats.getPersistedDataSize());
-					memoryLengthPerSchemaTypes.increment(schemaType.getCode(), schemaTypeDTOStats.getMemoryDataSize());
-
-					for (Metadata metadata : schemaType.getAllMetadatas()) {
-
-						long persisted = schemaTypeDTOStats.getPersistedDataSize(metadata.getId());
-						long memory = schemaTypeDTOStats.getMemoryDataSize(metadata.getId());
-
-						if (persisted != 0 || memory != 0) {
-							persistedLengthPerMetadatas.increment(metadata.getCode(), persisted);
-							memoryLengthPerMetadatas.increment(metadata.getCode(), memory);
-						}
-					}
-
+		} else {
+			StringBuilder sb = new StringBuilder();
+			sb.append("---------------------------------------------------------\n");
+			sb.append("Size of cache data by collections\n");
+			sb.append("---------------------------------------------------------\n");
+			Map<Byte, CompiledCollectionDTOStats> collectionStats = stats.getCollectionStats();
+			for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+				CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+				CompiledCollectionDTOStats collectionDTOStats = collectionStats.get(collectionInfo.getCollectionId());
+				if (collectionDTOStats != null) {
+					sb.append(collection);
+					sb.append(" : ");
+					sb.append(humanReadableByteCount(collectionDTOStats.getMemoryDataSize(), false) + " in memory,");
+					sb.append(humanReadableByteCount(collectionDTOStats.getPersistedDataSize(), false) + " persisted");
+					sb.append("\n");
 				}
 			}
-
-		}
-
-		sb.append("---------------------------------------------------------\n");
-		sb.append("Size of cache data by schema types (all collections) \n");
-		sb.append("---------------------------------------------------------\n");
-
-		for (Map.Entry<String, Long> entry : memoryLengthPerSchemaTypes.entriesSortedByDescValue()) {
-			long persisted = persistedLengthPerSchemaTypes.get(entry.getKey());
-			sb.append(entry.getKey());
-			sb.append(" : ");
-			sb.append(humanReadableByteCount(entry.getValue(), false) + " in memory");
-			if (persisted > 0) {
-				sb.append(" / " + humanReadableByteCount(persisted, true) + " persisted");
-			}
 			sb.append("\n");
-		}
 
+			KeyLongMap<String> persistedLengthPerSchemaTypes = new KeyLongMap<>();
+			KeyLongMap<String> memoryLengthPerSchemaTypes = new KeyLongMap<>();
 
-		sb.append("---------------------------------------------------------\n");
-		sb.append("Size of cache data by metadatas (all collections) \n");
-		sb.append("---------------------------------------------------------\n");
+			KeyLongMap<String> persistedLengthPerMetadatas = new KeyLongMap<>();
+			KeyLongMap<String> memoryLengthPerMetadatas = new KeyLongMap<>();
 
-		for (Map.Entry<String, Long> entry : memoryLengthPerMetadatas.entriesSortedByDescValue()) {
-			long persisted = persistedLengthPerMetadatas.get(entry.getKey());
-			sb.append(entry.getKey());
-			sb.append(" : ");
-			sb.append(humanReadableByteCount(entry.getValue(), false) + " in memory, ");
-			if (persisted > 0) {
-				sb.append(humanReadableByteCount(persisted, true) + " persisted");
+			for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+				CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+				CompiledCollectionDTOStats collectionDTOStats = collectionStats.get(collectionInfo.getCollectionId());
+
+				if (collectionDTOStats != null) {
+					for (Map.Entry<Short, CompiledSchemaTypeDTOStats> entry : collectionDTOStats.getSchemaTypeStats().entrySet()) {
+						MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
+								.getSchemaTypes(collection).getSchemaType(entry.getKey());
+
+						CompiledSchemaTypeDTOStats schemaTypeDTOStats = entry.getValue();
+						persistedLengthPerSchemaTypes.increment(schemaType.getCode(), schemaTypeDTOStats.getPersistedDataSize());
+						memoryLengthPerSchemaTypes.increment(schemaType.getCode(), schemaTypeDTOStats.getMemoryDataSize());
+
+						for (Metadata metadata : schemaType.getAllMetadatas()) {
+
+							long persisted = schemaTypeDTOStats.getPersistedDataSize(metadata.getId());
+							long memory = schemaTypeDTOStats.getMemoryDataSize(metadata.getId());
+
+							if (persisted != 0 || memory != 0) {
+								persistedLengthPerMetadatas.increment(metadata.getCode(), persisted);
+								memoryLengthPerMetadatas.increment(metadata.getCode(), memory);
+							}
+						}
+
+					}
+				}
+
 			}
-			sb.append("\n");
+
+			sb.append("---------------------------------------------------------\n");
+			sb.append("Size of cache data by schema types (all collections) \n");
+			sb.append("---------------------------------------------------------\n");
+
+			for (Map.Entry<String, Long> entry : memoryLengthPerSchemaTypes.entriesSortedByDescValue()) {
+				long persisted = persistedLengthPerSchemaTypes.get(entry.getKey());
+				sb.append(entry.getKey());
+				sb.append(" : ");
+				sb.append(humanReadableByteCount(entry.getValue(), false) + " in memory");
+				if (persisted > 0) {
+					sb.append(" / " + humanReadableByteCount(persisted, true) + " persisted");
+				}
+				sb.append("\n");
+			}
+
+
+			sb.append("---------------------------------------------------------\n");
+			sb.append("Size of cache data by metadatas (all collections) \n");
+			sb.append("---------------------------------------------------------\n");
+
+			for (Map.Entry<String, Long> entry : memoryLengthPerMetadatas.entriesSortedByDescValue()) {
+				long persisted = persistedLengthPerMetadatas.get(entry.getKey());
+				sb.append(entry.getKey());
+				sb.append(" : ");
+				sb.append(humanReadableByteCount(entry.getValue(), false) + " in memory, ");
+				if (persisted > 0) {
+					sb.append(humanReadableByteCount(persisted, true) + " persisted");
+				}
+				sb.append("\n");
+			}
+			return sb.toString();
 		}
 
-		return sb.toString();
 	}
 
 

@@ -17,6 +17,7 @@ import org.mockito.stubbing.Answer;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.model.entities.records.Record.GetMetadataOption.NO_SUMMARY_METADATA_VALIDATION;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -170,14 +171,14 @@ public class RecordLazyTreeDataProviderTest extends ConstellioTest {
 			throws Exception {
 
 		Record record1 = newRecord("record1");
-		when(record1.get(Schemas.DESCRIPTION_STRING)).thenReturn("description 1");
+		when(record1.get(Schemas.DESCRIPTION_STRING, NO_SUMMARY_METADATA_VALIDATION)).thenReturn("description 1");
 
 		Record record2 = newRecord("record2");
-		when(record2.get(Schemas.DESCRIPTION_TEXT)).thenReturn("text description 2");
+		when(record2.get(Schemas.DESCRIPTION_TEXT, NO_SUMMARY_METADATA_VALIDATION)).thenReturn("text description 2");
 
 		Record record3 = newRecord("record3");
-		when(record3.get(Schemas.DESCRIPTION_TEXT)).thenReturn("text description 3");
-		when(record3.get(Schemas.DESCRIPTION_STRING)).thenReturn("description 3");
+		when(record3.get(Schemas.DESCRIPTION_TEXT, NO_SUMMARY_METADATA_VALIDATION)).thenReturn("text description 3");
+		when(record3.get(Schemas.DESCRIPTION_STRING, NO_SUMMARY_METADATA_VALIDATION)).thenReturn("description 3");
 
 		Record record4 = newRecord("record4");
 

@@ -199,7 +199,7 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
 					entry("containerType", "[containerTypeTest]"),
 					entry("parentContainerType", "[secondContainerType]"));
 			assertThat(TestUtils.frenchMessages(e.getErrors()).get(1)).isEqualTo(
-					"L''emplacement parent ne peut que contenir les contenants de type [secondContainerType]. [containerTypeTest] est invalide");
+					"L'emplacement parent ne peut que contenir les contenants de type [secondContainerType]. [containerTypeTest] est invalide");
 		}
 	}
 

@@ -107,6 +107,7 @@ public class TaskReminderEmailManager implements StatefulService {
 			LogicalSearchQuery query = new LogicalSearchQuery(
 					from(taskSchemas.userTask.schema()).where(taskSchemas.userTask.nextReminderOn())
 							.isLessOrEqualThan(TimeProvider.getLocalDate()));
+			query.setName("BackgroundThread:findTasksForSendingReminders");
 			do {
 				query.setNumberOfRows(RECORDS_BATCH);
 				Transaction transaction = new Transaction();

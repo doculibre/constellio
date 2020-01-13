@@ -1,11 +1,13 @@
 package com.constellio.model.entities.records.wrappers;
 
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -318,11 +320,12 @@ public class UserAuthorizationsUtils {
 																	 AuthorizationDetailsFilter filter) {
 		KeySetMap<String, String> tokens = retrieveUserTokens(user, true, filter);
 
-		List<String> attachedAncestors = record.<String>getList(Schemas.ATTACHED_ANCESTORS);
+		//if (record.getRecordDTOMode() == RecordDTOMode.SUMMARY) {
+		List<Integer> attachedAncestorsIntIDs = record.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS);
 		List<String> allRemovedAuths = record.<String>getList(Schemas.ALL_REMOVED_AUTHS);
 
 		for (Map.Entry<String, Set<String>> token : tokens.getMapEntries()) {
-			if (attachedAncestors.contains(token.getKey())) {
+			if (attachedAncestorsIntIDs.contains(RecordId.toId(token.getKey()).intValue())) {
 				for (String auth : token.getValue()) {
 					if (!allRemovedAuths.contains(auth)) {
 						return true;
@@ -331,27 +334,55 @@ public class UserAuthorizationsUtils {
 			}
 		}
 
+		//		} else {
+		//			List<String> attachedAncestors = record.<String>getList(Schemas.ATTACHED_ANCESTORS);
+		//			List<String> allRemovedAuths = record.<String>getList(Schemas.ALL_REMOVED_AUTHS);
+		//
+		//			for (Map.Entry<String, Set<String>> token : tokens.getMapEntries()) {
+		//				if (attachedAncestors.contains(token.getKey())) {
+		//					for (String auth : token.getValue()) {
+		//						if (!allRemovedAuths.contains(auth)) {
+		//							return true;
+		//						}
+		//					}
+		//				}
+		//			}
+		//		}
 		return false;
 	}
 
 	public static Set<String> getMatchingAuthorizationIncludingSpecifics(User user, Record record,
 																		 AuthorizationDetailsFilter filter) {
 		KeySetMap<String, String> tokens = retrieveUserTokens(user, true, filter);
-
 		Set<String> authIds = new HashSet<>();
-		List<String> attachedAncestors = record.<String>getList(Schemas.ATTACHED_ANCESTORS);
-		List<String> allRemovedAuths = record.<String>getList(Schemas.ALL_REMOVED_AUTHS);
+		if (record.getRecordDTOMode() == RecordDTOMode.SUMMARY) {
 
-		for (Map.Entry<String, Set<String>> token : tokens.getMapEntries()) {
-			if (attachedAncestors.contains(token.getKey())) {
-				for (String auth : token.getValue()) {
-					if (!allRemovedAuths.contains(auth)) {
-						authIds.add(auth);
+			List<Integer> attachedAncestorsIntIDs = record.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS);
+			List<String> allRemovedAuths = record.<String>getList(Schemas.ALL_REMOVED_AUTHS);
+
+			for (Map.Entry<String, Set<String>> token : tokens.getMapEntries()) {
+				if (attachedAncestorsIntIDs.contains(RecordId.toId(token.getKey()).intValue())) {
+					for (String auth : token.getValue()) {
+						if (!allRemovedAuths.contains(auth)) {
+							authIds.add(auth);
+						}
+					}
+				}
+			}
+		} else {
+			List<String> attachedAncestors = record.<String>getList(Schemas.ATTACHED_ANCESTORS);
+			List<String> allRemovedAuths = record.<String>getList(Schemas.ALL_REMOVED_AUTHS);
+
+			for (Map.Entry<String, Set<String>> token : tokens.getMapEntries()) {
+				if (attachedAncestors.contains(token.getKey())) {
+					for (String auth : token.getValue()) {
+						if (!allRemovedAuths.contains(auth)) {
+							authIds.add(auth);
+						}
 					}
 				}
 			}
 		}
-
 		return authIds;
 	}
 

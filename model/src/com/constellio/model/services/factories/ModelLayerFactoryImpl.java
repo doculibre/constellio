@@ -1,5 +1,6 @@
 package com.constellio.model.services.factories;
 
+import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
@@ -38,8 +39,15 @@ import com.constellio.model.services.parser.ForkParsers;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
+import com.constellio.model.services.records.StringRecordId;
+import com.constellio.model.services.records.StringRecordIdLegacyMemoryMapping;
+import com.constellio.model.services.records.StringRecordIdLegacyPersistedMapping;
 import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHook;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHookRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHook;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
 import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
 import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
 import com.constellio.model.services.records.cache.eventBus.EventsBusRecordsCachesImpl;
@@ -63,7 +71,6 @@ import com.constellio.model.services.taxonomies.EventBusTaxonomiesSearchServices
 import com.constellio.model.services.taxonomies.MemoryTaxonomiesSearchServicesCache;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesBasedOnHierarchyTokensImpl;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.trash.TrashQueueManager;
@@ -72,7 +79,6 @@ import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
-import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -81,6 +87,8 @@ import java.io.IOException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64;
 
@@ -130,23 +138,49 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private ThesaurusManager thesaurusManager;
 
 	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
+	private final Map<String, TaxonomyRecordsHookRetriever> taxonomyRecordsHookRetrieverMap = new HashMap<>();
+	private final Map<String, RecordUsageCounterHookRetriever> recordUsageCounterHookRetrieverMap = new HashMap<>();
 
 	private final ModelLayerCachesManager modelLayerCachesManager;
+
+	private final Runnable markForReindexingRunnable;
 
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 								 ModelLayerConfiguration modelLayerConfiguration,
 								 StatefullServiceDecorator statefullServiceDecorator,
 								 Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
 								 short instanceId,
-								 Factory<ModelLayerFactory> modelLayerFactoryFactory) {
+								 Factory<ModelLayerFactory> modelLayerFactoryFactory,
+								 Runnable markForReindexingRunnable) {
 
 		super(dataLayerFactory, statefullServiceDecorator, instanceName, instanceId);
 
+		this.markForReindexingRunnable = markForReindexingRunnable;
 		dataLayerFactory.getEventBusManager().getEventDataSerializer().register(new RecordEventDataSerializerExtension(this));
 
 		this.modelLayerCachesManager = new ModelLayerCachesManager();
-
 		this.dataLayerFactory = dataLayerFactory;
+
+		add(new StatefulService() {
+			@Override
+			public void initialize() {
+				if (FoldersLocator.usingAppWrapper()) {
+					//Keeping mapping between runtimes
+					StringRecordId.setMapping(new StringRecordIdLegacyPersistedMapping(dataLayerFactory.getConfigManager()));
+
+				} else {
+					//Faster for tests
+					StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping());
+				}
+			}
+
+			@Override
+			public void close() {
+				StringRecordId.setMapping(null);
+			}
+		});
+
+
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
@@ -181,7 +215,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		File workFolder = new FoldersLocator().getWorkFolder();
 		workFolder.mkdirs();
 		File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), instanceName + "-cache.db");
-		FileUtils.deleteQuietly(fileSystemCacheFolder);
+		//FileUtils.deleteQuietly(fileSystemCacheFolder);
 		FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
 				= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
 
@@ -225,9 +259,26 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 				dataLayerFactory.getEventBusManager());
 
 		this.synonymsConfigurationsManager = add(new SynonymsConfigurationsManager(configManager, collectionsListManager, cacheManager));
-
 	}
 
+	public void onCollectionInitialized(String collection) {
+		taxonomyRecordsHookRetrieverMap.put(collection, new TaxonomyRecordsHookRetriever(
+				recordsCaches.registerRecordCountHook(collection, new TaxonomyRecordsHook(collection, this)), this));
+
+		recordUsageCounterHookRetrieverMap.put(collection, new RecordUsageCounterHookRetriever(
+				recordsCaches.registerRecordCountHook(collection, new RecordUsageCounterHook(collection, this)), this));
+	}
+
+	@Override
+	public TaxonomyRecordsHookRetriever getTaxonomyRecordsHookRetriever(String collection) {
+		return taxonomyRecordsHookRetrieverMap.get(collection);
+	}
+
+
+	@Override
+	public RecordUsageCounterHookRetriever getRecordUsageCounterHookRetriever(String collection) {
+		return recordUsageCounterHookRetrieverMap.get(collection);
+	}
 
 	public RecordMigrationsManager getRecordMigrationsManager() {
 		return recordMigrationsManager;
@@ -259,8 +310,9 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	@Override
-	public void postInitialization() {
-		recordsCaches.onPostLayerInitialization();
+	public void postInitialization(ModelPostInitializationParams params) {
+		recordsCaches.onPostLayerInitialization(params);
+
 
 	}
 
@@ -315,7 +367,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public TaxonomiesSearchServices newTaxonomiesSearchService() {
-		return new TaxonomiesSearchServicesBasedOnHierarchyTokensImpl(this);
+		return new TaxonomiesSearchServices(this);
 	}
 
 	public RolesManager getRolesManager() {
@@ -490,4 +542,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		return taxonomiesSearchServicesCache;
 	}
 
+	@Override
+	public void markForReindexing() {
+		markForReindexingRunnable.run();
+	}
 }

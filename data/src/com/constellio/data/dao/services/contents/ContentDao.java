@@ -6,7 +6,10 @@ import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public interface ContentDao {
 
@@ -40,4 +43,6 @@ public interface ContentDao {
 	File getFileOf(String contentId);
 
 	void readLogsAndRepairs();
+
+	Stream<Path> streamVaultContent(Predicate<? super Path> filter);
 }

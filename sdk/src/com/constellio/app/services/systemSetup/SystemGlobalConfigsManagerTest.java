@@ -26,6 +26,7 @@ public class SystemGlobalConfigsManagerTest extends ConstellioTest {
 	@Mock PropertiesConfiguration propertiesConfiguration;
 
 	SystemGlobalConfigsManager systemGlobalConfigsManager;
+	@Mock SystemLocalConfigsManager systemLocalConfigsManager;
 
 	@Before
 	public void setUp()

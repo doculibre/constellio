@@ -17,6 +17,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.Charset;
 import java.security.Principal;
 
+import static com.constellio.model.conf.FoldersLocator.usingAppWrapper;
+
 public class HttpServletRequestAuthenticator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(HttpServletRequestAuthenticator.class);
@@ -53,6 +55,11 @@ public class HttpServletRequestAuthenticator {
 
 		if (userToken != null) {
 			userToken = userToken.trim();
+		}
+
+		//Save time when testing on a developer computer
+		if ("SDK".equals(userToken) && !usingAppWrapper()) {
+			return userServices.getUser(userServiceKey);
 		}
 
 		UserServices userServices = modelLayerFactory.newUserServices();

@@ -1,5 +1,6 @@
 package com.constellio.data.dao.dto.records;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -18,15 +19,21 @@ public class QueryResponseDTO {
 	private Map<String, Map<String, Object>> fieldsStatistics;
 	private Map<String, Map<String, List<String>>> highlights;
 	private Map<String, Integer> queryFacetValues;
+	private Map<String, Object> debugMap;
 
 	private boolean correctlySpelt;
 	private List<String> spellCheckerSuggestions;
+
+	public static QueryResponseDTO EMPTY = new QueryResponseDTO(Collections.emptyList(), 0, 0L, Collections.emptyMap(),
+			Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(),
+			Collections.emptyMap(), true, Collections.emptyList(), Collections.emptyList());
 
 	public QueryResponseDTO(List<RecordDTO> results, int qtime, long numFound,
 							Map<String, List<FacetValue>> fieldFacetValues,
 							Map<String, List<FacetPivotValue>> fieldFacetPivotValues,
 							Map<String, Map<String, Object>> fieldsStatistics,
 							Map<String, Integer> queryFacetValues, Map<String, Map<String, List<String>>> highlights,
+							Map<String, Object> debugMap,
 							boolean correctlySpelt,
 							List<String> spellCheckerSuggestions, List<MoreLikeThisDTO> moreLikeThisResults) {
 		this.results = results;
@@ -40,6 +47,7 @@ public class QueryResponseDTO {
 		this.correctlySpelt = correctlySpelt;
 		this.spellCheckerSuggestions = spellCheckerSuggestions;
 		this.moreLikeThisResults = moreLikeThisResults;
+		this.debugMap = debugMap;
 	}
 
 	public List<RecordDTO> getResults() {
@@ -84,5 +92,9 @@ public class QueryResponseDTO {
 
 	public Map<String, Map<String, Object>> getFieldsStatistics() {
 		return fieldsStatistics;
+	}
+
+	public Map<String, Object> getDebugMap() {
+		return debugMap;
 	}
 }

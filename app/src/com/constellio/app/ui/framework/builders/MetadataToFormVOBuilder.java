@@ -83,6 +83,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 		}
 
 		boolean autocomplete = metadata.isSchemaAutocomplete();
+		boolean availableInSummary = metadata.isAvailableInSummary();
 
 		Object defaultValue = metadata.getDefaultValue();
 		String inputMask = metadata.getInputMask();
@@ -97,11 +98,12 @@ public class MetadataToFormVOBuilder implements Serializable {
 
 		FormMetadataVO formMetadataVO = new FormMetadataVO(metadata.getId(), code, type, required, schemaVO, reference, newLabels, searchable,
 				multivalue, sortable,
-				advancedSearch, facet, entry, displayType, highlight, autocomplete, enabled, metadataGroup, defaultValue,
+				advancedSearch, facet, entry, displayType, highlight, autocomplete,  availableInSummary, enabled, metadataGroup, defaultValue,
 				inputMask,
 				duplicable, uniqueValue,
 				metadata.getCustomAttributes(),
 				sessionContext, isMultiLingual);
+
 		if (metadata.getInheritance() != null) {
 			formMetadataVO.setInheritance(
 					this.build(metadata.getInheritance(), schemaVO, configManager, schemaTypeCode, sessionContext));

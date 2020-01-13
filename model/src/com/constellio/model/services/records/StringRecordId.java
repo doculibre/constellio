@@ -6,15 +6,39 @@ import java.util.Objects;
 
 public class StringRecordId implements RecordId {
 
+	private static StringRecordIdLegacyMapping mapping;
+
+	private int intValue;
 	private String id;
+
+	public static void setMapping(StringRecordIdLegacyMapping mapping) {
+		StringRecordId.mapping = mapping;
+	}
 
 	public StringRecordId(String id) {
 		this.id = id;
 	}
 
+	private boolean isUUID(String id) {
+		return id != null && id.length() == 36 && id.charAt(8) == '-' && id.charAt(13) == '-' && id.charAt(18) == '-' && id.charAt(23) == '-';
+	}
+
+	public StringRecordId(int id) {
+		this.id = mapping.getStringId(id);
+		this.intValue = id;
+	}
+
 	@Override
 	public String stringValue() {
 		return id;
+	}
+
+	@Override
+	public int intValue() {
+		if (intValue == 0) {
+			intValue = mapping.getIntId(id);
+		}
+		return intValue;
 	}
 
 	@Override
@@ -67,12 +91,16 @@ public class StringRecordId implements RecordId {
 			return false;
 		}
 		StringRecordId that = (StringRecordId) o;
-		return Objects.equals(id, that.id);
+		if (intValue != 0 && that.intValue != 0) {
+			return Objects.equals(intValue, that.intValue);
+		} else {
+			return Objects.equals(id, that.id);
+		}
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id);
+		return intValue;
 	}
 
 	@Override
@@ -91,4 +119,5 @@ public class StringRecordId implements RecordId {
 	public String toString() {
 		return id;
 	}
+
 }

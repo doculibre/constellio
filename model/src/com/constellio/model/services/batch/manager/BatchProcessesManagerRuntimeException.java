@@ -15,4 +15,10 @@ public class BatchProcessesManagerRuntimeException extends RuntimeException {
 		super(cause);
 	}
 
+	public static class BatchProcessesManagerRuntimeException_Timeout extends BatchProcessesManagerRuntimeException {
+
+		public BatchProcessesManagerRuntimeException_Timeout() {
+			super("Timeout waiting for batch processes to finish");
+		}
+	}
 }

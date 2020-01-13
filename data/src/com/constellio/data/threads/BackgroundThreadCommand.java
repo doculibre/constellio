@@ -1,11 +1,15 @@
 package com.constellio.data.threads;
 
+import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.systemLogger.SystemLogger;
 import org.joda.time.LocalTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -26,6 +30,8 @@ public class BackgroundThreadCommand implements Runnable {
 	long executeEverySeconds;
 
 	DataLayerFactory dataLayerFactory;
+
+	private static final Set<String> threadNamesThrowingExceptions = new HashSet<>();
 
 	public BackgroundThreadCommand(BackgroundThreadConfiguration configuration, AtomicBoolean systemStarted,
 								   AtomicBoolean stopRequested, Semaphore tasksSemaphore,
@@ -59,7 +65,7 @@ public class BackgroundThreadCommand implements Runnable {
 					throw new RuntimeException(e);
 				}
 				try {
-					runAndHandleException();
+					Stats.compilerFor(threadName).log(this::runAndHandleException);
 				} finally {
 					tasksSemaphore.release();
 				}
@@ -79,10 +85,8 @@ public class BackgroundThreadCommand implements Runnable {
 
 	public void runAndHandleException() {
 		setCurrentThreadName();
-		//logCommandCall();
 		try {
 			configuration.getRepeatedAction().run();
-			//logCommandCallEnd();
 		} catch (Throwable e) {
 			logCommandCallEndedWithException(e);
 			if (configuration.getExceptionHandling() == BackgroundThreadExceptionHandling.STOP) {
@@ -105,7 +109,17 @@ public class BackgroundThreadCommand implements Runnable {
 	}
 
 	public void logCommandCallEndedWithException(Throwable e) {
+
+		if (!threadNamesThrowingExceptions.contains(threadName)) {
+			synchronized (threadNamesThrowingExceptions) {
+				threadNamesThrowingExceptions.add(threadName);
+				SystemLogger.info("Execution of background thread " + threadName + "' has thrown an exception", e);
+			}
+		}
+
 		logger.error("Execution of background thread " + threadName + "' has thrown an exception", e);
+
+
 	}
 
 }

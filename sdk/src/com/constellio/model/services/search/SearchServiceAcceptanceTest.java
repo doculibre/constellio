@@ -6,6 +6,7 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -1027,23 +1028,32 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		String text = "text";
 		condition = fromAllSchemasIn(zeCollection).returnAll();
 
-		//when
-		LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery(text).setHighlighting(true);
-		SPEQueryResponse response = searchServices.query(query);
+		Toggle.DEBUG_SOLR_TIMINGS.enable();
 
-		//then
-		Map<String, Map<String, List<String>>> highlights = response.getHighlights();
+		try {
+			//when
+			LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery(text).setHighlighting(true);
+			SPEQueryResponse response = searchServices.query(query);
 
-		String highlightText = "<em>" + text + "</em>";
-		for (Record record : new Record[]{expectedRecord, expectedRecord2}) {
-			assertThat(highlights).containsKey(record.getId());
-			assertThat(highlights.get(record.getId()).size()).isGreaterThan(0);
-			for (List<String> snippets : highlights.get(record.getId()).values()) {
-				for (String snippet : snippets) {
-					assertThat(snippet).contains(highlightText);
-					assertThat(record.get(zeSchema.stringMetadata()).toString()).contains(snippet.replaceAll("</?em>", ""));
+			//then
+			Map<String, Map<String, List<String>>> highlights = response.getHighlights();
+
+			String highlightText = "<em>" + text + "</em>";
+			for (Record record : new Record[]{expectedRecord, expectedRecord2}) {
+				assertThat(highlights).containsKey(record.getId());
+				assertThat(highlights.get(record.getId()).size()).isGreaterThan(0);
+				for (List<String> snippets : highlights.get(record.getId()).values()) {
+					for (String snippet : snippets) {
+						assertThat(snippet).contains(highlightText);
+						assertThat(record.get(zeSchema.stringMetadata()).toString()).contains(snippet.replaceAll("</?em>", ""));
+					}
 				}
 			}
+
+			assertThat(response.getDebugMap()).isNotEmpty();
+
+		} finally {
+			Toggle.DEBUG_SOLR_TIMINGS.disable();
 		}
 	}
 

@@ -361,6 +361,7 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	void initializeCollection(String collection) {
+		modelLayerFactory.onCollectionInitialized(collection);
 		ConstellioEIM.start(appLayerFactory, collection);
 	}
 

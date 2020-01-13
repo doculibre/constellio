@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.model.entities.records.Record.GetMetadataOption.NO_SUMMARY_METADATA_VALIDATION;
+
 public class BaseRecordTreeDataProvider extends AbstractDataProvider implements LazyTreeDataProvider<String> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BaseRecordTreeDataProvider.class);
@@ -142,9 +144,9 @@ public class BaseRecordTreeDataProvider extends AbstractDataProvider implements 
 		Record record = searchRecord.getRecord();
 		String schemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		String caption = getCaptionOf(record);
-		String description = record.get(Schemas.DESCRIPTION_STRING);
+		String description = record.get(Schemas.DESCRIPTION_STRING, NO_SUMMARY_METADATA_VALIDATION);
 		if (description == null) {
-			description = record.get(Schemas.DESCRIPTION_TEXT);
+			description = record.get(Schemas.DESCRIPTION_TEXT, NO_SUMMARY_METADATA_VALIDATION);
 		}
 
 		Resource collapsedIcon = getCollapsedIconOf(record);

@@ -138,7 +138,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		CollectionInfoVO collectionInfoVO = new CollectionInfoVO(collectionInfo.getMainSystemLanguage(), collectionInfo.getCode(), collectionInfo.getCollectionLanguages(),
 				collectionInfo.getMainSystemLocale(), collectionInfo.getSecondaryCollectionLanguesCodes(), collectionInfo.getCollectionLanguesCodes(), collectionInfo.getCollectionLocales());
 		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, localCode, formMetadataCodes, formHiddenMetadataCodes,
-				displayMetadataCodes, tableMetadataCodes, searchMetadataCodes, labels, collectionInfoVO);
+				displayMetadataCodes, tableMetadataCodes, searchMetadataCodes, labels, collectionInfoVO, schema.getSchemaType().getCacheType());
 
 		if (!withoutBuildingMetadatas) {
 			boolean isMultiLingualActivated = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SEIZE_MULTILANGUAL_VALUES);

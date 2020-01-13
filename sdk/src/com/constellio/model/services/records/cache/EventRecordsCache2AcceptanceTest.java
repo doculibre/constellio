@@ -46,7 +46,6 @@ import java.util.stream.Collectors;
 
 import static com.constellio.data.test.RandomWordsIterator.createFor;
 import static com.constellio.data.utils.Octets.megaoctets;
-import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
 import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE;
 import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
@@ -511,62 +510,6 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 
 	}
 
-
-	@Test
-	public void givenCacheConfigsAreChangedThenReplicatedOnAllCluster() throws Exception {
-
-		recordServices.add(volatileRecord1 = newRecordOf(idOf(1), zeCollectionSchemaWithVolatileCache));
-		recordServices.add(volatileRecord2 = newRecordOf(idOf(2), zeCollectionSchemaWithVolatileCache));
-		otherInstanceRecordServices.getDocumentById(idOf(1));
-		otherInstanceRecordServices.getDocumentById(idOf(2));
-
-		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
-		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
-		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
-		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
-
-		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection,
-				(MetadataSchemaTypesAlteration) types -> types.getSchemaType(zeCollectionSchemaWithVolatileCache.type().getCode()).setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE));
-
-		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).isEmpty();
-		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).isEmpty();
-		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
-		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
-
-		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection,
-				(MetadataSchemaTypesAlteration) types -> types.getSchemaType(zeCollectionSchemaWithVolatileCache.type().getCode()).setRecordCacheType(NOT_CACHED));
-
-		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).isEmpty();
-		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).isEmpty();
-		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).isEmpty();
-		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).isEmpty();
-
-		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection,
-				(MetadataSchemaTypesAlteration) types -> types.getSchemaType(zeCollectionSchemaWithVolatileCache.type().getCode()).setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE));
-
-		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).isEmpty();
-		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).isEmpty();
-		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
-		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
-				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
-
-
-	}
 
 	@Test
 	public void whenUpdatingRecordWithPermanentAndVolatileCacheThenInvalidatedFromRemoteVolatileUpdatedInRemotePermanent()

@@ -11,8 +11,10 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
@@ -56,12 +58,15 @@ public class LogicalSearchQueryExecutorInCache {
 	ModelLayerSystemExtensions modelLayerExtensions;
 	String mainDataLanguage;
 	SearchConfigurationsManager searchConfigurationsManager;
+	ConstellioEIMConfigs constellioEIMConfigs;
 
 	public LogicalSearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
 											 MetadataSchemasManager schemasManager,
 											 SearchConfigurationsManager searchConfigurationsManager,
 											 ModelLayerSystemExtensions modelLayerExtensions,
+											 ConstellioEIMConfigs constellioEIMConfigs,
 											 String mainDataLanguage) {
+		this.constellioEIMConfigs = constellioEIMConfigs;
 		this.searchServices = searchServices;
 		this.recordsCaches = recordsCaches;
 		this.schemasManager = schemasManager;
@@ -71,6 +76,11 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 	public Stream<Record> stream(LogicalSearchQuery query) {
+
+		if (isQueryReturningNoResults(query)) {
+			return Stream.empty();
+		}
+
 		MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
 
 		Locale locale = query.getLanguage() == null ? null : Language.withCode(query.getLanguage()).getLocale();
@@ -246,8 +256,12 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 	private boolean canDataGetByMetadata(DataStoreField dataStoreField, Object value) {
-		return value instanceof String
-			   && !dataStoreField.isEncrypted() && (dataStoreField.isUniqueValue() || dataStoreField.isCacheIndex());
+		if (value instanceof String
+			&& !dataStoreField.isEncrypted() && (dataStoreField.isUniqueValue() || dataStoreField.isCacheIndex())) {
+
+			return !(dataStoreField.getLocalCode().equals(Schemas.LEGACY_ID.getLocalCode()) && !constellioEIMConfigs.isLegacyIdentifierIndexedInMemory());
+		}
+		return false;
 	}
 
 	@NotNull
@@ -332,14 +346,31 @@ public class LogicalSearchQueryExecutorInCache {
 		return stream(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL));
 	}
 
+	private boolean isQueryReturningNoResults(LogicalSearchQuery query) {
+		return query.getCondition() != null && query.getCondition().getCollection() != null && LogicalSearchQuery.INEXISTENT_COLLECTION_42.equals(query.getCondition().getCollection());
+	}
+
 	public boolean isQueryExecutableInCache(LogicalSearchQuery query) {
+		if (isQueryReturningNoResults(query)) {
+			return true;
+		}
 		if (recordsCaches == null) {
 			return false;
 		}
 
+		if (!query.getCacheableQueries().isEmpty()) {
+			for (LogicalSearchQuery cacheableQuery : query.getCacheableQueries()) {
+				if (!hasNoUnsupportedFeatureOrFilter(cacheableQuery) ||
+					!isConditionExecutableInCache(cacheableQuery.getCondition(), cacheableQuery.getReturnedMetadatas(),
+							cacheableQuery.getQueryExecutionMethod())) {
+					return false;
+				}
+			}
+			return true;
+		}
+
 		return hasNoUnsupportedFeatureOrFilter(query)
 			   && isConditionExecutableInCache(query.getCondition(), query.getReturnedMetadatas(), query.getQueryExecutionMethod());
-
 	}
 
 
@@ -368,7 +399,7 @@ public class LogicalSearchQueryExecutorInCache {
 	 * @param query
 	 * @return
 	 */
-	public static boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
+	public boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
 		for (int i = 0; i < requirements.size(); i++) {
 			if (!requirements.get(i).test(query)) {
 				if (query.getQueryExecutionMethod().requiringCacheExecution()) {
@@ -376,11 +407,26 @@ public class LogicalSearchQueryExecutorInCache {
 				} else {
 					return false;
 				}
+			}
+		}
+		return hasNoUnsupportedFieldSort(query);
 
+	}
+
+	private boolean hasNoUnsupportedFieldSort(LogicalSearchQuery query) {
+		for (LogicalSearchQuerySort sort : query.getSortFields()) {
+			if (sort instanceof FieldLogicalSearchQuerySort) {
+				FieldLogicalSearchQuerySort fieldSort = (FieldLogicalSearchQuerySort) sort;
+				if (fieldSort.getField() instanceof Metadata) {
+					MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
+					if (schemaType != null && schemaType.getCacheType().isSummaryCache() &&
+						!SchemaUtils.isSummary((Metadata) fieldSort.getField())) {
+						return false;
+					}
+				}
 			}
 		}
 		return true;
-
 	}
 
 	private static boolean areAllFiltersExecutableInCache(List<UserFilter> userFilters) {
@@ -440,18 +486,14 @@ public class LogicalSearchQueryExecutorInCache {
 		} else if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
 			return condition.isSupportingMemoryExecution(false, queryExecutionMethod == USE_CACHE)
 				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
-
 		} else if (schemaType.getCacheType().hasPermanentCache()) {
 			//Verify that schemaType is loaded
 			return (returnedMetadatasFilter.isOnlySummary() || returnedMetadatasFilter.isOnlyId()) &&
 				   condition.isSupportingMemoryExecution(true, queryExecutionMethod == USE_CACHE)
 				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
-
 		} else {
 			return false;
 		}
-
-
 	}
 
 	private MetadataSchemaType getQueriedSchemaType(LogicalSearchCondition condition) {
@@ -471,6 +513,10 @@ public class LogicalSearchQueryExecutorInCache {
 
 	public int estimateMaxResultSize(LogicalSearchQuery query) {
 		if (isQueryExecutableInCache(query)) {
+
+			if (isQueryReturningNoResults(query)) {
+				return 0;
+			}
 
 			MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
 

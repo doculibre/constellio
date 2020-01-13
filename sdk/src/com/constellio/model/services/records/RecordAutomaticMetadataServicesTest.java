@@ -155,6 +155,8 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		reset(schemasManager.getSchemaTypes(zeCollection));
 
 		reindexedMetadata = new TransactionRecordsReindexation(new MetadataList(firstReindexedMetadata, secondReindexedMetadata));
+
+		StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping());
 	}
 
 	@Test

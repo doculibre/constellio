@@ -1764,12 +1764,12 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 				MetadataSchemaBuilder zeSchemaType = types.getSchemaType(ZE_SCHEMA_TYPE_CODE).getDefaultSchema();
 				MetadataSchemaBuilder anotherSchema = types.getSchemaType(ANOTHER_SCHEMA_TYPE_CODE).getDefaultSchema();
 				zeSchemaType.get(TITLE.getCode()).addLabel(Language.French, "ze title label").setSortable(true)
-						.setEssentialInSummary(true).setEssential(true).setDefaultRequirement(true).setDefaultValue("toto")
+						.setEssentialInSummary(true).setAvailableInSummary(true).setEssential(true).setDefaultRequirement(true).setDefaultValue("toto")
 						.setEnabled(true).setSchemaAutocomplete(true).setSearchable(true).setSystemReserved(true)
 						.setUniqueValue(true).setUnmodifiable(true);
 
 				anotherSchema.get(TITLE.getCode()).addLabel(Language.French, "another title label").setSortable(false)
-						.setEssentialInSummary(false).setEssential(false).setDefaultRequirement(false).setDefaultValue("tata")
+						.setEssentialInSummary(false).setAvailableInSummary(false).setEssential(false).setDefaultRequirement(false).setDefaultValue("tata")
 						.setEnabled(false).setSchemaAutocomplete(false).setSearchable(false).setSystemReserved(false)
 						.setUniqueValue(false).setUnmodifiable(false);
 			}
@@ -1778,6 +1778,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		Metadata zeSchemaLabel = schemas.getTypes().getDefaultSchema(ZE_SCHEMA_TYPE_CODE).get(TITLE.getCode());
 		assertThat(zeSchemaLabel.getLabel(Language.French)).isEqualTo("ze title label");
 		assertThat(zeSchemaLabel.isSortable()).isTrue();
+		assertThat(zeSchemaLabel.isAvailableInSummary()).isTrue();
 		assertThat(zeSchemaLabel.isEssentialInSummary()).isTrue();
 		assertThat(zeSchemaLabel.isEssential()).isTrue();
 		assertThat(zeSchemaLabel.isDefaultRequirement()).isTrue();
@@ -1792,6 +1793,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		Metadata anotherSchemaLabel = schemas.getTypes().getDefaultSchema(ANOTHER_SCHEMA_TYPE_CODE).get(TITLE.getCode());
 		assertThat(anotherSchemaLabel.getLabel(Language.French)).isEqualTo("another title label");
 		assertThat(anotherSchemaLabel.isSortable()).isFalse();
+		assertThat(anotherSchemaLabel.isAvailableInSummary()).isFalse();
 		assertThat(anotherSchemaLabel.isEssentialInSummary()).isFalse();
 		assertThat(anotherSchemaLabel.isEssential()).isFalse();
 		assertThat(anotherSchemaLabel.isDefaultRequirement()).isFalse();

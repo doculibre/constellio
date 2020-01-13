@@ -10,12 +10,17 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
 import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
 import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
-import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator2;
 import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
 import com.constellio.model.services.schemas.calculators.DefaultTokensOfHierarchyCalculator;
+import com.constellio.model.services.schemas.calculators.IntegerAttachedPrincipalConceptsAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.IntegerDetachedPrincipalConceptsAncestorsCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
 import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
+import com.constellio.model.services.schemas.calculators.PrincipalAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.PrincipalConceptsIntIdsCalculator;
 import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
+import com.constellio.model.services.schemas.calculators.SecondaryConceptsIntIdsCalculator;
 import com.constellio.model.services.schemas.calculators.TokensCalculator2;
 import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
@@ -66,6 +71,13 @@ public class CommonMetadataBuilder {
 	public static final String DATA_VERSION = "migrationDataVersion";
 	public static final String ESTIMATED_SIZE = "estimatedSize";
 	public static final String HIDDEN = "hidden";
+
+	public static final String SECONDARY_CONCEPTS_INT_IDS = "secondaryConceptsIntIds";
+	public static final String PRINCIPAL_CONCEPTS_INT_IDS = "principalConceptsIntIds";
+	public static final String ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS = "attachedPrincipalAncestorsIntIds";
+	public static final String DETACHED_PRINCIPALS_ANCESTORS_INT_IDS = "detachedPrincipalAncestorsIntIds";
+	public static final String PRINCIPALS_ANCESTORS_INT_IDS = "principalAncestorsIntIds";
+
 
 	private interface MetadataCreator {
 		void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types);
@@ -366,7 +378,7 @@ public class CommonMetadataBuilder {
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(ATTACHED_ANCESTORS).setType(STRING)
 						.setMultivalue(true).setEssential(true)
-						.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+						.defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -448,6 +460,67 @@ public class CommonMetadataBuilder {
 				}
 			}
 		});
+
+		metadata.put(ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = builder.createSystemReserved(ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS)
+						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true)
+						.defineDataEntry().asCalculated(IntegerAttachedPrincipalConceptsAncestorsCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(DETACHED_PRINCIPALS_ANCESTORS_INT_IDS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = builder.createSystemReserved(DETACHED_PRINCIPALS_ANCESTORS_INT_IDS)
+						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true)
+						.defineDataEntry().asCalculated(IntegerDetachedPrincipalConceptsAncestorsCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(SECONDARY_CONCEPTS_INT_IDS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = builder.createSystemReserved(SECONDARY_CONCEPTS_INT_IDS)
+						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true)
+						.defineDataEntry().asCalculated(SecondaryConceptsIntIdsCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(PRINCIPAL_CONCEPTS_INT_IDS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = builder.createSystemReserved(PRINCIPAL_CONCEPTS_INT_IDS)
+						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true)
+						.defineDataEntry().asCalculated(PrincipalConceptsIntIdsCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(PRINCIPALS_ANCESTORS_INT_IDS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = builder.createSystemReserved(PRINCIPALS_ANCESTORS_INT_IDS)
+						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true)
+						.defineDataEntry().asCalculated(PrincipalAncestorsCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
 
 	}
 

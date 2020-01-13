@@ -42,6 +42,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
+import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.KeySetMap;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -71,6 +72,7 @@ import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.sliderpanel.client.SliderPanelListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -108,13 +110,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private Window documentVersionWindow;
 
-	private I18NHorizontalLayout contentAndFacetsLayout; 
+	private I18NHorizontalLayout contentAndFacetsLayout;
 
 	private RecordVODataProvider folderContentDataProvider;
 	private RecordVODataProvider tasksDataProvider;
 	private RecordVODataProvider eventsDataProvider;
 
 	private FacetsPanel facetsPanel;
+	private boolean facetsPanelLoaded;
 
 	private boolean nestedView;
 
@@ -129,7 +132,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	public DisplayFolderViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		this.nestedView = nestedView;
 		this.inWindow = inWindow;
-		presenter = new DisplayFolderPresenter(this, recordVO, nestedView, inWindow);
+
+		presenter = Stats.compilerFor(getClass().getSimpleName()).log(() -> {
+			return new DisplayFolderPresenter(this, recordVO, nestedView, inWindow);
+		});
 	}
 
 	@Override
@@ -415,7 +421,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					presenter.facetClosed(id);
 				}
 			};
-			refreshFacets(folderContentDataProvider);
 
 			viewerPanel = new ViewableRecordVOTablePanel(recordVOContainer) {
 				@Override
@@ -504,6 +509,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					contentAndFacetsLayout.removeComponent(facetsSliderPanel);
 				}
 				facetsSliderPanel = new FacetsSliderPanel(facetsPanel);
+				facetsSliderPanel.addListener((SliderPanelListener) expand -> {
+					if (expand && !facetsPanelLoaded) {
+						refreshFacets(folderContentDataProvider);
+						facetsPanelLoaded = true;
+					}
+				});
 				contentAndFacetsLayout.addComponent(facetsSliderPanel);
 			}
 			tabSheet.replaceComponent(folderContentComponent, folderContentComponent = viewerPanel);

@@ -1,6 +1,7 @@
 package com.constellio.data.dao.dto.records;
 
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException;
+import com.constellio.data.utils.LangUtils;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -116,6 +117,16 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 		}
 
 		return new SolrRecordDTO(id, version, newFields, newCopyFields, CUSTOM);
+	}
+
+	@Override
+	public long heapMemoryConsumption() {
+		return 12 + LangUtils.sizeOf(id) + 12 + LangUtils.sizeOf(fields) + 12 + LangUtils.sizeOf(copyfields) + Integer.BYTES;
+	}
+
+	@Override
+	public long offHeapMemoryConsumption() {
+		return 0;
 	}
 
 	@Override

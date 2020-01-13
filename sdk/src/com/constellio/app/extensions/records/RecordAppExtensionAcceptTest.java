@@ -24,6 +24,8 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
@@ -111,8 +113,17 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenActiveFolderToRecordVOWhenGetIconAndExtensionForRecordThenReturnGoodIcon()
+	public void givenDescriptionCachedInSummaryThenAvailableInNiceTitles()
 			throws Exception {
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema().get(Folder.DESCRIPTION).setEssentialInSummary(true);
+			}
+		});
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateVolatileReloadPermanent(asList(Folder.SCHEMA_TYPE));
 
 		Folder folder = records.getFolder_A01().setDescription("niceTitle");
 		recordServices.update(folder);
@@ -124,6 +135,21 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 				.isEqualTo(iconPath);
 		assertThat(recordVO.getExtension()).isEqualTo("yellow_hybrid_folder_closed");
 		assertThat(recordVO.getNiceTitle()).isEqualTo("niceTitle");
+	}
+
+	@Test
+	public void givenActiveFolderToRecordVOWhenGetIconAndExtensionForRecordThenReturnGoodIcon()
+			throws Exception {
+
+		Folder folder = records.getFolder_A01().setDescription("niceTitle");
+		recordServices.update(folder);
+		RecordVO recordVO = voBuilder.build(records.getFolder_A01().getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
+		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
+				.getIconForRecord(new GetIconPathParams(records.getFolder_A01().getWrappedRecord(), false));
+
+		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder2/yellow_hybrid_folder_closed.png")
+				.isEqualTo(iconPath);
+		assertThat(recordVO.getNiceTitle()).isNull();
 	}
 
 	@Test

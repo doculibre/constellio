@@ -80,6 +80,7 @@ import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static com.constellio.data.utils.systemLogger.SystemLogger.logImportantWarningOnce;
 import static com.constellio.model.entities.enums.GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD;
 import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -194,6 +195,7 @@ public class RecordAutomaticMetadataServices {
 		if (agregationType != null) {
 			SearchAggregatedValuesParams aggregatedValuesParams = new SearchAggregatedValuesParams(query, queries, record, metadata,
 					aggregatedDataEntry, types, searchServices);
+
 			Object calculatedValue = getHandlerFor(metadata).calculate(aggregatedValuesParams);
 			(aggregatedValuesParams.getRecord()).updateAutomaticValue(metadata, calculatedValue);
 		}
@@ -244,7 +246,8 @@ public class RecordAutomaticMetadataServices {
 					if (schemaType.getCacheType().isSummaryCache()) {
 						for (Metadata aMetadata : metadatas) {
 							if (!SchemaUtils.isSummary(aMetadata)) {
-								LOGGER.warn("Aggregated metadata '" + aggregatedMetadata.getCode() + "' should use cache for recalculation : metadata '" + aMetadata.getCode() + "' used to calculation is not summary");
+								String message = "Aggregated metadata '" + aggregatedMetadata.getNoInheritanceCode() + "' should use cache for recalculation : metadata '" + aMetadata.getCode() + "' used to calculation is not summary";
+								logImportantWarningOnce(message);
 								stream = searchServices.streamFromSolr(query);
 								break;
 							}
@@ -253,7 +256,8 @@ public class RecordAutomaticMetadataServices {
 						query.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
 						if (stream == null) {
 							if (!executorInCache.isQueryExecutableInCache(query)) {
-								LOGGER.warn("Aggregated metadata '" + aggregatedMetadata.getCode() + "' should use cache for recalculation : query unsupported in cache");
+								String message = "Aggregated metadata '" + aggregatedMetadata.getNoInheritanceCode() + "' should use cache for recalculation : query unsupported in cache";
+								logImportantWarningOnce(message);
 								stream = searchServices.streamFromSolr(query);
 
 							} else {
@@ -748,21 +752,67 @@ public class RecordAutomaticMetadataServices {
 
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(record.getCollection(), schemaTypeCode);
+		HierarchyDependencyValue built = new HierarchyDependencyValue(taxonomy);
 
-		List<String> paths = new ArrayList<>();
-		List<String> removedAuthorizations = new ArrayList<>();
-		List<String> attachedAncestors = new ArrayList<>();
+
+		//		List<String> paths = new ArrayList<>();
+		//		List<String> removedAuthorizations = new ArrayList<>();
+		//		List<String> attachedAncestors = new ArrayList<>();
 		MetadataSchema recordSchema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 
 		List<Metadata> parentReferences = recordSchema.getParentReferences();
+		//List<Integer> allAncestorsExceptPrincipals = new ArrayList<>();
+		//		List<Integer> secondaryConceptIdsAndTheirAncestorsIds = new ArrayList<>();
+		//		List<Integer> principalConceptIdsAndTheirAncestorsIds = new ArrayList<>();
+		//		List<Integer> principalAncestors = new ArrayList<>();
 		for (Metadata metadata : parentReferences) {
+
 			String referenceValue = record.get(metadata);
 			if (referenceValue != null) {
-				Record referencedRecord = recordProvider.getRecord(referenceValue);
-				List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
-				paths.addAll(parentPaths);
-				removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
-				attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+				//				Record referencedRecord = recordProvider.getRecord(referenceValue);
+				//				List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
+				//				paths.addAll(parentPaths);
+				//				removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
+				//				attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+				//
+				//				secondaryConceptAncestors.addAll(referencedRecord.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
+				//				principalAncestors.addAll(referencedRecord.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS));
+				//				allAncestorsExceptPrincipals.addAll(referencedRecord.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
+
+
+				boolean retrievedUsingSummaryCached = false;
+				if (metadata.getReferencedSchemaType().getCacheType().isSummaryCache()
+					&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+					Metadata pathMetadata = metadata.getReferencedSchemaType().getDefaultSchema().getMetadata(Schemas.PATH.getLocalCode());
+					Metadata allRemovedAuthsMetadata = metadata.getReferencedSchemaType().getDefaultSchema().getMetadata(Schemas.ALL_REMOVED_AUTHS.getLocalCode());
+					Metadata attachedAncestorsMetadata = metadata.getReferencedSchemaType().getDefaultSchema().getMetadata(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS.getLocalCode());
+
+					if (pathMetadata.isStoredInSummaryCache()
+						&& allRemovedAuthsMetadata.isStoredInSummaryCache()
+						&& attachedAncestorsMetadata.isStoredInSummaryCache()) {
+						retrievedUsingSummaryCached = true;
+
+						Record referencedRecord = recordProvider.getRecordSummary(referenceValue);
+						List<String> parentPaths = referencedRecord.getList(pathMetadata);
+						built.getPaths().addAll(parentPaths);
+						built.getRemovedAuthorizationIds().addAll(referencedRecord.<String>getList(allRemovedAuthsMetadata));
+						referencedRecord.<Integer>getList(attachedAncestorsMetadata).forEach((id) -> {
+							built.getAttachedAncestors().add(RecordId.toId(id).stringValue());
+						});
+
+					} else {
+						logImportantWarningOnce("Metadatas 'path, allRemovedAuths, attachedAncestors' of type '"
+												+ metadata.getReferencedSchemaType().getCode() + "' should be cached, it would avoid a getById");
+					}
+				}
+
+				if (!retrievedUsingSummaryCached) {
+					Record referencedRecord = recordProvider.getRecord(referenceValue);
+					List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
+					built.getPaths().addAll(parentPaths);
+					built.getRemovedAuthorizationIds().addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
+					built.getAttachedAncestors().addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+				}
 			}
 		}
 		for (Taxonomy aTaxonomy : taxonomiesManager.getEnabledTaxonomies(record.getCollection())) {
@@ -778,13 +828,35 @@ public class RecordAutomaticMetadataServices {
 				}
 				for (String referenceValue : referencesValues) {
 					if (referenceValue != null) {
+						RecordId referenceValueRecordId = RecordId.toId(referenceValue);
 						try {
 							Record referencedRecord = recordProvider.getRecord(referenceValue);
 							List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
-							paths.addAll(parentPaths);
-							removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
+							built.getPaths().addAll(parentPaths);
+							built.getRemovedAuthorizationIds().addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
+
 							if (aTaxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(record.getCollection()))) {
-								attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+								//built.getAttachedAncestors().addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+
+								//TODO Enlever une de ces liste ?
+								built.getPrincipalConceptsIntIds().add(referenceValueRecordId.intValue());
+								built.getPrincipalConceptsIntIds().addAll(referencedRecord.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS));
+								built.getPrincipalAncestorsIntIds().add(referenceValueRecordId.intValue());
+								built.getPrincipalAncestorsIntIds().addAll(referencedRecord.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS));
+								//								referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS).forEach((id) ->
+								//										built.getPrincipalConceptsIntIds().add(toIntId(id)));
+
+							} else {
+								built.getSecondaryConceptsIntIds().add(referenceValueRecordId.intValue());
+								for (String pathPart : referencedRecord.<String>getList(Schemas.PATH_PARTS)) {
+									if (!pathPart.startsWith("_LAST_") && !pathPart.equals("R")) {
+										built.getSecondaryConceptsIntIds().add(RecordId.toIntId(pathPart));
+									}
+								}
+								//built.getSecondaryConceptsIntIds().addAll(referencedRecord.getList(Schemas.PATH_PARTS));
+								//								referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS).forEach((id) ->
+								//										built.getSecondaryConceptsIntIds().add(toIntId(id)));
+
 							}
 						} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 							e.printStackTrace();
@@ -793,9 +865,34 @@ public class RecordAutomaticMetadataServices {
 				}
 			}
 		}
-		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, removedAuthorizations,
-				attachedAncestors);
-		values.put(dependency, value);
+
+		//		List<Integer> attachedPrincipalConceptsIntIdsFromParent = new ArrayList<>();
+		//		List<Integer> principalAncestorsIntIdsFromParent = new ArrayList<>();
+		//		List<Integer> secondaryConceptsIntIdsFromParent = new ArrayList<>();
+		//		List<Integer> principalConceptsIntIdsFromParent = new ArrayList<>();
+
+		String parentId = record.getParentId();
+		if (parentId != null) {
+			Record parent = recordProvider.getRecordSummary(parentId);
+			if (parent != null) {
+				int parentIntId = RecordId.toId(parentId).intValue();
+
+				if (!Boolean.TRUE.equals(record.get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
+					built.getAttachedPrincipalConceptsIntIdsFromParent().addAll(parent.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS));
+					built.getAttachedPrincipalConceptsIntIdsFromParent().add(parentIntId);
+					built.getAttachedPrincipalConceptsIntIdsFromParent().addAll(parent.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS));
+				}
+
+				built.getPrincipalAncestorsIntIdsFromParent().addAll(parent.getList(Schemas.PRINCIPALS_ANCESTORS_INT_IDS));
+				built.getPrincipalAncestorsIntIdsFromParent().add(RecordId.toId(parent.getId()).intValue());
+
+
+				built.getPrincipalConceptsIntIdsFromParent().addAll(parent.getList(Schemas.PRINCIPAL_CONCEPTS_INT_IDS));
+				built.getSecondaryConceptsIntIdsFromParent().addAll(parent.getList(Schemas.SECONDARY_CONCEPTS_INT_IDS));
+			}
+		}
+
+		values.put(dependency, built);
 		return true;
 	}
 
@@ -821,6 +918,7 @@ public class RecordAutomaticMetadataServices {
 					}
 				}
 			}
+
 		}
 		List<Object> referencedValues = new ArrayList<>();
 		SortedMap<String, Object> referencedValuesMap = new TreeMap<>();
@@ -861,7 +959,27 @@ public class RecordAutomaticMetadataServices {
 			return false;
 		} else {
 			try {
-				referencedRecord = referenceValue == null ? null : recordProvider.getRecord(referenceValue);
+				referencedRecord = null;
+				if (referenceValue != null) {
+					Metadata dependentMetadata = referenceMetadata.getReferencedSchemaType().getDefaultSchema()
+							.getMetadata(dependency.getDependentMetadataCode());
+					if (referenceMetadata.getReferencedSchemaType().getCacheType().isSummaryCache()) {
+
+
+						if (dependentMetadata.isStoredInSummaryCache()) {
+							referencedRecord = recordProvider.getRecordSummary(referenceValue);
+						} else {
+							logImportantWarningOnce("Metadata '" + dependentMetadata.getNoInheritanceCode() + "' should be cached, it would avoid a getById");
+							referencedRecord = recordProvider.getRecord(referenceValue);
+						}
+
+					} else {
+						if (!dependentMetadata.getSchemaType().getCacheType().hasPermanentCache()) {
+							logImportantWarningOnce("Metadata '" + dependentMetadata.getNoInheritanceCode() + "' should be cached, it would avoid a getById");
+						}
+						referencedRecord = recordProvider.getRecord(referenceValue);
+					}
+				}
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 				RuntimeException brokenReferenceException = new RecordServicesRuntimeException.BrokenReference(
 						record.getId(), referenceValue, referenceMetadata, e);
@@ -943,7 +1061,20 @@ public class RecordAutomaticMetadataServices {
 									RecordUpdateOptions options) {
 		Object copiedValue;
 		try {
-			Record referencedRecord = recordProvider.getRecord(referencedRecordId);
+			Record referencedRecord;
+			if (copiedMetadata.getSchemaType().getCacheType().isSummaryCache()) {
+				if (copiedMetadata.isStoredInSummaryCache()) {
+					referencedRecord = recordProvider.getRecordSummary(referencedRecordId);
+				} else {
+					logImportantWarningOnce("Metadata '" + copiedMetadata.getNoInheritanceCode() + "' should be cached, it would avoid a getById");
+					referencedRecord = recordProvider.getRecord(referencedRecordId);
+				}
+			} else {
+				if (!copiedMetadata.getSchemaType().getCacheType().hasPermanentCache()) {
+					logImportantWarningOnce("Metadata '" + copiedMetadata.getNoInheritanceCode() + "' should be cached, it would avoid a getById");
+				}
+				referencedRecord = recordProvider.getRecord(referencedRecordId);
+			}
 			copiedValue = referencedRecord.get(copiedMetadata);
 
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {

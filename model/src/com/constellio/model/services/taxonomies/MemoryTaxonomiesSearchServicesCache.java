@@ -1,13 +1,24 @@
 package com.constellio.model.services.taxonomies;
 
+import com.constellio.model.entities.records.Record;
+
+import com.constellio.data.utils.LangUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.model.services.records.RecordUtils.sizeOf;
+
 public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServicesCache {
 
 	Map<String, TaxonomyRecordCache> cache = new HashMap<>();
+
+	@Override
+	public void initialize(String collection) {
+
+	}
 
 	@Override
 	public synchronized void insert(String username, String recordId, String mode, Boolean value) {
@@ -41,7 +52,7 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 	public synchronized void invalidateWithoutChildren(String recordId) {
 		if (recordId != null) {
 			TaxonomyRecordCache taxonomyRecordCache = cache.get(recordId);
-			if (taxonomyRecordCache != null) {
+  			if (taxonomyRecordCache != null) {
 				taxonomyRecordCache.removeWithoutChildren();
 			}
 		}
@@ -65,6 +76,17 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 	}
 
 	@Override
+	public synchronized Boolean getCachedValue(String username, Record record, String mode) {
+
+		if (username != null && record != null && mode != null) {
+
+			TaxonomyRecordCache taxonomyRecordCache = cache.get(record.getId());
+			return taxonomyRecordCache == null ? null : taxonomyRecordCache.get(username, mode);
+		} else {
+			return null;
+		}
+	}
+
 	public synchronized Boolean getCachedValue(String username, String recordId, String mode) {
 
 		if (username != null && recordId != null && mode != null) {
@@ -74,6 +96,18 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 		} else {
 			return null;
 		}
+	}
+
+	@Override
+	public synchronized long getHeapConsumption() {
+		long heapConsumption = 12 + LangUtils.estimatedizeOfMapStructureBasedOnSize(cache);
+
+		for (Map.Entry<String, TaxonomyRecordCache> entry : cache.entrySet()) {
+			heapConsumption += sizeOf(entry.getKey());
+			heapConsumption += sizeOf(12 + entry.getValue().getHeapConsumption());
+		}
+
+		return heapConsumption;
 	}
 
 	/**
@@ -143,5 +177,24 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 		public void invalidateUser(String username) {
 			userModesCache.remove(username);
 		}
+
+		public long getHeapConsumption() {
+			//Map<String, Map<String, Boolean>> userModesCache = new HashMap<>();
+
+			long heapConsumption = 12 + LangUtils.estimatedizeOfMapStructureBasedOnSize(userModesCache);
+			for (Map.Entry<String, Map<String, Boolean>> entry : userModesCache.entrySet()) {
+				heapConsumption += sizeOf(entry.getKey());
+				Map<String, Boolean> value = entry.getValue();
+				heapConsumption += 12 + LangUtils.estimatedizeOfMapStructureBasedOnSize(value);
+				for (Map.Entry<String, Boolean> entry2 : value.entrySet()) {
+					heapConsumption += sizeOf(entry2.getKey());
+					heapConsumption += 16;
+				}
+			}
+
+
+			return heapConsumption;
+		}
 	}
+
 }

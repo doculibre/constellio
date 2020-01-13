@@ -17,6 +17,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.SchemaUtilsRuntimeException.SchemaUtilsRuntimeException_NoMetadataWithDatastoreCode;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.NoSuchMetadata;
@@ -263,14 +264,14 @@ public class SchemaUtils {
 		return cacheIndexMetadatas;
 	}
 
-	public List<Metadata> buildListOfSummaryMetadatas(List<Metadata> metadatas) {
+	public List<Metadata> buildListOfSummaryMetadatas(List<Metadata> metadatas, ConstellioEIMConfigs configs) {
 
 		List<Metadata> summaryMetadatas = new ArrayList<>();
-
+		boolean legacyIdentifierIndexedInMemory = configs != null && configs.isLegacyIdentifierIndexedInMemory();
 		for (Metadata metadata : metadatas) {
 			boolean summary = isSummary(metadata);
 
-			if (summary) {
+			if (summary && (legacyIdentifierIndexedInMemory || !metadata.isSameLocalCode(Schemas.LEGACY_ID))) {
 				summaryMetadatas.add(metadata);
 			}
 		}
@@ -308,24 +309,22 @@ public class SchemaUtils {
 			case DATE:
 			case DATE_TIME:
 			case STRING:
-				summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
+				summary = metadata.isEssentialInSummary() || metadata.isUniqueValue() || metadata.isAvailableInSummary()
 						  || LEGACY_ID.isSameLocalCode(metadata)
 						  || CREATED_ON.isSameLocalCode(metadata) || MODIFIED_ON.isSameLocalCode(metadata)
-						  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary()
+						  || TITLE.isSameLocalCode(metadata)
 						  || metadata.isCacheIndex() || Schemas.TOKENS.getLocalCode().equals(metadata.getLocalCode())
-						  || Schemas.ALL_REMOVED_AUTHS.getLocalCode().equals(metadata.getLocalCode())
-						  || Schemas.ATTACHED_ANCESTORS.getLocalCode().equals(metadata.getLocalCode());
-				;
+						  || Schemas.ALL_REMOVED_AUTHS.getLocalCode().equals(metadata.getLocalCode());
 				break;
 
 			case STRUCTURE:
 			case CONTENT:
 				//TODO Based on summary flag, support these typestype
-				summary = metadata.isEssentialInSummary();
+				summary = metadata.isEssentialInSummary() || metadata.isAvailableInSummary();
 				break;
 
 			case TEXT:
-				summary = metadata.isEssentialInSummary();
+				summary = metadata.isEssentialInSummary() || metadata.isAvailableInSummary();
 				break;
 
 			case INTEGER:
@@ -529,7 +528,7 @@ public class SchemaUtils {
 		MetadataSchemaType schemaType = allSchemaTypes.getSchemaType(schemaTypeCode);
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
 			if (metadata.isChildOfRelationship() || metadata.isTaxonomyRelationship()) {
-				String referencedSchemaType = metadata.getReferencedSchemaType();
+				String referencedSchemaType = metadata.getReferencedSchemaTypeCode();
 				if (schemaTypesInHierarchy.add(referencedSchemaType)) {
 					schemaTypesInHierarchy
 							.addAll(getSchemaTypesInHierarchyOf(referencedSchemaType, allSchemaTypes, schemaTypesInHierarchy));
@@ -538,5 +537,18 @@ public class SchemaUtils {
 		}
 
 		return schemaTypesInHierarchy;
+	}
+
+	public List<Metadata> buildListOfReferencesToSummaryCachedType(List<Metadata> metadatas,
+																   Set<String> typesWithSummaryCache) {
+
+		List<Metadata> returnedMetadatas = new ArrayList<>();
+		for (Metadata metadata : metadatas) {
+			if (metadata.getType() == REFERENCE && typesWithSummaryCache.contains(metadata.getReferencedSchemaTypeCode())) {
+				returnedMetadatas.add(metadata);
+			}
+		}
+
+		return returnedMetadatas;
 	}
 }

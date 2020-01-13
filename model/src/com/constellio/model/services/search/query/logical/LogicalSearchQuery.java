@@ -27,12 +27,12 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS_OF_HIERARCHY;
 import static com.constellio.model.entities.security.SecurityModelUtils.hasNegativeAccessOnSecurisedRecord;
 import static com.constellio.model.services.search.VisibilityStatusFilter.VISIBLES;
@@ -86,6 +86,8 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	private QueryExecutionMethod queryExecutionMethod = QueryExecutionMethod.DEFAULT;
 
+	private List<LogicalSearchQuery> cacheableQueries = new ArrayList<>();
+
 	public LogicalSearchQuery() {
 		numberOfRows = DEFAULT_NUMBER_OF_ROWS;
 		startRow = 0;
@@ -133,6 +135,8 @@ public class LogicalSearchQuery implements SearchQuery {
 		language = query.language;
 		loadTransientValues = query.loadTransientValues;
 		queryExecutionMethod = query.queryExecutionMethod;
+
+		cacheableQueries = new ArrayList<>(query.cacheableQueries);
 	}
 
 	// The following methods are attribute accessors
@@ -317,6 +321,15 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public LogicalSearchQuery setReturnedMetadatas(ReturnedMetadatasFilter filter) {
 		this.returnedMetadatasFilter = filter;
+		return this;
+	}
+
+	public List<LogicalSearchQuery> getCacheableQueries() {
+		return cacheableQueries != null ? cacheableQueries : Collections.emptyList();
+	}
+
+	public LogicalSearchQuery setCacheableQueries(List<LogicalSearchQuery> cacheableQueries) {
+		this.cacheableQueries = cacheableQueries;
 		return this;
 	}
 
@@ -587,7 +600,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 
 	public interface UserFilter {
-		String buildFQ(SecurityTokenManager securityTokenManager);
+		String buildFQ(SecurityTokenManager securityTokenManager, LogicalSearchQuery query);
 
 		boolean isExecutableInCache();
 
@@ -614,14 +627,19 @@ public class LogicalSearchQuery implements SearchQuery {
 			return access;
 		}
 
-		public String buildFQ(SecurityTokenManager securityTokenManager) {
+		public String buildFQ(SecurityTokenManager securityTokenManager, LogicalSearchQuery query) {
+			List<String> from = null;
+			if (query != null && query.getCondition() != null) {
+				from = query.getCondition().getFilterSchemaTypesCodes();
+			}
+
 			String filter;
 			switch (access) {
 				case Role.READ:
-					filter = FilterUtils.userReadFilter(user, securityTokenManager);
+					filter = FilterUtils.userReadFilter(user, securityTokenManager, from);
 					break;
 				case Role.WRITE:
-					filter = FilterUtils.userWriteFilter(user, securityTokenManager);
+					filter = FilterUtils.userWriteFilter(user, securityTokenManager, from);
 					break;
 				case Role.DELETE:
 					filter = FilterUtils.userDeleteFilter(user, securityTokenManager);
@@ -680,7 +698,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		}
 
 		@Override
-		public String buildFQ(SecurityTokenManager securityTokenManager) {
+		public String buildFQ(SecurityTokenManager securityTokenManager, LogicalSearchQuery query) {
 			return FilterUtils.userHierarchyFilter(user, securityTokenManager, access,
 					forSelectionOfSchemaType, showInvisibleRecordsInLinkingMode);
 		}
@@ -698,6 +716,11 @@ public class LogicalSearchQuery implements SearchQuery {
 		public boolean hasUserAccessToRecord(Record record) {
 			SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
 					.newRecordServices().getSecurityModel(user.getCollection());
+
+			//			if (!this.showInvisibleRecordsInLinkingMode && Boolean.FALSE.equals(record.get(Schemas.VISIBLE_IN_TREES))) {
+			//				return false;
+			//			}
+
 			String selectedTypeSmallCode = null;
 			if (forSelectionOfSchemaType != null) {
 				selectedTypeSmallCode = forSelectionOfSchemaType.getSmallCode();
@@ -727,7 +750,6 @@ public class LogicalSearchQuery implements SearchQuery {
 
 			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(record).getDefaultSchema();
 
-			List<String> recordTokens = record.getList(schema.getMetadata(TOKENS.getLocalCode()));
 			List<String> tokensHierarchy = record.getList(schema.getMetadata(TOKENS_OF_HIERARCHY.getLocalCode()));
 
 			if (user.isActiveUser() && !user.hasCollectionAccess(this.access == null ? Role.READ : this.access)) {
@@ -749,6 +771,7 @@ public class LogicalSearchQuery implements SearchQuery {
 					}
 				}
 			}
+
 
 			if (user.isActiveUser()) {
 

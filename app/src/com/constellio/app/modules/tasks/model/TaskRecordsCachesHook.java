@@ -5,6 +5,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.cache.hooks.DeterminedHookCacheInsertion;
 import com.constellio.model.services.records.cache.hooks.HookCacheInsertionResponse;
 import com.constellio.model.services.records.cache.hooks.RecordsCachesHook;
@@ -46,8 +47,8 @@ public class TaskRecordsCachesHook implements RecordsCachesHook {
 	}
 
 	@Override
-	public Record getById(String id) {
-		Record record = modelTasks.get(id);
+	public Record getById(RecordId id) {
+		Record record = modelTasks.get(id.stringValue());
 		return record == null ? null : record.getCopyOfOriginalRecord();
 	}
 

@@ -22,8 +22,10 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterators;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,6 +34,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
+import static java.lang.String.format;
 
 public class LangUtils {
 
@@ -397,6 +400,39 @@ public class LangUtils {
 
 	}
 
+	public static long estimatedizeOfMapStructureBasedOnSize(Map aMap) {
+		if (aMap instanceof HashMap) {
+
+			int capacity = aMap.size();
+			//			try {
+			//				HashMap m = (HashMap) aMap;
+			//				Field tableField = HashMap.class.getDeclaredField("table");
+			//				tableField.setAccessible(true);
+			//				Object[] table = (Object[]) tableField.get(m);
+			//				capacity = table == null ? 0 : table.length;
+			//			} catch (Throwable t) {
+			//				t.printStackTrace();
+			//			}
+
+			return 32 * aMap.size() + 4 * capacity;
+
+
+		} else if (aMap instanceof TreeMap) {
+			return 40 * aMap.size();
+
+		} else {
+			//Unsupported, averaging to 40
+			return 40 * aMap.size();
+		}
+
+	}
+
+	public static <T> List<T> toSortedList(Set<T> values) {
+		List<T> sortedValues = new ArrayList<>(values);
+		sortedValues.sort(null);
+		return sortedValues;
+	}
+
 	public static class StringReplacer {
 
 		List<StringReplacement> stringReplacements = new ArrayList<>();
@@ -686,6 +722,25 @@ public class LangUtils {
 		return negative ? result : -result;
 	}
 
+	public static String humanReadableTime(long ms) {
+		if (ms < 1000) {
+			return ms + "ms";
+
+		} else if (ms < 60_000) {
+			double secs = ((double) ms) / 1000;
+			return format("%.1f", secs) + "s";
+
+		} else if (ms < 3600_000) {
+			double mins = ((double) ms) / 60_000;
+			return format("%.1f", mins) + "m";
+
+		} else {
+			double hours = ((double) ms) / 3600_000;
+			return format("%.1f", hours) + "h";
+		}
+
+	}
+
 	//Thanks aioobe, found on https://stackoverflow.com/questions/3758606/how-to-convert-byte-size-into-human-readable-format-in-java
 	public static String humanReadableByteCount(long bytes, boolean si) {
 		int unit = si ? 1000 : 1024;
@@ -696,4 +751,129 @@ public class LangUtils {
 		String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp - 1) + (si ? "" : "i");
 		return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
 	}
+
+	public static <V extends Comparable> V findFirstMatchInSortedLists(List<V> list1, List<V> list2) {
+
+		int index1 = 0;
+		int index2 = 0;
+		while (index1 < list1.size() && index2 < list2.size()) {
+			int result = list1.get(index1).compareTo(list2.get(index2));
+			if (result < 0) {
+				index1++;
+			} else if (result > 0) {
+				index2++;
+			} else {
+				return list1.get(index1);
+			}
+		}
+
+		return null;
+	}
+
+	public static <V extends Comparable> List<V> findMatchesInSortedLists(List<V> list1, List<V> list2) {
+
+		int index1 = 0;
+		int index2 = 0;
+
+		List<V> matches = new ArrayList<>();
+
+		while (index1 < list1.size() && index2 < list2.size()) {
+			int result = list1.get(index1).compareTo(list2.get(index2));
+			if (result < 0) {
+				index1++;
+			} else if (result > 0) {
+				index2++;
+			} else {
+				matches.add(list1.get(index1));
+				index1++;
+				index2++;
+			}
+		}
+
+		return matches;
+	}
+
+	public static <T> List<T> asSortedList(T... values) {
+		List<T> sortedList = new ArrayList<T>(Arrays.asList(values));
+		sortedList.sort(null);
+		return sortedList;
+	}
+
+	public static <V extends Comparable> void findMatchesInSortedLists(List<V> list1, List<V> list2,
+																	   Consumer<V> matchesConsumer,
+																	   Consumer<V> nonMatchedList1Consumer,
+																	   Consumer<V> nonMatchedList2Consumer) {
+
+		int index1 = 0;
+		int index2 = 0;
+
+		while (index1 < list1.size() && index2 < list2.size()) {
+			V v1 = list1.get(index1);
+			V v2 = list2.get(index2);
+			int result = v1.compareTo(v2);
+			if (result < 0) {
+				if (nonMatchedList1Consumer != null) {
+					nonMatchedList1Consumer.accept(v1);
+				}
+				index1++;
+			} else if (result > 0) {
+				if (nonMatchedList2Consumer != null) {
+					nonMatchedList2Consumer.accept(v2);
+				}
+				index2++;
+			} else {
+				if (matchesConsumer != null) {
+					matchesConsumer.accept(v1);
+				}
+				index1++;
+				index2++;
+			}
+		}
+	}
+
+	/**
+	 * This method is far, very far from being complete!
+	 * Since the most important part of the data are strings
+	 *
+	 * @param object
+	 * @return
+	 */
+	public static long sizeOf(Object object) {
+
+		if (object == null) {
+			return 0;
+
+		} else if (object instanceof Integer) {
+			return 8;
+
+		} else if (object instanceof Float) {
+			return 8;
+
+		} else if (object instanceof Double) {
+			return 8;
+
+		} else if (object instanceof String) {
+			return 16 + 2 * ((String) object).length();
+
+		} else if (object instanceof List) {
+			int size = 4;
+			for (Object element : ((List) object)) {
+				size += sizeOf(element);
+			}
+			return size;
+
+		} else if (object instanceof Map) {
+			long size = estimatedizeOfMapStructureBasedOnSize((Map) object);
+			for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) object).entrySet()) {
+				size += sizeOf(entry.getKey());
+				size += sizeOf(entry.getValue());
+			}
+			return size;
+
+
+		}
+
+		return 0;
+	}
+
 }

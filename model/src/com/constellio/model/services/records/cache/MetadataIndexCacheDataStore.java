@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
@@ -7,21 +8,34 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.cache.cacheIndexHook.IndexedCalculatedKeysHookHandler;
+import com.constellio.model.services.records.cache.cacheIndexHook.IndexedCalculatedKeysHookHandler.RecordCountHookHandler;
+import com.constellio.model.services.records.cache.cacheIndexHook.IndexedCalculatedKeysHookHandler.RecordIdsHookHandler;
+import com.constellio.model.services.records.cache.cacheIndexHook.MetadataIndexCacheDataStoreHook;
+import com.constellio.model.services.records.cache.cacheIndexHook.RecordCountHookDataIndexRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.RecordIdsHookDataIndexRetriever;
 import com.constellio.model.services.records.cache.locks.SimpleReadLockMechanism;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedIdsList;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedIntIdsList;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedStringIdsList;
-import com.rometools.utils.Strings;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Stream;
 
+import static com.constellio.data.utils.LangUtils.estimatedizeOfMapStructureBasedOnSize;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
@@ -37,6 +51,45 @@ public class MetadataIndexCacheDataStore {
 	private static MetadataIndex EMPTY_INDEX = new MetadataIndex(Collections.emptyMap());
 
 	private SimpleReadLockMechanism lockMechanism = new SimpleReadLockMechanism();
+
+	private KeyListMap<Byte, IndexedCalculatedKeysHookHandler> hooks = new KeyListMap<>();
+
+	private MetadataSchemasManager schemasManager;
+
+	private CollectionsListManager collectionsListManager;
+
+	public MetadataIndexCacheDataStore(ModelLayerFactory modelLayerFactory) {
+		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
+	}
+
+	public void onTypesModified(MetadataSchemaTypes types) {
+		for (IndexedCalculatedKeysHookHandler hookHandler : hooks.get(types.getCollectionInfo().getCollectionId())) {
+			hookHandler.onTypesModified(types);
+		}
+
+	}
+
+	public <K> RecordCountHookDataIndexRetriever<K> registerRecordCountHook(byte collectionId,
+																			MetadataIndexCacheDataStoreHook hook) {
+
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collectionId);
+		RecordCountHookHandler handler = new RecordCountHookHandler(hook, types);
+		hooks.add(collectionId, handler);
+		return new RecordCountHookDataIndexRetriever(handler.getMap());
+	}
+
+
+	public <K> RecordIdsHookDataIndexRetriever<K> registerRecordIdsHook(
+			byte collectionId, MetadataIndexCacheDataStoreHook hook) {
+
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collectionId);
+		RecordIdsHookHandler handler = new RecordIdsHookHandler<>(hook, types);
+		hooks.add(collectionId, handler);
+		return new RecordIdsHookDataIndexRetriever<>(handler.getMap());
+
+	}
+
 
 	private static class MetadataIndex {
 
@@ -138,6 +191,7 @@ public class MetadataIndexCacheDataStore {
 
 	private Map<Short, MetadataIndex>[][] cacheIndexMaps = new Map[256][];
 
+
 	public Stream<String> stream(MetadataSchemaType schemaType, Metadata metadata, Object value) {
 		return search(schemaType, metadata, value).stream();
 	}
@@ -151,7 +205,7 @@ public class MetadataIndexCacheDataStore {
 
 		ensureSearchable(metadata);
 
-		if (value == null || ((value instanceof String) && Strings.isBlank((String) value))) {
+		if (value == null || ((value instanceof String) && StringUtils.isBlank((String) value))) {
 			return Collections.emptyList();
 		}
 
@@ -183,7 +237,7 @@ public class MetadataIndexCacheDataStore {
 
 		ensureSearchable(metadata);
 
-		if (value == null || ((value instanceof String) && Strings.isBlank((String) value))) {
+		if (value == null || ((value instanceof String) && StringUtils.isBlank((String) value))) {
 			return Collections.emptyList();
 		}
 
@@ -219,7 +273,7 @@ public class MetadataIndexCacheDataStore {
 		try {
 			ensureSearchable(metadata);
 
-			if (value == null || ((value instanceof String) && Strings.isBlank((String) value))) {
+			if (value == null || ((value instanceof String) && StringUtils.isBlank((String) value))) {
 				return -1;
 			}
 
@@ -232,6 +286,8 @@ public class MetadataIndexCacheDataStore {
 	}
 
 	public void addUpdate(Record oldVersion, Record newVersion, MetadataSchemaType schemaType, MetadataSchema schema) {
+		List<Runnable> actions = prepareActionsToAjustKeys(oldVersion, newVersion, schema);
+
 		lockMechanism.obtainSchemaTypeWritingPermit(schemaType);
 		try {
 
@@ -242,6 +298,7 @@ public class MetadataIndexCacheDataStore {
 			}
 
 			for (Metadata currentMetadata : schema.getCacheIndexMetadatas()) {
+
 				if (oldVersion == null) {
 					addRecordMetadata(newVersion, schemaType, currentMetadata);
 				} else if (newVersion == null) {
@@ -249,11 +306,38 @@ public class MetadataIndexCacheDataStore {
 				} else {
 					updateRecordMetadata(oldVersion, newVersion, schemaType, currentMetadata);
 				}
+
 			}
+
+			actions.forEach((a) -> a.run());
 
 		} finally {
 			lockMechanism.releaseSchemaTypeWritingPermit(schemaType);
 		}
+
+
+	}
+
+	@NotNull
+	private List<Runnable> prepareActionsToAjustKeys(Record oldVersion, Record newVersion, MetadataSchema schema) {
+		List<Runnable> actions = new ArrayList<>();
+		List<IndexedCalculatedKeysHookHandler> hookHandlers = hooks.getNestedMap().get(schema.getCollectionInfo().getCollectionId());
+		if (hookHandlers != null) {
+			if (oldVersion == null) {
+				for (IndexedCalculatedKeysHookHandler hookHandler : hookHandlers) {
+					actions.addAll(hookHandler.handleRecordInsert(newVersion));
+				}
+			} else if (newVersion == null) {
+				for (IndexedCalculatedKeysHookHandler hookHandler : hookHandlers) {
+					actions.addAll(hookHandler.handleRecordRemoval(oldVersion));
+				}
+			} else {
+				for (IndexedCalculatedKeysHookHandler hookHandler : hookHandlers) {
+					actions.addAll(hookHandler.handleRecordModification(oldVersion, newVersion));
+				}
+			}
+		}
+		return actions;
 	}
 
 	private void updateRecordMetadata(Record oldVersion, Record newVersion, MetadataSchemaType schemaType,
@@ -450,6 +534,10 @@ public class MetadataIndexCacheDataStore {
 		try {
 			cacheIndexMaps[collectionInfo.getCollectionIndex()] = null;
 
+			for (IndexedCalculatedKeysHookHandler handler : this.hooks.get(collectionInfo.getCollectionId())) {
+				handler.clear();
+			}
+
 		} finally {
 			lockMechanism.releaseCollectionWritingPermit(collectionInfo.getCollectionId());
 		}
@@ -471,4 +559,85 @@ public class MetadataIndexCacheDataStore {
 	public SimpleReadLockMechanism getLockMechanism() {
 		return lockMechanism;
 	}
+
+
+	public List<MetadataIndexCacheDataStoreStat> compileMemoryConsumptionStats() {
+		lockMechanism.obtainSystemWideReadingPermit();
+		try {
+			List<MetadataIndexCacheDataStoreStat> stats = new ArrayList<>();
+			for (String collectionCode : collectionsListManager.getCollections()) {
+
+				buildCollectionCachedIndexedStats(stats, collectionCode);
+				buildCollectionHookStats(stats, collectionCode);
+			}
+			return stats;
+		} finally {
+			lockMechanism.releaseSystemWideReadingPermit();
+		}
+
+	}
+
+	private void buildCollectionCachedIndexedStats(List<MetadataIndexCacheDataStoreStat> stats, String collectionCode) {
+
+
+		int collectionIndex = collectionsListManager.getCollectionInfo(collectionCode).getCollectionIndex();
+		Map<Short, MetadataIndex>[] cacheIndexMap = this.cacheIndexMaps[collectionIndex];
+		if (cacheIndexMap != null) {
+			for (MetadataSchemaType schemaType : schemasManager.getSchemaTypes(collectionCode).getSchemaTypes()) {
+				Map<Short, MetadataIndex> metadataIndexes = cacheIndexMap[schemaType.getId()];
+				if (metadataIndexes != null) {
+
+					for (Entry<Short, MetadataIndex> entry : metadataIndexes.entrySet()) {
+						Metadata metadata = schemaType.getMetadata(entry.getKey());
+
+						String statName = collectionCode + ".metadataIndexes." + metadata.getCode();
+						stats.add(buildCachedIndexStats(entry, statName));
+					}
+
+				}
+			}
+
+		}
+	}
+
+	private void buildCollectionHookStats(List<MetadataIndexCacheDataStoreStat> stats, String collectionCode) {
+
+
+		byte collectionId = collectionsListManager.getCollectionInfo(collectionCode).getCollectionId();
+		List<IndexedCalculatedKeysHookHandler> hookHandlers = this.hooks.get(collectionId);
+		if (hookHandlers != null) {
+
+			for (IndexedCalculatedKeysHookHandler hookHandler : hookHandlers) {
+				stats.add(hookHandler.computerMetadataIndexCacheDataStoreStat());
+			}
+
+		}
+	}
+
+	private MetadataIndexCacheDataStoreStat buildCachedIndexStats(Entry<Short, MetadataIndex> entry, String statName) {
+		//16 bytes for stocking an Integer
+		int keysCount = entry.getValue().map.size();
+		long keysHeapLength = keysCount * 16;
+		long valuesHeapLength = 0;
+		long valuesOffHeapLength = 0;
+		int valuesCount = 0;
+		for (SortedIdsList list : entry.getValue().map.values()) {
+			valuesHeapLength += list.valuesHeapLength();
+			valuesOffHeapLength += list.valuesOffHeapLength();
+			valuesCount += list.size();
+		}
+
+		long estimatedMapHeapLength = estimatedizeOfMapStructureBasedOnSize(entry.getValue().map);
+
+		return new MetadataIndexCacheDataStoreStat(
+				statName,
+				keysCount,
+				valuesCount,
+				keysHeapLength,
+				valuesHeapLength,
+				valuesOffHeapLength,
+				estimatedMapHeapLength
+		);
+	}
+
 }

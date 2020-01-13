@@ -236,7 +236,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		for (int i = 0; i < 10000; i++) {
 			contentManager.markForDeletionIfNotReferenced(UUIDV1Generator.newRandomId());
 			if (i % 1000 == 0) {
-				Record record = new TestRecord(zeSchema, UUIDV1Generator.newRandomId());
+				Record record = new TestRecord(zeSchema);
 				new RecordPreparation(record).isSaved();
 			}
 			System.out.println(i);

@@ -14,6 +14,7 @@ import com.constellio.app.ui.entities.UserDocumentVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.utils.HttpRequestUtils;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.utils.UnicodeUtils;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Content;
@@ -229,7 +230,7 @@ public class ConstellioAgentUtils {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
 		Record record = recordVO.getRecord();
-		if (record == null) {
+		if (record == null || record.getRecordDTOMode() != RecordDTOMode.FULLY_LOADED) {
 			record = recordServices.getDocumentById(recordVO.getId());
 		}
 		String schemaCode = record.getSchemaCode();

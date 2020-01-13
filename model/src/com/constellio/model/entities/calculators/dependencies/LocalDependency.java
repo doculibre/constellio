@@ -2,7 +2,6 @@ package com.constellio.model.entities.calculators.dependencies;
 
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -49,6 +48,10 @@ public class LocalDependency<T> implements Dependency {
 
 	public static <T> LocalDependency<List<T>> toAnEnumList(String metadataCode) {
 		return new LocalDependency<>(metadataCode, false, true, MetadataValueType.ENUM, false);
+	}
+
+	public static <T> LocalDependency<List<T>> toAnIntegerList(String metadataCode) {
+		return new LocalDependency<>(metadataCode, false, true, MetadataValueType.INTEGER, false);
 	}
 
 	public static LocalDependency<List<String>> toAStringList(String metadataCode) {
@@ -129,8 +132,17 @@ public class LocalDependency<T> implements Dependency {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		LocalDependency<?> that = (LocalDependency<?>) o;
+
+		return metadataCode.equals(that.metadataCode);
 	}
 
 	@Override

@@ -267,6 +267,9 @@ public class MetadataSchemaXMLWriter3 {
 		if (metadata.isEssentialInSummary()) {
 			metadataElement.setAttribute("essentialInSummary", writeBoolean(metadata.isEssentialInSummary()));
 		}
+		if (metadata.isAvailableInSummary()) {
+			metadataElement.setAttribute("availableInSummary", writeBoolean(metadata.isAvailableInSummary()));
+		}
 		if (metadata.isIncreasedDependencyLevel()) {
 			metadataElement.setAttribute("increasedDependencyLevel", writeBoolean(metadata.isIncreasedDependencyLevel()));
 		}
@@ -408,6 +411,10 @@ public class MetadataSchemaXMLWriter3 {
 
 		if (globalMetadataInCollection.isEssentialInSummary() != metadata.isEssentialInSummary()) {
 			metadataElement.setAttribute("essentialInSummary", writeBoolean(metadata.isEssentialInSummary()));
+			different = true;
+		}
+		if (globalMetadataInCollection.isAvailableInSummary() != metadata.isAvailableInSummary()) {
+			metadataElement.setAttribute("availableInSummary", writeBoolean(metadata.isAvailableInSummary()));
 			different = true;
 		}
 		if (globalMetadataInCollection.isIncreasedDependencyLevel() != metadata.isIncreasedDependencyLevel()) {

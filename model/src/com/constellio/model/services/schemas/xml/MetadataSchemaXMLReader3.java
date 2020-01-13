@@ -363,6 +363,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setEssentialInSummary(readBooleanWithDefaultValue(essentialInSummaryStringValue, false));
 		}
 
+		String availableInSummaryStringValue = metadataElement.getAttributeValue("availableInSummary");
+		if (inheriteGlobalMetadata && availableInSummaryStringValue == null) {
+			metadataBuilder.setAvailableInSummary(globalMetadataInCollectionSchema.isAvailableInSummary());
+		} else {
+			metadataBuilder.setAvailableInSummary(readBooleanWithDefaultValue(availableInSummaryStringValue, false));
+		}
+
 		String increasedDependencyLevelStringValue = metadataElement.getAttributeValue("increasedDependencyLevel");
 		if (inheriteGlobalMetadata && increasedDependencyLevelStringValue == null) {
 			metadataBuilder.setIncreasedDependencyLevel(globalMetadataInCollectionSchema.isIncreasedDependencyLevel());

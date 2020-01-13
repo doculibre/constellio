@@ -27,6 +27,7 @@ import com.constellio.data.utils.LangUtils;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.FieldStatsInfo;
@@ -508,6 +509,16 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	public QueryResponseDTO query(String queryName, SolrParams params) {
+
+		String[] fqs = params.getParams("fq");
+		if (fqs != null) {
+			for (String fq : fqs) {
+				if ("collection_s:inexistentCollection42".equals(fq)) {
+					return QueryResponseDTO.EMPTY;
+				}
+			}
+		}
+
 		QueryResponse response = nativeQuery(queryName, params);
 		boolean partialFields = params.get(CommonParams.FL) != null;
 
@@ -546,8 +557,13 @@ public class BigVaultRecordDao implements RecordDao {
 
 		long numfound = response.getResults() == null ? 0 : response.getResults().getNumFound();
 
+
 		return new QueryResponseDTO(documents, response.getQTime(), numfound, fieldFacetValues, fieldFacetPivotValues,
-				fieldsStatistics, facetQueries, highlights, correctlySpelt, spellcheckerSuggestions, resultWithMoreLikeThis);
+				fieldsStatistics, facetQueries, highlights, response.getDebugMap(), correctlySpelt, spellcheckerSuggestions, resultWithMoreLikeThis);
+	}
+
+	private Map<String, String> extractTimingInfos(QueryResponse response) {
+		return null;
 	}
 
 	private Map<String, Map<String, Object>> getFieldsStats(QueryResponse response) {
@@ -799,7 +815,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 	protected RecordDTO toEntity(SolrDocument solrDocument, RecordDTOMode mode) {
 		String id = (String) solrDocument.get(ID_FIELD);
-		long version = (Long) solrDocument.get(VERSION_FIELD);
+		Long version = (Long) solrDocument.get(VERSION_FIELD);
 
 		Map<String, Object> fieldValues = new HashMap<String, Object>();
 
@@ -811,7 +827,7 @@ public class BigVaultRecordDao implements RecordDao {
 				}
 			}
 		}
-		return new SolrRecordDTO(id, version, fieldValues, mode);
+		return new SolrRecordDTO(id, version == null ? -1 : version, fieldValues, mode);
 	}
 
 	private boolean containsTwoUnderscoresAndIsNotVersionField(String field) {
@@ -1016,6 +1032,12 @@ public class BigVaultRecordDao implements RecordDao {
 	@Override
 	public void expungeDeletes() {
 		bigVaultServer.expungeDeletes();
+	}
+
+	@Override
+	public TupleStream tupleStream(Map<String, String> props) {
+		return bigVaultServer.tupleStream(props);
+
 	}
 
 	@Override

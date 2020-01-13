@@ -387,7 +387,11 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 							for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
 								if (!metadata.getLocalCode().equals(SCHEMA.getLocalCode())) {
 									if (showDeactivatedMetadatas || metadata.isEnabled()) {
-										metadataCodes.add(metadata.getCode());
+										if (schemaCode == null) {
+											metadataCodes.add(metadata.getNoInheritanceCode());
+										} else {
+											metadataCodes.add(metadata.getCode());
+										}
 									}
 								}
 							}

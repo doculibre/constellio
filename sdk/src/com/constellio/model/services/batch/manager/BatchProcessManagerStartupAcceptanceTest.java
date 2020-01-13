@@ -22,6 +22,7 @@ public class BatchProcessManagerStartupAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenSystemWithCurrentBatchProcessesIsStartingThenFinished()
 			throws Exception {
+
 		Toggle.MIGRATING_LEGACY_SAVESTATE.enable();
 		Toggle.VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION.disable();
 		givenBackgroundThreadsEnabled();
@@ -45,6 +46,7 @@ public class BatchProcessManagerStartupAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStartedBatchProcessWhenStartingACollectionThenPutTo()
 			throws Exception {
+
 		Toggle.MIGRATING_LEGACY_SAVESTATE.enable();
 		Toggle.VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION.disable();
 		givenWaitForBatchProcessAfterTestIsDisabled();
@@ -74,6 +76,7 @@ public class BatchProcessManagerStartupAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStartedBatchProcessWhenStartingACollectionThenDeletePreviousCompletedOnesBeforeStarting()
 			throws Exception {
+
 		Toggle.MIGRATING_LEGACY_SAVESTATE.enable();
 		Toggle.VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION.disable();
 		givenWaitForBatchProcessAfterTestIsDisabled();

@@ -80,6 +80,6 @@ public class VisibleRecordTreeNodesDataProvider implements RecordTreeNodesDataPr
 	private Record getRecord(ModelLayerFactory modelLayerFactory, String id) {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
-		return recordServices.getDocumentById(id);
+		return recordServices.realtimeGetRecordSummaryById(id);
 	}
 }

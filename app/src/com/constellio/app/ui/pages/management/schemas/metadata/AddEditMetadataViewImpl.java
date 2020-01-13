@@ -67,6 +67,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private CheckBox highlight;
 	@PropertyId("autocomplete")
 	private CheckBox autocomplete;
+	@PropertyId("availableInSummary")
+	private CheckBox availableInSummary;
 	@PropertyId("advancedSearch")
 	private CheckBox advancedSearchField;
 	@PropertyId("enabled")
@@ -235,6 +237,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		refType.setRequired(false);
 		//searchableField.setEnabled(false);
 		sortableField.setEnabled(true);
+		availableInSummary.setEnabled(presenter.isAvailableInSummaryFlagButtonEnabled(value));
+		availableInSummary.setValue(presenter.isAvailableInSummaryFlagAlwaysTrue(value));
 
 		switch (value) {
 			case BOOLEAN:
@@ -495,6 +499,18 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		autocomplete.addStyleName("autocomplete");
 		autocomplete.setEnabled(!inherited);
 
+		availableInSummary = new CheckBox();
+		availableInSummary.setCaption($("AddEditMetadataView.availableInSummary"));
+		availableInSummary.setRequired(false);
+		availableInSummary.setId("availableInSummary");
+		availableInSummary.addStyleName("availableInSummary");
+		availableInSummary.setVisible(presenter.isAvailableInSummaryFlagButtonVisible());
+		availableInSummary.setEnabled(!inherited && presenter.isAvailableInSummaryFlagButtonEnabled(
+				formMetadataVO.getValueType()));
+		if (presenter.isAvailableInSummaryFlagAlwaysTrue(formMetadataVO.getValueType())) {
+			availableInSummary.setValue(true);
+		}
+
 		duplicableField = new CheckBox();
 		duplicableField.setCaption($("AddEditMetadataView.duplicable"));
 		duplicableField.setRequired(false);
@@ -588,7 +604,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, valueType, multivalueType,
 				inputType, inputMask, metadataGroup, listOptionGroupRole, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
-				advancedSearchField, highlight, autocomplete, uniqueField, multiLingualField));
+				advancedSearchField, highlight, autocomplete, availableInSummary, uniqueField, multiLingualField));
 
 		for (CheckBox customAttributeField : customAttributesField) {
 			fields.add(customAttributeField);
