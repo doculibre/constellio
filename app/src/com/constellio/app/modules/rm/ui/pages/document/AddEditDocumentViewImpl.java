@@ -146,7 +146,7 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 					}
 				});
 
-				splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
+				splitPanel = new CollapsibleHorizontalSplitPanel(AddEditDocumentViewImpl.class.getName());
 				splitPanel.setFirstComponent(contentViewer);
 				splitPanel.setSecondComponent(recordForm);
 				splitPanel.setSecondComponentWidth(RECORD_FORM_WIDTH, RECORD_FORM_WIDTH_UNIT);

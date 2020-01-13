@@ -10,13 +10,9 @@ import com.constellio.app.modules.rm.services.EmailParsingServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
-import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField;
+import com.constellio.app.modules.rm.ui.components.document.fields.*;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.ContentUploadedListener;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.NewFileClickListener;
-import com.constellio.app.modules.rm.ui.components.document.fields.DocumentCopyRuleField;
-import com.constellio.app.modules.rm.ui.components.document.fields.DocumentFolderField;
-import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeField;
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
@@ -26,6 +22,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMObject;
+import com.constellio.app.modules.scanner.manager.ScannedDocumentsManager;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -51,10 +48,13 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.ContentVersionDataSummaryResponse;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
@@ -92,6 +92,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private Document documentOriginalCopy = null;
 	private boolean isFromUserDocument;
 	private String copyId = null;
+	private boolean ocr;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view, RecordVO recordVO) {
 		super(view, Document.DEFAULT_SCHEMA);
@@ -134,12 +135,14 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			this.params = paramsMap;
 			newFile = false;
 			newFileAtStart = "true".equals(paramsMap.get("newFile"));
+			ocr = "true".equals(paramsMap.get("ocr"));
 		} else {
 			idCopy = null;
 			parentId = null;
 			userDocumentId = null;
 			newFile = false;
 			newFileAtStart = false;
+			ocr = false;
 		}
 
 		Document document;
@@ -173,6 +176,40 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		String currentSchemaCode = documentVO.getSchema().getCode();
 		setSchemaCode(currentSchemaCode);
 		view.setRecord(documentVO);
+	}
+
+	private void doOCR(final Document document) {
+		final String scanId = userDocumentId;
+		final User user = getCurrentUser();
+		new Thread() {
+			@Override
+			public void run() {
+				Content content = document.getContent();
+				if (content != null) {
+					ScannedDocumentsManager scannedDocumentsManager = ScannedDocumentsManager.get();
+					ContentManager contentManager = modelLayerFactory.getContentManager();
+					IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+					RecordServices recordServices = modelLayerFactory.newRecordServices();
+					ContentVersion contentVersion = content.getCurrentVersion();
+					try {
+						byte[] pdfWithOCRContent = scannedDocumentsManager.getPDFWithOCRContent(scanId);
+						InputStream in = ioServices.newBufferedByteArrayInputStream(pdfWithOCRContent, "AddEditDocument.ocrContent");
+						String filename = contentVersion.getFilename();
+						ContentVersionDataSummaryResponse contentVersionDataSummaryResponse = contentManager.upload(in, filename);
+						ioServices.closeQuietly(in);
+						ContentVersionDataSummary contentVersionDataSummary = contentVersionDataSummaryResponse.getContentVersionDataSummary();
+						content.replaceCurrentVersionContent(user, contentVersionDataSummary);
+						recordServices.update(document, user);
+					} catch (IOException e) {
+						e.printStackTrace();
+					} catch (RecordServicesException e) {
+						e.printStackTrace();
+					} finally {
+						scannedDocumentsManager.clear(scanId);
+					}
+				}
+			}
+		}.start();
 	}
 
 	private void populateFromExistingDocument(String existingDocumentId) {
@@ -396,7 +433,6 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			}
 		} catch (final IcapException e) {
 			view.showErrorMessage(e.getMessage());
-
 			return;
 		}
 
@@ -447,6 +483,9 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			if (agentURL != null) {
 				view.openAgentURL(agentURL);
 			}
+		}
+		if (ocr) {
+			doOCR(document);
 		}
 	}
 
