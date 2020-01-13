@@ -655,7 +655,7 @@ public class RecordDeleteServices {
 		MetadataSchemaTypes allSchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection());
 		for (MetadataSchemaType metadataSchemaType : allSchemaTypes.getSchemaTypes()) {
 			for (Metadata metadata : metadataSchemaType.getAllParentReferences()) {
-				if (record.isOfSchemaType(metadata.getReferencedSchemaType())) {
+				if (record.isOfSchemaType(metadata.getReferencedSchemaType().getCode())) {
 					return true;
 				}
 			}

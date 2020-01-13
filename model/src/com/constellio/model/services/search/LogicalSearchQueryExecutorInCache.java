@@ -13,6 +13,9 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.cache.cacheIndexConditions.MetadataValueIndexCacheIdsStreamer;
+import com.constellio.model.services.records.cache.cacheIndexConditions.SortedIdsStreamer;
+import com.constellio.model.services.records.cache.cacheIndexConditions.UnionSortedIdsStreamer;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
@@ -29,15 +32,18 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.condition.TestedQueryRecord;
 import com.constellio.model.services.search.query.logical.criteria.IsEqualCriterion;
+import com.constellio.model.services.search.query.logical.criteria.IsInCriterion;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
@@ -178,17 +184,23 @@ public class LogicalSearchQueryExecutorInCache {
 		if (condition instanceof DataStoreFieldLogicalSearchCondition) {
 			DataStoreFieldLogicalSearchCondition fieldCondition = (DataStoreFieldLogicalSearchCondition) condition;
 			LogicalSearchValueCondition logicalSearchValueCondition = fieldCondition.getValueCondition();
-			if (logicalSearchValueCondition instanceof IsEqualCriterion) {
-				IsEqualCriterion isEqualCriterion = (IsEqualCriterion) logicalSearchValueCondition;
-				List<DataStoreField> dataStoreFields = fieldCondition.getDataStoreFields();
+			List<DataStoreField> dataStoreFields = fieldCondition.getDataStoreFields();
+			if (dataStoreFields != null && dataStoreFields.size() == 1) {
+				List<Object> values = new ArrayList<>();
+				if (logicalSearchValueCondition instanceof IsEqualCriterion) {
+					IsEqualCriterion isEqualCriterion = (IsEqualCriterion) logicalSearchValueCondition;
+					values.add(isEqualCriterion.getMemoryQueryValue());
+				} else if (logicalSearchValueCondition instanceof IsInCriterion) {
+					IsInCriterion isInCriterion = (IsInCriterion) logicalSearchValueCondition;
+					values.addAll(isInCriterion.getMemoryQueryValues());
+				}
 
-				if (dataStoreFields != null && dataStoreFields.size() == 1) {
-					Object value = isEqualCriterion.getMemoryQueryValue();
+				if (!values.isEmpty()) {
 					DataStoreField dataStoreField = dataStoreFields.get(0);
 					if (((Metadata) dataStoreField).getCode().startsWith("global")) {
 						dataStoreField = schemaType.getDefaultSchema().getMetadata(dataStoreField.getLocalCode());
 					}
-					if (canDataGetByMetadata(dataStoreField, value)) {
+					if (canDataGetByMetadata(dataStoreField, values)) {
 						return (DataStoreFieldLogicalSearchCondition) condition;
 					}
 				}
@@ -221,17 +233,26 @@ public class LogicalSearchQueryExecutorInCache {
 		if (requiredFieldEqualCondition == null) {
 			stream = recordsCaches.stream(schemaType);
 		} else {
-			Metadata metadata = (Metadata) requiredFieldEqualCondition.getDataStoreFields().get(0);
+			Metadata conditionMetadata = (Metadata) requiredFieldEqualCondition.getDataStoreFields().get(0);
 
-			if ((metadata).getCode().startsWith("global")) {
-				metadata = schemaType.getDefaultSchema().getMetadata(metadata.getLocalCode());
-			}
+			final Metadata metadata = conditionMetadata.getCode().startsWith("global") ?
+									  schemaType.getDefaultSchema().getMetadata(conditionMetadata.getLocalCode()) : conditionMetadata;
 
-			Object value = ((IsEqualCriterion) requiredFieldEqualCondition.getValueCondition()).getMemoryQueryValue();
-			if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()) {
-				stream = recordsCaches.getRecordsSummaryByIndexedMetadata(schemaType, metadata, (String) value);
+			if (requiredFieldEqualCondition.getValueCondition() instanceof IsInCriterion) {
+				List<SortedIdsStreamer> streamers = ((IsInCriterion) requiredFieldEqualCondition.getValueCondition())
+						.getMemoryQueryValues().stream()
+						.map(value -> new MetadataValueIndexCacheIdsStreamer(schemaType, metadata, value,
+								recordsCaches.getMetadataIndexCacheDataStore()))
+						.collect(Collectors.toList());
+				stream = new UnionSortedIdsStreamer(streamers).stream()
+						.map(recordId -> recordsCaches.getRecord(recordId));
 			} else {
-				stream = recordsCaches.getRecordsByIndexedMetadata(schemaType, metadata, (String) value);
+				Object value = ((IsEqualCriterion) requiredFieldEqualCondition.getValueCondition()).getMemoryQueryValue();
+				if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()) {
+					stream = recordsCaches.getRecordsSummaryByIndexedMetadata(schemaType, metadata, (String) value);
+				} else {
+					stream = recordsCaches.getRecordsByIndexedMetadata(schemaType, metadata, (String) value);
+				}
 			}
 		}
 
@@ -255,11 +276,16 @@ public class LogicalSearchQueryExecutorInCache {
 		return true;
 	}
 
-	private boolean canDataGetByMetadata(DataStoreField dataStoreField, Object value) {
-		if (value instanceof String
-			&& !dataStoreField.isEncrypted() && (dataStoreField.isUniqueValue() || dataStoreField.isCacheIndex())) {
+	private boolean canDataGetByMetadata(DataStoreField dataStoreField, List<Object> values) {
+		for (Object value : values) {
+			if (!(value instanceof String)) {
+				return false;
+			}
+		}
 
-			return !(dataStoreField.getLocalCode().equals(Schemas.LEGACY_ID.getLocalCode()) && !constellioEIMConfigs.isLegacyIdentifierIndexedInMemory());
+		if (!dataStoreField.isEncrypted() && (dataStoreField.isUniqueValue() || dataStoreField.isCacheIndex())) {
+			return !(dataStoreField.getLocalCode().equals(Schemas.LEGACY_ID.getLocalCode()) &&
+					 !constellioEIMConfigs.isLegacyIdentifierIndexedInMemory());
 		}
 		return false;
 	}
