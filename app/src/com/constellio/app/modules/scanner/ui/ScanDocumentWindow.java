@@ -3,13 +3,16 @@ package com.constellio.app.modules.scanner.ui;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.scanner.manager.ScannedDocumentsManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.app.utils.HttpRequestUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
@@ -23,10 +26,12 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.navigator.View;
 import com.vaadin.server.Page;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.server.VaadinServletService;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -37,6 +42,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.UUID;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ScanDocumentWindow extends BaseWindow {
 
@@ -54,9 +61,27 @@ public class ScanDocumentWindow extends BaseWindow {
 		setModal(true);
 		setClosable(true);
 		center();
+		setWidth("400px");
+		setHeight("80px");
 
-		Label progressLabel = new Label("Scan in progress...");
-		setContent(progressLabel);
+		String title = $("ScanDocumentWindow.windowTitle");
+		setCaption(title);
+
+		I18NHorizontalLayout mainLayout = new I18NHorizontalLayout();
+		mainLayout.addStyleName("scan-document-window-layout");
+		mainLayout.setSizeFull();
+		mainLayout.setSpacing(true);
+
+		Label spinnerLabel = new Label("");
+		spinnerLabel.addStyleName(ValoTheme.LABEL_SPINNER);
+		spinnerLabel.setWidth("24px");
+		spinnerLabel.setHeight("24px");
+
+		Label captionLabel = new Label(title);
+		mainLayout.addComponents(spinnerLabel, captionLabel);
+		mainLayout.setExpandRatio(captionLabel, 1);
+
+		setContent(mainLayout);
 	}
 
 	private void waitForScanToComplete() {
@@ -86,7 +111,10 @@ public class ScanDocumentWindow extends BaseWindow {
 				}
 
 				if (scannedDocumentsManager.isScanSuccess(scanId)) {
-					String filename = "Scan_" + new LocalDateTime().toString() + ".pdf";
+					String filename = "Scan_" + DateFormatUtils.format(new LocalDateTime()) + ".pdf";
+					filename = StringUtils.replace(filename, ":", "_");
+					filename = StringUtils.replace(filename, " ", "_");
+					
 					byte[] pdfContent;
 					try {
 						pdfContent = scannedDocumentsManager.getPDFContent(scanId);
@@ -108,7 +136,15 @@ public class ScanDocumentWindow extends BaseWindow {
 						ConstellioUI.getCurrent().access(new Runnable() {
 							@Override
 							public void run() {
-								ConstellioUI.getCurrent().navigate().to(RMViews.class).addScannedDocument(scanId);
+								String folderId;
+								View currentView = ConstellioUI.getCurrent().getCurrentView();
+								if (currentView instanceof DisplayFolderView) {
+									DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
+									folderId = displayFolderView.getRecord().getId();
+								} else {
+									folderId = null;
+								}
+								ConstellioUI.getCurrent().navigate().to(RMViews.class).addScannedDocument(scanId, folderId);
 							}
 						});
 					} catch (IOException e1) {
