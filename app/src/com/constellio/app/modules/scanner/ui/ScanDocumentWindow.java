@@ -30,6 +30,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.server.Page;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.server.VaadinServletService;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
@@ -62,10 +63,9 @@ public class ScanDocumentWindow extends BaseWindow {
 		setClosable(true);
 		center();
 		setWidth("400px");
-		setHeight("80px");
+		setHeight("100px");
 
-		String title = $("ScanDocumentWindow.windowTitle");
-		setCaption(title);
+		setCaption($("ScanDocumentWindow.windowTitle"));
 
 		I18NHorizontalLayout mainLayout = new I18NHorizontalLayout();
 		mainLayout.addStyleName("scan-document-window-layout");
@@ -77,9 +77,10 @@ public class ScanDocumentWindow extends BaseWindow {
 		spinnerLabel.setWidth("24px");
 		spinnerLabel.setHeight("24px");
 
-		Label captionLabel = new Label(title);
+		Label captionLabel = new Label($("ScanDocumentWindow.scanInProgress"));
 		mainLayout.addComponents(spinnerLabel, captionLabel);
 		mainLayout.setExpandRatio(captionLabel, 1);
+		mainLayout.setComponentAlignment(spinnerLabel, Alignment.MIDDLE_CENTER);
 
 		setContent(mainLayout);
 	}
