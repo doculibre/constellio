@@ -33,8 +33,9 @@ public class DocumentService extends ResourceService {
 
 	public DocumentDto create(String host, String folderId, String serviceKey, String method, String date,
 							  int expiration, String signature, DocumentDto document, InputStream contentInputStream,
-							  String flushMode, Set<String> filters) throws Exception {
-		validateParameters(host, folderId, serviceKey, method, date, expiration, null, null, null, signature);
+							  String flushMode, Set<String> filters, boolean urlValidated) throws Exception {
+		validateParameters(host, folderId, serviceKey, method, date, expiration, null, null,
+				null, signature, urlValidated);
 
 		Record folder = getRecord(folderId, true);
 		String collection = folder.getCollection();
@@ -96,8 +97,9 @@ public class DocumentService extends ResourceService {
 
 	public DocumentDto update(String host, String id, String serviceKey, String method, String date, int expiration,
 							  String signature, DocumentDto document, InputStream contentInputStream, boolean partial,
-							  String flushMode, Set<String> filters) throws Exception {
-		validateParameters(host, id, serviceKey, method, date, expiration, null, null, null, signature);
+							  String flushMode, Set<String> filters, boolean urlValidated) throws Exception {
+		validateParameters(host, id, serviceKey, method, date, expiration, null, null,
+				null, signature, urlValidated);
 
 		Record documentRecord = getRecord(id, true);
 		if (document.getETag() != null) {
