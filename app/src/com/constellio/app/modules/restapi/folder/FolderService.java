@@ -43,8 +43,16 @@ public class FolderService extends ResourceService {
 			validateETag(id, folder.getETag(), folderRecord.getVersion());
 		}
 
+		Record parentRecord = null;
+		if (folder.getParentFolderId() != null) {
+			parentRecord = getRecord(folder.getParentFolderId(), true);
+		}
+
 		User user = getUser(serviceKey, folderRecord.getCollection());
 		validateUserAccess(user, folderRecord, method);
+		if (parentRecord != null) {
+			validateUserAccess(user, parentRecord, method);
+		}
 
 		MetadataSchema folderSchema;
 		if (partial && folder.getType() == null) {

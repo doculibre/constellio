@@ -197,7 +197,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 		validateETag(eTag);
 		folder.setETag(unquoteETag(eTag));
 
-		FolderDto folderDto = folderService.update(host, id, serviceKey, method, date, expiration, signature, folder, true, flush, filters);
+		FolderDto folderDto = folderService.update(host, id, serviceKey, method, date, expiration, signature, folder, false, flush, filters);
 
 		return Response.ok(folderDto).tag(folderDto.getETag()).build();
 	}
