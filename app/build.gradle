@@ -141,6 +141,7 @@ configurations.archives.artifacts.with { archives ->
 }
 
 configurations.all {
+    exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
     //exclude group: 'com.vaadin.external.gwt', module: 'gwt-elemental'
     //exclude group: 'com.vaadin.external.gwt', module: 'gwt-dev'
     resolutionStrategy {
