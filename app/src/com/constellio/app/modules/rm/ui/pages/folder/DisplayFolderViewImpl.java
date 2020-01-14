@@ -43,6 +43,7 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ItemClickEvent;
@@ -206,7 +207,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		});
 
-		recordDisplay = new RecordDisplay(recordVO, new RMMetadataDisplayFactory());
+		recordDisplay = new RecordDisplay(recordVO, new RMMetadataDisplayFactory(), Toggle.SEARCH_RESULTS_VIEWER.isEnabled());
 		folderContentComponent = new CustomComponent();
 		tasksComponent = new CustomComponent();
 
