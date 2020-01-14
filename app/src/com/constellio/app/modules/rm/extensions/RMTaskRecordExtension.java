@@ -183,8 +183,14 @@ public class RMTaskRecordExtension extends RecordExtension {
 
 	private List<User> getUsersToAuthorize(RMTask task) {
 		List<User> taskUsers = new ArrayList<>();
-		taskUsers.addAll(getUsers(task.getTaskCollaborators()));
-		taskUsers.add(getUser(task.getAssignee()));
+		List<User> taskCollaborators = getUsers(task.getTaskCollaborators());
+		String assignee = task.getAssignee();
+		if (taskCollaborators != null) {
+			taskUsers.addAll(taskCollaborators);
+		}
+		if (assignee != null) {
+			taskUsers.add(getUser(assignee));
+		}
 		return taskUsers;
 	}
 
