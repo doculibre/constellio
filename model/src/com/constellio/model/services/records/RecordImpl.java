@@ -284,9 +284,21 @@ public class RecordImpl implements Record {
 	}
 
 	private Record setModifiedValue(Metadata metadata, String language, Object value) {
+
+
 		lastCreatedDeltaDTO = null;
 		validateSetArguments(metadata, value);
 
+		Object originalValues;
+		if (metadata.isMultivalue()) {
+			originalValues = getList(metadata);
+		} else {
+			originalValues = get(metadata);
+		}
+		if (!isValueModified(metadata, originalValues, value)) {
+			return this;
+		}
+		//}
 		Map<String, Object> map = modifiedValues;
 		if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_EAGER) {
 			map = eagerTransientValues;
@@ -312,7 +324,11 @@ public class RecordImpl implements Record {
 		} else {
 
 			if (!isSameValueThanDTO(metadata, correctedValue, codeAndType)) {
-				map.put(codeAndType, correctedValue);
+				if (!isSaved() && correctedValue == null && metadata.getDefaultValue() == null) {
+					map.remove(codeAndType);
+				} else {
+					map.put(codeAndType, correctedValue);
+				}
 			} else {
 				map.remove(codeAndType);
 			}
@@ -798,46 +814,27 @@ public class RecordImpl implements Record {
 					metadata = schemaTypes.getSchemaOf(this).getMetadata(localCode);
 				}
 
-				boolean modified;
-				if (metadata.isMultivalue()) {
-					List<Object> currentValues = getList(metadata);
-					List<Object> originalValues;
-					if (isSaved()) {
-						originalValues = getUnmodifiableCopyOfOriginalRecord().getList(metadata);
-					} else {
-						originalValues = new ArrayList<>();
-					}
-
-					modified = ObjectUtils.notEqual(originalValues, currentValues);
-				} else {
-
-					if (metadata.getType() == MetadataValueType.NUMBER) {
-						Double currentDoubleValue = get(metadata);
-						if (new Double(0.0).equals(currentDoubleValue)) {
-							currentDoubleValue = null;
-						}
-
-						Double originalDoubleValue;
-						if (isSaved()) {
-							originalDoubleValue = getUnmodifiableCopyOfOriginalRecord().get(metadata);
-							if (new Double(0.0).equals(originalDoubleValue)) {
-								originalDoubleValue = null;
-							}
-						} else {
-							originalDoubleValue = null;
-						}
-
-						modified = ObjectUtils.notEqual(originalDoubleValue, currentDoubleValue);
-					} else {
-						Object currentValue = get(metadata);
-						Object originalValue = isSaved() ? getUnmodifiableCopyOfOriginalRecord().get(metadata) : null;
-						modified = ObjectUtils.notEqual(currentValue, originalValue);
-					}
-				}
-
-				if (modified) {
-					modifiedMetadatas.add(metadata);
-				}
+				//				Object originalValues;
+				//				if (metadata.isMultivalue()) {
+				//					if (isSaved()) {
+				//						originalValues = getUnmodifiableCopyOfOriginalRecord().getList(metadata);
+				//					} else {
+				//						originalValues = new ArrayList<>();
+				//					}
+				//				} else {
+				//					if (isSaved()) {
+				//						originalValues = getUnmodifiableCopyOfOriginalRecord().get(metadata);
+				//					} else {
+				//						originalValues = null;
+				//					}
+				//				}
+				//
+				//				Object value = metadata.isMultivalue() ? getList(metadata) : get(metadata);
+				//				boolean modified = isValueModified(metadata, originalValues, value);
+				//
+				//				if (modified) {
+				modifiedMetadatas.add(metadata);
+				//				}
 			} catch (NoSuchMetadata e) {
 				if (isSaved()) {
 					Record originalRecord = getCopyOfOriginalRecord();
@@ -851,6 +848,31 @@ public class RecordImpl implements Record {
 		}
 
 		return modifiedMetadatas;
+	}
+
+	private boolean isValueModified(Metadata metadata, Object originalValue, Object newValue) {
+		boolean modified;
+		if (metadata.isMultivalue()) {
+			modified = ObjectUtils.notEqual(originalValue, newValue);
+		} else {
+
+			//			if (metadata.getType() == MetadataValueType.NUMBER) {
+			//				Double newDoubleValue = (Double) originalValue;
+			//				if (new Double(0.0).equals(newDoubleValue)) {
+			//					newDoubleValue = null;
+			//				}
+			//
+			//				Double originalDoubleValue = (Double) originalValue;
+			//				if (new Double(0.0).equals(originalDoubleValue)) {
+			//					originalDoubleValue = null;
+			//				}
+			//
+			//				modified = ObjectUtils.notEqual(newDoubleValue, originalDoubleValue);
+			//			} else {
+			modified = ObjectUtils.notEqual(newValue, originalValue);
+			//			}
+		}
+		return modified;
 	}
 
 	@Override

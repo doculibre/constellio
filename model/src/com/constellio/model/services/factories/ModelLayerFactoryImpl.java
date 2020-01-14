@@ -11,6 +11,7 @@ import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
@@ -166,14 +167,15 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		add(new StatefulService() {
 			@Override
 			public void initialize() {
-				//if (FoldersLocator.usingAppWrapper()) {
+				if (Toggle.USE_MEMORY_STRING_ID_MAPPING.isEnabled()) {
+					//Faster for tests
+					StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping());
+
+				} else {
 					//Keeping mapping between runtimes
 					StringRecordId.setMapping(new StringRecordIdLegacyPersistedMapping(dataLayerFactory.getConfigManager()));
 
-				//} else {
-					//Faster for tests
-				//	StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping());
-				//}
+				}
 			}
 
 			@Override

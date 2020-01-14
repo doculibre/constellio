@@ -1,9 +1,10 @@
 package com.constellio.model.services.schemas.calculators;
 
 import com.constellio.data.utils.LangUtils;
-import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
+import com.constellio.data.utils.Pair;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
+import com.constellio.model.entities.calculators.MultiMetadatasValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.calculators.dependencies.HierarchyDependencyValue;
@@ -23,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,14 +33,18 @@ import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.security.TransactionSecurityModel.hasActiveOverridingAuth;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.DETACHED_AUTHORIZATIONS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.DETACHED_PRINCIPALS_ANCESTORS_INT_IDS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.PRINCIPALS_ANCESTORS_INT_IDS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.PRINCIPAL_CONCEPTS_INT_IDS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.SECONDARY_CONCEPTS_INT_IDS;
 
-public abstract class AbstractAncestorCalculator extends AbstractMetadataValueCalculator<List<Integer>> {
+public class AbstractAncestorCalculator implements MultiMetadatasValueCalculator {
 
 	protected SpecialDependency<HierarchyDependencyValue> taxonomiesParam = SpecialDependencies.HIERARCHY;
 	protected LocalDependency<List<String>> pathsParam = LocalDependency.toAStringList(CommonMetadataBuilder.PATH);
 	protected LocalDependency<String> principalPathParam = LocalDependency.toAString(CommonMetadataBuilder.PRINCIPAL_PATH);
-	//protected LocalDependency<List<String>> attachedAncestorsParam = LocalDependency.toAStringList(ATTACHED_ANCESTORS);
 	protected LocalDependency<Boolean> detachedParam = LocalDependency.toABoolean(DETACHED_AUTHORIZATIONS);
 	protected SpecialDependency<SecurityModel> securityModelDependency = SpecialDependencies.SECURITY_MODEL;
 	protected MetadatasProvidingSecurityDynamicDependency metadatasProvidingSecurityParams = new MetadatasProvidingSecurityDynamicDependency();
@@ -49,21 +55,6 @@ public abstract class AbstractAncestorCalculator extends AbstractMetadataValueCa
 			return metadata.isTaxonomyRelationship();
 		}
 	};
-
-
-	//	protected List<Integer> getAttachedAncestors(CalculatorParameters parameters) {
-	//		List<Integer> intValues = new ArrayList<>();
-	//
-	//		for (String attachedAncestor : parameters.get(attachedAncestorsParam)) {
-	//			if (attachedAncestor != null) {
-	//				intValues.add(RecordId.toIntId(attachedAncestor));
-	//			}
-	//		}
-	//
-	//		intValues.sort(null);
-	//
-	//		return intValues;
-	//	}
 
 	protected List<Integer> getAttachedPrincipalConceptsIntIdsFromParent(CalculatorParameters parameters) {
 		if (!Boolean.TRUE.equals(parameters.get(detachedParam))) {
@@ -167,8 +158,8 @@ public abstract class AbstractAncestorCalculator extends AbstractMetadataValueCa
 		return nodes;
 	}
 
-	//TODO Call only once using a shared mecanism
-	protected Map<String, Object> calculateAttachedAndDetached(CalculatorParameters parameters) {
+	@Override
+	public Map<String, Object> calculate(CalculatorParameters parameters) {
 		HierarchyDependencyValue hierarchyDependencyValue = parameters.get(taxonomiesParam);
 
 		Set<Integer> ids = new HashSet<>();
@@ -190,45 +181,42 @@ public abstract class AbstractAncestorCalculator extends AbstractMetadataValueCa
 			DynamicDependencyValues values = parameters.get(metadatasProvidingSecurityParams);
 			List<SecurityModelAuthorization> authsOnMetadatas = securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(values);
 
-			if (hierarchyDependencyValue != null) {
-				if (!isDetachedAuths && !hasActiveOverridingAuth(authsOnMetadatas)) {
-					ids.addAll(hierarchyDependencyValue.getPrincipalAncestorsIntIds());
-					hierarchyDependencyValue.getAttachedPrincipalConceptsIntIdsFromParent()
-							.forEach((intId) -> ids.add(RecordId.toId(intId).intValue()));
-				} else {
-					hierarchyDependencyValue.getAttachedPrincipalConceptsIntIdsFromParent()
-							.forEach((intId) -> possiblyDetachedAncestors.add(intId));
-				}
-
+			if (!isDetachedAuths && !hasActiveOverridingAuth(authsOnMetadatas)) {
+				ids.addAll(hierarchyDependencyValue.getPrincipalAncestorsIntIds());
+				hierarchyDependencyValue.getAttachedPrincipalConceptsIntIdsFromParent()
+						.forEach((intId) -> ids.add(RecordId.toId(intId).intValue()));
+			} else {
+				hierarchyDependencyValue.getAttachedPrincipalConceptsIntIdsFromParent()
+						.forEach((intId) -> possiblyDetachedAncestors.add(intId));
 			}
 
+
 			if (!isDetachedAuths) {
-				for (Metadata metadata : values.getAvailableMetadatasWithAValue()) {
+				Iterator<Pair<Metadata, Object>> iterator = values.iterateWithValues();
+				while (iterator.hasNext()) {
+					Pair<Metadata, Object> entry = iterator.next();
+					Metadata metadata = entry.getKey();
 					if (metadata.isMultivalue()) {
-						ids.addAll(values.<List<String>>getValue(metadata).stream().map((s) -> RecordId.toId(s).intValue()).collect(Collectors.toList()));
+						ids.addAll(((List<String>) entry.getValue()).stream().map((s) -> RecordId.toId(s).intValue()).collect(Collectors.toList()));
 					} else {
-						ids.add(RecordId.toId(values.<String>getValue(metadata)).intValue());
+						ids.add(RecordId.toId((String) entry.getValue()).intValue());
 					}
 				}
 			}
 
 			ids.add(RecordId.toId(parameters.getId()).intValue());
 
-			if (hierarchyDependencyValue != null) {
-				for (int ancestorIntId : hierarchyDependencyValue.getPrincipalAncestorsIntIds()) {
-					if (!hierarchyDependencyValue.getPrincipalConceptsIntIds().contains(ancestorIntId)) {
-						possiblyDetachedAncestors.add(ancestorIntId);
-					}
-				}
-
-				for (int ancestorIntId : hierarchyDependencyValue.getPrincipalAncestorsIntIdsFromParent()) {
-					if (!hierarchyDependencyValue.getPrincipalConceptsIntIdsFromParent().contains(ancestorIntId)) {
-						possiblyDetachedAncestors.add(ancestorIntId);
-					}
+			for (int ancestorIntId : hierarchyDependencyValue.getPrincipalAncestorsIntIds()) {
+				if (!hierarchyDependencyValue.getPrincipalConceptsIntIds().contains(ancestorIntId)) {
+					possiblyDetachedAncestors.add(ancestorIntId);
 				}
 			}
-			//			possiblyDetachedAncestors.addAll(hierarchyDependencyValue.getPrincipalAncestorsIntIds());
-			//			possiblyDetachedAncestors.addAll(hierarchyDependencyValue.getPrincipalConceptsIntIdsFromParent());
+
+			for (int ancestorIntId : hierarchyDependencyValue.getPrincipalAncestorsIntIdsFromParent()) {
+				if (!hierarchyDependencyValue.getPrincipalConceptsIntIdsFromParent().contains(ancestorIntId)) {
+					possiblyDetachedAncestors.add(ancestorIntId);
+				}
+			}
 
 			for (Integer possiblyDetachedAncestor : possiblyDetachedAncestors) {
 				if (!ids.contains(possiblyDetachedAncestor)) {
@@ -238,11 +226,25 @@ public abstract class AbstractAncestorCalculator extends AbstractMetadataValueCa
 
 		}
 
-		//return ancestors;
-
 		Map<String, Object> returnedValues = new HashMap<>();
-		returnedValues.put("attached", LangUtils.toSortedList(ids));
-		returnedValues.put("detached", LangUtils.toSortedList(detachedAncestors));
+		returnedValues.put(ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS, LangUtils.toSortedList(ids));
+		returnedValues.put(DETACHED_PRINCIPALS_ANCESTORS_INT_IDS, LangUtils.toSortedList(detachedAncestors));
+
+
+		Set<Integer> secondaryConceptIntIds = new HashSet<>();
+		secondaryConceptIntIds.addAll(hierarchyDependencyValue.getSecondaryConceptsIntIds());
+		secondaryConceptIntIds.addAll(hierarchyDependencyValue.getSecondaryConceptsIntIdsFromParent());
+		returnedValues.put(SECONDARY_CONCEPTS_INT_IDS, LangUtils.toSortedList(secondaryConceptIntIds));
+
+		Set<Integer> principalConceptIntIds = new HashSet<>();
+		principalConceptIntIds.addAll(hierarchyDependencyValue.getPrincipalConceptsIntIds());
+		principalConceptIntIds.addAll(hierarchyDependencyValue.getPrincipalConceptsIntIdsFromParent());
+		returnedValues.put(PRINCIPAL_CONCEPTS_INT_IDS, LangUtils.toSortedList(principalConceptIntIds));
+
+		List<Integer> principalPathNodes = parsePrincipalPathNodes(parameters);
+		List<Integer> pathParts = getPathParts(parameters);
+		returnedValues.put(PRINCIPALS_ANCESTORS_INT_IDS, LangUtils.findMatchesInSortedLists(principalPathNodes, pathParts));
+
 		return returnedValues;
 	}
 
@@ -252,9 +254,16 @@ public abstract class AbstractAncestorCalculator extends AbstractMetadataValueCa
 				principalPathParam, detachedParam, securityModelDependency, metadatasProvidingSecurityParams);
 	}
 
+
 	@Override
-	public List<Integer> getDefaultValue() {
-		return new ArrayList<>();
+	public Map<String, Object> getDefaultValue() {
+		Map<String, Object> defaultValues = new HashMap<>();
+		defaultValues.put(ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS, Collections.emptyList());
+		defaultValues.put(DETACHED_PRINCIPALS_ANCESTORS_INT_IDS, Collections.emptyList());
+		defaultValues.put(PRINCIPAL_CONCEPTS_INT_IDS, Collections.emptyList());
+		defaultValues.put(SECONDARY_CONCEPTS_INT_IDS, Collections.emptyList());
+		defaultValues.put(PRINCIPALS_ANCESTORS_INT_IDS, Collections.emptyList());
+		return defaultValues;
 	}
 
 	@Override

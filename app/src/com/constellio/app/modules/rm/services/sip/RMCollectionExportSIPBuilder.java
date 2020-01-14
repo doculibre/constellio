@@ -437,7 +437,7 @@ public class RMCollectionExportSIPBuilder {
 	private SearchResponseIterator<Record> newChildrenIterator(Record folderRecord) {
 		return searchServices.recordsIterator(new LogicalSearchQuery(
 				fromEveryTypesOfEveryCollection()
-						.where(Schemas.PATH_PARTS).isEqualTo(folderRecord.getId())), 1000);
+						.where(Schemas.PRINCIPALS_ANCESTORS_INT_IDS).isEqualTo(folderRecord.getRecordId().intValue())), 1000);
 	}
 
 	private SearchResponseIterator<Record> newChildrenContainerIterator(Record storageSpace) {

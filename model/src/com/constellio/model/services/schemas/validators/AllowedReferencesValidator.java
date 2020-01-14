@@ -52,56 +52,82 @@ public class AllowedReferencesValidator implements Validator<Record> {
 		for (Metadata metadata : metadatas) {
 			if (metadata.getType() == MetadataValueType.REFERENCE && record.isModified(metadata)
 				&& record.get(metadata) != null) {
-				if (metadata.isMultivalue()) {
-					List<String> wasValue = wasRecord == null ? new ArrayList<String>() : wasRecord.<String>getList(metadata);
-					List<String> referencedValues = (List) record.get(metadata);
-					List<String> newItems = LangUtils.compare(wasValue, referencedValues).getNewItems();
-					for (Object referenceValueStr : referencedValues) {
-						if (referenceValueStr != null) {
-							Record referencedRecord = recordProvider.getRecord((String) referenceValueStr);
-							MetadataSchema schema = getSchema(referencedRecord);
-							if (!(metadata.getAllowedReferences().isAllowed(schema))) {
-								addValidationErrors(validationErrors, UNALLOWED_REFERENCE_FOR_METADATA, metadata,
-										schema.getCode(), (String) referenceValueStr);
-							}
 
-							if (record.getId().equals(referenceValueStr)) {
-								addValidationErrors(validationErrors, CANNOT_REFERENCE_ITSELF, metadata,
-										schema.getCode(), (String) referenceValueStr);
-							}
+				if (possibleProblemsDetectedUsingCache(record, metadata)) {
 
-							if (newItems.contains(referenceValueStr) && !skippingReferenceToLogicallyDeletedValidation
-								&& TRUE.equals(referencedRecord.get(LOGICALLY_DELETED_STATUS))) {
+					if (metadata.isMultivalue()) {
+						List<String> wasValue = wasRecord == null ? new ArrayList<String>() : wasRecord.<String>getList(metadata);
+						List<String> referencedValues = (List) record.get(metadata);
+						List<String> newItems = LangUtils.compare(wasValue, referencedValues).getNewItems();
+						for (Object referenceValueStr : referencedValues) {
+							if (referenceValueStr != null) {
+								Record referencedRecord = recordProvider.getRecord((String) referenceValueStr);
+								MetadataSchema schema = getSchema(referencedRecord);
+								if (!(metadata.getAllowedReferences().isAllowed(schema))) {
+									addValidationErrors(validationErrors, UNALLOWED_REFERENCE_FOR_METADATA, metadata,
+											schema.getCode(), (String) referenceValueStr);
+								}
 
-								addValidationErrors(validationErrors, CANNOT_REFERENCE_LOGICALLY_DELETED_RECORD, metadata,
-										schema.getCode(), (String) referenceValueStr);
+								if (record.getId().equals(referenceValueStr)) {
+									addValidationErrors(validationErrors, CANNOT_REFERENCE_ITSELF, metadata,
+											schema.getCode(), (String) referenceValueStr);
+								}
+
+								if (newItems.contains(referenceValueStr) && !skippingReferenceToLogicallyDeletedValidation
+									&& TRUE.equals(referencedRecord.get(LOGICALLY_DELETED_STATUS))) {
+
+									addValidationErrors(validationErrors, CANNOT_REFERENCE_LOGICALLY_DELETED_RECORD, metadata,
+											schema.getCode(), (String) referenceValueStr);
+								}
 							}
 						}
-					}
 
-				} else {
-					String referenceValue = record.get(metadata);
-					String wasValue = wasRecord == null ? null : wasRecord.<String>get(metadata);
-					Record referencedRecord = recordProvider.getRecordSummary(referenceValue);
-					MetadataSchema schema = getSchema(referencedRecord);
-					if (!(metadata.getAllowedReferences().isAllowed(schema))) {
-						addValidationErrors(validationErrors, UNALLOWED_REFERENCE_FOR_METADATA, metadata,
-								schema.getCode(), referenceValue);
-					}
-					if (record.getId().equals(referenceValue)) {
-						addValidationErrors(validationErrors, CANNOT_REFERENCE_ITSELF, metadata,
-								schema.getCode(), referenceValue);
-					}
+					} else {
+						String referenceValue = record.get(metadata);
+						String wasValue = wasRecord == null ? null : wasRecord.<String>get(metadata);
+						Record referencedRecord = recordProvider.getRecordSummary(referenceValue);
+						MetadataSchema schema = getSchema(referencedRecord);
+						if (!(metadata.getAllowedReferences().isAllowed(schema))) {
+							addValidationErrors(validationErrors, UNALLOWED_REFERENCE_FOR_METADATA, metadata,
+									schema.getCode(), referenceValue);
+						}
+						if (record.getId().equals(referenceValue)) {
+							addValidationErrors(validationErrors, CANNOT_REFERENCE_ITSELF, metadata,
+									schema.getCode(), referenceValue);
+						}
 
-					if (!isEqual(wasValue, referenceValue) && TRUE.equals(referencedRecord.get(LOGICALLY_DELETED_STATUS))) {
+						if (!isEqual(wasValue, referenceValue) && TRUE.equals(referencedRecord.get(LOGICALLY_DELETED_STATUS))) {
 
-						addValidationErrors(validationErrors, CANNOT_REFERENCE_LOGICALLY_DELETED_RECORD, metadata,
-								schema.getCode(), referenceValue);
+							addValidationErrors(validationErrors, CANNOT_REFERENCE_LOGICALLY_DELETED_RECORD, metadata,
+									schema.getCode(), referenceValue);
+						}
 					}
 				}
 
 			}
 		}
+	}
+
+	public boolean possibleProblemsDetectedUsingCache(Record record, Metadata metadata) {
+		if (metadata.isMultivalue()) {
+			for (String id : record.<String>getList(metadata)) {
+				if (id != null) {
+					Record summary = recordProvider.getRecordSummary(id);
+					if (summary == null || !record.getTypeCode().equals(metadata.getReferencedSchemaTypeCode())
+						|| summary.getRecordId().equals(record.getRecordId()) || summary.isLogicallyDeleted()) {
+						return true;
+					}
+				}
+			}
+		} else {
+			String id = record.get(metadata);
+			if (id != null) {
+				Record summary = recordProvider.getRecordSummary(id);
+				return summary == null || !record.getTypeCode().equals(metadata.getReferencedSchemaTypeCode())
+					   || summary.getRecordId().equals(record.getRecordId()) || summary.isLogicallyDeleted();
+			}
+		}
+		return false;
 	}
 
 	private MetadataSchema getSchema(Record referencedRecord) {

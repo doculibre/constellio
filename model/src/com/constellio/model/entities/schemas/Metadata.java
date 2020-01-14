@@ -680,4 +680,12 @@ public class Metadata implements DataStoreField {
 
 	}
 
+	public boolean isSame(Metadata otherMetadata) {
+		if (id == 0 || otherMetadata.id == 0) {
+			return isSameLocalCode(otherMetadata);
+
+		} else {
+			return id == otherMetadata.id;
+		}
+	}
 }

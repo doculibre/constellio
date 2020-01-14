@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache.dataStore;
 
+import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -15,6 +16,7 @@ import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.DBMaker.Maker;
+import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +43,11 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	private DB onDiskDatabase;
 
+	private DB bufferDatabase;
+
 	private BTreeMap<Integer, byte[]> intKeyMap;
+
+	private HTreeMap<Integer, byte[]> tempIntKeyMap;
 
 	private BTreeMap<String, byte[]> stringKeyMap;
 
@@ -79,12 +85,23 @@ public class FileSystemRecordsValuesCacheDataStore {
 			this.onDiskDatabase = dbMaker.make();
 		}
 
+		bufferDatabase = DBMaker.memoryDB().make();
+
+		//TODO 50mo for small servers, 200 for big ones
+		tempIntKeyMap = bufferDatabase.hashMap("tempIntKeysDataStore")
+				.keySerializer(Serializer.INTEGER)
+				.valueSerializer(Serializer.BYTE_ARRAY)
+				.expireStoreSize(200_000_000)
+				.expireAfterGet()
+				.expireAfterCreate()
+				.create();
 
 		intKeyMap = onDiskDatabase.treeMap("intKeysDataStore")
 				.valuesOutsideNodesEnable()
 				.keySerializer(Serializer.INTEGER)
 				.valueSerializer(Serializer.BYTE_ARRAY)
 				.createOrOpen();
+
 		recreated = intKeyMap.isEmpty();
 		if (recreated) {
 			byte[] bytes = new byte[1];
@@ -121,31 +138,34 @@ public class FileSystemRecordsValuesCacheDataStore {
 	}
 
 	public void saveIntKeyPersistedAndMemoryData(int id, byte[] persistedData, ByteArrayRecordDTO memoryRecordDTO) {
-		ensureNotBusy();
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		ObjectOutputStream objectOutputStream = null;
-		try {
-			objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-			objectOutputStream.writeInt(persistedData.length);
-			objectOutputStream.flush();
-			objectOutputStream.writeLong(memoryRecordDTO.getVersion());
-			objectOutputStream.flush();
-			objectOutputStream.write(persistedData);
-			objectOutputStream.flush();
-			objectOutputStream.writeShort(memoryRecordDTO.getTenantId());
-			objectOutputStream.writeByte(memoryRecordDTO.getCollectionId());
-			objectOutputStream.writeShort(memoryRecordDTO.getTypeId());
-			objectOutputStream.writeShort(memoryRecordDTO.getSchemaId());
-			objectOutputStream.write(memoryRecordDTO.getData());
+		Stats.compilerFor("FileSystemRecordsValuesCacheDataStore:save").log(() -> {
+			ensureNotBusy();
+			tempIntKeyMap.put(id, persistedData);
+			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			ObjectOutputStream objectOutputStream = null;
+			try {
+				objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+				objectOutputStream.writeInt(persistedData.length);
+				objectOutputStream.flush();
+				objectOutputStream.writeLong(memoryRecordDTO.getVersion());
+				objectOutputStream.flush();
+				objectOutputStream.write(persistedData);
+				objectOutputStream.flush();
+				objectOutputStream.writeShort(memoryRecordDTO.getTenantId());
+				objectOutputStream.writeByte(memoryRecordDTO.getCollectionId());
+				objectOutputStream.writeShort(memoryRecordDTO.getTypeId());
+				objectOutputStream.writeShort(memoryRecordDTO.getSchemaId());
+				objectOutputStream.write(memoryRecordDTO.getData());
 
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 
-		} finally {
-			IOUtils.closeQuietly(objectOutputStream);
-		}
+			} finally {
+				IOUtils.closeQuietly(objectOutputStream);
+			}
 
-		intKeyMap.put(id, byteArrayOutputStream.toByteArray());
+			intKeyMap.put(id, byteArrayOutputStream.toByteArray());
+		});
 	}
 
 	public void removeStringKey(String id) {
@@ -154,8 +174,11 @@ public class FileSystemRecordsValuesCacheDataStore {
 	}
 
 	public void removeIntKey(int id) {
-		ensureNotBusy();
-		intKeyMap.remove(id);
+		Stats.compilerFor("FileSystemRecordsValuesCacheDataStore:remove").log(() -> {
+			ensureNotBusy();
+			tempIntKeyMap.remove(id);
+			intKeyMap.remove(id);
+		});
 	}
 
 	public byte[] loadStringKey(String id) {
@@ -169,31 +192,36 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	public byte[] loadIntKeyPersistedData(int id) {
 		ensureNotBusy();
-		byte[] bytes = intKeyMap.get(id);
-		if (bytes == null) {
-			throw new IllegalStateException("Record '" + id + "' has no stored bytes");
-		}
-
-		ObjectInputStream objectInputStream = null;
-		try {
-			objectInputStream = new ObjectInputStream(new ByteArrayInputStream(bytes));
-			int dataLength = objectInputStream.readInt();
-			objectInputStream.skipBytes(Long.BYTES);
-			byte[] returnedBytes = new byte[dataLength];
-			for (int i = 0; i < returnedBytes.length; i++) {
-				returnedBytes[i] = objectInputStream.readByte();
+		return Stats.compilerFor("FileSystemRecordsValuesCacheDataStore:get").log(() -> {
+			byte[] persistedDataInMemory = tempIntKeyMap.get(id);
+			if (persistedDataInMemory != null) {
+				return persistedDataInMemory;
+			}
+			byte[] bytes = intKeyMap.get(id);
+			if (bytes == null) {
+				throw new IllegalStateException("Record '" + id + "' has no stored bytes");
 			}
 
-			//System.arraycopy(bytes, Integer.BYTES + Long.BYTES, returnedBytes, 0, returnedBytes.length);
-			//int results = objectInputStream.read(returnedBytes);
-			//System.out.println(results);
-			return returnedBytes;
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		} finally {
-			IOUtils.closeQuietly(objectInputStream);
-		}
-
+			ObjectInputStream objectInputStream = null;
+			try {
+				objectInputStream = new ObjectInputStream(new ByteArrayInputStream(bytes));
+				int dataLength = objectInputStream.readInt();
+				objectInputStream.skipBytes(Long.BYTES);
+				byte[] returnedBytes = new byte[dataLength];
+				for (int i = 0; i < returnedBytes.length; i++) {
+					returnedBytes[i] = objectInputStream.readByte();
+				}
+				tempIntKeyMap.put(id, returnedBytes);
+				//System.arraycopy(bytes, Integer.BYTES + Long.BYTES, returnedBytes, 0, returnedBytes.length);
+				//int results = objectInputStream.read(returnedBytes);
+				//System.out.println(results);
+				return returnedBytes;
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			} finally {
+				IOUtils.closeQuietly(objectInputStream);
+			}
+		});
 	}
 
 	public ByteArrayRecordDTO loadRecordDTOIfVersion(int id, long expectedVersion,
@@ -249,10 +277,12 @@ public class FileSystemRecordsValuesCacheDataStore {
 		intKeyMap.close();
 		stringKeyMap.close();
 		onDiskDatabase.close();
+		bufferDatabase.close();
 
 		intKeyMap = null;
 		stringKeyMap = null;
 		onDiskDatabase = null;
+		bufferDatabase = null;
 	}
 
 	public void closeThenReopenWithoutMmap() {
@@ -287,6 +317,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	public void clearAll() {
 		ensureNotBusy();
+		tempIntKeyMap.clear();
 		intKeyMap.clear();
 		stringKeyMap.clear();
 		intKeyMap.clear();

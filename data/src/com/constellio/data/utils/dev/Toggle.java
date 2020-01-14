@@ -112,6 +112,9 @@ public class Toggle {
 
 	public static AvailableToggle ENABLE_PDTRON_TRIAL = newToggle(false);
 
+	public static AvailableToggle USE_MEMORY_STRING_ID_MAPPING = newToggle(false);
+	public static AvailableToggle DOCUMENT_RETENTION_RULES = newToggle(false);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

@@ -305,18 +305,6 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		typesBuilder.build(typesFactory, modelLayerFactory);
 	}
 
-	// Calculated metadata validation tests
-	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata.class)
-	public void givenTextValueMetadataWithCalculatedEntryAndATextTypeLocalDependencyAndNumberValueCalculatedWhenBuildingThenException()
-			throws Exception {
-
-		MetadataBuilder metadataWithCalculatedEntry = givenZeDefaultSchemaMetadata(STRING).setMultivalue(false);
-		givenZeDefaultSchemaMetadata("other", STRING).setMultivalue(false);
-		metadataWithCalculatedEntry.defineDataEntry().asCalculated(
-				com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyNumberCalculator.class);
-
-		typesBuilder.build(typesFactory, modelLayerFactory);
-	}
 
 	@Test
 	public void givenTextValueMetadataWithCalculatedEntryAndATextTypeLocalDependencyAndTextValueCalculatedWhenBuildingThenOk()
@@ -347,17 +335,6 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		typesBuilder.build(typesFactory, modelLayerFactory);
 	}
 
-	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata.class)
-	public void givenNumberValueMetadataWithCalculatedEntryAndATextTypeLocalDependencyAndTextValueCalculatedWhenBuildingThenException()
-			throws Exception {
-
-		MetadataBuilder metadataWithCalculatedEntry = givenZeDefaultSchemaMetadata(NUMBER).setMultivalue(false);
-		givenZeDefaultSchemaMetadata("other", STRING).setMultivalue(false);
-		metadataWithCalculatedEntry.defineDataEntry().asCalculated(
-				com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyTextCalculator.class);
-
-		typesBuilder.build(typesFactory, modelLayerFactory);
-	}
 
 	@Test
 	public void givenNumberValueMetadataWithCalculatedEntryAndTwoNumberTypeLocalDependenciesAndNumberValueCalculatedWhenBuildingThenOk()
@@ -489,18 +466,6 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		typesBuilder.build(typesFactory, modelLayerFactory);
 	}
 
-	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CannotCalculateASingleValueInAMultiValueMetadata.class)
-	public void givenMultiValueMetadataWithCalculatedEntryAndAMultiValueLocalDependencyAndSingleValueCalculatedWhenBuildingThenException()
-			throws Exception {
-
-		MetadataBuilder metadataWithCalculatedEntry = givenZeDefaultSchemaMetadata(STRING).setMultivalue(true);
-		givenZeDefaultSchemaMetadata("other", STRING).setMultivalue(true);
-		metadataWithCalculatedEntry.defineDataEntry().asCalculated(
-				com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyTextCalculator.class);
-
-		typesBuilder.build(typesFactory, modelLayerFactory);
-	}
-
 	@Test
 	public void givenSingleValueMetadataWithCalculatedEntryAndAMultiValueLocalDependencyAndSingleValueCalculatedWhenBuildingThenOk()
 			throws Exception {
@@ -509,18 +474,6 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		givenZeDefaultSchemaMetadata("other", STRING).setMultivalue(true);
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(
 				com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyTextCalculator.class);
-
-		typesBuilder.build(typesFactory, modelLayerFactory);
-	}
-
-	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CannotCalculateAMultiValueInASingleValueMetadata.class)
-	public void givenSingleValueMetadataWithCalculatedEntryAndAMultiValueLocalDependencyAndMultiValueCalculatedWhenBuildingThenException()
-			throws Exception {
-
-		MetadataBuilder metadataWithCalculatedEntry = givenZeDefaultSchemaMetadata(STRING).setMultivalue(false);
-		givenZeDefaultSchemaMetadata("other", STRING).setMultivalue(true);
-		metadataWithCalculatedEntry.defineDataEntry().asCalculated(
-				com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyTextListCalculator.class);
 
 		typesBuilder.build(typesFactory, modelLayerFactory);
 	}

@@ -3,32 +3,37 @@ package com.constellio.app.modules.rm.migrations;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedTransferDateCalculator;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator2;
 
-public class RMMigrationTo9_0_51 implements MigrationScript {
+public class RMMigrationTo9_0_52 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.0.51";
+		return "9.0.52";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
-		new SchemaAlterationFor9_0_51(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor9_0_52(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	private class SchemaAlterationFor9_0_51 extends MetadataSchemasAlterationHelper {
-		SchemaAlterationFor9_0_51(String collection, MigrationResourcesProvider migrationResourcesProvider,
+	private class SchemaAlterationFor9_0_52 extends MetadataSchemasAlterationHelper {
+		SchemaAlterationFor9_0_52(String collection, MigrationResourcesProvider migrationResourcesProvider,
 								  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
@@ -68,7 +73,22 @@ public class RMMigrationTo9_0_51 implements MigrationScript {
 				}
 			}
 
-			appLayerFactory.getSystemGlobalConfigsManager().markLocalCachesAsRequiringRebuild();
+			if (Toggle.DOCUMENT_RETENTION_RULES.isEnabled() && hasCalculator(
+					document.getMetadata(Document.FOLDER_EXPECTED_TRANSFER_DATE), DocumentExpectedTransferDateCalculator.class)) {
+				document.getMetadata(Document.FOLDER_EXPECTED_TRANSFER_DATE).defineDataEntry()
+						.asCopied(document.get(Document.FOLDER), folder.get(Folder.EXPECTED_TRANSFER_DATE));
+				document.getMetadata(Document.FOLDER_EXPECTED_DEPOSIT_DATE).defineDataEntry()
+						.asCopied(document.get(Document.FOLDER), folder.get(Folder.EXPECTED_DEPOSIT_DATE));
+				document.getMetadata(Document.FOLDER_EXPECTED_DESTRUCTION_DATE).defineDataEntry()
+						.asCopied(document.get(Document.FOLDER), folder.get(Folder.EXPECTED_DESTRUCTION_DATE));
+			}
 		}
 	}
+
+	private boolean hasCalculator(MetadataBuilder metadata, Class<?> expectedCalculatorClass) {
+		return metadata.getDataEntry().getType() == DataEntryType.CALCULATED
+			   && ((CalculatedDataEntry) metadata.getDataEntry()).getCalculator().getClass().equals(expectedCalculatorClass);
+
+	}
+
 }
