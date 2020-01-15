@@ -82,31 +82,12 @@ public class ReindexingSchemaTypeRecordsProvider {
 
 	private Iterator<Record> newRecordsIteratorAdaptorNotReturningAlreadyHandled(
 			final Iterator<Record> nestedRecordsIterator) {
-		//final List<Metadata> metadatas = type.getAllMetadatas().onlyParentReferences().onlyReferencesToType(type.getCode());
-		//		final Integer lastIterationOfADependencyLevelUnder =
-		//				dependencyLevel == 0 ? null : info.getLastIterationOf(dependencyLevel - 1, type.getCode());
-		//		final Integer correspondingLastIterationADependencyLevelUnder = lastIterationOfADependencyLevelUnder == null ? null :
-		//				lastIterationOfADependencyLevelUnder - iteration;
 		return new LazyIterator<Record>() {
 			@Override
 			protected Record getNextOrNull() {
 				while (nestedRecordsIterator.hasNext()) {
 					Record record = nestedRecordsIterator.next();
 					if (!ids.contains(record.getId()) && !idsInCurrentBatch.contains(record.getId())) {
-
-						//						if (correspondingLastIterationADependencyLevelUnder != null) {
-						//
-						//							Integer iterationADependencyLevelUnder = info
-						//									.getIterationOf(dependencyLevel - 1, type.getCode(), record.getId());
-						//
-						//							if (iterationADependencyLevelUnder != null) {
-						//								int correspondingIterationADependencyLevelUnder =
-						//										lastIterationOfADependencyLevelUnder - iteration;
-						//
-						//								if (correspondingIterationADependencyLevelUnder)
-						//							}
-						//
-						//						}
 
 						info.markHasHandledAtIteration(dependencyLevel, type.getCode(), record.getId(), iteration);
 						return record;

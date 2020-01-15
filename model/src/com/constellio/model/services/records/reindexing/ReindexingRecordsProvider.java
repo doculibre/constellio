@@ -11,7 +11,7 @@ public class ReindexingRecordsProvider {
 
 	int mainThreadQueryRows;
 
-	int thresholdForReturningLastIgnoredDocumentById = 1000;
+	int thresholdForReturningLastIgnoredDocumentById = 10_000;
 
 	ReindexingRecordPriorityInfo info = new ReindexingRecordPriorityInfo();
 
