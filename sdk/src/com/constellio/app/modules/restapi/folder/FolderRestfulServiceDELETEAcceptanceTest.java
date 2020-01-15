@@ -137,6 +137,36 @@ public class FolderRestfulServiceDELETEAcceptanceTest extends BaseFolderRestfulS
 	}
 
 	@Test
+	public void testDeletePhysicallyFolderWithSubFolder() throws Exception {
+		id = rootFolder.getId();
+		physical = "true";
+		Response response = doDeleteQuery();
+		assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+
+		try {
+			recordServices.getDocumentById(rootFolder.getId());
+			fail("Record not deleted");
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			// ignore
+		}
+
+		try {
+			recordServices.getDocumentById(subFolder1.getId());
+			fail("Record not deleted");
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			// ignore
+		}
+
+		try {
+			recordServices.getDocumentById(subFolder2.getId());
+			fail("Record not deleted");
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			// ignore
+		}
+	}
+
+	@Test
 	public void testDeletePhysicallyFolderAlreadyLogicallyDeleted() throws Exception {
 		physical = "true";
 		Record record = recordServices.getDocumentById(id);
