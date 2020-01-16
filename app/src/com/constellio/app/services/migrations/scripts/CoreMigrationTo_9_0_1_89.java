@@ -11,11 +11,11 @@ import com.constellio.model.services.security.roles.RolesManager;
 
 import java.util.Arrays;
 
-public class CoreMigrationTo_9_0_1_88 extends MigrationHelper implements MigrationScript {
+public class CoreMigrationTo_9_0_1_89 extends MigrationHelper implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.0.1.88";
+		return "9.0.1.89";
 	}
 
 	@Override
