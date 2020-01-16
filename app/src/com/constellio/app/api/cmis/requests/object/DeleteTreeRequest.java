@@ -35,7 +35,6 @@ public class DeleteTreeRequest extends CmisCollectionRequest<FailedToDeleteData>
 		ensureUserHasAllowableActionsOnRecord(record, Action.CAN_DELETE_TREE);
 
 		DeleteTreeParams params = new DeleteTreeParams(user, record);
-		appLayerFactory.getExtensions().forCollection(collection).onDeleteTree(params);
 		recordServices.logicallyDelete(record, user);
 
 		try {
