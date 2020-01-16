@@ -21,7 +21,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.collections.CollectionUtils;
@@ -271,11 +270,6 @@ public class LoggingServices {
 				throw new RuntimeException(e.getMessage());
 			}
 		}
-	}
-
-	public void logDeleteRecordWithJustification(Record record, User user, String reason) {
-		SchemaUtils schemaUtils = new SchemaUtils();
-		executeTransaction(eventFactory.newRecordEvent(record, user, EventType.DELETE, reason));
 	}
 
 	public void completeBorrowRequestTask(Record record, String taskId, boolean isAccepted, User applicant,
