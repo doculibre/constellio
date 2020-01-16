@@ -7,15 +7,14 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import org.joda.time.LocalDateTime;
 
@@ -208,11 +207,6 @@ public class LoggingServices {
 				throw new RuntimeException(e.getMessage());
 			}
 		}
-	}
-
-	public void logDeleteRecordWithJustification(Record record, User user, String reason) {
-		SchemaUtils schemaUtils = new SchemaUtils();
-		executeTransaction(eventFactory.newRecordEvent(record, user, EventType.DELETE, reason));
 	}
 
 	public void completeBorrowRequestTask(Record record, String taskId, boolean isAccepted, User applicant,

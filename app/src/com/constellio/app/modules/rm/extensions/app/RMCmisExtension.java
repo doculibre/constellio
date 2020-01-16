@@ -8,7 +8,6 @@ import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstell
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
 import com.constellio.app.extensions.api.cmis.params.CheckInParams;
 import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
-import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -125,13 +124,6 @@ public class RMCmisExtension extends CmisExtension {
 	//	public void onUpdateCMISDocument(UpdateDocumentParams params) {
 	//		super.onUpdateCMISDocument(params);
 	//	}
-
-	@Override
-	public void onDeleteTree(DeleteTreeParams params) {
-		if (params.isOfType(Folder.SCHEMA_TYPE) || params.isOfType(Document.SCHEMA_TYPE)) {
-			loggingServices.logDeleteRecordWithJustification(params.getRecord(), params.getUser(), null);
-		}
-	}
 
 	@Override
 	public void onCheckIn(CheckInParams params) {
