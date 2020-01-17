@@ -14,10 +14,12 @@ public class StringRecordIdLegacyPersistedMapping implements StringRecordIdLegac
 	private ConfigManager configManager;
 	private Map<Integer, String> isMapping;
 	private Map<String, Integer> siMapping;
+	private Runnable unfoundIdMappingRunnable;
 	int seq;
 
-	public StringRecordIdLegacyPersistedMapping(ConfigManager configManager) {
+	public StringRecordIdLegacyPersistedMapping(ConfigManager configManager, Runnable unfoundIdMappingRunnable) {
 		this.configManager = configManager;
+		this.unfoundIdMappingRunnable = unfoundIdMappingRunnable;
 		this.configManager.registerListener(PATH, this);
 
 		if (isMapping == null) {
@@ -84,7 +86,8 @@ public class StringRecordIdLegacyPersistedMapping implements StringRecordIdLegac
 		} else {
 			String stringId = isMapping.get(intId);
 			if (stringId == null) {
-				throw new IllegalStateException("Int value '" + intId + "' isn't mapped to any legacy string id");
+				unfoundIdMappingRunnable.run();
+				stringId = StringRecordId.INVALID_ID;
 			}
 			return stringId;
 		}

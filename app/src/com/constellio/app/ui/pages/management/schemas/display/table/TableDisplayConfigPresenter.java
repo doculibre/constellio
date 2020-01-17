@@ -47,7 +47,7 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 	public List<FormMetadataVO> getMetadatas() {
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaType schemaType = schemasManager.getSchemaTypes(collection).getSchemaType(SchemaUtils.getSchemaTypeCode(getSchemaCode()));
-		MetadataList list = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getMetadatas();
+		MetadataList list = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getSchemaType().getAllMetadatas();
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
@@ -81,7 +81,7 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
 		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (String metadataCode : codeList) {
-			Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getMetadata(metadataCode);
+			Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getSchemaType().getMetadata(metadataCode);
 			formMetadataVOs
 					.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 		}
@@ -95,13 +95,19 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 				Schemas.ALL_REMOVED_AUTHS, Schemas.REMOVED_AUTHORIZATIONS,
 				Schemas.ATTACHED_ANCESTORS, Schemas.IS_DETACHED_AUTHORIZATIONS, Schemas.TOKENS, Schemas.COLLECTION,
 				Schemas.LOGICALLY_DELETED_STATUS, Schemas.SHARE_DENY_TOKENS, Schemas.SHARE_TOKENS,
-				Schemas.DENY_TOKENS);
+				Schemas.DENY_TOKENS, Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS,
+				Schemas.DETACHED_PRINCIPAL_ANCESTORS_INT_IDS, Schemas.PRINCIPAL_CONCEPTS_INT_IDS, Schemas.SECONDARY_CONCEPTS_INT_IDS,
+				Schemas.PRINCIPALS_ANCESTORS_INT_IDS);
 
 		List<MetadataValueType> restrictedType = Arrays.asList(MetadataValueType.STRUCTURE, MetadataValueType.CONTENT);
 
 		List<String> localCodes = new SchemaUtils().toMetadataLocalCodes(restrictedMetadata);
 
 		result = !restrictedType.contains(metadataVO.getValueType()) && !localCodes.contains(metadataVO.getLocalcode());
+
+		if (appLayerFactory.getModelLayerFactory().getSystemConfigs().isOnlySummaryMetadatasDisplayedInTables()) {
+			result &= !schemaType.getCacheType().isSummaryCache() || metadata.isStoredInSummaryCache();
+		}
 
 		return result && (isEnabledInAtLeastOneSchema(metadata, schemaType));
 	}

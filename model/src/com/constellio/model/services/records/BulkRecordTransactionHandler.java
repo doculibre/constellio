@@ -48,6 +48,7 @@ public class BulkRecordTransactionHandler {
 
 	RecordServices recordServices;
 
+	int maxQueueSize = 0;
 	LinkedBlockingQueue<BulkRecordTransactionHandlerTask> tasks;
 
 	ThreadList<Thread> threadList;
@@ -73,6 +74,7 @@ public class BulkRecordTransactionHandler {
 		this.options = options;
 		this.resourceName = resourceName;
 		this.id = "" + sequence.incrementAndGet();
+		maxQueueSize = options.queueSize;
 		tasks = new LinkedBlockingQueue<>(options.queueSize);
 		try {
 			this.threadList = createThreadsAndStartThem();
@@ -338,5 +340,9 @@ public class BulkRecordTransactionHandler {
 
 	public int getNumberOfThreads() {
 		return options.getNumberOfThreads();
+	}
+
+	public int getMaxQueueSize() {
+		return maxQueueSize;
 	}
 }

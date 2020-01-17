@@ -2,8 +2,10 @@ package com.constellio.model.services.records.reindexing;
 
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
@@ -14,37 +16,45 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ReindexingSchemaTypeRecordsProvider {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ReindexingSchemaTypeRecordsProvider.class);
 
-	Set<String> ids = new HashSet<>();
+	Set<Integer> ids = new HashSet<>();
 	int iteration = 0;
 	int mainThreadQueryRows;
-	Set<String> skipped = new HashSet<>();
-	Set<String> idsInCurrentBatch;
+	Set<Integer> skipped = new HashSet<>();
+	Set<Integer> idsInCurrentBatch;
 
 	RecordServices recordServices;
 	SearchServices searchServices;
-	Set<String> lastSkippedRecords = new HashSet<>();
+	Set<Integer> lastSkippedRecords = new HashSet<>();
 	boolean requiringAnotherIteration;
 	MetadataSchemaType type;
 	int dependencyLevel;
 	int thresholdForReturningLastIgnoredDocumentById;
 	ReindexingRecordPriorityInfo info;
+	boolean selfParentReference;
 
 	public ReindexingSchemaTypeRecordsProvider(ModelLayerFactory modelLayerFactory, int mainThreadQueryRows,
 											   MetadataSchemaType type, int dependencyLevel,
 											   int thresholdForReturningLastIgnoredDocumentById,
 											   ReindexingRecordPriorityInfo info) {
+
+		for (Metadata metadata : type.getAllMetadatas()) {
+			selfParentReference |= (metadata.getType() == REFERENCE
+									&& metadata.getReferencedSchemaTypeCode().equals(type.getCode())
+									&& metadata.isChildOfRelationship());
+		}
+
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.mainThreadQueryRows = mainThreadQueryRows;
@@ -87,7 +97,8 @@ public class ReindexingSchemaTypeRecordsProvider {
 			protected Record getNextOrNull() {
 				while (nestedRecordsIterator.hasNext()) {
 					Record record = nestedRecordsIterator.next();
-					if (!ids.contains(record.getId()) && !idsInCurrentBatch.contains(record.getId())) {
+					int intId = record.getRecordId().intValue();
+					if (!selfParentReference || (!ids.contains(intId) && !idsInCurrentBatch.contains(intId))) {
 
 						info.markHasHandledAtIteration(dependencyLevel, type.getCode(), record.getId(), iteration);
 						return record;
@@ -100,29 +111,24 @@ public class ReindexingSchemaTypeRecordsProvider {
 		};
 	}
 
-	private Iterator<Record> newRecordsIteratorById(Set<String> idsSet) {
-		List<String> ids = new ArrayList<>(idsSet);
+	private Iterator<Record> newRecordsIteratorById(Set<Integer> intIdsSet) {
+		List<Integer> ids = new ArrayList<>(intIdsSet);
 		if (dependencyLevel % 2 == 0) {
 			Collections.sort(ids);
 		} else {
-			Collections.sort(ids, new Comparator<String>() {
-				@Override
-				public int compare(String o1, String o2) {
-					return -1 * o1.compareTo(o2);
-				}
-			});
+			Collections.sort(ids, (o1, o2) -> -1 * o1.compareTo(o2));
 		}
 
-		final Iterator<String> idsIterator = ids.iterator();
+		final Iterator<Integer> idsIterator = ids.iterator();
 
 		return new LazyIterator<Record>() {
 			@Override
 			protected Record getNextOrNull() {
 				while (idsIterator.hasNext()) {
 
-					String id = idsIterator.next();
+					Integer intId = idsIterator.next();
 					try {
-						Record record = recordServices.getDocumentById(id);
+						Record record = recordServices.getDocumentById(RecordId.id(intId).stringValue());
 						info.markHasHandledAtIteration(dependencyLevel, type.getCode(), record.getId(), iteration);
 						return record;
 					} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
@@ -136,18 +142,23 @@ public class ReindexingSchemaTypeRecordsProvider {
 	}
 
 	int markRecordAsSkipped(String id) {
-		skipped.add(id);
-		boolean alreadyHandledInPreviousIteration = ids.remove(id);
-		boolean alreadyHandledInSameIteration = idsInCurrentBatch.remove(id);
+		int intId = RecordId.toId(id).intValue();
+		skipped.add(intId);
+		boolean alreadyHandledInPreviousIteration = ids.remove(intId);
+		boolean alreadyHandledInSameIteration = idsInCurrentBatch.remove(intId);
 		return skipped.size();
 	}
 
 	void markRecordAsHandled(Record record) {
-		idsInCurrentBatch.add(record.getId());
+		if (selfParentReference) {
+			idsInCurrentBatch.add(record.getRecordId().intValue());
+		}
 	}
 
 	void markIterationAsFinished() {
-		ids.addAll(idsInCurrentBatch);
+		if (selfParentReference) {
+			ids.addAll(idsInCurrentBatch);
+		}
 		requiringAnotherIteration = !(skipped.size() == 0 || skipped.equals(lastSkippedRecords));
 		lastSkippedRecords = new HashSet<>(skipped);
 	}
@@ -155,6 +166,7 @@ public class ReindexingSchemaTypeRecordsProvider {
 	int getSkippedRecordsCount() {
 		return skipped.size();
 	}
+
 
 	boolean isRequiringAnotherIteration() {
 		return requiringAnotherIteration;
@@ -170,10 +182,16 @@ public class ReindexingSchemaTypeRecordsProvider {
 	}
 
 	public boolean isAlreadyHandledInCurrentOrPreviousBatch(String id) {
-		return ids.contains(id) || idsInCurrentBatch.contains(id);
+		int intId = RecordId.toId(id).intValue();
+		return selfParentReference && (ids.contains(intId) || idsInCurrentBatch.contains(intId));
 	}
 
 	public boolean isAlreadyHandledInPreviousBatch(String id) {
-		return ids.contains(id);
+		int intId = RecordId.toId(id).intValue();
+		return selfParentReference && ids.contains(intId);
+	}
+
+	public int getMainThreadQueryRows() {
+		return mainThreadQueryRows;
 	}
 }

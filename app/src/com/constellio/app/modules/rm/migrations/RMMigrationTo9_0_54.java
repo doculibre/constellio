@@ -19,21 +19,21 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator2;
 
-public class RMMigrationTo9_0_52 implements MigrationScript {
+public class RMMigrationTo9_0_54 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.0.52";
+		return "9.0.54";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
-		new SchemaAlterationFor9_0_52(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor9_0_54(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	private class SchemaAlterationFor9_0_52 extends MetadataSchemasAlterationHelper {
-		SchemaAlterationFor9_0_52(String collection, MigrationResourcesProvider migrationResourcesProvider,
+	private class SchemaAlterationFor9_0_54 extends MetadataSchemasAlterationHelper {
+		SchemaAlterationFor9_0_54(String collection, MigrationResourcesProvider migrationResourcesProvider,
 								  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
@@ -55,7 +55,7 @@ public class RMMigrationTo9_0_52 implements MigrationScript {
 
 			folder.get(Folder.ADMINISTRATIVE_UNIT).setTaxonomyRelationship(false);
 			folder.get(Folder.ADMINISTRATIVE_UNIT_ENTERED).setTaxonomyRelationship(true);
-
+			folder.get(Schemas.ALL_REMOVED_AUTHS).setEnabled(true).setEssentialInSummary(true);
 
 			MetadataSchemaBuilder document = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
 			document.get(Schemas.TOKENS_OF_HIERARCHY).setEssentialInSummary(true);
@@ -65,6 +65,10 @@ public class RMMigrationTo9_0_52 implements MigrationScript {
 
 			document.get(Document.FOLDER_CATEGORY).setTaxonomyRelationship(false);
 			document.get(Document.FOLDER_ADMINISTRATIVE_UNIT).setTaxonomyRelationship(false);
+			document.get(Schemas.ALL_REMOVED_AUTHS).setEnabled(true).setEssentialInSummary(true);
+
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.TITLE).setCacheIndex(false);
+			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Document.TITLE).setCacheIndex(false);
 
 			for (MetadataSchemaTypeBuilder typeBuilder : typesBuilder.getTypes()) {
 				if (typeBuilder.getDefaultSchema().hasMetadata(CommonMetadataBuilder.ATTACHED_ANCESTORS)) {

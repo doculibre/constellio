@@ -2,6 +2,7 @@ package com.constellio.model.services.records.reindexing;
 
 import com.constellio.data.utils.KeyIntMap;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
+import com.constellio.model.services.records.reindexing.SystemReindexingConsumptionInfos.SystemReindexingConsumptionHeapInfo;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.data.utils.LangUtils.sizeOf;
 import static java.lang.Class.forName;
 import static org.apache.commons.lang3.EnumUtils.getEnum;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
@@ -251,4 +253,17 @@ public class FileSystemReindexingAggregatedValuesTempStorage implements Reindexi
 		KeyIntMap<String> keyIntMap = referenceCounts.get(recordIdAggregatingValues);
 		return keyIntMap != null ? keyIntMap.get(aggregatedMetadataLocalCode) : 0;
 	}
+
+	@Override
+	public void populateCacheConsumptionInfos(SystemReindexingConsumptionInfos infos) {
+
+
+		infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo(
+				"FileSystemReindexingAggregatedValuesTempStorage.referenceCounts", sizeOf(referenceCounts)));
+
+		infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo(
+				"FileSystemReindexingAggregatedValuesTempStorage.idsWithFileConsumption", sizeOf(idsWithFile)));
+
+	}
+
 }

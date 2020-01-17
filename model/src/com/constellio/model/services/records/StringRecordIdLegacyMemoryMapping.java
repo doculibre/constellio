@@ -8,8 +8,10 @@ public class StringRecordIdLegacyMemoryMapping implements StringRecordIdLegacyMa
 	private static Map<Integer, String> isMapping = new HashMap<>();
 	private static Map<String, Integer> siMapping = new HashMap<>();
 	private static int seq;
+	private Runnable unfoundIdMappingRunnable;
 
-	public StringRecordIdLegacyMemoryMapping() {
+	public StringRecordIdLegacyMemoryMapping(Runnable unfoundIdMappingRunnable) {
+		this.unfoundIdMappingRunnable = unfoundIdMappingRunnable;
 	}
 
 	public int getIntId(String id) {
@@ -36,7 +38,8 @@ public class StringRecordIdLegacyMemoryMapping implements StringRecordIdLegacyMa
 		} else {
 			String stringId = isMapping.get(intId);
 			if (stringId == null) {
-				throw new IllegalStateException("Int value '" + intId + "' isn't mapped to any legacy string id");
+				unfoundIdMappingRunnable.run();
+				stringId = StringRecordId.INVALID_ID;
 			}
 			return stringId;
 		}

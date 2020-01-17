@@ -1403,7 +1403,7 @@ public class CacheRecordDTOUtils {
 
 
 			//BEfore replace
-//			System.out.println("Header to keep in memory (counter VS bytes) : " + headerByteArrayLengthBytesToKeepInMemory + "/" + headerWriterBytesToKeepInMemory.length);
+			//			System.out.println("Header to keep in memory (counter VS bytes) : " + headerByteArrayLengthBytesToKeepInMemory + "/" + headerWriterBytesToKeepInMemory.length);
 			//			System.out.println("Data to keep in memory (counter VS bytes) : " + dataByteArrayLengthBytesToKeepInMemory + "/" + dataWriterBytesToKeepInMemory.length);
 			//			System.out.println("Header to persist (counter VS bytes) : " + headerByteArrayLengthBytesToPersist + "/" + headerWriterBytesToPersist.length);
 			//			System.out.println("Data to persist (counter VS bytes) : " + dataByteArrayLengthBytesToPersist + "/" + dataWriterBytesToPersist.length);

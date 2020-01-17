@@ -63,6 +63,7 @@ import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.getAuthsReceivedBy;
 import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
 import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
+import static com.constellio.model.entities.schemas.Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
@@ -671,15 +672,14 @@ public class AuthorizationsServices {
 
 		} else {
 			List<String> authIds = new ArrayList<>();
-			for (Authorization authorizationDetails : schemas.getAllAuthorizationsInUnmodifiableState()) {
+			for (Authorization auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
 
-				boolean targettingRecordOrAncestor =
-						(record.getList(ATTACHED_ANCESTORS).contains(authorizationDetails.getTarget())
-						 || record.getId().equals(authorizationDetails.getTarget()))
-						&& !record.getList(ALL_REMOVED_AUTHS).contains(authorizationDetails.getId());
+				boolean authTargettingAnAttachedAncestor =
+						record.getList(ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS).contains(auth.getTargetRecordIntId()) ||
+						record.getId().equals(auth.getTarget());
 
-				if (targettingRecordOrAncestor) {
-					authIds.add(authorizationDetails.getId());
+				if (authTargettingAnAttachedAncestor && !record.getList(ALL_REMOVED_AUTHS).contains(auth.getId())) {
+					authIds.add(auth.getId());
 				}
 			}
 

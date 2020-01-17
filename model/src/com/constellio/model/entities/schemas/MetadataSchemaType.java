@@ -581,4 +581,52 @@ public class MetadataSchemaType implements Serializable {
 	public MetadataSchemaTypes getSchemaTypes() {
 		return schemaTypes;
 	}
+
+	public boolean hasMetadataWithCode(String name) {
+		if (defaultSchema.hasMetadataWithCode(name)) {
+			return true;
+		}
+		for (MetadataSchema schema : customSchemas) {
+			if (schema.hasMetadataWithCode(name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public Metadata getMetadataWithCodeOrNull(String name) {
+		Metadata metadata = defaultSchema.getMetadataWithCodeOrNull(name);
+
+		if (metadata != null) {
+			return metadata;
+		}
+		for (MetadataSchema schema : customSchemas) {
+			metadata = schema.getMetadataWithCodeOrNull(name);
+
+			if (metadata != null) {
+				return metadata;
+			}
+		}
+		return metadata;
+	}
+
+	public Metadata getMetadataById(short id) {
+
+		Metadata metadata = defaultSchema.getMetadataById(id);
+
+		if (metadata != null) {
+			return metadata;
+
+		} else {
+			for (MetadataSchema customSchema : getCustomSchemas()) {
+				Metadata customMetadata = customSchema.getMetadataById(id);
+				if (customMetadata != null) {
+					return customMetadata;
+				}
+			}
+		}
+
+
+		return null;
+	}
 }

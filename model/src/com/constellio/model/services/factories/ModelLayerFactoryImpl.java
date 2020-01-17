@@ -169,11 +169,13 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 			public void initialize() {
 				if (Toggle.USE_MEMORY_STRING_ID_MAPPING.isEnabled()) {
 					//Faster for tests
-					StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping());
+					StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping(
+							markForReindexingRunnable));
 
 				} else {
 					//Keeping mapping between runtimes
-					StringRecordId.setMapping(new StringRecordIdLegacyPersistedMapping(dataLayerFactory.getConfigManager()));
+					StringRecordId.setMapping(new StringRecordIdLegacyPersistedMapping(
+							dataLayerFactory.getConfigManager(), markForReindexingRunnable));
 
 				}
 			}

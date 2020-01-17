@@ -3,6 +3,7 @@ package com.constellio.model.entities.records.wrappers;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.RecordId;
 import org.joda.time.LocalDate;
 
 import java.util.List;
@@ -107,6 +108,16 @@ public class Authorization extends RecordWrapper {
 
 	public String getTarget() {
 		return get(TARGET);
+	}
+
+	public RecordId getTargetRecordId() {
+		String stringId = get(TARGET);
+		return stringId == null ? null : RecordId.toId(stringId);
+	}
+
+	public int getTargetRecordIntId() {
+		String stringId = get(TARGET);
+		return stringId == null ? 0 : RecordId.toIntId(stringId);
 	}
 
 	public Authorization setTarget(String target) {

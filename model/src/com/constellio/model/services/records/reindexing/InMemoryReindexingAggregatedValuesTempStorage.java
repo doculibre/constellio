@@ -2,6 +2,7 @@ package com.constellio.model.services.records.reindexing;
 
 import com.constellio.data.utils.KeyIntMap;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
+import com.constellio.model.services.records.reindexing.SystemReindexingConsumptionInfos.SystemReindexingConsumptionHeapInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +11,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.constellio.data.utils.LangUtils.sizeOf;
 
 public class InMemoryReindexingAggregatedValuesTempStorage implements ReindexingAggregatedValuesTempStorage {
 
@@ -106,5 +109,14 @@ public class InMemoryReindexingAggregatedValuesTempStorage implements Reindexing
 	public int getReferenceCount(String recordIdAggregatingValues, String aggregatedMetadataLocalCode) {
 		KeyIntMap<String> keyIntMap = referenceCounts.get(recordIdAggregatingValues);
 		return keyIntMap != null ? keyIntMap.get(aggregatedMetadataLocalCode) : 0;
+	}
+
+	@Override
+	public void populateCacheConsumptionInfos(SystemReindexingConsumptionInfos infos) {
+		infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo(
+				"InMemoryReindexingAggregatedValuesTempStorage.referenceCounts", sizeOf(referenceCounts)));
+
+		infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo(
+				"InMemoryReindexingAggregatedValuesTempStorage.entries", sizeOf(entries)));
 	}
 }

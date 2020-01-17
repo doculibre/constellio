@@ -37,10 +37,10 @@ public class UserMetadataSecurityAcceptanceTest extends ConstellioTest {
 
 
 	@Before
-	public void setUp(){
+	public void setUp() {
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users).withFoldersAndContainersOfEveryStatus());
 		recordServices = getModelLayerFactory().newRecordServices();
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection,getAppLayerFactory());
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		modelLayerFactory = getModelLayerFactory();
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 	}
@@ -54,7 +54,7 @@ public class UserMetadataSecurityAcceptanceTest extends ConstellioTest {
 		user.setCollectionReadAccess(false);
 		recordServices.update(user);
 
-		Folder folder = rmSchemasRecordsServices.getFolder(records.folder_A16);
+		Folder folder = rmSchemasRecordsServices.getFolderSummary(records.folder_A16);
 
 		// Validate that the user does not have the permission directly
 		assertThat(user.getAllRoles().contains("ADM")).isEqualTo(false);
@@ -71,7 +71,7 @@ public class UserMetadataSecurityAcceptanceTest extends ConstellioTest {
 		setFolderCategoryMetadataWithAccessRestriction("ADM");
 
 		Metadata matadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchema(Folder.DEFAULT_SCHEMA).getMetadata(Folder.CATEGORY);
-		assertThat(user.hasAccessToMetadata(matadata,folder.getWrappedRecord())).isTrue();
+		assertThat(user.hasAccessToMetadata(matadata, folder.getWrappedRecord())).isTrue();
 	}
 
 	@Test
@@ -80,12 +80,12 @@ public class UserMetadataSecurityAcceptanceTest extends ConstellioTest {
 		User user = users.aliceIn(zeCollection);
 
 		recordServices.update(user);
-		Folder folder = rmSchemasRecordsServices.getFolder(records.folder_A16);
+		Folder folder = rmSchemasRecordsServices.getFolderSummary(records.folder_A16);
 
 		recordServices.recalculate(user);
 
 		Metadata matadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchema(Folder.DEFAULT_SCHEMA).getMetadata(Folder.CATEGORY);
-		assertThat(user.hasAccessToMetadata(matadata,folder.getWrappedRecord())).isTrue();
+		assertThat(user.hasAccessToMetadata(matadata, folder.getWrappedRecord())).isTrue();
 	}
 
 	@Test
@@ -96,12 +96,12 @@ public class UserMetadataSecurityAcceptanceTest extends ConstellioTest {
 		user.setCollectionReadAccess(false);
 		recordServices.update(user);
 
-		Folder folder = rmSchemasRecordsServices.getFolder(records.folder_A16);
+		Folder folder = rmSchemasRecordsServices.getFolderSummary(records.folder_A16);
 
 		setFolderCategoryMetadataWithAccessRestriction("ADM");
 
 		Metadata matadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchema(Folder.DEFAULT_SCHEMA).getMetadata(Folder.CATEGORY);
-		assertThat(user.hasAccessToMetadata(matadata,folder.getWrappedRecord())).isFalse();
+		assertThat(user.hasAccessToMetadata(matadata, folder.getWrappedRecord())).isFalse();
 	}
 
 	private void setFolderCategoryMetadataWithAccessRestriction(String role) {

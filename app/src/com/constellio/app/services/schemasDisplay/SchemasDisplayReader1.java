@@ -9,6 +9,7 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -182,13 +183,13 @@ public class SchemasDisplayReader1 {
 					Element displayMetadataCodesElement = schemaDisplayConfigsElement.getChild(DISPLAY_METADATA_CODES);
 
 					List<String> displayMetadataCodes = new ArrayList<>();
-					addElementValuesToList(schema, displayMetadataCodesElement, displayMetadataCodes);
+					addElementValuesToListRestrictingToMetadatasOfSchema(schema, displayMetadataCodesElement, displayMetadataCodes);
 
 					Element formMetadataCodesElement = schemaDisplayConfigsElement.getChild(FORM_METADATA_CODES);
 
 					List<String> formMetadataCodes = new ArrayList<>();
 					List<String> formHiddenMetadataCodes = new ArrayList<>();
-					addElementValuesToList(schema, formMetadataCodesElement, formMetadataCodes);
+					addElementValuesToListRestrictingToMetadatasOfSchema(schema, formMetadataCodesElement, formMetadataCodes);
 
 					for (Metadata metadata : SchemaDisplayUtils.getRequiredMetadatasInSchemaForm(schema)) {
 						if (!formMetadataCodes.contains(metadata.getCode())) {
@@ -216,13 +217,13 @@ public class SchemasDisplayReader1 {
 							.getChild(SEARCH_RESULTS_METADATA_CODES);
 
 					List<String> searchResultsMetadataCodes = new ArrayList<>();
-					addElementValuesToList(schema, searchResultsMetadataCodesElement, searchResultsMetadataCodes);
+					addElementValuesToListRestrictingToMetadatasOfSchema(schema, searchResultsMetadataCodesElement, searchResultsMetadataCodes);
 
 					Element tableMetadataCodesElement = schemaDisplayConfigsElement
 							.getChild(TABLE_METADATA_CODES);
 
 					List<String> tableMetadataCodes = new ArrayList<>();
-					addElementValuesToList(schema, tableMetadataCodesElement, tableMetadataCodes);
+					addElementValuesToListRestrictingToMetadatasOfSchemaType(schema.getSchemaType(), tableMetadataCodesElement, tableMetadataCodes);
 
 					SchemaDisplayConfig schemaDisplayConfig = new SchemaDisplayConfig(collection, schemaCode,
 							displayMetadataCodes, formMetadataCodes, formHiddenMetadataCodes,
@@ -235,12 +236,27 @@ public class SchemasDisplayReader1 {
 		return map;
 	}
 
-	private void addElementValuesToList(MetadataSchema schema, Element element,
-										List<String> list) {
+	private void addElementValuesToListRestrictingToMetadatasOfSchema(MetadataSchema schema, Element element,
+																	  List<String> list) {
 		if (element != null) {
 			for (Element e : element.getChildren()) {
-				if (schema.hasMetadataWithCode(e.getName())) {
-					list.add(e.getName());
+				Metadata metadata = schema.getMetadataWithCodeOrNull(e.getName());
+				if (metadata != null) {
+					list.add(metadata.getInheritance() == null ? metadata.getCode() : metadata.getInheritance().getCode());
+				}
+			}
+		}
+	}
+
+
+	private void addElementValuesToListRestrictingToMetadatasOfSchemaType(MetadataSchemaType schemaType,
+																		  Element element,
+																		  List<String> list) {
+		if (element != null) {
+			for (Element e : element.getChildren()) {
+				Metadata metadata = schemaType.getMetadataWithCodeOrNull(e.getName());
+				if (metadata != null) {
+					list.add(metadata.getInheritance() == null ? metadata.getCode() : metadata.getInheritance().getCode());
 				}
 			}
 		}
