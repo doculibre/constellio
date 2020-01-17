@@ -26,7 +26,6 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -154,11 +153,6 @@ public class CartBatchProcessingPresenter implements BatchProcessingPresenter {
 				.execute(selectedType, records, viewObject, user);
 		view.navigate().to(RMViews.class).cart(cartId);
 		return true;
-	}
-
-	@Override
-	public BatchProcessingMode getBatchProcessingMode() {
-		return batchProcessingPresenterService.getBatchProcessingMode();
 	}
 
 	@Override

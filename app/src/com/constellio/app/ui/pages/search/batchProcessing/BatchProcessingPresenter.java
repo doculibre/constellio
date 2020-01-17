@@ -5,7 +5,6 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServicesException;
 
@@ -22,8 +21,6 @@ public interface BatchProcessingPresenter {
 
 	boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
 			throws RecordServicesException;
-
-	BatchProcessingMode getBatchProcessingMode();
 
 	AppLayerCollectionExtensions getBatchProcessingExtension();
 

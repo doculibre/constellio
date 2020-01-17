@@ -50,7 +50,6 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -647,11 +646,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			view.navigate().to().advancedSearch();
 		}
 		return true;
-	}
-
-	@Override
-	public BatchProcessingMode getBatchProcessingMode() {
-		return batchProcessingPresenterService().getBatchProcessingMode();
 	}
 
 	@Override

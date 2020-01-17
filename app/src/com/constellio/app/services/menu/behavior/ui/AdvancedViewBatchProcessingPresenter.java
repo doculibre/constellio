@@ -30,7 +30,6 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -123,11 +122,6 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 			view.navigate().to().advancedSearch();
 		}
 		return true;
-	}
-
-	@Override
-	public BatchProcessingMode getBatchProcessingMode() {
-		return batchProcessingPresenterService.getBatchProcessingMode();
 	}
 
 	@Override

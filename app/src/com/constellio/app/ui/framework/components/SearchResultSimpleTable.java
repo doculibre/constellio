@@ -16,7 +16,6 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter;
 import com.constellio.app.ui.pages.search.SearchView;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Container;
 import com.vaadin.data.Container.Indexed;
@@ -199,7 +198,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		selection.setSizeUndefined();
 		selection.setSpacing(true);
 		for (Component component : extra) {
-			if (component instanceof BatchProcessingButton || component instanceof BatchProcessingModifyingOneMetadataButton) {
+			if (component instanceof BatchProcessingButton) {
 				component.setEnabled(recordVOContainer != null && recordVOContainer.size() > 0);
 			} else {
 				component.setEnabled(selectedItemIds.size() > 0);
@@ -216,8 +215,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 			public void selectionChanged(SelectionChangeEvent event) {
 				boolean somethingSelected = event.isSelectAll() || !event.getSelected().isEmpty();
 				for (Component component : extra) {
-					if (component instanceof BatchProcessingButton
-						|| component instanceof BatchProcessingModifyingOneMetadataButton) {
+					if (component instanceof BatchProcessingButton) {
 						component.setEnabled(recordVOContainer != null && recordVOContainer.size() > 0);
 					} else {
 						component.setEnabled(somethingSelected);

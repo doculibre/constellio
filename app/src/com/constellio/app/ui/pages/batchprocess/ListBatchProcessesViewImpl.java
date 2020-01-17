@@ -11,6 +11,7 @@ import com.vaadin.ui.VerticalLayout;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+// JOLA --> Page listing all batch process in personnal space
 public class ListBatchProcessesViewImpl extends BaseViewImpl implements ListBatchProcessesView {
 
 	private BatchProcessDataProvider userBatchProcessDataProvider;

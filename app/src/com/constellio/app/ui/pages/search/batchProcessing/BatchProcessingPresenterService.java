@@ -40,7 +40,6 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -63,7 +62,6 @@ import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -455,11 +453,6 @@ public class BatchProcessingPresenterService {
 		System.out.println("\nRESULTS : ");
 		System.out.println(results);
 		return results;
-	}
-
-	public BatchProcessingMode getBatchProcessingMode() {
-		ConstellioEIMConfigs eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		return eimConfigs.getBatchProcessingMode();
 	}
 
 	private BatchProcessResults toBatchProcessResults(List<Transaction> transactionList) {

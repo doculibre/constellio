@@ -6,7 +6,6 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
 import com.constellio.model.entities.enums.AutocompleteSplitCriteria;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.enums.EmailTextFormat;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.enums.MemoryConsumptionLevel;
@@ -57,7 +56,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration CONSTELLIO_URL;
 	public static final SystemConfiguration CLEAN_DURING_INSTALL;
 	public static final SystemConfiguration IN_UPDATE_PROCESS;
-	public static final SystemConfiguration BATCH_PROCESSING_MODE;
 
 	public static final SystemConfiguration CMIS_NEVER_RETURN_ACL;
 
@@ -205,8 +203,6 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
 		add(LOGIN_NOTIFICATION_ALERT = hiddenSystemConfigs.createBinary("loginNotificationAlert").whichIsHidden());
-		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class)
-				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA));
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
@@ -395,10 +391,6 @@ public class ConstellioEIMConfigs {
 
 	public Integer getTrashPurgeDelai() {
 		return manager.getValue(TRASH_PURGE_DELAI);
-	}
-
-	public BatchProcessingMode getBatchProcessingMode() {
-		return manager.getValue(BATCH_PROCESSING_MODE);
 	}
 
 	public SearchSortType getSearchSortType() {

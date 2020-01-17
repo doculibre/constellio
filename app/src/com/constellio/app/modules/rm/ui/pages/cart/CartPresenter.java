@@ -54,7 +54,6 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -575,11 +574,6 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds) {
 		return batchProcessingPresenterService().hasWriteAccessOnAllRecords(getCurrentUser(), selectedRecordIds);
-	}
-
-	@Override
-	public BatchProcessingMode getBatchProcessingMode() {
-		return batchProcessingPresenterService().getBatchProcessingMode();
 	}
 
 	@Override
