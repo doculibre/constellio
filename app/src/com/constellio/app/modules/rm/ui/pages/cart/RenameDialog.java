@@ -5,6 +5,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.vaadin.server.Resource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -18,7 +19,7 @@ public abstract class RenameDialog extends WindowButton {
 	private String originalValue;
 
 	public RenameDialog(Resource icon, String caption, String windowCaption, boolean iconOnly) {
-		super(icon, caption, windowCaption, iconOnly, WindowConfiguration.modalDialog("768px", "130px"));
+		super(icon, caption, windowCaption, iconOnly, WindowConfiguration.modalDialog("768px", "100px"));
 		addStyleName(ValoTheme.BUTTON_BORDERLESS);
 	}
 
@@ -58,6 +59,7 @@ public abstract class RenameDialog extends WindowButton {
 		form.setWidth("95%");
 
 		VerticalLayout layout = new VerticalLayout(form);
+		layout.setComponentAlignment(form, Alignment.MIDDLE_CENTER);
 		layout.setSizeFull();
 
 		return layout;

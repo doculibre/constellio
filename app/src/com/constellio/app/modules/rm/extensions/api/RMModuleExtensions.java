@@ -345,6 +345,12 @@ public class RMModuleExtensions implements ModuleExtensions {
 						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
 	}
 
+	public boolean isRenameActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isRenameActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+	}
+
 	public boolean isDownloadActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isDownloadActionPossible(

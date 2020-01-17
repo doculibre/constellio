@@ -16,6 +16,7 @@ import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.cart.RenameDialog;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
@@ -53,6 +54,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentConversionManager;
@@ -63,6 +65,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
@@ -154,6 +157,53 @@ public class DocumentMenuItemActionBehaviors {
 	public void edit(Document document, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to(RMViews.class).editDocument(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
+	}
+
+	public void rename(Document document, MenuItemActionBehaviorParams params) {
+		RenameDialog window = new RenameDialog(
+				FontAwesome.PENCIL_SQUARE_O,
+				$("DisplayDocumentView.renameContent"),
+				$("DisplayDocumentView.renameContent"),
+				false) {
+			@Override
+			public void save(String newValue) {
+				boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
+				boolean isAddOnly = !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
+						.getPopulateConfigs().isAddOnly();
+
+				String filename = document.getContent().getCurrentVersion().getFilename();
+				String extension = FilenameUtils.getExtension(filename);
+
+				if (!(FilenameUtils.getExtension(newValue) == extension)) {
+					newValue = FilenameUtils.removeExtension(newValue) + "." + extension;
+					//$Q Question de référence: est-ce que je peux changer la valeur du paramètre référencé de cette manière
+					//Si oui, qu'aurais-je dût faire pour modifier la valeur du paramètre seulement et non de la valeur référencée?
+				}
+
+				if (filename.equals(document.getTitle())) {
+					if (isManualEntry && isAddOnly) {
+						document.setTitle(newValue);
+					}
+
+				} else if (
+						FilenameUtils.removeExtension(filename)
+								.equals(document.getTitle())) {
+					if (isManualEntry && isAddOnly) {
+						document.setTitle(FilenameUtils.removeExtension(newValue));
+					}
+				}
+
+				document.getContent().renameCurrentVersion(newValue);
+				try {
+					recordServices.update(document.getWrappedRecord());
+					getWindow().close();
+					navigateToDisplayDocument(document.getId(), params.getFormParams());
+				} catch (RecordServicesException e) {
+					params.getView().showErrorMessage(MessageUtils.toMessage(e));
+				}
+			}
+		};
+		window.click();
 	}
 
 	public void download(Document document, MenuItemActionBehaviorParams params) {

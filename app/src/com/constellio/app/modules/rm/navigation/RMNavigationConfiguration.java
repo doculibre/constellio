@@ -139,6 +139,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String DOCUMENT_DECOMMISSIONING_LIST_DISPLAY = "documentDecommissioningList";
 	public static final String DECOMMISSIONING_LIST_EDIT = "editDecommissioningList";
 	public static final String EDIT_DOCUMENT = "editDocument";
+	public static final String RENAME_CONTENT = "renameContent";
 	public static final String DUPLICATE_FOLDER = "duplicateFolder";
 	public static final String DISPLAY_DOCUMENT = "displayDocument";
 	public static final String ADD_EMAIL_ATTACHMENTS_TO_FOLDER = "addEmailAttachmentsToFolder";

@@ -245,6 +245,14 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_DOCUMENT, params));
 	}
 
+	public void renameContent(String id, String newName) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("newName", newName);
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.RENAME_CONTENT, params));
+	}
+
 	// RETENTION RULES
 
 	public void listRetentionRules() {
