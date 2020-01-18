@@ -342,6 +342,10 @@ public class BulkRecordTransactionHandler {
 		return options.getNumberOfThreads();
 	}
 
+	public int getRecordsPerBatch() {
+		return options.getRecordsPerBatch();
+	}
+
 	public int getMaxQueueSize() {
 		return maxQueueSize;
 	}

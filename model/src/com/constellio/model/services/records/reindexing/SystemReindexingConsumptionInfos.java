@@ -15,19 +15,26 @@ public class SystemReindexingConsumptionInfos {
 
 		String name;
 
-		long consumedMemory;
+		long value;
 
-		public SystemReindexingConsumptionHeapInfo(String name, long consumedMemory) {
+		boolean memory;
+
+		public SystemReindexingConsumptionHeapInfo(String name, long value, boolean memory) {
 			this.name = name;
-			this.consumedMemory = consumedMemory;
+			this.value = value;
+			this.memory = memory;
 		}
 
 		public String getName() {
 			return name;
 		}
 
-		public long getConsumedMemory() {
-			return consumedMemory;
+		public long getValue() {
+			return value;
+		}
+
+		public boolean isMemory() {
+			return memory;
 		}
 	}
 

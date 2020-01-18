@@ -338,4 +338,8 @@ public class MetadataSchema implements Serializable {
 
 		return metadata;
 	}
+
+	public boolean hasInheritance() {
+		return !localCode.equals("default");
+	}
 }

@@ -259,10 +259,10 @@ public class FileSystemReindexingAggregatedValuesTempStorage implements Reindexi
 
 
 		infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo(
-				"FileSystemReindexingAggregatedValuesTempStorage.referenceCounts", sizeOf(referenceCounts)));
+				"FileSystemReindexingAggregatedValuesTempStorage.referenceCounts", sizeOf(referenceCounts), true));
 
 		infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo(
-				"FileSystemReindexingAggregatedValuesTempStorage.idsWithFileConsumption", sizeOf(idsWithFile)));
+				"FileSystemReindexingAggregatedValuesTempStorage.idsWithFileConsumption", sizeOf(idsWithFile), true));
 
 	}
 

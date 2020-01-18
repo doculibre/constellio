@@ -322,39 +322,39 @@ public class ReindexingServices {
 		ReindexingRecordsProvider recordsProvider = new ReindexingRecordsProvider(modelLayerFactory, mainThreadQueryRows);
 		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage = newReindexingAggregatedValuesTempStorage();
 
+		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
+				.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)
+				.setTransactionOptions(transactionOptions).showProgressionInConsole(false);
+
+		if (Toggle.FASTER_REINDEXING.isEnabled()) {
+			options.withRecordsPerBatch(100000);
+			options.setMaxRecordsTotalSizePerBatch(Octets.megaoctets(25).getOctets());
+
+		} else {
+			int batchSize = params.getBatchSize();
+			if (batchSize == 0) {
+
+				if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LEAST_MEMORY_CONSUMPTION) {
+					batchSize = 20;
+
+				} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
+					batchSize = 20;
+
+				} else {
+					batchSize = modelLayerFactory.getConfiguration().getReindexingThreadBatchSize();
+				}
+
+			}
+			options.withRecordsPerBatch(batchSize);
+			int countOfBatchesFilledByASingleQuery = mainThreadQueryRows / batchSize;
+
+			//The reader thread must have enough space in the queue to store the entire query result
+			options.setQueueSize(countOfBatchesFilledByASingleQuery + 1);
+		}
+
 		try {
 			int level = 0;
 			while (isReindexingLevel(level, types)) {
-
-				BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
-						.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)
-						.setTransactionOptions(transactionOptions).showProgressionInConsole(false);
-
-				if (Toggle.FASTER_REINDEXING.isEnabled()) {
-					options.withRecordsPerBatch(100000);
-					options.setMaxRecordsTotalSizePerBatch(Octets.megaoctets(25).getOctets());
-
-				} else {
-					int batchSize = params.getBatchSize();
-					if (batchSize == 0) {
-
-						if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LEAST_MEMORY_CONSUMPTION) {
-							batchSize = 20;
-
-						} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
-							batchSize = 20;
-
-						} else {
-							batchSize = modelLayerFactory.getConfiguration().getReindexingThreadBatchSize();
-						}
-
-					}
-					options.withRecordsPerBatch(batchSize);
-					int countOfBatchesFilledByASingleQuery = mainThreadQueryRows / batchSize;
-
-					//The reader thread must have enough space in the queue to store the entire query result
-					options.setQueueSize(countOfBatchesFilledByASingleQuery + 1);
-				}
 
 				BulkRecordTransactionHandler bulkTransactionHandler = new BulkRecordTransactionHandler(
 						modelLayerFactory.newRecordServices(), REINDEX_TYPES, options);
@@ -470,17 +470,23 @@ public class ReindexingServices {
 
 		long current = 0;
 
-		long maxRecordSize = 100_000;
-		long sizePerBatch = maxRecordSize * bulkTransactionHandler.getMaximumCountOfRecords();
+		long maxRecordSize = searchServices.getMaxRecordSize(type);
+		long sizePerBatch = maxRecordSize * bulkTransactionHandler.getRecordsPerBatch();
 		long sizeOfThreads = sizePerBatch * bulkTransactionHandler.getNumberOfThreads();
 		long sizeOfQueue = sizePerBatch * bulkTransactionHandler.getMaxQueueSize();
 		long sizeOfIterator = maxRecordSize * recordsProvider.getMainThreadQueryRows();
 
 		Supplier<SystemReindexingConsumptionInfos> consumptionSupplier = () -> {
 			SystemReindexingConsumptionInfos infos = new SystemReindexingConsumptionInfos();
-			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Queue (Estimation based on configs and max record size)", sizeOfQueue));
-			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("WriteThreads (Estimation based on configs and max record size)", sizeOfThreads));
-			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("ReadIterator (Estimation based on configs and max record size)", sizeOfIterator));
+
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Max record size ", maxRecordSize, false));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Records per batch", bulkTransactionHandler.getRecordsPerBatch(), false));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Number of threads", bulkTransactionHandler.getNumberOfThreads(), false));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Size of queue", bulkTransactionHandler.getMaxQueueSize(), false));
+
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Queue (Estimation based on configs and max record size)", sizeOfQueue, true));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("WriteThreads (Estimation based on configs and max record size)", sizeOfThreads, true));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("ReadIterator (Estimation based on configs and max record size)", sizeOfIterator, true));
 			aggregatedValuesTempStorage.populateCacheConsumptionInfos(infos);
 			return infos;
 		};

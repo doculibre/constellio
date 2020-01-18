@@ -91,8 +91,17 @@ public class CacheMemoryConsumptionReportBuilder {
 			builder.append("\n" + SEPARATOR);
 
 			SystemReindexingConsumptionInfos infos = reindexingInfos.getConsumptionSupplier().get();
+
 			for (SystemReindexingConsumptionHeapInfo info : infos.getHeapInfos()) {
-				builder.append("\n" + info.getName() + humanReadableByteCount(info.getConsumedMemory(), true));
+				if (info.isMemory()) {
+					builder.append("\n" + info.getName() + " : " + humanReadableByteCount(info.getValue(), true));
+				}
+			}
+			builder.append("\n" + "");
+			for (SystemReindexingConsumptionHeapInfo info : infos.getHeapInfos()) {
+				if (!info.isMemory()) {
+					builder.append("\n" + info.getName() + " : " + info.getValue());
+				}
 			}
 
 			builder.append("\n" + SEPARATOR);

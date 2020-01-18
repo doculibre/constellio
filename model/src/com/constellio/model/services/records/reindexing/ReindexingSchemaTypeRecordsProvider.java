@@ -51,8 +51,7 @@ public class ReindexingSchemaTypeRecordsProvider {
 
 		for (Metadata metadata : type.getAllMetadatas()) {
 			selfParentReference |= (metadata.getType() == REFERENCE
-									&& metadata.getReferencedSchemaTypeCode().equals(type.getCode())
-									&& metadata.isChildOfRelationship());
+									&& metadata.getReferencedSchemaTypeCode().equals(type.getCode()));
 		}
 
 		this.searchServices = modelLayerFactory.newSearchServices();

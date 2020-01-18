@@ -294,8 +294,7 @@ public class SearchServices {
 		return streamFromSolr(schemaType, summary);
 	}
 
-	public int getIdealBatchSize(MetadataSchemaType schemaType) {
-
+	public int getMaxRecordSize(MetadataSchemaType schemaType) {
 		LogicalSearchQuery maxSizeQuery = new LogicalSearchQuery(from(schemaType).returnAll());
 		maxSizeQuery.sortDesc(ESTIMATED_SIZE);
 		maxSizeQuery.setNumberOfRows(1);
@@ -305,12 +304,14 @@ public class SearchServices {
 
 		List<Record> records = search(maxSizeQuery);
 		if (records.isEmpty()) {
-			return 100;
+			return 1_000_000;
 		} else {
-			int maxRecordSize = records.get(0).get(ESTIMATED_SIZE);
-			return 100_000_000 / maxRecordSize;
-
+			return records.get(0).get(ESTIMATED_SIZE);
 		}
+	}
+
+	public int getIdealBatchSize(MetadataSchemaType schemaType) {
+		return 100_000_000 / getMaxRecordSize(schemaType);
 	}
 
 	public Stream<Record> streamFromSolr(MetadataSchemaType schemaType, boolean summary) {

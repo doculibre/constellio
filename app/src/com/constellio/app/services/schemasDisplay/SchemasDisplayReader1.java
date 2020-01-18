@@ -242,7 +242,11 @@ public class SchemasDisplayReader1 {
 			for (Element e : element.getChildren()) {
 				Metadata metadata = schema.getMetadataWithCodeOrNull(e.getName());
 				if (metadata != null) {
-					list.add(metadata.getInheritance() == null ? metadata.getCode() : metadata.getInheritance().getCode());
+					if (schema.hasInheritance()) {
+						list.add(metadata.getCode());
+					} else {
+						list.add(metadata.getInheritance() == null ? metadata.getCode() : metadata.getInheritance().getCode());
+					}
 				}
 			}
 		}

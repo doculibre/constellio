@@ -114,9 +114,9 @@ public class InMemoryReindexingAggregatedValuesTempStorage implements Reindexing
 	@Override
 	public void populateCacheConsumptionInfos(SystemReindexingConsumptionInfos infos) {
 		infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo(
-				"InMemoryReindexingAggregatedValuesTempStorage.referenceCounts", sizeOf(referenceCounts)));
+				"InMemoryReindexingAggregatedValuesTempStorage.referenceCounts", sizeOf(referenceCounts), true));
 
 		infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo(
-				"InMemoryReindexingAggregatedValuesTempStorage.entries", sizeOf(entries)));
+				"InMemoryReindexingAggregatedValuesTempStorage.entries", sizeOf(entries), true));
 	}
 }
