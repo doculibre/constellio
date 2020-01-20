@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.ComponentTreeUtils;
@@ -40,6 +41,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -98,6 +100,8 @@ public abstract class BaseForm<T> extends CustomComponent {
 	private boolean useTabSheet;
 
 	private boolean isSpecialContainerTitleCase = false;
+
+	private boolean isNeedingConfirmation = false;
 
 	private Class<?> validatorClass = null;
 
@@ -187,15 +191,31 @@ public abstract class BaseForm<T> extends CustomComponent {
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
 		buttonsLayout.setSpacing(true);
 
-		saveButton = new Button(getSaveButtonCaption());
-		//		saveButton.addStyleName(SAVE_BUTTON);
-		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-		saveButton.addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				trySave();
-			}
-		});
+		if (isActivatedByConfigAndNeedConfirmation()) {
+			saveButton = new ConfirmDialogButton(null, getSaveButtonCaption(), false, false) {
+				@Override
+				protected String getConfirmDialogMessage() {
+					return "Veuillez confirmer la modification";
+				}
+
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					trySave();
+				}
+			};
+			saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		} else {
+			saveButton = new Button(getSaveButtonCaption());
+			//		saveButton.addStyleName(SAVE_BUTTON);
+			saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+			saveButton.addClickListener(new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					trySave();
+				}
+			});
+		}
+
 
 		cancelButton = new Button(getCancelButtonCaption());
 		cancelButton.addStyleName(CANCEL_BUTTON);
@@ -633,5 +653,9 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	public VerticalLayout getFormLayout() {
 		return formLayout;
+	}
+
+	protected boolean isActivatedByConfigAndNeedConfirmation() {    //$Q nomenclature à revoir puisque toujours false dans BaseForm?
+		return false;
 	}
 }
