@@ -203,4 +203,15 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 			firstFieldWithError.focus();
 		}
 	}
+
+	@Override
+	protected boolean isActivatedByConfigAndNeedConfirmation() {
+		if (ConstellioFactories.getInstance().getAppLayerFactory().getModelLayerFactory().getSystemConfigs()
+					.isAskForConfirmationBeforeDeleteOrEdit()
+			&& this.getViewObject().isSaved()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
