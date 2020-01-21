@@ -204,7 +204,7 @@ public class ConstellioEIMConfigs {
 		add(LEGACY_IDENTIFIER_INDEXED_IN_MEMORY = advanced.createBooleanFalseByDefault("legacyIdentifierIndexedInMemory")
 				.whichRequiresReboot());
 
-		add(ASK_FOR_CONFIRMATION_BEFORE_EDIT_OR_DELETE = advanced.createBooleanTrueByDefault("askForConfirmationBeforeEditOrDelete"));
+		add(ASK_FOR_CONFIRMATION_BEFORE_EDIT_OR_DELETE = others.createBooleanTrueByDefault("askForConfirmationBeforeEditOrDelete"));
 
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
