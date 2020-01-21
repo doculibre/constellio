@@ -306,7 +306,9 @@ public class SearchServices {
 		if (records.isEmpty()) {
 			return 1_000_000;
 		} else {
-			return records.get(0).get(ESTIMATED_SIZE);
+			Record record = records.get(0);
+			Integer value = record.get(ESTIMATED_SIZE);
+			return value == null ? 1_000_000 : value;
 		}
 	}
 

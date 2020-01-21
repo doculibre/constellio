@@ -11,9 +11,6 @@ public class ReindexingRecordsProvider {
 
 	int mainThreadQueryRows;
 
-
-	ReindexingRecordPriorityInfo info = new ReindexingRecordPriorityInfo();
-
 	ModelLayerFactory modelLayerFactory;
 
 
@@ -22,9 +19,10 @@ public class ReindexingRecordsProvider {
 		this.mainThreadQueryRows = mainThreadQueryRows;
 	}
 
-	ReindexingSchemaTypeRecordsProvider newSchemaTypeProvider(MetadataSchemaType type, int dependencyLevel, int thresholdForReturningLastIgnoredDocumentById) {
+	ReindexingSchemaTypeRecordsProvider newSchemaTypeProvider(MetadataSchemaType type, int dependencyLevel,
+															  int thresholdForReturningLastIgnoredDocumentById) {
 		return new ReindexingSchemaTypeRecordsProvider(modelLayerFactory, mainThreadQueryRows, type, dependencyLevel,
-				thresholdForReturningLastIgnoredDocumentById, info);
+				thresholdForReturningLastIgnoredDocumentById);
 	}
 
 

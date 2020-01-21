@@ -25,18 +25,12 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
-import org.junit.runners.Parameterized;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -49,7 +43,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
-@RunWith(Parameterized.class)
+//@RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
@@ -69,25 +63,24 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	ReindexingServices reindexingServices;
 	ContentManager contentManager;
 
-	@Parameterized.Parameters(name = "{0}")
-	public static Collection<Object[]> testCases() {
-		// {persited},
-		return Arrays.asList(new Object[][]{{memory}});
-	}
+	//	@Parameterized.Parameters(name = "{0}")
+	//	public static Collection<Object[]> testCases() {
+	//		return Arrays.asList(new Object[][]{{memory}, {persited}});
+	//	}
 
-	public ByteArrayRecordDTOUtilsAcceptanceTest(String mode) {
-		this.mode = mode;
-	}
-
-	@Before
-	public void setUp() throws Exception {
-		CacheRecordDTOUtils.SAVE_INT_DATE_METADATAS_IN_MEMORY = mode.equals(memory);
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		CacheRecordDTOUtils.SAVE_INT_DATE_METADATAS_IN_MEMORY = true;
-	}
+	//	public ByteArrayRecordDTOUtilsAcceptanceTest(String mode) {
+	//		this.mode = mode;
+	//	}
+	//
+	//	@Before
+	//	public void setUp() throws Exception {
+	//		CacheRecordDTOUtils.SAVE_INT_DATE_METADATAS_IN_MEMORY = mode.equals(memory);
+	//	}
+	//
+	//	@After
+	//	public void tearDown() throws Exception {
+	//		CacheRecordDTOUtils.SAVE_INT_DATE_METADATAS_IN_MEMORY = true;
+	//	}
 
 	private void init() {
 		UserServices userServices = getModelLayerFactory().newUserServices();

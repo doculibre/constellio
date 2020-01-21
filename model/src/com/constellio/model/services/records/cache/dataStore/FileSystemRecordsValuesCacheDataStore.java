@@ -87,11 +87,12 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 		bufferDatabase = DBMaker.memoryDB().make();
 
-		//TODO 50mo for small servers, 200 for big ones
+		//TODO 50mo for small servers, 200 for big ones (average length of 5ko per document)
 		tempIntKeyMap = bufferDatabase.hashMap("tempIntKeysDataStore")
 				.keySerializer(Serializer.INTEGER)
 				.valueSerializer(Serializer.BYTE_ARRAY)
 				.expireStoreSize(200_000_000)
+				.expireMaxSize(40_000)
 				.expireAfterGet()
 				.expireAfterCreate()
 				.create();

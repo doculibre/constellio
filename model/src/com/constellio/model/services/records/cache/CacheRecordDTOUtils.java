@@ -33,7 +33,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
@@ -105,9 +104,6 @@ public class CacheRecordDTOUtils {
 			return bytesToPersist;
 		}
 	}
-
-	//TODO CHANGE
-	public static boolean SAVE_INT_DATE_METADATAS_IN_MEMORY = true;
 
 	public static CacheRecordDTOBytesArray convertDTOToByteArrays(RecordDTO dto, MetadataSchema schema) {
 		CachedRecordDTOByteArrayBuilder builder = new CachedRecordDTOByteArrayBuilder(dto.getId());
@@ -262,9 +258,9 @@ public class CacheRecordDTOUtils {
 			return true;
 		}
 
-		if (metadata.getType() == INTEGER) {
-			return !CacheRecordDTOUtils.SAVE_INT_DATE_METADATAS_IN_MEMORY;
-		}
+		//if (metadata.getType() == INTEGER || metadata.getType() == DATE || metadata.getType() == DATE_TIME) {
+		//return metadata.isMultivalue();
+		//}
 
 		return false;
 	}
@@ -976,7 +972,6 @@ public class CacheRecordDTOUtils {
 
 	private static class CachedRecordDTOByteArrayBuilder {
 
-		private int dataByteArrayLengthBytesToKeepInMemory;
 		private short metadatasSizeBytesToKeepInMemory;
 
 		private short metadatasSizeBytesToPersist;
@@ -1003,11 +998,8 @@ public class CacheRecordDTOUtils {
 		 * Value is stored using 1 byte
 		 */
 		private void addSingleValueBooleanMetadata(Metadata metadata, Object value) throws IOException {
-			dataWriterBytesToKeepInMemory.writeByte(metadata, ((boolean) value ? 1 : 0));
-
 			writeHeader(metadata);
-
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BOOLEAN_VALUES_SIZE;
+			dataWriterBytesToKeepInMemory.writeByte(metadata, ((boolean) value ? 1 : 0));
 			metadatasSizeBytesToKeepInMemory++;
 		}
 
@@ -1018,7 +1010,7 @@ public class CacheRecordDTOUtils {
 			}
 
 			short listSize = (short) metadatas.size();
-			writeMultivalueSize(metadata, listSize);
+			writeHeaderAndMultivalueSize(metadata, listSize);
 
 			for (Iterator i = metadatas.iterator(); i.hasNext(); ) {
 				// the index gets put in a object since a boolean cant be null and we need to keep the result
@@ -1027,7 +1019,6 @@ public class CacheRecordDTOUtils {
 				// if the value of the boolean is null, write -1
 				// else if the value if true write 1 (true) else 0 (false)
 				dataWriterBytesToKeepInMemory.writeByte(metadata, value == null ? -1 : (boolean) value ? 1 : 0);
-				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BOOLEAN_VALUES_SIZE;
 			}
 
 			metadatasSizeBytesToKeepInMemory++;
@@ -1042,6 +1033,7 @@ public class CacheRecordDTOUtils {
 		private void addSingleValueReferenceMetadata(Metadata metadata, Object value) throws IOException {
 			// the key is the result of a parsing of the string
 			// 0 means the value in the string is not a number
+			writeHeader(metadata);
 			int key = toIntKey(value);
 			short size = 0;
 
@@ -1051,12 +1043,6 @@ public class CacheRecordDTOUtils {
 				size = (short) value.toString().getBytes(StandardCharsets.UTF_8).length;
 				writeStringReference(metadata, (String) value, size);
 			}
-
-			writeHeader(metadata);
-
-			// + size if it's a string to represent each byte taken by a char
-			// else 0 to not take unused space
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_INTEGER_VALUES_SIZE + size;
 
 			metadatasSizeBytesToKeepInMemory++;
 		}
@@ -1075,7 +1061,7 @@ public class CacheRecordDTOUtils {
 		 */
 		private void addMultivalueReferenceMetadata(Metadata metadata, List<String> metadatas)
 				throws IOException {
-			writeMultivalueSize(metadata, (short) metadatas.size());
+			writeHeaderAndMultivalueSize(metadata, (short) metadatas.size());
 
 			for (String value : metadatas) {
 				short size = 0;
@@ -1091,9 +1077,6 @@ public class CacheRecordDTOUtils {
 				} else {
 					dataWriterBytesToKeepInMemory.writeInt(metadata, 0);
 				}
-
-				// + size if it's a string to represent each byte taken by a char
-				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_INTEGER_VALUES_SIZE + size;
 			}
 
 			metadatasSizeBytesToKeepInMemory++;
@@ -1139,7 +1122,7 @@ public class CacheRecordDTOUtils {
 					.filter(s -> (s == null || s.getBytes(StandardCharsets.UTF_8).length > 0))
 					.collect(Collectors.toList());
 
-			writeMultivalueSize(metadata, (short) strings.size());
+			writeHeaderAndMultivalueSize(metadata, (short) strings.size());
 
 			for (String string : strings) {
 				short size = 0;
@@ -1159,7 +1142,10 @@ public class CacheRecordDTOUtils {
 		}
 
 		private void addSingleValueIntegerMetadata(Metadata metadata, Object value) throws IOException {
+			writeHeader(metadata);
 
+			// TODO Find a better way
+			// This exist only because the value sometimes comes as a Double and other time as int
 			int intValue;
 			if (value instanceof Double) {
 				intValue = ((Double) value).intValue();
@@ -1167,56 +1153,61 @@ public class CacheRecordDTOUtils {
 				intValue = (int) value;
 			}
 
-			// TODO Find a better way
-			// This exist only because the value sometimes comes as a Double and other time as int
-			dataWriterBytesToKeepInMemory.writeInt(metadata, intValue);
-
-			writeHeader(metadata);
-
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
 			metadatasSizeBytesToKeepInMemory++;
+			if (!isMetatadataPersisted(metadata)) {
+				dataWriterBytesToKeepInMemory.writeInt(metadata, intValue);
+
+			} else {
+				dataWriterBytesToPersist.writeInt(metadata, intValue);
+				metadatasSizeBytesToPersist++;
+			}
 		}
 
 		private void addMultivalueIntegerMetadata(Metadata metadata, List<Integer> metadatas) throws IOException {
-			writeMultivalueSize(metadata, (short) metadatas.size());
-
-			for (int value : metadatas) {
-				dataWriterBytesToKeepInMemory.writeInt(metadata, value);
-
-				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
-			}
+			writeHeaderAndMultivalueSize(metadata, (short) metadatas.size());
 
 			metadatasSizeBytesToKeepInMemory++;
+
+
+			if (isMetatadataPersisted(metadata)) {
+				for (int value : metadatas) {
+					dataWriterBytesToPersist.writeInt(metadata, value);
+
+				}
+				metadatasSizeBytesToPersist++;
+			} else {
+				for (int value : metadatas) {
+					dataWriterBytesToKeepInMemory.writeInt(metadata, value);
+
+				}
+			}
 		}
 
 		private void addSingleValueNumberMetadata(Metadata metadata, Object value) throws IOException {
+			writeHeader(metadata);
 			dataWriterBytesToKeepInMemory.writeDouble(metadata, (double) value);
 
-			writeHeader(metadata);
-
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_DOUBLE_VALUES_SIZE;
 			metadatasSizeBytesToKeepInMemory++;
 		}
 
 		private void addMultivalueNumberMetadata(Metadata metadata, List<Double> metadatas) throws IOException {
-			writeMultivalueSize(metadata, (short) metadatas.size());
+			writeHeaderAndMultivalueSize(metadata, (short) metadatas.size());
 
 			for (double value : metadatas) {
 				dataWriterBytesToKeepInMemory.writeDouble(metadata, value);
-
-				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_DOUBLE_VALUES_SIZE;
 			}
 
 			metadatasSizeBytesToKeepInMemory++;
 		}
 
 		private void addSingleValueLocalDateMetadata(Metadata metadata, Object value) throws IOException {
+			writeHeader(metadata);
 			writeLocalDate(metadata, (LocalDate) value);
 
-			writeHeader(metadata);
-
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE;
 			metadatasSizeBytesToKeepInMemory++;
+			if (isMetatadataPersisted(metadata)) {
+				metadatasSizeBytesToPersist++;
+			}
 		}
 
 		private void addMultivalueLocalDateMetadata(Metadata metadata, List<LocalDate> metadatas) throws IOException {
@@ -1225,7 +1216,17 @@ public class CacheRecordDTOUtils {
 				return;
 			}
 
-			writeMultivalueSize(metadata, (short) metadatas.size());
+			writeHeaderAndMultivalueSize(metadata, (short) metadatas.size());
+
+			metadatasSizeBytesToKeepInMemory++;
+
+			DTOUtilsByteArrayDataOutputStream stream;
+			if (isMetatadataPersisted(metadata)) {
+				stream = dataWriterBytesToPersist;
+				metadatasSizeBytesToPersist++;
+			} else {
+				stream = dataWriterBytesToKeepInMemory;
+			}
 
 			for (Iterator i = metadatas.iterator(); i.hasNext(); ) {
 				// the index gets put in a object since it can be null and we need to keep the result
@@ -1235,27 +1236,25 @@ public class CacheRecordDTOUtils {
 				// 1 = a NON null value
 				// -1 = a null value
 				if (null != date) {
-					dataWriterBytesToKeepInMemory.writeByte(metadata, 1);
+					stream.writeByte(metadata, 1);
 					writeLocalDate(metadata, (LocalDate) date);
 
-					dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE;
 				} else {
-					dataWriterBytesToKeepInMemory.writeByte(metadata, -1);
+					stream.writeByte(metadata, -1);
 				}
 
-				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
 			}
 
-			metadatasSizeBytesToKeepInMemory++;
+
 		}
 
 		private void addSingleValueLocalDateTimeMetadata(Metadata metadata, Object value) throws IOException {
-			writeLocalDateTime(metadata, (LocalDateTime) value);
-
 			writeHeader(metadata);
-
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_LONG_VALUES_SIZE;
+			writeLocalDateTime(metadata, (LocalDateTime) value);
 			metadatasSizeBytesToKeepInMemory++;
+			if (isMetatadataPersisted(metadata)) {
+				metadatasSizeBytesToPersist++;
+			}
 		}
 
 		private void addMultivalueLocalDateTimeMetadata(Metadata metadata, List<LocalDateTime> metadatas)
@@ -1265,7 +1264,15 @@ public class CacheRecordDTOUtils {
 				return;
 			}
 
-			writeMultivalueSize(metadata, (short) metadatas.size());
+			writeHeaderAndMultivalueSize(metadata, (short) metadatas.size());
+
+			DTOUtilsByteArrayDataOutputStream stream;
+			if (isMetatadataPersisted(metadata)) {
+				stream = dataWriterBytesToPersist;
+				metadatasSizeBytesToPersist++;
+			} else {
+				stream = dataWriterBytesToKeepInMemory;
+			}
 
 			for (Iterator i = metadatas.iterator(); i.hasNext(); ) {
 				// the index gets put in a object since it can be null and we need to keep the result
@@ -1275,54 +1282,45 @@ public class CacheRecordDTOUtils {
 				// 1 = a NON null value
 				// -1 = a null value
 				if (null != dateTime) {
-					dataWriterBytesToKeepInMemory.writeByte(metadata, 1);
+					stream.writeByte(metadata, 1);
 					writeLocalDateTime(metadata, (LocalDateTime) dateTime);
 
 					// +8 since the datetime is stored as Epoch Time
-					dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_LONG_VALUES_SIZE;
 				} else {
-					dataWriterBytesToKeepInMemory.writeByte(metadata, -1);
+					stream.writeByte(metadata, -1);
 				}
 
-				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
 			}
 
 			metadatasSizeBytesToKeepInMemory++;
 		}
 
 		private void addSingleValueEnumMetadata(Metadata metadata, Object value) throws IOException {
+			writeHeader(metadata);
 			writeEnum(metadata, metadata.getEnumClass(), (String) value);
 
-			writeHeader(metadata);
-
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
 			metadatasSizeBytesToKeepInMemory++;
 		}
 
 		private void addMultivalueEnumMetadata(Metadata metadata, List<Enum> metadatas) throws IOException {
-			writeMultivalueSize(metadata, (short) metadatas.size());
+			writeHeaderAndMultivalueSize(metadata, (short) metadatas.size());
 
 			for (Object value : metadatas) {
 				writeEnum(metadata, metadata.getEnumClass(), (String) value);
-
-				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
 			}
 
 			metadatasSizeBytesToKeepInMemory++;
 		}
 
-		private void writeMultivalueSize(Metadata metadata, short listSize) throws IOException {
+		private void writeHeaderAndMultivalueSize(Metadata metadata, short listSize) throws IOException {
 			// the listSize tells us how many of those metadata types we should parse when reading the byte array
 			// stops us from parsing a short when parsing int metadata for example
+			writeHeader(metadata);
 			if (isMetatadataPersisted(metadata)) {
-				writeHeader(metadata);
 				dataWriterBytesToPersist.writeShort(metadata, listSize);
 
 			} else {
-				writeHeader(metadata);
 				dataWriterBytesToKeepInMemory.writeShort(metadata, listSize);
-
-				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_METADATA_VALUES_SIZE;
 			}
 		}
 
@@ -1357,12 +1355,20 @@ public class CacheRecordDTOUtils {
 			}
 
 			intTo3ByteArray(dateValue, bytes);
-			dataWriterBytesToKeepInMemory.write(metadata, bytes);
+			if (isMetatadataPersisted(metadata)) {
+				dataWriterBytesToPersist.write(metadata, bytes);
+			} else {
+				dataWriterBytesToKeepInMemory.write(metadata, bytes);
+			}
 		}
 
 		private void writeLocalDateTime(Metadata metadata, LocalDateTime dateTime) throws IOException {
 			// long because it's the date in epoch millis (millis since 1 jan 1970)
-			dataWriterBytesToKeepInMemory.writeLong(metadata, dateTime.toDateTime().getMillis());
+			if (isMetatadataPersisted(metadata)) {
+				dataWriterBytesToPersist.writeLong(metadata, dateTime.toDateTime().getMillis());
+			} else {
+				dataWriterBytesToKeepInMemory.writeLong(metadata, dateTime.toDateTime().getMillis());
+			}
 		}
 
 		private void writeEnum(Metadata metadata, Class<? extends Enum> clazz, String smallCode) throws IOException {
@@ -1373,6 +1379,7 @@ public class CacheRecordDTOUtils {
 		}
 
 		private void writeHeader(Metadata metadata) throws IOException {
+
 			short id = metadata.getId();
 			// if it's a string it will be stored in the persisted cache, but we want to know what is in the cache from the entrySet function
 			headerWriterBytesToKeepInMemory.writeShort(metadata, id);
@@ -1387,7 +1394,8 @@ public class CacheRecordDTOUtils {
 				headerWriterBytesToPersist.writeShort(metadata, dataWriterBytesToPersist.length);
 				// +2 bytes for id of the metadata and +2 for the index in the data array
 			} else {
-				headerWriterBytesToKeepInMemory.writeShort(metadata, dataByteArrayLengthBytesToKeepInMemory);
+
+				headerWriterBytesToKeepInMemory.writeShort(metadata, dataWriterBytesToKeepInMemory.length);
 				// +2 bytes for id of the metadata and +2 for the index in the data array
 			}
 		}
@@ -1395,19 +1403,15 @@ public class CacheRecordDTOUtils {
 		public CacheRecordDTOBytesArray build() throws IOException {
 
 
-			byte[] dataToKeepInMemory = new byte[BYTES_TO_WRITE_METADATA_VALUES_SIZE + headerWriterBytesToKeepInMemory.length + dataByteArrayLengthBytesToKeepInMemory];
+			byte[] dataToKeepInMemory = new byte[BYTES_TO_WRITE_METADATA_VALUES_SIZE + headerWriterBytesToKeepInMemory.length + dataWriterBytesToKeepInMemory.length];
 			// BYTES_TO_WRITE_METADATA_VALUES_SIZE in destPos because index 0 & 1 are placeholders (short)
 			// for the number of metadata (metadatasSizeBytesToKeepInMemory) in the final array
 			System.arraycopy(this.headerWriterBytesToKeepInMemory.toByteArray(), 0, dataToKeepInMemory, BYTES_TO_WRITE_METADATA_VALUES_SIZE, headerWriterBytesToKeepInMemory.length);
-			System.arraycopy(this.dataWriterBytesToKeepInMemory.toByteArray(), 0, dataToKeepInMemory, headerWriterBytesToKeepInMemory.length + BYTES_TO_WRITE_METADATA_VALUES_SIZE, dataByteArrayLengthBytesToKeepInMemory);
+			System.arraycopy(this.dataWriterBytesToKeepInMemory.toByteArray(), 0, dataToKeepInMemory, headerWriterBytesToKeepInMemory.length + BYTES_TO_WRITE_METADATA_VALUES_SIZE, dataWriterBytesToKeepInMemory.length);
 
 			byte[] dataToPersist = new byte[BYTES_TO_WRITE_METADATA_VALUES_SIZE + headerWriterBytesToPersist.length + dataWriterBytesToPersist.length];
 			// BYTES_TO_WRITE_METADATA_VALUES_SIZE in destPos because index 0 & 1 are placeholders (short)
 			// for the number of metadata (metadatasSizeBytesToKeepInMemory) in the final array
-
-			//			if (headerByteArrayLengthBytesToPersist != headerWriterBytesToPersist.length) {
-			//				throw new IllegalStateException("headerWriterBytesToPersist doesn't have expected size : " + headerWriterBytesToPersist.length + " != " + headerWriterBytesToPersist.length);
-			//			}
 
 			System.arraycopy(this.headerWriterBytesToPersist.toByteArray(), 0, dataToPersist, BYTES_TO_WRITE_METADATA_VALUES_SIZE, headerWriterBytesToPersist.length);
 			System.arraycopy(this.dataWriterBytesToPersist.toByteArray(), 0, dataToPersist, headerWriterBytesToPersist.length + BYTES_TO_WRITE_METADATA_VALUES_SIZE, dataWriterBytesToPersist.length);

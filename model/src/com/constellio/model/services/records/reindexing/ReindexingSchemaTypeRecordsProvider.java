@@ -41,13 +41,12 @@ public class ReindexingSchemaTypeRecordsProvider {
 	MetadataSchemaType type;
 	int dependencyLevel;
 	int thresholdForReturningLastIgnoredDocumentById;
-	ReindexingRecordPriorityInfo info;
+	int handled;
 	boolean selfParentReference;
 
 	public ReindexingSchemaTypeRecordsProvider(ModelLayerFactory modelLayerFactory, int mainThreadQueryRows,
 											   MetadataSchemaType type, int dependencyLevel,
-											   int thresholdForReturningLastIgnoredDocumentById,
-											   ReindexingRecordPriorityInfo info) {
+											   int thresholdForReturningLastIgnoredDocumentById) {
 
 		for (Metadata metadata : type.getAllMetadatas()) {
 			selfParentReference |= (metadata.getType() == REFERENCE
@@ -60,7 +59,6 @@ public class ReindexingSchemaTypeRecordsProvider {
 		this.type = type;
 		this.dependencyLevel = dependencyLevel;
 		this.thresholdForReturningLastIgnoredDocumentById = thresholdForReturningLastIgnoredDocumentById;
-		this.info = info;
 	}
 
 	public Iterator<Record> startNewSchemaTypeIteration() {
@@ -99,7 +97,6 @@ public class ReindexingSchemaTypeRecordsProvider {
 					int intId = record.getRecordId().intValue();
 					if (!selfParentReference || (!ids.contains(intId) && !idsInCurrentBatch.contains(intId))) {
 
-						info.markHasHandledAtIteration(dependencyLevel, type.getCode(), record.getId(), iteration);
 						return record;
 					}
 
@@ -127,9 +124,7 @@ public class ReindexingSchemaTypeRecordsProvider {
 
 					Integer intId = idsIterator.next();
 					try {
-						Record record = recordServices.getDocumentById(RecordId.id(intId).stringValue());
-						info.markHasHandledAtIteration(dependencyLevel, type.getCode(), record.getId(), iteration);
-						return record;
+						return recordServices.getDocumentById(RecordId.id(intId).stringValue());
 					} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 						//Skipping this record
 					}
