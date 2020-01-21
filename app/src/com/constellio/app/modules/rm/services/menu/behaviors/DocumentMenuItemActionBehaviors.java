@@ -180,9 +180,6 @@ public class DocumentMenuItemActionBehaviors {
 					} else {
 						newValue = FilenameUtils.removeExtension(newValue);
 					}
-
-					//$Q Question de référence: est-ce que je peux changer la valeur du paramètre référencé de cette manière
-					//Si oui, qu'aurais-je dût faire pour modifier la valeur du paramètre seulement et non de la valeur référencée?
 				}
 
 				if (filename.equals(document.getTitle())) {
