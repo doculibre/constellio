@@ -8,6 +8,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
 import java.util.HashMap;
@@ -42,8 +43,14 @@ public abstract class FolderFormImpl extends RecordForm implements FolderForm {
 		return ConstellioUI.getCurrentSessionContext();
 	}
 
+	@Override
 	public void addExtraFieldToForm(Field component, int index, String key) {
-		formLayout.addComponent(component, index);
+		if (tabSheet.iterator().hasNext()) {
+			addToDefaultLayoutOrTabSheet(component);
+
+		} else {
+			formLayout.addComponent(component, index);
+		}
 		extraField.put(key, component);
 	}
 

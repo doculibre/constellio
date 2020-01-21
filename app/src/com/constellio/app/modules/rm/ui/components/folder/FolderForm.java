@@ -47,4 +47,6 @@ public interface FolderForm extends Serializable {
 	List<Field<?>> getFields();
 
 	Field getExtraField(String key);
+
+	void addExtraFieldToForm(Field component, int index, String key);
 }

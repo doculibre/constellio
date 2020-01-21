@@ -9,6 +9,8 @@ public interface AddEditFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void setRecord(RecordVO recordVO);
 
+	RecordVO getRecord();
+
 	FolderForm getForm();
 
 }

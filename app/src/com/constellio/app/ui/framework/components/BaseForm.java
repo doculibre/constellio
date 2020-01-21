@@ -116,6 +116,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 			this.fields.add(field);
 		}
 
+
 		setSizeFull();
 		addStyleName(BASE_FORM);
 
@@ -308,7 +309,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		return tabCaption;
 	}
 
-	private void addToDefaultLayoutOrTabSheet(Field<?> field) {
+	protected void addToDefaultLayoutOrTabSheet(Field<?> field) {
 		VerticalLayout fieldLayout;
 		if (useTabSheet) {
 			Object propertyId = fieldGroup.getPropertyId(field);

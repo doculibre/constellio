@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import com.constellio.app.modules.rm.ui.components.RMRecordFieldFactory;
 import com.constellio.app.modules.rm.ui.components.folder.FolderForm;
 import com.constellio.app.modules.rm.ui.components.folder.FolderFormImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
@@ -13,6 +14,8 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Layout;
+
+import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -61,6 +64,11 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 	@Override
 	public void setRecord(RecordVO recordVO) {
 		this.recordVO = recordVO;
+	}
+
+	@Override
+	public RecordVO getRecord(){
+		return this.recordVO;
 	}
 
 	@Override
@@ -180,5 +188,6 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 	protected boolean isFullWidthIfActionMenuAbsent() {
 		return true;
 	}
+
 
 }

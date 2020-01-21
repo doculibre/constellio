@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components;
 import java.io.Serializable;
 import java.util.Locale;
 
+import com.constellio.app.api.extensions.params.MetadataFieldExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryPostBuildExtensionParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -39,7 +40,15 @@ public class RecordFieldFactory implements Serializable {
 	}
 
 	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
-		return metadataFieldFactory.build(metadataVO, locale);
+		String collection = recordVO.getSchema().getCollection();
+		ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
+		AppLayerCollectionExtensions collectionExtensions = constellioFactories.getAppLayerFactory().getExtensions().forCollection(collection);
+		Field field = collectionExtensions.getMetadataField(new MetadataFieldExtensionParams(metadataVO,recordVO,locale));
+		if(field != null) {
+			return field;
+		} else {
+			return metadataFieldFactory.build(metadataVO, locale);
+		}
 	}
 
 	protected void postBuild(Field<?> field, RecordVO recordVO, MetadataVO metadataVO) {
