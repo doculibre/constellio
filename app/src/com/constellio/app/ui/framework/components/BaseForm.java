@@ -195,7 +195,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 			saveButton = new ConfirmDialogButton(null, getSaveButtonCaption(), false, false) {
 				@Override
 				protected String getConfirmDialogMessage() {
-					return "Veuillez confirmer la modification";
+					return $("ConfirmDialog.confirmEdit");
 				}
 
 				@Override
