@@ -496,10 +496,10 @@ public class MetadataDisplayFactory implements Serializable {
 							//									if (viewHrefTag != null) {
 							//										displayValueString = viewHrefTag;
 							//									} else {
-							//										displayValueString = converter.convertToPresentation(referenceRecordId, String.class, locale);
+							//										displayValueString = conversion.convertToPresentation(referenceRecordId, String.class, locale);
 							//									}
 							//								} else {
-							//									displayValueString = converter.convertToPresentation(referenceRecordId, String.class, locale);
+							//									displayValueString = conversion.convertToPresentation(referenceRecordId, String.class, locale);
 							//								}
 							//							} else {
 							//								displayValueString = null;
