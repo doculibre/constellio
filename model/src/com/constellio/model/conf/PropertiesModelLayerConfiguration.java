@@ -175,7 +175,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 	@Override
 	public int getReindexingQueryBatchSize() {
-		return getInt("reindexing.queryBatchSize", 5000);
+		return getInt("reindexing.queryBatchSize", 2500);
 	}
 
 	@Override
@@ -185,7 +185,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 	@Override
 	public int getReindexingThreadBatchSize() {
-		return getInt("reindexing.threadBatchSize", 250);
+		return getInt("reindexing.threadBatchSize", 100);
 	}
 
 	@Override
