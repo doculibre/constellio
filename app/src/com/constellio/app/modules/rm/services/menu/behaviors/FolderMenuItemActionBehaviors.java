@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
+import com.constellio.app.modules.rm.ui.buttons.BorrowWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
@@ -44,9 +45,7 @@ import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
-import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
-import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -73,14 +72,10 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.roles.Roles;
-import com.vaadin.data.Property.ValueChangeEvent;
-import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
@@ -483,115 +478,17 @@ public class FolderMenuItemActionBehaviors {
 		cartWindowButton.addToCart();
 	}
 
-	public void borrow(Folder folderSummary, MenuItemActionBehaviorParams params) {
-		Folder folder = loadingFullRecordIfSummary(folderSummary);
-		Button borrowButton = new WindowButton($("DisplayFolderView.borrow"),
-				$("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "500px")) {
-			@Override
-			protected Component buildWindowContent() {
-				final JodaDateField borrowDatefield = new JodaDateField();
-				borrowDatefield.setCaption($("DisplayFolderView.borrowDate"));
-				borrowDatefield.setRequired(true);
-				borrowDatefield.setId("borrowDate");
-				borrowDatefield.addStyleName("borrowDate");
-				borrowDatefield.setValue(TimeProvider.getLocalDate().toDate());
+	public void borrow(Folder folder, MenuItemActionBehaviorParams params) {
+		borrow(Arrays.asList(folder), params);
+	}
 
-				final Field<?> lookupUser = new LookupRecordField(User.SCHEMA_TYPE);
-				lookupUser.setCaption($("DisplayFolderView.borrower"));
-				lookupUser.setId("borrower");
-				lookupUser.addStyleName(USER_LOOKUP);
-				lookupUser.setRequired(true);
+	public void borrow(List<Folder> folders, MenuItemActionBehaviorParams params) {
+		List<Record> records = new ArrayList<>();
+		for (Folder folder : folders) {
+			records.add(folder.getWrappedRecord());
+		}
 
-				final ComboBox borrowingTypeField = new BaseComboBox();
-				borrowingTypeField.setCaption($("DisplayFolderView.borrowingType"));
-				for (BorrowingType borrowingType : BorrowingType.values()) {
-					borrowingTypeField.addItem(borrowingType);
-					borrowingTypeField
-							.setItemCaption(borrowingType, $("DisplayFolderView.borrowingType." + borrowingType.getCode()));
-				}
-				borrowingTypeField.setRequired(true);
-				borrowingTypeField.setNullSelectionAllowed(false);
-
-				final JodaDateField previewReturnDatefield = new JodaDateField();
-				previewReturnDatefield.setCaption($("DisplayFolderView.previewReturnDate"));
-				previewReturnDatefield.setRequired(true);
-				previewReturnDatefield.setId("previewReturnDate");
-				previewReturnDatefield.addStyleName("previewReturnDate");
-
-				final JodaDateField returnDatefield = new JodaDateField();
-				returnDatefield.setCaption($("DisplayFolderView.returnDate"));
-				returnDatefield.setRequired(false);
-				returnDatefield.setId("returnDate");
-				returnDatefield.addStyleName("returnDate");
-
-				borrowDatefield.addValueChangeListener(new ValueChangeListener() {
-					@Override
-					public void valueChange(ValueChangeEvent event) {
-						previewReturnDatefield.setValue(
-								getPreviewReturnDate(borrowDatefield.getValue(), borrowingTypeField.getValue()));
-					}
-				});
-				borrowingTypeField.addValueChangeListener(new ValueChangeListener() {
-					@Override
-					public void valueChange(ValueChangeEvent event) {
-						previewReturnDatefield.setValue(
-								getPreviewReturnDate(borrowDatefield.getValue(), borrowingTypeField.getValue()));
-					}
-				});
-
-				BaseButton borrowButton = new BaseButton($("DisplayFolderView.borrow")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						String userId = null;
-						BorrowingType borrowingType = null;
-						if (lookupUser.getValue() != null) {
-							userId = (String) lookupUser.getValue();
-						}
-						if (borrowingTypeField.getValue() != null) {
-							borrowingType = BorrowingType.valueOf(borrowingTypeField.getValue().toString());
-						}
-						LocalDate borrowLocalDate = null;
-						LocalDate previewReturnLocalDate = null;
-						LocalDate returnLocalDate = null;
-						if (borrowDatefield.getValue() != null) {
-							borrowLocalDate = LocalDate.fromDateFields(borrowDatefield.getValue());
-						}
-						if (previewReturnDatefield.getValue() != null) {
-							previewReturnLocalDate = LocalDate.fromDateFields(previewReturnDatefield.getValue());
-						}
-						if (returnDatefield.getValue() != null) {
-							returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
-						}
-						if (borrowFolder(folder, borrowLocalDate, previewReturnLocalDate, userId,
-								borrowingType, returnLocalDate, params)) {
-							getWindow().close();
-						}
-					}
-				};
-				borrowButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				BaseButton cancelButton = new BaseButton($("cancel")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getWindow().close();
-					}
-				};
-				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				HorizontalLayout horizontalLayout = new HorizontalLayout();
-				horizontalLayout.setSpacing(true);
-				horizontalLayout.addComponents(borrowButton, cancelButton);
-
-				VerticalLayout verticalLayout = new VerticalLayout();
-				verticalLayout
-						.addComponents(borrowDatefield, borrowingTypeField, lookupUser, previewReturnDatefield, returnDatefield,
-								horizontalLayout);
-				verticalLayout.setSpacing(true);
-				verticalLayout.addStyleName("no-scroll");
-
-				return verticalLayout;
-			}
-		};
+		Button borrowButton = new BorrowWindowButton(records, params);
 		borrowButton.click();
 	}
 

@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
+import com.constellio.app.modules.rm.ui.buttons.BorrowWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -26,6 +27,7 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -39,6 +41,8 @@ import com.vaadin.ui.Component;
 import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -182,6 +186,20 @@ public class ContainerRecordMenuItemActionBehaviors {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
 		params.getView().navigate().to(RMViews.class).displayContainer(container.getId());
+	}
+
+	public void borrow(ContainerRecord container, MenuItemActionBehaviorParams params) {
+		borrow(Arrays.asList(container), params);
+	}
+
+	public void borrow(List<ContainerRecord> containers, MenuItemActionBehaviorParams params) {
+		List<Record> records = new ArrayList<>();
+		for (ContainerRecord container : containers) {
+			records.add(container.getWrappedRecord());
+		}
+
+		Button borrowButton = new BorrowWindowButton(records, params);
+		borrowButton.click();
 	}
 
 	private class ContainerReportPresenter implements NewReportPresenter {
