@@ -162,7 +162,7 @@ public class SystemMemory {
 		}
 
 		public String toString(MemoryUnit unit) {
-			return toString(unit, 0);
+			return toString(unit, 1);
 		}
 
 		public String toString(MemoryUnit unit, int numberOfDecimals) {

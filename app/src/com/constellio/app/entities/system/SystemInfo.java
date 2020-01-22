@@ -34,8 +34,10 @@ public class SystemInfo {
 	private static final String LICENSE_EXPIRED = "licenseExpired";
 	private static final String VALID_LICENSE = "validLicense";
 	private static final String OPT_DISK_USAGE = "optDiskUsage";
+	private static final String OPT_DISK_AVAILABILITY = "optDiskUsageExtended";
 	private static final String OPT_DISK_USAGE_MISSING_INFO = "optDiskUsageMissingInfo";
 	private static final String SOLR_DISK_USAGE = "solrDiskUsage";
+	private static final String SOLR_DISK_AVAILABILITY = "solrDiskUsageExtended";
 	private static final String SOLR_DISK_USAGE_MISSING_INFO = "solrDiskUsageMissingInfo";
 	private static final String CONSTELLIO_MEMORY_CONSUMPTION_HIGH = "constellioMemoryConsumptionHigh";
 	private static final String CONSTELLIO_MEMORY_CONSUMPTION_LOW = "constellioMemoryConsumptionLow";
@@ -60,6 +62,8 @@ public class SystemInfo {
 	String userRunningConstellio;
 	String optDiskUsage;
 	String solrDiskUsage;
+	String optDiskUsageExtended;
+	String solrDiskUsageExtended;
 	ValidationErrors validationErrors;
 
 	boolean isPrivateRepositoryInstalled;
@@ -96,8 +100,16 @@ public class SystemInfo {
 			solrVersion = systemInformationsService.getSolrVersion();
 			userRunningSolr = systemInformationsService.getSolrUser();
 			userRunningConstellio = systemInformationsService.getConstellioUser();
-			optDiskUsage = systemInformationsService.getDiskUsage("/opt");
-			solrDiskUsage = systemInformationsService.getDiskUsage("/var/solr");
+			optDiskUsageExtended = systemInformationsService.getDiskUsageExtended("/opt");
+			solrDiskUsageExtended = systemInformationsService.getDiskUsageExtended("/var/solr");
+			optDiskUsage = optDiskUsageExtended.split(" ")[3];
+			solrDiskUsage = solrDiskUsageExtended.split(" ")[3];
+			//			optDiskUsage = systemInformationsService.getDiskUsage("/opt");
+			//			solrDiskUsage = systemInformationsService.getDiskUsage("/var/solr");
+			//optDiskUsageExtended retournera une string sous cette forme
+			//44G 6.3G 35G 16%
+			//où les champs représentent, en ordre:
+			//Size, Usage, Availability, Use%(optDiskUsage)
 		}
 
 		analyzeSystemAndFindValidationErrors(configs);
@@ -178,8 +190,32 @@ public class SystemInfo {
 		return optDiskUsage;
 	}
 
+	public String getOptDiskSize() {
+		return optDiskUsageExtended.split(" ")[0];
+	}
+
+	public String getOptDiskUsageInGigabytes() {
+		return optDiskUsageExtended.split(" ")[1];
+	}
+
+	public String getOptDiskAvailability() {
+		return optDiskUsageExtended.split(" ")[2];
+	}
+
 	public String getSolrDiskUsage() {
 		return solrDiskUsage;
+	}
+
+	public String getSolrDiskSize() {
+		return solrDiskUsageExtended.split(" ")[0];
+	}
+
+	public String getSolrDiskUsageInGigabytes() {
+		return solrDiskUsageExtended.split(" ")[1];
+	}
+
+	public String getSolrDiskAvailability() {
+		return solrDiskUsageExtended.split(" ")[2];
 	}
 
 	public boolean isPrivateRepositoryInstalled() {

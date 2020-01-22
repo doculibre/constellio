@@ -101,6 +101,14 @@ public class SystemInformationsService {
 		}
 	}
 
+	public String getDiskUsageExtended(String path) {
+		try {
+			return commandHelper.getDiskUsageExtended(path);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
 	private boolean isVersionLower(String version, String requiredVersion) {
 		try {
 			if (StringUtils.isBlank(version)) {
