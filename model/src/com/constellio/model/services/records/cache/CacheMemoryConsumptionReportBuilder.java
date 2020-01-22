@@ -19,6 +19,7 @@ import static com.constellio.model.services.records.cache.offHeapCollections.Off
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.SDK;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.SortedIntIdsList_ID;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.getAllocatedMemory;
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.getFreedMemory;
 
 public class CacheMemoryConsumptionReportBuilder {
 
@@ -66,6 +67,8 @@ public class CacheMemoryConsumptionReportBuilder {
 		builder.append("\n" + SEPARATOR);
 		builder.append("\n" + "CACHE CONSUMPTION");
 		builder.append("\n" + SEPARATOR);
+		builder.append("\n" + "OffHeap memory previously used : " + humanReadableByteCount(getFreedMemory(), true));
+		builder.append("\n");
 		builder.append("\n" + "OffHeap memory usage : " + humanReadableByteCount(getAllocatedMemory(), true));
 		builder.append("\n" + "\t- Cache datastore : " + humanReadableByteCount(totalCacheOffHeap, true));
 		builder.append("\n" + "\t- Cache index : " + humanReadableByteCount(totalIndexedCacheOffHeap, true));

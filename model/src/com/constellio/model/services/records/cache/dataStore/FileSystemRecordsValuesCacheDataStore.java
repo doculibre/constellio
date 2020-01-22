@@ -71,9 +71,10 @@ public class FileSystemRecordsValuesCacheDataStore {
 			Maker dbMaker = DBMaker.fileDB(file);
 			if (useMmap) {
 				LOGGER.info("Opening MapDB with MMAP support");
-				dbMaker.fileMmapEnableIfSupported().fileMmapPreclearDisable();
+				dbMaker.fileMmapEnableIfSupported().fileMmapPreclearDisable().cleanerHackEnable();
 				dbMaker.allocateStartSize(500 * 1024 * 1024).allocateIncrement(500 * 1024 * 1024);
 			} else {
+				dbMaker.fileChannelEnable();
 				LOGGER.info("Opening MapDB without MMAP support");
 			}
 			dbMaker.checksumHeaderBypass();
@@ -141,7 +142,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 	public void saveIntKeyPersistedAndMemoryData(int id, byte[] persistedData, ByteArrayRecordDTO memoryRecordDTO) {
 		Stats.compilerFor("FileSystemRecordsValuesCacheDataStore:save").log(() -> {
 			ensureNotBusy();
-			tempIntKeyMap.put(id, persistedData);
+			//tempIntKeyMap.put(id, persistedData);
 			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 			ObjectOutputStream objectOutputStream = null;
 			try {
@@ -212,7 +213,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 				for (int i = 0; i < returnedBytes.length; i++) {
 					returnedBytes[i] = objectInputStream.readByte();
 				}
-				tempIntKeyMap.put(id, returnedBytes);
+				//tempIntKeyMap.put(id, returnedBytes);
 				//System.arraycopy(bytes, Integer.BYTES + Long.BYTES, returnedBytes, 0, returnedBytes.length);
 				//int results = objectInputStream.read(returnedBytes);
 				//System.out.println(results);
