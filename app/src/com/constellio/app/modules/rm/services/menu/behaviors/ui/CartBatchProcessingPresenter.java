@@ -122,25 +122,29 @@ public class CartBatchProcessingPresenter implements BatchProcessingPresenter {
 	}
 
 	@Override
-	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
-		return simulateButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject);
+		return simulateButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject, metadatasToEmpty);
 	}
 
-	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService
-				.simulate(selectedType, records, viewObject, user);
+				.simulate(selectedType, records, viewObject, metadatasToEmpty, user);
 		return batchProcessingPresenterService.formatBatchProcessingResults(results);
 	}
 
 	@Override
-	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
-		return processBatchButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject);
+		return processBatchButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject, metadatasToEmpty);
 	}
 
-	public boolean processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		for (Record record : recordServices.getRecordsById(view.getCollection(), records)) {
 			if (modelLayerCollectionExtensions.isModifyBlocked(record, user)) {
@@ -150,7 +154,7 @@ public class CartBatchProcessingPresenter implements BatchProcessingPresenter {
 		}
 
 		batchProcessingPresenterService
-				.execute(selectedType, records, viewObject, user);
+				.execute(selectedType, records, viewObject, metadatasToEmpty, user);
 		view.navigate().to(RMViews.class).cart(cartId);
 		return true;
 	}

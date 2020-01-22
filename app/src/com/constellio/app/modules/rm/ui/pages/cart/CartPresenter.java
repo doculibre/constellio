@@ -529,25 +529,29 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
-		return simulateButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject);
+		return simulateButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject, metadatasToEmpty);
 	}
 
-	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
-				.simulate(selectedType, records, viewObject, getCurrentUser());
+				.simulate(selectedType, records, viewObject, metadatasToEmpty, getCurrentUser());
 		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
 	@Override
-	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
-		return processBatchButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject);
+		return processBatchButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject, metadatasToEmpty);
 	}
 
-	public boolean processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		for (Record record : recordServices().getRecordsById(view.getCollection(), records)) {
 			if (modelLayerExtensions.isModifyBlocked(record, getCurrentUser())) {
@@ -557,7 +561,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		}
 
 		batchProcessingPresenterService()
-				.execute(selectedType, records, viewObject, getCurrentUser());
+				.execute(selectedType, records, viewObject, metadatasToEmpty, getCurrentUser());
 		view.navigate().to(RMViews.class).cart(cartId);
 		return true;
 	}

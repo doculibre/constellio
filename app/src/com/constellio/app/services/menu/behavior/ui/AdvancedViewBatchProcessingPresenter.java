@@ -104,18 +104,20 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 	}
 
 	@Override
-	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService
-				.simulate(selectedType, buildBatchProcessLogicalSearchQuery().setNumberOfRows(100), viewObject, user);
+				.simulate(selectedType, buildBatchProcessLogicalSearchQuery().setNumberOfRows(100), viewObject, metadatasToEmpty, user);
 		return batchProcessingPresenterService.formatBatchProcessingResults(results);
 	}
 
 	@Override
-	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		batchProcessingPresenterService
-				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, user);
+				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, metadatasToEmpty, user);
 		if (searchID != null) {
 			view.navigate().to().advancedSearchReplay(searchID);
 		} else {

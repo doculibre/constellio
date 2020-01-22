@@ -329,7 +329,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			Map<String, Object> modifications = new HashMap<>();
 			modifications.put(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
-					records.getAdmin().getUsername(), "Edit records");
+					records.getAdmin(), "Edit records");
 			fail("error expected!");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
@@ -370,7 +370,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			Map<String, Object> modifications = new HashMap<>();
 			modifications.put(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
-					records.getAdmin().getUsername(), "Edit records");
+					records.getAdmin(), "Edit records");
 			fail("error expected!");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
@@ -412,7 +412,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			Map<String, Object> modifications = new HashMap<>();
 			modifications.put(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
-					records.getAdmin().getUsername(), "Edit records");
+					records.getAdmin(), "Edit records");
 			fail("error expected!");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
@@ -452,7 +452,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			Map<String, Object> modifications = new HashMap<>();
 			modifications.put(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
-					records.getAdmin().getUsername(), "Edit records");
+					records.getAdmin(), "Edit records");
 			fail("error expected!");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
@@ -487,7 +487,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
 		request.setModifiedMetadatas(modifications);
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
-				records.getAdmin().getUsername(), "Edit records");
+				records.getAdmin(), "Edit records");
 
 		waitForBatchProcess();
 
@@ -516,7 +516,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
 		request.setModifiedMetadatas(modifications);
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
-				records.getAdmin().getUsername(), "Edit records");
+				records.getAdmin(), "Edit records");
 
 		waitForBatchProcess();
 
@@ -712,7 +712,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TITLE, "Mon dossier");
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
-				records.getAdmin().getUsername(), "Edit records");
+				records.getAdmin(), "Edit records");
 
 		waitForBatchProcess();
 		assertThat(records.getFolder_A03().getTitle()).isEqualTo("Mon dossier");
@@ -752,7 +752,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TITLE, "Mon dossier");
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
-				records.getAdmin().getUsername(), "Edit records");
+				records.getAdmin(), "Edit records");
 
 		waitForBatchProcess();
 		assertThat(records.getFolder_A03().getTitle()).isEqualTo("Mon dossier");
@@ -982,7 +982,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TYPE, records.folderTypeMeeting().getId());
 		request.setModifiedMetadatas(modifications);
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
-				records.getAdmin().getUsername(), "Edit records");
+				records.getAdmin(), "Edit records");
 
 		waitForBatchProcess();
 		assertThat(records.getFolder_A01().<String>get("subType")).isEqualTo("customSubType");
@@ -1036,7 +1036,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TYPE, records.folderTypeMeeting().getId());
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
-				records.getAdmin().getUsername(), "Edit records");
+				records.getAdmin(), "Edit records");
 
 		waitForBatchProcess();
 		assertThat(records.getFolder_A01().<String>get("subType")).isEqualTo("customSubType");

@@ -12,20 +12,28 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.Property;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -41,6 +49,7 @@ public class BatchProcessingButton extends WindowButton {
 	LookupRecordField typeField;
 	String currentSchema;
 	BatchProcessingForm form;
+	List<String> metadatasToEmpty;
 	VerticalLayout vLayout;
 
 	public BatchProcessingButton(BatchProcessingPresenter presenter, BatchProcessingView view) {
@@ -49,6 +58,7 @@ public class BatchProcessingButton extends WindowButton {
 						"75%", "75%"));
 		this.presenter = presenter;
 		this.view = view;
+		this.metadatasToEmpty = new ArrayList<>();
 	}
 
 	@Override
@@ -59,7 +69,7 @@ public class BatchProcessingButton extends WindowButton {
 		} else if (presenter.isSearchResultsSelectionForm()) {
 			windowContent = buildSearchResultsSelectionForm();
 		} else {
-			windowContent = buildBatchProcessingFormOrShowError();
+			windowContent = buildBatchProcessingComponentOrShowError();
 		}
 		return windowContent;
 	}
@@ -87,7 +97,7 @@ public class BatchProcessingButton extends WindowButton {
 					view.showErrorMessage($(validationErrors.getValidationErrors().get(0)));
 					getWindow().close();
 				}
-				getWindow().setContent(buildBatchProcessingFormOrShowError());
+				getWindow().setContent(buildBatchProcessingComponentOrShowError());
 				getWindow().setHeight(BatchProcessingButton.this.getConfiguration().getHeight());
 				getWindow().setPosition(getWindow().getPositionX(), 30);
 			}
@@ -102,7 +112,7 @@ public class BatchProcessingButton extends WindowButton {
 					view.showErrorMessage($(validationErrors.getValidationErrors().get(0)));
 					getWindow().close();
 				}
-				getWindow().setContent(buildBatchProcessingFormOrShowError());
+				getWindow().setContent(buildBatchProcessingComponentOrShowError());
 				getWindow().setHeight(BatchProcessingButton.this.getConfiguration().getHeight());
 				getWindow().setPosition(getWindow().getPositionX(), 30);
 			}
@@ -119,11 +129,27 @@ public class BatchProcessingButton extends WindowButton {
 		return panel;
 	}
 
-	private Component buildBatchProcessingFormOrShowError() {
+	private Component buildBatchProcessingComponentOrShowError() {
 		if (!presenter.validateUserHaveBatchProcessPermissionOnAllRecords(view.getSchemaType())) {
 			return new Label($("BatchProcess.batchProcessPermissionMissing"));
 		}
 
+		TabSheet tabSheet = new TabSheet();
+		tabSheet.addTab(buildBatchProcessingModifyMetadataForm(), $("BatchProcess.tab.updateMetadata"));
+		tabSheet.addTab(buildBatchProcessingEmptyMetadataForm(), $("BatchProcess.tab.emptyMetadata"));
+
+		Component buttonLayout = buildBatchProcessingActions();
+
+		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout.setSpacing(true);
+		mainLayout.addComponent(tabSheet);
+		mainLayout.addComponent(buttonLayout);
+		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
+
+		return mainLayout;
+	}
+
+	private Component buildBatchProcessingModifyMetadataForm() {
 		Panel panel = new Panel();
 		vLayout = new VerticalLayout();
 		vLayout.setSpacing(true);
@@ -171,56 +197,9 @@ public class BatchProcessingButton extends WindowButton {
 	}
 
 	public class BatchProcessingForm extends RecordForm {
-		Button simulateButton, processButton;
-
 		public BatchProcessingForm(RecordVO record, RecordFieldFactory recordFieldFactory) {
 			super(record, recordFieldFactory);
-			simulateButton = new Button($("simulate"));
-			simulateButton.addClickListener(new ClickListener() {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					form.commit();
-					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
-					try {
-						InputStream inputStream = presenter.simulateButtonClicked((String) typeField.getValue(), view.getSchemaType(), viewObject);
-
-						downloadBatchProcessingResults(inputStream);
-					} catch (RecordServicesException.ValidationException e) {
-						view.showErrorMessage($(e.getErrors()));
-					} catch (Throwable e) {
-						LOGGER.error("Unexpected error while executing batch process", e);
-						batchProcessingView.showErrorMessage($(e.getMessage()));
-					}
-				}
-			});
-			processButton = new Button($("BatchProcessingButton.process", presenter.getNumberOfRecords(view.getSchemaType())));
-			processButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-			processButton.addClickListener(new ClickListener() {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					form.commit();
-					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
-
-					try {
-						boolean success = presenter.processBatchButtonClicked((String) typeField.getValue(), view.getSchemaType(), viewObject);
-
-						getWindow().close();
-
-						if (success) {
-							batchProcessingView.showMessage($("BatchProcessing.endedNormally"));
-						}
-					} catch (RecordServicesException.ValidationException e) {
-						view.showErrorMessage($(e.getErrors()));
-					} catch (Throwable e) {
-						LOGGER.error("Unexpected error while executing batch process", e);
-						batchProcessingView.showErrorMessage($(e.getMessage()));
-					}
-				}
-
-			});
-			buttonsLayout.addComponent(processButton);
-			buttonsLayout.addComponentAsFirst(simulateButton);
 			buttonsLayout.removeComponent(cancelButton);
 			buttonsLayout.removeComponent(saveButton);
 		}
@@ -234,17 +213,6 @@ public class BatchProcessingButton extends WindowButton {
 		protected void cancelButtonClick(RecordVO viewObject) {
 			getWindow().close();
 		}
-
-		private void downloadBatchProcessingResults(final InputStream stream) {
-			Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
-				@Override
-				public InputStream getStream() {
-					return stream;
-				}
-			}, "results.xls");
-			Page.getCurrent().open(resource, null, false);
-		}
-
 	}
 
 	private class RecordFieldFactoryWithNoTypeNoContent extends RecordFieldFactory {
@@ -264,6 +232,95 @@ public class BatchProcessingButton extends WindowButton {
 			}
 			return super.build(recordVO, metadataVO, locale);
 		}
+	}
+
+	private Component buildBatchProcessingEmptyMetadataForm() {
+		VerticalLayout layout = new VerticalLayout();
+		layout.setSpacing(true);
+
+		Label label = new Label($("BatchProcess.selectMetadatasToEmpty"));
+		layout.addComponent(label);
+
+		for (MetadataVO metadata : presenter.getMetadataAllowedInBatchEdit(view.getSchemaType())) {
+			CheckBox metadataCheckBox = new CheckBox(metadata.getLabel());
+			metadataCheckBox.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					if (metadataCheckBox.getValue()) {
+						metadatasToEmpty.add(metadata.getLocalCode());
+					} else {
+						metadatasToEmpty.remove(metadata.getLocalCode());
+					}
+				}
+			});
+			layout.addComponent(metadataCheckBox);
+		}
+
+		return layout;
+	}
+
+	private Component buildBatchProcessingActions() {
+		Button simulateButton = new Button($("simulate"));
+		simulateButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				form.commit();
+				BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
+
+				try {
+					InputStream inputStream = presenter.simulateButtonClicked((String) typeField.getValue(), view.getSchemaType(), form.getViewObject(), metadatasToEmpty);
+
+					downloadBatchProcessingResults(inputStream);
+				} catch (RecordServicesException.ValidationException e) {
+					view.showErrorMessage($(e.getErrors()));
+				} catch (Throwable e) {
+					LOGGER.error("Unexpected error while executing batch process", e);
+					batchProcessingView.showErrorMessage($(e.getMessage()));
+				}
+			}
+		});
+
+		Button processButton = new Button($("BatchProcessingButton.process", presenter.getNumberOfRecords(view.getSchemaType())));
+		processButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		processButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				form.commit();
+				BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
+
+				try {
+					boolean success = presenter.processBatchButtonClicked((String) typeField.getValue(), view.getSchemaType(), form.getViewObject(), metadatasToEmpty);
+
+					getWindow().close();
+
+					if (success) {
+						batchProcessingView.showMessage($("BatchProcessing.endedNormally"));
+					}
+				} catch (RecordServicesException.ValidationException e) {
+					view.showErrorMessage($(e.getErrors()));
+				} catch (Throwable e) {
+					LOGGER.error("Unexpected error while executing batch process", e);
+					batchProcessingView.showErrorMessage($(e.getMessage()));
+				}
+			}
+
+		});
+
+		HorizontalLayout actionsLayout = new HorizontalLayout();
+		actionsLayout.setSpacing(true);
+		actionsLayout.addComponent(processButton);
+		actionsLayout.addComponentAsFirst(simulateButton);
+		return actionsLayout;
+	}
+
+	private void downloadBatchProcessingResults(final InputStream stream) {
+		Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
+			@Override
+			public InputStream getStream() {
+				return stream;
+			}
+		}, "results.xls");
+		Page.getCurrent().open(resource, null, false);
 	}
 }
 

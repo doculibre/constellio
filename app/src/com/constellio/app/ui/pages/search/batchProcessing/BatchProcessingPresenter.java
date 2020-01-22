@@ -16,10 +16,12 @@ public interface BatchProcessingPresenter {
 
 	RecordVO newRecordVO(String schema, String schemaType, SessionContext sessionContext);
 
-	InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+									  List<String> metadatasToEmpty)
 			throws RecordServicesException;
 
-	boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+									  List<String> metadatasToEmpty)
 			throws RecordServicesException;
 
 	AppLayerCollectionExtensions getBatchProcessingExtension();

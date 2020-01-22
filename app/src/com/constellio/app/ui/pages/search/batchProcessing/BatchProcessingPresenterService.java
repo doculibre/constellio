@@ -34,6 +34,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.Provider;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -62,6 +63,7 @@ import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -251,22 +253,26 @@ public class BatchProcessingPresenterService {
 		}.build(tmpRecord, RecordVO.VIEW_MODE.FORM, schemaVO, sessionContext);
 	}
 
-	public BatchProcessResults execute(String selectedType, List<String> records, RecordVO viewObject, User user)
+	public BatchProcessResults execute(String selectedType, List<String> records, RecordVO viewObject,
+									   List<String> metadatasToEmpty, User user)
 			throws RecordServicesException {
-		BatchProcessAction batchProcessAction = toAction(selectedType, viewObject);
+
+		BatchProcessAction batchProcessAction = toAction(selectedType, viewObject, metadatasToEmpty);
 		BatchProcessRequest request;
 		if (records != null && records.size() > 1000) {
-			request = toRequest(selectedType, records.subList(0, 1000), viewObject, user);
+			request = toRequest(selectedType, records.subList(0, 1000), viewObject, metadatasToEmpty, user);
 		} else {
-			request = toRequest(selectedType, records, viewObject, user);
+			request = toRequest(selectedType, records, viewObject, metadatasToEmpty, user);
 		}
 
-		return execute(request, batchProcessAction, records, user.getUsername(), "userBatchProcess");
+		return execute(request, batchProcessAction, records, user, "userBatchProcess");
 	}
 
 	public BatchProcessResults execute(BatchProcessRequest request, BatchProcessAction action, List<String> records,
-									   String username, String title)
+									   User user, String title)
 			throws RecordServicesException {
+
+		validateUserPermissionForRecordCount(records.size(), user);
 
 		//		System.out.println("**************** EXECUTE ****************");
 		//		System.out.println("ACTION : ");
@@ -276,7 +282,7 @@ public class BatchProcessingPresenterService {
 
 		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(request.getModifiedMetadatas(), null, records, Long.valueOf(records.size()));
 		AsyncTaskCreationRequest asyncTaskRequest = new AsyncTaskCreationRequest(asyncTask, collection, title);
-		asyncTaskRequest.setUsername(username);
+		asyncTaskRequest.setUsername(user.getUsername());
 
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 		batchProcessesManager.addAsyncTask(asyncTaskRequest);
@@ -284,13 +290,14 @@ public class BatchProcessingPresenterService {
 		return null;
 	}
 
-	public BatchProcessResults simulate(String selectedType, List<String> records, RecordVO viewObject, User user)
+	public BatchProcessResults simulate(String selectedType, List<String> records, RecordVO viewObject,
+										List<String> metadatasToEmpty, User user)
 			throws RecordServicesException {
 		BatchProcessRequest request;
 		if (records != null && records.size() > 100) {
-			request = toRequest(selectedType, records.subList(0, 100), viewObject, user);
+			request = toRequest(selectedType, records.subList(0, 100), viewObject, metadatasToEmpty, user);
 		} else {
-			request = toRequest(selectedType, records, viewObject, user);
+			request = toRequest(selectedType, records, viewObject, metadatasToEmpty, user);
 		}
 		return simulateWithIds(request);
 	}
@@ -383,19 +390,22 @@ public class BatchProcessingPresenterService {
 		}.build(tmpRecord, RecordVO.VIEW_MODE.FORM, schemaVO, sessionContext);
 	}
 
-	public BatchProcessResults execute(String selectedType, LogicalSearchQuery query, RecordVO viewObject, User user)
+	public BatchProcessResults execute(String selectedType, LogicalSearchQuery query, RecordVO viewObject,
+									   List<String> metadatasToEmpty, User user)
 			throws RecordServicesException {
 		LogicalSearchQuery validationQuery = query;
 		validationQuery = validationQuery.setNumberOfRows(1000);
-		BatchProcessAction batchProcessAction = toAction(selectedType, viewObject);
-		BatchProcessRequest request = toRequest(selectedType, validationQuery, viewObject, user);
-		return execute(request, batchProcessAction, query, user.getUsername(), "userBatchProcess");
+		BatchProcessAction batchProcessAction = toAction(selectedType, viewObject, metadatasToEmpty);
+		BatchProcessRequest request = toRequest(selectedType, validationQuery, viewObject, metadatasToEmpty, user);
+		return execute(request, batchProcessAction, query, user, "userBatchProcess");
 
 	}
 
 	public BatchProcessResults execute(BatchProcessRequest request, BatchProcessAction action, LogicalSearchQuery query,
-									   String username, String title)
+									   User user, String title)
 			throws RecordServicesException {
+
+		validateUserPermissionForRecordCount(query, user);
 
 		//		System.out.println("**************** EXECUTE ****************");
 		//		System.out.println("ACTION : ");
@@ -411,7 +421,7 @@ public class BatchProcessingPresenterService {
 
 		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(request.getModifiedMetadatas(), toQueryString(query), null, searchServices.getResultsCount(query));
 		AsyncTaskCreationRequest asyncTaskRequest = new AsyncTaskCreationRequest(asyncTask, collection, title);
-		asyncTaskRequest.setUsername(username);
+		asyncTaskRequest.setUsername(user.getUsername());
 
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 		batchProcessesManager.addAsyncTask(asyncTaskRequest);
@@ -426,9 +436,10 @@ public class BatchProcessingPresenterService {
 		return solrQuery;
 	}
 
-	public BatchProcessResults simulate(String selectedType, LogicalSearchQuery query, RecordVO viewObject, User user)
+	public BatchProcessResults simulate(String selectedType, LogicalSearchQuery query, RecordVO viewObject,
+										List<String> metadatasToEmpty, User user)
 			throws RecordServicesException {
-		BatchProcessRequest request = toRequest(selectedType, query, viewObject, user);
+		BatchProcessRequest request = toRequest(selectedType, query, viewObject, metadatasToEmpty, user);
 		return simulateWithQuery(request);
 	}
 
@@ -648,7 +659,7 @@ public class BatchProcessingPresenterService {
 				if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
 					Metadata metadata = currentRecordSchema.get(metadataCode);
 
-					if (isNonEmptyValue(metadata, entry.getValue()) && types.isRecordTypeMetadata(metadata)) {
+					if (types.isRecordTypeMetadata(metadata)) {
 						record.set(metadata, entry.getValue());
 						changeSchemaTypeAccordingToTypeLinkedSchema(record, types, new RecordProvider(recordServices), metadata);
 					}
@@ -662,11 +673,7 @@ public class BatchProcessingPresenterService {
 				String metadataCode = currentRecordSchema.getCode() + "_" + localMetadataCode;
 				if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
 					Metadata metadata = currentRecordSchema.get(currentRecordSchema.getCode() + "_" + localMetadataCode);
-
-					if (isNonEmptyValue(metadata, entry.getValue())) {
-						record.set(metadata, entry.getValue());
-
-					}
+					record.set(metadata, entry.getValue());
 				}
 			}
 
@@ -703,7 +710,7 @@ public class BatchProcessingPresenterService {
 				if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
 					Metadata metadata = currentRecordSchema.get(metadataCode);
 
-					if (isNonEmptyValue(metadata, entry.getValue()) && types.isRecordTypeMetadata(metadata)) {
+					if (types.isRecordTypeMetadata(metadata)) {
 						record.set(metadata, entry.getValue());
 						changeSchemaTypeAccordingToTypeLinkedSchema(record, types, new RecordProvider(recordServices), metadata);
 					}
@@ -717,9 +724,7 @@ public class BatchProcessingPresenterService {
 				String metadataCode = currentRecordSchema.getCode() + "_" + localMetadataCode;
 				if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
 					Metadata metadata = currentRecordSchema.get(currentRecordSchema.getCode() + "_" + localMetadataCode);
-					if (isNonEmptyValue(metadata, entry.getValue())) {
-						record.set(metadata, entry.getValue());
-					}
+					record.set(metadata, entry.getValue());
 				}
 			}
 
@@ -821,6 +826,26 @@ public class BatchProcessingPresenterService {
 		return recordFieldFactory;
 	}
 
+	private void validateUserPermissionForRecordCount(LogicalSearchQuery query, User user)
+			throws RecordServicesException {
+		int recordCount = (int) searchServices.getResultsCount(query);
+		validateUserPermissionForRecordCount(recordCount, user);
+	}
+
+	private void validateUserPermissionForRecordCount(int recordCount, User user) throws RecordServicesException {
+		if (!user.has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).globally()) {
+			throw new RecordServicesException($("BatchProcess.batchProcessPermissionMissing"));
+		}
+
+		if (!user.has(CorePermissions.MODIFY_UNLIMITED_RECORDS_USING_BATCH_PROCESS).globally()) {
+			ConstellioEIMConfigs systemConfigs = modelLayerFactory.getSystemConfigs();
+			int batchProcessingLimit = systemConfigs.getBatchProcessingLimit();
+			if (batchProcessingLimit != 0 && recordCount > batchProcessingLimit) {
+				throw new RecordServicesException($("BatchProcess.batchProcessUnlimitedPermissionMissing", batchProcessingLimit));
+			}
+		}
+	}
+
 	public boolean hasWriteAccessOnAllRecords(User user, List<String> selectedRecordIds) {
 
 		boolean writeAccess = true;
@@ -838,40 +863,27 @@ public class BatchProcessingPresenterService {
 	private static List<String> excludedMetadatas = asList(Schemas.IDENTIFIER.getLocalCode(), Schemas.CREATED_ON.getLocalCode(),
 			Schemas.MODIFIED_ON.getLocalCode(), RMObject.FORM_CREATED_ON, RMObject.FORM_MODIFIED_ON);
 
-	public BatchProcessRequest toRequest(String selectedType, LogicalSearchQuery query, RecordVO formVO, User user) {
-
+	public BatchProcessRequest toRequest(String selectedType, LogicalSearchQuery query, RecordVO formVO,
+										 List<String> metadatasToEmpty, User user) {
 		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
 		MetadataSchemaType type = schemas.getTypes().getSchemaType(typeCode);
-		MetadataSchema schema = schemas.getTypes().getSchema(formVO.getSchema().getCode());
-		Map<String, Object> fieldsModifications = new HashMap<>();
-		for (MetadataVO metadataVO : formVO.getMetadatas()) {
-			Metadata metadata = schema.get(metadataVO.getLocalCode());
-			Object value = formVO.get(metadataVO);
-
-			LOGGER.info(metadata.getCode() + ":" + value);
-			if ((metadata.getDataEntry().getType() == DataEntryType.MANUAL
-				 || isCalculatedWithEvaluator(metadata))
-				&& value != null
-				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
-				&& (!metadata.isMultivalue() || !((List) value).isEmpty())
-				&& !excludedMetadatas.contains(metadata.getLocalCode())) {
-
-				LOGGER.info("");
-				fieldsModifications.put(metadataVO.getCode(), value);
-			}
-		}
-		if (org.apache.commons.lang3.StringUtils.isNotBlank(selectedType)) {
-			Metadata typeMetadata = schemas.getRecordTypeMetadataOf(type);
-			LOGGER.info(typeMetadata.getCode() + ":" + selectedType);
-			fieldsModifications.put(typeMetadata.getCode(), selectedType);
-		}
+		Map<String, Object> fieldsModifications = getFieldsModifications(selectedType, formVO, metadatasToEmpty);
 
 		query.setPreferAnalyzedFields(true);
 		return new BatchProcessRequest(null, query, user, type, fieldsModifications);
 	}
 
-	public BatchProcessRequest toRequest(String selectedType, List<String> selectedRecord, RecordVO formVO, User user) {
+	public BatchProcessRequest toRequest(String selectedType, List<String> selectedRecord, RecordVO formVO,
+										 List<String> metadatasToEmpty, User user) {
+		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
+		MetadataSchemaType type = schemas.getTypes().getSchemaType(typeCode);
+		Map<String, Object> fieldsModifications = getFieldsModifications(selectedType, formVO, metadatasToEmpty);
 
+		return new BatchProcessRequest(selectedRecord, null, user, type, fieldsModifications);
+	}
+
+	private Map<String, Object> getFieldsModifications(String selectedType, RecordVO formVO,
+													   List<String> metadatasToEmpty) {
 		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
 		MetadataSchemaType type = schemas.getTypes().getSchemaType(typeCode);
 		MetadataSchema schema = schemas.getTypes().getSchema(formVO.getSchema().getCode());
@@ -883,7 +895,7 @@ public class BatchProcessingPresenterService {
 			LOGGER.info(metadata.getCode() + ":" + value);
 			if ((metadata.getDataEntry().getType() == DataEntryType.MANUAL
 				 || isCalculatedWithEvaluator(metadata))
-				&& value != null
+				&& (isNonEmptyValue(metadata, value) || metadatasToEmpty.contains(metadataVO.getLocalCode()))
 				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
 				&& (!metadata.isMultivalue() || !((List) value).isEmpty())
 				&& !excludedMetadatas.contains(metadata.getLocalCode())) {
@@ -898,7 +910,7 @@ public class BatchProcessingPresenterService {
 			fieldsModifications.put(typeMetadata.getCode(), selectedType);
 		}
 
-		return new BatchProcessRequest(selectedRecord, null, user, type, fieldsModifications);
+		return fieldsModifications;
 	}
 
 	private boolean isCalculatedWithEvaluator(Metadata metadata) {
@@ -906,7 +918,7 @@ public class BatchProcessingPresenterService {
 			   && ((CalculatedDataEntry) metadata.getDataEntry()).getCalculator().hasEvaluator();
 	}
 
-	public BatchProcessAction toAction(String selectedType, RecordVO formVO) {
+	public BatchProcessAction toAction(String selectedType, RecordVO formVO, List<String> metadatasToEmpty) {
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
 		MetadataSchemaType type = schemas.getTypes().getSchemaType(typeCode);
@@ -919,7 +931,7 @@ public class BatchProcessingPresenterService {
 			LOGGER.info(metadata.getCode() + ":" + value);
 			if ((metadata.getDataEntry().getType() == DataEntryType.MANUAL
 				 || isCalculatedWithEvaluator(metadata))
-				&& value != null
+				&& (isNonEmptyValue(metadata, value) || metadatasToEmpty.contains(metadataVO.getLocalCode()))
 				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
 				&& (!metadata.isMultivalue() || !((List) value).isEmpty())
 				&& !excludedMetadatas.contains(metadata.getLocalCode())) {
