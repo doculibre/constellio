@@ -2149,7 +2149,7 @@ $popup-view-z-index: 3;
 	    }
 	}
 
-	.v-multifileupload-dropzone {
+	.v-multifileupload-dropzone, .v-multifileupload-no-dropzone {
 		width: 100%;
 		background-color: #fafafa;
 		background-image: none;
