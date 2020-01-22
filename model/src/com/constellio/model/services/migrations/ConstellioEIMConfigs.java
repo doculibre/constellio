@@ -56,6 +56,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration CONSTELLIO_URL;
 	public static final SystemConfiguration CLEAN_DURING_INSTALL;
 	public static final SystemConfiguration IN_UPDATE_PROCESS;
+	public static final SystemConfiguration BATCH_PROCESSING_LIMIT;
 
 	public static final SystemConfiguration CMIS_NEVER_RETURN_ACL;
 
@@ -203,6 +204,7 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
 		add(LOGIN_NOTIFICATION_ALERT = hiddenSystemConfigs.createBinary("loginNotificationAlert").whichIsHidden());
+		add(BATCH_PROCESSING_LIMIT = others.createInteger("batchProcessingLimit").withDefaultValue(0));
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
@@ -391,6 +393,10 @@ public class ConstellioEIMConfigs {
 
 	public Integer getTrashPurgeDelai() {
 		return manager.getValue(TRASH_PURGE_DELAI);
+	}
+
+	public Integer getBatchProcessingLimit() {
+		return manager.getValue(BATCH_PROCESSING_LIMIT);
 	}
 
 	public SearchSortType getSearchSortType() {
