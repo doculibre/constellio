@@ -627,36 +627,37 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 	public void onPostLayerInitialization() {
-		List<MetadataSchemaType> typesLoadedAsync = new ArrayList<>();
-		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
-			LOGGER.info("Loading cache of '" + collection);
-			typesLoadedAsync.addAll(loadSummaryPermanentCache(collection));
-		}
+		if (modelLayerFactory.getConfiguration().isSummaryCacheEnabled()) {
+			List<MetadataSchemaType> typesLoadedAsync = new ArrayList<>();
+			for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+				LOGGER.info("Loading cache of '" + collection);
+				typesLoadedAsync.addAll(loadSummaryPermanentCache(collection));
+			}
 
 
-		if (!typesLoadedAsync.isEmpty()) {
-			new Thread(() -> {
-				//One loading at a time
-				synchronized (RecordsCaches2Impl.class) {
-					typesLoadedAsync.forEach(type -> loadSchemaType(type));
-				}
+			if (!typesLoadedAsync.isEmpty()) {
+				new Thread(() -> {
+					//One loading at a time
+					synchronized (RecordsCaches2Impl.class) {
+						typesLoadedAsync.forEach(type -> loadSchemaType(type));
+					}
+					summaryCacheInitialized = true;
+					CacheRecordDTOUtils.stopCompilingDTOsStats();
+					LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
+					cacheLoadingProgression = null;
+
+					if (Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled() && !Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.isEnabled()) {
+						fileSystemDataStore.closeThenReopenWithoutMmap();
+					}
+				}).start();
+
+			} else {
 				summaryCacheInitialized = true;
 				CacheRecordDTOUtils.stopCompilingDTOsStats();
 				LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
 				cacheLoadingProgression = null;
-
-				if (Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled() && !Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.isEnabled()) {
-					fileSystemDataStore.closeThenReopenWithoutMmap();
-				}
-			}).start();
-
-		} else {
-			summaryCacheInitialized = true;
-			CacheRecordDTOUtils.stopCompilingDTOsStats();
-			LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
-			cacheLoadingProgression = null;
+			}
 		}
-
 
 	}
 

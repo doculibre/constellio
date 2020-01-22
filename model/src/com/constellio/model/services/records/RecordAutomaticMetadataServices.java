@@ -194,7 +194,7 @@ public class RecordAutomaticMetadataServices {
 		AggregationType agregationType = aggregatedDataEntry.getAgregationType();
 		if (agregationType != null) {
 			SearchAggregatedValuesParams aggregatedValuesParams = new SearchAggregatedValuesParams(query, queries, record, metadata,
-					aggregatedDataEntry, types, searchServices);
+					aggregatedDataEntry, types, searchServices, modelLayerFactory);
 			Object calculatedValue = getHandlerFor(metadata).calculate(aggregatedValuesParams);
 			(aggregatedValuesParams.getRecord()).updateAutomaticValue(metadata, calculatedValue);
 		}
