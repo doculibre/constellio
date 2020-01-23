@@ -289,13 +289,16 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			if (taskModuleExtensions != null) {
 				TaskFormRetValue taskFormRetValue = taskModuleExtensions.taskFormExtentions(new TaskFormParams(this, task));
 				for (Record currentRecord : taskFormRetValue.getRecords()) {
-					saveRecord(task, currentRecord, taskFormRetValue.isSaveWithValidation(currentRecord));
+					RecordUpdateOptions taskUpdateOptions = getTaskUpdateOptions(task, taskFormRetValue.isSaveWithValidation(currentRecord));
+					saveRecord(currentRecord, taskUpdateOptions);
 				}
 			}
 			boolean isPromptUser = false;
 
 			// this is in case of special validation that would only occur when saving the task.
 			Transaction transaction = new Transaction();
+			RecordUpdateOptions taskUpdateOptions = getTaskUpdateOptions(task, true);
+			transaction.setOptions(taskUpdateOptions);
 			transaction.addUpdate(task.getWrappedRecord());
 			recordServices().prepareRecords(transaction);
 
@@ -303,12 +306,12 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				isPromptUser = rmModuleExtensions.isPromptUser(new PromptUserParam(task, new Action() {
 					@Override
 					public void doAction() {
-						saveAndNavigate(task);
+						saveAndNavigate(task, taskUpdateOptions);
 					}
 				}));
 			}
 			if (!isPromptUser) {
-				saveAndNavigate(task);
+				saveAndNavigate(task, taskUpdateOptions);
 			}
 
 		} catch (final IcapException e) {
@@ -320,8 +323,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 	}
 
-	private void saveAndNavigate(Task task) {
-		saveRecord(task, task.getWrappedRecord(), true);
+	private void saveAndNavigate(Task task, RecordUpdateOptions taskUpdateOptions) {
+		saveRecord(task.getWrappedRecord(), taskUpdateOptions);
 
 
 		if (StringUtils.isNotBlank(workflowId)) {
@@ -333,7 +336,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 	}
 
-	private void saveRecord(Task task, Record record, boolean withRequiredValidation) {
+	private void saveRecord(Record record, RecordUpdateOptions recordUpdateOptions) {
+		addOrUpdate(record, recordUpdateOptions);
+	}
+
+	private RecordUpdateOptions getTaskUpdateOptions(Task task, boolean withRequiredValidation) {
 		RecordUpdateOptions recordUpdateOptions = null;
 
 		if (rmModuleExtensions != null) {
@@ -347,15 +354,14 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 
 		if (withRequiredValidation) {
-			addOrUpdate(record, recordUpdateOptions);
+			return recordUpdateOptions;
 		} else {
 			if (recordUpdateOptions == null) {
 				recordUpdateOptions = new RecordUpdateOptions();
 			}
-			addOrUpdate(record, recordUpdateOptions.setSkippingRequiredValuesValidation(true));
+			return recordUpdateOptions.setSkippingRequiredValuesValidation(true);
 		}
 	}
-
 
 	private Field getAssignerField() {
 		TaskForm form = view.getForm();
