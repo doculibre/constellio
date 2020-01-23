@@ -432,7 +432,7 @@ public class SystemInfo {
 	}
 
 	private String formatDependingValueToGb(double value) {
-		return Math.round(value / 1024) >= 1 ? format.format(value / 1024) + "G" : longFormat.format(value / 1024) + "G";
+		return Math.round(value / 1024) >= 1 ? format.format(value / 1024) + " GB" : longFormat.format(value / 1024) + " GB";
 	}
 
 	private void validateRepository() {
