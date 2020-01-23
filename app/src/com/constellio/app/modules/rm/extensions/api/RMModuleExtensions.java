@@ -260,6 +260,16 @@ public class RMModuleExtensions implements ModuleExtensions {
 				(behavior) -> behavior.isAddAuthorizationActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
+	public boolean isFolderBorrowActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isFoldersBorrowActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isContainerBorrowActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isContainersBorrowActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
 	// TODO adapt to use lambda
 
 	public boolean isShareActionPossibleOnFolder(final Folder folder, final User user) {

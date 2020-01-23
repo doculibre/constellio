@@ -26,6 +26,7 @@ import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.C
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_DOCUMENT_BATCH_PROCESSING;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_DOCUMENT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_EMPTY;
+import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_FOLDER_BATCH_BORROW;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_FOLDER_BATCH_PROCESSING;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_FOLDER_LABEL;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_PREPARE_EMAIL;
@@ -184,6 +185,22 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
+		if (!excludedActionTypes.contains(CART_FOLDER_BATCH_BORROW.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(CART_FOLDER_BATCH_BORROW.name(),
+					isMenuItemActionPossible(CART_FOLDER_BATCH_BORROW.name(), cart, user, params),
+					$("CartView.documentLabelsButton"), FontAwesome.TAGS, -1, 700,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).borrow(cart, params));
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!excludedActionTypes.contains(CartMenuItemActionType.CART_CONTAINER_BATCH_BORROW.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(CartMenuItemActionType.CART_CONTAINER_BATCH_BORROW.name(),
+					isMenuItemActionPossible(CartMenuItemActionType.CART_CONTAINER_BATCH_BORROW.name(), cart, user, params),
+					$("CartView.documentLabelsButton"), FontAwesome.TAGS, -1, 700,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).borrow(cart, params));
+			menuItemActions.add(menuItemAction);
+		}
+
 		return menuItemActions;
 	}
 
@@ -224,6 +241,10 @@ public class CartMenuItemServices {
 				return cartActionsServices.isCreateSIPArchvesActionPossible(record, user);
 			case CART_PRINT_CONSOLIDATED_PDF:
 				return cartActionsServices.isPrntConsolidatedPdfActionPossible(record, user);
+			case CART_FOLDER_BATCH_BORROW:
+				return cartActionsServices.isFolderBorrowActionPossible(record, user);
+			case CART_CONTAINER_BATCH_BORROW:
+				return cartActionsServices.isContainersBorrowActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -262,7 +283,9 @@ public class CartMenuItemServices {
 		CART_DECOMMISSIONING_LIST,
 		CART_PRINT_METADATA_REPORT,
 		CART_CREATE_SIP_ARCHIVE,
-		CART_PRINT_CONSOLIDATED_PDF
+		CART_PRINT_CONSOLIDATED_PDF,
+		CART_FOLDER_BATCH_BORROW,
+		CART_CONTAINER_BATCH_BORROW
 	}
 
 }
