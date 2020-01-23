@@ -4,10 +4,8 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
-import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -23,8 +21,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.roles.Roles;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -36,7 +32,6 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 
 import java.util.Date;
 import java.util.List;
@@ -54,41 +49,23 @@ public class BorrowWindowButton extends WindowButton {
 	private RecordServices recordServices;
 	private String collection;
 	private List<Record> records;
-	private SearchServices searchServices;
-	private MetadataSchemasManager metadataSchemasManager;
-	private AddedRecordType addedRecordType;
 	private BorrowingServices borrowingServices;
 	private MetadataSchemaTypes schemaTypes;
-
-	private int documentRecordCount = 0;
-	private int folderRecordCount = 0;
-	private int containerRecordCount = 0;
 
 	public BorrowWindowButton(List<Record> records, MenuItemActionBehaviorParams params) {
 		super($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart"));
 
 		this.params = params;
 		this.appLayerFactory = params.getView().getConstellioFactories().getAppLayerFactory();
-		modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.collection = params.getView().getSessionContext().getCurrentCollection();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
-		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
-		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
-		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		this.rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		this.borrowingServices = new BorrowingServices(collection, modelLayerFactory);
+		this.schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		this.records = records;
 
-		records.forEach(r -> {
-			if (r.isOfSchemaType(Document.SCHEMA_TYPE)) {
-				documentRecordCount++;
-			} else if (r.isOfSchemaType(Folder.SCHEMA_TYPE)) {
-				folderRecordCount++;
-			} else if (r.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
-				containerRecordCount++;
-			}
-		});
 	}
 
 	@Override
@@ -303,12 +280,6 @@ public class BorrowWindowButton extends WindowButton {
 		}
 	}
 
-	public boolean returnFolder(Folder folder, LocalDate returnDate, MenuItemActionBehaviorParams params) {
-		folder = loadingFullRecordIfSummary(folder);
-		LocalDateTime borrowDateTime = folder.getBorrowDate();
-		LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
-		return returnFolder(folder, returnDate, borrowDate, params);
-	}
 
 	private boolean returnContainer(ContainerRecord container, LocalDate returnDate, LocalDate borrowingDate,
 								 MenuItemActionBehaviorParams params) {
@@ -326,20 +297,5 @@ public class BorrowWindowButton extends WindowButton {
 			params.getView().showErrorMessage($("DisplayFolderView.cannotReturnFolder"));
 			return false;
 		}
-	}
-
-	public boolean returnContainer(ContainerRecord container, LocalDate returnDate, MenuItemActionBehaviorParams params) {
-		LocalDate borrowDateTime = container.getBorrowDate();
-		LocalDate borrowDate = borrowDateTime != null ? borrowDateTime : null;
-		return returnContainer(container, returnDate, borrowDate, params);
-	}
-
-	private Folder loadingFullRecordIfSummary(Folder folder) {
-		if (folder.isSummary()) {
-			return rm.getFolder(folder.getId());
-		} else {
-			return folder;
-		}
-
 	}
 }
