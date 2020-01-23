@@ -14,9 +14,9 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
+import com.constellio.app.modules.rm.ui.buttons.RenameDialogButton;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
-import com.constellio.app.modules.rm.ui.pages.cart.RenameDialog;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
@@ -160,7 +160,7 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void rename(Document document, MenuItemActionBehaviorParams params) {
-		RenameDialog window = new RenameDialog(
+		RenameDialogButton window = new RenameDialogButton(
 				FontAwesome.PENCIL_SQUARE_O,
 				$("DisplayDocumentView.renameContent"),
 				$("DisplayDocumentView.renameContent"),
@@ -168,29 +168,27 @@ public class DocumentMenuItemActionBehaviors {
 			@Override
 			public void save(String newValue) {
 				boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
-				boolean isAddOnly = !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
+				boolean isNotAddOnly = !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
 						.getPopulateConfigs().isAddOnly();
 
 				String filename = document.getContent().getCurrentVersion().getFilename();
 				String extension = FilenameUtils.getExtension(filename);
 
-				if (!(FilenameUtils.getExtension(newValue) == extension)) {
-					if (!extension.isEmpty()) {//si l'Extension n'Est pas vide
-						newValue = FilenameUtils.removeExtension(newValue) + "." + extension; // valeur est le texte avec bonne extension
+				if (!(FilenameUtils.getExtension(newValue).equals(extension))) {
+					if (!extension.isEmpty()) {
+						newValue = FilenameUtils.removeExtension(newValue) + "." + extension;
 					} else {
 						newValue = FilenameUtils.removeExtension(newValue);
 					}
 				}
 
 				if (filename.equals(document.getTitle())) {
-					if (isManualEntry && isAddOnly) {
+					if (isManualEntry && isNotAddOnly) {
 						document.setTitle(newValue);
 					}
 
-				} else if (
-						FilenameUtils.removeExtension(filename)
-								.equals(document.getTitle())) {
-					if (isManualEntry && isAddOnly) {
+				} else if (FilenameUtils.removeExtension(filename).equals(document.getTitle())) {
+					if (isManualEntry && isNotAddOnly) {
 						document.setTitle(FilenameUtils.removeExtension(newValue));
 					}
 				}

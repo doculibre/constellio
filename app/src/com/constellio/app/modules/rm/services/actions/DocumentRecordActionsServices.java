@@ -58,7 +58,7 @@ public class DocumentRecordActionsServices {
 
 	public boolean isRenameActionPossible(Record record, User user) {
 		return hasUserWriteAccess(record, user) &&
-			   rm.wrapDocument(record).hasContent() &&    // si document a un contenu (version digitale)
+			   rm.wrapDocument(record).hasContent() &&
 			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isRenameActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}

@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.ui.pages.cart;
+package com.constellio.app.modules.rm.ui.buttons;
 
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -15,10 +15,10 @@ import com.vaadin.ui.themes.ValoTheme;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public abstract class RenameDialog extends WindowButton {
+public abstract class RenameDialogButton extends WindowButton {
 	private String originalValue;
 
-	public RenameDialog(Resource icon, String caption, String windowCaption, boolean iconOnly) {
+	public RenameDialogButton(Resource icon, String caption, String windowCaption, boolean iconOnly) {
 		super(icon, caption, windowCaption, iconOnly, WindowConfiguration.modalDialog("768px", "100px"));
 		addStyleName(ValoTheme.BUTTON_BORDERLESS);
 	}
