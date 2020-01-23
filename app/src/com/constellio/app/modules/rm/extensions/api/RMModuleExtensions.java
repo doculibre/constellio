@@ -225,6 +225,16 @@ public class RMModuleExtensions implements ModuleExtensions {
 				(behavior) -> behavior.isConsolidatedPdfActionPossible(new CartExtensionActionPossibleParams(cart, user)));
 	}
 
+	public boolean isFolderBorrowActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isFoldersBorrowActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isContainerBorrowActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isContainersBorrowActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
 	public boolean isAddDocumentActionPossibleOnFolder(final Folder folder, final User user) {
 		return folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isAddDocumentActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
@@ -258,16 +268,6 @@ public class RMModuleExtensions implements ModuleExtensions {
 	public boolean isAddAuthorizationActionPossibleOnFolder(final Folder folder, final User user) {
 		return folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isAddAuthorizationActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
-	}
-
-	public boolean isFolderBorrowActionPossibleOnCart(final Cart cart, final User user) {
-		return cartExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isFoldersBorrowActionPossible(new CartExtensionActionPossibleParams(cart, user)));
-	}
-
-	public boolean isContainerBorrowActionPossibleOnCart(final Cart cart, final User user) {
-		return cartExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isContainersBorrowActionPossible(new CartExtensionActionPossibleParams(cart, user)));
 	}
 
 	// TODO adapt to use lambda

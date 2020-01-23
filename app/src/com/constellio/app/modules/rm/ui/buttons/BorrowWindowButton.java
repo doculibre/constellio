@@ -4,6 +4,8 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
+import com.constellio.app.modules.rm.services.menu.behaviors.ContainerRecordMenuItemActionBehaviors;
+import com.constellio.app.modules.rm.services.menu.behaviors.FolderMenuItemActionBehaviors;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -148,11 +150,11 @@ public class BorrowWindowButton extends WindowButton {
 				for (Record record : records) {
 					if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
 						closeWindow = borrowFolder(rm.wrapFolder(record), borrowLocalDate, previewReturnLocalDate, userId,
-								borrowingType, returnLocalDate, params);
+								borrowingType, returnLocalDate, params) || closeWindow;
 					}
 					else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 						closeWindow = borrowContainer(rm.wrapContainerRecord(record), borrowLocalDate, previewReturnLocalDate, userId,
-								borrowingType, returnLocalDate, params);
+								borrowingType, returnLocalDate, params) || closeWindow;
 					}
 				}
 				if(closeWindow) {
@@ -205,7 +207,8 @@ public class BorrowWindowButton extends WindowButton {
 			}
 		}
 		if (returnDate != null) {
-			return returnContainer(container, returnDate, borrowingDate, params);
+			return new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory)
+					.returnContainer(container, returnDate, params);
 		}
 		return borrowed;
 	}
@@ -235,7 +238,8 @@ public class BorrowWindowButton extends WindowButton {
 			}
 		}
 		if (returnDate != null) {
-			return returnFolder(folder, returnDate, borrowingDate, params);
+			return new FolderMenuItemActionBehaviors(collection, appLayerFactory)
+					.returnFolder(folder, returnDate, params);
 		}
 		return borrowed;
 	}
@@ -260,42 +264,5 @@ public class BorrowWindowButton extends WindowButton {
 	}
 	private Roles getCollectionRoles() {
 		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
-	}
-
-	private boolean returnFolder(Folder folder, LocalDate returnDate, LocalDate borrowingDate,
-								 MenuItemActionBehaviorParams params) {
-		String errorMessage = borrowingServices.validateReturnDate(returnDate, borrowingDate);
-		if (errorMessage != null) {
-			params.getView().showErrorMessage($(errorMessage));
-			return false;
-		}
-		try {
-			borrowingServices.returnFolder(folder.getId(), params.getUser(), returnDate, true);
-			RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
-					appLayerFactory, collection);
-			return true;
-		} catch (RecordServicesException e) {
-			params.getView().showErrorMessage($("DisplayFolderView.cannotReturnFolder"));
-			return false;
-		}
-	}
-
-
-	private boolean returnContainer(ContainerRecord container, LocalDate returnDate, LocalDate borrowingDate,
-								 MenuItemActionBehaviorParams params) {
-		String errorMessage = borrowingServices.validateReturnDate(returnDate, borrowingDate);
-		if (errorMessage != null) {
-			params.getView().showErrorMessage($(errorMessage));
-			return false;
-		}
-		try {
-			borrowingServices.returnFolder(container.getId(), params.getUser(), returnDate, true);
-			RMNavigationUtils.navigateToDisplayFolder(container.getId(), params.getFormParams(),
-					appLayerFactory, collection);
-			return true;
-		} catch (RecordServicesException e) {
-			params.getView().showErrorMessage($("DisplayFolderView.cannotReturnFolder"));
-			return false;
-		}
 	}
 }
