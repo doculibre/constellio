@@ -17,6 +17,7 @@ import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,14 +35,16 @@ public class SystemInfo {
 	private static final String LICENSE_EXPIRED = "licenseExpired";
 	private static final String VALID_LICENSE = "validLicense";
 	private static final String OPT_DISK_USAGE = "optDiskUsage";
-	private static final String OPT_DISK_AVAILABILITY = "optDiskUsageExtended";
 	private static final String OPT_DISK_USAGE_MISSING_INFO = "optDiskUsageMissingInfo";
 	private static final String SOLR_DISK_USAGE = "solrDiskUsage";
-	private static final String SOLR_DISK_AVAILABILITY = "solrDiskUsageExtended";
 	private static final String SOLR_DISK_USAGE_MISSING_INFO = "solrDiskUsageMissingInfo";
 	private static final String CONSTELLIO_MEMORY_CONSUMPTION_HIGH = "constellioMemoryConsumptionHigh";
 	private static final String CONSTELLIO_MEMORY_CONSUMPTION_LOW = "constellioMemoryConsumptionLow";
 	private static final String PRIVATE_REPOSITORY_IS_NOT_INSTALLED = "privateRepositoryIsNotInstalled";
+
+	private static final DecimalFormat format = new DecimalFormat("#,##0.#");
+	private static final DecimalFormat longFormat = new DecimalFormat("#,##0.####");
+
 
 	private static SystemInfo instance;
 
@@ -64,6 +67,12 @@ public class SystemInfo {
 	String solrDiskUsage;
 	String optDiskUsageExtended;
 	String solrDiskUsageExtended;
+	String optDiskSize;
+	String solrDiskSize;
+	String optDiskAvailability;
+	String solrDiskAvailability;
+	String optDiskUsageInGigabytes;
+	String solrDiskUsageInGigabytes;
 	ValidationErrors validationErrors;
 
 	boolean isPrivateRepositoryInstalled;
@@ -102,14 +111,18 @@ public class SystemInfo {
 			userRunningConstellio = systemInformationsService.getConstellioUser();
 			optDiskUsageExtended = systemInformationsService.getDiskUsageExtended("/opt");
 			solrDiskUsageExtended = systemInformationsService.getDiskUsageExtended("/var/solr");
-			optDiskUsage = optDiskUsageExtended.split(" ")[3];
-			solrDiskUsage = solrDiskUsageExtended.split(" ")[3];
-			//			optDiskUsage = systemInformationsService.getDiskUsage("/opt");
-			//			solrDiskUsage = systemInformationsService.getDiskUsage("/var/solr");
 			//optDiskUsageExtended retournera une string sous cette forme
 			//44G 6.3G 35G 16%
 			//où les champs représentent, en ordre:
 			//Size, Usage, Availability, Use%(optDiskUsage)
+			optDiskUsage = optDiskUsageExtended.split(" ")[3];
+			solrDiskUsage = solrDiskUsageExtended.split(" ")[3];
+			optDiskSize = optDiskUsageExtended.split(" ")[0];
+			solrDiskSize = solrDiskUsageExtended.split(" ")[0];
+			optDiskAvailability = optDiskUsageExtended.split(" ")[2];
+			solrDiskAvailability = solrDiskUsageExtended.split(" ")[2];
+			optDiskUsageInGigabytes = optDiskUsageExtended.split(" ")[1];
+			solrDiskUsageInGigabytes = solrDiskUsageExtended.split(" ")[1];
 		}
 
 		analyzeSystemAndFindValidationErrors(configs);
@@ -191,15 +204,15 @@ public class SystemInfo {
 	}
 
 	public String getOptDiskSize() {
-		return optDiskUsageExtended.split(" ")[0];
+		return optDiskSize;
 	}
 
 	public String getOptDiskUsageInGigabytes() {
-		return optDiskUsageExtended.split(" ")[1];
+		return optDiskUsageInGigabytes;
 	}
 
 	public String getOptDiskAvailability() {
-		return optDiskUsageExtended.split(" ")[2];
+		return optDiskAvailability;
 	}
 
 	public String getSolrDiskUsage() {
@@ -207,15 +220,15 @@ public class SystemInfo {
 	}
 
 	public String getSolrDiskSize() {
-		return solrDiskUsageExtended.split(" ")[0];
+		return solrDiskSize;
 	}
 
 	public String getSolrDiskUsageInGigabytes() {
-		return solrDiskUsageExtended.split(" ")[1];
+		return solrDiskUsageInGigabytes;
 	}
 
 	public String getSolrDiskAvailability() {
-		return solrDiskUsageExtended.split(" ")[2];
+		return solrDiskAvailability;
 	}
 
 	public boolean isPrivateRepositoryInstalled() {
@@ -356,13 +369,24 @@ public class SystemInfo {
 	}
 
 	private void validateDiskUsage(ConstellioEIMConfigs configs) {
-		String parameterKey = "consumptionPercentage";
+		String keyConsumptionPercentage = "consumptionPercentage";
+		String keyUsageInGigabytes = "usageInGigabytes";
+		String keyDiskSize = "diskSize";
+		String keyDiskAvailability = "diskAvailability";
+
 
 		if (configs.isSystemStateOptDiskUsageValidationEnabled()) {
 			if (StringUtils.isNotBlank(optDiskUsage) && optDiskUsage.endsWith("%")) {
 				try {
 					int consumptionPercentage = Integer.parseInt(optDiskUsage.replace("%", ""));
-					HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage + "%");
+					double diskSize = Double.parseDouble(optDiskSize.replace("M", ""));
+					double diskAvailability = Double.parseDouble(optDiskAvailability.replace("M", ""));
+					double usageInGigabytes = Double.parseDouble(optDiskUsageInGigabytes.replace("M", ""));
+
+					HashMap<String, Object> parameters = buildSingleValueParameters(keyConsumptionPercentage, consumptionPercentage + "%");
+					parameters.put(keyDiskSize, formatDependingValueToGb(diskSize));
+					parameters.put(keyDiskAvailability, formatDependingValueToGb(diskAvailability));
+					parameters.put(keyUsageInGigabytes, formatDependingValueToGb(usageInGigabytes));
 					if (isInRange(consumptionPercentage, 0, 75)) {
 						validationErrors.addLog(SystemInfo.class, OPT_DISK_USAGE, parameters);
 					} else if (isInRange(consumptionPercentage, 75, 90)) {
@@ -382,7 +406,15 @@ public class SystemInfo {
 			if (StringUtils.isNotBlank(solrDiskUsage) && solrDiskUsage.endsWith("%")) {
 				try {
 					int consumptionPercentage = Integer.parseInt(solrDiskUsage.replace("%", ""));
-					HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage + "%");
+					double diskSize = Double.parseDouble(solrDiskSize.replace("M", ""));
+					double diskAvailability = Double.parseDouble(solrDiskAvailability.replace("M", ""));
+					double usageInGigabytes = Double.parseDouble(solrDiskUsageInGigabytes.replace("M", ""));
+
+					HashMap<String, Object> parameters = buildSingleValueParameters(keyConsumptionPercentage, consumptionPercentage + "%");
+					parameters.put(keyDiskSize, formatDependingValueToGb(diskSize));
+					parameters.put(keyDiskAvailability, formatDependingValueToGb(diskAvailability));
+					parameters.put(keyUsageInGigabytes, formatDependingValueToGb(usageInGigabytes));
+
 					if (isInRange(consumptionPercentage, 0, 75)) {
 						validationErrors.addLog(SystemInfo.class, SOLR_DISK_USAGE, parameters);
 					} else if (isInRange(consumptionPercentage, 75, 90)) {
@@ -397,6 +429,10 @@ public class SystemInfo {
 				validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
 			}
 		}
+	}
+
+	private String formatDependingValueToGb(double value) {
+		return Math.round(value / 1024) >= 1 ? format.format(value / 1024) + "G" : longFormat.format(value / 1024) + "G";
 	}
 
 	private void validateRepository() {

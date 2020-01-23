@@ -14,7 +14,7 @@ public class LinuxCommandProcessor {
 	private final static String USER_COMMAND = "ps -u -p %s | cut -d \" \" -f 1";
 	private final static String PID_SOLR_COMMAND = "/opt/solr/bin/solr status | cut -d \" \" -f 3";
 	private final static String DISK_USAGE_COMMAND = "df -k %s | tail -1 | tr -s ' ' | cut -d ' ' -f 5";
-	private final static String DISK_USAGE_EXTENDED_COMMAND = "df -k -h %s | tail -l | tr -s ' ' | sed '$!d' | cut -d ' ' -f 2-5";
+	private final static String DISK_USAGE_EXTENDED_COMMAND = "df -k -h -BM %s | tail -l | tr -s ' ' | sed '$!d' | cut -d ' ' -f 2-5";//todo calcul pour GB
 
 	public LinuxCommandProcessor() {
 		commandExecutor = new LinuxCommandExecutor();
@@ -62,11 +62,6 @@ public class LinuxCommandProcessor {
 	}
 
 	public String getDiskUsageExtended(String path) throws LinuxCommandExecutionFailedException {
-		//		String output = executeCommand(String.format(DISK_AVAILABILITY_COMMAND, path));
-		//		if (!output.contains("%")) {
-		//			output = "";
-		//		}
-		//		return output;
 		return executeCommand(String.format(DISK_USAGE_EXTENDED_COMMAND, path));
 	}
 
