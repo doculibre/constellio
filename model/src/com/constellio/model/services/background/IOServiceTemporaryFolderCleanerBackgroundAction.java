@@ -13,7 +13,7 @@ public class IOServiceTemporaryFolderCleanerBackgroundAction implements Runnable
 
 	public static final long DELAI_FOR_DELETION_IN_MILLI = 1000 * 60 * 60 * 24;
 
-	public File tempFolder;
+	private File tempFolder;
 
 	public IOServiceTemporaryFolderCleanerBackgroundAction(File tempFolder) {
 		this.tempFolder = tempFolder;

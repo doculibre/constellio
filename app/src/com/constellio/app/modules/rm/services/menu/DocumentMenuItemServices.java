@@ -31,6 +31,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_DISPLAY;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_DOWNLOAD;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_EDIT;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_EXTRACT_ATTACHEMENTS;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_FINALIZE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GENERATE_REPORT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GET_PUBLIC_LINK;
@@ -270,6 +271,15 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
+		if (!filteredActionTypes.contains(DOCUMENT_EXTRACT_ATTACHEMENTS.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_EXTRACT_ATTACHEMENTS.name(),
+					isMenuItemActionPossible(DOCUMENT_EXTRACT_ATTACHEMENTS.name(), document, user, params),
+					$("DocumentContextMenu.extractEmailAttachement"), FontAwesome.FILES_O, -1, 2300,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).extractFileAttachements(document, params));
+
+			menuItemActions.add(menuItemAction);
+		}
+
 		return menuItemActions;
 	}
 
@@ -329,6 +339,8 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.isManageAuthorizationActionPossible(record, user);
 			case DOCUMENT_GENERATE_REPORT:
 				return documentRecordActionsServices.isGenerateReportActionPossible(record, user);
+			case DOCUMENT_EXTRACT_ATTACHEMENTS:
+				return documentRecordActionsServices.isExtractingÀttachementsActionPossible(record);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -371,6 +383,7 @@ public class DocumentMenuItemServices {
 		DOCUMENT_AVAILABLE_ALERT,
 		DOCUMENT_ADD_AUTHORIZATION,
 		DOCUMENT_MANAGE_AUTHORIZATIONS,
-		DOCUMENT_GENERATE_REPORT;
+		DOCUMENT_GENERATE_REPORT,
+		DOCUMENT_EXTRACT_ATTACHEMENTS;
 	}
 }
