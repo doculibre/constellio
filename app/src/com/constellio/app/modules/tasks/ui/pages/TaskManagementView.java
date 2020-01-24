@@ -16,6 +16,7 @@ public interface TaskManagementView extends BaseView, TasksViewGroup {
 	String TASKS_NOT_ASSIGNED = "nonAssignedTasks";
 	String TASKS_ASSIGNED_TO_CURRENT_USER = "tasksAssignedToCurrentUser";
 	String TASKS_RECENTLY_COMPLETED = "recentlyCompletedTasks";
+	String TASKS_RECENTLY_CLOSED = "recentlyClosedTasks";
 	String SHARED_TASKS = "sharedTasks";
 
 	void displayTasks(RecordVODataProvider provider);
