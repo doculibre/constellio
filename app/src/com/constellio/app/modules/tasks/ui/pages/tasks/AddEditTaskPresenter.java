@@ -11,6 +11,7 @@ import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormParams;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormRetValue;
 import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
+import com.constellio.app.modules.tasks.model.utils.DateUtils;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -66,6 +67,7 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordUtils;
@@ -76,6 +78,7 @@ import com.vaadin.ui.Field;
 import com.vaadin.ui.OptionGroup;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -279,7 +282,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			}
 
 			if (!task.isModel() && task.getDueDate() == null && task.getRelativeDueDate() != null && task.getAssignedOn() != null) {
-				task.setDueDate(task.getAssignedOn().plusDays(task.getRelativeDueDate()));
+				ConstellioEIMConfigs constellioEIMConfigs = appLayerFactory.getModelLayerFactory().getSystemConfigs();
+				LocalDate dueDate = DateUtils.addWorkingDays(task.getAssignedOn(), task.getRelativeDueDate(), constellioEIMConfigs.getCalendarCountry());
+				task.setDueDate(dueDate);
 			}
 
 			TaskModuleExtensions taskModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
