@@ -288,6 +288,21 @@ public class RMRecordsMenuItemBehaviors {
 		borrowButton.click();
 	}
 
+	public void documentBorrow(List<String> ids, MenuItemActionBehaviorParams params) {
+		DocumentMenuItemActionBehaviors documentMenuItemActionBehaviors =
+				new DocumentMenuItemActionBehaviors(collection, appLayerFactory);
+		if (ids.size() == 1) {
+			documentMenuItemActionBehaviors.checkOut(rm.wrapDocument(recordServices.getDocumentById(ids.get(0))), params);
+		}
+		else {
+			List<Document> documents = new ArrayList<>();
+			for (String id : ids) {
+				documents.add(rm.wrapDocument(recordServices.getDocumentById(id)));
+			}
+			documentMenuItemActionBehaviors.checkOut(documents, params);
+		}
+	}
+
 	public void addToSelection(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		BaseView view = params.getView();
 
@@ -694,5 +709,4 @@ public class RMRecordsMenuItemBehaviors {
 	private List<Record> getSelectedRecords(List<String> selectedRecordIds) {
 		return recordServices.getRecordsById(collection, selectedRecordIds);
 	}
-
 }

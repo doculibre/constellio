@@ -369,6 +369,35 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
+	public void checkOut(List<Document> documents, MenuItemActionBehaviorParams params) {
+		int checkedOutDocuments = 0;
+
+		for (Document document : documents) {
+			document = loadingFullRecordIfSummary(document);
+			if (documentRecordActionsServices.isCheckOutActionPossible(document.getWrappedRecord(), params.getUser())) {
+				updateSearchResultClicked(document.getWrappedRecord());
+				Content content = document.getContent();
+				content.checkOut(params.getUser());
+				modelLayerFactory.newLoggingServices().borrowRecord(document.getWrappedRecord(), params.getUser(), TimeProvider.getLocalDateTime());
+				try {
+					recordServices.update(document.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+					params.getView().refreshActionMenu();
+
+					checkedOutDocuments++;
+
+				} catch (RecordServicesException e) {
+					params.getView().showErrorMessage(MessageUtils.toMessage(e));
+				}
+			} else if (documentRecordActionsServices.isCheckOutActionNotPossibleDocumentDeleted(document.getWrappedRecord(), params.getUser())) {
+				params.getView().showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
+			}
+		}
+
+		if (checkedOutDocuments != 0) {
+			params.getView().showMessage($("DocumentActionsComponent.checkedOutMultiple", checkedOutDocuments));
+		}
+	}
+
 	public void checkOut(Document document, MenuItemActionBehaviorParams params) {
 		document = loadingFullRecordIfSummary(document);
 		if (documentRecordActionsServices.isCheckOutActionPossible(document.getWrappedRecord(), params.getUser())) {
