@@ -4,10 +4,14 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -15,11 +19,18 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
+import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithStringId;
+import com.constellio.model.services.records.cache.CacheRecordDTOUtils.CacheRecordDTOBytesArray;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
+import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -36,6 +47,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
+import static com.constellio.model.services.records.cache.CacheRecordDTOUtils.convertDTOToByteArrays;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsZeSchemaType;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
@@ -253,14 +266,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
-		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
-		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
-		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
-		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
-		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
-		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto3 = create(getModelLayerFactory(), record3.getRecordDTO());
+		ByteArrayRecordDTO dto4 = create(getModelLayerFactory(), record4.getRecordDTO());
+		ByteArrayRecordDTO dto5 = create(getModelLayerFactory(), record5.getRecordDTO());
+		ByteArrayRecordDTO dto6 = create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto7 = create(getModelLayerFactory(), record7.getRecordDTO());
+		ByteArrayRecordDTO dto8 = create(getModelLayerFactory(), record8.getRecordDTO());
 
 		assertThat(dto1.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("Le village des Schtroumpfs");
 		assertThat(dto1.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(true);
@@ -553,14 +566,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
-		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
-		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
-		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
-		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
-		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
-		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto3 = create(getModelLayerFactory(), record3.getRecordDTO());
+		ByteArrayRecordDTO dto4 = create(getModelLayerFactory(), record4.getRecordDTO());
+		ByteArrayRecordDTO dto5 = create(getModelLayerFactory(), record5.getRecordDTO());
+		ByteArrayRecordDTO dto6 = create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto7 = create(getModelLayerFactory(), record7.getRecordDTO());
+		ByteArrayRecordDTO dto8 = create(getModelLayerFactory(), record8.getRecordDTO());
 
 		assertThat(dto1.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(asList());
 		assertThat(dto1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(0, 13, -40));
@@ -837,14 +850,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
-		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
-		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
-		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
-		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
-		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
-		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto3 = create(getModelLayerFactory(), record3.getRecordDTO());
+		ByteArrayRecordDTO dto4 = create(getModelLayerFactory(), record4.getRecordDTO());
+		ByteArrayRecordDTO dto5 = create(getModelLayerFactory(), record5.getRecordDTO());
+		ByteArrayRecordDTO dto6 = create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto7 = create(getModelLayerFactory(), record7.getRecordDTO());
+		ByteArrayRecordDTO dto8 = create(getModelLayerFactory(), record8.getRecordDTO());
 
 		assertThat(dto1.keySet()).contains(Schemas.TITLE.getDataStoreCode(),
 				zeSchema.contentMetadata().getDataStoreCode(),
@@ -1096,14 +1109,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
-		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
-		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
-		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
-		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
-		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
-		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto3 = create(getModelLayerFactory(), record3.getRecordDTO());
+		ByteArrayRecordDTO dto4 = create(getModelLayerFactory(), record4.getRecordDTO());
+		ByteArrayRecordDTO dto5 = create(getModelLayerFactory(), record5.getRecordDTO());
+		ByteArrayRecordDTO dto6 = create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto7 = create(getModelLayerFactory(), record7.getRecordDTO());
+		ByteArrayRecordDTO dto8 = create(getModelLayerFactory(), record8.getRecordDTO());
 
 		assertThat(dto1.values()).contains(asList(0, 13, -40),
 				record1.getRecordDTO().getFields().get(zeSchema.contentMetadata().getDataStoreCode()),
@@ -1184,8 +1197,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
 
 		assertThat(dto1.values()).contains("الشمس حاره");
 		assertThat(dto2.values()).contains(" Macho Man Randy Savage ");
@@ -1211,8 +1224,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
 
 		assertThat(dto1.get(zeSchema.stringMetadata().getDataStoreCode())).isEqualTo(asList(val1, val2, "الشمس حاره"));
 		assertThat(dto1.get(zeSchema.largeTextMetadata().getDataStoreCode())).isEqualTo(asList(val4, val3));
@@ -1303,12 +1316,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
-		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
-		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
-		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
-		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto3 = create(getModelLayerFactory(), record3.getRecordDTO());
+		ByteArrayRecordDTO dto4 = create(getModelLayerFactory(), record4.getRecordDTO());
+		ByteArrayRecordDTO dto5 = create(getModelLayerFactory(), record5.getRecordDTO());
+		ByteArrayRecordDTO dto6 = create(getModelLayerFactory(), record6.getRecordDTO());
 
 		assertThat(toMap(dto1.entrySet())).contains(entry(zeSchema.booleanMetadata().getDataStoreCode(), true),
 				entry(zeSchema.contentMetadata().getDataStoreCode(), record1.getRecordDTO().getFields().get(zeSchema.contentMetadata().getDataStoreCode())),
@@ -1523,14 +1536,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
-		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
-		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
-		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
-		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
-		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
-		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto3 = create(getModelLayerFactory(), record3.getRecordDTO());
+		ByteArrayRecordDTO dto4 = create(getModelLayerFactory(), record4.getRecordDTO());
+		ByteArrayRecordDTO dto5 = create(getModelLayerFactory(), record5.getRecordDTO());
+		ByteArrayRecordDTO dto6 = create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto7 = create(getModelLayerFactory(), record7.getRecordDTO());
+		ByteArrayRecordDTO dto8 = create(getModelLayerFactory(), record8.getRecordDTO());
 
 		assertThat(dto1.containsKey(zeSchema.booleanMetadata().getDataStoreCode())).isTrue();
 		assertThat(dto1.containsKey(Schemas.TITLE.getDataStoreCode())).isTrue();
@@ -1661,8 +1674,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordInt1, recordInt2));
 
-			ByteArrayRecordDTO dtoInt1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt1.getRecordDTO());
-			ByteArrayRecordDTO dtoInt2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt2.getRecordDTO());
+			ByteArrayRecordDTO dtoInt1 = create(getModelLayerFactory(), recordInt1.getRecordDTO());
+			ByteArrayRecordDTO dtoInt2 = create(getModelLayerFactory(), recordInt2.getRecordDTO());
 
 			assertThat(dtoInt1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(i);
 			assertThat(dtoInt2.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(i);
@@ -1676,8 +1689,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(recordInt1, recordInt2));
 
-		ByteArrayRecordDTO dtoInt1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt1.getRecordDTO());
-		ByteArrayRecordDTO dtoInt2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt2.getRecordDTO());
+		ByteArrayRecordDTO dtoInt1 = create(getModelLayerFactory(), recordInt1.getRecordDTO());
+		ByteArrayRecordDTO dtoInt2 = create(getModelLayerFactory(), recordInt2.getRecordDTO());
 
 		assertThat(dtoInt1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(Integer.MAX_VALUE);
 		assertThat(dtoInt2.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(Integer.MAX_VALUE);
@@ -1717,8 +1730,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordInt1, recordInt2));
 
-			ByteArrayRecordDTO dtoInt1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt1.getRecordDTO());
-			ByteArrayRecordDTO dtoInt2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt2.getRecordDTO());
+			ByteArrayRecordDTO dtoInt1 = create(getModelLayerFactory(), recordInt1.getRecordDTO());
+			ByteArrayRecordDTO dtoInt2 = create(getModelLayerFactory(), recordInt2.getRecordDTO());
 
 			assertThat(dtoInt1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(i, i + 5000, i + 10000));
 			assertThat(dtoInt2.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList(i, i + 5000, i + 10000));
@@ -1732,8 +1745,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(recordInt1, recordInt2));
 
-		ByteArrayRecordDTO dtoInt1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt1.getRecordDTO());
-		ByteArrayRecordDTO dtoInt2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt2.getRecordDTO());
+		ByteArrayRecordDTO dtoInt1 = create(getModelLayerFactory(), recordInt1.getRecordDTO());
+		ByteArrayRecordDTO dtoInt2 = create(getModelLayerFactory(), recordInt2.getRecordDTO());
 
 		assertThat(dtoInt1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(Integer.MAX_VALUE - 2, Integer.MAX_VALUE - 1, Integer.MAX_VALUE));
 		assertThat(dtoInt2.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList(Integer.MAX_VALUE - 2, Integer.MAX_VALUE - 1, Integer.MAX_VALUE));
@@ -1772,8 +1785,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordDouble1, recordDouble2));
 
-			ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble1.getRecordDTO());
-			ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble2.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble1 = create(getModelLayerFactory(), recordDouble1.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble2 = create(getModelLayerFactory(), recordDouble2.getRecordDTO());
 
 			assertThat(dtoDouble1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(i);
 			assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(i);
@@ -1787,8 +1800,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(recordDouble1, recordDouble2));
 
-		ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble1.getRecordDTO());
-		ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble2.getRecordDTO());
+		ByteArrayRecordDTO dtoDouble1 = create(getModelLayerFactory(), recordDouble1.getRecordDTO());
+		ByteArrayRecordDTO dtoDouble2 = create(getModelLayerFactory(), recordDouble2.getRecordDTO());
 
 		assertThat(dtoDouble1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(Double.MAX_VALUE);
 		assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(Double.MAX_VALUE);
@@ -1828,8 +1841,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordDouble1, recordDouble2));
 
-			ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble1.getRecordDTO());
-			ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble2.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble1 = create(getModelLayerFactory(), recordDouble1.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble2 = create(getModelLayerFactory(), recordDouble2.getRecordDTO());
 
 			assertThat(dtoDouble1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(asList(i, i + 11231, i + 221333));
 			assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(asList(i, i + 11231, i + 221333));
@@ -1843,8 +1856,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(recordDouble1, recordDouble2));
 
-		ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble1.getRecordDTO());
-		ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble2.getRecordDTO());
+		ByteArrayRecordDTO dtoDouble1 = create(getModelLayerFactory(), recordDouble1.getRecordDTO());
+		ByteArrayRecordDTO dtoDouble2 = create(getModelLayerFactory(), recordDouble2.getRecordDTO());
 
 		assertThat(dtoDouble1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(asList(Double.MAX_VALUE - 2, Double.MAX_VALUE - 1, Double.MAX_VALUE));
 		assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(asList(Double.MAX_VALUE - 2, Double.MAX_VALUE - 1, Double.MAX_VALUE));
@@ -1877,8 +1890,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordDate1, recordDate2));
 
-			ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDate1.getRecordDTO());
-			ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDate2.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble1 = create(getModelLayerFactory(), recordDate1.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble2 = create(getModelLayerFactory(), recordDate2.getRecordDTO());
 
 			assertThat(dtoDouble1.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(date);
 			assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(date);
@@ -1914,8 +1927,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordDate1, recordDate2));
 
-			ByteArrayRecordDTO dtoDate1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDate1.getRecordDTO());
-			ByteArrayRecordDTO dtoDate2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDate2.getRecordDTO());
+			ByteArrayRecordDTO dtoDate1 = create(getModelLayerFactory(), recordDate1.getRecordDTO());
+			ByteArrayRecordDTO dtoDate2 = create(getModelLayerFactory(), recordDate2.getRecordDTO());
 
 			assertThat(dtoDate1.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(asList(date.plusDays(1), date.plusDays(2), date.plusDays(3)));
 			assertThat(dtoDate2.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(asList(date.plusDays(1), date.plusDays(2), date.plusDays(3)));
@@ -1951,8 +1964,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordDateTime1, recordDateTime2));
 
-			ByteArrayRecordDTO dtoDateTime1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDateTime1.getRecordDTO());
-			ByteArrayRecordDTO dtoDateTime2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDateTime2.getRecordDTO());
+			ByteArrayRecordDTO dtoDateTime1 = create(getModelLayerFactory(), recordDateTime1.getRecordDTO());
+			ByteArrayRecordDTO dtoDateTime2 = create(getModelLayerFactory(), recordDateTime2.getRecordDTO());
 
 			assertThat(dtoDateTime1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(dateTime);
 			assertThat(dtoDateTime2.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(dateTime);
@@ -1989,8 +2002,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordDateTime1, recordDateTime2));
 
-			ByteArrayRecordDTO dtoDateTime1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDateTime1.getRecordDTO());
-			ByteArrayRecordDTO dtoDateTime2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDateTime2.getRecordDTO());
+			ByteArrayRecordDTO dtoDateTime1 = create(getModelLayerFactory(), recordDateTime1.getRecordDTO());
+			ByteArrayRecordDTO dtoDateTime2 = create(getModelLayerFactory(), recordDateTime2.getRecordDTO());
 
 			assertThat(dtoDateTime1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(asList(dateTime, dateTime.plusDays(1), dateTime.plusDays(2)));
 			assertThat(dtoDateTime2.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(asList(dateTime, dateTime.plusDays(1), dateTime.plusDays(2)));
@@ -2007,5 +2020,49 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		}
 
 		return mapFromSet;
+	}
+
+	public static ByteArrayRecordDTO create(ModelLayerFactory modelLayerFactory, RecordDTO dto) {
+
+		if (dto.getLoadingMode() == RecordDTOMode.CUSTOM) {
+			throw new IllegalStateException("Cannot create ByteArrayRecordDTO from a customly loaded RecordDTO");
+		}
+
+		String collection = (String) dto.getFields().get("collection_s");
+		String schemaCode = (String) dto.getFields().get("schema_s");
+		short instanceId = modelLayerFactory.getInstanceId();
+		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
+
+		MetadataSchemaProvider schemaProvider = modelLayerFactory.getMetadataSchemasManager();
+
+		MetadataSchema schema = type.getSchema(schemaCode);
+		CollectionInfo collectionInfo = schema.getCollectionInfo();
+
+		//TODO Handle Holder
+		CacheRecordDTOBytesArray bytesArray = convertDTOToByteArrays(dto, schema);
+
+		int intId = RecordUtils.toIntKey(dto.getId());
+
+		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
+			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
+				SummaryCacheSingletons.dataStore.get(instanceId).saveStringKey(dto.getId(), bytesArray.bytesToPersist);
+			} else {
+				//SummaryCacheSingletons.dataStore.removeStringKey(dto.getId());
+			}
+			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
+					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
+					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+		} else {
+			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
+				SummaryCacheSingletons.dataStore.get(instanceId).saveIntKey(intId, bytesArray.bytesToPersist);
+			} else {
+				//SummaryCacheSingletons.dataStore.removeIntKey(intId);
+			}
+			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
+					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),
+					type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+		}
+
 	}
 }

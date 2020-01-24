@@ -80,7 +80,7 @@ public class Toggle {
 
 	//Debug the dtos!
 	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(true);
-	public static AvailableToggle DEBUG_DTOS = newToggle(false);
+	public static AvailableToggle DEBUG_DTOS = newToggle(true);
 
 	public static AvailableToggle MIGRATING_LEGACY_SAVESTATE = newToggle(false);
 
