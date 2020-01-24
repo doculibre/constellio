@@ -1724,7 +1724,7 @@ public class SearchServices {
 
 	public Iterator<RecordId> recordsIdIteratorExceptEvents() {
 		LogicalSearchQuery query = new LogicalSearchQuery(LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection()
-				.where(Schemas.SCHEMA).isNot(startingWithText("event_")).andWhere(Schemas.SCHEMA).isNot(startingWithText("document_")));
+				.where(Schemas.SCHEMA).isNot(startingWithText("event_")));
 		query.sortAsc(Schemas.IDENTIFIER);
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
 		query.filteredByVisibilityStatus(ALL);

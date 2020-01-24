@@ -23,12 +23,14 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -188,7 +190,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.integerMetadata(), null)
 				.set(zeSchema.numberMetadata(), null)
 				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record3.getId())
-				.set(Schemas.TITLE, "Maison Champignon ")
+				.set(Schemas.TITLE, "أريد أن أشرب الحليب")
 				.set(zeSchemaType.getMetadata("structMetadata"), null)
 				.set(zeSchema.enumMetadata(), FolderStatus.INACTIVE_DESTROYED)
 				.set(zeSchema.largeTextMetadata(), null)
@@ -303,7 +305,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto3.get(zeSchema.contentMetadata().getDataStoreCode())).isEqualTo(null);
 		assertThat(dto3.get(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isEqualTo(null);
 
-		assertThat(dto4.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("Maison Champignon ");
+		assertThat(dto4.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("أريد أن أشرب الحليب");
 		assertThat(dto4.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(true);
 		assertThat(dto4.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(null);
 		assertThat(dto4.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(null);
@@ -773,7 +775,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.integerMetadata(), null)
 				.set(zeSchema.numberMetadata(), null)
 				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record3.getId())
-				.set(Schemas.TITLE, "Maison Champignon ")
+				.set(Schemas.TITLE, "أريد أن أشرب الحليب")
 				.set(zeSchema.enumMetadata(), FolderStatus.INACTIVE_DESTROYED)
 				.set(zeSchema.largeTextMetadata(), null)
 				.set(zeSchema.contentMetadata(), content)
@@ -1012,7 +1014,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.referenceMetadata(), asList(null, record1.getId()))
 				.set(zeSchema.dateMetadata(), asList(date, date.plusDays(3), date.plusDays(-100)))
 				.set(zeSchema.dateTimeMetadata(), asList(null, dateTime.plusHours(5), dateTime.minusYears(33)))
-				.set(zeSchema.multivaluedLargeTextMetadata(), asList("", "Luigi", null, "Waluigi", "Wario"))
+				.set(zeSchema.multivaluedLargeTextMetadata(), asList("", "Luigi", null, "أريد أن أشرب الحليب", "Waluigi", "Wario"))
 				.set(zeSchema.contentMetadata(), asList(noContent, content))
 				.set(zeSchema.booleanMetadata(), asList(true, false, true));
 
@@ -1118,7 +1120,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				asList(null, dateTime.plusHours(5), dateTime.minusYears(33)),
 				asList(null, record1.getId()),
 				asList(comment2ToString, comment1ToString),
-				asList("Luigi", null, "Waluigi", "Wario"),
+				asList("Luigi", null, "أريد أن أشرب الحليب", "Waluigi", "Wario"),
 				asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
 
 		assertThat(dto3.values()).contains(asList(false, null, true),
@@ -1168,6 +1170,56 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				asList(" ", " Batman "),
 				asList(CopyType.SECONDARY.getCode()));
 	}
+
+
+	@Test
+	public void whenStoringSingleStringMetadataInAByteArrayRecordDTOThenVerifyingTheStoredValue() throws Exception {
+		defineSchemasManager().using(setup.withAStringMetadata(whichIsEssentialInSummary));
+		init();
+
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.stringMetadata(), "الشمس حاره");
+		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.stringMetadata(), " Macho Man Randy Savage ");
+
+		recordServices.execute(new Transaction(record1, record2));
+
+		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
+
+		assertThat(dto1.values()).contains("الشمس حاره");
+		assertThat(dto2.values()).contains(" Macho Man Randy Savage ");
+	}
+
+	@Test
+	public void whenStoringLargeMultivalueStringMetadataInAByteArrayRecordDTOThenVerifyingTheStoredValue()
+			throws Exception {
+		defineSchemasManager().using(setup.withALargeTextMetadata(whichIsEssentialInSummary, whichIsMultivalue).withAStringMetadata(whichIsEssentialInSummary, whichIsMultivalue));
+		init();
+
+		String val1 = "123wo" + StringUtils.repeat("lolo", 1000) + "42";
+		String val2 = "Na" + StringUtils.repeat("na", 2000) + "nan Batman!";
+		String val3 = "un " + StringUtils.repeat("très ", 10000) + " long texte";
+		String val4 = "un encore plus " + StringUtils.repeat("très ", 10000) + " long texte";
+
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.stringMetadata(), asList(val1, val2, "الشمس حاره"))
+				.set(zeSchema.largeTextMetadata(), Arrays.asList(val4, val3));
+		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.stringMetadata(), asList(val2, "الشمس حاره", val1))
+				.set(zeSchema.largeTextMetadata(), asList(val3, val4, "الشمس حاره"));
+
+		recordServices.execute(new Transaction(record1, record2));
+
+		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
+
+		assertThat(dto1.get(zeSchema.stringMetadata().getDataStoreCode())).isEqualTo(asList(val1, val2, "الشمس حاره"));
+		assertThat(dto1.get(zeSchema.largeTextMetadata().getDataStoreCode())).isEqualTo(asList(val4, val3));
+		assertThat(dto2.get(zeSchema.stringMetadata().getDataStoreCode())).isEqualTo(asList(val2, "الشمس حاره", val1));
+		assertThat(dto2.get(zeSchema.largeTextMetadata().getDataStoreCode())).isEqualTo(asList(val3, val4, "الشمس حاره"));
+	}
+
 
 	@Test
 	public void whenStoringMetadatasInAByteArrayRecordDTOThenVerifyingTheEntries() throws Exception {
@@ -1409,7 +1461,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.integerMetadata(), null)
 				.set(zeSchema.numberMetadata(), null)
 				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record3.getId())
-				.set(Schemas.TITLE, "Maison Champignon ")
+				.set(Schemas.TITLE, "أريد أن أشرب الحليب")
 				.set(zeSchema.enumMetadata(), FolderStatus.INACTIVE_DESTROYED)
 				.set(zeSchema.largeTextMetadata(), null)
 				.set(zeSchema.contentMetadata(), content)

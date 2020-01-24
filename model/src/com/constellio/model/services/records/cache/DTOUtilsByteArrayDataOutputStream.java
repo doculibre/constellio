@@ -85,7 +85,11 @@ class DTOUtilsByteArrayDataOutputStream implements Closeable {
 		}
 	}
 
-	public void writeShort(Metadata relatedMetadata, int v) throws IOException {
+	public void writeShort(Metadata relatedMetadata, int v)
+			throws IOException {
+		if (v > Short.MAX_VALUE || v < Short.MIN_VALUE) {
+			throw new IllegalArgumentException("Cannot write that int as a short value : " + v);
+		}
 		logLength(relatedMetadata, Short.BYTES);
 		dataOutputStream.writeShort(v);
 

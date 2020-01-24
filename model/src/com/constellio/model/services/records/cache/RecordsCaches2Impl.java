@@ -962,31 +962,36 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		CollectionInfo collectionInfo = schema.getCollectionInfo();
 
 		//TODO Handle Holder
-		CacheRecordDTOBytesArray bytesArray = convertDTOToByteArrays(dto, schema);
-
-		int intId = RecordUtils.toIntKey(dto.getId());
-
-		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
-			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
-				SummaryCacheSingletons.dataStore.get(instanceId).saveStringKey(dto.getId(), bytesArray.bytesToPersist);
-
-			} else if (reason != LOADING_CACHE) {
-				SummaryCacheSingletons.dataStore.get(instanceId).removeStringKey(dto.getId());
-			}
-			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), true,
-					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
-					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+		if (Toggle.USE_ONLY_SUMMARY_SOLR_RECORD_DTO.isEnabled()) {
+			return ((SolrRecordDTO) dto).createSummaryKeeping(schema.getSummaryMetadatas()
+					.stream().map(Metadata::getDataStoreCode).collect(Collectors.toList()));
 		} else {
-			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
-				SummaryCacheSingletons.dataStore.get(instanceId).saveIntKey(intId, bytesArray.bytesToPersist);
+			CacheRecordDTOBytesArray bytesArray = null;
+			bytesArray = convertDTOToByteArrays(dto, schema);
 
-			} else if (reason != LOADING_CACHE) {
-				SummaryCacheSingletons.dataStore.get(instanceId).removeIntKey(intId);
+			int intId = RecordUtils.toIntKey(dto.getId());
+
+			if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
+				if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
+					SummaryCacheSingletons.dataStore.get(instanceId).saveStringKey(dto.getId(), bytesArray.bytesToPersist);
+
+				} else if (reason != LOADING_CACHE) {
+					SummaryCacheSingletons.dataStore.get(instanceId).removeStringKey(dto.getId());
+				}
+				return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), true,
+						instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
+						schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+			} else {
+				if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
+					SummaryCacheSingletons.dataStore.get(instanceId).saveIntKey(intId, bytesArray.bytesToPersist);
+
+				} else if (reason != LOADING_CACHE) {
+					SummaryCacheSingletons.dataStore.get(instanceId).removeIntKey(intId);
+				}
+				return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), true,
+						instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
+						schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
 			}
-			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), true,
-					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
-					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
 		}
-
 	}
 }

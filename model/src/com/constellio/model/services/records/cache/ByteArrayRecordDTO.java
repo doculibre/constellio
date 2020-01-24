@@ -268,7 +268,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	 */
 	@Override
 	public int size() {
-		return CacheRecordDTOUtils.metadatasSize(data);
+		return CacheRecordDTOUtils.metadatasWithValueCount(data);
 	}
 
 	@Override

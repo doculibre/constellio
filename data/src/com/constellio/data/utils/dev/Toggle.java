@@ -75,6 +75,9 @@ public class Toggle {
 
 	public static AvailableToggle VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR = newToggle(false);
 
+	//For test puroposes only
+	public static AvailableToggle USE_ONLY_SUMMARY_SOLR_RECORD_DTO = newToggle(true);
+
 	//Debug the dtos!
 	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(true);
 	public static AvailableToggle DEBUG_DTOS = newToggle(false);
@@ -83,7 +86,7 @@ public class Toggle {
 
 	public static AvailableToggle TRI_LEVEL_CACHE_LOCKING_Mecanism = newToggle(false);
 
-	public static AvailableToggle USE_MMAP_WITHMAP_DB_FOR_LOADING = newToggle(true);
+	public static AvailableToggle USE_MMAP_WITHMAP_DB_FOR_LOADING = newToggle(false);
 	public static AvailableToggle USE_MMAP_WITHMAP_DB_FOR_RUNTIME = newToggle(false);
 
 	public static AvailableToggle USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE = newToggle(true);
