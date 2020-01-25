@@ -43,16 +43,25 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 
 import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.model.services.records.cache.CacheRecordDTOUtils.convertDTOToByteArrays;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsZeSchemaType;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
@@ -68,6 +77,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	RecordServices recordServices;
 	ReindexingServices reindexingServices;
 	ContentManager contentManager;
+	Random random = new Random();
 
 	private void init() {
 		UserServices userServices = getModelLayerFactory().newUserServices();
@@ -1235,6 +1245,464 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 
 	@Test
+	public void whenStoringMultipleBooleanMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 5_000;
+		int sizeOfMultivalues = 200;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(BOOLEAN)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> random.nextBoolean()).collect(toList());
+			} else {
+				value = random.nextBoolean();
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleIntMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 5_000;
+		int sizeOfMultivalues = 50;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(INTEGER)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> random.nextInt()).collect(toList());
+			} else {
+				value = random.nextInt();
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleEnumMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 5_000;
+		int sizeOfMultivalues = 50;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).defineAsEnum(CopyType.class)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> random.nextBoolean() ? CopyType.PRINCIPAL : CopyType.SECONDARY).collect(toList());
+				record1.set(zeSchema.metadata("meta" + i), value);
+				values.add(((List<CopyType>) value).stream().map(CopyType::getCode).collect(toList()));
+			} else {
+				value = random.nextBoolean() ? CopyType.PRINCIPAL : CopyType.SECONDARY;
+				record1.set(zeSchema.metadata("meta" + i), value);
+				values.add(((CopyType) value).getCode());
+			}
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleNumberMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 5_000;
+		int sizeOfMultivalues = 25;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(NUMBER)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> random.nextDouble()).collect(toList());
+			} else {
+				value = random.nextDouble();
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleDateMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 5_000;
+		int sizeOfMultivalues = 50;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(MetadataValueType.DATE)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> new LocalDate().minusDays(random.nextInt(1000))).collect(toList());
+			} else {
+				value = new LocalDate().minusDays(random.nextInt(1000));
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleDateTimeMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 5_000;
+		int sizeOfMultivalues = 25;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(MetadataValueType.DATE_TIME)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> new LocalDateTime().minusSeconds(random.nextInt(1000))).collect(toList());
+			} else {
+				value = new LocalDateTime().minusSeconds(random.nextInt(1000));
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleStringMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 5_000;
+		int sizeOfMultivalues = 5;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(STRING)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> new LocalDateTime().minusSeconds(random.nextInt(1000)).toString()).collect(toList());
+			} else {
+				value = new LocalDateTime().minusSeconds(random.nextInt(1000)).toString();
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleTextMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 5_000;
+		int sizeOfMultivalues = 5;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(TEXT)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> new LocalDateTime().minusSeconds(random.nextInt(1000)).toString()).collect(toList());
+			} else {
+				value = new LocalDateTime().minusSeconds(random.nextInt(1000)).toString();
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+	@Test
+	public void whenStoringMultipleStringIdReferenceMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 5_000;
+		int sizeOfMultivalues = 10;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"))
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		List<String> ids = new ArrayList<>();
+		Transaction tx = new Transaction();
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r1")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r2")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r3")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r4")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r5")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r6")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r7")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r8")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r9")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r10")).getId());
+
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> ids.get(random.nextInt(ids.size()))).collect(toList());
+			} else {
+				value = ids.get(random.nextInt(ids.size()));
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		tx.add(record1);
+
+
+		recordServices.execute(tx);
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleIntIdReferenceMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 5_000;
+		int sizeOfMultivalues = 50;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"))
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		List<String> ids = new ArrayList<>();
+		Transaction tx = new Transaction();
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> ids.get(random.nextInt(ids.size()))).collect(toList());
+			} else {
+				value = ids.get(random.nextInt(ids.size()));
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		tx.add(record1);
+
+
+		recordServices.execute(tx);
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+	@Test
 	public void whenStoringMetadatasInAByteArrayRecordDTOThenVerifyingTheEntries() throws Exception {
 		defineSchemasManager().using(setup
 				.withABooleanMetadata(whichIsEssentialInSummary)
@@ -1252,7 +1720,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
 					.create("stringMetadata").setMultivalue(true).setEssentialInSummary(true)
-					.setType(MetadataValueType.STRING);
+					.setType(STRING);
 
 			types.getSchema(anotherSchema.code())
 					.create("booleanMetadata").setMultivalue(true).setEssentialInSummary(true)

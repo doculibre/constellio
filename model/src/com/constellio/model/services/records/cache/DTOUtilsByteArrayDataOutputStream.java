@@ -148,7 +148,7 @@ class DTOUtilsByteArrayDataOutputStream implements Closeable {
 	public void writeBytes(Metadata relatedMetadata, String s, boolean utf8) throws IOException {
 		if (utf8) {
 			byte[] bytes = s.getBytes(UTF_8);
-			short size = (short) bytes.length;
+			int size = bytes.length;
 
 			logLength(relatedMetadata, size);
 			dataOutputStream.write(bytes);
