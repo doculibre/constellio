@@ -7,6 +7,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.cache.CompiledDTOStats.CompiledDTOStatsBuilder;
+import lombok.AllArgsConstructor;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -372,7 +373,7 @@ public class CacheRecordDTOUtils {
 		short headerBytesSize = headerSizeOf(data);
 
 		// if the value is persisted go up 2 bytes instead of 4 since we don<t have a index value in this byteArrayToKeepInMemory
-		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_INDEX + BYTES_TO_WRITE_METADATA_ID)) {
+		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID + BYTES_TO_WRITE_METADATA_INDEX)) {
 			short id = parseMetadataIdFromByteArray(data, i);
 
 			if (id == metadataSearchedId) {
@@ -398,7 +399,7 @@ public class CacheRecordDTOUtils {
 		int headerBytesSize = headerSizeOf(byteArray);
 
 		// skipping first two byte because it's the metadatasSizeToKeepInMemory
-		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_INDEX + BYTES_TO_WRITE_METADATA_ID)) {
+		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID + BYTES_TO_WRITE_METADATA_INDEX)) {
 			short id = parseMetadataIdFromByteArray(byteArray, i);
 
 			if (id == metadataId) {
@@ -809,6 +810,60 @@ public class CacheRecordDTOUtils {
 	private static int parseMetadataValueIndexFromByteArray(byte[] byteArray, int startingIndex) {
 		return parseIntFromByteArray(byteArray, startingIndex);
 	}
+
+	/**
+	 * Value ranging from 0 to 65535 are written on 2 bytes
+	 * Value ranging from 65536 to 131071 are written on 4 byte
+	 * Value ranging from 131072 to Max int are written on 8 byte
+	 * etc
+	 */
+	public static CompactedInt parseCompactedPositiveIntFromByteArray_2_4_8(byte[] byteArray, int startingIndex) {
+		int twoByteValue = parseShortFromByteArray(byteArray, startingIndex) + Short.MAX_VALUE;
+		if (twoByteValue == -1) {
+			int nextTwoByteValue = parseShortFromByteArray(byteArray, startingIndex + 2) + Short.MAX_VALUE;
+			if (nextTwoByteValue == -1) {
+				return new CompactedInt(parseIntFromByteArray(byteArray, startingIndex + 4), 8);
+			} else {
+				return new CompactedInt(nextTwoByteValue + 65535, 4);
+			}
+		} else {
+			return new CompactedInt(twoByteValue, 2);
+		}
+	}
+
+	/**
+	 * Value ranging from -127 to 127 are written on 1 bytes
+	 * Value ranging from -254 to 254 are written on 2 bytes
+	 * Value ranging from -32768 to 32767 are written on 4 bytes
+	 * etc
+	 */
+	public static CompactedShort parseCompactedShortFromByteArray_1_2_4(byte[] byteArray, int startingIndex) {
+		int byteValue = byteArray[startingIndex];
+		if (byteValue == Byte.MIN_VALUE) {
+			int nextByteValue = byteArray[startingIndex + 1];
+			if (nextByteValue == Byte.MIN_VALUE) {
+				return new CompactedShort(parseShortFromByteArray(byteArray, startingIndex + 2), 4);
+			} else {
+				short value = (short) (nextByteValue < 0 ? (nextByteValue - Byte.MAX_VALUE) : (nextByteValue + Byte.MAX_VALUE));
+				return new CompactedShort(value, 2);
+			}
+		} else {
+			return new CompactedShort((short) byteValue, 1);
+		}
+	}
+
+	@AllArgsConstructor
+	static class CompactedInt {
+		int value;
+		int length;
+	}
+
+	@AllArgsConstructor
+	static class CompactedShort {
+		short value;
+		int length;
+	}
+
 
 	private static int parseIntFromByteArray(byte[] byteArray, int startingIndex) {
 		return ((int) (byteArray[startingIndex] & 0xFF)) << 24 | ((int) (byteArray[startingIndex + 1] & 0xFF)) << 16 |

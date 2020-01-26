@@ -15,7 +15,7 @@ import java.util.List;
 
 import static org.apache.commons.lang.CharEncoding.UTF_8;
 
-class DTOUtilsByteArrayDataOutputStream implements Closeable {
+public class DTOUtilsByteArrayDataOutputStream implements Closeable {
 	ByteArrayOutputStream byteArrayOutputStream;
 	DataOutputStream dataOutputStream;
 	boolean persisted;
@@ -97,6 +97,58 @@ class DTOUtilsByteArrayDataOutputStream implements Closeable {
 			logDebugInfo(relatedMetadata, Short.BYTES, "short", "" + v);
 		}
 	}
+
+
+	/**
+	 * Value ranging from 0 to 65534 are written on 2 bytes
+	 * Value ranging from 65536 to 131070 are written on 4 byte
+	 * Value ranging from 131072 to Max int are written on 8 byte
+	 * etc
+	 */
+	public void writeCompactedPositiveIntFromByteArray_2_4_8(Metadata relatedMetadata, int value) throws IOException {
+		if (value < 65535) {
+			writeShort(relatedMetadata, (short) (value - Short.MAX_VALUE));
+
+		} else {
+			writeShort(relatedMetadata, Short.MIN_VALUE);
+
+			if (value < 131070) {
+				writeShort(relatedMetadata, (short) (value - 65535 - Short.MAX_VALUE));
+			} else {
+				writeShort(relatedMetadata, Short.MIN_VALUE);
+				writeInt(relatedMetadata, value);
+			}
+
+		}
+	}
+
+	/**
+	 * Value ranging from -127 to 127 are written on 1 bytes
+	 * Value ranging from -254 to 254 are written on 2 bytes
+	 * Value ranging from -32768 to 32767 are written on 4 bytes
+	 * etc
+	 */
+	public void writeCompactedShortFromByteArray_1_2_4(Metadata relatedMetadata, short value) throws IOException {
+		if (value >= -127 && value <= 127) {
+			writeByte(relatedMetadata, (byte) value);
+
+		} else {
+			writeByte(relatedMetadata, Byte.MIN_VALUE);
+			if (value >= -254 && value <= 254) {
+				if (value < 0) {
+					writeByte(relatedMetadata, (byte) (value + Byte.MAX_VALUE));
+				} else {
+					writeByte(relatedMetadata, (byte) (value - Byte.MAX_VALUE));
+				}
+			} else {
+				writeByte(relatedMetadata, Byte.MIN_VALUE);
+				writeShort(relatedMetadata, value);
+			}
+
+		}
+
+	}
+
 
 	public void writeChar(Metadata relatedMetadata, int v) throws IOException {
 		logLength(relatedMetadata, Character.BYTES);

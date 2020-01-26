@@ -10,6 +10,7 @@ import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -26,6 +27,8 @@ import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithStringId;
 import com.constellio.model.services.records.cache.CacheRecordDTOUtils.CacheRecordDTOBytesArray;
+import com.constellio.model.services.records.cache.CacheRecordDTOUtils.CompactedInt;
+import com.constellio.model.services.records.cache.CacheRecordDTOUtils.CompactedShort;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -64,6 +67,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
+import static org.mockito.Mockito.mock;
 
 public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
@@ -2478,6 +2482,44 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			dateTime = dateTime.plusYears(10);
 		}
+	}
+
+	@Test
+	public void whenStoringDataUsingCompactShortThenOK()
+			throws Exception {
+
+		Metadata metadata = mock(Metadata.class);
+		for (short v = Short.MIN_VALUE; v < Short.MAX_VALUE; v++) {
+			DTOUtilsByteArrayDataOutputStream stream = new DTOUtilsByteArrayDataOutputStream(false, null);
+			stream.writeLong(metadata, 0L);
+			stream.writeCompactedShortFromByteArray_1_2_4(metadata, v);
+			stream.writeLong(metadata, 12L);
+			byte[] bytes = stream.toByteArray();
+			CompactedShort value = CacheRecordDTOUtils.parseCompactedShortFromByteArray_1_2_4(bytes, 8);
+			assertThat(value.value).isEqualTo(v);
+			assertThat(value.length).isEqualTo(bytes.length - 16);
+		}
+
+
+	}
+
+	@Test
+	public void whenStoringDataUsingCompactPositiveIntThenOK()
+			throws Exception {
+
+		Metadata metadata = mock(Metadata.class);
+		for (int v = 0; v < 5_000_000; v++) {
+			DTOUtilsByteArrayDataOutputStream stream = new DTOUtilsByteArrayDataOutputStream(false, null);
+			stream.writeLong(metadata, 0L);
+			stream.writeCompactedPositiveIntFromByteArray_2_4_8(metadata, v);
+			stream.writeLong(metadata, 12L);
+			byte[] bytes = stream.toByteArray();
+			CompactedInt value = CacheRecordDTOUtils.parseCompactedPositiveIntFromByteArray_2_4_8(bytes, 8);
+			assertThat(value.value).isEqualTo(v);
+			assertThat(value.length).describedAs("" + v).isEqualTo(bytes.length - 16);
+		}
+
+
 	}
 
 	private Map<String, Object> toMap(Set<Entry<String, Object>> dtoEntrySet) {
