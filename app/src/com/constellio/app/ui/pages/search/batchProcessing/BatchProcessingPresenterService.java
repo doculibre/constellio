@@ -864,7 +864,7 @@ public class BatchProcessingPresenterService {
 			Schemas.MODIFIED_ON.getLocalCode(), RMObject.FORM_CREATED_ON, RMObject.FORM_MODIFIED_ON);
 
 	public BatchProcessRequest toRequest(String selectedType, LogicalSearchQuery query, RecordVO formVO,
-										 List<String> metadatasToEmpty, User user) {
+										 List<String> metadatasToEmpty, User user) throws RecordServicesException {
 		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
 		MetadataSchemaType type = schemas.getTypes().getSchemaType(typeCode);
 		Map<String, Object> fieldsModifications = getFieldsModifications(selectedType, formVO, metadatasToEmpty);
@@ -874,7 +874,7 @@ public class BatchProcessingPresenterService {
 	}
 
 	public BatchProcessRequest toRequest(String selectedType, List<String> selectedRecord, RecordVO formVO,
-										 List<String> metadatasToEmpty, User user) {
+										 List<String> metadatasToEmpty, User user) throws RecordServicesException {
 		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
 		MetadataSchemaType type = schemas.getTypes().getSchemaType(typeCode);
 		Map<String, Object> fieldsModifications = getFieldsModifications(selectedType, formVO, metadatasToEmpty);
@@ -883,7 +883,7 @@ public class BatchProcessingPresenterService {
 	}
 
 	private Map<String, Object> getFieldsModifications(String selectedType, RecordVO formVO,
-													   List<String> metadatasToEmpty) {
+													   List<String> metadatasToEmpty) throws RecordServicesException {
 		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
 		MetadataSchemaType type = schemas.getTypes().getSchemaType(typeCode);
 		MetadataSchema schema = schemas.getTypes().getSchema(formVO.getSchema().getCode());
@@ -895,13 +895,18 @@ public class BatchProcessingPresenterService {
 			LOGGER.info(metadata.getCode() + ":" + value);
 			if ((metadata.getDataEntry().getType() == DataEntryType.MANUAL
 				 || isCalculatedWithEvaluator(metadata))
-				&& (isNonEmptyValue(metadata, value) || metadatasToEmpty.contains(metadataVO.getLocalCode()))
 				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
-				&& (!metadata.isMultivalue() || !((List) value).isEmpty())
 				&& !excludedMetadatas.contains(metadata.getLocalCode())) {
 
-				LOGGER.info("");
-				fieldsModifications.put(metadataVO.getCode(), value);
+				boolean isModified = isNonEmptyValue(metadata, value);
+				boolean isEmptied = metadatasToEmpty.contains(metadataVO.getLocalCode());
+				if (isModified && isEmptied) {
+					throw new RecordServicesException(
+							$("BatchProcess.batchProcessCannotEmptyAndModify", metadata.getLocalCode()));
+				} else if (isModified || isEmptied) {
+					LOGGER.info("");
+					fieldsModifications.put(metadataVO.getCode(), value);
+				}
 			}
 		}
 		if (org.apache.commons.lang3.StringUtils.isNotBlank(selectedType)) {
@@ -933,7 +938,6 @@ public class BatchProcessingPresenterService {
 				 || isCalculatedWithEvaluator(metadata))
 				&& (isNonEmptyValue(metadata, value) || metadatasToEmpty.contains(metadataVO.getLocalCode()))
 				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
-				&& (!metadata.isMultivalue() || !((List) value).isEmpty())
 				&& !excludedMetadatas.contains(metadata.getLocalCode())) {
 
 				LOGGER.info("");

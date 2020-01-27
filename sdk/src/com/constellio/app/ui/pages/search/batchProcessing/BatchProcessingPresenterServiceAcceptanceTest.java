@@ -1000,13 +1000,14 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
 				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null),
-				tuple("folder_employe_hireDate", null, "2010-12-20")
+				tuple("folder_employe_hireDate", null, "2010-12-20"),
+				tuple("folder_employe_subType", "customSubType", null)
 		);
 
 		assertThat(results.getRecordModifications(records.folder_A02).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
-				tuple("folder_employe_subType", "Meeting important", "Dossier d'employé général"),
+				tuple("folder_employe_subType", "Meeting important", null),
 				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null),
 				tuple("folder_employe_hireDate", null, "2010-12-20")
 		);

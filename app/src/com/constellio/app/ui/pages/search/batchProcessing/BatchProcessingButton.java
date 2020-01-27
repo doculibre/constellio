@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.search.batchProcessing;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
@@ -30,6 +31,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -280,11 +282,14 @@ public class BatchProcessingButton extends WindowButton {
 			}
 		});
 
-		Button processButton = new Button($("BatchProcessingButton.process", presenter.getNumberOfRecords(view.getSchemaType())));
-		processButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-		processButton.addClickListener(new ClickListener() {
+		ConfirmDialogButton processButton = new ConfirmDialogButton($("BatchProcessingButton.process", presenter.getNumberOfRecords(view.getSchemaType()))) {
 			@Override
-			public void buttonClick(ClickEvent event) {
+			protected String getConfirmDialogMessage() {
+				return $("BatchProcessingButton.confirm", presenter.getNumberOfRecords(view.getSchemaType()));
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
 				form.commit();
 				BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
@@ -303,8 +308,8 @@ public class BatchProcessingButton extends WindowButton {
 					batchProcessingView.showErrorMessage($(e.getMessage()));
 				}
 			}
-
-		});
+		};
+		processButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 		HorizontalLayout actionsLayout = new HorizontalLayout();
 		actionsLayout.setSpacing(true);
