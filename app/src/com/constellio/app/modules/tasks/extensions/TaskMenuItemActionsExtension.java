@@ -11,17 +11,16 @@ import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
-import com.constellio.app.ui.framework.window.ConsultLinkWindow;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.vaadin.server.FontAwesome;
-import com.vaadin.ui.UI;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 
@@ -58,8 +57,7 @@ public class TaskMenuItemActionsExtension extends MenuItemActionsExtension {
 			}
 		}
 
-		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(linkList);
-		UI.getCurrent().addWindow(consultLinkWindow);
+		copyConsultationLinkToClipBoard(linkList);
 	}
 
 

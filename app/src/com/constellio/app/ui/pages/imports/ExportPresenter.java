@@ -440,6 +440,14 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 			if (logFile.exists()) {
 				logFiles.add(logFile);
 			}
+
+		}
+		File logsFolder = new File(modelLayerFactory.getFoldersLocator().getWrapperInstallationFolder(), "logs");
+		if (logsFolder.exists()) {
+			File[] logsFolderFiles = logsFolder.listFiles();
+			if (logsFolderFiles != null) {
+				logFiles.add(logsFolder);
+			}
 		}
 
 		if (logFiles.isEmpty()) {

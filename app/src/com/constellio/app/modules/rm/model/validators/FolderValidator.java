@@ -130,7 +130,8 @@ public class FolderValidator implements RecordValidator {
 				DocumentsTypeChoice choice = params.getConfigProvider().get(RMConfigs.DOCUMENTS_TYPES_CHOICE);
 				if (choice == DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
 					|| choice == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
-					if (!retentionRule.getDocumentTypes().containsAll(folder.getAllowedDocumentTypes())) {
+					if (!retentionRule.getDocumentTypes().isEmpty() && !folder.getAllowedDocumentTypes().isEmpty() &&
+						!retentionRule.getDocumentTypes().containsAll(folder.getAllowedDocumentTypes())) {
 						Map<String, Object> parameters = new HashMap<>();
 						parameters.put(RULE_CODE, retentionRule.getCode());
 						parameters.put(ALLOWED_DOCUMENT_TYPES, retentionRule.getDocumentTypes().toString());
@@ -146,7 +147,7 @@ public class FolderValidator implements RecordValidator {
 			}
 
 			if (parentFolder != null) {
-				if (!parentFolder.getAllowedFolderTypes().isEmpty()
+				if (!parentFolder.getAllowedFolderTypes().isEmpty() && folder.getType() != null
 					&& !parentFolder.getAllowedFolderTypes().contains(folder.getType())) {
 					Map<String, Object> parameters = new HashMap<>();
 					parameters.put(ALLOWED_FOLDER_TYPES, parentFolder.getAllowedFolderTypes().toString());

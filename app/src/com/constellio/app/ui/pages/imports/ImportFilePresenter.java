@@ -49,6 +49,11 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 	}
 
 	@Override
+	public boolean isLegacyIdIndexDisabledWarningVisible() {
+		return !modelLayerFactory.getSystemConfigs().isLegacyIdentifierIndexedInMemory();
+	}
+
+	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return user.has(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS).globally();
 	}

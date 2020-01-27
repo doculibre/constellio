@@ -92,7 +92,7 @@ public class MetadataBuilder {
 	private boolean dependencyOfAutomaticMetadata;
 	private Map<String, Object> customParameter;
 	private boolean fillEmptyLabelWithCode = true;
-	private short id;
+	short id;
 
 	MetadataBuilder(MetadataSchemaBuilder schemaBuilder) {
 		this.schemaBuilder = schemaBuilder;
@@ -967,7 +967,7 @@ public class MetadataBuilder {
 			throw new EssentialMetadataCannotBeDisabled(code);
 		}
 
-		if (Boolean.FALSE == builder.getEnabled() && inheritance.isEssentialInSummary()) {
+		if (Boolean.FALSE == builder.getEnabled() && inheritance.isEssentialInSummary() && !localCode.startsWith("USR")) {
 			throw new EssentialMetadataInSummaryCannotBeDisabled(code);
 		}
 	}

@@ -3,7 +3,11 @@ package com.constellio.model.services.records.populators;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -59,6 +63,35 @@ public class AutocompleteFieldPopulatorAcceptanceTest extends ConstellioTest {
 		Folder folder = tx.add(records.newFolderWithValuesAndId("arabicFolderTest").setTitle("إدارة موقع الواجهة")
 				.setCategoryEntered(records.categoryId_X));
 		recordServices.execute(tx);
+
+		assertThatRecordsWithFullWordInAutocompleteField("إدارة").containsOnly("arabicFolderTest");
+		assertThatRecordsWithFullWordInAutocompleteField("موقع").containsOnly("arabicFolderTest");
+		assertThatRecordsWithFullWordInAutocompleteField("إدموقعارة").isEmpty();
+	}
+
+	@Test
+	public void whenFolderAutocompleteFieldIsPopulatedThenKeptInCache()
+			throws Exception {
+
+		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records));
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		Transaction tx = new Transaction();
+
+		Folder folder = tx.add(records.newFolderWithValuesAndId("arabicFolderTest").setTitle("إدارة موقع الواجهة")
+				.setCategoryEntered(records.categoryId_X));
+		recordServices.execute(tx);
+
+		MetadataSchema schema = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory()).folder.schema();
+		Metadata metadata = schema.get(Schemas.ATTACHED_ANCESTORS.getLocalCode());
+
+		assertThat(metadata.isStoredInSummaryCache()).isTrue();
+
+		Record record = getModelLayerFactory().newCachelessRecordServices().getDocumentById("arabicFolderTest");
+		assertThat(record.<String>getList(metadata)).isNotEmpty();
+
+		record = getModelLayerFactory().getRecordsCaches().getRecordSummary("arabicFolderTest");
+		assertThat(record.<String>getList(metadata)).isNotEmpty();
 
 		assertThatRecordsWithFullWordInAutocompleteField("إدارة").containsOnly("arabicFolderTest");
 		assertThatRecordsWithFullWordInAutocompleteField("موقع").containsOnly("arabicFolderTest");

@@ -55,8 +55,8 @@ public class SystemCheckManagerAcceptanceTestResources {
 											+ "Références analysées : 3\n"
 											+ "\n"
 											+ "2 erreur(s) : \n"
-											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 référence un enregistrement inexistant : bad\n"
-											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 référence un enregistrement inexistant : notGood\n"
+											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 fait référence à un enregistrement inexistant : bad\n"
+											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 fait référence à un enregistrement inexistant : notGood\n"
 											+ "\n";
 
 	public static String expectedMessage2 = ""
@@ -67,8 +67,8 @@ public class SystemCheckManagerAcceptanceTestResources {
 											+ "Références analysées : 3\n"
 											+ "\n"
 											+ "2 erreur(s) : \n"
-											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 référence un enregistrement inexistant : bad\n"
-											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 référence un enregistrement inexistant : notGood\n"
+											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 fait référence à un enregistrement inexistant : bad\n"
+											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 fait référence à un enregistrement inexistant : notGood\n"
 											+ "\n";
 
 	public static String expectedMessage3 = ""
@@ -79,8 +79,8 @@ public class SystemCheckManagerAcceptanceTestResources {
 											+ "Références analysées : 7\n"
 											+ "\n"
 											+ "2 erreur(s) : \n"
-											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 référence un enregistrement inexistant : recordC\n"
-											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 référence un enregistrement inexistant : recordC\n"
+											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 fait référence à un enregistrement inexistant : recordC\n"
+											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 fait référence à un enregistrement inexistant : recordC\n"
 											+ "\n";
 
 	public static String expectedMessage4 = ""
@@ -91,8 +91,8 @@ public class SystemCheckManagerAcceptanceTestResources {
 											+ "Références analysées : 7\n"
 											+ "\n"
 											+ "2 erreur(s) : \n"
-											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 référence un enregistrement inexistant : recordC\n"
-											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 référence un enregistrement inexistant : recordC\n"
+											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 fait référence à un enregistrement inexistant : recordC\n"
+											+ "\t- La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 fait référence à un enregistrement inexistant : recordC\n"
 											+ "\n";
 
 	public static String expectedMessage5 = ""

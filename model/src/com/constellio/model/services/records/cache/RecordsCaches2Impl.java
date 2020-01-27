@@ -115,7 +115,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 		this.memoryDiskDatabase = DBMaker.memoryDB().make();
 		this.hooks = new RecordsCachesHooks(modelLayerFactory);
-		this.metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		this.metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(modelLayerFactory);
 
 		ScheduledExecutorService executor =
 				Executors.newScheduledThreadPool(2);
@@ -146,6 +146,15 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	public void disableVolatileCache() {
 		volatileCache.setEnabled(false);
 
+	}
+
+	@Override
+	public MetadataIndexCacheDataStore getMetadataIndexCacheDataStore() {
+		return metadataIndexCacheDataStore;
+	}
+
+	public RecordsCachesDataStore getRecordsCachesDataStore() {
+		return memoryDataStore;
 	}
 
 	public void register(RecordsCachesHook hook) {
@@ -195,7 +204,6 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 	public CacheInsertionResponse insert(Record record, InsertionReason insertionReason) {
-
 
 		CacheInsertionStatus problemo = validateInsertable(record, insertionReason);
 		if (problemo != null) {
@@ -343,6 +351,16 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				}
 
 			} else {
+				returnedRecord = toRecord(schemaType, recordDTO);
+			}
+		} else {
+			recordDTO = volatileCache.get(id);
+			if (recordDTO != null) {
+				String collectionCode = (String) recordDTO.getFields().get(COLLECTION.getDataStoreCode());
+				String schemaCode = (String) recordDTO.getFields().get(SCHEMA.getDataStoreCode());
+
+				MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(collectionCode);
+				MetadataSchemaType schemaType = schemaTypes.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
 				returnedRecord = toRecord(schemaType, recordDTO);
 			}
 		}
@@ -626,6 +644,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
 				cacheLoadingProgression = null;
 
+				if (Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled() && !Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.isEnabled()) {
+					fileSystemDataStore.closeThenReopenWithoutMmap();
+				}
 			}).start();
 
 		} else {
@@ -650,7 +671,11 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 	protected void removeFromAllCaches(byte collectionId, List<String> recordIds) {
-		memoryDataStore.stream(collectionId, recordIds).forEach(this::remove);
+		memoryDataStore.stream(collectionId, recordIds).forEach(recordDTO -> remove(recordDTO, false));
+
+		for (String recordId : recordIds) {
+			volatileCache.remove(recordId);
+		}
 	}
 
 
@@ -677,6 +702,10 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 
 	private void remove(RecordDTO recordDTO) {
+		remove(recordDTO, true);
+	}
+
+	private void remove(RecordDTO recordDTO, boolean removeFromVolatile) {
 		int intId = RecordUtils.toIntKey(recordDTO.getId());
 		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 			memoryDataStore.remove(recordDTO);
@@ -684,7 +713,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			memoryDataStore.remove(recordDTO);
 
 		}
-		volatileCache.remove(recordDTO.getId());
+		if (removeFromVolatile) {
+			volatileCache.remove(recordDTO.getId());
+		}
 
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(recordDTO.getCollection());
 		MetadataSchemaType type = types.getSchemaType(SchemaUtils.getSchemaTypeCode(recordDTO.getSchemaCode()));

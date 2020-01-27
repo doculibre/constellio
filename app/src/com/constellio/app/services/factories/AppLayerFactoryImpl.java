@@ -46,6 +46,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.Language;
@@ -265,6 +266,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		initializationFinished = true;
 
 		getModelLayerFactory().getRecordsCaches().register(new SavedSearchRecordsCachesHook(10_000));
+
+		SystemLogger.info("Application started");
 	}
 
 	private void startupWithPossibleRecovery(UpgradeAppRecoveryServiceImpl recoveryService) {

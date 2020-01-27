@@ -19,10 +19,9 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.app.ui.framework.window.ConsultLinkWindow;
-import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.util.MessageUtils;
@@ -75,10 +74,7 @@ public class TaskMenuItemActionBehaviors {
 
 	public void getConsultationLink(Task task, MenuItemActionBehaviorParams params) {
 		String constellioURL = getConstellioUrl(modelLayerFactory);
-		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(
-				new ConsultLinkParams(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(task.getId()),
-						task.getTitle())));
-		UI.getCurrent().addWindow(consultLinkWindow);
+		CopyToClipBoard.copyToClipBoard(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(task.getId()));
 	}
 
 	public void display(Task task, MenuItemActionBehaviorParams params) {

@@ -871,6 +871,7 @@ public class DecommissioningService {
 			throws RecordServicesException {
 
 		Transaction transaction = new Transaction();
+		transaction.setUser(currentUser);
 		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
 		recordServices.execute(transaction);
 		return duplicatedFolder;

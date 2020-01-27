@@ -34,4 +34,8 @@ public interface RecordDTO extends RecordsOperationDTO, Serializable {
 		return (String) getFields().get("schema_s");
 	}
 
+	long heapMemoryConsumption();
+
+	long offHeapMemoryConsumption();
+
 }

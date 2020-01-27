@@ -121,8 +121,8 @@ public class GetChildrenContext {
 			recordTypesToShowInTree.add(fromType.getCode());
 
 			for (Metadata metadata : forSelectionOfSchemaType.getAllParentReferences()) {
-				if (!recordTypesToShowInTree.contains(metadata.getReferencedSchemaType())) {
-					recordTypesToShowInTree.add(metadata.getReferencedSchemaType());
+				if (!recordTypesToShowInTree.contains(metadata.getReferencedSchemaTypeCode())) {
+					recordTypesToShowInTree.add(metadata.getReferencedSchemaTypeCode());
 				}
 			}
 
@@ -139,7 +139,7 @@ public class GetChildrenContext {
 
 					for (Metadata referenceMetadata : schemaType.getAllMetadatas()) {
 
-						if (referenceMetadata.getReferencedSchemaType().equals(fromType.getCode())
+						if (referenceMetadata.getReferencedSchemaTypeCode().equals(fromType.getCode())
 							&& (referenceMetadata.isTaxonomyRelationship() || referenceMetadata.isChildOfRelationship())) {
 
 							if (record == null) {
@@ -162,7 +162,7 @@ public class GetChildrenContext {
 				@Override
 				public void accept(MetadataSchemaType schemaType) {
 					for (Metadata referenceMetadata : schemaType.getAllMetadatas()) {
-						if (referenceMetadata.getReferencedSchemaType().equals(fromType.getCode())
+						if (referenceMetadata.getReferencedSchemaTypeCode().equals(fromType.getCode())
 							&& (referenceMetadata.isTaxonomyRelationship() || referenceMetadata.isChildOfRelationship())) {
 
 							if (record == null) {

@@ -27,6 +27,7 @@ import com.constellio.data.utils.LangUtils;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.FieldStatsInfo;
@@ -1016,6 +1017,12 @@ public class BigVaultRecordDao implements RecordDao {
 	@Override
 	public void expungeDeletes() {
 		bigVaultServer.expungeDeletes();
+	}
+
+	@Override
+	public TupleStream tupleStream(Map<String, String> props) {
+		return bigVaultServer.tupleStream(props);
+
 	}
 
 	@Override

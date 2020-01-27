@@ -37,7 +37,7 @@ public class ConversionManagerAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenInputStreamThenCreatePDF() {
-		manager = new ConversionManager(ioServices, 1, null, getDataLayerFactory().getExtensions().getSystemWideExtensions());
+		manager = new ConversionManager(ioServices, 1, null, getDataLayerFactory().getExtensions().getSystemWideExtensions(), getDataLayerFactory().getDataLayerConfiguration());
 		manager.initialize();
 		for (int i = 1; i < 9; i++) {
 			String originalName = "test" + i + ".odt";
@@ -50,7 +50,7 @@ public class ConversionManagerAcceptTest extends ConstellioTest {
 	@Test
 	public void givenInputStreamThenCreatePDFAsync()
 			throws ExecutionException, InterruptedException {
-		manager = new ConversionManager(ioServices, 4, null, getDataLayerFactory().getExtensions().getSystemWideExtensions());
+		manager = new ConversionManager(ioServices, 4, null, getDataLayerFactory().getExtensions().getSystemWideExtensions(), getDataLayerFactory().getDataLayerConfiguration());
 		manager.initialize();
 		List<Future<File>> results = new ArrayList<>();
 		for (int i = 1; i < 9; i++) {

@@ -378,6 +378,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public boolean areTiffFilesConvertedForPreview() {
+		return getBoolean("conversion.tiffConversion.enabled", false);
+	}
+
+	@Override
 	public ElectionServiceType getElectionServiceType() {
 		return (ElectionServiceType) getEnum("leaderElectionMethod.type", ElectionServiceType.STANDALONE);
 	}

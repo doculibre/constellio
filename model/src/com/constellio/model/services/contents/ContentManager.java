@@ -88,14 +88,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_SIZE;
@@ -367,7 +370,9 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		}
-		deleteOrphanParsedContentOrPreview(subFiles, vaultScanResults);
+		if (vaultScanResults != null) {
+			deleteOrphanParsedContentOrPreview(subFiles, vaultScanResults);
+		}
 	}
 
 	private boolean deleteOrphanParsedContentOrPreview(List<String> subFiles, VaultScanResults vaultScanResults) {
@@ -855,7 +860,8 @@ public class ContentManager implements StatefulService {
 							if (!closing.get()) {
 								try {
 									tryConvertRecordContents(record, tempFolder);
-								} catch (NullPointerException e) {
+								} catch (Throwable t) {
+									t.printStackTrace();
 									//unsupported extension
 								} finally {
 									transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
@@ -912,6 +918,11 @@ public class ContentManager implements StatefulService {
 				}
 				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder);
 				contentDao.moveFileToVault(pdfPreviewFile, hash + ".preview");
+
+			} catch (ContentDaoException_NoSuchContent e) {
+				//Missing content are not logged from the conversion thread. Instead, they are checked by system diagnostic and other mechanisms
+				return false;
+
 			} catch (Throwable t) {
 				LOGGER.warn("Cannot generate preview for content '" + filename + "' with hash '" + hash + "'", t);
 				return false;
@@ -920,7 +931,9 @@ public class ContentManager implements StatefulService {
 
 		if (mimeType.startsWith("image/")) {
 			Dimension dimension = ImageUtils.getImageDimension(contentDao.getFileOf(hash));
-			if ((mimeType.equals(MimeTypes.MIME_IMAGE_TIFF) || dimension.getHeight() > 1080) &&
+
+			boolean tiffSupported = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().areTiffFilesConvertedForPreview();
+			if (((tiffSupported && mimeType.equals(MimeTypes.MIME_IMAGE_TIFF)) || dimension.getHeight() > 1080) &&
 				!contentDao.isDocumentExisting(hash + ".jpegConversion")) {
 				try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
 					File convertedJPEGFile =
@@ -1338,6 +1351,66 @@ public class ContentManager implements StatefulService {
 			return contentVersionDataSummary;
 		}
 	}
+
+	public List<File> scanVaultContentAndFindUnreferenced() {
+		List<String> vaultContentFileList = new ArrayList<>();
+		getAllContentsFromVaultAndRemoveOrphan("", vaultContentFileList, null);
+		recordServices.flushRecords();
+		Set<String> allReferencedHashes = getAllReferencedHashes();
+
+		ContentDao contentDao = getContentDao();
+		List<File> files = new ArrayList<>();
+		for (String fileId : vaultContentFileList) {
+			if (!allReferencedHashes.contains(fileId)) {
+				File file = contentDao.getFileOf(fileId);
+				if (file.exists()) {
+					files.add(file);
+				}
+			}
+		}
+
+		return files;
+	}
+
+	public Stream<VaultContentEntry> stream() {
+		Stream<Path> pathStream = modelLayerFactory.getContentManager().getContentDao().streamVaultContent((path) -> {
+
+			if (path.toFile().isDirectory()) {
+				return false;
+
+			} else {
+				String filename = path.toFile().getName();
+				if (path.endsWith("tlogs") || path.getParent().endsWith("tlogs")
+					|| filename.endsWith("tlogs-backup")) {
+					return false;
+
+				} else if (filename.endsWith(".preview") || filename.endsWith(".thumbnails")
+						   || filename.endsWith("__parsed") || filename.endsWith(".jpegConversion")) {
+					return false;
+
+				} else {
+					return true;
+				}
+
+			}
+		});
+
+		return pathStream.map((p -> {
+			String hash = p.toFile().getName();
+			return new VaultContentEntry(p.toFile()) {
+				@Override
+				public Optional<ParsedContent> loadParsedContent() {
+					try {
+						return Optional.of(ContentManager.this.getParsedContent(hash));
+					} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
+						return Optional.empty();
+					}
+				}
+			};
+		}));
+	}
+
+	;
 
 	protected static class VaultScanResults {
 		private StringBuilder reportMessage = new StringBuilder();

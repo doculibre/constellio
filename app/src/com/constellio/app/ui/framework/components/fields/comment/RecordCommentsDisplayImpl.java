@@ -104,8 +104,8 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 		}
 	}
 
-	protected void commentAdded(Comment newComment) {
-		presenter.commentAdded(newComment);
+	protected boolean commentAdded(Comment newComment) {
+		return presenter.commentAdded(newComment);
 	}
 
 	protected void reloadComments() {
@@ -157,8 +157,9 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 		BaseForm<Comment> commentForm = new BaseForm<Comment>(newComment, Arrays.asList(commentFieldAndPropertyId)) {
 			@Override
 			protected void saveButtonClick(Comment newComment) throws ValidationException {
-				commentAdded(newComment);
-				window.close();
+				if (commentAdded(newComment)) {
+					window.close();
+				}
 			}
 
 			@Override

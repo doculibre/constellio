@@ -23,6 +23,8 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.GetByIdCounter;
+import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,13 +64,24 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenCreatingADocumentWithoutDescriptionThenOK()
+	public void whenCreatingADocumentWithoutDescriptionThenOKAndNoQueries()
 			throws Exception {
+
+		getModelLayerFactory().getRecordsCaches().disableVolatileCache();
+
+		GetByIdCounter getByIdCounter = new GetByIdCounter(getDataLayerFactory(), DocumentAcceptanceTest.class);
+		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), DocumentAcceptanceTest.class);
 
 		Document document = rm.newDocument().setTitle("My document").setDescription("test").setFolder(records.folder_A03);
 		recordServices.add(document);
+		getByIdCounter.assertCalledIds().isEmpty();
+		assertThat(queryCounter.newQueryCalls()).isZero();
+
+
 		document.setDescription(null).setTitle("Z");
 		recordServices.update(document);
+		getByIdCounter.assertCalledIds().isEmpty();
+		assertThat(queryCounter.newQueryCalls()).isZero();
 
 	}
 

@@ -2879,6 +2879,79 @@ public class TaxonomiesSearchServices_CachedLinkableTreesLegacyAcceptTest extend
 	}
 
 	@Test
+	public void whenSelectingACategoryNoMatterItsLinkableStatusAndWithoutHasChildrenRecalculateThenReturnGoodResults()
+			throws Exception {
+		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, true);
+		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES, true);
+		waitForBatchProcess();
+
+		Transaction tx = new Transaction();
+		tx.add(rm.newCategoryWithId("rootCategoryWithoutChild").setCode("rootCategoryWithoutChild")
+				.setTitle("rootCategoryWithoutChild"));
+		tx.add(rm.newCategoryWithId("rootCategoryWithChild").setCode("rootCategoryWithChild").setTitle("rootCategoryWithChild"));
+		tx.add(rm.newCategoryWithId("childCategory").setCode("childCategory").setTitle("childCategory")
+				.setParent("rootCategoryWithChild"));
+		tx.add(rm.newCategoryWithId("childChildCategory").setCode("childChildCategory").setTitle("childChildCategory")
+				.setParent("childCategory"));
+		recordServices.execute(tx);
+
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true)
+				.setHasChildrenFlagCalculated(NEVER);
+
+		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
+				.has(numFoundAndListSize(4))
+				.has(linkable("rootCategoryWithChild", "rootCategoryWithoutChild", records.categoryId_X, records.categoryId_Z))
+				.has(resultsInOrder("rootCategoryWithChild", "rootCategoryWithoutChild", records.categoryId_X,
+						records.categoryId_Z))
+				.has(itemsWithChildren("rootCategoryWithChild", "rootCategoryWithoutChild", records.categoryId_X, records.categoryId_Z))
+				.has(solrQueryCounts(0, 0, 0))
+				.has(secondSolrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy("rootCategoryWithChild", options)
+				.has(numFoundAndListSize(1))
+				.has(resultsInOrder("childCategory"))
+				.has(itemsWithChildren("childCategory"))
+				.has(linkable("childCategory"))
+				.has(solrQueryCounts(0, 0, 0))
+				.has(secondSolrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy("childCategory", options)
+				.has(numFoundAndListSize(1))
+				.has(resultsInOrder("childChildCategory"))
+				.has(itemsWithChildren("childChildCategory"))
+				.has(linkable("childChildCategory"))
+				.has(solrQueryCounts(0, 0, 0))
+				.has(secondSolrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z, options)
+				.has(numFoundAndListSize(4))
+				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
+						records.categoryId_ZE42))
+				.has(itemsWithChildren(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
+						records.categoryId_ZE42))
+				.has(linkable(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
+						records.categoryId_ZE42))
+				.has(solrQueryCounts(0, 0, 0))
+				.has(secondSolrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z100, options)
+				.has(resultsInOrder(records.categoryId_Z110, records.categoryId_Z120))
+				.has(itemsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
+				.has(numFoundAndListSize(2))
+				.has(linkable(records.categoryId_Z110))
+				.has(solrQueryCounts(0, 0, 0))
+				.has(secondSolrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z112, options)
+				.is(empty())
+				.has(solrQueryCounts(0, 0, 0))
+				.has(secondSolrQueryCounts(0, 0, 0));
+
+	}
+
+
+	@Test
 	public void whenAdminIsSelectingAFolderAlwaysDisplayingConceptsWithReadAccessThenSeesRecordsAndAllConcepts()
 			throws Exception {
 

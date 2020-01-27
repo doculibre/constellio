@@ -99,24 +99,6 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenActionEditWhenSaveButtonClickedThenEditIt()
-			throws Exception {
-		doReturn(taxonomy1).when(presenter).fetchTaxonomy(taxonomyVO.getCode());
-		doReturn(taxonomy2).when(taxonomy1).withTitle(taxonomyVO.getTitleMap());
-		doReturn(taxonomy3).when(taxonomy2).withUserIds(taxonomyVO.getUserIds());
-		doReturn(taxonomy4).when(taxonomy3).withGroupIds(taxonomyVO.getGroupIds());
-		doReturn(taxonomy5).when(taxonomy4).withVisibleInHomeFlag(taxonomyVO.isVisibleInHomePage());
-		doReturn(valueListServices).when(presenter).valueListServices();
-		when(presenter.isActionEdit()).thenReturn(true);
-
-		presenter.saveButtonClicked(taxonomyVO, true);
-
-		verify(presenter).fetchTaxonomy(taxonomyVO.getCode());
-		verify(taxonomiesManager).editTaxonomy(taxonomy5);
-		verify(view.navigate().to()).listTaxonomies();
-	}
-
-	@Test
 	public void givenExistentTitleWhenSaveButtonClickedThenDoNotCreateIt()
 			throws Exception {
 

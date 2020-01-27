@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.batchprocess;
 
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.ui.entities.BatchProcessVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.BatchProcessToVOBuilder;
@@ -15,10 +16,13 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import org.joda.time.Hours;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,9 +62,7 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 			}
 		}
 
-
-		User currentUser = getCurrentUser();
-		if (areSystemBatchProcessesVisible(currentUser)) {
+		if (hasSystemBatchProcessAccessInAnyCollection()) {
 			view.setSystemBatchProcesses(systemBatchProcessDataProvider);
 		}
 	}
@@ -89,16 +91,27 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 		}
 		List<BatchProcess> pendingBatchProcesses = batchProcessesManager.getPendingBatchProcesses();
 		displayedBatchProcesses.addAll(pendingBatchProcesses);
+		displayedBatchProcesses.sort(Comparator.comparing(BatchProcess::getRequestDateTime).reversed());
 
+		Map<String, Boolean> collectionAccess = new HashMap<>();
 		for (int i = 0; i < displayedBatchProcesses.size(); i++) {
 			BatchProcess batchProcess = displayedBatchProcesses.get(i);
-			BatchProcessVO batchProcessVO = voBuilder.build(batchProcess);
-			String batchProcessUsername = batchProcessVO.getUsername();
-			if (currentUsername.equals(batchProcessUsername)) {
-				userBatchProcessDataProvider.addBatchProcess(batchProcessVO);
+			String collection = batchProcess.getCollection();
+
+			if (!collectionAccess.containsKey(collection)) {
+				collectionAccess.put(collection, hasSystemBatchProcessAccess(collection));
 			}
-			systemBatchProcessDataProvider.addBatchProcess(batchProcessVO);
+
+			if (collectionAccess.get(collection)) {
+				BatchProcessVO batchProcessVO = voBuilder.build(batchProcess);
+				String batchProcessUsername = batchProcessVO.getUsername();
+				if (currentUsername.equals(batchProcessUsername)) {
+					userBatchProcessDataProvider.addBatchProcess(batchProcessVO);
+				}
+				systemBatchProcessDataProvider.addBatchProcess(batchProcessVO);
+			}
 		}
+
 		userBatchProcessDataProvider.fireDataRefreshEvent();
 		systemBatchProcessDataProvider.fireDataRefreshEvent();
 	}
@@ -108,8 +121,31 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 		return user.has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).onSomething();
 	}
 
-	private boolean areSystemBatchProcessesVisible(User user) {
-		return user.has(CorePermissions.VIEW_SYSTEM_BATCH_PROCESSES).globally();
+	private boolean hasSystemBatchProcessAccess(String collection) {
+		UserServices userServices = modelLayerFactory.newUserServices();
+		String username = getCurrentUser().getUsername();
+
+		User userInCollection;
+		try {
+			userInCollection = userServices.getUserInCollection(username, collection);
+		} catch (UserServicesRuntimeException_UserIsNotInCollection e) {
+			return false;
+		}
+
+		return userInCollection.has(CorePermissions.VIEW_SYSTEM_BATCH_PROCESSES).globally();
+	}
+
+	private boolean hasSystemBatchProcessAccessInAnyCollection() {
+		CollectionsManager collectionManager = appLayerFactory.getCollectionsManager();
+
+		List<String> collections = collectionManager.getCollectionCodes();
+		for (String collection : collections) {
+			if (hasSystemBatchProcessAccess(collection)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public void backgroundViewMonitor() {

@@ -30,8 +30,11 @@ import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 
@@ -183,7 +186,7 @@ public class SummaryCalculator extends AbstractMetadataValueCalculator<String> i
 		boolean isAlwaysShow = Boolean.TRUE.toString().equalsIgnoreCase(summarySettings.get(IS_ALWAYS_SHOWN).toString());
 		boolean itemShowIsNotNullOrNotEmpty = !Strings.isNullOrEmpty(itemShown);
 
-		if(!isAlwaysShow && itemShowIsNotNullOrNotEmpty && !isFirstPrefixSpikedOrShown) {
+		if (!isAlwaysShow && itemShowIsNotNullOrNotEmpty && !isFirstPrefixSpikedOrShown) {
 			isFirstPrefixSpikedOrShown = true;
 			return itemShown;
 		}
@@ -194,7 +197,7 @@ public class SummaryCalculator extends AbstractMetadataValueCalculator<String> i
 
 			boolean isPrefixNullOrEmpty = Strings.isNullOrEmpty(prefix);
 
-			if(!isFirstPrefixSpikedOrShown && !isPrefixNullOrEmpty) {
+			if (!isFirstPrefixSpikedOrShown && !isPrefixNullOrEmpty) {
 				isFirstPrefixSpikedOrShown = true;
 			}
 
@@ -279,25 +282,30 @@ public class SummaryCalculator extends AbstractMetadataValueCalculator<String> i
 		return dependencies;
 	}
 
+
 	public static class DynamicMetadatasDependency extends DynamicLocalDependency {
+
+		Map<String, Set<String>> cache = new HashMap<>();
 
 		@Override
 		public boolean isDependentOf(Metadata metadata, Metadata aCalculatedMetadata) {
-			Map modifiableMap = aCalculatedMetadata.getCustomParameter();
 
-			List list = (List) modifiableMap.get(SUMMARY_CONFIG);
+			Set<String> cachedDependentMetadata = cache.get(aCalculatedMetadata.getCode());
+			if (cachedDependentMetadata == null) {
+				Map modifiableMap = aCalculatedMetadata.getCustomParameter();
 
-			if (list != null) {
-				for (Map listItem : (List<Map>) list) {
-					if (TypeConvertionUtil.getMetadataLocalCode((String) listItem.get(METADATA_CODE))
-								.equals(metadata.getLocalCode()) || metadata.getLocalCode()
-								.equals(Schemas.TITLE.getLocalCode())) {
-						return true;
+				List list = (List) modifiableMap.get(SUMMARY_CONFIG);
+
+				cachedDependentMetadata = new HashSet<>();
+				if (list != null) {
+					for (Map listItem : (List<Map>) list) {
+						String metadataCode = (String) listItem.get(METADATA_CODE);
+						cachedDependentMetadata.add(TypeConvertionUtil.getMetadataLocalCode(metadataCode));
 					}
 				}
+				cache.put(aCalculatedMetadata.getCode(), cachedDependentMetadata);
 			}
-
-			return false;
+			return Schemas.TITLE.isSameLocalCode(metadata) || cachedDependentMetadata.contains(metadata.getLocalCode());
 		}
 
 		@Override

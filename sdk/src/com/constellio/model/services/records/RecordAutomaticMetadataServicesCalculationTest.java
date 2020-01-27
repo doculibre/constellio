@@ -11,7 +11,10 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -303,9 +306,19 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	@Test
 	public void givenReferenceDependencyRequiredAndNotNullWhenGettingValueThenReturnTrueAndAddValue() {
 		Map aMap = mock(Map.class);
+		MetadataSchemaType referencedSchemaType = mock(MetadataSchemaType.class);
+		MetadataSchema referencedDefaultSchema = mock(MetadataSchema.class);
+		when(referencedSchemaType.getDefaultSchema()).thenReturn(referencedDefaultSchema);
+
+
+		when(referencedSchemaType.getCacheType()).thenReturn(RecordCacheType.NOT_CACHED);
 		Metadata aReferenceMetadata = mock(Metadata.class);
 		Metadata theReferencedMetadata = mock(Metadata.class);
+		when(aReferenceMetadata.getReferencedSchemaType()).thenReturn(referencedSchemaType);
+		when(referencedDefaultSchema.getMetadata("theReferencedMetadata")).thenReturn(theReferencedMetadata);
+		when(theReferencedMetadata.getSchemaType()).thenReturn(referencedSchemaType);
 		when(aReferenceDependency.isRequired()).thenReturn(true);
+		when(aReferenceDependency.getDependentMetadataCode()).thenReturn("theReferencedMetadata");
 		doReturn(aReferenceMetadata).when(services).getMetadataFromDependency(record, aReferenceDependency);
 		doReturn(theReferencedMetadata).when(services).getDependentMetadataFromDependency(any(ReferenceDependency.class),
 				eq(otherRecord));
@@ -317,6 +330,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 				Locale.FRENCH, STRICT)).isTrue();
 		verify(aMap).put(aReferenceDependency, "aValue");
 	}
+
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private void configureCalculatorDependencies() {

@@ -29,7 +29,7 @@ public class DocumentValidator implements RecordValidator {
 
 	private void validate(Document document, RecordValidatorParams params) {
 		if (document.getFolder() != null) {
-			Folder folder = Folder.wrap(params.getRecord(document.getFolder()), params.getTypes());
+			Folder folder = Folder.wrap(params.getRecordSummary(document.getFolder()), params.getTypes());
 			List<String> allowedDocumentTypes = folder.getAllowedDocumentTypes();
 
 			String documentType = document.getType();
@@ -45,7 +45,11 @@ public class DocumentValidator implements RecordValidator {
 						parameters.put(RULE_CODE, retentionRule.getCode());
 						parameters.put(ALLOWED_DOCUMENT_TYPES, retentionRuleDocumentTypes);
 						parameters.put(DOCUMENT_TYPE, documentType);
-						params.getValidationErrors().add(DocumentValidator.class, TYPE_MUST_BE_RELATED_TO_ITS_RULE, parameters);
+
+						// TODO: Nous avons choisi de retirer cette validation pour le moment puisqu'elle pourrait causer des problème sur des environement de client.
+						//  Comme c'est une nouvelle validation, il se peut que les environements existants ne la respecte pas et le fait de l'ajouter ferait planter l'environement.
+						//  Dans le futur, nous prévoyons ajouter cette validation comme un warning au lieu d'une erreur.
+						//params.getValidationErrors().add(DocumentValidator.class, TYPE_MUST_BE_RELATED_TO_ITS_RULE, parameters);
 					}
 				}
 			} else if (documentType != null && !allowedDocumentTypes.isEmpty() && !allowedDocumentTypes.contains(documentType)) {

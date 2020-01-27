@@ -18,6 +18,11 @@ public class StringRecordId implements RecordId {
 	}
 
 	@Override
+	public int intValue() {
+		throw new UnsupportedOperationException("Unsupported until version 9.1");
+	}
+
+	@Override
 	public boolean isInteger() {
 		return false;
 	}

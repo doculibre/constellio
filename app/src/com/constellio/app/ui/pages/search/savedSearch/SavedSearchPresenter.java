@@ -68,7 +68,7 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 						where(schema.get(SavedSearch.SHARED_GROUPS)).isIn(currentUser.getUserGroupsOrEmpty());
 				LogicalSearchCondition isNotRestrictedAndNotCreator =
 						where(schema.get(SavedSearch.RESTRICTED)).isFalseOrNull()
-								.andWhere(schema.get(SavedSearch.USER)).isNull();
+								.andWhere(schema.get(SavedSearch.USER)).isNotEqual(currentUser);
 
 				return new LogicalSearchQuery(from(schema)
 						.whereAllConditions(

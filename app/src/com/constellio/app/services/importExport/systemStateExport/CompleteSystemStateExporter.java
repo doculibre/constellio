@@ -102,7 +102,7 @@ public class CompleteSystemStateExporter {
 
 			File contentsFolder = new File(tempFolder, "content");
 			new PartialVaultExporter(contentsFolder, appLayerFactory).export(Collections.<String>emptyList());
-			filesToZip.add(settingsFolder);
+			filesToZip.add(contentsFolder);
 
 			File zipFile = new File(tempFolder, "completeSavestate.zip");
 			zipService.zip(zipFile, filesToZip);
