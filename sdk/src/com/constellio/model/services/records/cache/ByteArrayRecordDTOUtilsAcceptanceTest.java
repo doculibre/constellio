@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
@@ -1252,7 +1253,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultipleBooleanMetadatasThenAllWrittenAndReadWithoutProblems()
 			throws Exception {
 
-		int createdMetadatas = 5_000;
+		int createdMetadatas = 2_500;
 		int sizeOfMultivalues = 200;
 
 		defineSchemasManager().using(setup.with((schemaTypes) -> {
@@ -1294,7 +1295,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultipleIntMetadatasThenAllWrittenAndReadWithoutProblems()
 			throws Exception {
 
-		int createdMetadatas = 5_000;
+		int createdMetadatas = 2_500;
 		int sizeOfMultivalues = 50;
 
 		defineSchemasManager().using(setup.with((schemaTypes) -> {
@@ -1336,7 +1337,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultipleEnumMetadatasThenAllWrittenAndReadWithoutProblems()
 			throws Exception {
 
-		int createdMetadatas = 5_000;
+		int createdMetadatas = 2_500;
 		int sizeOfMultivalues = 50;
 
 		defineSchemasManager().using(setup.with((schemaTypes) -> {
@@ -1380,7 +1381,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultipleNumberMetadatasThenAllWrittenAndReadWithoutProblems()
 			throws Exception {
 
-		int createdMetadatas = 5_000;
+		int createdMetadatas = 2_500;
 		int sizeOfMultivalues = 25;
 
 		defineSchemasManager().using(setup.with((schemaTypes) -> {
@@ -1422,7 +1423,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultipleDateMetadatasThenAllWrittenAndReadWithoutProblems()
 			throws Exception {
 
-		int createdMetadatas = 5_000;
+		int createdMetadatas = 2_500;
 		int sizeOfMultivalues = 50;
 
 		defineSchemasManager().using(setup.with((schemaTypes) -> {
@@ -1464,7 +1465,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultipleDateTimeMetadatasThenAllWrittenAndReadWithoutProblems()
 			throws Exception {
 
-		int createdMetadatas = 5_000;
+		int createdMetadatas = 2_500;
 		int sizeOfMultivalues = 25;
 
 		defineSchemasManager().using(setup.with((schemaTypes) -> {
@@ -1506,7 +1507,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultipleStringMetadatasThenAllWrittenAndReadWithoutProblems()
 			throws Exception {
 
-		int createdMetadatas = 5_000;
+		int createdMetadatas = 2_500;
 		int sizeOfMultivalues = 5;
 
 		defineSchemasManager().using(setup.with((schemaTypes) -> {
@@ -1548,7 +1549,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultipleTextMetadatasThenAllWrittenAndReadWithoutProblems()
 			throws Exception {
 
-		int createdMetadatas = 5_000;
+		int createdMetadatas = 2_500;
 		int sizeOfMultivalues = 5;
 
 		defineSchemasManager().using(setup.with((schemaTypes) -> {
@@ -1589,7 +1590,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultipleStringIdReferenceMetadatasThenAllWrittenAndReadWithoutProblems()
 			throws Exception {
 
-		int createdMetadatas = 5_000;
+		int createdMetadatas = 2_500;
 		int sizeOfMultivalues = 10;
 
 		defineSchemasManager().using(setup.with((schemaTypes) -> {
@@ -1650,7 +1651,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultipleIntIdReferenceMetadatasThenAllWrittenAndReadWithoutProblems()
 			throws Exception {
 
-		int createdMetadatas = 5_000;
+		int createdMetadatas = 2_500;
 		int sizeOfMultivalues = 50;
 
 		defineSchemasManager().using(setup.with((schemaTypes) -> {
@@ -2487,7 +2488,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenStoringDataUsingCompactShortThenOK()
 			throws Exception {
-
+		Toggle.DEBUG_DTOS.disable();
 		Metadata metadata = mock(Metadata.class);
 		for (short v = Short.MIN_VALUE; v < Short.MAX_VALUE; v++) {
 			DTOUtilsByteArrayDataOutputStream stream = new DTOUtilsByteArrayDataOutputStream(false, null);
@@ -2504,17 +2505,18 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenStoringDataUsingCompactPositiveIntThenOK()
+	public void whenStoringDataUsingCompactIntThenOK()
 			throws Exception {
 
+		Toggle.DEBUG_DTOS.disable();
 		Metadata metadata = mock(Metadata.class);
-		for (int v = 0; v < 5_000_000; v++) {
+		for (int v = -1; v < 5_000_000; v++) {
 			DTOUtilsByteArrayDataOutputStream stream = new DTOUtilsByteArrayDataOutputStream(false, null);
 			stream.writeLong(metadata, 0L);
-			stream.writeCompactedPositiveIntFromByteArray_2_4_8(metadata, v);
+			stream.writeCompactedIntFromByteArray_2_4_8(metadata, v);
 			stream.writeLong(metadata, 12L);
 			byte[] bytes = stream.toByteArray();
-			CompactedInt value = CacheRecordDTOUtils.parseCompactedPositiveIntFromByteArray_2_4_8(bytes, 8);
+			CompactedInt value = CacheRecordDTOUtils.parseCompactedIntFromByteArray_2_4_8(bytes, 8);
 			assertThat(value.value).isEqualTo(v);
 			assertThat(value.length).describedAs("" + v).isEqualTo(bytes.length - 16);
 		}

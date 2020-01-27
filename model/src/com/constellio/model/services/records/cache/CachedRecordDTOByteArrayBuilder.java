@@ -438,16 +438,16 @@ class CachedRecordDTOByteArrayBuilder {
 
 		if (CacheRecordDTOUtils.isMetatadataPersisted(metadata)) {
 			// TODO REMOVE TO SAVE A BYTE
-			headerWriterBytesToKeepInMemory.writeInt(metadata, -1);
+			headerWriterBytesToKeepInMemory.writeCompactedIntFromByteArray_2_4_8(metadata, -1);
 			// +2 bytes for id of the metadata and +2 for the index in the data array
 
 
 			headerWriterBytesToPersist.writeShort(metadata, id);
-			headerWriterBytesToPersist.writeInt(metadata, dataWriterBytesToPersist.length);
+			headerWriterBytesToPersist.writeCompactedIntFromByteArray_2_4_8(metadata, dataWriterBytesToPersist.length);
 			// +2 bytes for id of the metadata and +2 for the index in the data array
 		} else {
 
-			headerWriterBytesToKeepInMemory.writeInt(metadata, dataWriterBytesToKeepInMemory.length);
+			headerWriterBytesToKeepInMemory.writeCompactedIntFromByteArray_2_4_8(metadata, dataWriterBytesToKeepInMemory.length);
 			// +2 bytes for id of the metadata and +2 for the index in the data array
 		}
 	}

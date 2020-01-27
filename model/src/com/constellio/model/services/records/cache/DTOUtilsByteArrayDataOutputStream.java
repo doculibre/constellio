@@ -25,6 +25,7 @@ public class DTOUtilsByteArrayDataOutputStream implements Closeable {
 
 	CompiledDTOStatsBuilder statsBuilder;
 
+
 	public DTOUtilsByteArrayDataOutputStream(boolean persisted, CompiledDTOStatsBuilder statsBuilder) {
 		this.byteArrayOutputStream = new ByteArrayOutputStream();
 		this.dataOutputStream = new DataOutputStream(byteArrayOutputStream);
@@ -100,25 +101,34 @@ public class DTOUtilsByteArrayDataOutputStream implements Closeable {
 
 
 	/**
-	 * Value ranging from 0 to 65534 are written on 2 bytes
-	 * Value ranging from 65536 to 131070 are written on 4 byte
-	 * Value ranging from 131072 to Max int are written on 8 byte
+	 * Value ranging from -1 to 65533 are written on 2 bytes
+	 * Value ranging from 65534 to 131068 are written on 4 byte
+	 * Value ranging from 131069 to Max int are written on 8 byte
 	 * etc
 	 */
-	public void writeCompactedPositiveIntFromByteArray_2_4_8(Metadata relatedMetadata, int value) throws IOException {
-		if (value < 65535) {
-			writeShort(relatedMetadata, (short) (value - Short.MAX_VALUE));
+	public void writeCompactedIntFromByteArray_2_4_8(Metadata relatedMetadata, int value) throws IOException {
+
+		int length;
+		if (value < 65534) {
+			logLength(relatedMetadata, length = 2);
+			dataOutputStream.writeShort((short) (value - Short.MAX_VALUE + 1));
 
 		} else {
 			writeShort(relatedMetadata, Short.MIN_VALUE);
 
-			if (value < 131070) {
-				writeShort(relatedMetadata, (short) (value - 65535 - Short.MAX_VALUE));
+			if (value < 131069) {
+				logLength(relatedMetadata, length = 4);
+				dataOutputStream.writeShort((short) (value - 65535 - Short.MAX_VALUE + 1));
 			} else {
-				writeShort(relatedMetadata, Short.MIN_VALUE);
-				writeInt(relatedMetadata, value);
+				logLength(relatedMetadata, length = 8);
+				dataOutputStream.writeShort(Short.MIN_VALUE);
+				dataOutputStream.writeInt(value);
 			}
 
+		}
+
+		if (Toggle.DEBUG_DTOS.isEnabled()) {
+			logDebugInfo(relatedMetadata, length, "CompactInt", "" + value);
 		}
 	}
 

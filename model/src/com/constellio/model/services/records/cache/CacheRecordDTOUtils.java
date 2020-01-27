@@ -60,7 +60,7 @@ public class CacheRecordDTOUtils {
 	static final byte HEADER_OF_HEADER_BYTES = METADATAS_WITH_VALUE_COUNT_BYTES + HEADER_SIZE_BYTES;
 
 	static final byte BYTES_TO_WRITE_METADATA_ID = 2;
-	static final byte BYTES_TO_WRITE_METADATA_INDEX = 4;
+	//static final byte BYTES_TO_WRITE_METADATA_INDEX = 4;
 
 
 	static final byte BYTES_TO_WRITE_BOOLEAN_VALUES_SIZE = 1;
@@ -300,10 +300,13 @@ public class CacheRecordDTOUtils {
 		// i+=2*2 because we are just looking for the metadataId not the metadataValue
 		short headerBytesSize = headerSizeOf(byteArrayToKeepInMemory);
 
-		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID + BYTES_TO_WRITE_METADATA_INDEX)) {
+		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID)) {
 			short id = parseMetadataIdFromByteArray(byteArrayToKeepInMemory, i);
+			CompactedInt valueIndex = parseMetadataValueIndexFromByteArray(byteArrayToKeepInMemory, i + 2);
+
 			Metadata storedMetadata = schema.getMetadataById(id);
 			storedMetadatas.add(storedMetadata.getDataStoreCode());
+			i += valueIndex.length;
 		}
 
 		return storedMetadatas;
@@ -316,8 +319,9 @@ public class CacheRecordDTOUtils {
 		// *(2+2) for the bytes taken by the id and in dex of each metadata and +2 to skip the metadatasSizeToKeepInMemory and the start of the array
 		short headerBytesSize = headerSizeOf(byteArray);
 
-		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID + BYTES_TO_WRITE_METADATA_INDEX)) {
+		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID)) {
 			short id = parseMetadataIdFromByteArray(byteArray, i);
+			CompactedInt valueIndex = parseMetadataValueIndexFromByteArray(byteArray, i + 2);
 			// needed to know how to parse the value
 			Metadata metadataSearched = schema.getMetadataById(id);
 
@@ -333,6 +337,7 @@ public class CacheRecordDTOUtils {
 
 			// inclusiveStartIndex & exclusiveEndIndex are needed to know where to start and stop parsing the value
 			storedValues.add(parseValueMetadata(recordId, byteArrayToUse, metadataSearched, metadataValuePositionInByteArray));
+			i += valueIndex.length;
 		}
 
 		return storedValues;
@@ -344,8 +349,10 @@ public class CacheRecordDTOUtils {
 
 		short headerBytesSize = headerSizeOf(byteArray);
 
-		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID + BYTES_TO_WRITE_METADATA_INDEX)) {
+		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID)) {
 			short id = parseMetadataIdFromByteArray(byteArray, i);
+			CompactedInt valueIndex = parseMetadataValueIndexFromByteArray(byteArray, i + 2);
+
 			// needed to know how to parse the value
 			Metadata metadataSearched = schema.getMetadataById(id);
 
@@ -361,6 +368,7 @@ public class CacheRecordDTOUtils {
 
 			metadatasEntrySet.add(new SimpleEntry(metadataSearched.getDataStoreCode(),
 					parseValueMetadata(recordId, byteArrayToUse, metadataSearched, metadataValuePositionInByteArray)));
+			i += valueIndex.length;
 		}
 
 		return metadatasEntrySet;
@@ -373,12 +381,14 @@ public class CacheRecordDTOUtils {
 		short headerBytesSize = headerSizeOf(data);
 
 		// if the value is persisted go up 2 bytes instead of 4 since we don<t have a index value in this byteArrayToKeepInMemory
-		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID + BYTES_TO_WRITE_METADATA_INDEX)) {
+		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID)) {
 			short id = parseMetadataIdFromByteArray(data, i);
+			CompactedInt valueIndex = parseMetadataValueIndexFromByteArray(data, i + 2);
 
 			if (id == metadataSearchedId) {
 				return true;
 			}
+			i += valueIndex.length;
 		}
 
 		return false;
@@ -399,18 +409,19 @@ public class CacheRecordDTOUtils {
 		int headerBytesSize = headerSizeOf(byteArray);
 
 		// skipping first two byte because it's the metadatasSizeToKeepInMemory
-		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID + BYTES_TO_WRITE_METADATA_INDEX)) {
+		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID)) {
 			short id = parseMetadataIdFromByteArray(byteArray, i);
+			CompactedInt valueIndex = parseMetadataValueIndexFromByteArray(byteArray, i + 2);
 
 			if (id == metadataId) {
 				// Looking for next 2 bytes to get the index in the data part of the array
-				metadataValuePositionInByteArray.inclusiveStartIndex = ((int) headerBytesSize) + parseMetadataValueIndexFromByteArray(byteArray, (i + BYTES_TO_WRITE_METADATA_ID));
-				int indexOfNextMetadataValue = (i + (BYTES_TO_WRITE_METADATA_ID + BYTES_TO_WRITE_METADATA_INDEX + BYTES_TO_WRITE_METADATA_ID));
+				metadataValuePositionInByteArray.inclusiveStartIndex = ((int) headerBytesSize) + valueIndex.value;
+				int indexOfNextMetadataValue = (i + (BYTES_TO_WRITE_METADATA_ID + valueIndex.length + BYTES_TO_WRITE_METADATA_ID));
 
 				// if it's NOT greater than the size of the header then the next index is the result of the parsing
 				// else it's the metadata of the byte array keep reading until the end of the array
 				if (!(indexOfNextMetadataValue + 1 > headerBytesSize)) {
-					metadataValuePositionInByteArray.exclusiveEndIndex = ((int) headerBytesSize) + parseMetadataValueIndexFromByteArray(byteArray, indexOfNextMetadataValue);
+					metadataValuePositionInByteArray.exclusiveEndIndex = ((int) headerBytesSize) + parseMetadataValueIndexFromByteArray(byteArray, indexOfNextMetadataValue).value;
 
 				} else {
 					// No next value, using the byte array length as the end index
@@ -419,6 +430,7 @@ public class CacheRecordDTOUtils {
 
 				return metadataValuePositionInByteArray;
 			}
+			i += valueIndex.length;
 		}
 
 		return metadataValuePositionInByteArray;
@@ -804,11 +816,12 @@ public class CacheRecordDTOUtils {
 		return parseShortFromByteArray(byteArray, startingIndex);
 	}
 
+
 	/**
 	 * Only for better code readability
 	 */
-	private static int parseMetadataValueIndexFromByteArray(byte[] byteArray, int startingIndex) {
-		return parseIntFromByteArray(byteArray, startingIndex);
+	private static CompactedInt parseMetadataValueIndexFromByteArray(byte[] byteArray, int startingIndex) {
+		return parseCompactedIntFromByteArray_2_4_8(byteArray, startingIndex);
 	}
 
 	/**
@@ -817,11 +830,11 @@ public class CacheRecordDTOUtils {
 	 * Value ranging from 131072 to Max int are written on 8 byte
 	 * etc
 	 */
-	public static CompactedInt parseCompactedPositiveIntFromByteArray_2_4_8(byte[] byteArray, int startingIndex) {
-		int twoByteValue = parseShortFromByteArray(byteArray, startingIndex) + Short.MAX_VALUE;
-		if (twoByteValue == -1) {
-			int nextTwoByteValue = parseShortFromByteArray(byteArray, startingIndex + 2) + Short.MAX_VALUE;
-			if (nextTwoByteValue == -1) {
+	public static CompactedInt parseCompactedIntFromByteArray_2_4_8(byte[] byteArray, int startingIndex) {
+		int twoByteValue = parseShortFromByteArray(byteArray, startingIndex) + Short.MAX_VALUE - 1;
+		if (twoByteValue == -2) {
+			int nextTwoByteValue = parseShortFromByteArray(byteArray, startingIndex + 2) + Short.MAX_VALUE - 1;
+			if (nextTwoByteValue == -2) {
 				return new CompactedInt(parseIntFromByteArray(byteArray, startingIndex + 4), 8);
 			} else {
 				return new CompactedInt(nextTwoByteValue + 65535, 4);
