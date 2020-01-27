@@ -15,7 +15,6 @@ import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.BaseRecordServices;
-import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordModificationImpactHandler;
@@ -446,10 +445,5 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	@Override
 	public boolean isValueAutomaticallyFilled(Metadata metadata, Supplier<Record> record) {
 		return recordServices.isValueAutomaticallyFilled(metadata, record);
-	}
-
-	@Override
-	public RecordDeleteServices newRecordDeleteServices() {
-		return recordServices.newRecordDeleteServices();
 	}
 }

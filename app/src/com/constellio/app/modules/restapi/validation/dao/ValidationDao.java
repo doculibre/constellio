@@ -53,7 +53,7 @@ public class ValidationDao extends BaseDao {
 	}
 
 	public boolean userHasDeleteAccessOnHierarchy(User user, Record record) {
-		List<Record> recordsHierarchy = recordServices.newRecordDeleteServices().loadRecordsHierarchyOf(record);
+		List<Record> recordsHierarchy = recordDeleteServices.loadRecordsHierarchyOf(record);
 		recordsHierarchy.remove(record);
 		return authorizationServices.hasDeletePermissionOnHierarchy(user, record, recordsHierarchy);
 	}

@@ -116,8 +116,8 @@ public class FolderRestfulServiceDELETEAcceptanceTest extends BaseFolderRestfulS
 		try {
 			recordServices.getDocumentById(id);
 			fail("Record not deleted");
-		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-			// ignore
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId ignored) {
+
 		}
 	}
 

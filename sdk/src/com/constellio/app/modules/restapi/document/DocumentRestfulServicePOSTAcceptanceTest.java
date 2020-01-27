@@ -1275,7 +1275,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
 		RestApiErrorResponse error = postResponse.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new InvalidParameterCombinationException("mergeSourceIds", "content").getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterCombinationException("CustomHttpHeaders.MERGE_SOURCE", "document.content").getValidationError()));
 	}
 
 	@Test
@@ -1294,7 +1294,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
 		RestApiErrorResponse error = postResponse.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new InvalidParameterCombinationException("mergeSourceIds", "file").getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterCombinationException("CustomHttpHeaders.MERGE_SOURCE", "file").getValidationError()));
 	}
 
 	//
@@ -1328,14 +1328,14 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 	}
 
 	private DocumentDto createDocumentWithZipContent() throws Exception {
-		String filename = "consolidatedDocumentTest.7z";
+		String filename = "zipTestFile.7z";
 
 		DocumentDto document = DocumentDto.builder()
 				.folderId(records.folder_A20)
 				.title("title")
 				.content(ContentDto.builder().versionType(MAJOR).filename(filename).build())
 				.build();
-		File file = new File("out\\test\\resources\\consolidatedDocumentTest.7z");
+		File file = getTestResourceFile("zipTestFile.7z");
 
 		Response response = buildPostQuery().request().header("host", host)
 				.header(CustomHttpHeaders.FLUSH_MODE, "NOW")

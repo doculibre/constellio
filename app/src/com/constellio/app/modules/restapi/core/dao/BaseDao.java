@@ -16,6 +16,7 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -38,6 +39,7 @@ public abstract class BaseDao {
 	protected RestApiConfigs restApiConfigs;
 
 	protected RecordServices recordServices;
+	protected RecordDeleteServices recordDeleteServices;
 	protected SearchServices searchServices;
 	protected UserServices userServices;
 	protected AuthorizationsServices authorizationServices;
@@ -53,6 +55,7 @@ public abstract class BaseDao {
 		restApiConfigs = new RestApiConfigs(modelLayerFactory);
 
 		recordServices = modelLayerFactory.newRecordServices();
+		recordDeleteServices = new RecordDeleteServices(modelLayerFactory);
 		searchServices = modelLayerFactory.newSearchServices();
 		userServices = modelLayerFactory.newUserServices();
 		authorizationServices = modelLayerFactory.newAuthorizationsServices();

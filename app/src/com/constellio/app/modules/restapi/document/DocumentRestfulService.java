@@ -338,25 +338,25 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		return Response.noContent().build();
 	}
 
-	private void validateContent(DocumentDto document, InputStream fileStream, List<String> mergeSourceIds) {
-		if (mergeSourceIds == null || mergeSourceIds.isEmpty()) {
-			validateContent(document, fileStream);
-		} else {
-			if (document.getContent() != null) {
-				throw new InvalidParameterCombinationException("mergeSourceIds", "content");
-			}
-			if (fileStream != null) {
-				throw new InvalidParameterCombinationException("mergeSourceIds", "file");
-			}
-		}
+	private void validateContent(DocumentDto document, InputStream fileStream) {
+		validateContent(document, fileStream, null);
 	}
 
-	private void validateContent(DocumentDto document, InputStream fileStream) {
-		if (document.getContent() == null && fileStream != null) {
-			throw new RequiredParameterException("document.content");
-		}
-		if (document.getContent() != null && fileStream == null) {
-			throw new RequiredParameterException("file");
+	private void validateContent(DocumentDto document, InputStream fileStream, List<String> mergeSourceIds) {
+		if (mergeSourceIds == null || mergeSourceIds.isEmpty()) {
+			if (document.getContent() == null && fileStream != null) {
+				throw new RequiredParameterException("document.content");
+			}
+			if (document.getContent() != null && fileStream == null) {
+				throw new RequiredParameterException("file");
+			}
+		} else {
+			if (document.getContent() != null) {
+				throw new InvalidParameterCombinationException("CustomHttpHeaders.MERGE_SOURCE", "document.content");
+			}
+			if (fileStream != null) {
+				throw new InvalidParameterCombinationException("CustomHttpHeaders.MERGE_SOURCE", "file");
+			}
 		}
 	}
 

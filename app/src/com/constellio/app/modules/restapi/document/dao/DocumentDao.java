@@ -12,12 +12,11 @@ import com.constellio.app.modules.restapi.document.dto.DocumentDto;
 import com.constellio.app.modules.restapi.document.exception.DocumentContentNotFoundException;
 import com.constellio.app.modules.restapi.resource.dao.ResourceDao;
 import com.constellio.app.modules.rm.pdfgenerator.PdfGeneratorAsyncTask;
+import com.constellio.app.modules.rm.pdfgenerator.PdfGeneratorMergeTaskParam;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
-import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -37,7 +36,6 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 
 import static com.constellio.app.modules.restapi.document.enumeration.VersionType.MAJOR;
 import static com.constellio.app.modules.restapi.document.enumeration.VersionType.MINOR;
@@ -181,7 +179,7 @@ public class DocumentDao extends ResourceDao {
 
 		Content content = null;
 		try {
-			task.execute(createMergeTaskParam(collection));
+			task.execute(new PdfGeneratorMergeTaskParam(collection));
 			content = task.getConsolidatedContent();
 
 			if (content == null) {
@@ -221,43 +219,6 @@ public class DocumentDao extends ResourceDao {
 		}
 
 		return content;
-	}
-
-	private AsyncTaskExecutionParams createMergeTaskParam(String collection) {
-		AsyncTaskExecutionParams param = new AsyncTaskExecutionParams() {
-			@Override
-			public String getCollection() {
-				return collection;
-			}
-
-			@Override
-			public void logWarning(String code, Map<String, Object> parameters) {
-
-			}
-
-			@Override
-			public void logError(String code, Map<String, Object> parameters) throws ValidationException {
-				ValidationErrors errors = new ValidationErrors();
-				errors.add(PdfGeneratorAsyncTask.class, code, parameters);
-				errors.throwIfNonEmpty();
-			}
-
-			@Override
-			public void incrementProgression(int numberToAdd) {
-
-			}
-
-			@Override
-			public void setProgressionUpperLimit(long progressionUpperLimit) {
-
-			}
-
-			@Override
-			public AsyncTaskBatchProcess getBatchProcess() {
-				return null;
-			}
-		};
-		return param;
 	}
 
 	private void updateDocumentMetadataValues(Record documentRecord, Record documentTypeRecord, MetadataSchema schema,

@@ -235,6 +235,4 @@ public interface RecordServices {
 	SecurityModel getSecurityModel(String collection);
 
 	boolean isValueAutomaticallyFilled(Metadata metadata, Supplier<Record> record);
-
-	RecordDeleteServices newRecordDeleteServices();
 }
