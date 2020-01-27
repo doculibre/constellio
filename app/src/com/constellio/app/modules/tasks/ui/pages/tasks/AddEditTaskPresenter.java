@@ -346,7 +346,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private RecordUpdateOptions getTaskUpdateOptions(Task task, boolean withRequiredValidation) {
-		RecordUpdateOptions recordUpdateOptions = null;
+		RecordUpdateOptions recordUpdateOptions = new RecordUpdateOptions();
 
 		if (rmModuleExtensions != null) {
 			for (TaskAddEditTaskPresenterExtension extension : rmModuleExtensions.getTaskAddEditTaskPresenterExtension()) {
@@ -361,9 +361,6 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		if (withRequiredValidation) {
 			return recordUpdateOptions;
 		} else {
-			if (recordUpdateOptions == null) {
-				recordUpdateOptions = new RecordUpdateOptions();
-			}
 			return recordUpdateOptions.setSkippingRequiredValuesValidation(true);
 		}
 	}
@@ -831,7 +828,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private boolean currentUserHasWriteAuthorisation() {
-		return getCurrentUser().hasWriteAccess().on(toRecord(taskVO));
+		return getCurrentUser().hasWriteAccess().on(toRecord(taskVO)) || !isEditMode();
 	}
 
 	private void adjustFieldsForCollaborators() {
