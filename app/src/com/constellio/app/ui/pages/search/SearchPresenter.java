@@ -83,6 +83,7 @@ import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.vaadin.server.StreamResource.StreamSource;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -105,6 +106,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.getLocale;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -128,10 +130,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private int getMaxSelectableResults() {
 		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
-	}
-
-	public boolean isLazyLoadedSearchResults() {
-		return modelLayerFactory.getSystemConfigs().isLazyLoadedSearchResults();
 	}
 
 	public enum SortOrder {ASCENDING, DESCENDING}
@@ -361,7 +359,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public Capsule getCapsuleForCurrentSearch() {
-		Locale currentLocale = view.getSessionContext().getCurrentLocale();
+		Locale currentLocale = getLocale();
 
 		Capsule match = null;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
@@ -685,7 +683,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	protected abstract LogicalSearchCondition getSearchCondition();
 
 	protected LogicalSearchQuery getSearchQuery() {
-		String userSearchExpression = getUserSearchExpression();
+		String userSearchExpression = filterSolrOperators();
 		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition())
 				.setOverridedQueryParams(extraSolrParams)
 				.setFreeTextQuery(userSearchExpression)
@@ -731,6 +729,17 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		Metadata metadata = getMetadata(sortCriterion);
 		return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
+	}
+
+	protected String filterSolrOperators() {
+		String userSearchExpression = getUserSearchExpression();
+
+		if (StringUtils.isNotBlank(userSearchExpression) && userSearchExpression.startsWith("\"") && userSearchExpression.endsWith("\"")) {
+			userSearchExpression = ClientUtils.escapeQueryChars(userSearchExpression);
+			userSearchExpression = "\"" + userSearchExpression + "\"";
+		}
+
+		return userSearchExpression;
 	}
 
 	public void setHighlighter(boolean highlighter) {
@@ -885,6 +894,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	protected boolean saveSearch(String title, boolean publicAccess, List<String> sharedUsers,
 								 List<String> sharedGroups) {
+		if (StringUtils.isBlank(title)) {
+			view.showErrorMessage($("SearchView.errorSearchTitleEmpty"));
+			return false;
+		}
+
 		Record record = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		SavedSearch search = new SavedSearch(record, types())
 				.setTitle(title)
@@ -999,17 +1013,18 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
 			SearchEvent searchEvent = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			if (searchEvent != null) {
+				searchEventServices.incrementClickCounter(searchEvent.getId());
 
-			searchEventServices.incrementClickCounter(searchEvent.getId());
+				String url = null;
+				try {
+					url = recordVO.get("url");
 
-			String url = null;
-			try {
-				url = recordVO.get("url");
-
-				String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
-				searchEventServices.updateClicks(searchEvent, clicks);
-			} catch (RecordVORuntimeException_NoSuchMetadata e) {
-				//			LOGGER.warn(e.getMessage(), e);
+					String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
+					searchEventServices.updateClicks(searchEvent, clicks);
+				} catch (RecordVORuntimeException_NoSuchMetadata e) {
+					//			LOGGER.warn(e.getMessage(), e);
+				}
 			}
 		}
 	}

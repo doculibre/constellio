@@ -18,6 +18,7 @@ import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.Table.ColumnReorderEvent;
 import com.vaadin.ui.Table.ColumnReorderListener;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -108,12 +109,15 @@ public class TableColumnsManager implements Serializable {
 			decorateVisibleColumns(visibleColumnIdsForUser, tableId);
 
 			for (Object propertyId : propertyIds) {
-				String columnId = toColumnId(propertyId);
-
-				boolean collapsed = !visibleColumnIdsForUser.contains(columnId);
-				if (!collapsed || table.isColumnCollapsible(columnId)) {
-					table.setColumnCollapsed(propertyId, collapsed);
+				String header = table.getColumnHeader(propertyId);
+				if (StringUtils.isBlank(header)) {
+					table.setColumnCollapsible(propertyId, false);
 				}
+
+				String columnId = toColumnId(propertyId);
+				boolean collapsed = !visibleColumnIdsForUser.contains(columnId);
+				boolean collapsible = table.isColumnCollapsible(propertyId);
+				table.setColumnCollapsed(propertyId, collapsible && collapsed);
 			}
 
 			table.addColumnCollapseListener(new ColumnCollapseListener() {
@@ -195,7 +199,7 @@ public class TableColumnsManager implements Serializable {
 		return propertyId.toString();
 	}
 
-	private Align adjustAlignment(Align alignment) {
+	protected Align adjustAlignment(Align alignment) {
 		Align result;
 		if (isRightToLeft()) {
 			if (Align.LEFT.equals(alignment)) {

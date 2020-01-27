@@ -11,6 +11,7 @@ import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormParams;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormRetValue;
 import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
+import com.constellio.app.modules.tasks.model.utils.DateUtils;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -30,6 +31,8 @@ import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationEnumField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListCollaboratorsField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListCollaboratorsGoupsField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListRecordLookupField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
@@ -64,6 +67,7 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordUtils;
@@ -74,21 +78,19 @@ import com.vaadin.ui.Field;
 import com.vaadin.ui.OptionGroup;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
 import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.READ;
 import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.WRITE;
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
@@ -280,7 +282,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			}
 
 			if (!task.isModel() && task.getDueDate() == null && task.getRelativeDueDate() != null && task.getAssignedOn() != null) {
-				task.setDueDate(task.getAssignedOn().plusDays(task.getRelativeDueDate()));
+				ConstellioEIMConfigs constellioEIMConfigs = appLayerFactory.getModelLayerFactory().getSystemConfigs();
+				LocalDate dueDate = DateUtils.addWorkingDays(task.getAssignedOn(), task.getRelativeDueDate(), constellioEIMConfigs.getCalendarCountry());
+				task.setDueDate(dueDate);
 			}
 
 			TaskModuleExtensions taskModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
@@ -290,13 +294,16 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			if (taskModuleExtensions != null) {
 				TaskFormRetValue taskFormRetValue = taskModuleExtensions.taskFormExtentions(new TaskFormParams(this, task));
 				for (Record currentRecord : taskFormRetValue.getRecords()) {
-					saveRecord(task, currentRecord, taskFormRetValue.isSaveWithValidation(currentRecord));
+					RecordUpdateOptions taskUpdateOptions = getTaskUpdateOptions(task, taskFormRetValue.isSaveWithValidation(currentRecord));
+					saveRecord(currentRecord, taskUpdateOptions);
 				}
 			}
 			boolean isPromptUser = false;
 
 			// this is in case of special validation that would only occur when saving the task.
 			Transaction transaction = new Transaction();
+			RecordUpdateOptions taskUpdateOptions = getTaskUpdateOptions(task, true);
+			transaction.setOptions(taskUpdateOptions);
 			transaction.addUpdate(task.getWrappedRecord());
 			recordServices().prepareRecords(transaction);
 
@@ -304,12 +311,12 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				isPromptUser = rmModuleExtensions.isPromptUser(new PromptUserParam(task, new Action() {
 					@Override
 					public void doAction() {
-						saveAndNavigate(task);
+						saveAndNavigate(task, taskUpdateOptions);
 					}
 				}));
 			}
 			if (!isPromptUser) {
-				saveAndNavigate(task);
+				saveAndNavigate(task, taskUpdateOptions);
 			}
 
 		} catch (final IcapException e) {
@@ -321,8 +328,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 	}
 
-	private void saveAndNavigate(Task task) {
-		saveRecord(task, task.getWrappedRecord(), true);
+	private void saveAndNavigate(Task task, RecordUpdateOptions taskUpdateOptions) {
+		saveRecord(task.getWrappedRecord(), taskUpdateOptions);
 
 
 		if (StringUtils.isNotBlank(workflowId)) {
@@ -334,7 +341,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 	}
 
-	private void saveRecord(Task task, Record record, boolean withRequiredValidation) {
+	private void saveRecord(Record record, RecordUpdateOptions recordUpdateOptions) {
+		addOrUpdate(record, recordUpdateOptions);
+	}
+
+	private RecordUpdateOptions getTaskUpdateOptions(Task task, boolean withRequiredValidation) {
 		RecordUpdateOptions recordUpdateOptions = null;
 
 		if (rmModuleExtensions != null) {
@@ -348,15 +359,14 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 
 		if (withRequiredValidation) {
-			addOrUpdate(record, recordUpdateOptions);
+			return recordUpdateOptions;
 		} else {
 			if (recordUpdateOptions == null) {
 				recordUpdateOptions = new RecordUpdateOptions();
 			}
-			addOrUpdate(record, recordUpdateOptions.setSkippingRequiredValuesValidation(true));
+			return recordUpdateOptions.setSkippingRequiredValuesValidation(true);
 		}
 	}
-
 
 	private Field getAssignerField() {
 		TaskForm form = view.getForm();
@@ -811,12 +821,13 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 						.isIn(asList(BorrowRequest.SCHEMA_NAME, ReturnRequest.SCHEMA_NAME, ExtensionRequest.SCHEMA_NAME, ReactivationRequest.SCHEMA_NAME))) : null;
 	}
 
-	private boolean currentUserIsCollaborator() {
-		if (((List) taskVO.get(TASK_COLLABORATORS)).contains(getCurrentUser().getId())) {
-			return true;
-		} else {
-			return !Collections.disjoint(getCurrentUser().getUserGroups(), taskVO.get(TASK_COLLABORATORS_GROUPS));
+	private boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator() {
+		boolean isModel = false;
+		if (taskVO.get(RMTask.IS_MODEL) != null) {
+			isModel = taskVO.get(RMTask.IS_MODEL);
 		}
+		String currentUserId = getCurrentUser().getId();
+		return currentUserId.equals(taskVO.get(Task.ASSIGNEE)) || currentUserId.equals(taskVO.get(Task.ASSIGNER)) || isModel || !isEditMode();
 	}
 
 	private boolean currentUserHasWriteAuthorisation() {
@@ -824,58 +835,64 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private void adjustFieldsForCollaborators() {
-		boolean currentUserIsCollaborator = currentUserIsCollaborator();
+		boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator = currentUserHasWriteAuthorizationWithoutBeingCollaborator();
 
 		TaskAssignationListRecordLookupField assigneeGroupCandidatesField = (TaskAssignationListRecordLookupField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
 		if (assigneeGroupCandidatesField != null) {
-			assigneeGroupCandidatesField.setVisible(!currentUserIsCollaborator);
+			assigneeGroupCandidatesField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		TaskAssignationListRecordLookupField assigneeUserCandidatesField = (TaskAssignationListRecordLookupField) view.getForm().getField(Task.ASSIGNEE_USERS_CANDIDATES);
 		if (assigneeUserCandidatesField != null) {
-			assigneeUserCandidatesField.setVisible(!currentUserIsCollaborator);
+			assigneeUserCandidatesField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		LookupRecordField assignerField = (LookupRecordField) view.getForm().getField(Task.ASSIGNER);
 		if (assignerField != null) {
-			assignerField.setVisible(!currentUserIsCollaborator);
+			assignerField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		LookupRecordField assigneeField = (LookupRecordField) view.getForm().getField(Task.ASSIGNEE);
 		if (assigneeField != null) {
-			assigneeField.setVisible(!currentUserIsCollaborator);
+			assigneeField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		TaskAssignationEnumField assignationModesField = (TaskAssignationEnumField) view.getForm().getField(ASSIGNATION_MODES);
 		if (assignationModesField != null) {
-			assignationModesField.setVisible(!currentUserIsCollaborator);
+			assignationModesField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		Field<?> statusField = view.getForm().getField(STATUS);
 		if (statusField != null) {
-			statusField.setVisible(!currentUserIsCollaborator);
+			statusField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		boolean currentUserHasWriteAuthorisation = currentUserHasWriteAuthorisation();
 		ListAddRemoveCollaboratorsField taskCollaboratorsField = (ListAddRemoveCollaboratorsField) view.getForm().getField(Task.TASK_COLLABORATORS);
 		if (taskCollaboratorsField != null) {
 			taskCollaboratorsField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
-			taskCollaboratorsField.setCurrentUserIsCollaborator(currentUserIsCollaborator());
-			OptionGroup authorizationField = taskCollaboratorsField.getAddEditField().getAuthorizationField();
-			if (authorizationField != null && !currentUserHasWriteAuthorisation) {
-				authorizationField.removeItem(WRITE);
-				authorizationField.setValue(READ);
+			taskCollaboratorsField.setCurrentUserCanModifyDelete(currentUserHasWriteAuthorizationWithoutBeingCollaborator());
+			TaskAssignationListCollaboratorsField addEditField = taskCollaboratorsField.getAddEditField();
+			if (addEditField != null) {
+				OptionGroup authorizationField = addEditField.getAuthorizationField();
+				if (authorizationField != null && !currentUserHasWriteAuthorisation) {
+					authorizationField.removeItem(WRITE);
+					authorizationField.setValue(READ);
+				}
 			}
 		}
 
 		ListAddRemoveCollaboratorsGroupsField taskCollaboratorGroupsField = (ListAddRemoveCollaboratorsGroupsField) view.getForm().getField(Task.TASK_COLLABORATORS_GROUPS);
 		if (taskCollaboratorGroupsField != null) {
 			taskCollaboratorGroupsField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
-			taskCollaboratorGroupsField.setCurrentUserIsCollaborator(currentUserIsCollaborator);
-			OptionGroup authorizationField = taskCollaboratorGroupsField.getAddEditField().getAuthorizationField();
-			if (authorizationField != null && !currentUserHasWriteAuthorisation) {
-				authorizationField.removeItem(WRITE);
-				authorizationField.setValue(READ);
+			taskCollaboratorGroupsField.setCurrentUserCanModifyDelete(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
+			TaskAssignationListCollaboratorsGoupsField addEditField = taskCollaboratorGroupsField.getAddEditField();
+			if (addEditField != null) {
+				OptionGroup authorizationField = addEditField.getAuthorizationField();
+				if (authorizationField != null && !currentUserHasWriteAuthorisation) {
+					authorizationField.removeItem(WRITE);
+					authorizationField.setValue(READ);
+				}
 			}
 		}
 	}

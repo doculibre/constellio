@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
 public class ViewableRecordVOContainer extends IndexedContainer implements ItemSetChangeNotifier, RecordVOContainer {
 
 	public final static String THUMBNAIL_PROPERTY = "thumbnail";
@@ -66,10 +68,15 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		for (Object propertyId : propertyIds) {
 			removeContainerProperty(propertyId);
 		}
+		if (isRightToLeft()) {
+			addContainerProperty(SEARCH_RESULT_PROPERTY, Component.class, null);
+		}
 		if (!ResponsiveUtils.isPhone()) {
 			addContainerProperty(THUMBNAIL_PROPERTY, Image.class, null);
 		}
-		addContainerProperty(SEARCH_RESULT_PROPERTY, Component.class, null);
+		if (!isRightToLeft()) {
+			addContainerProperty(SEARCH_RESULT_PROPERTY, Component.class, null);
+		}
 	}
 
 	@Override

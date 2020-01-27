@@ -13,10 +13,14 @@ import java.util.Map;
 public class ValidationDao extends BaseDao {
 
 	public List<String> getUserTokens(String serviceKey) {
-		return getUserTokens(serviceKey, false);
+		return getUserTokens(serviceKey, false, false);
 	}
 
 	public List<String> getUserTokens(String serviceKey, boolean sortByDescDate) {
+		return getUserTokens(serviceKey, false, sortByDescDate);
+	}
+
+	public List<String> getUserTokens(String serviceKey, boolean refreshCache, boolean sortByDescDate) {
 		String username = getUsernameByServiceKey(serviceKey);
 		if (username == null) {
 			return Collections.emptyList();
@@ -27,6 +31,10 @@ public class ValidationDao extends BaseDao {
 			return Collections.emptyList();
 		}
 
+		if (refreshCache) {
+			recordServices.refresh(userCredential);
+		}
+
 		if (sortByDescDate) {
 			Map<String, LocalDateTime> sortedTokens = MapUtils.sortByReverseValue(userCredential.getAccessTokens());
 			return new ArrayList<>(sortedTokens.keySet());
@@ -35,7 +43,11 @@ public class ValidationDao extends BaseDao {
 	}
 
 	public boolean isUserAuthenticated(String token, String serviceKey) {
-		return getUserTokens(serviceKey).contains(token);
+		if (getUserTokens(serviceKey).contains(token)) {
+			return true;
+		}
+
+		return getUserTokens(serviceKey, true, false).contains(token);
 	}
 
 }

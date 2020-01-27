@@ -421,9 +421,13 @@ public class MigrationServices {
 			throws OptimisticLockingConfiguration {
 		Map<String, String> properties;
 		properties = dataLayerFactory.getConfigManager().getProperties(VERSION_PROPERTIES_FILE).getProperties();
-		properties.put(collection + "_version", version);
-		dataLayerFactory.getConfigManager().update(VERSION_PROPERTIES_FILE,
-				dataLayerFactory.getConfigManager().getProperties(VERSION_PROPERTIES_FILE).getHash(), properties);
+
+		String currentVersion = properties.get(collection + "_version");
+		if (currentVersion == null || VersionsComparator.isFirstVersionBeforeSecond(currentVersion, version)) {
+			properties.put(collection + "_version", version);
+			dataLayerFactory.getConfigManager().update(VERSION_PROPERTIES_FILE,
+					dataLayerFactory.getConfigManager().getProperties(VERSION_PROPERTIES_FILE).getHash(), properties);
+		}
 	}
 
 	private ConstellioPluginManager getPluginManager() {

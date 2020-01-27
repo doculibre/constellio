@@ -40,7 +40,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
 public class I18NAcceptationAcceptTest extends ConstellioTest {
 
@@ -222,22 +221,6 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 			String comparisonMessage = CompareI18nKeys.getComparisonMessage(Language.English, results);
 			fail("Missing i18n keys\n" + comparisonMessage);
 		}
-	}
-
-	@Test
-	public void ensureArabicAndFrenchLanguageFilesHaveSameKeys()
-			throws Exception {
-		assumeArabicLabelsValidated();
-		ListComparisonResults<String> results = CompareI18nKeys.compare(Language.Arabic);
-
-		if (!results.getNewItems().isEmpty() || !results.getRemovedItems().isEmpty()) {
-			String comparisonMessage = CompareI18nKeys.getComparisonMessage(Language.Arabic, results);
-			fail("Missing i18n keys\n" + comparisonMessage);
-		}
-	}
-
-	protected void assumeArabicLabelsValidated() {
-		assumeTrue("Arabic i18n validations are disabled, set 'skip.arabicI18nTests=false' in sdk.properties to enable them", areArabicI18nValidationsEnabled());
 	}
 
 	protected boolean areArabicI18nValidationsEnabled() {

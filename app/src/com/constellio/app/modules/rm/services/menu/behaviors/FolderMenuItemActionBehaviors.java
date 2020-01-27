@@ -39,6 +39,7 @@ import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
+import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
@@ -47,8 +48,6 @@ import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.window.ConsultLinkWindow;
-import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -86,7 +85,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
@@ -148,11 +146,7 @@ public class FolderMenuItemActionBehaviors {
 
 	public void getConsultationLink(Folder folder, MenuItemActionBehaviorParams params) {
 		String constellioURL = getConstellioUrl(modelLayerFactory);
-		ConsultLinkWindow consultLinkWindow = new ConsultLinkWindow(asList(
-				new ConsultLinkParams(constellioURL + RMUrlUtil.getPathToConsultLinkForFolder(folder.getId()),
-						folder.getTitle())));
-
-		UI.getCurrent().addWindow(consultLinkWindow);
+		CopyToClipBoard.copyToClipBoard(constellioURL + RMUrlUtil.getPathToConsultLinkForFolder(folder.getId()));
 	}
 
 	public void addToDocument(Folder folder, MenuItemActionBehaviorParams params) {
@@ -408,7 +402,8 @@ public class FolderMenuItemActionBehaviors {
 
 	public void copy(Folder folder, MenuItemActionBehaviorParams params) {
 		Button duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
-				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
+				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy"),
+				WindowConfiguration.modalDialog("50%", "20%")) {
 			@Override
 			protected Component buildWindowContent() {
 				BaseButton folderButton = new BaseButton($("DisplayFolderView.folderOnly")) {
@@ -451,16 +446,11 @@ public class FolderMenuItemActionBehaviors {
 				cancel.addStyleName(ValoTheme.BUTTON_LINK);
 
 				HorizontalLayout layout = new HorizontalLayout(folderButton, structure, cancel);
-				layout.setComponentAlignment(folderButton, Alignment.TOP_LEFT);
-				layout.setComponentAlignment(structure, Alignment.TOP_LEFT);
-				layout.setComponentAlignment(cancel, Alignment.TOP_RIGHT);
-				layout.setExpandRatio(cancel, 1);
-
-				layout.setWidth("95%");
 				layout.setSpacing(true);
 
 				VerticalLayout wrapper = new VerticalLayout(layout);
 				wrapper.setSizeFull();
+				wrapper.setComponentAlignment(layout, Alignment.MIDDLE_CENTER);
 
 				return wrapper;
 			}

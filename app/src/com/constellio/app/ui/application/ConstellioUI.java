@@ -13,16 +13,7 @@ import com.constellio.app.ui.framework.components.resource.ConstellioResourceHan
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOViewChangeListener;
 import com.constellio.app.ui.handlers.ConstellioErrorHandler;
 import com.constellio.app.ui.i18n.i18n;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.base.ConstellioHeader;
-import com.constellio.app.ui.pages.base.EnterViewListener;
-import com.constellio.app.ui.pages.base.InitUIListener;
-import com.constellio.app.ui.pages.base.MainLayout;
-import com.constellio.app.ui.pages.base.MainLayoutImpl;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.base.SessionContextProvider;
-import com.constellio.app.ui.pages.base.UIContext;
-import com.constellio.app.ui.pages.base.VaadinSessionContext;
+import com.constellio.app.ui.pages.base.*;
 import com.constellio.app.ui.pages.login.LoginViewImpl;
 import com.constellio.app.ui.pages.setup.ConstellioSetupViewImpl;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -40,12 +31,7 @@ import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.Page;
-import com.vaadin.server.RequestHandler;
-import com.vaadin.server.Responsive;
-import com.vaadin.server.VaadinRequest;
-import com.vaadin.server.VaadinService;
-import com.vaadin.server.VaadinSession;
+import com.vaadin.server.*;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
@@ -241,6 +227,8 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	public void updateContent() {
 		if (isRightToLeft()) {
 			addStyleName("right-to-left");
+		} else {
+			removeStyleName("right-to-left");
 		}
 		if (isSetupRequired()) {
 			ConstellioSetupViewImpl setupView = new ConstellioSetupViewImpl(VaadinService.getCurrentRequest().getPathInfo());

@@ -18,6 +18,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.EnableThumbnailsScript;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.workflows.model.enums.CalendarCountry;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -162,6 +163,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration NO_LINKS_IN_SEARCH_RESULTS;
 	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
+
+	public static final SystemConfiguration CALENDAR_COUNTRY;
 
 
 	static {
@@ -312,6 +315,7 @@ public class ConstellioEIMConfigs {
 		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanTrueByDefault("enableThumbnailGeneration")
 				.scriptedBy(EnableThumbnailsScript.class));
 		add(ADD_COMMENTS_WHEN_READ_AUTHORIZATION = others.createBooleanTrueByDefault("addCommentsWhenReadAuthorization"));
+		add(CALENDAR_COUNTRY = others.createEnum("calendarCountry", CalendarCountry.class).whichIsHidden().withDefaultValue(CalendarCountry.CAQC));
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
@@ -643,5 +647,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isAddCommentsWhenReadAuthorization() {
 		return manager.getValue(ADD_COMMENTS_WHEN_READ_AUTHORIZATION);
+	}
+
+	public CalendarCountry getCalendarCountry() {
+		return manager.getValue(CALENDAR_COUNTRY);
 	}
 }

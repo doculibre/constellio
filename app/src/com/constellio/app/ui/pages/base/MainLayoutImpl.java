@@ -14,7 +14,6 @@ import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.pages.base.ConstellioMenuImpl.ConstellioMenuButton;
 import com.constellio.app.ui.util.ComponentTreeUtils;
-import com.constellio.app.ui.util.PlatformDetectionUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.navigator.Navigator;
@@ -125,7 +124,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		dragAndDropWrapper = new DragAndDropWrapper(mainMenuContentFooterLayout) {
 			@Override
 			public void setDropHandler(DropHandler dropHandler) {
-				if (PlatformDetectionUtils.isDesktop()) {
+				if (ResponsiveUtils.isDesktop()) {
 					super.setDropHandler(dropHandler);
 				}
 			}
@@ -181,7 +180,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		}
 
 		staticFooterLayout.addComponent(staticFooterContentAndGuideLayout);
-		if (staticFooterExtraComponentsLayout.getComponentCount() > 0) {
+		if (!isStaticFooterExtraComponentsLayoutEmpty()) {
 			staticFooterLayout.addComponent(staticFooterExtraComponentsLayout);
 			staticFooterLayout.setComponentAlignment(staticFooterExtraComponentsLayout, Alignment.BOTTOM_CENTER);
 		}
@@ -247,12 +246,29 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 
 	private boolean isStaticFooterEmpty() {
 		boolean staticFooterEmpty;
-		if (staticFooterContent == null && !guideButton.isVisible() && (!ResponsiveUtils.isDesktop() || staticFooterExtraComponentsLayout.getComponentCount() == 0)) {
+		if (staticFooterContent == null && !guideButton.isVisible() && (!ResponsiveUtils.isDesktop() || isStaticFooterExtraComponentsLayoutEmpty())) {
 			staticFooterEmpty = true;
 		} else {
 			staticFooterEmpty = false;
 		}
 		return staticFooterEmpty;
+	}
+
+	private boolean isStaticFooterExtraComponentsLayoutEmpty() {
+		boolean staticFooterExtraComponentsLayoutEmpty;
+		if (staticFooterExtraComponentsLayout.getComponentCount() == 0) {
+			staticFooterExtraComponentsLayoutEmpty = true;
+		} else {
+			staticFooterExtraComponentsLayoutEmpty = true;
+			for (int i = 0; i < staticFooterExtraComponentsLayout.getComponentCount(); i++) {
+				Component staticFooterExtraComponentsLayoutComponent = staticFooterExtraComponentsLayout.getComponent(i);
+				if (staticFooterExtraComponentsLayoutComponent.isVisible()) {
+					staticFooterExtraComponentsLayoutEmpty = false;
+					break;
+				}
+			}
+		}
+		return staticFooterExtraComponentsLayoutEmpty;
 	}
 
 	private void updateHelpButtonState(BaseViewImpl view) {

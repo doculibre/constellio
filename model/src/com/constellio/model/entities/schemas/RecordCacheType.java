@@ -5,7 +5,7 @@ import com.constellio.model.entities.EnumWithSmallCode;
 public enum RecordCacheType implements EnumWithSmallCode {
 
 
-	NOT_CACHED("N"), SUMMARY_CACHED_WITHOUT_VOLATILE("X"), SUMMARY_CACHED_WITH_VOLATILE("S"), FULLY_CACHED("F"), HOOK_ONLY("H");
+	NOT_CACHED("N"), SUMMARY_CACHED_WITHOUT_VOLATILE("X"), SUMMARY_CACHED_WITH_VOLATILE("S"), FULLY_CACHED("F"), HOOK_ONLY("H"), ONLY_VOLATILE("V");
 
 	String code;
 
@@ -22,7 +22,7 @@ public enum RecordCacheType implements EnumWithSmallCode {
 	}
 
 	public boolean hasVolatileCache() {
-		return this == SUMMARY_CACHED_WITH_VOLATILE;
+		return this == SUMMARY_CACHED_WITH_VOLATILE || this == ONLY_VOLATILE;
 	}
 
 	@Override
