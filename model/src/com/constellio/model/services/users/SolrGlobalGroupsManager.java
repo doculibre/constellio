@@ -13,6 +13,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_InvalidParent;
@@ -110,6 +111,14 @@ public class SolrGlobalGroupsManager implements StatefulService {
 
 	public List<GlobalGroup> getAllGroups() {
 		return schemas.wrapGlobalGroups(searchServices.search(getAllGroupsQuery()));
+	}
+
+	public LogicalSearchQuery getDeletedGroupsQuery() {
+		return getAllGroupsQuery().filteredByStatus(StatusFilter.DELETED);
+	}
+
+	public LogicalSearchCondition getDeletedGroupsCondition() {
+		return from(schemas.globalGroupSchemaType()).where(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
 	}
 
 	public List<GlobalGroup> getHierarchy(String code) {
