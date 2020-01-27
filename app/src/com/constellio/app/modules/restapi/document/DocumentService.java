@@ -37,6 +37,8 @@ public class DocumentService extends ResourceService {
 							  int expiration, String signature, DocumentDto document, InputStream contentInputStream,
 							  String flushMode, Set<String> filters) throws Exception {
 
+		validateParameters(host, folderId, serviceKey, method, date, expiration, null, null, null, signature);
+
 		Record folder = getRecord(folderId, true);
 		String collection = folder.getCollection();
 		User user = getUser(serviceKey, collection);
@@ -56,6 +58,8 @@ public class DocumentService extends ResourceService {
 	public DocumentDto merge(String host, String folderId, String serviceKey, String method, String date,
 							 int expiration, String signature, DocumentDto document, List<String> mergeSourceIds,
 							 String flushMode, Set<String> filters) throws Exception {
+
+		validateParameters(host, folderId, serviceKey, method, date, expiration, null, null, null, signature);
 
 		Record folder = getRecord(folderId, true);
 		String collection = folder.getCollection();
@@ -78,8 +82,6 @@ public class DocumentService extends ResourceService {
 	private void validateDocument(String host, String folderId, String serviceKey, String method, String date,
 								  int expiration, String signature, DocumentDto document, String collection,
 								  Record folder, User user, MetadataSchema schema) throws Exception {
-
-		validateParameters(host, folderId, serviceKey, method, date, expiration, null, null, null, signature);
 
 		validateUserAccess(user, folder, method);
 

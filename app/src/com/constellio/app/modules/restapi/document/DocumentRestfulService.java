@@ -139,8 +139,9 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			@Parameter(description = "Fields to filter from the JSON response.", example = "[\"directAces\", \"inheritedAces\"]")
 			@QueryParam("filter") Set<String> filters,
 			@Parameter(description = "A document id list can be specified to activate the merge mode.<br>" +
+									 "The id list must be provided as a string without space and each id separated by a comma.<br>" +
 									 "The new document will be created by merging all documents provided in the list.")
-			@HeaderParam(CustomHttpHeaders.MERGE_SOURCE) Set<String> mergeSourceIds,
+			@HeaderParam(CustomHttpHeaders.MERGE_SOURCE) String mergeSourceIds,
 			@Parameter(description = "The flushing mode indicates how the commits are executed in solr",
 					schema = @Schema(allowableValues = {"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
 			@HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
@@ -163,14 +164,8 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		}
 
 		List<String> documentIdsToMerge = null;
-		if (mergeSourceIds != null && !mergeSourceIds.isEmpty()) {
-			String ids = mergeSourceIds.iterator().next();
-			if (ids != null) {
-				ids = ids.replaceAll("[\\[\\] ]", "");
-				if (!StringUtils.isBlank(ids)) {
-					documentIdsToMerge = Arrays.asList(ids.split(","));
-				}
-			}
+		if (StringUtils.isNotBlank(mergeSourceIds)) {
+			documentIdsToMerge = Arrays.asList(mergeSourceIds.split(","));
 		}
 
 		validateContent(document, fileStream, documentIdsToMerge);
