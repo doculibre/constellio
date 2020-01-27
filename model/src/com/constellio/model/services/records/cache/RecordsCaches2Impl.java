@@ -642,7 +642,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		long count = searchServices.streamFromSolr(type, type.getCacheType().isSummaryCache()).count();
 		cacheLoadingProgression = new CacheLoadingProgression(type.getCode(), type.getCollection(), 0, count);
 		if (count > 0) {
-			if (usePersistedSummaryDatabase) {
+			if (usePersistedSummaryDatabase && !Toggle.ALWAYS_LOAD_INDEX_FROM_SOLR.isEnabled()) {
 
 				Iterator<RecordIdVersion> recordIdVersionIterator = getRecordIdVersionIteratorFromSolr(type, searchServices);
 				insertRecordsUsingMapDb(type, added, count, recordIdVersionIterator);
@@ -654,7 +654,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 					CacheInsertionResponse response = (insert(record, LOADING_CACHE));
 
 					int inserted = added.incrementAndGet();
-					if (inserted % 10000 == 0 || inserted == count) {
+					if (inserted % 100_000 == 0 || inserted == count) {
 
 						long mb = OffHeapMemoryAllocator.getAllocatedMemory() / (1024 * 1024);
 						LOGGER.info("Adding records " + record.getTypeCode() + " : " + inserted + "/" + count

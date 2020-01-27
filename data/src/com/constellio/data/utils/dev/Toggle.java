@@ -114,6 +114,7 @@ public class Toggle {
 
 	public static AvailableToggle USE_MEMORY_STRING_ID_MAPPING = newToggle(false);
 	public static AvailableToggle DOCUMENT_RETENTION_RULES = newToggle(false);
+	public static AvailableToggle ALWAYS_LOAD_INDEX_FROM_SOLR = newToggle(true);
 
 	// ------------------------------------------------
 

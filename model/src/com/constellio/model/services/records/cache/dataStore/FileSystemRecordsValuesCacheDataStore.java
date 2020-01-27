@@ -9,6 +9,7 @@ import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices.RecordIdVersion;
+import org.apache.commons.collections4.map.LRUMap;
 import org.apache.tika.io.IOUtils;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.LocalDateTime;
@@ -16,7 +17,6 @@ import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.DBMaker.Maker;
-import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,8 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	private BTreeMap<Integer, byte[]> intKeyMap;
 
-	private HTreeMap<Integer, byte[]> tempIntKeyMap;
+	private LRUMap<Integer, byte[]> tempIntKeyMap = new LRUMap<>(40_000);
+	//private HTreeMap<Integer, byte[]> tempIntKeyMap;
 
 	private BTreeMap<String, byte[]> stringKeyMap;
 
@@ -89,14 +90,14 @@ public class FileSystemRecordsValuesCacheDataStore {
 		bufferDatabase = DBMaker.memoryDB().make();
 
 		//TODO 50mo for small servers, 200 for big ones (average length of 5ko per document)
-		tempIntKeyMap = bufferDatabase.hashMap("tempIntKeysDataStore")
-				.keySerializer(Serializer.INTEGER)
-				.valueSerializer(Serializer.BYTE_ARRAY)
-				.expireStoreSize(200_000_000)
-				.expireMaxSize(40_000)
-				.expireAfterGet()
-				.expireAfterCreate()
-				.create();
+		//		tempIntKeyMap = bufferDatabase.hashMap("tempIntKeysDataStore")
+		//				.keySerializer(Serializer.INTEGER)
+		//				.valueSerializer(Serializer.BYTE_ARRAY)
+		//				.expireStoreSize(200_000_000)
+		//				.expireMaxSize(40_000)
+		//				.expireAfterGet()
+		//				.expireAfterCreate()
+		//				.create();
 
 		intKeyMap = onDiskDatabase.treeMap("intKeysDataStore")
 				.valuesOutsideNodesEnable()
@@ -142,7 +143,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 	public void saveIntKeyPersistedAndMemoryData(int id, byte[] persistedData, ByteArrayRecordDTO memoryRecordDTO) {
 		Stats.compilerFor("FileSystemRecordsValuesCacheDataStore:save").log(() -> {
 			ensureNotBusy();
-			//tempIntKeyMap.put(id, persistedData);
+			tempIntKeyMap.put(id, persistedData);
 			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 			ObjectOutputStream objectOutputStream = null;
 			try {
@@ -213,7 +214,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 				for (int i = 0; i < returnedBytes.length; i++) {
 					returnedBytes[i] = objectInputStream.readByte();
 				}
-				//tempIntKeyMap.put(id, returnedBytes);
+				tempIntKeyMap.put(id, returnedBytes);
 				//System.arraycopy(bytes, Integer.BYTES + Long.BYTES, returnedBytes, 0, returnedBytes.length);
 				//int results = objectInputStream.read(returnedBytes);
 				//System.out.println(results);

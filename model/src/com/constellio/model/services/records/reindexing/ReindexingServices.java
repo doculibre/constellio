@@ -55,6 +55,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -491,6 +492,8 @@ public class ReindexingServices {
 			return infos;
 		};
 
+		Integer nextBreakPoint = readBreakPoint(type);
+
 		REINDEXING_TYPE:
 		while (true) {
 			//LOGGER.info("starting a new iteration");
@@ -512,6 +515,16 @@ public class ReindexingServices {
 					}
 
 					lastCacheLogging = new Date().getTime();
+				}
+
+				while (nextBreakPoint != null && current >= nextBreakPoint) {
+					LOGGER.info("Reindexing is currently paused, waiting removal or modification of breakpoint file '/opt/constellio/work/reindexing-breakpoint.txt'");
+					try {
+						Thread.sleep(300_000);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+					nextBreakPoint = readBreakPoint(type);
 				}
 
 				Record record = recordsIterator.next();
@@ -619,6 +632,27 @@ public class ReindexingServices {
 
 		}
 
+	}
+
+	private Integer readBreakPoint(MetadataSchemaType type) {
+		FoldersLocator foldersLocator = new FoldersLocator();
+		File breakpointFile = new File(foldersLocator.getWorkFolder(), "reindexing-breakpoint.txt");
+		if (breakpointFile.exists()) {
+			try {
+				List<String> lines = FileUtils.readLines(breakpointFile, "UTF-8");
+				if (!lines.isEmpty()) {
+					String content = lines.get(0).trim();
+					if (StringUtils.isNotBlank(content) &&
+						(content.startsWith(type.getCode() + ":") || content.startsWith(type.getCollection() + ":" + type.getCode() + ":"))) {
+						return Integer.valueOf(StringUtils.substringAfterLast(content, ":"));
+					}
+				}
+			} catch (Throwable t) {
+				LOGGER.error("ERROR reading breakpoint file", t);
+			}
+		}
+
+		return null;
 	}
 
 	private boolean updateAggregatedMetadata(final Record record, final Metadata aggregatingMetadata,

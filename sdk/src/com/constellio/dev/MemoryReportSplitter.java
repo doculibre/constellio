@@ -9,7 +9,7 @@ import java.util.List;
 public class MemoryReportSplitter {
 
 	public static void main(String[] args) throws Exception {
-		File file = new File("/Users/francisbaril/pmap-memory-report6.txt");
+		File file = new File("/Users/francisbaril/pmap-memory-report7.txt");
 
 		List<String> lines = FileUtils.readLines(file);
 
