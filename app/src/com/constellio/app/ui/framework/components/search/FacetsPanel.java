@@ -137,6 +137,8 @@ public abstract class FacetsPanel extends VerticalLayout {
 		captionBar.setWidth("100%");
 		captionBar.addStyleName("facet-title");
 
+		I18NHorizontalLayout buttonBar = new I18NHorizontalLayout();
+
 		VerticalLayout layout = new VerticalLayout(captionBar);
 		layout.setWidth("95%");
 
@@ -208,7 +210,11 @@ public abstract class FacetsPanel extends VerticalLayout {
 		});
 
 		layout.addComponent(table);
-		layout.addComponent(apply);
+		buttonBar.addComponent(apply);
+		buttonBar.setComponentAlignment(apply, Alignment.BOTTOM_LEFT);
+		buttonBar.setWidth("100%");
+		buttonBar.addStyleName("facet-buttonBar");
+		layout.addComponent(buttonBar);
 		layout.setVisible(!facet.getValues().isEmpty());
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
 			layout.addStyleName("facet-box-viewer");
