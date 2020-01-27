@@ -546,7 +546,7 @@ public class TaskTable extends VerticalLayout {
 		boolean currentUserHasWriteAuthorisation = presenter.currentUserHasWriteAuthorization(taskVO);
 		ListAddRemoveCollaboratorsGroupsField collaboratorsGroupField = new ListAddRemoveCollaboratorsGroupsField(taskVO);
 		collaboratorsGroupField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
-		collaboratorsGroupField.setCurrentUserIsCollaborator(presenter.currentUserIsCollaborator(taskVO));
+		collaboratorsGroupField.setCurrentUserCanModifyDelete(presenter.currentUserHasWriteAuthorisationWithoutBeingCollaborator(taskVO));
 		return collaboratorsGroupField;
 	}
 
@@ -554,7 +554,7 @@ public class TaskTable extends VerticalLayout {
 		boolean currentUserHasWriteAuthorisation = presenter.currentUserHasWriteAuthorization(taskVO);
 		ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(taskVO);
 		collaboratorsField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
-		collaboratorsField.setCurrentUserIsCollaborator(presenter.currentUserIsCollaborator(taskVO));
+		collaboratorsField.setCurrentUserCanModifyDelete(presenter.currentUserHasWriteAuthorisationWithoutBeingCollaborator(taskVO));
 		return collaboratorsField;
 	}
 
@@ -1158,7 +1158,7 @@ public class TaskTable extends VerticalLayout {
 		void addCollaborators(List<TaskCollaboratorItem> taskCollaboratorItems,
 							  List<TaskCollaboratorsGroupItem> taskCollaboratorsGroupItems, RecordVO taskVO);
 
-		boolean currentUserIsCollaborator(RecordVO recordVO);
+		boolean currentUserHasWriteAuthorisationWithoutBeingCollaborator(RecordVO recordVO);
 
 		boolean currentUserHasWriteAuthorization(RecordVO taskVO);
 	}

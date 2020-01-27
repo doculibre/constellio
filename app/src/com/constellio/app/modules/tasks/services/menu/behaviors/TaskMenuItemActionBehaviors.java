@@ -32,11 +32,11 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -227,7 +227,7 @@ public class TaskMenuItemActionBehaviors {
 		boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
 		ListAddRemoveCollaboratorsGroupsField collaboratorsGroupField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO());
 		collaboratorsGroupField.writeButtonIsVisible(userHasWriteAuthorization);
-		collaboratorsGroupField.setCurrentUserIsCollaborator(taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+		collaboratorsGroupField.setCurrentUserCanModifyDelete(taskPresenterServices.currentUserHasWriteAuthorisationWithoutBeingCollaborator(params.getRecordVO(), params.getUser().getId()));
 		return collaboratorsGroupField;
 	}
 
@@ -235,7 +235,7 @@ public class TaskMenuItemActionBehaviors {
 		boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
 		ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(params.getRecordVO());
 		collaboratorsField.writeButtonIsVisible(userHasWriteAuthorization);
-		collaboratorsField.setCurrentUserIsCollaborator(taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+		collaboratorsField.setCurrentUserCanModifyDelete(taskPresenterServices.currentUserHasWriteAuthorisationWithoutBeingCollaborator(params.getRecordVO(), params.getUser().getId()));
 		return collaboratorsField;
 	}
 
