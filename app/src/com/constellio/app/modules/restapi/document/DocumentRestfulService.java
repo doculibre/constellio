@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -179,7 +180,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			throw new RequiredParameterException("content.filename");
 		}
 
-		DocumentDto createdDocument = documentIdsToMerge == null || documentIdsToMerge.isEmpty() ?
+		DocumentDto createdDocument = CollectionUtils.isEmpty(documentIdsToMerge) ?
 									  documentService.create(host, folderId, serviceKey, method, date, expiration,
 											  signature, document, fileStream, flush, filters) :
 									  documentService.merge(host, folderId, serviceKey, method, date, expiration,
