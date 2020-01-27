@@ -162,10 +162,12 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 
 		for (final Field<?> field : recordForm.getFields()) {
 			if (field instanceof CustomFolderField) {
+				AddEditFolderViewImpl view = this;
 				field.addValueChangeListener(new ValueChangeListener() {
 					@Override
 					public void valueChange(ValueChangeEvent event) {
 						presenter.customFieldValueChanged((CustomFolderField<?>) field);
+						presenter.afterPresenterUpdated(view);
 					}
 				});
 			}

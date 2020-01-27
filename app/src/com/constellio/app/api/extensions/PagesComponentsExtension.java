@@ -29,6 +29,10 @@ public class PagesComponentsExtension {
 
 	}
 
+	public void decorateMainComponentAfterPresenterUpdate(DecorateMainComponentAfterInitExtensionParams params){
+
+	}
+
 	public void updateComponent(UpdateComponentExtensionParams params) {
 
 	}

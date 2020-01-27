@@ -597,6 +597,13 @@ public class AppLayerCollectionExtensions {
 		}
 	}
 
+	public void decorateMainComponentAfterPresenterUpdate(
+			DecorateMainComponentAfterInitExtensionParams params) {
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
+			extension.decorateMainComponentAfterPresenterUpdate(params);
+		}
+	}
+
 	public boolean isMetadataDisplayedWhenModifiedInBatchProcessing(final Metadata metadata) {
 		return batchProcessingExtensions.getBooleanValue(true, new BooleanCaller<BatchProcessingExtension>() {
 			@Override

@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
@@ -68,6 +69,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
+import com.vaadin.ui.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -473,6 +475,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		view.setRecord(folderVO);
 
 		reloadForm();
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+		//DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this.view);
+		//extensions.decorateMainComponentAfterPresenterUpdate(params);
 	}
 
 	void reloadFormAndPopulateCurrentMetadatasExcept(List<String> ignoredMetadataCodes) {
@@ -584,6 +589,13 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	private void setFieldReadonly(CustomFolderField<?> field, boolean readOnly) {
 		field.setReadOnly(readOnly);
+	}
+
+	public void afterPresenterUpdated(Component component){
+
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+		DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(component);
+		extensions.decorateMainComponentAfterPresenterUpdate(params);
 	}
 
 	void adjustCustomFields(CustomFolderField<?> customField, boolean firstDraw) {
