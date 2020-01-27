@@ -49,6 +49,7 @@ public class SchemasDisplayReader1 {
 	private static final String METADATA_GROUP = "metadataGroup";
 	private static final String METADATA_GROUP_CODE = "code";
 	private static final String LABELS = "labels";
+	private static final String HELP_MESSAGE = "HelpMessage";
 
 	MetadataSchemaTypes types;
 	Document document;
@@ -293,13 +294,15 @@ public class SchemasDisplayReader1 {
 
 		String inputTypeString = metadataDisplayConfigElement.getAttributeValue(INPUT_TYPE);
 		String displayTypeString = metadataDisplayConfigElement.getAttributeValue(DISPLAY_TYPE);
+		String helpMessage = metadataDisplayConfigElement.getAttributeValue(HELP_MESSAGE);
 		if (displayTypeString == null) {
 			displayTypeString = "VERTICAL";
 		}
 		MetadataInputType metadataInputType = MetadataInputType.valueOf(inputTypeString);
 		MetadataDisplayType metadataDisplayType = MetadataDisplayType.valueOf(displayTypeString);
+
 		MetadataDisplayConfig metadataDisplayConfig = new MetadataDisplayConfig(collection, metadataCode,
-				visibleInAdvancedSearch, metadataInputType, highlight, metadataGroup, metadataDisplayType);
+				visibleInAdvancedSearch, metadataInputType, highlight, metadataGroup, metadataDisplayType, helpMessage);
 		return metadataDisplayConfig;
 	}
 }

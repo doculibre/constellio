@@ -506,7 +506,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		if (displayConfig == null) {
 			displayConfig = new MetadataDisplayConfig(collection, code,
 					!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch(),
-					type, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup(), displayType);
+					type, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup(), displayType, formMetadataVO.getHelpMessage());
 		} else {
 			displayConfig = displayConfig.withHighlightStatus(formMetadataVO.isHighlight())
 					.withVisibleInAdvancedSearchStatus(!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch())

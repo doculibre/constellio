@@ -21,9 +21,11 @@ public class MetadataDisplayConfig implements Serializable {
 
 	private final boolean highlight;
 
+	private final String helpMessage;
+
 	public MetadataDisplayConfig(String collection, String metadataCode, boolean visibleInAdvancedSearch,
 								 MetadataInputType inputType, boolean highlight, String metadataGroupCode,
-								 MetadataDisplayType displayType) {
+								 MetadataDisplayType displayType, String helpMessage) {
 		this.collection = collection;
 		this.metadataCode = metadataCode;
 		this.visibleInAdvancedSearch = visibleInAdvancedSearch;
@@ -31,6 +33,7 @@ public class MetadataDisplayConfig implements Serializable {
 		this.highlight = highlight;
 		this.metadataGroupCode = metadataGroupCode;
 		this.displayType = displayType;
+		this.helpMessage = helpMessage;
 	}
 
 	public boolean isVisibleInAdvancedSearch() {
@@ -61,39 +64,46 @@ public class MetadataDisplayConfig implements Serializable {
 		return metadataGroupCode;
 	}
 
+	public String getHelpMessage() { return helpMessage; }
+
 	public MetadataDisplayConfig withVisibleInAdvancedSearchStatus(boolean visibleInAdvancedSearch) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType);
+				metadataGroupCode, displayType, helpMessage);
 	}
 
 	public MetadataDisplayConfig withHighlightStatus(boolean highlight) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType);
+				metadataGroupCode, displayType, helpMessage);
 	}
 
 	public MetadataDisplayConfig withInputType(MetadataInputType inputType) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType);
+				metadataGroupCode, displayType, helpMessage);
 	}
 
 	public MetadataDisplayConfig withDisplayType(MetadataDisplayType displayType) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType);
+				metadataGroupCode, displayType, helpMessage);
 	}
 
 	public MetadataDisplayConfig withMetadataGroup(String metadataGroupCode) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType);
+				metadataGroupCode, displayType, helpMessage);
 	}
 
 	public static MetadataDisplayConfig inheriting(String metadataCode, MetadataDisplayConfig inheritance) {
 		return new MetadataDisplayConfig(inheritance.collection, metadataCode, inheritance.visibleInAdvancedSearch,
-				inheritance.inputType, inheritance.highlight, inheritance.metadataGroupCode, inheritance.displayType);
+				inheritance.inputType, inheritance.highlight, inheritance.metadataGroupCode, inheritance.displayType, inheritance.helpMessage);
 	}
 
 	public MetadataDisplayConfig withCode(String code) {
 		return new MetadataDisplayConfig(collection, code, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType);
+				metadataGroupCode, displayType, helpMessage);
+	}
+
+	public MetadataDisplayConfig withHelpMessage(String helpMessage) {
+		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
+				metadataGroupCode, displayType, helpMessage);
 	}
 
 	@Override
@@ -125,6 +135,10 @@ public class MetadataDisplayConfig implements Serializable {
 		if (displayType != that.displayType) {
 			return false;
 		}
+		if (helpMessage != that.helpMessage) {
+			return false;
+		}
+
 		return metadataGroupCode != null ? metadataGroupCode.equals(that.metadataGroupCode) : that.metadataGroupCode == null;
 	}
 
@@ -137,6 +151,7 @@ public class MetadataDisplayConfig implements Serializable {
 		result = 31 * result + (displayType != null ? displayType.hashCode() : 0);
 		result = 31 * result + (metadataGroupCode != null ? metadataGroupCode.hashCode() : 0);
 		result = 31 * result + (highlight ? 1 : 0);
+		result = 31 * result + (helpMessage != null ? helpMessage.hashCode() : 0);
 		return result;
 	}
 }

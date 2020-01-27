@@ -44,6 +44,7 @@ public class FormMetadataVO implements Serializable {
 	boolean uniqueValue;
 	boolean isMultiLingual;
 	List<String> readAccessRoles;
+	private String helpMessage;
 
 	public FormMetadataVO(short id, String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO,
 						  String reference,
@@ -361,6 +362,10 @@ public class FormMetadataVO implements Serializable {
 	public void removeCustomAttribute(String attribute) {
 		customAttributes.remove(attribute);
 	}
+
+	public String getHelpMessage() { return helpMessage; }
+
+	public void setHelpMessage(String helpMessage) { this.helpMessage = helpMessage; }
 
 
 	/*public boolean getDuplicable() {
