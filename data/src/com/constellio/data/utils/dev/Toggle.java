@@ -110,7 +110,7 @@ public class Toggle {
 
 	public static AvailableToggle STRUCTURE_CACHE_BASED_ON_EXISTING_IDS = newToggle(true);
 
-	public static AvailableToggle ENABLE_PDTRON_TRIAL = newToggle(false);
+	public static AvailableToggle ENABLE_PDFTRON_TRIAL = newToggle(false);
 
 	// ------------------------------------------------
 
