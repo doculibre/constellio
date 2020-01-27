@@ -175,7 +175,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 	@Override
 	public int getReindexingQueryBatchSize() {
-		return getInt("reindexing.queryBatchSize", 2500);
+		return getInt("reindexing.queryBatchSize", 1250);
 	}
 
 	@Override
@@ -217,6 +217,11 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 	public long getRecordsVolatileCacheMemorySize() {
 		return getBytesSize("dao.cache.volatileCacheSizeInMemory", "250M");
+	}
+
+	@Override
+	public boolean isForcingCacheLoadingFromSolr() {
+		return getBoolean("dao.cache.forcingCacheLoadingFromSolr", false);
 	}
 
 

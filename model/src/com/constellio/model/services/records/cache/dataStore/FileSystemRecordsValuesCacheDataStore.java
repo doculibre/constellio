@@ -47,7 +47,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	private BTreeMap<Integer, byte[]> intKeyMap;
 
-	private LRUMap<Integer, byte[]> tempIntKeyMap = new LRUMap<>(40_000);
+	private final LRUMap<Integer, byte[]> tempIntKeyMap = new LRUMap<>(40_000);
 	//private HTreeMap<Integer, byte[]> tempIntKeyMap;
 
 	private BTreeMap<String, byte[]> stringKeyMap;
@@ -143,7 +143,9 @@ public class FileSystemRecordsValuesCacheDataStore {
 	public void saveIntKeyPersistedAndMemoryData(int id, byte[] persistedData, ByteArrayRecordDTO memoryRecordDTO) {
 		Stats.compilerFor("FileSystemRecordsValuesCacheDataStore:save").log(() -> {
 			ensureNotBusy();
-			tempIntKeyMap.put(id, persistedData);
+			synchronized (tempIntKeyMap) {
+				tempIntKeyMap.put(id, persistedData);
+			}
 			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 			ObjectOutputStream objectOutputStream = null;
 			try {
@@ -179,7 +181,9 @@ public class FileSystemRecordsValuesCacheDataStore {
 	public void removeIntKey(int id) {
 		Stats.compilerFor("FileSystemRecordsValuesCacheDataStore:remove").log(() -> {
 			ensureNotBusy();
-			tempIntKeyMap.remove(id);
+			synchronized (tempIntKeyMap) {
+				tempIntKeyMap.remove(id);
+			}
 			intKeyMap.remove(id);
 		});
 	}
@@ -196,7 +200,10 @@ public class FileSystemRecordsValuesCacheDataStore {
 	public byte[] loadIntKeyPersistedData(int id) {
 		ensureNotBusy();
 		return Stats.compilerFor("FileSystemRecordsValuesCacheDataStore:get").log(() -> {
-			byte[] persistedDataInMemory = tempIntKeyMap.get(id);
+			byte[] persistedDataInMemory = null;
+			synchronized (tempIntKeyMap) {
+				tempIntKeyMap.get(id);
+			}
 			if (persistedDataInMemory != null) {
 				return persistedDataInMemory;
 			}
@@ -214,7 +221,9 @@ public class FileSystemRecordsValuesCacheDataStore {
 				for (int i = 0; i < returnedBytes.length; i++) {
 					returnedBytes[i] = objectInputStream.readByte();
 				}
-				tempIntKeyMap.put(id, returnedBytes);
+				synchronized (tempIntKeyMap) {
+					tempIntKeyMap.put(id, returnedBytes);
+				}
 				//System.arraycopy(bytes, Integer.BYTES + Long.BYTES, returnedBytes, 0, returnedBytes.length);
 				//int results = objectInputStream.read(returnedBytes);
 				//System.out.println(results);
@@ -320,7 +329,9 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	public void clearAll() {
 		ensureNotBusy();
-		tempIntKeyMap.clear();
+		synchronized (tempIntKeyMap) {
+			tempIntKeyMap.clear();
+		}
 		intKeyMap.clear();
 		stringKeyMap.clear();
 		intKeyMap.clear();
