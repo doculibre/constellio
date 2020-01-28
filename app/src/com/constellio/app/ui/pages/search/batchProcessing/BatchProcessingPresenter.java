@@ -12,7 +12,9 @@ import java.io.InputStream;
 import java.util.List;
 
 public interface BatchProcessingPresenter {
-	String getOriginType(String schemaType);
+	//String getOriginType(String schemaType);
+
+	String getOriginSchema(String schemaType);
 
 	RecordVO newRecordVO(String schema, String schemaType, SessionContext sessionContext);
 
@@ -26,7 +28,7 @@ public interface BatchProcessingPresenter {
 
 	AppLayerCollectionExtensions getBatchProcessingExtension();
 
-	String getSchema(String schemaType, String type);
+	//String getSchema(String schemaType, String type);
 
 	String getTypeSchemaType(String schemaType);
 

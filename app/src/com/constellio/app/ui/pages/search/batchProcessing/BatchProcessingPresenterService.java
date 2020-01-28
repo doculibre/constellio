@@ -88,7 +88,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -124,7 +123,7 @@ public class BatchProcessingPresenterService {
 		this.modelLayerExtensions = modelLayerFactory.getExtensions().forCollection(collection);
 	}
 
-	public String getOriginType(LogicalSearchQuery query) {
+	/*public String getOriginType(LogicalSearchQuery query) {
 		long resultsCount = searchServices.getResultsCount(query);
 		if (resultsCount == 0) {
 			throw new ImpossibleRuntimeException("Batch processing should be done on at least one record");
@@ -138,9 +137,9 @@ public class BatchProcessingPresenterService {
 			}
 		}
 		return types.size() == 1 ? types.iterator().next() : null;
-	}
+	}*/
 
-	public String getOriginType(List<String> selectedRecordIds) {
+	/*public String getOriginType(List<String> selectedRecordIds) {
 		if (selectedRecordIds == null || selectedRecordIds.isEmpty()) {
 			throw new ImpossibleRuntimeException("Batch processing should be done on at least one record");
 		}
@@ -156,7 +155,7 @@ public class BatchProcessingPresenterService {
 			}
 		}
 		return types.size() == 1 ? types.iterator().next() : null;
-	}
+	}*/
 
 	private String getRecordSchemaCode(RecordServices recordServices, String recordId) {
 		return recordServices.getDocumentById(recordId).getSchemaCode();
@@ -755,13 +754,13 @@ public class BatchProcessingPresenterService {
 		}
 	}
 
-	public String getSchema(String schemaType, String typeId) {
+	/*public String getSchema(String schemaType, String typeId) {
 		if (StringUtils.isBlank(typeId)) {
 			return schemaType + "_default";
 		}
 		Record record = recordServices.getDocumentById(typeId);
 		return schemas.getLinkedSchemaOf(record);
-	}
+	}*/
 
 	public boolean isMetadataModifiable(String metadataCode, User user, List<String> selectedRecordIds) {
 
@@ -792,7 +791,7 @@ public class BatchProcessingPresenterService {
 		BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams params =
 				new BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams(
 						BatchProcessingRecordFactoryExtension.BATCH_PROCESSING_FIELD_FACTORY_KEY, null, schemaType, query);
-		params.setSelectedTypeId(selectedType);
+		//params.setSelectedTypeId(selectedType);
 
 		RecordFieldFactory recordFieldFactory = null;
 		VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = appLayerFactory.getExtensions()
