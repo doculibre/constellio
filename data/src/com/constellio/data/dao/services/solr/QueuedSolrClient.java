@@ -40,11 +40,7 @@ public class QueuedSolrClient {
 		for (int i = 0; i < threadsCount; i++) {
 			threadList.add(new QueuedSolrClientThread());
 		}
-		try {
-			threadList.startAll();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
+		threadList.startAll();
 	}
 
 	public void addAsync(List<SolrInputDocument> solrInputDocuments) {

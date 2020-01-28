@@ -122,7 +122,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void addRecordsToCacheIndexServiceThenValidateWhatIsInCache() {
-		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
 
 		addRecordsToData(metadataIndexCacheDataStore);
 
@@ -150,7 +150,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void addRecordsWithUniqueValueToCacheIndexServiceThenValidateWhatIsInCache() {
-		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
 
 		setInitialRecordsWithUniqueValues();
 
@@ -184,7 +184,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void addRecordsWithMultiValueToCacheIndexServiceThenValidateWhatIsInCache() {
-		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
 
 		setInitialRecordsWithMultiValueValues();
 
@@ -200,7 +200,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void updateRecordsWinMultiValueMetadataDataToCacheIndexServiceThenValidateWhatIsInCache() {
-		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
 
 		setInitialRecordsWithMultiValueValues();
 
@@ -275,7 +275,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		Record recordSecondSchemaType2 = recordServices.newRecordWithSchema(testsSchemaDefaultSecond);
 		recordSecondSchemaType2.set(cacheIndexSecond, "lalala2");
 
-		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
 
 		addRecordsToData(metadataIndexCacheDataStore);
 
@@ -290,7 +290,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void updateMetadataFromCacheToCacheIndexServiceThenValidateWhatIsInCache() {
-		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
 
 		addRecordsToData(metadataIndexCacheDataStore);
 
@@ -309,7 +309,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void removeMetadataFromCacheToCacheIndexServiceThenValidateWhatIsInCache() {
-		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
 
 		addRecordsToData(metadataIndexCacheDataStore);
 
@@ -357,7 +357,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		recordSecondCollection2.set(cacheIndex, "toBeFound2");
 
 
-		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
 
 		addRecordsToData(metadataIndexCacheDataStore);
 
@@ -392,7 +392,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		});
 
 
-		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
 
 		addRecordsToData(metadataIndexCacheDataStore);
 
@@ -427,7 +427,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void searchWithNonCacheIndexMetadataThenExceptionThrown() {
-		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
 
 		addRecordsToData(metadataIndexCacheDataStore);
 
@@ -436,21 +436,21 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenNullValueOnSearchThenReturnNull() {
-		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
 
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, null)).isEmpty();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void givenNullRecordsThenThrow() {
-		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
 
 		metadataIndexCacheDataStore.addUpdate(null, null, testsSchemaTypeDefault, testsSchemaDefault);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void givenNullMetadataParameterThenSearchThrow() {
-		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore();
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
 
 		metadataIndexCacheDataStore.search(testsSchemaTypeDefault, null, "Lala");
 	}

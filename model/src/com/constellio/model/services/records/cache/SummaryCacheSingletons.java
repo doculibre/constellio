@@ -9,5 +9,11 @@ public class SummaryCacheSingletons {
 
 	static Map<Short, FileSystemRecordsValuesCacheDataStore> dataStore = new HashMap<>();
 
+	/**
+	 * Does not support mutli-tenancy
+	 */
+	static FileSystemRecordsValuesCacheDataStore getDataStore() {
+		return dataStore.values().stream().findFirst().get();
+	}
 
 }

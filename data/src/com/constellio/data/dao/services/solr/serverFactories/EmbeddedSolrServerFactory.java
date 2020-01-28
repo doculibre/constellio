@@ -5,10 +5,12 @@ import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.core.CoreContainer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 public class EmbeddedSolrServerFactory implements SolrServerFactory {
 
@@ -59,6 +61,11 @@ public class EmbeddedSolrServerFactory implements SolrServerFactory {
 		} catch (IOException e) {
 			throw new EmbeddedSolrServerFactoryRuntimeException.CannotCreateSolrServer(e);
 		}
+	}
+
+	@Override
+	public TupleStream newTupleStream(String core, Map<String, String> props) {
+		throw new UnsupportedOperationException("Unsupported");
 	}
 
 	private CoreContainer getLoadedCoreContainer()

@@ -7,6 +7,8 @@ import com.constellio.model.services.records.StringRecordId;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.model.services.records.RecordUtils.sizeOf;
+
 public class SortedStringIdsList implements SortedIdsList {
 
 	SortedIntIdsList intIdsList;
@@ -104,5 +106,15 @@ public class SortedStringIdsList implements SortedIdsList {
 	public void clear() {
 		intIdsList.clear();
 		stringIds.clear();
+	}
+
+	@Override
+	public long valuesHeapLength() {
+		return this.intIdsList.valuesHeapLength();
+	}
+
+	@Override
+	public long valuesOffHeapLength() {
+		return 12 + sizeOf(stringIds) + intIdsList.valuesHeapLength();
 	}
 }

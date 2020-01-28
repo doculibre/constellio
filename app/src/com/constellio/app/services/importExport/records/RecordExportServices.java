@@ -280,7 +280,7 @@ public class RecordExportServices {
 
 
 		if (metadata.getType() == REFERENCE) {
-			final MetadataSchemaType schemaType = metadataSchemaTypes.getSchemaType(metadata.getReferencedSchemaType());
+			final MetadataSchemaType schemaType = metadataSchemaTypes.getSchemaType(metadata.getReferencedSchemaTypeCode());
 
 			if (!metadata.isMultivalue()) {
 				String instr = toReferenceImportInstruction((String) rawValue, schemaType, options.isForSameSystem());

@@ -69,6 +69,8 @@ public class MetadataSchemaType implements Serializable {
 
 	private boolean hasEagerTransientMetadata;
 
+	private MetadataSchemaTypes schemaTypes;
+
 	public MetadataSchemaType(short id, String code, String smallCode, CollectionInfo collectionInfo,
 							  Map<Language, String> labels,
 							  List<MetadataSchema> customSchemas,
@@ -99,6 +101,15 @@ public class MetadataSchemaType implements Serializable {
 		this.recordCacheType = recordCacheType;
 		this.allMetadatas = computeAllMetadatas(defaultSchema, customSchemas);
 		hasEagerTransientMetadata = allMetadatas.stream().anyMatch((m) -> m.getTransiency() == TRANSIENT_EAGER);
+
+		for (MetadataSchema customSchema : customSchemas) {
+			customSchema.setBuiltSchemaType(this);
+		}
+		defaultSchema.setBuiltSchemaType(this);
+	}
+
+	void setBuiltSchemaTypes(MetadataSchemaTypes schemaTypes) {
+		this.schemaTypes = schemaTypes;
 	}
 
 	private static MetadataList computeAllMetadatas(MetadataSchema defaultSchema, List<MetadataSchema> customSchemas) {
@@ -344,7 +355,7 @@ public class MetadataSchemaType implements Serializable {
 
 
 		for (Metadata parentReferenceMetadata : defaultSchema.getParentReferences()) {
-			if (parentReferenceMetadata.getReferencedSchemaType().equals(metadataSchemaType)) {
+			if (parentReferenceMetadata.getReferencedSchemaTypeCode().equals(metadataSchemaType)) {
 				refs.add(parentReferenceMetadata);
 			}
 		}
@@ -468,12 +479,12 @@ public class MetadataSchemaType implements Serializable {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return HashCodeBuilder.reflectionHashCode(this, "schemaTypes");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
+		return EqualsBuilder.reflectionEquals(this, obj, "schemaTypes");
 	}
 
 	@Override
@@ -564,5 +575,9 @@ public class MetadataSchemaType implements Serializable {
 		}
 
 		return multilingual;
+	}
+
+	public MetadataSchemaTypes getSchemaTypes() {
+		return schemaTypes;
 	}
 }

@@ -967,7 +967,7 @@ public class MetadataBuilder {
 			throw new EssentialMetadataCannotBeDisabled(code);
 		}
 
-		if (Boolean.FALSE == builder.getEnabled() && inheritance.isEssentialInSummary()) {
+		if (Boolean.FALSE == builder.getEnabled() && inheritance.isEssentialInSummary() && !localCode.startsWith("USR")) {
 			throw new EssentialMetadataInSummaryCannotBeDisabled(code);
 		}
 	}

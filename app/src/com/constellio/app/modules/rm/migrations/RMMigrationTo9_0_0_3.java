@@ -43,13 +43,13 @@ public class RMMigrationTo9_0_0_3 extends MigrationHelper implements MigrationSc
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.DOCUMENTS_TOKENS).setEssentialInSummary(true);
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Schemas.TOKENS_OF_HIERARCHY.getLocalCode()).setEssentialInSummary(true);
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.PARENT_FOLDER).setCacheIndex(true);
-			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Schemas.PATH_PARTS).setCacheIndex(true);
+			//typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Schemas.PATH_PARTS).setCacheIndex(true);
 
 			typesBuilder.getSchemaType(Document.SCHEMA_TYPE).setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
 			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Schemas.TOKENS_OF_HIERARCHY.getLocalCode()).setEssentialInSummary(true);
 			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Document.FOLDER).setCacheIndex(true);
 			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Document.FOLDER_CATEGORY).setCacheIndex(true);
-			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Schemas.PATH_PARTS).setCacheIndex(true);
+			//typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Schemas.PATH_PARTS).setCacheIndex(true);
 
 			typesBuilder.getDefaultSchema(DecommissioningList.SCHEMA_TYPE).get(DecommissioningList.FOLDERS).setCacheIndex(true);
 			typesBuilder.getDefaultSchema(DecommissioningList.SCHEMA_TYPE).get(DecommissioningList.DOCUMENTS).setCacheIndex(true);

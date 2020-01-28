@@ -29,7 +29,7 @@ public class DocumentValidator implements RecordValidator {
 
 	private void validate(Document document, RecordValidatorParams params) {
 		if (document.getFolder() != null) {
-			Folder folder = Folder.wrap(params.getRecord(document.getFolder()), params.getTypes());
+			Folder folder = Folder.wrap(params.getRecordSummary(document.getFolder()), params.getTypes());
 			List<String> allowedDocumentTypes = folder.getAllowedDocumentTypes();
 
 			String documentType = document.getType();

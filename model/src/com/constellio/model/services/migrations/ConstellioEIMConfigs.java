@@ -162,7 +162,7 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration NO_LINKS_IN_SEARCH_RESULTS;
 	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
-
+	public static final SystemConfiguration LEGACY_IDENTIFIER_INDEXED_IN_MEMORY;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -198,6 +198,9 @@ public class ConstellioEIMConfigs {
 		add(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING = advanced.createString("fileExtensionsExcludedFromParsing").withReIndexationRequired());
 
 		add(CLEAN_DURING_INSTALL = advanced.createBooleanFalseByDefault("cleanDuringInstall"));
+
+		add(LEGACY_IDENTIFIER_INDEXED_IN_MEMORY = advanced.createBooleanFalseByDefault("legacyIdentifierIndexedInMemory")
+				.whichRequiresReboot());
 
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
@@ -643,5 +646,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isAddCommentsWhenReadAuthorization() {
 		return manager.getValue(ADD_COMMENTS_WHEN_READ_AUTHORIZATION);
+	}
+
+	public boolean isLegacyIdentifierIndexedInMemory() {
+		return manager.getValue(LEGACY_IDENTIFIER_INDEXED_IN_MEMORY);
 	}
 }

@@ -173,4 +173,5 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	void postInitialization();
 
+	void markForReindexing();
 }

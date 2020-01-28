@@ -613,7 +613,9 @@ public class TestUtils {
 		}
 
 		List<String> foldersInFolder1 = getFoldersInFolder(validatedFolder);
+		foldersInFolder1.remove("__MACOSX");
 		List<String> foldersInFolder2 = getFoldersInFolder(expectedFolder);
+		foldersInFolder2.remove("__MACOSX");
 		assertThat(foldersInFolder1).describedAs("Folder '" + folderAbsolutePath + "'")
 				.isEqualTo(foldersInFolder2);
 

@@ -13,12 +13,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.apache.commons.lang.CharEncoding.UTF_8;
+
 class DTOUtilsByteArrayDataOutputStream implements Closeable {
 	ByteArrayOutputStream byteArrayOutputStream;
 	DataOutputStream dataOutputStream;
 	boolean persisted;
 
-	long length;
+	int length;
 	List<List<Object>> debugInfos;
 
 	CompiledDTOStatsBuilder statsBuilder;
@@ -139,12 +141,24 @@ class DTOUtilsByteArrayDataOutputStream implements Closeable {
 		}
 	}
 
-	public void writeBytes(Metadata relatedMetadata, String s) throws IOException {
-		logLength(relatedMetadata, s.length() * Byte.BYTES);
-		dataOutputStream.writeBytes(s);
+	public void writeBytes(Metadata relatedMetadata, String s, boolean utf8) throws IOException {
+		if (utf8) {
+			byte[] bytes = s.getBytes(UTF_8);
+			short size = (short) bytes.length;
 
-		if (Toggle.DEBUG_DTOS.isEnabled()) {
-			logDebugInfo(relatedMetadata, s.length() * Byte.BYTES, "String as bytes", s);
+			logLength(relatedMetadata, size);
+			dataOutputStream.write(bytes);
+
+			if (Toggle.DEBUG_DTOS.isEnabled()) {
+				logDebugInfo(relatedMetadata, size, "String as UTF-8 bytes", s);
+			}
+		} else {
+			logLength(relatedMetadata, s.length() * Byte.BYTES);
+			dataOutputStream.writeBytes(s);
+
+			if (Toggle.DEBUG_DTOS.isEnabled()) {
+				logDebugInfo(relatedMetadata, s.length() * Byte.BYTES, "String as bytes", s);
+			}
 		}
 	}
 

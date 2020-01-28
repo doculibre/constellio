@@ -302,7 +302,7 @@ public class SettingsExportServices {
 			importedMetadata.setType(metadata.getType().name());
 
 			if (MetadataValueType.REFERENCE.equals(metadata.getType())) {
-				importedMetadata.setReferencedType(metadata.getReferencedSchemaType());
+				importedMetadata.setReferencedType(metadata.getReferencedSchemaTypeCode());
 			}
 
 			importedMetadata.setUnique(metadata.isUniqueValue());

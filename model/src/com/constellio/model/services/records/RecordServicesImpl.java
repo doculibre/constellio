@@ -735,7 +735,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 			RecordDTO summaryRecordDTO = toPersistedSummaryRecordDTO(record, schema);
 			record = toRecord(summaryRecordDTO, false);
 
-			insertInCache(record, WAS_OBTAINED);
 			return record;
 
 		} catch (NoSuchRecordWithId e) {
@@ -905,7 +904,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 							if (!migrations.getScripts().isEmpty()) {
 
 								for (RecordMigrationScript script : migrations.getScripts()) {
-									script.migrate(record);
+									if (script != null) {
+										script.migrate(record);
+									}
 								}
 								record.set(Schemas.MIGRATION_DATA_VERSION, migrations.getVersion());
 
@@ -963,7 +964,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 									String[] splittedCode = dataEntry.getMetadataProvidingSequenceCode().split("\\.");
 									metadataProvidingReference = schema.getMetadata(splittedCode[0]);
 									metadataProvidingSequenceCode = types
-											.getDefaultSchema(metadataProvidingReference.getReferencedSchemaType())
+											.getDefaultSchema(metadataProvidingReference.getReferencedSchemaTypeCode())
 											.getMetadata(splittedCode[1]);
 									String metadataProvidingReferenceValue = record.get(metadataProvidingReference);
 
@@ -1187,6 +1188,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 		}
+
+		List<Record> invalidatedRecords = new ArrayList<>(records);
 
 		invalidateTaxonomiesCache(records, types, recordProvider, modelLayerFactory.getTaxonomiesSearchServicesCache());
 

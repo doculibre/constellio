@@ -422,7 +422,7 @@ public class RecordsImportServicesExecutor {
 		TypeBatchImportContext typeBatchImportContext = new TypeBatchImportContext(typeImportContext);
 		typeBatchImportContext.batch = batch;
 		typeBatchImportContext.transaction = new Transaction();
-		typeBatchImportContext.transactionCache = new TransactionRecordsCache(recordsCache, typeBatchImportContext.transaction);
+		typeBatchImportContext.transactionCache = new TransactionRecordsCache(recordsCache, modelLayerFactory, typeBatchImportContext.transaction);
 		typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipReferenceValidation(true);
 		typeBatchImportContext.transaction.setSkippingReferenceToLogicallyDeletedValidation(true);
 		typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipMaskedMetadataValidations(true);
@@ -707,7 +707,7 @@ public class RecordsImportServicesExecutor {
 			throws PostponedRecordException, SkippedBecauseOfFailedDependency {
 		MetadataSchemaType schemaType = getMetadataSchemaType(typeImportContext.schemaType);
 
-		MetadataSchema newSchema = toImport.getSchema() == null? null:getMetadataSchema(typeImportContext.schemaType + "_" + toImport.getSchema());
+		MetadataSchema newSchema = toImport.getSchema() == null ? null : getMetadataSchema(typeImportContext.schemaType + "_" + toImport.getSchema());
 		MetadataSchema defaultSchema = getMetadataSchema(typeImportContext.schemaType + "_" + "default");
 
 		Record record;
@@ -726,7 +726,7 @@ public class RecordsImportServicesExecutor {
 			if (typeBatchImportContext.options.isMergeExistingRecordWithSameUniqueMetadata()) {
 				for (String uniqueMetadataCode : typeImportContext.uniqueMetadatas) {
 					Metadata uniqueMetadata;
-					if(newSchema == null) {
+					if (newSchema == null) {
 						uniqueMetadata = defaultSchema.getMetadata(uniqueMetadataCode);
 					} else {
 						uniqueMetadata = newSchema.getMetadata(uniqueMetadataCode);
@@ -741,7 +741,7 @@ public class RecordsImportServicesExecutor {
 
 			if (record == null) {
 				if (importAsLegacyId) {
-					record = recordServices.newRecordWithSchema(newSchema == null? defaultSchema:newSchema);
+					record = recordServices.newRecordWithSchema(newSchema == null ? defaultSchema : newSchema);
 				} else {
 
 					try {
@@ -782,7 +782,7 @@ public class RecordsImportServicesExecutor {
 								return null;
 							}
 						}
-						record = recordServices.newRecordWithSchema(newSchema == null? defaultSchema:newSchema, legacyId);
+						record = recordServices.newRecordWithSchema(newSchema == null ? defaultSchema : newSchema, legacyId);
 
 
 					}
@@ -796,7 +796,7 @@ public class RecordsImportServicesExecutor {
 			record.changeSchema(wasSchema, newSchema);
 		}
 
-		if(importAsLegacyId) {
+		if (importAsLegacyId) {
 			record.set(LEGACY_ID, legacyId);
 		}
 
@@ -810,7 +810,7 @@ public class RecordsImportServicesExecutor {
 			}
 
 			Metadata metadata;
-			if(newSchema == null) {
+			if (newSchema == null) {
 				metadata = defaultSchema.getMetadata(key);
 			} else {
 				metadata = newSchema.getMetadata(key);
@@ -1139,7 +1139,7 @@ public class RecordsImportServicesExecutor {
 
 		Resolver resolver = toResolver(value);
 
-		final MetadataSchemaType targettedSchemaType = getMetadataSchemaType(metadata.getReferencedSchemaType());
+		final MetadataSchemaType targettedSchemaType = getMetadataSchemaType(metadata.getReferencedSchemaTypeCode());
 
 		int colonIndex = value.indexOf(":");
 		final Metadata resolverMetadata;
@@ -1216,7 +1216,7 @@ public class RecordsImportServicesExecutor {
 					record = typeBatchImportContext.transactionCache.get(recordSummary.getId());
 				}
 
-				if (record == null) {
+				if (record == null && recordSummary != null) {
 					recordServices.getDocumentById(recordSummary.getId());
 				}
 			}
@@ -1237,7 +1237,7 @@ public class RecordsImportServicesExecutor {
 	private boolean isReferenceInReversedOrder(Metadata metadata) {
 		List<String> schemaTypes = schemasManager.getSchemaTypes(metadata.getCollection()).getSchemaTypesSortedByDependency();
 		int schemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getSchemaTypeCode());
-		int targettingSchemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getReferencedSchemaType());
+		int targettingSchemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getReferencedSchemaTypeCode());
 		return schemaTypeDependencyIndex < targettingSchemaTypeDependencyIndex;
 	}
 

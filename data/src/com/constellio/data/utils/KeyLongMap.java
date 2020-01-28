@@ -8,6 +8,13 @@ import java.util.List;
 
 public class KeyLongMap<K> extends HashMap<K, Long> {
 
+	public KeyLongMap() {
+	}
+
+	public KeyLongMap(KeyLongMap<K> m) {
+		super(m);
+	}
+
 	public void increment(K key, long value) {
 
 		Long currentValue = get(key);

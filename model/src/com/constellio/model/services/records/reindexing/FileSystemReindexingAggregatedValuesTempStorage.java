@@ -9,13 +9,17 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static java.lang.Class.forName;
 import static org.apache.commons.lang3.EnumUtils.getEnum;
@@ -29,6 +33,7 @@ public class FileSystemReindexingAggregatedValuesTempStorage implements Reindexi
 	private Map<String, KeyIntMap<String>> referenceCounts = new HashMap<>();
 
 	private File baseFolder;
+	Set<String> idsWithFile = new HashSet<>();
 
 	public FileSystemReindexingAggregatedValuesTempStorage(File baseFolder) {
 		this.baseFolder = baseFolder;
@@ -38,6 +43,7 @@ public class FileSystemReindexingAggregatedValuesTempStorage implements Reindexi
 	public void addOrReplace(String recordIdAggregatingValues, String recordId, String inputMetadataLocalCode,
 							 List<Object> values) {
 
+		idsWithFile.add(recordIdAggregatingValues);
 		File file = new File(baseFolder, recordIdAggregatingValues);
 
 		try {
@@ -200,11 +206,14 @@ public class FileSystemReindexingAggregatedValuesTempStorage implements Reindexi
 
 		Map<String, Map<String, List<Object>>> entriesOfAggregatingRecord = new HashMap<>();
 
-		File file = new File(baseFolder, recordIdAggregatingValues);
-		if (file.exists()) {
 
-			try {
-				for (String line : FileUtils.readLines(file, "UTF-8")) {
+		if (idsWithFile.contains(recordIdAggregatingValues)) {
+
+			File file = new File(baseFolder, recordIdAggregatingValues);
+			try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file));) {
+
+				String line;
+				while ((line = bufferedReader.readLine()) != null) {
 
 					String recordId = StringUtils.substringBefore(line, ":");
 					String restOfLine = StringUtils.substringAfter(line, ":");

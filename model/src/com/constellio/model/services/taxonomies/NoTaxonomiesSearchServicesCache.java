@@ -31,4 +31,9 @@ public class NoTaxonomiesSearchServicesCache implements TaxonomiesSearchServices
 		return null;
 	}
 
+	@Override
+	public long getHeapConsumption() {
+		return 0;
+	}
+
 }

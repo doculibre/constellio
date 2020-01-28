@@ -83,7 +83,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 		logicalSearchQueryExecutorInCache = new LogicalSearchQueryExecutorInCache(searchServices, searchServices.getConnectedRecordsCache(),
 				metadataSchemasManager,
 				getModelLayerFactory().getSearchConfigurationsManager(),
-				getModelLayerFactory().getExtensions().getSystemWideExtensions(), getModelLayerFactory().getConfiguration().getMainDataLanguage());
+				getModelLayerFactory().getExtensions().getSystemWideExtensions(), getModelLayerFactory().getSystemConfigs(), getModelLayerFactory().getConfiguration().getMainDataLanguage());
 
 		cacheIndex = testsSchemaDefault.getMetadata("cacheIndex");
 		notCacheIndex = testsSchemaDefault.getMetadata("notCacheIndex");

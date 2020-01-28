@@ -191,7 +191,7 @@ public class ImportedAuthorizationValidatorTest extends ConstellioTest {
 			throws Exception {
 
 		Metadata metadataProvidingSecurity = TestUtils.mockManualMetadata("folder_default_category", MetadataValueType.REFERENCE);
-		when(metadataProvidingSecurity.getReferencedSchemaType()).thenReturn("category");
+		when(metadataProvidingSecurity.getReferencedSchemaTypeCode()).thenReturn("category");
 		when(metadataProvidingSecurity.isRelationshipProvidingSecurity()).thenReturn(true);
 
 		MetadataList metadatas = new MetadataList(metadataProvidingSecurity);

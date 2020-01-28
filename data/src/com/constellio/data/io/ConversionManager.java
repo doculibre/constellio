@@ -1,5 +1,6 @@
 package com.constellio.data.io;
 
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
@@ -32,18 +33,9 @@ import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.io.*;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -227,12 +219,15 @@ public class ConversionManager implements StatefulService {
 	private ExecutorService executor;
 	private static DataLayerSystemExtensions extensions;
 
+	private boolean tiffFilesSupported;
+
 	public ConversionManager(IOServices ioServices, int numberOfProcesses, String onlineConversionUrl,
-							 DataLayerSystemExtensions extensions) {
+							 DataLayerSystemExtensions extensions, DataLayerConfiguration dataLayerConfiguration) {
 		this.ioServices = ioServices;
 		this.numberOfProcesses = numberOfProcesses;
 		this.onlineConversionUrl = onlineConversionUrl;
 		this.extensions = extensions;
+		this.tiffFilesSupported = dataLayerConfiguration.areTiffFilesConvertedForPreview();
 	}
 
 	public static String[] getSupportedExtensions() {
@@ -331,17 +326,14 @@ public class ConversionManager implements StatefulService {
 	public File convertToJPEG(InputStream inputStream, Dimension dimension, String mimetype, String originalName,
 							  File workingFolder) throws Exception {
 		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		File outputfile = createTempFile("jpegConversion", originalName + ".jpg", workingFolder);
 		if (dimension != null && ImageUtils.isImageOversized(dimension.getHeight())) {
-			String ext = FilenameUtils.getExtension(originalName);
-			File outputfile = createTempFile("jpegConversion", originalName + "." + ext, workingFolder);
 			BufferedImage resizedImage = ImageUtils.resize(bufferedImage);
-			ImageIO.write(resizedImage, ext, outputfile);
-			return outputfile;
+			ImageIO.write(resizedImage, "jpg", outputfile);
 		} else {
-			File outputfile = createTempFile("jpegConversion", originalName + ".jpg", workingFolder);
 			ImageIO.write(bufferedImage, "jpg", outputfile);
-			return outputfile;
 		}
+		return outputfile;
 	}
 
 	@Override
@@ -510,7 +502,12 @@ public class ConversionManager implements StatefulService {
 		return pdfaFormat;
 	}
 
-	public static boolean isSupportedExtension(String ext) {
+	public boolean isSupportedExtension(String ext) {
+		if (!tiffFilesSupported) {
+			if ("tif".equalsIgnoreCase(ext) || "tiff".equalsIgnoreCase(ext)) {
+				return false;
+			}
+		}
 		for (String aSupportedExtension : getSupportedExtensions()) {
 			if (aSupportedExtension.equalsIgnoreCase(ext)) {
 				return true;

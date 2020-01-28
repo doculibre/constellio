@@ -5,7 +5,7 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.tasks.model.calculators.TaskTokensCalculator;
+import com.constellio.app.modules.tasks.model.calculators.TaskTokensCalculator2;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -77,7 +77,7 @@ public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		assertThat(calculatorOf(types.getSchema(Folder.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TokensCalculator4.class);
 		assertThat(calculatorOf(types.getSchema(Document.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TokensCalculator4.class);
-		assertThat(calculatorOf(types.getSchema(Task.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TaskTokensCalculator.class);
+		assertThat(calculatorOf(types.getSchema(Task.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TaskTokensCalculator2.class);
 		assertThat(calculatorOf(types.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TokensCalculator2.class);
 		assertThat(calculatorOf(types.getSchema(Facet.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TokensCalculator2.class);
 		assertThat(calculatorOf(types.getSchema(User.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TokensCalculator2.class);

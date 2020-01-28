@@ -75,17 +75,19 @@ public class Toggle {
 
 	public static AvailableToggle VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR = newToggle(false);
 
-	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(false);
+	//Debug the dtos!
+	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(true);
+	public static AvailableToggle DEBUG_DTOS = newToggle(false);
 
 	public static AvailableToggle MIGRATING_LEGACY_SAVESTATE = newToggle(false);
 
 	public static AvailableToggle TRI_LEVEL_CACHE_LOCKING_Mecanism = newToggle(false);
 
-	public static AvailableToggle USE_MMAP_WITHMAP_DB = newToggle(true);
+	public static AvailableToggle USE_MMAP_WITHMAP_DB_FOR_LOADING = newToggle(true);
+	public static AvailableToggle USE_MMAP_WITHMAP_DB_FOR_RUNTIME = newToggle(false);
 
 	public static AvailableToggle USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE = newToggle(true);
 
-	public static AvailableToggle DEBUG_DTOS = newToggle(false);
 
 	public static AvailableToggle OFF_HEAP_ADDRESS_VALIDATOR = newToggle(false);
 
@@ -96,6 +98,8 @@ public class Toggle {
 	public static AvailableToggle OLD_DELETE_UNUSED_CONTENT_METHOD = newToggle(false);
 
 	public static AvailableToggle TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(false);
+
+	public static AvailableToggle STRUCTURE_CACHE_BASED_ON_EXISTING_IDS = newToggle(true);
 
 	// ------------------------------------------------
 

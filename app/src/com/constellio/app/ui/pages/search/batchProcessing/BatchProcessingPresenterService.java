@@ -776,7 +776,7 @@ public class BatchProcessingPresenterService {
 	}
 
 	public String getTypeSchemaType(String schemaType) {
-		return schemas.getRecordTypeMetadataOf(schemas.getTypes().getSchemaType(schemaType)).getReferencedSchemaType();
+		return schemas.getRecordTypeMetadataOf(schemas.getTypes().getSchemaType(schemaType)).getReferencedSchemaTypeCode();
 	}
 
 	public Map<String, String> getCustomizedLabels(String schemaCode, Locale locale) {
