@@ -11,6 +11,13 @@
             </Policies>
             <DefaultRolloverStrategy max="1"/>
         </RollingFile>
+        <RollingFile name="system" fileName="logs/system.log" filePattern="system.log.%i">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="250 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="4"/>
+        </RollingFile>
         <RollingFile name="restapi" fileName="logs/restapi.log" filePattern="restapi.log.%i">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
             <Policies>
@@ -38,6 +45,10 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="file"/>
         </Root>
+        <Logger name="com.constellio.data.utils.systemLogger" level="info" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="system"/>
+        </Logger>
         <Logger name="com.constellio.app.modules.restapi" level="info" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="restapi"/>

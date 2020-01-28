@@ -23,6 +23,9 @@ import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
+import org.apache.solr.client.solrj.io.SolrClientCache;
+import org.apache.solr.client.solrj.io.stream.StreamContext;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.client.solrj.request.GenericSolrRequest;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -771,5 +774,15 @@ public class BigVaultServer implements Cloneable {
 			t.printStackTrace();
 			return false;
 		}
+	}
+
+	public TupleStream tupleStream(Map<String, String> props) {
+
+		StreamContext streamContext = new StreamContext();
+		SolrClientCache solrClientCache = new SolrClientCache();
+		streamContext.setSolrClientCache(solrClientCache);
+		TupleStream tupleStream = solrServerFactory.newTupleStream(name, props);
+		tupleStream.setStreamContext(streamContext);
+		return tupleStream;
 	}
 }

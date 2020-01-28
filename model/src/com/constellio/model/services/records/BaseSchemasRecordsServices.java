@@ -111,7 +111,7 @@ public class BaseSchemasRecordsServices implements Serializable {
 					if (type.getDefaultSchema().hasMetadataWithCode("type")) {
 						Metadata metadata = type.getDefaultSchema().getMetadata("type");
 						if (metadata.getType() == MetadataValueType.REFERENCE && recordSchemaType
-								.equals(metadata.getReferencedSchemaType())) {
+								.equals(metadata.getReferencedSchemaTypeCode())) {
 							linkedSchemaType = new SchemaUtils().getSchemaTypeCode(metadata.getSchemaCode());
 						}
 					}

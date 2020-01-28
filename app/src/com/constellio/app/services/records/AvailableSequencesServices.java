@@ -103,7 +103,7 @@ public class AvailableSequencesServices {
 			String[] splittedCode = dataEntry.getMetadataProvidingSequenceCode().split("\\.");
 			metadataProvidingReference = schema.getMetadata(splittedCode[0]);
 			metadataProvidingSequenceCode = types
-					.getDefaultSchema(metadataProvidingReference.getReferencedSchemaType())
+					.getDefaultSchema(metadataProvidingReference.getReferencedSchemaTypeCode())
 					.getMetadata(splittedCode[1]);
 		} else {
 			metadataProvidingReference = schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode());

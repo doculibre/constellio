@@ -18,6 +18,11 @@ public class ImportUsersFilePresenter extends ImportFilePresenter {
 	}
 
 	@Override
+	public boolean isLegacyIdIndexDisabledWarningVisible() {
+		return false;
+	}
+
+	@Override
 	protected ImportServices newImportServices(ModelLayerFactory modelLayerFactory) {
 		return new UserImportServices(modelLayerFactory);
 	}

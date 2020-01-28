@@ -6,14 +6,18 @@ import com.constellio.data.io.concurrent.filesystem.ZookeeperAtomicFileSystem;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.io.stream.CloudSolrStream;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.client.solrj.response.CollectionAdminResponse;
+import org.apache.solr.common.params.MapSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Collections.singletonList;
@@ -39,6 +43,15 @@ public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 		SolrClient solrClient = getSolrClient(core);
 		solrClients.add(solrClient);
 		return solrClient;
+	}
+
+	@Override
+	public TupleStream newTupleStream(String core, Map<String, String> props) {
+		try {
+			return new CloudSolrStream(zkHost, core, new MapSolrParams(props));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

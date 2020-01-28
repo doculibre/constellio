@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.SDK;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.copyAdding;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.copyRemoving;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,7 +33,7 @@ public class OffHeapMemoryAllocatorTest extends ConstellioTest {
 
 			for (int i = 0; i < 100_000; i++) {
 				int size = 200;// 1000 + random.nextInt(1000);
-				long address = OffHeapMemoryAllocator.allocateMemory(size);
+				long address = OffHeapMemoryAllocator.allocateMemory(size, SDK);
 
 				byte testedNumber = (byte) (i % 100);
 				for (int j = 0; j < size; j++) {
@@ -44,7 +45,7 @@ public class OffHeapMemoryAllocatorTest extends ConstellioTest {
 					assertThat(b).isEqualTo(testedNumber);
 				}
 
-				OffHeapMemoryAllocator.freeMemory(address, size);
+				OffHeapMemoryAllocator.freeMemory(address, size, SDK);
 			}
 		};
 
@@ -198,7 +199,7 @@ public class OffHeapMemoryAllocatorTest extends ConstellioTest {
 	}
 
 	private long newAutoClosedAllocatedAddress() {
-		long address = OffHeapMemoryAllocator.allocateMemory(5);
+		long address = OffHeapMemoryAllocator.allocateMemory(5, SDK);
 		allocatedAddresses.add(address);
 		return address;
 
@@ -207,7 +208,7 @@ public class OffHeapMemoryAllocatorTest extends ConstellioTest {
 	@After
 	public void tearDown() throws Exception {
 		for (long allocatedAddress : allocatedAddresses) {
-			OffHeapMemoryAllocator.freeMemory(allocatedAddress, 5);
+			OffHeapMemoryAllocator.freeMemory(allocatedAddress, 5, SDK);
 		}
 	}
 

@@ -12,6 +12,8 @@ public interface RecordId extends Comparable, Serializable {
 
 	String stringValue();
 
+	int intValue();
+
 	boolean isInteger();
 
 	boolean lesserThan(RecordId anotherRecordId);

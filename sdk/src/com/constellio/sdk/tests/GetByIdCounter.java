@@ -8,11 +8,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.assertj.core.api.ListAssert;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class GetByIdCounter extends BigVaultServerExtension {
 
@@ -28,6 +31,11 @@ public class GetByIdCounter extends BigVaultServerExtension {
 			}
 			return false;
 		};
+	}
+
+	public GetByIdCounter(DataLayerFactory dataLayerFactory, Class<?> occuringFrom) {
+		this(occuringFrom);
+		listening(dataLayerFactory);
 	}
 
 
@@ -74,6 +82,18 @@ public class GetByIdCounter extends BigVaultServerExtension {
 
 	public void reset() {
 		calls.clear();
+	}
+
+	public ListAssert<Object> assertCalledIds() {
+		StringBuilder sb = new StringBuilder();
+
+		for (GetByIdCounterCall call : calls) {
+			sb.append("Get '" + call.id + "' : " + (call.found ? "found" : "not found") + "\n");
+			sb.append(ExceptionUtils.getStackTrace(call.getStackTrace()) + "\n");
+		}
+
+
+		return assertThat(calls).extracting("id").describedAs(sb.toString());
 	}
 
 	@AllArgsConstructor

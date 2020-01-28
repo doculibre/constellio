@@ -19,6 +19,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderContext;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -35,6 +36,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
@@ -579,20 +581,33 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 	private void assertAttachedAncestorsImpactInFolderAndDocumentSchema(TestRecord record,
 																		List<ModificationImpact> impacts) {
-		Metadata folderAuthorizations = folderSchema.attachedAncestors();
-		Metadata documentAuthorizations = documentSchema.attachedAncestors();
+		Metadata folderAttachedAncestors = folderSchema.attachedAncestors();
+		Metadata documentAttachedAncestors = documentSchema.attachedAncestors();
 
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(1).getMetadataToReindex())
-				.containsOnly(folderAuthorizations);
+				.containsOnly(folderAttachedAncestors);
 		assertThat(impacts.get(0).getMetadataToReindex())
-				.containsOnly(documentAuthorizations);
+				.containsOnly(documentAttachedAncestors);
 		assertThat(impacts.get(1).getLogicalSearchCondition())
+				.usingComparator(comparatorBasedOnSolrQuery())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type()).whereAny(
 						asList(folderSchema.parent())).isIn(asList(record)));
 		assertThat(impacts.get(0).getLogicalSearchCondition())
+				.usingComparator(comparatorBasedOnSolrQuery())
 				.isEqualTo(LogicalSearchQueryOperators.from(documentSchema.type())
 						.whereAny(asList(documentSchema.parent())).isIn(asList(record)));
+	}
+
+	private Comparator<? super LogicalSearchCondition> comparatorBasedOnSolrQuery() {
+		return new Comparator<LogicalSearchCondition>() {
+			@Override
+			public int compare(LogicalSearchCondition o1, LogicalSearchCondition o2) {
+				String q1 = o1.getSolrQuery(new SolrQueryBuilderContext(false, asList("fr"), "fr", schemas.getTypes(), Collections.emptyList(), zeCollection));
+				String q2 = o2.getSolrQuery(new SolrQueryBuilderContext(false, asList("fr"), "fr", schemas.getTypes(), Collections.emptyList(), zeCollection));
+				return q1.compareTo(q2);
+			}
+		};
 	}
 
 	private void assertPathAndAuthorizationsImpactInFirstAndSecondSchema(TestRecord record,
@@ -638,9 +653,11 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 				.containsOnly("documentMetaWithTaxoDependency", ALL_REMOVED_AUTHS,
 						ATTACHED_ANCESTORS, "path");
 		assertThat(impacts.get(1).getLogicalSearchCondition())
+				.usingComparator(comparatorBasedOnSolrQuery())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type()).whereAny(
 						asList(folderSchema.parent())).isIn(asList(record)));
 		assertThat(impacts.get(0).getLogicalSearchCondition())
+				.usingComparator(comparatorBasedOnSolrQuery())
 				.isEqualTo(LogicalSearchQueryOperators.from(documentSchema.type())
 						.whereAny(asList(documentSchema.parent())).isIn(asList(record)));
 	}

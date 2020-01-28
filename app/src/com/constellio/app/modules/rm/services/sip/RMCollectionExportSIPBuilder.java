@@ -441,8 +441,10 @@ public class RMCollectionExportSIPBuilder {
 	}
 
 	private SearchResponseIterator<Record> newChildrenContainerIterator(Record storageSpace) {
-		return searchServices.recordsIterator(new LogicalSearchQuery(
-				from(rm.containerRecord.schemaType()).where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace.getId())), 1000);
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				from(rm.containerRecord.schemaType()).where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace.getId()));
+		query.sortAsc(Schemas.TITLE);
+		return searchServices.recordsIterator(query, 1000);
 	}
 
 	private SearchResponseIterator<Record> newRootStorageSpaceIterator() {
@@ -453,8 +455,10 @@ public class RMCollectionExportSIPBuilder {
 	}
 
 	private SearchResponseIterator<Record> newStorageSpaceChildrenIterator(Record storageSpaceChildren) {
-		return searchServices.recordsIterator(new LogicalSearchQuery(
-				from(rm.storageSpace.schemaType()).where(rm.storageSpace.parentStorageSpace()).isEqualTo(storageSpaceChildren.getId())), 1000);
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				from(rm.storageSpace.schemaType()).where(rm.storageSpace.parentStorageSpace()).isEqualTo(storageSpaceChildren.getId()));
+		query.sortAsc(Schemas.CODE);
+		return searchServices.recordsIterator(query, 1000);
 	}
 
 	private SearchResponseIterator<Record> newOrphanContainerIterator() {

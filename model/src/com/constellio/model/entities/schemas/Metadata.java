@@ -88,6 +88,9 @@ public class Metadata implements DataStoreField {
 
 	final boolean secured;
 
+	MetadataSchema schema;
+	MetadataSchemaType referencedSchemaType;
+
 	Metadata(int id, String localCode, MetadataValueType type, boolean multivalue) {
 		this(id, "global_default", localCode, type, multivalue, false);
 	}
@@ -148,10 +151,16 @@ public class Metadata implements DataStoreField {
 		this.global = computeIsGlobal();
 		this.customParameter = Collections.unmodifiableMap(new HashMap<String, Object>());
 		this.schemaTypeCode = new SchemaUtils().getSchemaTypeCode(this);
-
 		this.secured = getAccessRestrictions() != null && getAccessRestrictions().getRequiredReadRoles() != null &&
 					   !getAccessRestrictions().getRequiredReadRoles().isEmpty();
 
+	}
+
+	public void setBuiltSchema(MetadataSchema schema) {
+		if (this.schema != null) {
+			throw new IllegalStateException("Schematype already");
+		}
+		this.schema = schema;
 	}
 
 	public boolean isFilteredByAny(List<MetadataFilter> metadataFilterList) {
@@ -298,6 +307,10 @@ public class Metadata implements DataStoreField {
 		return code;
 	}
 
+	public String getNoInheritanceCode() {
+		return inheritance == null ? code : inheritance.getCode();
+	}
+
 	public String getLocalCode() {
 		return localCode;
 	}
@@ -342,8 +355,15 @@ public class Metadata implements DataStoreField {
 		return type;
 	}
 
-	public String getReferencedSchemaType() {
+	public String getReferencedSchemaTypeCode() {
 		return getAllowedReferences().getTypeWithAllowedSchemas();
+	}
+
+	public MetadataSchemaType getReferencedSchemaType() {
+		if (referencedSchemaType == null) {
+			referencedSchemaType = schema.getSchemaType().getSchemaTypes().getSchemaType(getReferencedSchemaTypeCode());
+		}
+		return referencedSchemaType;
 	}
 
 	public AllowedReferences getAllowedReferences() {
@@ -460,13 +480,13 @@ public class Metadata implements DataStoreField {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this, "dataEntry", "structureFactory", "encryptionServicesFactory");
+		return HashCodeBuilder.reflectionHashCode(this, "dataEntry", "structureFactory", "encryptionServicesFactory", "schema", "cachedSortMetadata");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj, "dataEntry", "recordMetadataValidators", "structureFactory",
-				"encryptionServicesFactory");
+				"encryptionServicesFactory", "schema", "cachedSortMetadata");
 	}
 
 	@Override
@@ -629,5 +649,27 @@ public class Metadata implements DataStoreField {
 
 	public Short getTypeId() {
 		return typeId;
+	}
+
+	public MetadataSchema getSchema() {
+		return schema;
+	}
+
+	public MetadataSchemaType getSchemaType() {
+		return schema.getSchemaType();
+	}
+
+	public boolean isStoredInSummaryCache() {
+		return inheritance == null ? SchemaUtils.isSummary(this) : SchemaUtils.isSummary(inheritance);
+
+	}
+
+	Metadata cachedSortMetadata;
+
+	public Metadata getSortMetadata() {
+		if (cachedSortMetadata == null) {
+			cachedSortMetadata = Schemas.getSortMetadata(this);
+		}
+		return cachedSortMetadata;
 	}
 }

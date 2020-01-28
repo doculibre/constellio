@@ -33,6 +33,10 @@ public class ListRootRobotsPresenter extends BaseRobotPresenter<ListRootRobotsVi
 		};
 	}
 
+	public boolean isLegacyIdIndexDisabledWarningVisible() {
+		return !modelLayerFactory.getSystemConfigs().isLegacyIdentifierIndexedInMemory();
+	}
+
 	public void displayButtonClicked(RecordVO recordVO) {
 		view.navigate().to(RobotViews.class).robotConfiguration(recordVO.getId());
 	}

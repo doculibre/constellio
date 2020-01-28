@@ -66,6 +66,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -612,7 +613,9 @@ public class TestUtils {
 		}
 
 		List<String> foldersInFolder1 = getFoldersInFolder(validatedFolder);
+		foldersInFolder1.remove("__MACOSX");
 		List<String> foldersInFolder2 = getFoldersInFolder(expectedFolder);
+		foldersInFolder2.remove("__MACOSX");
 		assertThat(foldersInFolder1).describedAs("Folder '" + folderAbsolutePath + "'")
 				.isEqualTo(foldersInFolder2);
 
@@ -1327,5 +1330,19 @@ public class TestUtils {
 
 	public static <T> ListAssert<T> assertThatStream(Stream<T> stream) {
 		return assertThat(stream.collect(toList()));
+	}
+
+	public static double calculateOpsPerSecondsOver(Runnable op, int msToBench) {
+		long loopCount = 0;
+		long start = new Date().getTime();
+		long end = start;
+		while ((start + msToBench > end)) {
+			op.run();
+			loopCount++;
+			end = new Date().getTime();
+		}
+
+		long elapsedMs = end - start;
+		return ((double) (1000 * loopCount)) / elapsedMs;
 	}
 }

@@ -179,7 +179,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 						logError(params, document, CANNOT_READ_CONTENT);
 						result = null;
 					}
-				} else if (ConversionManager.isSupportedExtension(extension)) {
+				} else if (modelLayerFactory.getDataLayerFactory().getConversionManager().isSupportedExtension(extension)) {
 					InputStream documentPreviewIn;
 					if (contentManager.hasContentPreview(hash)) {
 						documentPreviewIn = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + hash + ".PdfGenerator");

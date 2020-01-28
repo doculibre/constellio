@@ -41,6 +41,10 @@ public class RecordValidatorParams {
 		return recordProvider.getRecord(id);
 	}
 
+	public Record getRecordSummary(String id) {
+		return recordProvider.getRecordSummary(id);
+	}
+
 	public MetadataSchemaTypes getTypes() {
 		return types;
 	}

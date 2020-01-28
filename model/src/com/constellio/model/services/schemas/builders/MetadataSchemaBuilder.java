@@ -393,13 +393,31 @@ public class MetadataSchemaBuilder {
 		MetadataSchema metadataSchema = new MetadataSchema(id, this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(),
 				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators),
-				schemaTypeBuilder.getDataStore(), this.isActive());
+				schemaTypeBuilder.getDataStore(), this.isActive(), modelLayerFactory.getSystemConfigs());
 		return metadataSchema;
 	}
 
 	public String getTypeCode() {
 
 		return schemaTypeBuilder.getCode();
+	}
+
+	public void resetAllIds(SchemasIdSequence sequenceForSchemaAndTypeId,
+							SchemasIdSequence metadataForSchemaAndTypeId) {
+		id = sequenceForSchemaAndTypeId.getNewId();
+
+		List<MetadataBuilder> metadatas = new ArrayList<>(getMetadatas());
+		metadatas.sort(Comparator.comparing(MetadataBuilder::getCode));
+
+		for (MetadataBuilder metadata : metadatas) {
+			if (metadata.getInheritance() != null) {
+				metadata.id = metadata.getInheritance().getId();
+			} else {
+				short newId = metadataForSchemaAndTypeId.getNewId();
+				metadata.id = newId;
+			}
+		}
+
 	}
 
 	private static class SchemaRecordSteps {
@@ -595,7 +613,7 @@ public class MetadataSchemaBuilder {
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		MetadataSchema metadataSchema = new MetadataSchema(this.getId(), this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(), inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators)
-				, schemaTypeBuilder.getDataStore(), this.isActive());
+				, schemaTypeBuilder.getDataStore(), this.isActive(), modelLayerFactory.getSystemConfigs());
 		return metadataSchema;
 	}
 

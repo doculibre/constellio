@@ -48,12 +48,12 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	private ZeSchemaMetadatas zeSchema = schemas.new ZeSchemaMetadatas();
 	private AnotherSchemaMetadatas anotherSchema = schemas.new AnotherSchemaMetadatas();
 
-	private static final Metadata METADATA1 = Metadata.newGlobalMetadata((short)0,"metadata1_s", MetadataValueType.STRING, false, false);
-	private static final Metadata METADATA2 = Metadata.newGlobalMetadata((short)0,"metadata2_s", MetadataValueType.STRING, false, false);
-	private static final Metadata METADATA3 = Metadata.newGlobalMetadata((short)0,"metadata3_s", MetadataValueType.STRING, false, false);
-	private static final Metadata METADATA4 = Metadata.newGlobalMetadata((short)0,"metadata4_s", MetadataValueType.STRING, false, false);
-	private static final Metadata METADATA5 = Metadata.newGlobalMetadata((short)0,"metadata5_s", MetadataValueType.STRING, false, false);
-	private static final Metadata METADATA6 = Metadata.newGlobalMetadata((short)0,"metadata6_s", MetadataValueType.STRING, false, false);
+	private static final Metadata METADATA1 = Metadata.newGlobalMetadata((short) 0, "metadata1_s", MetadataValueType.STRING, false, false);
+	private static final Metadata METADATA2 = Metadata.newGlobalMetadata((short) 0, "metadata2_s", MetadataValueType.STRING, false, false);
+	private static final Metadata METADATA3 = Metadata.newGlobalMetadata((short) 0, "metadata3_s", MetadataValueType.STRING, false, false);
+	private static final Metadata METADATA4 = Metadata.newGlobalMetadata((short) 0, "metadata4_s", MetadataValueType.STRING, false, false);
+	private static final Metadata METADATA5 = Metadata.newGlobalMetadata((short) 0, "metadata5_s", MetadataValueType.STRING, false, false);
+	private static final Metadata METADATA6 = Metadata.newGlobalMetadata((short) 0, "metadata6_s", MetadataValueType.STRING, false, false);
 
 	private static final String SET_METADATA1 = "setMetadata1";
 	private static final String SET_METADATA1_PARAMETERS_SCHEMA = "setMetadata1Parameters";
@@ -135,7 +135,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 
 	}
 
-	private TestRecord newRecord(SchemaShortcuts schema, String id) {
+	protected TestRecord newRecord(SchemaShortcuts schema, String id) {
 		TestRecord testRecord = new TestRecord(schema, id);
 		testRecord.set(Schemas.TITLE, "title " + id);
 		return testRecord;
