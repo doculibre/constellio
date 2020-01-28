@@ -385,6 +385,25 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		}
 	}
 
+
+	@Override
+	public void deleteFileNameContaining(String contentId, String filter) {
+		File file = getFileOf(contentId);
+
+		File parent = file.getParentFile();
+
+		// Content id so we don't delete all the annotations in the directory
+		File[] filesToDelete = parent.listFiles((dir, name) -> name.startsWith(contentId) && name.contains(filter));
+
+		for (File currentFileToDelete : filesToDelete) {
+			currentFileToDelete.delete();
+
+			if (replicatedRootFolder != null) {
+				getReplicatedVaultFile(file).delete();
+			}
+		}
+	}
+
 	@Override
 	public LocalDateTime getLastModification(String contentId) {
 		File file = getFileOf(contentId);

@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.attribute.FileTime;
@@ -74,16 +75,23 @@ public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".jpegConversion");
 		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".icapscan");
 		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".thumbnail");
+		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".annotation.A01_numericContractWithDifferentCopy.0.1");
+		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".annotation.A01_numericContractWithDifferentCopy.0.2");
+
 
 		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
 		assertThat(vaultScanResults.getReportMessage()).contains(referencedFilehash + ".todelete");
 		assertThat(vaultScanResults.getReportMessage()).doesNotContain(referencedFilehash + ".jpegConversion");
 		assertThat(vaultScanResults.getReportMessage()).doesNotContain(referencedFilehash + ".icapscan");
 		assertThat(vaultScanResults.getReportMessage()).doesNotContain(referencedFilehash + ".thumbnail");
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(referencedFilehash + ".annotation.A01_numericContractWithDifferentCopy.0.1");
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(referencedFilehash + ".annotation.A01_numericContractWithDifferentCopy.0.2");
 
 		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".jpegConversion").exists()).isTrue();
 		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".icapscan").exists()).isTrue();
 		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".thumbnail").exists()).isTrue();
+		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".annotation.A01_numericContractWithDifferentCopy.0.1").exists()).isTrue();
+		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".annotation.A01_numericContractWithDifferentCopy.0.2").exists()).isTrue();
 
 		recordServices.physicallyDeleteNoMatterTheStatus(document, User.GOD, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 
@@ -94,6 +102,9 @@ public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".jpegConversion").exists()).isFalse();
 		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".icapscan").exists()).isFalse();
 		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".thumbnail").exists()).isFalse();
+		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".annotation.A01_numericContractWithDifferentCopy.0.1").exists()).isFalse();
+		assertThat(contentManager.getContentDao().getFileOf(referencedFilehash + ".annotation.A01_numericContractWithDifferentCopy.0.2").exists()).isFalse();
+
 	}
 
 	@Test
@@ -167,10 +178,13 @@ public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 	private void givenOneUnlinkedFileAndOneLinkedWhichAreOlderThanThreeDays() throws Exception {
 		File fileToBeDeleted = contentManager.getContentDao().getFileOf(documentToBeDeleted.getContent().getCurrentVersion().getHash());
 		File fileToBeKept = contentManager.getContentDao().getFileOf(documentToBeKept.getContent().getCurrentVersion().getHash());
+		makeFileOld(fileToBeDeleted);
+		makeFileOld(fileToBeKept);
+	}
+
+	private void makeFileOld(File fileToBeDeleted) throws IOException {
 		Files.setAttribute(fileToBeDeleted.toPath(), "basic:creationTime", FileTime.fromMillis(System.currentTimeMillis() - 259200001), LinkOption.NOFOLLOW_LINKS);
 		Files.setAttribute(fileToBeDeleted.toPath(), "basic:lastModifiedTime", FileTime.fromMillis(System.currentTimeMillis() - 259200001), LinkOption.NOFOLLOW_LINKS);
-		Files.setAttribute(fileToBeKept.toPath(), "basic:creationTime", FileTime.fromMillis(System.currentTimeMillis() - 259200001), LinkOption.NOFOLLOW_LINKS);
-		Files.setAttribute(fileToBeKept.toPath(), "basic:lastModifiedTime", FileTime.fromMillis(System.currentTimeMillis() - 259200001), LinkOption.NOFOLLOW_LINKS);
 	}
 
 	private Content createContent(String filename) {
