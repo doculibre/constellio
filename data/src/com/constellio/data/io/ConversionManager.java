@@ -332,10 +332,9 @@ public class ConversionManager implements StatefulService {
 							  File workingFolder) throws Exception {
 		BufferedImage bufferedImage = ImageIO.read(inputStream);
 		if (dimension != null && ImageUtils.isImageOversized(dimension.getHeight())) {
-			String ext = FilenameUtils.getExtension(originalName);
-			File outputfile = createTempFile("jpegConversion", originalName + "." + ext, workingFolder);
+			File outputfile = createTempFile("jpegConversion", originalName + ".jpg", workingFolder);
 			BufferedImage resizedImage = ImageUtils.resize(bufferedImage);
-			ImageIO.write(resizedImage, ext, outputfile);
+			ImageIO.write(resizedImage, "jpg", outputfile);
 			return outputfile;
 		} else {
 			File outputfile = createTempFile("jpegConversion", originalName + ".jpg", workingFolder);
