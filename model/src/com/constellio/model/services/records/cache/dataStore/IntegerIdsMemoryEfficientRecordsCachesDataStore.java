@@ -15,9 +15,8 @@ import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 import com.constellio.model.services.records.cache.locks.SimpleReadLockMechanism;
-import com.constellio.model.services.records.cache.offHeapCollections.OffHeapByteArrayList;
+import com.constellio.model.services.records.cache.offHeapCollections.OffHeapByteArrayList2;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapByteList;
-import com.constellio.model.services.records.cache.offHeapCollections.OffHeapBytesSupplier;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapIntList;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapLongList;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapShortList;
@@ -50,7 +49,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 	OffHeapShortList schema = new OffHeapShortList();
 	OffHeapShortList type = new OffHeapShortList();
 	OffHeapByteList collection = new OffHeapByteList();
-	OffHeapByteArrayList summaryCachedData = new OffHeapByteArrayList();
+	OffHeapByteArrayList2 summaryCachedData = new OffHeapByteArrayList2();
 
 	//TODO Replace List by another collection to save memory
 	List<RecordDTO> fullyCachedData = new ArrayList<>();
@@ -313,7 +312,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			collection.insertValueShiftingAllFollowingValues(insertAtIndex, (byte) 0);
 
 			if (fullyCached) {
-				while(fullyCachedData.size() < insertAtIndex) {
+				while (fullyCachedData.size() < insertAtIndex) {
 					fullyCachedData.add(null);
 				}
 				fullyCachedData.add(insertAtIndex, null);
@@ -463,9 +462,8 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			return null;
 		}
 
-		OffHeapBytesSupplier offHeapBytesSupplier = summaryCachedData.get(listIndex);
-		if (offHeapBytesSupplier != null) {
-			byte[] data = offHeapBytesSupplier.toArray();
+		byte[] data = summaryCachedData.get(listIndex);
+		if (data != null) {
 			long version = versions.get(listIndex);
 			MetadataSchemaType type = schemasManager.get(collectionId, typeId);
 			MetadataSchema schema = type.getSchema(schemaId);

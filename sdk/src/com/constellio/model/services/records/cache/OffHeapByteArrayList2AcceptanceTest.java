@@ -1,7 +1,7 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.services.records.cache.offHeapCollections.OffHeapByteArrayList;
+import com.constellio.model.services.records.cache.offHeapCollections.OffHeapByteArrayList2;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 
@@ -9,7 +9,7 @@ import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class OffHeapByteArrayListAcceptanceTest extends ConstellioTest {
+public class OffHeapByteArrayList2AcceptanceTest extends ConstellioTest {
 
 
 	//@Test
@@ -18,7 +18,7 @@ public class OffHeapByteArrayListAcceptanceTest extends ConstellioTest {
 		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
 		byte[][] insertedValues = new byte[100_000][];
 
-		OffHeapByteArrayList list = new OffHeapByteArrayList();
+		OffHeapByteArrayList2 list = new OffHeapByteArrayList2();
 
 		Random random = new Random();
 
@@ -50,7 +50,7 @@ public class OffHeapByteArrayListAcceptanceTest extends ConstellioTest {
 
 		byte[][] insertedValues = new byte[100_000][];
 
-		OffHeapByteArrayList list = new OffHeapByteArrayList();
+		OffHeapByteArrayList2 list = new OffHeapByteArrayList2();
 
 		Random random = new Random();
 

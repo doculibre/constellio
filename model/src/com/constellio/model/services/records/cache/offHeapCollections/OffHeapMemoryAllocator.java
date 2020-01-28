@@ -19,6 +19,7 @@ public class OffHeapMemoryAllocator {
 			new AtomicLong(),
 			new AtomicLong(),
 			new AtomicLong(),
+			new AtomicLong(),
 			new AtomicLong()
 	};
 
@@ -36,6 +37,7 @@ public class OffHeapMemoryAllocator {
 	public static final int OffHeapShortList_ID = 4;
 	public static final int SortedIntIdsList_ID = 5;
 	public static final int SDK = 6;
+	public static final int OffHeapByteArrayListArea_ID = 7;
 
 
 	static synchronized long allocateMemory(int length, int classId) {
