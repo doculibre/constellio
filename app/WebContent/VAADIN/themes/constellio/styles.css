@@ -15350,6 +15350,13 @@ div.v-layout.v-horizontal.v-widget {
 	color: #000000;
 }
 
+.constellio .-facets-sliderpanel .facet-apply {
+	left: 14px;
+	color: #fafafa;
+	background-color: #414B56;
+	background-image: none;
+}
+
 .constellio .viewable-record-table-panel .v-slot-main-component {
 	overflow-y: auto;
 }
@@ -16981,6 +16988,11 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .v-slot-search-result-facets .facet-box .facet-value > label {
 	margin-right: 25px;
+}
+
+.constellio .right-to-left .v-slot-search-result-facets .facet-box .facet-apply {
+	padding-left: 20px;
+	background-color: #474747;
 }
 
 .constellio .right-to-left .header .header-search {
