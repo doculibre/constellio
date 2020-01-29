@@ -7,20 +7,18 @@ import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveStringLookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.Property;
-import com.vaadin.data.Property.ValueChangeEvent;
-import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
@@ -34,9 +32,10 @@ import org.slf4j.LoggerFactory;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
@@ -51,7 +50,7 @@ public class BatchProcessingButton extends WindowButton {
 	LookupRecordField typeField;
 	String currentSchema;
 	BatchProcessingForm form;
-	List<String> metadatasToEmpty;
+	ListAddRemoveStringLookupField metadatasToEmptyField;
 	VerticalLayout vLayout;
 
 	public BatchProcessingButton(BatchProcessingPresenter presenter, BatchProcessingView view) {
@@ -60,7 +59,6 @@ public class BatchProcessingButton extends WindowButton {
 						"75%", "75%"));
 		this.presenter = presenter;
 		this.view = view;
-		this.metadatasToEmpty = new ArrayList<>();
 	}
 
 	@Override
@@ -238,7 +236,8 @@ public class BatchProcessingButton extends WindowButton {
 
 		@Override
 		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
-			if (metadataVO == null || metadataVO.getType().equals(CONTENT) || metadataVO.getLocalCode().equals("type")) {
+			if (metadataVO == null || metadataVO.getType().equals(CONTENT)
+				|| metadataVO.getLocalCode().equals("type")) {
 				return null;
 			}
 			if (fieldFactory != null) {
@@ -249,28 +248,14 @@ public class BatchProcessingButton extends WindowButton {
 	}
 
 	private Component buildBatchProcessingEmptyMetadataForm() {
-		VerticalLayout layout = new VerticalLayout();
-		layout.setSpacing(true);
+		List<MetadataVO> metadatas = presenter.getMetadataAllowedInBatchEdit(view.getSchemaType());
+		List<String> metadataCodes = metadatas.stream().map(MetadataVO::getLocalCode).collect(Collectors.toList());
+		Collections.sort(metadataCodes);
 
-		Label label = new Label($("BatchProcess.selectMetadatasToEmpty"));
-		layout.addComponent(label);
+		metadatasToEmptyField = new ListAddRemoveStringLookupField(metadataCodes);
+		metadatasToEmptyField.setCaption($("BatchProcess.selectMetadatasToEmpty"));
 
-		for (MetadataVO metadata : presenter.getMetadataAllowedInBatchEdit(view.getSchemaType())) {
-			CheckBox metadataCheckBox = new CheckBox(metadata.getLabel());
-			metadataCheckBox.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(ValueChangeEvent event) {
-					if (metadataCheckBox.getValue()) {
-						metadatasToEmpty.add(metadata.getLocalCode());
-					} else {
-						metadatasToEmpty.remove(metadata.getLocalCode());
-					}
-				}
-			});
-			layout.addComponent(metadataCheckBox);
-		}
-
-		return layout;
+		return metadatasToEmptyField;
 	}
 
 	private Component buildBatchProcessingActions() {
@@ -282,7 +267,8 @@ public class BatchProcessingButton extends WindowButton {
 				BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
 				try {
-					InputStream inputStream = presenter.simulateButtonClicked((String) typeField.getValue(), view.getSchemaType(), form.getViewObject(), metadatasToEmpty);
+					InputStream inputStream = presenter.simulateButtonClicked((String) typeField.getValue(),
+							view.getSchemaType(), form.getViewObject(), metadatasToEmptyField.getValue());
 
 					downloadBatchProcessingResults(inputStream);
 				} catch (RecordServicesException.ValidationException e) {
@@ -294,7 +280,8 @@ public class BatchProcessingButton extends WindowButton {
 			}
 		});
 
-		ConfirmDialogButton processButton = new ConfirmDialogButton($("BatchProcessingButton.process", presenter.getNumberOfRecords(view.getSchemaType()))) {
+		ConfirmDialogButton processButton = new ConfirmDialogButton(
+				$("BatchProcessingButton.process", presenter.getNumberOfRecords(view.getSchemaType()))) {
 			@Override
 			protected String getConfirmDialogMessage() {
 				return $("BatchProcessingButton.confirm", presenter.getNumberOfRecords(view.getSchemaType()));
@@ -306,7 +293,8 @@ public class BatchProcessingButton extends WindowButton {
 				BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
 				try {
-					boolean success = presenter.processBatchButtonClicked((String) typeField.getValue(), view.getSchemaType(), form.getViewObject(), metadatasToEmpty);
+					boolean success = presenter.processBatchButtonClicked((String) typeField.getValue(),
+							view.getSchemaType(), form.getViewObject(), metadatasToEmptyField.getValue());
 
 					getWindow().close();
 
