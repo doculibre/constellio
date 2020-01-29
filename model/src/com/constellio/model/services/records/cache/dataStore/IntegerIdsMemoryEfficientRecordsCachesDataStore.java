@@ -202,6 +202,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 		try {
 			synchronized (this) {
+				index = ids.binarySearch(id);
 				boolean newRecord = index == -1;
 				if (index < 0) {
 					boolean fullyCached = dto instanceof SolrRecordDTO;
@@ -305,6 +306,10 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			}
 			insertAtIndex++;
 
+			LOGGER.info("last id : " + lastId);
+			LOGGER.info("new id : " + id);
+			LOGGER.info("insert at index : " + insertAtIndex);
+
 			ids.insertValueShiftingAllFollowingValues(insertAtIndex, id);
 			versions.insertValueShiftingAllFollowingValues(insertAtIndex, 0);
 			schema.insertValueShiftingAllFollowingValues(insertAtIndex, (short) 0);
@@ -312,6 +317,9 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			collection.insertValueShiftingAllFollowingValues(insertAtIndex, (byte) 0);
 
 			if (fullyCached) {
+				while (fullyCachedData.size() < insertAtIndex) {
+					fullyCachedData.add(null);
+				}
 				fullyCachedData.add(insertAtIndex, null);
 			} else {
 				summaryCachedData.insertValueShiftingAllFollowingValues(insertAtIndex, new byte[0]);

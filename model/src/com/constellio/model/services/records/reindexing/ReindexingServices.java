@@ -144,7 +144,8 @@ public class ReindexingServices {
 				modelLayerFactory.getRecordsCaches().disableVolatileCache();
 				dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(false);
 				int waitedCounter = 0;
-				while (!modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+				while (!modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
+					   && modelLayerFactory.getConfiguration().isSummaryCacheEnabled()) {
 					if (waitedCounter++ % 6 == 0) {
 						LOGGER.info("Waiting end of cache loading to start reindexing");
 					}

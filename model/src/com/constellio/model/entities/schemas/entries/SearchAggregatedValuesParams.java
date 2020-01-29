@@ -4,7 +4,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -23,13 +25,14 @@ public class SearchAggregatedValuesParams {
 	AggregatedDataEntry aggregatedDataEntry;
 	MetadataSchemaTypes types;
 	SearchServices searchServices;
+	ModelLayerFactory modelLayerFactory;
 
 	public SearchAggregatedValuesParams(LogicalSearchQuery combinedQuery,
 										List<SearchAggregatedValuesParamsQuery> queries,
 										RecordImpl record,
 										Metadata metadata,
 										AggregatedDataEntry aggregatedDataEntry, MetadataSchemaTypes types,
-										SearchServices searchServices) {
+										SearchServices searchServices, ModelLayerFactory modelLayerFactory) {
 		this.combinedQuery = combinedQuery;
 		this.queries = queries;
 		this.record = record;
@@ -37,6 +40,7 @@ public class SearchAggregatedValuesParams {
 		this.aggregatedDataEntry = aggregatedDataEntry;
 		this.types = types;
 		this.searchServices = searchServices;
+		this.modelLayerFactory = modelLayerFactory;
 	}
 
 	public LogicalSearchQuery getCombinedQuery() {
@@ -69,6 +73,14 @@ public class SearchAggregatedValuesParams {
 
 	public List<Metadata> getInputMetadatas() {
 		return types.getMetadatas(getAggregatedDataEntry().getInputMetadatas());
+	}
+
+	public boolean isSummaryCacheEnabled() {
+		return modelLayerFactory.getConfiguration().isSummaryCacheEnabled();
+	}
+
+	public RecordServices getRecordServices() {
+		return modelLayerFactory.newRecordServices();
 	}
 
 	public Map<String, List<Metadata>> getInputMetatasBySchemaType() {
