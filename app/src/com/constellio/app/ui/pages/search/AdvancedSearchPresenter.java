@@ -607,8 +607,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public String getOriginType(String schemaType) {
-		return batchProcessingPresenterService().getOriginType(buildBatchProcessLogicalSearchQuery());
+	public String getOriginSchema(String schemaType, String selectedType) {
+		return batchProcessingPresenterService().getOriginSchema(schemaType, selectedType, buildBatchProcessLogicalSearchQuery());
 	}
 
 	@Override
@@ -653,11 +653,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	@Override
 	public AppLayerCollectionExtensions getBatchProcessingExtension() {
 		return batchProcessingPresenterService().getBatchProcessingExtension();
-	}
-
-	@Override
-	public String getSchema(String schemaType, String type) {
-		return batchProcessingPresenterService().getSchema(schemaType, type);
 	}
 
 	@Override

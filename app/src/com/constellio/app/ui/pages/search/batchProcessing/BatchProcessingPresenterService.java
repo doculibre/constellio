@@ -88,6 +88,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -123,39 +124,52 @@ public class BatchProcessingPresenterService {
 		this.modelLayerExtensions = modelLayerFactory.getExtensions().forCollection(collection);
 	}
 
-	/*public String getOriginType(LogicalSearchQuery query) {
+	public String getOriginSchema(String schemaType, String selectedType, LogicalSearchQuery query) {
 		long resultsCount = searchServices.getResultsCount(query);
 		if (resultsCount == 0) {
 			throw new ImpossibleRuntimeException("Batch processing should be done on at least one record");
 		}
-		Map<String, List<FacetValue>> typeId_s = searchServices.query(query.setNumberOfRows(0).addFieldFacet("typeId_s"))
+
+		if (StringUtils.isNotBlank(selectedType)) {
+			Record record = recordServices.getDocumentById(selectedType);
+			return schemas.getLinkedSchemaOf(record);
+		}
+
+		String schema_s = Schemas.SCHEMA.getDataStoreCode();
+		Map<String, List<FacetValue>> schemaFacet = searchServices.query(query.setNumberOfRows(0).addFieldFacet(schema_s))
 				.getFieldFacetValues();
-		Set<String> types = new HashSet<>();
-		for (FacetValue facetValue : typeId_s.get("typeId_s")) {
+		Set<String> schemaList = new HashSet<>();
+		for (FacetValue facetValue : schemaFacet.get(schema_s)) {
 			if (facetValue.getQuantity() == resultsCount) {
-				types.add(facetValue.getValue());
+				schemaList.add(facetValue.getValue());
 			}
 		}
-		return types.size() == 1 ? types.iterator().next() : null;
-	}*/
 
-	/*public String getOriginType(List<String> selectedRecordIds) {
+		return schemaList.size() == 1 ? schemaList.iterator().next() : getDefaultSchema(schemaType);
+	}
+
+	public String getOriginSchema(String schemaType, String selectedType, List<String> selectedRecordIds) {
 		if (selectedRecordIds == null || selectedRecordIds.isEmpty()) {
 			throw new ImpossibleRuntimeException("Batch processing should be done on at least one record");
 		}
-		Set<String> types = new HashSet<>();
+
+		if (StringUtils.isNotBlank(selectedType)) {
+			Record record = recordServices.getDocumentById(selectedType);
+			return schemas.getLinkedSchemaOf(record);
+		}
+
+		Set<String> schemaList = new HashSet<>();
 		for (String recordId : selectedRecordIds) {
 			Record record = recordServices.getDocumentById(recordId);
-			Metadata typeMetadata = schemas.getRecordTypeMetadataOf(record);
-			String type = record.get(typeMetadata);
-			if (type == null) {
-				return null;
-			} else {
-				types.add(type);
-			}
+			schemaList.add(record.getSchemaCode());
 		}
-		return types.size() == 1 ? types.iterator().next() : null;
-	}*/
+
+		return schemaList.size() == 1 ? schemaList.iterator().next() : getDefaultSchema(schemaType);
+	}
+
+	private String getDefaultSchema(String schemaType) {
+		return schemaType + "_default";
+	}
 
 	private String getRecordSchemaCode(RecordServices recordServices, String recordId) {
 		return recordServices.getDocumentById(recordId).getSchemaCode();
@@ -753,14 +767,6 @@ public class BatchProcessingPresenterService {
 			return o != null && !"".equals(o);
 		}
 	}
-
-	/*public String getSchema(String schemaType, String typeId) {
-		if (StringUtils.isBlank(typeId)) {
-			return schemaType + "_default";
-		}
-		Record record = recordServices.getDocumentById(typeId);
-		return schemas.getLinkedSchemaOf(record);
-	}*/
 
 	public boolean isMetadataModifiable(String metadataCode, User user, List<String> selectedRecordIds) {
 

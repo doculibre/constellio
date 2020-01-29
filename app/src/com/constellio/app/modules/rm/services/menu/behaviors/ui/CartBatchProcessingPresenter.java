@@ -107,8 +107,8 @@ public class CartBatchProcessingPresenter implements BatchProcessingPresenter {
 
 
 	@Override
-	public String getOriginType(String schemaType) {
-		return batchProcessingPresenterService.getOriginType(getNotDeletedRecordsIds(schemaType));
+	public String getOriginSchema(String schemaType, String selectedType) {
+		return batchProcessingPresenterService.getOriginSchema(schemaType, selectedType, getNotDeletedRecordsIds(schemaType));
 	}
 
 
@@ -162,11 +162,6 @@ public class CartBatchProcessingPresenter implements BatchProcessingPresenter {
 	@Override
 	public AppLayerCollectionExtensions getBatchProcessingExtension() {
 		return batchProcessingPresenterService.getBatchProcessingExtension();
-	}
-
-	@Override
-	public String getSchema(String schemaType, String type) {
-		return batchProcessingPresenterService.getSchema(schemaType, type);
 	}
 
 	@Override

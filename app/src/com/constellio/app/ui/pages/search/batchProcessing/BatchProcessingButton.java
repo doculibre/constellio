@@ -158,10 +158,6 @@ public class BatchProcessingButton extends WindowButton {
 		typeField = new LookupRecordField(typeSchemaType);
 		// FIXME All schemas don't have a type field
 		typeField.setCaption($("BatchProcessingButton.type"));
-		/*String originType = presenter.getOriginType(view.getSchemaType());
-		if (originType != null) {
-			typeField.setValue(originType);
-		}*/
 		typeField.addValueChangeListener(new Property.ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
@@ -184,8 +180,9 @@ public class BatchProcessingButton extends WindowButton {
 	}
 
 	private BatchProcessingForm newForm() {
+		String selectedType = (String) typeField.getValue();
+		String originSchema = presenter.getOriginSchema(view.getSchemaType(), selectedType);
 		RecordFieldFactory fieldFactory = newFieldFactory();
-		String originSchema = presenter.getOriginSchema(view.getSchemaType());
 		return new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSchemaType(), view.getSessionContext()),
 				fieldFactory);
 	}
@@ -194,19 +191,6 @@ public class BatchProcessingButton extends WindowButton {
 		RecordFieldFactory fieldFactory = presenter.newRecordFieldFactory(view.getSchemaType(), null);
 		return new RecordFieldFactoryWithNoTypeNoContent(fieldFactory);
 	}
-
-	/*private BatchProcessingForm newForm() {
-		String selectedType = (String) typeField.getValue();
-		RecordFieldFactory fieldFactory = newFieldFactory(selectedType);
-		String originSchema = presenter.getSchema(view.getSchemaType(), selectedType);
-		return new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSchemaType(), view.getSessionContext()),
-				fieldFactory);
-	}*/
-
-	/*private RecordFieldFactory newFieldFactory(String selectedType) {
-		RecordFieldFactory fieldFactory = presenter.newRecordFieldFactory(view.getSchemaType(), selectedType);
-		return new RecordFieldFactoryWithNoTypeNoContent(fieldFactory);
-	}*/
 
 	public class BatchProcessingForm extends RecordForm {
 		public BatchProcessingForm(RecordVO record, RecordFieldFactory recordFieldFactory) {

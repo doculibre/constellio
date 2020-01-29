@@ -511,12 +511,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public String getOriginType(String schemaType) {
-		return batchProcessingPresenterService().getOriginType(getNotDeletedRecordsIds(schemaType));
-	}
-
-	public String getOriginType(List<String> selectedRecordIds) {
-		return batchProcessingPresenterService().getOriginType(selectedRecordIds);
+	public String getOriginSchema(String schemaType, String selectedType) {
+		return batchProcessingPresenterService().getOriginSchema(schemaType, selectedType, getNotDeletedRecordsIds(schemaType));
 	}
 
 	@Override
@@ -583,11 +579,6 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	@Override
 	public AppLayerCollectionExtensions getBatchProcessingExtension() {
 		return batchProcessingPresenterService().getBatchProcessingExtension();
-	}
-
-	@Override
-	public String getSchema(String schemaType, String type) {
-		return batchProcessingPresenterService().getSchema(schemaType, type);
 	}
 
 	@Override
