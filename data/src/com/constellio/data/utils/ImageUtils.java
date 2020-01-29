@@ -52,7 +52,7 @@ public class ImageUtils {
 		int height = reader.getHeight(0);
 		ImageReadParam params = reader.getDefaultReadParam();
 
-		int newHeight = 1080;
+		int newHeight = OVERSIZED_HEIGHT_LIMIT;
 		int newWidth = newHeight * width / height;
 		params.setSourceSubsampling(width / newWidth, height / newHeight, 0, 0);
 
