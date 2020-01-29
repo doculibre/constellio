@@ -67,10 +67,13 @@ public class RecordsCachesDataStore {
 				LOGGER.info("Loading ids from solr... could take up to 30 minutes, please wait...");
 				Iterator<RecordId> recordIdIterator = modelLayerFactory.newSearchServices().recordsIdIteratorExceptEvents();
 				recordIds = IteratorUtils.toList(recordIdIterator);
-				List<String> lines = recordIds.stream().map(RecordId::stringValue).collect(Collectors.toList());
+				List<String> lines = recordIds.stream().filter((id) -> id.isInteger()).map(RecordId::stringValue).collect(Collectors.toList());
 
 				try {
 					FileUtils.writeLines(idsList, lines);
+					if (!lines.isEmpty()) {
+						LOGGER.info("Last line is : " + lines.get(lines.size() - 1));
+					}
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}

@@ -305,6 +305,10 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			}
 			insertAtIndex++;
 
+			LOGGER.info("last id : " + lastId);
+			LOGGER.info("new id : " + id);
+			LOGGER.info("insert at index : " + insertAtIndex);
+
 			ids.insertValueShiftingAllFollowingValues(insertAtIndex, id);
 			versions.insertValueShiftingAllFollowingValues(insertAtIndex, 0);
 			schema.insertValueShiftingAllFollowingValues(insertAtIndex, (short) 0);

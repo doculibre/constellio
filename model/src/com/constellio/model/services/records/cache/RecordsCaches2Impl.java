@@ -14,6 +14,8 @@ import com.constellio.data.utils.LazyIterator;
 import com.constellio.data.utils.ParallelIterator;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.data.utils.systemLogger.SystemLogger;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -599,14 +601,13 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 		List<MetadataSchemaType> schemaTypes = metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes();
 		List<MetadataSchemaType> typesToLoadAsync = new ArrayList<>();
-
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		for (MetadataSchemaType schemaType : schemaTypes) {
 			if (schemaType.getCacheType().isSummaryCache() && schemaType.getCacheType().hasPermanentCache()) {
 				long count = searchServices.streamFromSolr(schemaType, schemaType.getCacheType().isSummaryCache()).count();
 				//TODO improve with extension
 				if (count > 0) {
-					if (count <= 10_000) {
+					if (count <= 10_000 && !FoldersLocator.usingAppWrapper()) {
 						loadSchemaType(schemaType, !fileSystemDataStore.isRecreated());
 
 					} else {
@@ -822,7 +823,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 	public void onPostLayerInitialization(ModelPostInitializationParams params) {
-		List<MetadataSchemaType> typesLoadedAsync = new ArrayList<>();
+
+		if (modelLayerFactory.getConfiguration().isSummaryCacheEnabled())
+			List<MetadataSchemaType> typesLoadedAsync = new ArrayList<>();
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
 			LOGGER.info("Loading cache of '" + collection);
 			typesLoadedAsync.addAll(loadSummaryPermanentCache(collection));
@@ -858,8 +861,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
 			cacheLoadingProgression = null;
 		}
-
-
+	}
 	}
 
 	@Override
@@ -1068,19 +1070,20 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		RecordDTO comparisonRecordDTO = RecordUtils.toPersistedSummaryRecordDTO(record, schema);
 
 		if (!byteArrayRecordDTO.getId().equals(comparisonRecordDTO.getId())) {
-			throw new IllegalArgumentException("Id not equal");
+			handleByteArrayDTOIntegrityError(record.getId(), "Id not equal");
+			return;
 
 		} else if (byteArrayRecordDTO.getVersion() != comparisonRecordDTO.getVersion()) {
-			throw new IllegalArgumentException("Version not equal");
+			handleByteArrayDTOIntegrityError(record.getId(), "Version not equal");
 
 		} else if (byteArrayRecordDTO.getLoadingMode() != comparisonRecordDTO.getLoadingMode()) {
-			throw new IllegalArgumentException("Loading mode not equal");
+			handleByteArrayDTOIntegrityError(record.getId(), "Loading mode not equal");
 
 		} else if (!byteArrayRecordDTO.getCollection().equals(comparisonRecordDTO.getCollection())) {
-			throw new IllegalArgumentException("Collection not equal");
+			handleByteArrayDTOIntegrityError(record.getId(), "Collection not equal");
 
 		} else if (!byteArrayRecordDTO.getSchemaCode().equals(comparisonRecordDTO.getSchemaCode())) {
-			throw new IllegalArgumentException("Schema not equal");
+			handleByteArrayDTOIntegrityError(record.getId(), "Schema not equal");
 
 		} else if (!byteArrayRecordDTO.getFields().keySet().equals(comparisonRecordDTO.getFields().keySet())) {
 
@@ -1114,7 +1117,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			}
 
 			if (stringBuilder.length() > 0) {
-				throw new IllegalArgumentException("Not same fields : " + stringBuilder.toString() + " for id '" + record.getId() + "'");
+				handleByteArrayDTOIntegrityError(record.getId(), "Not same fields : " + stringBuilder.toString());
 			}
 
 		} else {
@@ -1125,13 +1128,22 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				Object comparisonRecordFieldValue = comparisonRecordDTO.getFields().get(field);
 
 				if (!LangUtils.isEqual(byteArrayFieldValue, comparisonRecordFieldValue)) {
-					throw new IllegalArgumentException("Field '" + field + "' is different"
-													   + "\nByte array DTO value : " + byteArrayFieldValue
-													   + "\nObject DTO value : " + comparisonRecordFieldValue);
+					handleByteArrayDTOIntegrityError(record.getId(), "Field '" + field + "' is different"
+																	 + "\nByte array DTO value : " + byteArrayFieldValue
+																	 + "\nObject DTO value : " + comparisonRecordFieldValue);
 				}
 			}
 
 		}
+	}
+
+	private void handleByteArrayDTOIntegrityError(String recordId, String errorMessage) {
+		if (FoldersLocator.usingAppWrapper()) {
+			SystemLogger.error("Validation of record '" + recordId + "' failed : " + errorMessage);
+		} else {
+			throw new IllegalArgumentException("Validation of record '" + recordId + "' failed : " + errorMessage);
+		}
+
 	}
 
 
@@ -1153,13 +1165,18 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		CollectionInfo collectionInfo = schema.getCollectionInfo();
 
 		//TODO Handle Holder
-		CacheRecordDTOBytesArray bytesArray = convertDTOToByteArrays(dto, schema);
+		if (Toggle.USE_ONLY_SUMMARY_SOLR_RECORD_DTO.isEnabled()) {
+			return ((SolrRecordDTO) dto).createSummaryKeeping(schema.getSummaryMetadatas()
+					.stream().map(Metadata::getDataStoreCode).collect(Collectors.toList()));
+		} else {
+			CacheRecordDTOBytesArray bytesArray = null;
+			bytesArray = convertDTOToByteArrays(dto, schema);
 
-		int intId = RecordUtils.toIntKey(dto.getId());
+			int intId = RecordUtils.toIntKey(dto.getId());
 
-		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
-			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
-				SummaryCacheSingletons.dataStore.get(instanceId).saveStringKey(dto.getId(), bytesArray.bytesToPersist);
+			if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
+				if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
+					SummaryCacheSingletons.dataStore.get(instanceId).saveStringKey(dto.getId(), bytesArray.bytesToPersist);
 
 			} else if (reason != LOADING_CACHE) {
 				SummaryCacheSingletons.dataStore.get(instanceId).removeStringKey(dto.getId());

@@ -175,7 +175,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 	@Override
 	public int getReindexingQueryBatchSize() {
-		return getInt("reindexing.queryBatchSize", 1250);
+		return getInt("reindexing.queryBatchSize", 5000);
 	}
 
 	@Override
@@ -185,7 +185,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 	@Override
 	public int getReindexingThreadBatchSize() {
-		return getInt("reindexing.threadBatchSize", 100);
+		return getInt("reindexing.threadBatchSize", 250);
 	}
 
 	@Override
@@ -222,6 +222,11 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	@Override
 	public boolean isForcingCacheLoadingFromSolr() {
 		return getBoolean("dao.cache.forcingCacheLoadingFromSolr", false);
+	}
+
+	@Override
+	public boolean isSummaryCacheEnabled() {
+		return getBoolean("caches.summary.enabled", true);
 	}
 
 
