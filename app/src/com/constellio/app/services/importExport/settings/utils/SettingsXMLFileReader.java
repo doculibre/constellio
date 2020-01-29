@@ -1,19 +1,7 @@
 package com.constellio.app.services.importExport.settings.utils;
 
 import com.constellio.app.services.importExport.settings.SettingsExportServices;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
-import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTab;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
+import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -30,11 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -231,6 +215,10 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 		if (element.getAttribute(UNIQUE) != null) {
 			importedMetadata.setUnique(Boolean.parseBoolean(element.getAttributeValue(UNIQUE)));
+		}
+
+		if (element.getAttribute(SORTING_TYPE) != null) {
+			importedMetadata.setSortingType(element.getAttributeValue(SORTING_TYPE));
 		}
 
 		if (element.getAttribute(SORTABLE) != null) {

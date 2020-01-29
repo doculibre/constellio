@@ -4,6 +4,7 @@ import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.entities.batchProcess.ChangeValueOfMetadataBatchAsyncTask;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
@@ -21,11 +22,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessPossibleImpact;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRecordFieldModification;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRecordModifications;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.*;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
@@ -46,16 +43,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.AllowedReferences;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.ModificationImpact;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -80,19 +68,8 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
@@ -213,6 +190,7 @@ public class BatchProcessingPresenterService {
 													   String[] taxonomyCodes,
 													   String schemaTypeCode, MetadataInputType metadataInputType,
 													   MetadataDisplayType metadataDisplayType,
+													   MetadataSortingType metadataSortingType,
 													   AllowedReferences allowedReferences,
 													   boolean enabled, StructureFactory structureFactory,
 													   String metadataGroup,
@@ -236,6 +214,7 @@ public class BatchProcessingPresenterService {
 									   readOnly,
 									   unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									   metadataDisplayType,
+									   metadataSortingType,
 									   allowedReferences,
 									   enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable) :
 							   null;
@@ -332,6 +311,7 @@ public class BatchProcessingPresenterService {
 													   String[] taxonomyCodes,
 													   String schemaTypeCode, MetadataInputType metadataInputType,
 													   MetadataDisplayType metadataDisplayType,
+													   MetadataSortingType metadataSortingType,
 													   AllowedReferences allowedReferences,
 													   boolean enabled, StructureFactory structureFactory,
 													   String metadataGroup,
@@ -369,6 +349,7 @@ public class BatchProcessingPresenterService {
 								readOnly,
 								unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 								metadataDisplayType,
+								metadataSortingType,
 								allowedReferences,
 								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable);
 					}

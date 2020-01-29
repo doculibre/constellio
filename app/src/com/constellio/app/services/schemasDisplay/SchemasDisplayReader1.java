@@ -6,6 +6,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -15,13 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SchemasDisplayReader1 {
 	private static final String ROOT = "display";
@@ -42,6 +37,7 @@ public class SchemasDisplayReader1 {
 	private static final String METADATA_DISPLAY_CONFIGS = "MetadataDisplayConfigs";
 	private static final String INPUT_TYPE = "InputType";
 	private static final String DISPLAY_TYPE = "DisplayType";
+	private static final String SORTING_TYPE = "SortingType";
 	private static final String VISIBLE_IN_ADVANCED_SEARCH = "VisibleInAdvancedSearch";
 	private static final String HIGHLIGHT = "Highlight";
 	private static final String METADATA_GROUPS_LABELS = "MetadataGroupsLabels";
@@ -298,8 +294,14 @@ public class SchemasDisplayReader1 {
 		}
 		MetadataInputType metadataInputType = MetadataInputType.valueOf(inputTypeString);
 		MetadataDisplayType metadataDisplayType = MetadataDisplayType.valueOf(displayTypeString);
+
+		String sortingTypeString = metadataDisplayConfigElement.getAttributeValue(SORTING_TYPE);
+		if (sortingTypeString == null) {
+			sortingTypeString = "ENTRY_ORDER";
+		}
+		MetadataSortingType metadataSortingType = MetadataSortingType.valueOf(sortingTypeString);
 		MetadataDisplayConfig metadataDisplayConfig = new MetadataDisplayConfig(collection, metadataCode,
-				visibleInAdvancedSearch, metadataInputType, highlight, metadataGroup, metadataDisplayType);
+				visibleInAdvancedSearch, metadataInputType, highlight, metadataGroup, metadataDisplayType, metadataSortingType);
 		return metadataDisplayConfig;
 	}
 }

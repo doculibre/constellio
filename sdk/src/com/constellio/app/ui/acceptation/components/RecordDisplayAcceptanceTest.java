@@ -3,11 +3,7 @@ package com.constellio.app.ui.acceptation.components;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.entities.CollectionInfoVO;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -30,11 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -94,7 +86,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 	public void givenLocaleThenDisplayedCaptionInSameLanguage() {
 		MetadataVO metadata1 = new MetadataVO((short) 0, "metadata1", "metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, null, false,
 				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "testmetadata1");
 
@@ -117,7 +109,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 	public void givenDateMetadataThenDisplayedWithCorrectCaptionAndPattern() {
 		MetadataVO metadata1 = new MetadataVO((short) 0, "metadata1", "metadata1", MetadataValueType.DATE_TIME, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, null, false,
 				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, new LocalDateTime(2015, 2, 15, 0, 0));
 
@@ -134,7 +126,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 	public void givenNullMetadataThenConsideredInvisible() {
 		MetadataVO metadata1 = new MetadataVO((short) 0, "metadata1", "metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, null, false,
 				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, null);
 
@@ -150,7 +142,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 	public void givenANumberIdMetadataThenDisplayedWithoutZeroBeforeTheNumber() {
 		MetadataVO metadata1 = new MetadataVO((short) 0, "metadata_default_id", "id", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, null, false,
 				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "000000000304050670");
 
@@ -167,7 +159,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 	public void givenANotNumberIdMetadataThenTheId() {
 		MetadataVO metadata1 = new MetadataVO((short) 0, "metadata_default_id", "id", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, null, false,
 				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "00000C0670");
 

@@ -1,19 +1,6 @@
 package com.constellio.app.services.importExport.settings.utils;
 
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
-import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataPopulateConfigs;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTab;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
+import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.model.entities.Language;
 import com.jgoodies.common.base.Strings;
 import org.apache.commons.io.IOUtils;
@@ -299,6 +286,10 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 		if (importedMetadata.getUnique() != null) {
 			metadataElem.setAttribute(UNIQUE, importedMetadata.getUnique() + "");
+		}
+
+		if (importedMetadata.getSortingType() != null) {
+			metadataElem.setAttribute(SORTING_TYPE, importedMetadata.getSortingType() + "");
 		}
 
 		if (importedMetadata.getUnmodifiable() != null) {

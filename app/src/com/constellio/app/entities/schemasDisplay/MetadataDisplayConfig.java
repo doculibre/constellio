@@ -2,6 +2,7 @@ package com.constellio.app.entities.schemasDisplay;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 
 import java.io.Serializable;
 
@@ -17,13 +18,15 @@ public class MetadataDisplayConfig implements Serializable {
 
 	private final MetadataDisplayType displayType;
 
+	private final MetadataSortingType sortingType;
+
 	private final String metadataGroupCode;
 
 	private final boolean highlight;
 
 	public MetadataDisplayConfig(String collection, String metadataCode, boolean visibleInAdvancedSearch,
 								 MetadataInputType inputType, boolean highlight, String metadataGroupCode,
-								 MetadataDisplayType displayType) {
+								 MetadataDisplayType displayType, MetadataSortingType sortingType) {
 		this.collection = collection;
 		this.metadataCode = metadataCode;
 		this.visibleInAdvancedSearch = visibleInAdvancedSearch;
@@ -31,6 +34,7 @@ public class MetadataDisplayConfig implements Serializable {
 		this.highlight = highlight;
 		this.metadataGroupCode = metadataGroupCode;
 		this.displayType = displayType;
+		this.sortingType = sortingType;
 	}
 
 	public boolean isVisibleInAdvancedSearch() {
@@ -49,6 +53,10 @@ public class MetadataDisplayConfig implements Serializable {
 		return displayType;
 	}
 
+	public MetadataSortingType getSortingType() {
+		return sortingType;
+	}
+
 	public String getMetadataCode() {
 		return metadataCode;
 	}
@@ -63,37 +71,42 @@ public class MetadataDisplayConfig implements Serializable {
 
 	public MetadataDisplayConfig withVisibleInAdvancedSearchStatus(boolean visibleInAdvancedSearch) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType);
+				metadataGroupCode, displayType, sortingType);
 	}
 
 	public MetadataDisplayConfig withHighlightStatus(boolean highlight) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType);
+				metadataGroupCode, displayType, sortingType);
 	}
 
 	public MetadataDisplayConfig withInputType(MetadataInputType inputType) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType);
+				metadataGroupCode, displayType, sortingType);
 	}
 
 	public MetadataDisplayConfig withDisplayType(MetadataDisplayType displayType) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType);
+				metadataGroupCode, displayType, sortingType);
+	}
+
+	public MetadataDisplayConfig withSortingType(MetadataSortingType sortingType) {
+		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
+				metadataGroupCode, displayType, sortingType);
 	}
 
 	public MetadataDisplayConfig withMetadataGroup(String metadataGroupCode) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType);
+				metadataGroupCode, displayType, sortingType);
 	}
 
 	public static MetadataDisplayConfig inheriting(String metadataCode, MetadataDisplayConfig inheritance) {
 		return new MetadataDisplayConfig(inheritance.collection, metadataCode, inheritance.visibleInAdvancedSearch,
-				inheritance.inputType, inheritance.highlight, inheritance.metadataGroupCode, inheritance.displayType);
+				inheritance.inputType, inheritance.highlight, inheritance.metadataGroupCode, inheritance.displayType, inheritance.sortingType);
 	}
 
 	public MetadataDisplayConfig withCode(String code) {
 		return new MetadataDisplayConfig(collection, code, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType);
+				metadataGroupCode, displayType, sortingType);
 	}
 
 	@Override
@@ -123,6 +136,9 @@ public class MetadataDisplayConfig implements Serializable {
 			return false;
 		}
 		if (displayType != that.displayType) {
+			return false;
+		}
+		if (sortingType != that.sortingType) {
 			return false;
 		}
 		return metadataGroupCode != null ? metadataGroupCode.equals(that.metadataGroupCode) : that.metadataGroupCode == null;

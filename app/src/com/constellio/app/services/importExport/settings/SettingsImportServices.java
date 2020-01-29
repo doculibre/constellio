@@ -3,25 +3,14 @@ package com.constellio.app.services.importExport.settings;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
-import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata.ListType;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTab;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
@@ -31,25 +20,15 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataAccessRestriction;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.builders.*;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
@@ -58,12 +37,7 @@ import org.jdom2.input.SAXBuilder;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static java.util.Arrays.asList;
@@ -373,6 +347,10 @@ public class SettingsImportServices {
 		}
 		if (importedMetadata.getAdvanceSearchable() != null) {
 			displayConfig = displayConfig.withVisibleInAdvancedSearchStatus(importedMetadata.getAdvanceSearchable());
+		}
+		if (StringUtils.isNotBlank(importedMetadata.getSortingType())) {
+			displayConfig = displayConfig.withSortingType((MetadataSortingType)
+					EnumWithSmallCodeUtils.toEnumWithSmallCode(MetadataSortingType.class, importedMetadata.getSortingType()));
 		}
 		transactionBuilder.addReplacing(displayConfig);
 	}

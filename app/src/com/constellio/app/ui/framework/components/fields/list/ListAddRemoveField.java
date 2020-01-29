@@ -8,36 +8,25 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
+import com.constellio.data.utils.LangUtils;
+import com.vaadin.data.Container;
+import com.vaadin.data.Container.Sortable;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.data.util.ItemSorter;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.data.util.converter.Converter;
 import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.server.ErrorMessage;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.AbstractField;
+import com.vaadin.ui.*;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.DateField;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -384,7 +373,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 	}
 
 	protected void setValuesContainer() {
-		valuesContainer = new ValuesContainer(new ArrayList<T>());
+		valuesContainer = new ValuesContainer(new ArrayList<T>(), getItemSorter());
 	}
 
 	protected boolean isAddEditFieldVisible() {
@@ -545,7 +534,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 
 	protected class ValuesContainer extends IndexedContainer {
 
-		public ValuesContainer(List<T> values) {
+		public ValuesContainer(List<T> values, ItemSorter customItemSorter) {
 			super(values);
 			addContainerProperty(CAPTION_PROPERTY_ID, getCaptionComponentClass(), null);
 			List<?> extraPropertyIds = getExtraColumnPropertyIds();
@@ -554,6 +543,16 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 					Class<?> extraPropertyType = getExtraColumnType(extraPropertyId);
 					addContainerProperty(extraPropertyId, extraPropertyType, null);
 				}
+			}
+
+			if (customItemSorter != null) {
+				addItemSetChangeListener(new ItemSetChangeListener() {
+					@Override
+					public void containerItemSetChange(Container.ItemSetChangeEvent event) {
+						doSort();
+					}
+				});
+				setItemSorter(customItemSorter);
 			}
 		}
 
@@ -577,6 +576,26 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 
 	protected T getConvertedValueFor(Object value) {
 		return (T) value;
+	}
+
+	protected ItemSorter getItemSorter() {
+		return null;
+	}
+
+	final protected ItemSorter buildDefaultItemSorter() {
+		return new ItemSorter() {
+			@Override
+			public void setSortProperties(Sortable container, Object[] propertyId, boolean[] ascending) {
+
+			}
+
+			@Override
+			public int compare(Object itemId1, Object itemId2) {
+				String caption1 = getItemCaption(itemId1);
+				String caption2 = getItemCaption(itemId2);
+				return LangUtils.compareStrings(caption1, caption2);
+			}
+		};
 	}
 
 }

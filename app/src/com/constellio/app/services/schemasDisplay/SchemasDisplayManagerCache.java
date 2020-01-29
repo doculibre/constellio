@@ -1,40 +1,19 @@
 package com.constellio.app.services.schemasDisplay;
 
-import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getCustomSchemaDefaultDisplay;
-import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getDefaultSchemaDefaultDisplay;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getCustomSchemaDefaultDisplay;
 import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getDefaultSchemaDefaultDisplay;
@@ -208,7 +187,7 @@ public class SchemasDisplayManagerCache implements Serializable {
 		if (metadata.getInheritance() == null) {
 			config = new MetadataDisplayConfig(collection, metadataCode, false, getDefaultMetadataInputType(
 					metadataCode, metadataSchemasManager), false, "",
-					getDefaultMetadataDisplayType());
+					getDefaultMetadataDisplayType(), getDefaultMetadataSortingType());
 		} else {
 			MetadataDisplayConfig inheritedConfig = getMetadata(metadata.getInheritance().getCode(), metadataSchemasManager);
 			config = MetadataDisplayConfig.inheriting(metadataCode, inheritedConfig);
@@ -232,6 +211,10 @@ public class SchemasDisplayManagerCache implements Serializable {
 
 	private MetadataDisplayType getDefaultMetadataDisplayType() {
 		return MetadataDisplayType.VERTICAL;
+	}
+
+	private MetadataSortingType getDefaultMetadataSortingType() {
+		return MetadataSortingType.ENTRY_ORDER;
 	}
 
 }
