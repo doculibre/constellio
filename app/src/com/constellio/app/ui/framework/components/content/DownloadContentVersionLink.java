@@ -91,7 +91,7 @@ public class DownloadContentVersionLink extends DownloadLink {
 
 		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(contentVersionVO.getFileName()));
 		return this.contentVersionVO.getContentId() != null && this.recordId != null && this.metadataCode != null && isReadonly != null && Arrays.asList(PdfTronViewer.SUPPORTED_EXTENTION).contains(extension)
-			   && (Toggle.ENABLE_PDTRON_TRIAL.isEnabled() || StringUtils.isNotBlank(PdfTronViewer.getPdfTronKey()));
+			   && (Toggle.ENABLE_PDFTRON_TRIAL.isEnabled() || StringUtils.isNotBlank(PdfTronViewer.getPdfTronKey()));
 	}
 
 	private BaseWindow buildPdfTronWindow() {

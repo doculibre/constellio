@@ -53,6 +53,7 @@ $(() => {
             instance.setAnnotationUser(name);
             instance.setAdminUser(admin);
             instance.setReadOnly(isReadOnly);
+            instance.setLanguage(language);
 
             const {docViewer} = instance;
             const annotManager = instance.annotManager;

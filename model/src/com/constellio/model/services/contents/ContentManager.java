@@ -345,6 +345,7 @@ public class ContentManager implements StatefulService {
 					if (lastModification.isBefore(TimeProvider.getLocalDateTime().minus(configuration.getDelayBeforeDeletingUnreferencedContents()))) {
 						try {
 							contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview", fileId + ".jpegConversion", fileId + ".icapscan", fileId + ".thumbnail"));
+							contentDao.deleteFileNameContaining(fileId, ".annotation.");
 
 							vaultScanResults.incrementNumberOfDeletedContents();
 							vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
@@ -377,14 +378,12 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	private boolean deleteOrphanParsedContentOrPreview(List<String> subFiles, VaultScanResults vaultScanResults) {
+	private void deleteOrphanParsedContentOrPreview(List<String> subFiles, VaultScanResults vaultScanResults) {
 		ContentDao contentDao = getContentDao();
-		boolean containsParsedContentOrPreview = false;
-		boolean containsMainFile = false;
 		for (String fileId : subFiles) {
 			File file = contentDao.getFileOf(fileId);
 			if (file.exists() && (file.getName().endsWith("__parsed") || file.getName().endsWith(".preview") || file.getName().endsWith(".jpegConversion")
-								  || file.getName().endsWith(".icapscan"))) {
+								  || file.getName().endsWith(".icapscan") || file.getName().contains(".annotation."))) {
 				File mainFile = getMainFile(file);
 				if (!mainFile.exists()) {
 					try {
@@ -398,22 +397,32 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		}
-		return containsParsedContentOrPreview && !containsMainFile;
 	}
 
 	private File getMainFile(File parsedContentOrPreviewFile) {
 		String parsedContentOrPreviewFileAbsolutePath = parsedContentOrPreviewFile.getAbsolutePath();
 		String mainFileAbsolutePath = StringUtils.removeEnd(parsedContentOrPreviewFileAbsolutePath, "__parsed");
+
 		if (parsedContentOrPreviewFileAbsolutePath.equals(mainFileAbsolutePath)) {
-			mainFileAbsolutePath = StringUtils.removeEnd(parsedContentOrPreviewFileAbsolutePath, ".preview");
+			if (parsedContentOrPreviewFile.getName().contains(".annotation.")) {
+				String absolutePath = parsedContentOrPreviewFile.getAbsolutePath();
+
+				int indexOfAnnotation = absolutePath.indexOf(".annotation.");
+				mainFileAbsolutePath = absolutePath.substring(0, indexOfAnnotation);
+			} else {
+				mainFileAbsolutePath = StringUtils.removeEnd(parsedContentOrPreviewFileAbsolutePath, ".preview");
+			}
 		}
+
+
+
 		return new File(mainFileAbsolutePath);
 	}
 
 	private boolean shouldFileBeScannedForDeletion(File file) {
 		boolean isMainFile = !(file.getName().endsWith("__parsed") || file.getName().endsWith(".preview")
 							   || file.getName().endsWith(".thumbnail") || file.getName().endsWith(".jpegConversion")
-							   || file.getName().endsWith(".icapscan"));
+							   || file.getName().endsWith(".icapscan") || file.getName().contains(".annotation."));
 		List<String> restrictedFiles = asList("tlogs", "tlogs_bck", "vaultRecovery");
 		return isMainFile && !restrictedFiles.contains(file.getName());
 	}
@@ -1091,16 +1100,20 @@ public class ContentManager implements StatefulService {
 				}
 				List<String> hashToDelete = new ArrayList<>();
 				String hash = marker.getFields().get("contentMarkerHash_s").toString();
-				if (!isReferenced(hash)) {
+				boolean isNotReferenced = !isReferenced(hash);
+				if (isNotReferenced) {
 					hashToDelete.add(hash);
 					hashToDelete.add(hash + "__parsed");
 					hashToDelete.add(hash + ".preview");
 					hashToDelete.add(hash + ".thumbnail");
 					hashToDelete.add(hash + ".jpegConversion");
+					hashToDelete.add(hash + ".");
+					getContentDao().deleteFileNameContaining(hash, ".annotation.");
 				}
 				if (!hashToDelete.isEmpty()) {
 					getContentDao().delete(hashToDelete);
 				}
+
 
 			}
 			try {
