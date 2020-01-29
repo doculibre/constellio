@@ -101,6 +101,11 @@ public class Metadata implements DataStoreField {
 
 	Metadata(int id, String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue,
 			 boolean multiLingual) {
+		this(id, schemaCode, datastoreCode, type, multivalue, multiLingual, null);//$V
+	}
+
+	Metadata(int id, String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue,
+			 boolean multiLingual, Integer maxLength) {
 		this.id = (short) id;
 		this.inheritance = null;
 
@@ -114,7 +119,7 @@ public class Metadata implements DataStoreField {
 				multivalue, false, false, false, false, false,
 				false, false, false, false, false, false,
 				false, multiLingual, false, new HashSet<String>(), false,
-				false, PERSISTED, false, false);
+				false, PERSISTED, false, false, maxLength); //%V
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -420,6 +425,10 @@ public class Metadata implements DataStoreField {
 
 	public boolean isTaxonomyRelationship() {
 		return getInheritedMetadataBehaviors().isTaxonomyRelationship();
+	}
+
+	public Integer getMaxLength() {
+		return getInheritedMetadataBehaviors().getMaxLength();
 	}
 
 	public boolean isSearchable() {

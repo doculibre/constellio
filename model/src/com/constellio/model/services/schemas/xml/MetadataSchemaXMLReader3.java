@@ -454,6 +454,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setTaxonomyRelationship(readBooleanWithDefaultValue(taxonomyRelationshipStringValue, false));
 		}
 
+		String maxLengthStringValue = metadataElement.getAttributeValue("maxLength");//%V
+		if (inheriteGlobalMetadata && maxLengthStringValue == null) { //%V Q:si toString sur null, pop exception ou retourne null?
+			metadataBuilder.setMaxLength(globalMetadataInCollectionSchema.getMaxLength());
+		} else {
+			metadataBuilder.setMaxLength(Integer.parseInt(maxLengthStringValue));
+		}
+
 		String providingSecurityStringValue = metadataElement.getAttributeValue("providingSecurity");
 		if (inheriteGlobalMetadata && providingSecurityStringValue == null) {
 			metadataBuilder.setRelationshipProvidingSecurity(globalMetadataInCollectionSchema.isRelationshipProvidingSecurity());

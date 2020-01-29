@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class MetadataSchemaXMLWriter3 {
 
@@ -285,6 +286,9 @@ public class MetadataSchemaXMLWriter3 {
 		if (metadata.isTaxonomyRelationship()) {
 			metadataElement.setAttribute("taxonomyRelationship", writeBoolean(metadata.isTaxonomyRelationship()));
 		}
+		if (metadata.getMaxLength() != null) {
+			metadataElement.setAttribute("maxLength", metadata.getMaxLength().toString());//%V
+		}
 		if (metadata.isRelationshipProvidingSecurity()) {
 			metadataElement.setAttribute("providingSecurity", writeBoolean(metadata.isRelationshipProvidingSecurity()));
 		}
@@ -436,6 +440,11 @@ public class MetadataSchemaXMLWriter3 {
 		}
 		if (globalMetadataInCollection.isTaxonomyRelationship() != metadata.isTaxonomyRelationship()) {
 			metadataElement.setAttribute("taxonomyRelationship", writeBoolean(metadata.isTaxonomyRelationship()));
+			different = true;
+		}
+		if (metadata.getMaxLength() != null
+			&& !Objects.equals(globalMetadataInCollection.getMaxLength(), metadata.getMaxLength())) {
+			metadataElement.setAttribute("maxLength", metadata.getMaxLength().toString());//%V
 			different = true;
 		}
 		if (globalMetadataInCollection.isUniqueValue() != metadata.isUniqueValue()) {

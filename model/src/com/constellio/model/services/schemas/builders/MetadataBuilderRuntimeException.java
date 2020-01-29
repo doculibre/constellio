@@ -99,4 +99,10 @@ public class MetadataBuilderRuntimeException extends RuntimeException {
 			super("Enum class '" + enumClass + "'  must implement EnumWithSmallCode");
 		}
 	}
+
+	public static class CannotHaveMaxLengthSpecifiedIfNotOfTypeStringOrText extends MetadataBuilderRuntimeException {
+		public CannotHaveMaxLengthSpecifiedIfNotOfTypeStringOrText(String metadata) {
+			super("Metadata '" + metadata + "' cannot have maxLength specified if not of MetadataValueType String or Text");
+		}
+	}
 }

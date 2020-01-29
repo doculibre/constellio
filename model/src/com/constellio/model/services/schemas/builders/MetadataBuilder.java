@@ -93,6 +93,7 @@ public class MetadataBuilder {
 	private boolean dependencyOfAutomaticMetadata;
 	private Map<String, Object> customParameter;
 	private boolean fillEmptyLabelWithCode = true;
+	private Integer maxLength = null; //%V instancié tout de suite à nulle? Si oui, pas besoin de le spécifier dans createWithoutInheritance
 	short id;
 
 	MetadataBuilder(MetadataSchemaBuilder schemaBuilder) {
@@ -153,6 +154,7 @@ public class MetadataBuilder {
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(defaultMetadata.getPopulateConfigsBuilder());
 		builder.multiLingual = defaultMetadata.multiLingual;
 		builder.customAttributes = defaultMetadata.customAttributes;
+		builder.maxLength = defaultMetadata.maxLength;
 
 		return builder;
 	}
@@ -189,6 +191,7 @@ public class MetadataBuilder {
 		builder.setDuplicable(false);
 		builder.customAttributes = new HashSet<>();
 		builder.customParameter = new HashMap();
+		//		builder.maxLength = null;	//%V
 
 		return builder;
 	}
@@ -257,6 +260,7 @@ public class MetadataBuilder {
 		builder.customAttributes = new HashSet<>(metadata.getCustomAttributes());
 		builder.customParameter = new HashMap<>(metadata.getCustomParameter());
 		builder.cacheIndex = metadata.isCacheIndex();
+		builder.maxLength = metadata.getMaxLength();//%V
 		builder.id = metadata.getId();
 	}
 
@@ -287,6 +291,8 @@ public class MetadataBuilder {
 		builder.availableInSummary = metadata.isAvailableInSummary();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
+		builder.maxLength = inheritanceMetadata.getMaxLength();//%v Ce que ma logique me dirait de faire, mais taxonomyRelationship ne récupère pas sa valeur d'inherited?
+		//		builder.maxLength = metadata.getMaxLength();//%v
 		builder.relationshipProvidingSecurity = metadata.isRelationshipProvidingSecurity();
 		builder.markedForDeletion = metadata.isMarkedForDeletion();
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(
@@ -804,6 +810,10 @@ public class MetadataBuilder {
 			customParameter = new HashMap<>();
 		}
 
+		if (this.maxLength == null) {    //%Q assigne maxLength même si non null??? Vérifier si maxlength parent aussi null??
+			this.maxLength = inheritance.getInheritedMetadataBehaviors().getMaxLength();//%V
+		}
+
 		return new Metadata(inheritance, this.getLabels(), this.getEnabled(), this.getDefaultRequirement(), this.code,
 				this.recordMetadataValidators.build(), this.defaultValue, this.inputMask, populateConfigs, duplicable, customParameter);
 	}
@@ -826,11 +836,12 @@ public class MetadataBuilder {
 			this.dataEntry = new ManualDataEntry();
 		}
 
-		if (references != null && taxonomyRelationship && multivalue) {
+		if (references != null && taxonomyRelationship && multivalue) { // = taxonomy seulement dispo pour ref? Non?
 			TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 			validateNotReferencingTaxonomy(references.getTypeWithAllowedSchemas(), taxonomiesManager);
 		}
 
+		//		if(maxLength != null){	// si maxLength est null au build sans héritage, reste null?
 		validateWithoutInheritance(this);
 
 		String dataStoreType = getDataStoreType(this.getLocalCode(), typesFactory, this.type, this.multivalue);
@@ -840,7 +851,7 @@ public class MetadataBuilder {
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
 				essential, encrypted, essentialInSummary, availableInSummary, multiLingual, markedForDeletion, customAttributes,
-				increasedDependencyLevel, relationshipProvidingSecurity, transiency, dependencyOfAutomaticMetadata, cacheIndex);
+				increasedDependencyLevel, relationshipProvidingSecurity, transiency, dependencyOfAutomaticMetadata, cacheIndex, maxLength);//%v
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 
@@ -1032,6 +1043,12 @@ public class MetadataBuilder {
 		if ((transiency != null && transiency != PERSISTED) && builder.getType() == MetadataValueType.REFERENCE) {
 			throw new MetadataBuilderRuntimeException.ReferenceCannotBeTransient(code);
 		}
+
+		if (maxLength != null
+			&& !builder.getType().equals(MetadataValueType.TEXT)
+			&& !builder.getType().equals(MetadataValueType.STRING)) {
+			throw new MetadataBuilderRuntimeException.CannotHaveMaxLengthSpecifiedIfNotOfTypeStringOrText(code);
+		}
 	}
 
 	private boolean isReferenceMetadataValid(MetadataBuilder builder) {
@@ -1059,6 +1076,16 @@ public class MetadataBuilder {
 
 	public boolean isTaxonomyRelationship() {
 		return inheritance == null ? taxonomyRelationship : inheritance.taxonomyRelationship;
+	}
+
+	public Integer getMaxLength() {
+		return inheritance == null ? maxLength : inheritance.maxLength;
+	}
+
+	public MetadataBuilder setMaxLength(Integer maxLength) {
+		ensureCanModify("maxLength");
+		this.maxLength = maxLength;
+		return this;
 	}
 
 	public MetadataBuilder setChildOfRelationship(boolean childOfRelationship) {

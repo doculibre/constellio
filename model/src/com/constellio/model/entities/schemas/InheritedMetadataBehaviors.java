@@ -30,6 +30,9 @@ public class InheritedMetadataBehaviors implements Serializable {
 	final boolean relationshipProvidingSecurity;
 	final boolean dependencyOfAutomaticMetadata;
 	final boolean cacheIndex;
+
+	final Integer maxLength;
+
 	final MetadataTransiency volatility;
 	final Set<String> customAttributes;
 
@@ -42,7 +45,7 @@ public class InheritedMetadataBehaviors implements Serializable {
 									  boolean multiLingual, boolean markedForDeletion, Set<String> customAttributes,
 									  boolean reverseDependency,
 									  boolean relationshipProvidingSecurity, MetadataTransiency volatility,
-									  boolean dependencyOfAutomaticMetadata, boolean cacheIndex) {
+									  boolean dependencyOfAutomaticMetadata, boolean cacheIndex, Integer maxLength) {
 		this.undeletable = undeletable;
 		this.multivalue = multivalue;
 		this.systemReserved = systemReserved;
@@ -65,6 +68,7 @@ public class InheritedMetadataBehaviors implements Serializable {
 		this.volatility = volatility == null ? MetadataTransiency.PERSISTED : volatility;
 		this.dependencyOfAutomaticMetadata = dependencyOfAutomaticMetadata;
 		this.cacheIndex = cacheIndex;
+		this.maxLength = maxLength;
 	}
 
 	public boolean isReverseDependency() {
@@ -159,6 +163,10 @@ public class InheritedMetadataBehaviors implements Serializable {
 
 	public boolean isDependencyOfAutomaticMetadata() {
 		return dependencyOfAutomaticMetadata;
+	}
+
+	public Integer getMaxLength() {
+		return maxLength;
 	}
 
 	public Set<String> getCustomAttributes() {

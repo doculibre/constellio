@@ -280,6 +280,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		Metadata metadata = schemasManager.getSchemaTypes(zeCollection).getMetadata(metadataCode);
 		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze ultimate taxo!");
 		assertThat(metadata.isTaxonomyRelationship()).isTrue();
+		assertThat(metadata.getMaxLength()).isNull();//%V
 		assertThat(metadata.isMultivalue()).isTrue();
 		assertThat(metadata.getAllowedReferences().getAllowedSchemaType()).isEqualTo(zeTaxo.getSchemaTypes().get(0));
 
