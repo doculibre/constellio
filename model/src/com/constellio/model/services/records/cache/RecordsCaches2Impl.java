@@ -80,6 +80,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -824,44 +825,44 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	public void onPostLayerInitialization(ModelPostInitializationParams params) {
 
-		if (modelLayerFactory.getConfiguration().isSummaryCacheEnabled())
+		if (modelLayerFactory.getConfiguration().isSummaryCacheEnabled()) {
 			List<MetadataSchemaType> typesLoadedAsync = new ArrayList<>();
-		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
-			LOGGER.info("Loading cache of '" + collection);
-			typesLoadedAsync.addAll(loadSummaryPermanentCache(collection));
-		}
+			for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+				LOGGER.info("Loading cache of '" + collection);
+				typesLoadedAsync.addAll(loadSummaryPermanentCache(collection));
+			}
 
 
-		if (!typesLoadedAsync.isEmpty()) {
-			new Thread(() -> {
-				Stats.compilerFor("SummaryCacheLoading").log(() -> {
-					//One loading at a time
-					synchronized (RecordsCaches2Impl.class) {
-						boolean useMapDb = !fileSystemDataStore.isRecreated() && !params.isRebuildCacheFromSolr();
-						typesLoadedAsync.forEach(type -> loadSchemaType(type, useMapDb));
+			if (!typesLoadedAsync.isEmpty()) {
+				new Thread(() -> {
+					Stats.compilerFor("SummaryCacheLoading").log(() -> {
+						//One loading at a time
+						synchronized (RecordsCaches2Impl.class) {
+							boolean useMapDb = !fileSystemDataStore.isRecreated() && !params.isRebuildCacheFromSolr();
+							typesLoadedAsync.forEach(type -> loadSchemaType(type, useMapDb));
+						}
+						summaryCacheInitialized = true;
+						CacheRecordDTOUtils.stopCompilingDTOsStats();
+						LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
+						cacheLoadingProgression = null;
+					});
+
+					if (Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled() && !Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.isEnabled()) {
+						fileSystemDataStore.closeThenReopenWithoutMmap();
 					}
-					summaryCacheInitialized = true;
-					CacheRecordDTOUtils.stopCompilingDTOsStats();
-					LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
-					cacheLoadingProgression = null;
-				});
-
-				if (Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled() && !Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.isEnabled()) {
-					fileSystemDataStore.closeThenReopenWithoutMmap();
-				}
-				if (params.getCacheLoadingFinishedCallback() != null) {
-					params.getCacheLoadingFinishedCallback().run();
-				}
-			}).start();
+					if (params.getCacheLoadingFinishedCallback() != null) {
+						params.getCacheLoadingFinishedCallback().run();
+					}
+				}).start();
 
 
-		} else {
-			summaryCacheInitialized = true;
-			CacheRecordDTOUtils.stopCompilingDTOsStats();
-			LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
-			cacheLoadingProgression = null;
+			} else {
+				summaryCacheInitialized = true;
+				CacheRecordDTOUtils.stopCompilingDTOsStats();
+				LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
+				cacheLoadingProgression = null;
+			}
 		}
-	}
 	}
 
 	@Override
@@ -1178,22 +1179,23 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
 					SummaryCacheSingletons.dataStore.get(instanceId).saveStringKey(dto.getId(), bytesArray.bytesToPersist);
 
-			} else if (reason != LOADING_CACHE) {
-				SummaryCacheSingletons.dataStore.get(instanceId).removeStringKey(dto.getId());
+				} else if (reason != LOADING_CACHE) {
+					SummaryCacheSingletons.dataStore.get(instanceId).removeStringKey(dto.getId());
+				}
+				return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), true,
+						instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
+						schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+			} else {
+
+				ByteArrayRecordDTOWithIntegerId recordDTO = new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), true,
+						instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
+						schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+
+				SummaryCacheSingletons.dataStore.get(instanceId).saveIntKeyPersistedAndMemoryData(intId, bytesArray.bytesToPersist, recordDTO);
+				return recordDTO;
 			}
-			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), true,
-					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
-					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
-		} else {
 
-			ByteArrayRecordDTOWithIntegerId recordDTO = new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), true,
-					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
-					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
-
-			SummaryCacheSingletons.dataStore.get(instanceId).saveIntKeyPersistedAndMemoryData(intId, bytesArray.bytesToPersist, recordDTO);
-			return recordDTO;
 		}
-
 	}
 
 	public <K> RecordCountHookDataIndexRetriever<K> registerRecordCountHook(
