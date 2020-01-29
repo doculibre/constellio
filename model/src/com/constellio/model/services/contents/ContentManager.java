@@ -856,7 +856,7 @@ public class ContentManager implements StatefulService {
 
 	public boolean convertPendingContentForPreview() {
 		boolean converted = false;
-		if (!Toggle.PERFORMANCE_TESTING.isEnabled()) {
+		if (!Toggle.PERFORMANCE_TESTING.isEnabled() && Toggle.CONTENT_CONVERSION.isEnabled()) {
 			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 				if (!closing.get()) {
 					List<Record> records = searchServices.search(new LogicalSearchQuery()

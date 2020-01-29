@@ -97,6 +97,8 @@ public class Toggle {
 
 	public static AvailableToggle PERFORMANCE_TESTING = newToggle(false);
 
+	public static AvailableToggle CONTENT_CONVERSION = newToggle(true);
+
 	public static AvailableToggle OLD_DELETE_UNUSED_CONTENT_METHOD = newToggle(false);
 
 	public static AvailableToggle TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(true);
@@ -114,6 +116,7 @@ public class Toggle {
 
 	public static AvailableToggle USE_MEMORY_STRING_ID_MAPPING = newToggle(false);
 	public static AvailableToggle DOCUMENT_RETENTION_RULES = newToggle(false);
+
 
 
 	// ------------------------------------------------
