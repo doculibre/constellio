@@ -51,17 +51,21 @@ public class OffHeapBytesArrayListArea {
 
 	private int availableLength;
 
+	private int requiredFreeSpaceForCompacting;
+
 	//TODO add a parameter to skip compaction on the beginning of the buffer if it is already compacted
 	//TODO when compacting, tryadding the item as soon as possible inside the byte array
 
-	public OffHeapBytesArrayListArea(int length) {
+	public OffHeapBytesArrayListArea(int length, double requiredFreeSpaceRatioForCompacting) {
 		this.length = length;
 		this.availableLength = length;
 		this.nextIndex = 0;
+		this.requiredFreeSpaceForCompacting = (int) (availableLength * requiredFreeSpaceRatioForCompacting);
 		this.address = OffHeapMemoryAllocator.allocateMemory(length, OffHeapMemoryAllocator.OffHeapByteArrayListArea_ID);
 		this.keysIndex = new OffHeapIntList();
 		this.keysLength = new OffHeapIntList();
 		this.reusableKeys = new OffHeapIntList();
+
 
 	}
 
@@ -141,7 +145,11 @@ public class OffHeapBytesArrayListArea {
 
 	private int add(byte[] item) {
 		if (length - nextIndex < item.length) {
-			compacting();
+			if (requiredFreeSpaceForCompacting <= availableLength) {
+				compacting();
+			} else {
+				return -1;
+			}
 		}
 		if (length - nextIndex < item.length) {
 			throw new ImpossibleRuntimeException("Item cannot fit in this area");
@@ -169,7 +177,7 @@ public class OffHeapBytesArrayListArea {
 		return keysIndex.size();
 	}
 
-	private void compacting() {
+	void compacting() {
 		compactionCount++;
 		List<SortedKey> keysSortedByIndex = getKeysSortedByIndex();
 
@@ -185,7 +193,7 @@ public class OffHeapBytesArrayListArea {
 		this.nextIndex = index;
 	}
 
-	private void moveValueNearerToTheStart(int key, int from, int to, int length) {
+	void moveValueNearerToTheStart(int key, int from, int to, int length) {
 
 		for (int i = 0; i < length; i++) {
 			putByte(address + to + i, getByte(address + from + i));
@@ -227,7 +235,7 @@ public class OffHeapBytesArrayListArea {
 
 
 	public int getHeapConsumption() {
-		return keysIndex.getHeapConsumption() + keysLength.getHeapConsumption() + reusableKeys.getHeapConsumption() + Integer.BYTES + Integer.BYTES + Long.BYTES + Integer.BYTES + Integer.BYTES;
+		return keysIndex.getHeapConsumption() + keysLength.getHeapConsumption() + reusableKeys.getHeapConsumption() + Integer.BYTES + Integer.BYTES + Integer.BYTES + Long.BYTES + Integer.BYTES + Integer.BYTES;
 	}
 
 	public long getOffHeapConsumption() {

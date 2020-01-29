@@ -81,7 +81,12 @@ public class OffHeapByteArrayList2 {
 	}
 
 	/**
-	 * Tj
+	 * This is the mapping strategy!
+	 *
+	 * First area are small for instances with small amount of data and become larger
+	 *
+	 * The required free space ratio is defined to 0.10, which means the cache may have up to 10% of unused space
+	 * A lesser ratio would reduce unused space, while increasing compaction frequency and
 	 *
 	 * @return
 	 */
@@ -102,7 +107,7 @@ public class OffHeapByteArrayList2 {
 
 		}
 
-		return new OffHeapBytesArrayListArea(length);
+		return new OffHeapBytesArrayListArea(length, 0.10);
 	}
 
 	public byte[] get(int index) {

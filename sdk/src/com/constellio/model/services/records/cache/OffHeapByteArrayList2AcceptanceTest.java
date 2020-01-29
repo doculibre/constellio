@@ -73,6 +73,11 @@ public class OffHeapByteArrayList2AcceptanceTest extends ConstellioTest {
 				}
 			}
 		}
+
+
+
+
+
 		list.clear();
 
 	}
