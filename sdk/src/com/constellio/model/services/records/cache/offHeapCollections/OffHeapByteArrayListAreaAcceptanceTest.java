@@ -1,24 +1,24 @@
-package com.constellio.model.services.records.cache;
+package com.constellio.model.services.records.cache.offHeapCollections;
 
-import com.constellio.model.services.records.cache.offHeapCollections.OffHeapBytesArrayListArea;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class OffHeapByteArrayListAreaAcceptanceTest extends ConstellioTest {
 
 	OffHeapBytesArrayListArea list;
 	Map<Integer, byte[]> expecteKeyValues;
 
-	@Before
-	public void setUp() throws Exception {
-		list = new OffHeapBytesArrayListArea(1000);
+	public void setupWithRequiredFreeSpaceRatioForCompacting(double ratio) {
+		list = spy(new OffHeapBytesArrayListArea(1000, ratio));
 
 		expecteKeyValues = new HashMap<>();
 		for (byte i = 0; i < 100; i++) {
@@ -39,13 +39,14 @@ public class OffHeapByteArrayListAreaAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenFulledAreaThenCannotAcceptAnymoreBytes() {
+		setupWithRequiredFreeSpaceRatioForCompacting(0.001);
 		assertThat(list.tryAdd(new byte[1])).isEqualTo(-1);
 
 	}
 
 	@Test
 	public void givenFulledAreaWhenReplacingValuesWithSmallerOnesAndMoreValuesThenCompactTheBuffer() {
-
+		setupWithRequiredFreeSpaceRatioForCompacting(0.001);
 		//This will free 100 separated bytes, enough for 11 new records of 9 digits
 		expecteKeyValues.keySet().forEach((Integer key) -> {
 			byte[] data = list.get(key);
@@ -59,6 +60,7 @@ public class OffHeapByteArrayListAreaAcceptanceTest extends ConstellioTest {
 		expecteKeyValues.forEach((Integer key, byte[] expectedBytes) -> {
 			assertSameBytes(list.get(key), expectedBytes);
 		});
+		verify(list, never()).compacting();
 
 		for (byte i = 0; i < 11; i++) {
 			byte[] value = new byte[]{i, (byte) (i + 1), i, i, i, i, i, i, i};
@@ -66,6 +68,8 @@ public class OffHeapByteArrayListAreaAcceptanceTest extends ConstellioTest {
 			assertThat(key).isEqualTo(100 + i);
 			expecteKeyValues.put(key, value);
 		}
+		verify(list).compacting();
+
 		assertThat(list.tryAdd(new byte[1])).isEqualTo(111);
 		assertThat(list.tryAdd(new byte[1])).isEqualTo(-1);
 
@@ -78,6 +82,7 @@ public class OffHeapByteArrayListAreaAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenFulledAreaWhenRemovingValuesThenEventuallyAbleToInsertNewOnes() {
+		setupWithRequiredFreeSpaceRatioForCompacting(0.001);
 		assertThat(list.getAvailableLength()).isEqualTo(0);
 		byte[] value = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 
@@ -92,12 +97,14 @@ public class OffHeapByteArrayListAreaAcceptanceTest extends ConstellioTest {
 		list.remove(1);
 		assertThat(list.getAvailableLength()).isEqualTo(10);
 		assertThat(list.tryAdd(value)).isEqualTo(-1);
+		verify(list, never()).compacting();
 
 		list.remove(2);
 		expecteKeyValues.remove(2);
 
 		assertThat(list.tryAdd(value)).isEqualTo(2);
 		expecteKeyValues.put(1, value);
+		verify(list).compacting();
 
 		assertThat(list.tryAdd(new byte[1])).isEqualTo(1);
 		assertThat(list.tryAdd(new byte[1])).isEqualTo(100);
@@ -107,7 +114,65 @@ public class OffHeapByteArrayListAreaAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenFulledAreaRequiring5PercentFreeSpaceWhenRemovingValuesThenEventuallyAbleToInsertNewOnes() {
+
+		setupWithRequiredFreeSpaceRatioForCompacting(0.05);
+		assertThat(list.getAvailableLength()).isEqualTo(0);
+		byte[] value = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+		assertThat(list.tryAdd(value)).isEqualTo(-1);
+
+		list.remove(3);
+		expecteKeyValues.remove(3);
+		assertThat(list.getAvailableLength()).isEqualTo(10);
+		assertThat(list.tryAdd(value)).isEqualTo(-1);
+
+		list.remove(5);
+		expecteKeyValues.remove(5);
+		assertThat(list.tryAdd(value)).isEqualTo(-1);
+		verify(list, never()).compacting();
+
+		list.remove(7);
+		expecteKeyValues.remove(7);
+		assertThat(list.tryAdd(value)).isEqualTo(-1);
+		verify(list, never()).compacting();
+
+		list.remove(21);
+		expecteKeyValues.remove(21);
+		assertThat(list.tryAdd(value)).isEqualTo(-1);
+		verify(list, never()).compacting();
+
+		list.remove(23);
+		expecteKeyValues.remove(23);
+
+		assertThat(list.tryAdd(value)).isEqualTo(23);
+		expecteKeyValues.put(23, value);
+		verify(list).compacting();
+
+		assertThat(list.tryAdd(value)).isEqualTo(21);
+		expecteKeyValues.put(21, value);
+
+		assertThat(list.tryAdd(value)).isEqualTo(7);
+		expecteKeyValues.put(7, value);
+
+		assertThat(list.tryAdd(value)).isEqualTo(5);
+		expecteKeyValues.put(5, value);
+
+		assertThat(list.tryAdd(value)).isEqualTo(3);
+		expecteKeyValues.put(3, value);
+
+
+		expecteKeyValues.forEach((Integer key, byte[] expectedBytes) -> {
+			System.out.println(key);
+			assertSameBytes(list.get(key), expectedBytes);
+		});
+
+
+	}
+
+	@Test
 	public void givenFulledAreaWhenTryUpdateOtherwiseRemoveValuesWithLargerVauesThenDeleteThenAndEventuallyAbleToInsertNewOnes() {
+		setupWithRequiredFreeSpaceRatioForCompacting(0.001);
 		assertThat(list.getAvailableLength()).isEqualTo(0);
 		byte[] value = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 
@@ -122,18 +187,68 @@ public class OffHeapByteArrayListAreaAcceptanceTest extends ConstellioTest {
 		list.tryUpdateOtherwiseRemove(1, value);
 		assertThat(list.getAvailableLength()).isEqualTo(10);
 		assertThat(list.tryAdd(value)).isEqualTo(-1);
+		verify(list, never()).compacting();
 
 		list.tryUpdateOtherwiseRemove(2, value);
 		expecteKeyValues.remove(2);
 
 		assertThat(list.tryAdd(value)).isEqualTo(2);
 		expecteKeyValues.put(1, value);
+		verify(list).compacting();
 
 		assertThat(list.tryAdd(new byte[1])).isEqualTo(1);
 		assertThat(list.tryAdd(new byte[1])).isEqualTo(100);
 		assertThat(list.tryAdd(new byte[1])).isEqualTo(101);
 
 
+	}
+
+
+	@Test
+	public void whenRemovingLastItemAndInsertingANewOneThenNoCompaction() {
+		setupWithRequiredFreeSpaceRatioForCompacting(0.001);
+		assertThat(list.getAvailableLength()).isEqualTo(0);
+		byte[] value = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+		assertThat(list.tryAdd(value)).isEqualTo(-1);
+
+		list.remove(99);
+		expecteKeyValues.remove(99);
+		assertThat(list.getAvailableLength()).isEqualTo(10);
+
+
+		assertThat(list.tryAdd(value)).isEqualTo(99);
+		expecteKeyValues.put(99, value);
+
+		verify(list, never()).compacting();
+
+		expecteKeyValues.forEach((Integer key, byte[] expectedBytes) -> {
+			assertSameBytes(list.get(key), expectedBytes);
+		});
+	}
+
+	@Test
+	public void whenRemovingBecauseCannotUpdateLastItemAndInsertingANewOneThenNoCompaction() {
+		setupWithRequiredFreeSpaceRatioForCompacting(0.001);
+		assertThat(list.getAvailableLength()).isEqualTo(0);
+		byte[] value = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+		byte[] largerValue = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+
+		assertThat(list.tryAdd(value)).isEqualTo(-1);
+
+		list.tryUpdateOtherwiseRemove(99, largerValue);
+		expecteKeyValues.remove(99);
+		assertThat(list.getAvailableLength()).isEqualTo(10);
+
+
+		assertThat(list.tryAdd(value)).isEqualTo(99);
+		expecteKeyValues.put(99, value);
+
+		verify(list, never()).compacting();
+
+		expecteKeyValues.forEach((Integer key, byte[] expectedBytes) -> {
+			assertSameBytes(list.get(key), expectedBytes);
+		});
 	}
 
 
