@@ -56,12 +56,11 @@ public class ImageUtils {
 		int newWidth = newHeight * width / height;
 		params.setSourceSubsampling(width / newWidth, height / newHeight, 0, 0);
 
-		// resulting image will not be exactly newWidth x newHeight but close
-		BufferedImage resizedImage = reader.read(0, params);
+		BufferedImage subsampleImage = reader.read(0, params);
 		reader.dispose();
 		imageInputStream.close();
 
-		return resizedImage;
+		return resize(subsampleImage, OVERSIZED_HEIGHT_LIMIT);
 	}
 
 	public static BufferedImage resize(BufferedImage img) {
