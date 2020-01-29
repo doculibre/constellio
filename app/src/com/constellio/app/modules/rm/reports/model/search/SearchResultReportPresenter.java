@@ -54,7 +54,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 		this.collection = collection;
 		this.username = username;
 		this.reportTitle = reportTitle;
-		this.searchQuery = searchQuery;
+		this.searchQuery = searchQuery != null ? new LogicalSearchQuery(searchQuery) : null;
 		userInCollection = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(username, collection);
 	}
 
@@ -68,6 +68,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 		}
 		Iterator<Record> recordsIterator;
 		if (searchQuery != null) {
+			searchQuery.setReturnedMetadatas(ReturnedMetadatasFilter.all());
 			recordsIterator = modelLayerFactory.newSearchServices().recordsIteratorKeepingOrder(searchQuery, 200);
 		}
 		//TODO DO Not use searchQuery
