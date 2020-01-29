@@ -33,9 +33,18 @@ import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -321,12 +330,12 @@ public class ConversionManager implements StatefulService {
 
 	public File convertToJPEG(InputStream inputStream, Dimension dimension, String mimetype, String originalName,
 							  File workingFolder) throws Exception {
-		BufferedImage bufferedImage = ImageIO.read(inputStream);
 		File outputfile = createTempFile("jpegConversion", originalName + ".jpg", workingFolder);
 		if (dimension != null && ImageUtils.isImageOversized(dimension.getHeight())) {
-			BufferedImage resizedImage = ImageUtils.resize(bufferedImage);
+			BufferedImage resizedImage = ImageUtils.resizeWithSubSampling(inputStream);
 			ImageIO.write(resizedImage, "jpg", outputfile);
 		} else {
+			BufferedImage bufferedImage = ImageIO.read(inputStream);
 			ImageIO.write(bufferedImage, "jpg", outputfile);
 		}
 		return outputfile;
