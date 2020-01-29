@@ -128,6 +128,13 @@ public class SchemaDisplayConfig implements Serializable {
 		return withFormMetadataCodes(formMetadatas).withDisplayMetadataCodes(displayMetadatas);
 	}
 
+	public SchemaDisplayConfig withNewDisplayMetadatas(String... metadataCodes) {
+		List<String> displayMetadatas = new ArrayList<>();
+		displayMetadatas.addAll(this.displayMetadataCodes);
+		displayMetadatas.addAll(asList(metadataCodes));
+		return withDisplayMetadataCodes(displayMetadatas);
+	}
+
 	public SchemaDisplayConfig withNewFormMetadatas(String... metadataCodes) {
 
 		List<String> formMetadatas = new ArrayList<>();
