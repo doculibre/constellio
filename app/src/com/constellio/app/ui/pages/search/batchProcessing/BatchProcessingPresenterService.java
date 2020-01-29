@@ -39,7 +39,9 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.AsyncTask;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
+import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -63,6 +65,7 @@ import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
@@ -298,9 +301,15 @@ public class BatchProcessingPresenterService {
 		asyncTaskRequest.setUsername(user.getUsername());
 
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-		batchProcessesManager.addAsyncTask(asyncTaskRequest);
+		AsyncTaskBatchProcess batchProcess = batchProcessesManager.addAsyncTask(asyncTaskRequest);
+		registerNewBatchProcessEvent(batchProcess, records.size());
 
 		return null;
+	}
+
+	private void registerNewBatchProcessEvent(BatchProcess batchProcess, int totalModifiedRecords) {
+		LoggingServices loggingServices = modelLayerFactory.newLoggingServices();
+		loggingServices.createBatchProcess(batchProcess, totalModifiedRecords);
 	}
 
 	public BatchProcessResults simulate(String selectedType, List<String> records, RecordVO viewObject,
@@ -432,12 +441,14 @@ public class BatchProcessingPresenterService {
 			recordServices.validateTransaction(transaction);
 		}
 
-		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(request.getModifiedMetadatas(), toQueryString(query), null, searchServices.getResultsCount(query));
+		long totalModifiedRecords = searchServices.getResultsCount(query);
+		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(request.getModifiedMetadatas(), toQueryString(query), null, totalModifiedRecords);
 		AsyncTaskCreationRequest asyncTaskRequest = new AsyncTaskCreationRequest(asyncTask, collection, title);
 		asyncTaskRequest.setUsername(user.getUsername());
 
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-		batchProcessesManager.addAsyncTask(asyncTaskRequest);
+		AsyncTaskBatchProcess batchProcess = batchProcessesManager.addAsyncTask(asyncTaskRequest);
+		registerNewBatchProcessEvent(batchProcess, (int) totalModifiedRecords);
 
 		return null;
 	}

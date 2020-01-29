@@ -165,4 +165,7 @@ public class EventType {
 	public static final String REINDEXING = "reindexing";
 
 	public static final String RESTARTING = "restarting";
+
+	//batch process
+	public static final String BATCH_PROCESS_CREATED = "created_batch_process";
 }

@@ -21,6 +21,7 @@ import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
@@ -549,6 +550,9 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				new BatchProcessListWriter(document).markBatchProcessAsFinished(batchProcess, errorsCount);
 			}
 		});
+
+		LoggingServices loggingServices = modelLayerFactory.newLoggingServices();
+		loggingServices.updateBatchProcess(batchProcess);
 
 		addFinishedBatchProcessIdToHistoryList(batchProcess.getId());
 	}

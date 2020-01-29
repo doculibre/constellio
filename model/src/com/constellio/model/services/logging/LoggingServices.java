@@ -4,22 +4,33 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.LocalDateTime;
 
+import java.util.List;
+
 import static com.constellio.model.entities.records.wrappers.EventType.MODIFY_PERMISSION;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 
 public class LoggingServices {
 
@@ -185,6 +196,52 @@ public class LoggingServices {
 		executeTransaction(eventFactory.newRecordEvent(record, user, EventType.DELETE));
 	}
 
+	public void createBatchProcess(BatchProcess process, int totalModifiedRecords) {
+		executeTransaction(eventFactory.newBatchProcessEvent(process, totalModifiedRecords, EventType.BATCH_PROCESS_CREATED));
+	}
+
+	public void updateBatchProcess(BatchProcess process) {
+		Event linkedEvent = getLinkedEvent(process.getId(), process.getCollection());
+		if (linkedEvent != null) {
+			BatchProcessReport linkedReport = getLinkedReport(process.getId(), process.getCollection());
+			if (linkedReport != null) {
+				linkedEvent.setContent(linkedReport.getContent());
+			}
+		}
+
+		executeTransaction(linkedEvent);
+	}
+
+	private BatchProcessReport getLinkedReport(String batchProcessId, String collection) {
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+		MetadataSchema schema = types.getSchema(BatchProcessReport.FULL_SCHEMA);
+		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
+				fromEveryTypesOfEveryCollection()
+						.where(Schemas.SCHEMA).isEqualTo(BatchProcessReport.FULL_SCHEMA)
+						.andWhere(schema.getMetadata(BatchProcessReport.LINKED_BATCH_PROCESS)).isEqualTo(batchProcessId)));
+		if (CollectionUtils.isNotEmpty(records)) {
+			Record record = records.iterator().next();
+			return new SchemasRecordsServices(record.getCollection(), modelLayerFactory).wrapBatchProcessReport(record);
+		}
+
+		return null;
+	}
+
+	private Event getLinkedEvent(String batchProcessId, String collection) {
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+		MetadataSchema schema = types.getSchema(Event.DEFAULT_SCHEMA);
+		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
+				fromEveryTypesOfEveryCollection()
+						.where(Schemas.SCHEMA).isEqualTo(Event.DEFAULT_SCHEMA)
+						.andWhere(schema.getMetadata(Event.BATCH_PROCESS_ID)).isEqualTo(batchProcessId)));
+		if (CollectionUtils.isNotEmpty(records)) {
+			Record record = records.iterator().next();
+			return new SchemasRecordsServices(record.getCollection(), modelLayerFactory).wrapEvent(record);
+		}
+
+		return null;
+	}
+
 	private void executeTransaction(Event event) {
 		if (event != null) {
 			executeTransaction(event.getWrappedRecord());
@@ -195,7 +252,7 @@ public class LoggingServices {
 		if (Toggle.AUDIT_EVENTS.isEnabled()) {
 			Transaction transaction = new Transaction();
 			transaction.setRecordFlushing(RecordsFlushing.ADD_LATER());
-			transaction.add(record);
+			transaction.addUpdate(record);
 			try {
 				modelLayerFactory.newRecordServices().execute(transaction);
 			} catch (RecordServicesException e) {

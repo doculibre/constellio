@@ -71,6 +71,8 @@ public class EventsListDataProviderFactory {
 				return new ReindexAndRestartEventDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
 			case REQUEST_TASKS:
 				return new RequestTasksDataEventsProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
+			case BATCH_PROCESS_EVENTS:
+				return new BatchProcessEventsDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
 			default:
 				throw new RuntimeException("Unsupported");
 		}
