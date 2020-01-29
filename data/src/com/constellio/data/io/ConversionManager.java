@@ -7,6 +7,7 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.extensions.configManager.ExtensionConverter;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImageUtils;
+import com.constellio.data.utils.MimeTypes;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.util.StringUtils;
@@ -217,7 +218,7 @@ public class ConversionManager implements StatefulService {
 	private OfficeManager officeManager;
 	private AbstractConverter delegate;
 	private ExecutorService executor;
-	private static DataLayerSystemExtensions extensions;
+	private DataLayerSystemExtensions extensions;
 
 	private boolean tiffFilesSupported;
 
@@ -228,10 +229,6 @@ public class ConversionManager implements StatefulService {
 		this.onlineConversionUrl = onlineConversionUrl;
 		this.extensions = extensions;
 		this.tiffFilesSupported = dataLayerConfiguration.areTiffFilesConvertedForPreview();
-	}
-
-	public static String[] getSupportedExtensions() {
-		return (String[]) ArrayUtils.addAll(SUPPORTED_EXTENSIONS, extensions.getSupportedExtensionExtensions());
 	}
 
 	public boolean isOpenOfficeOrLibreOfficeInstalled() {
@@ -328,8 +325,12 @@ public class ConversionManager implements StatefulService {
 		BufferedImage bufferedImage = ImageIO.read(inputStream);
 		File outputfile = createTempFile("jpegConversion", originalName + ".jpg", workingFolder);
 		if (dimension != null && ImageUtils.isImageOversized(dimension.getHeight())) {
+			String ext = FilenameUtils.getExtension(originalName);
+			if (mimetype.equals(MimeTypes.MIME_IMAGE_TIFF)) {
+				ext = "jpg";
+			}
 			BufferedImage resizedImage = ImageUtils.resize(bufferedImage);
-			ImageIO.write(resizedImage, "jpg", outputfile);
+			ImageIO.write(resizedImage, ext, outputfile);
 		} else {
 			ImageIO.write(bufferedImage, "jpg", outputfile);
 		}
@@ -371,7 +372,10 @@ public class ConversionManager implements StatefulService {
 		if (openOfficeOrLibreOfficeInstalled) {
 			ensureInitialized();
 			String fileExtension = FilenameUtils.getExtension(input.getName());
-			if (Arrays.asList(extensions.getSupportedExtensionExtensions()).contains(fileExtension)) {
+			if (fileExtension.equalsIgnoreCase("tif") || fileExtension.equalsIgnoreCase("tiff")) {
+				// Special case, ignore
+				throw new RuntimeException("PDF conversion is not supported for tiff");
+			} else if (Arrays.asList(extensions.getSupportedExtensionExtensions()).contains(fileExtension)) {
 				ExtensionConverter converter = extensions.getConverterForSupportedExtension(fileExtension);
 				if (converter != null) {
 					FileInputStream inputStream = null;
@@ -502,18 +506,23 @@ public class ConversionManager implements StatefulService {
 		return pdfaFormat;
 	}
 
-	public boolean isSupportedExtension(String ext) {
+	public String[] getSupportedExtensions() {
+		List<String> supportedExtensions = new ArrayList<>();
+		String[] potentiallySupportedExtensions = (String[]) ArrayUtils.addAll(SUPPORTED_EXTENSIONS, extensions.getSupportedExtensionExtensions());
+		supportedExtensions.addAll(Arrays.asList(potentiallySupportedExtensions));
 		if (!tiffFilesSupported) {
-			if ("tif".equalsIgnoreCase(ext) || "tiff".equalsIgnoreCase(ext)) {
-				return false;
-			}
+			supportedExtensions.remove("tif");
+			supportedExtensions.remove("tiff");
 		}
+		return supportedExtensions.toArray(new String[0]);
+	}
+
+	public boolean isSupportedExtension(String ext) {
 		for (String aSupportedExtension : getSupportedExtensions()) {
 			if (aSupportedExtension.equalsIgnoreCase(ext)) {
 				return true;
 			}
 		}
-
 		return false;
 	}
 }
