@@ -11,12 +11,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataListFilter;
@@ -28,15 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
@@ -664,26 +651,34 @@ public class RecordUtils {
 
 	private static List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types,
 												  RecordProvider recordProvider) {
+		List<String> collectedIds = new ArrayList<>();
+		return getHierarchyIdsTo(newReference, types, recordProvider, collectedIds);
+	}
+
+	private static List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types,
+												  RecordProvider recordProvider, List<String> collectedIds) {
 		List<String> ids = new ArrayList<>();
 
 		Record record = recordProvider.getRecordSummary(newReference);
 		if (record.isSaved()) {
-			ids.add(record.getId());
-			List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
-				@Override
-				public boolean isReturned(Metadata metadata) {
-					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
-				}
-			});
+			if (!collectedIds.contains(record.getId())) {
+				ids.add(record.getId());
+				collectedIds.add(record.getId());
+				List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
+					@Override
+					public boolean isReturned(Metadata metadata) {
+						return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
+					}
+				});
 
-			for (Metadata metadata : metadatas) {
-				for (String aReference : record.<String>getValues(metadata)) {
-					if (!ids.contains(aReference)) {
-						ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
+				for (Metadata metadata : metadatas) {
+					for (String aReference : record.<String>getValues(metadata)) {
+						if (!ids.contains(aReference)) {
+							ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider, collectedIds));
+						}
 					}
 				}
 			}
-
 		}
 		return ids;
 	}

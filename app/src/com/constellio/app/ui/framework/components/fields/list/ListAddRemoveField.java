@@ -18,11 +18,18 @@ import com.vaadin.data.util.ItemSorter;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.data.util.converter.Converter;
 import com.vaadin.data.util.converter.Converter.ConversionException;
+import com.vaadin.event.Transferable;
+import com.vaadin.event.dd.DragAndDropEvent;
+import com.vaadin.event.dd.DropHandler;
+import com.vaadin.event.dd.acceptcriteria.AcceptAll;
+import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.server.ErrorMessage;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.AbstractSelect.AbstractSelectTargetDetails;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.Table.TableDragMode;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.Serializable;
@@ -40,6 +47,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 	public static final String REMOVE_BUTTON_STYLE_NAME = STYLE_NAME + "-remove-button";
 	public static final String TABLE_STYLE_NAME = STYLE_NAME + "-table";
 	public static final String VALUES_STYLE_NAME = STYLE_NAME + "-values";
+	public static final String SORTABLE_TABLE_STYLE_NAME = TABLE_STYLE_NAME + "-sortable";
 	protected static final String CAPTION_PROPERTY_ID = "caption";
 	private VerticalLayout mainLayout;
 	private HorizontalLayout addEditFieldLayout;
@@ -333,6 +341,45 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		valuesTable.setItemCaptionMode(ItemCaptionMode.PROPERTY);
 		valuesTable.setColumnExpandRatio(CAPTION_PROPERTY_ID, 1);
 
+		ItemSorter itemSorter = getItemSorter();
+		if (itemSorter == null) {
+			valuesTable.addStyleName(SORTABLE_TABLE_STYLE_NAME);
+			valuesTable.setDragMode(TableDragMode.ROW);
+			valuesTable.setDropHandler(new DropHandler() {
+				@Override
+				public AcceptCriterion getAcceptCriterion() {
+					return AcceptAll.get();
+				}
+
+				@Override
+				public void drop(DragAndDropEvent event) {
+					Transferable t = event.getTransferable();
+					if (t.getSourceComponent() != valuesTable || valuesTable.size() <= 1) {
+						return;
+					}
+
+					AbstractSelectTargetDetails target = (AbstractSelectTargetDetails) event.getTargetDetails();
+					Object sourceItemId = t.getData("itemId");
+					Object targetItemId = target.getItemIdOver();
+
+					Boolean above;
+					int sourceItemIndex = valuesAndButtonsContainer.indexOfId(sourceItemId);
+					int targetItemIndex = valuesAndButtonsContainer.indexOfId(targetItemId);
+					if (targetItemIndex < sourceItemIndex) {
+						above = true;
+					} else {
+						above = false;
+					}
+
+					if (Boolean.TRUE.equals(above)) {
+						moveBefore(targetItemId, sourceItemId);
+					} else {
+						moveAfter(targetItemId, sourceItemId);
+					}
+				}
+			});
+		}
+
 		Collection<?> extraColumnPropertyIds = getExtraColumnPropertyIds();
 		if (extraColumnPropertyIds != null) {
 			for (Object extraPropertyIds : extraColumnPropertyIds) {
@@ -370,6 +417,48 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 			setValue(newFieldValue);
 		}
 		return mainLayout;
+	}
+
+	/**
+	 * @param targetItemId
+	 * @param sourceItemId
+	 */
+	private void moveBefore(Object targetItemId, Object sourceItemId) {
+		if (sourceItemId == null) {
+			return;
+		}
+
+		int sourceItemIndex = valuesAndButtonsContainer.indexOfId(sourceItemId);
+		int targetItemIndex = valuesAndButtonsContainer.indexOfId(targetItemId);
+
+		List<T> listValue = new ArrayList<>(getValue());
+		T sourceObject = listValue.remove(sourceItemIndex);
+		if (sourceItemIndex < targetItemIndex) {
+			targetItemIndex--;
+		}
+		listValue.add(targetItemIndex, sourceObject);
+		setInternalValue(listValue);
+	}
+
+	/**
+	 * @param targetItemId
+	 * @param sourceItemId
+	 */
+	private void moveAfter(Object targetItemId, Object sourceItemId) {
+		if (sourceItemId == null) {
+			return;
+		}
+
+		int sourceItemIndex = valuesAndButtonsContainer.indexOfId(sourceItemId);
+		int targetItemIndex = valuesAndButtonsContainer.indexOfId(targetItemId);
+
+		List<T> listValue = new ArrayList<>(getValue());
+		T sourceObject = listValue.remove(sourceItemIndex);
+		if (sourceItemIndex < targetItemIndex) {
+			targetItemIndex--;
+		}
+		listValue.add(targetItemIndex + 1, sourceObject);
+		setInternalValue(listValue);
 	}
 
 	protected void setValuesContainer() {
