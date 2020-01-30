@@ -379,7 +379,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public boolean areTiffFilesConvertedForPreview() {
-		return getBoolean("conversion.tiffConversion.enabled", false);
+		return getBoolean("conversion.tiffConversion.enabled", true);
 	}
 
 	@Override
