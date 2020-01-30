@@ -104,6 +104,9 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
 		firstDocumentToMerge = createDocumentWithTextContent("file1.txt", "This is the content of file 1.");
 		secondDocumentToMerge = createDocumentWithTextContent("file2.txt", "This is the content of file 2.");
+
+		queryCounter.reset();
+		commitCounter.reset();
 	}
 
 	@Test
@@ -113,7 +116,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
-		//assertThat(commitCounter.newCommitsCall()).isEmpty();
+		assertThat(commitCounter.newCommitsCall()).isEmpty();
 
 		DocumentDto documentDto = response.readEntity(DocumentDto.class);
 		assertThat(documentDto.getId()).isNotNull().isNotEmpty();
@@ -136,7 +139,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
-		//assertThat(commitCounter.newCommitsCall()).hasSize(fullDocumentToAdd.getDirectAces().size());
+		assertThat(commitCounter.newCommitsCall()).hasSize(fullDocumentToAdd.getDirectAces().size());
 
 		DocumentDto doc = response.readEntity(DocumentDto.class);
 		assertThat(doc.getId()).isNotNull().isNotEmpty();
@@ -941,7 +944,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 		Response response = buildPostQuery().request().header("host", host)
 				.post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
 		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-		//assertThat(commitCounter.newCommitsCall()).isEmpty();
+		assertThat(commitCounter.newCommitsCall()).isEmpty();
 
 		DocumentDto newDocument = response.readEntity(DocumentDto.class);
 
@@ -981,7 +984,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 	public void testCreateDocumentLaterFlushMode() throws Exception {
 		Response response = doPostQuery("LATER", minDocumentToAdd);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-		//assertThat(commitCounter.newCommitsCall()).isEmpty();
+		assertThat(commitCounter.newCommitsCall()).isEmpty();
 
 		DocumentDto newDocument = response.readEntity(DocumentDto.class);
 
@@ -993,7 +996,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 		id = newDocument.getId();
 		response = doPutQuery("NOW", minDocumentToAdd);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-		//assertThat(commitCounter.newCommitsCall()).hasSize(1);
+		assertThat(commitCounter.newCommitsCall()).hasSize(1);
 
 		List<Record> documents = searchServices.search(new LogicalSearchQuery(from(rm.document.schemaType())
 				.where(Schemas.IDENTIFIER).isEqualTo(id)));
@@ -1032,7 +1035,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 				.post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
 
 		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-		//assertThat(commitCounter.newCommitsCall()).isEmpty();
+		assertThat(commitCounter.newCommitsCall()).isEmpty();
 
 		DocumentDto postDocument = postResponse.readEntity(DocumentDto.class);
 
@@ -1053,7 +1056,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 				.post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
 
 		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-		//assertThat(commitCounter.newCommitsCall()).isEmpty();
+		assertThat(commitCounter.newCommitsCall()).isEmpty();
 
 		DocumentDto postDocument = postResponse.readEntity(DocumentDto.class);
 
@@ -1063,7 +1066,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 		Response patchResponse = doPatchQuery("LATER", documentToPatch, fileToAdd);
 
 		assertThat(patchResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-		//assertThat(commitCounter.newCommitsCall()).isEmpty();
+		assertThat(commitCounter.newCommitsCall()).isEmpty();
 
 		Response getResponse = doGetQuery(postDocument.getId());
 
