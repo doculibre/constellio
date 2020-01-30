@@ -384,7 +384,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		tabSheet.removeSelectedTabChangeListener(selectedTabChangeListener);
 		if (!(folderContentComponent instanceof Table)) {
 			final RecordVOLazyContainer recordVOContainer = new RecordVOLazyContainer(folderContentDataProvider);
-			facetsPanel = new FacetsPanel() {
+			facetsPanel = new FacetsPanel(presenter.isFacetApplyButtonEnabled()) {
 				@Override
 				protected void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
 					presenter.sortCriterionSelected(sortCriterion, sortOrder);

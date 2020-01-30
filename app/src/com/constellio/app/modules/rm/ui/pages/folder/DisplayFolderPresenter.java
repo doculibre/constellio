@@ -170,6 +170,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private boolean nestedView;
 
+	private boolean applyButtonFacetEnabled = false;
+
 	private boolean inWindow;
 
 	private Map<String, String> params = null;
@@ -211,6 +213,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		applyButtonFacetEnabled = eimConfigs.isApplyMultipleFacetButtonEnabled();
 		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
 		List<MetadataSchemaType> types = Arrays.asList(getFoldersSchemaType(), getDocumentsSchemaType());
 		service = new SearchPresenterService(collection, user, modelLayerFactory, types);
@@ -1158,6 +1161,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public boolean isSelected(RecordVO recordVO) {
 		return allItemsSelected || selectedRecordIds.contains(recordVO.getId());
+	}
+
+	public boolean isFacetApplyButtonEnabled(){
+		return this.applyButtonFacetEnabled;
 	}
 
 	public void recordSelectionChanged(RecordVO recordVO, Boolean selected) {

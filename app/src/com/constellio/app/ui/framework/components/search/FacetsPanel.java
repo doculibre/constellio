@@ -38,12 +38,14 @@ import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 public abstract class FacetsPanel extends VerticalLayout {
 
 	private final static KeySetMap<String, String> facetValuesSelectedMap = new KeySetMap<>();
+	private final boolean applyButtonEnabled;
 
-	public FacetsPanel() {
+	public FacetsPanel(boolean applyButtonEnabled) {
 		addStyleName("search-result-facets");
 		setWidth("250px");
 		setSpacing(true);
 		//facetValuesSelectedMap.clear();
+		this.applyButtonEnabled = applyButtonEnabled;
 	}
 
 	public void refresh(List<FacetVO> facets, KeySetMap<String, String> facetSelections,
@@ -113,14 +115,24 @@ public abstract class FacetsPanel extends VerticalLayout {
 		CheckBox deselect = new CheckBox();
 		deselect.setValue(!selectedFacetValues.isEmpty());
 		deselect.setEnabled(!selectedFacetValues.isEmpty());
-		deselect.addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(ValueChangeEvent event) {
-				facetValuesSelectedMap.remove(facet.getId());
-				facetValuesChanged(facetValuesSelectedMap);
-			}
+		if(applyButtonEnabled) {
+			deselect.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					facetValuesSelectedMap.remove(facet.getId());
+					facetValuesChanged(facetValuesSelectedMap);
+				}
 
-		});
+			});
+		}
+		else{
+			deselect.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					facetDeselected(facet.getId());
+				}
+			});
+		}
 
 		Label title = new Label(facet.getLabel());
 		title.addStyleName(ValoTheme.LABEL_BOLD);
@@ -165,18 +177,32 @@ public abstract class FacetsPanel extends VerticalLayout {
 			if (selectedFacetValues.contains(facetValue.getValue())) {
 				checkBox.setValue(true);
 			}
-			checkBox.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(ValueChangeEvent event) {
-					if (checkBox.getValue()) {
-						facetValuesSelectedMap.add(facetValue.getFacetId(), facetValue.getValue());
+			if(applyButtonEnabled) {
+				checkBox.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						if (checkBox.getValue()) {
+							facetValuesSelectedMap.add(facetValue.getFacetId(), facetValue.getValue());
 
-					} else {
-						facetValuesSelectedMap.remove(facetValue.getFacetId(), facetValue.getValue());
+						} else {
+							facetValuesSelectedMap.remove(facetValue.getFacetId(), facetValue.getValue());
+						}
+						apply.setVisible(true);
 					}
-					apply.setVisible(true);
-				}
-			});
+				});
+			}
+			else{
+				checkBox.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						if (checkBox.getValue()) {
+							facetValueSelected(facetValue.getFacetId(), facetValue.getValue());
+						} else {
+							facetValueDeselected(facetValue.getFacetId(), facetValue.getValue());
+						}
+					}
+				});
+			}
 
 			String caption = facetValue.getLabel();
 			if (isRightToLeft()) {
@@ -210,11 +236,13 @@ public abstract class FacetsPanel extends VerticalLayout {
 		});
 
 		layout.addComponent(table);
-		buttonBar.addComponent(apply);
-		buttonBar.setComponentAlignment(apply, Alignment.BOTTOM_LEFT);
-		buttonBar.setWidth("100%");
-		buttonBar.addStyleName("facet-buttonBar");
-		layout.addComponent(buttonBar);
+		if(applyButtonEnabled) {
+			buttonBar.addComponent(apply);
+			buttonBar.setComponentAlignment(apply, Alignment.BOTTOM_LEFT);
+			buttonBar.setWidth("100%");
+			buttonBar.addStyleName("facet-buttonBar");
+			layout.addComponent(buttonBar);
+		}
 		layout.setVisible(!facet.getValues().isEmpty());
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
 			layout.addStyleName("facet-box-viewer");
