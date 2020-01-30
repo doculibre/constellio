@@ -10,8 +10,6 @@ import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.schemas.Schemas;
 import org.apache.commons.io.FilenameUtils;
 
-import static com.constellio.data.io.ConversionManager.isSupportedExtension;
-
 public class RMDocumentMigrationTo7_6_10 extends RecordMigrationScript {
 
 	private ContentDao contentDao;
@@ -43,7 +41,7 @@ public class RMDocumentMigrationTo7_6_10 extends RecordMigrationScript {
 		String filename = content.getCurrentVersion().getFilename();
 		String hash = content.getCurrentVersion().getHash();
 		String ext = FilenameUtils.getExtension(filename).toLowerCase();
-		return isSupportedExtension(ext) && !contentDao.isDocumentExisting(hash + ".preview");
+		return rm.getModelLayerFactory().getDataLayerFactory().getConversionManager().isSupportedExtension(ext) && !contentDao.isDocumentExisting(hash + ".preview");
 
 	}
 

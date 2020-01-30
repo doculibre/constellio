@@ -46,16 +46,8 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlin
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 public class PdfGeneratorAsyncTask implements AsyncTask {
 
@@ -179,7 +171,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 						logError(params, document, CANNOT_READ_CONTENT);
 						result = null;
 					}
-				} else if (ConversionManager.isSupportedExtension(extension)) {
+				} else if (modelLayerFactory.getDataLayerFactory().getConversionManager().isSupportedExtension(extension)) {
 					InputStream documentPreviewIn;
 					if (contentManager.hasContentPreview(hash)) {
 						documentPreviewIn = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + hash + ".PdfGenerator");
