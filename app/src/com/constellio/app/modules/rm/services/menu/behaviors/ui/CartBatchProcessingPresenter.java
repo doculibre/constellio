@@ -243,7 +243,7 @@ public class CartBatchProcessingPresenter implements BatchProcessingPresenter {
 		List<MetadataVO> result = new ArrayList<>();
 		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		for (Metadata metadata : types().getSchemaType(schemaType).getAllMetadatas().sortAscTitle(language)) {
-			if (isBatchEditable(metadata)) {
+			if (isBatchEditable(metadata) && !metadata.isEssential()) {
 				result.add(builder.build(metadata, view.getSessionContext()));
 			}
 		}
