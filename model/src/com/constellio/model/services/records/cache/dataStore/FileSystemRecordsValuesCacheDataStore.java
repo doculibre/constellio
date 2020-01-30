@@ -183,6 +183,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 	}
 
 	public void clearAll() {
+		tempIntKeyMap.clear();
 		intKeyMap.clear();
 		stringKeyMap.clear();
 		intKeyMap.clear();
