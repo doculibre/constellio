@@ -219,6 +219,11 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 		return getBytesSize("dao.cache.volatileCacheSizeInMemory", "250M");
 	}
 
+	@Override
+	public boolean isSummaryCacheEnabled() {
+		return getBoolean("caches.summary.enabled", true);
+	}
+
 
 	@Override
 	public Factory<EncryptionServices> getEncryptionServicesFactory() {

@@ -47,6 +47,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 				dbMaker.fileMmapEnableIfSupported().fileMmapPreclearDisable();
 				dbMaker.allocateStartSize(500 * 1024 * 1024).allocateIncrement(500 * 1024 * 1024);
 			} else {
+				dbMaker.fileChannelEnable();
 				LOGGER.info("Opening MapDB without MMAP support");
 			}
 			dbMaker.checksumHeaderBypass();
