@@ -47,4 +47,6 @@ public interface BatchProcessingPresenter {
 	ValidationErrors validateBatchProcessing();
 
 	boolean validateUserHaveBatchProcessPermissionOnAllRecords(String schemaType);
+
+	boolean validateUserHaveBatchProcessPermissionForRecordCount(String schemaType);
 }

@@ -133,6 +133,10 @@ public class BatchProcessingButton extends WindowButton {
 			return new Label($("BatchProcess.batchProcessPermissionMissing"));
 		}
 
+		if (!presenter.validateUserHaveBatchProcessPermissionForRecordCount(view.getSchemaType())) {
+			return new Label($("BatchProcess.batchProcessUnlimitedPermissionMissing", presenter.getNumberOfRecords(view.getSchemaType())));
+		}
+
 		TabSheet tabSheet = new TabSheet();
 		tabSheet.addTab(buildBatchProcessingModifyMetadataForm(), $("BatchProcess.tab.updateMetadata"));
 		tabSheet.addTab(buildBatchProcessingEmptyMetadataForm(), $("BatchProcess.tab.emptyMetadata"));

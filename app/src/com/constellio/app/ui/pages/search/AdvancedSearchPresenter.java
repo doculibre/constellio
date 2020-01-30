@@ -627,6 +627,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public boolean validateUserHaveBatchProcessPermissionOnAllRecords(String schemaTypeCode) {
+		if (!getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).globally()) {
+			return false;
+		}
+
 		LogicalSearchQuery logicalSearchQuery = buildBatchProcessLogicalSearchQuery();
 		long numFound = searchServices().query(logicalSearchQuery).getNumFound();
 		logicalSearchQuery = logicalSearchQuery.filteredWithUser(getUser(), CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS);
@@ -634,6 +638,19 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		long numFoundWithFilter = speQueryResponse.getNumFound();
 
 		return numFoundWithFilter == numFound;
+	}
+
+	@Override
+	public boolean validateUserHaveBatchProcessPermissionForRecordCount(String schemaType) {
+		if (!getCurrentUser().has(CorePermissions.MODIFY_UNLIMITED_RECORDS_USING_BATCH_PROCESS).globally()) {
+			ConstellioEIMConfigs systemConfigs = modelLayerFactory.getSystemConfigs();
+			int batchProcessingLimit = systemConfigs.getBatchProcessingLimit();
+			if (batchProcessingLimit != -1 && getNumberOfRecords(schemaType) > batchProcessingLimit) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	@Override

@@ -68,6 +68,7 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
@@ -949,6 +950,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	@Override
 	public boolean validateUserHaveBatchProcessPermissionOnAllRecords(String schemaType) {
+		if (!getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).globally()) {
+			return false;
+		}
+
 		switch (schemaType) {
 		case Folder.SCHEMA_TYPE:
 			return doesQueryAndQueryWithFilterOnBatchProcessPermHaveSameResult(getCartFoldersLogicalSearchQuery());
@@ -970,6 +975,19 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		long numberFound = searchServices().getResultsCount(logicalSearchQueryWithFilter);
 
 		return speQueryResponse.getNumFound() == numberFound;
+	}
+
+	@Override
+	public boolean validateUserHaveBatchProcessPermissionForRecordCount(String schemaType) {
+		if (!getCurrentUser().has(CorePermissions.MODIFY_UNLIMITED_RECORDS_USING_BATCH_PROCESS).globally()) {
+			ConstellioEIMConfigs systemConfigs = modelLayerFactory.getSystemConfigs();
+			int batchProcessingLimit = systemConfigs.getBatchProcessingLimit();
+			if (batchProcessingLimit != -1 && getNumberOfRecords(schemaType) > batchProcessingLimit) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private boolean isBatchEditable(Metadata metadata) {
