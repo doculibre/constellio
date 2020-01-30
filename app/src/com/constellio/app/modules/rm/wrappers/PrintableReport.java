@@ -14,12 +14,27 @@ public class PrintableReport extends Printable {
 		super(record, types, SCHEMA_NAME);
 	}
 
+	public PrintableReport setReportType(String reportType) {
+		set(RECORD_TYPE, reportType);
+		return this;
+	}
+
 	public String getReportType() {
 		return get(RECORD_TYPE);
 	}
 
+	public PrintableReport setSchemaType(String schemaType) {
+		set(SCHEMA_TYPE, schemaType);
+		return this;
+	}
+
 	public String getSchemaType() {
 		return SCHEMA_TYPE;
+	}
+
+	public PrintableReport setReportSchema(String schema) {
+		set(RECORD_SCHEMA, schema);
+		return this;
 	}
 
 	public String getReportSchema() {

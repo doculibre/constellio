@@ -19,6 +19,7 @@ import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.api.extensions.RecordSecurityExtension;
 import com.constellio.app.api.extensions.RecordTextInputDataProviderExtension;
+import com.constellio.app.api.extensions.ReportTemplateExtension;
 import com.constellio.app.api.extensions.SIPExtension;
 import com.constellio.app.api.extensions.SchemaTypesPageExtension;
 import com.constellio.app.api.extensions.SearchCriterionExtension;
@@ -29,6 +30,7 @@ import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.XmlGeneratorExtension;
 import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
+import com.constellio.app.api.extensions.params.AddFieldsInReportXMLParams;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.CanConsultTaxonomyParams;
 import com.constellio.app.api.extensions.params.CanManageTaxonomyParams;
@@ -191,6 +193,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<RecordExportExtension> recordExportExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<LabelTemplateExtension> labelTemplateExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<ReportTemplateExtension> reportTemplateExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<DocumentViewButtonExtension> documentViewButtonExtension = new VaultBehaviorsList<>();
 
@@ -754,6 +758,12 @@ public class AppLayerCollectionExtensions {
 			}
 		}
 		return dynamicFieldMetadatas;
+	}
+
+	public void addFieldsInReportXML(AddFieldsInReportXMLParams params) {
+		for (ReportTemplateExtension extension : reportTemplateExtensions) {
+			extension.addFieldsInReportXML(params);
+		}
 	}
 
 	public void addFieldsInLabelXML(AddFieldsInLabelXMLParams params) {
