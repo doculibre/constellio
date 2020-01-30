@@ -33,7 +33,7 @@ public class MetadataDisplayConfig implements Serializable {
 		this.highlight = highlight;
 		this.metadataGroupCode = metadataGroupCode;
 		this.displayType = displayType;
-		this.helpMessage = helpMessage;
+		this.helpMessage = (helpMessage == null ? "" : helpMessage);
 	}
 
 	public boolean isVisibleInAdvancedSearch() {
@@ -64,7 +64,9 @@ public class MetadataDisplayConfig implements Serializable {
 		return metadataGroupCode;
 	}
 
-	public String getHelpMessage() { return helpMessage; }
+	public String getHelpMessage() {
+		return helpMessage;
+	}
 
 	public MetadataDisplayConfig withVisibleInAdvancedSearchStatus(boolean visibleInAdvancedSearch) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,

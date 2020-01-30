@@ -29,6 +29,7 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.RichTextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -83,6 +84,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private CheckBox duplicableField;
 	@PropertyId("ParentMetadataLabel")
 	private TextField parentMetadataLabel;
+	@PropertyId("helpMessage")
+	private RichTextArea helpMessage;
 
 	@PropertyId("readAccessRoles")
 	private ListOptionGroup listOptionGroupRole;
@@ -239,6 +242,9 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		sortableField.setEnabled(true);
 		availableInSummary.setEnabled(presenter.isAvailableInSummaryFlagButtonEnabled(value));
 		availableInSummary.setValue(presenter.isAvailableInSummaryFlagAlwaysTrue(value));
+		helpMessage.setEnabled(true);
+		helpMessage.setRequired(false);
+		helpMessage.setValue("TEST");
 
 		switch (value) {
 			case BOOLEAN:
@@ -315,17 +321,11 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			case CONTENT:
 				sortableField.setValue(false);
 			case REFERENCE:
-				break;
 			case DATE:
-				break;
 			case DATE_TIME:
-				break;
 			case INTEGER:
-				break;
 			case STRING:
-				break;
 			case NUMBER:
-				break;
 			case STRUCTURE:
 				break;
 		}
@@ -464,6 +464,14 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		sortableField.setId("sortable");
 		sortableField.addStyleName("sortable");
 		sortableField.setEnabled(!inherited);
+
+		helpMessage = new RichTextArea();
+		helpMessage.setCaption($("AddEditMetadataView.helpMessage"));
+		helpMessage.setRequired(false);
+		helpMessage.setNullRepresentation("");
+		helpMessage.setId("helpMessage");
+		helpMessage.addStyleName("helpMessage");
+		helpMessage.setEnabled(true);
 
 		advancedSearchField = new CheckBox() {
 			@Override
@@ -604,7 +612,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, valueType, multivalueType,
 				inputType, inputMask, metadataGroup, listOptionGroupRole, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
-				advancedSearchField, highlight, autocomplete, availableInSummary, uniqueField, multiLingualField));
+				advancedSearchField, highlight, autocomplete, availableInSummary, helpMessage, uniqueField, multiLingualField));
 
 		for (CheckBox customAttributeField : customAttributesField) {
 			fields.add(customAttributeField);
@@ -655,6 +663,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 					showErrorMessage(e.getMessage());
 					return;
 				}
+				formMetadataVO.setHelpMessage(helpMessage.getValue());
 				presenter.preSaveButtonClicked(formMetadataVO, editMode);
 			}
 

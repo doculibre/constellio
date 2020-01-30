@@ -55,7 +55,7 @@ public class FormMetadataVO implements Serializable {
 						  boolean autocomplete, boolean availableInSummary, boolean enabled,
 						  String metadataGroup,
 						  Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue,
-						  Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual) {
+						  Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual, String helpMessage) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR", 2)[1];
@@ -88,6 +88,7 @@ public class FormMetadataVO implements Serializable {
 		this.inheritance = null;
 		this.uniqueValue = uniqueValue;
 		this.isMultiLingual = isMultiLingual;
+		this.helpMessage = helpMessage;
 	}
 
 	public FormMetadataVO(SessionContext sessionContext) {
@@ -118,6 +119,7 @@ public class FormMetadataVO implements Serializable {
 		this.customAttributes = new HashSet<>();
 		this.inheritance = null;
 		this.isMultiLingual = false;
+		this.helpMessage = "";
 	}
 
 	public short getId() {

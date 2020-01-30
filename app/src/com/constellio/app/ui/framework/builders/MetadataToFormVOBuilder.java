@@ -51,6 +51,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 		boolean sortable = metadata.isSortable();
 		boolean searchable = metadata.isSearchable();
 		boolean isMultiLingual = metadata.isMultiLingual();
+		String helpMessage = config.getHelpMessage();
 
 		boolean advancedSearch;
 		if (metadata.getInheritance() == null) {
@@ -102,7 +103,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 				inputMask,
 				duplicable, uniqueValue,
 				metadata.getCustomAttributes(),
-				sessionContext, isMultiLingual);
+				sessionContext, isMultiLingual, helpMessage);
 
 		if (metadata.getInheritance() != null) {
 			formMetadataVO.setInheritance(

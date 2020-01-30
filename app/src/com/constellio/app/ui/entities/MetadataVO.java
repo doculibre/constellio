@@ -53,6 +53,7 @@ public class MetadataVO implements Serializable {
 	final short id;
 	final boolean isSynthetic;
 	final boolean summaryMetadata;
+	final String helpMessage;
 	private boolean forceHidden = false;
 
 
@@ -66,11 +67,11 @@ public class MetadataVO implements Serializable {
 					  StructureFactory structureFactory,
 					  String metadataGroup, Object defaultValue, Set<String> customAttributes, boolean multiLingual,
 					  Locale locale, Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO,
-					  boolean sortable, boolean isSyntetic, boolean summaryMetadata) {
+					  boolean sortable, boolean isSyntetic, boolean summaryMetadata, String helpMessage) {
 		this(id, code, localCode, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
 				structureFactory, metadataGroup,
-				defaultValue, null, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata);
+				defaultValue, null, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata, helpMessage);
 	}
 
 
@@ -85,7 +86,7 @@ public class MetadataVO implements Serializable {
 					  boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue,
 					  String inputMask, Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
-					  boolean isSynthectic, boolean summaryMetadata) {
+					  boolean isSynthectic, boolean summaryMetadata, String helpMessage) {
 		super();
 		this.id = id;
 		this.code = code;
@@ -118,6 +119,7 @@ public class MetadataVO implements Serializable {
 		this.sortable = sortable;
 		this.isSynthetic = isSynthectic;
 		this.summaryMetadata = summaryMetadata;
+		this.helpMessage = helpMessage;
 
 		if (schema != null && !schema.getMetadatas().stream().anyMatch(
 				(m) -> (m.getId() == id && m.getId() != 0 && id != 0 && (m.getLocale() == null || m.getLocale().toLanguageTag().equals(locale.toLanguageTag()))) || ((m.getId() == 0 || id == 0) && m.getLocalCode().equals(localCode)))) {
@@ -136,11 +138,11 @@ public class MetadataVO implements Serializable {
 					  boolean isWriteNullValues,
 					  Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
-					  boolean summaryMetadata) {
+					  boolean summaryMetadata, String helpMessage) {
 
 		this(id, code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
-				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata);
+				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata, helpMessage);
 	}
 
 	public MetadataVO(short id, String code, String localCode, MetadataValueType type, String collection,
@@ -154,11 +156,11 @@ public class MetadataVO implements Serializable {
 					  boolean isWriteNullValues,
 					  Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
-					  boolean isSyntetic, boolean summaryMetadata) {
+					  boolean isSyntetic, boolean summaryMetadata, String helpMessage) {
 
 		this(id, code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
-				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata);
+				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata, helpMessage);
 	}
 
 	public MetadataVO() {
@@ -194,6 +196,7 @@ public class MetadataVO implements Serializable {
 		this.sortable = false;
 		this.isSynthetic = false;
 		this.summaryMetadata = false;
+		this.helpMessage = null;
 	}
 
 	public String getCode() {

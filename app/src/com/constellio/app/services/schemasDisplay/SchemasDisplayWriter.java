@@ -45,6 +45,7 @@ public class SchemasDisplayWriter {
 	private static final String LABELS = "labels";
 	private static final String METADATA_GROUP_CODE = "code";
 	private static final String METADATA_GROUP = "metadataGroup";
+	private static final String HELP_MESSAGE = "HelpMessage";
 
 	public static final String FORMAT_ATTRIBUTE = "format";
 	public static final String FORMAT_VERSION = SchemasDisplayReader2.FORMAT_VERSION;
@@ -248,6 +249,7 @@ public class SchemasDisplayWriter {
 		metadata.setAttribute(HIGHLIGHT, config.isHighlight() ? TRUE : FALSE);
 		metadata.setAttribute(METADATA_GROUP,
 				StringUtils.isBlank(config.getMetadataGroupCode()) ? "" : config.getMetadataGroupCode());
+		metadata.setAttribute(HELP_MESSAGE, config.getHelpMessage());
 	}
 
 	public void resetSchema(String code) {
