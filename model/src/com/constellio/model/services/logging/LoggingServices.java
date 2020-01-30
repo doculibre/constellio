@@ -201,42 +201,47 @@ public class LoggingServices {
 	}
 
 	public void updateBatchProcess(BatchProcess process) {
-		Event linkedEvent = getLinkedEvent(process.getId(), process.getCollection());
+		Event linkedEvent = getLinkedEvent(process.getCollection(), process.getId());
 		if (linkedEvent != null) {
-			BatchProcessReport linkedReport = getLinkedReport(process.getId(), process.getCollection());
+			BatchProcessReport linkedReport = getLinkedReport(process.getCollection(), process.getId());
 			if (linkedReport != null) {
 				linkedEvent.setContent(linkedReport.getContent());
+				executeTransaction(linkedEvent);
 			}
 		}
-
-		executeTransaction(linkedEvent);
 	}
 
-	private BatchProcessReport getLinkedReport(String batchProcessId, String collection) {
-		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
-		MetadataSchema schema = types.getSchema(BatchProcessReport.FULL_SCHEMA);
-		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
-				fromEveryTypesOfEveryCollection()
-						.where(Schemas.SCHEMA).isEqualTo(BatchProcessReport.FULL_SCHEMA)
-						.andWhere(schema.getMetadata(BatchProcessReport.LINKED_BATCH_PROCESS)).isEqualTo(batchProcessId)));
-		if (CollectionUtils.isNotEmpty(records)) {
-			Record record = records.iterator().next();
-			return new SchemasRecordsServices(record.getCollection(), modelLayerFactory).wrapBatchProcessReport(record);
+	private BatchProcessReport getLinkedReport(String collection, String batchProcessId) {
+		Record linkedRecord = getLinkedBatchProcessRecord(collection, BatchProcessReport.FULL_SCHEMA,
+				BatchProcessReport.LINKED_BATCH_PROCESS, batchProcessId);
+		if (linkedRecord != null) {
+			return new SchemasRecordsServices(linkedRecord.getCollection(), modelLayerFactory)
+					.wrapBatchProcessReport(linkedRecord);
 		}
 
 		return null;
 	}
 
-	private Event getLinkedEvent(String batchProcessId, String collection) {
+	private Event getLinkedEvent(String collection, String batchProcessId) {
+		Record linkedRecord = getLinkedBatchProcessRecord(collection, Event.DEFAULT_SCHEMA, Event.BATCH_PROCESS_ID,
+				batchProcessId);
+		if (linkedRecord != null) {
+			return new SchemasRecordsServices(linkedRecord.getCollection(), modelLayerFactory).wrapEvent(linkedRecord);
+		}
+
+		return null;
+	}
+
+	private Record getLinkedBatchProcessRecord(String collection, String schemaCode, String batchProcessMetadata,
+											   String batchProcessId) {
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
-		MetadataSchema schema = types.getSchema(Event.DEFAULT_SCHEMA);
+		MetadataSchema schema = types.getSchema(schemaCode);
 		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
 				fromEveryTypesOfEveryCollection()
-						.where(Schemas.SCHEMA).isEqualTo(Event.DEFAULT_SCHEMA)
-						.andWhere(schema.getMetadata(Event.BATCH_PROCESS_ID)).isEqualTo(batchProcessId)));
+						.where(Schemas.SCHEMA).isEqualTo(schemaCode)
+						.andWhere(schema.getMetadata(batchProcessMetadata)).isEqualTo(batchProcessId)));
 		if (CollectionUtils.isNotEmpty(records)) {
-			Record record = records.iterator().next();
-			return new SchemasRecordsServices(record.getCollection(), modelLayerFactory).wrapEvent(record);
+			return records.iterator().next();
 		}
 
 		return null;
