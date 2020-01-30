@@ -856,7 +856,7 @@ public class BatchProcessingPresenterService {
 		if (!user.has(CorePermissions.MODIFY_UNLIMITED_RECORDS_USING_BATCH_PROCESS).globally()) {
 			ConstellioEIMConfigs systemConfigs = modelLayerFactory.getSystemConfigs();
 			int batchProcessingLimit = systemConfigs.getBatchProcessingLimit();
-			if (batchProcessingLimit != 0 && recordCount > batchProcessingLimit) {
+			if (batchProcessingLimit != -1 && recordCount > batchProcessingLimit) {
 				throw new RecordServicesException($("BatchProcess.batchProcessUnlimitedPermissionMissing", batchProcessingLimit));
 			}
 		}
