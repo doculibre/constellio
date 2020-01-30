@@ -87,6 +87,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	@PropertyId("readAccessRoles")
 	private ListOptionGroup listOptionGroupRole;
 
+	@PropertyId("maxLength")
+	private TextField maxLength;
+	@PropertyId("measurementUnit")
+	private TextField measurementUnit;
 
 	@PropertyId("uniqueValue")
 	private CheckBox uniqueField;
@@ -180,6 +184,9 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				}
 			}
 
+			maxLength.setEnabled(value == MetadataValueType.INTEGER || value == MetadataValueType.NUMBER);
+			measurementUnit.setEnabled(value == MetadataValueType.STRING || value == MetadataValueType.TEXT);
+
 			if (value == MetadataValueType.CONTENT) {
 				listOptionGroupRole.setVisible(false);
 			}
@@ -239,6 +246,12 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		sortableField.setEnabled(true);
 		availableInSummary.setEnabled(presenter.isAvailableInSummaryFlagButtonEnabled(value));
 		availableInSummary.setValue(presenter.isAvailableInSummaryFlagAlwaysTrue(value));
+
+		maxLength.setEnabled(value == MetadataValueType.STRING || value == MetadataValueType.TEXT);
+		measurementUnit.setEnabled(value == MetadataValueType.INTEGER || value == MetadataValueType.NUMBER);
+
+		maxLength.setVisible(maxLength.isEnabled());
+		measurementUnit.setVisible(measurementUnit.isEnabled());
 
 		switch (value) {
 			case BOOLEAN:
@@ -306,6 +319,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		refType.setValue(null);
 		searchableField.setValue(false);
+
+		if (!maxLength.isEnabled()) {
+			maxLength.setValue("");//%Q nécessaire?
+		}
+		if (!measurementUnit.isEnabled()) {
+			measurementUnit.setValue("");
+		}
 
 		switch (value) {
 			case BOOLEAN:
@@ -585,6 +605,22 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		listOptionGroupRole = new ListOptionGroup();
 		listOptionGroupRole.setCaption($("AddEditMetadataView.RoleAccess"));
 
+		maxLength = new BaseTextField();
+		maxLength.setCaption($("AddEditMetadataView.maxLength"));
+		maxLength.setRequired(false);
+		maxLength.setId("maxLength");
+		maxLength.setEnabled(formMetadataVO.getValueType() == MetadataValueType.STRING
+							 || formMetadataVO.getValueType() == MetadataValueType.TEXT);
+		maxLength.setVisible(maxLength.isEnabled());
+
+		measurementUnit = new BaseTextField();
+		measurementUnit.setCaption($("AddEditMetadataView.measurementUnit"));
+		measurementUnit.setRequired(false);
+		measurementUnit.setId("measurementUnit");
+		measurementUnit.setEnabled(formMetadataVO.getValueType() == MetadataValueType.INTEGER
+								   || formMetadataVO.getValueType() == MetadataValueType.NUMBER);
+		measurementUnit.setVisible(measurementUnit.isEnabled());
+
 		List<RoleVO> roleList = presenter.getAllCollectionRole();
 		listOptionGroupRole.setMultiSelect(true);
 		listOptionGroupRole.setImmediate(true);
@@ -603,7 +639,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		formMetadataVO.setReadAccessRoles(initialSelectedRoles);
 
 		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, valueType, multivalueType,
-				inputType, inputMask, metadataGroup, listOptionGroupRole, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
+				inputType, inputMask, maxLength, measurementUnit, metadataGroup, listOptionGroupRole, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
 				advancedSearchField, highlight, autocomplete, availableInSummary, uniqueField, multiLingualField));
 
 		for (CheckBox customAttributeField : customAttributesField) {

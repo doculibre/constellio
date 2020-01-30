@@ -102,7 +102,13 @@ public class MetadataBuilderRuntimeException extends RuntimeException {
 
 	public static class CannotHaveMaxLengthSpecifiedIfNotOfTypeStringOrText extends MetadataBuilderRuntimeException {
 		public CannotHaveMaxLengthSpecifiedIfNotOfTypeStringOrText(String metadata) {
-			super("Metadata '" + metadata + "' cannot have maxLength specified if not of MetadataValueType String or Text");
+			super("Metadata '" + metadata + "' cannot have maxLength specified if not of MetadataValueType STRING or TEXT");
+		}
+	}
+
+	public static class CannotHaveMeasurementUnitSpecifiedIfNotOfTypeIntegerOrNumber extends MetadataBuilderRuntimeException {
+		public CannotHaveMeasurementUnitSpecifiedIfNotOfTypeIntegerOrNumber(String metadata) {
+			super("Metadata '" + metadata + "' cannot have measurementUnit specified if not of MetadataValueType INTEGER or NUMBER");
 		}
 	}
 }

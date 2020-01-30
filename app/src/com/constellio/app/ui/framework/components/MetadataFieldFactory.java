@@ -152,13 +152,17 @@ public class MetadataFieldFactory implements Serializable {
 					}
 					break;
 				case TEXT:
-					switch (metadataInputType) {
-						case RICHTEXT:
-							field = new BaseRichTextArea();
-							break;
-						default:
-							field = new BaseTextArea();
-							break;
+					if (metadataInputType != null) {
+						switch (metadataInputType) {
+							case RICHTEXT:
+								field = new BaseRichTextArea();
+								break;
+							default:
+								field = new BaseTextArea();
+								break;
+						}
+					} else {
+						field = new BaseTextArea();
 					}
 					break;
 				case REFERENCE:

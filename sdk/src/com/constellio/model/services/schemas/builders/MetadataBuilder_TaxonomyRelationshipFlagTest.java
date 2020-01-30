@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MetadataBuilder_TaxonomyRelationshipFlagTest extends MetadataBuilderTest {
 
 	@Test
-	public void givenTaxonomyRelationshipFlagUndefinedOnMetadataWithoutInheritanceWhenBuildingThenSingleValue()
+	public void givenTaxonomyRelationshipFlagUndefinedOnMetadataWithoutInheritanceWhenBuildingThenFalse()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING);
 
@@ -18,7 +18,7 @@ public class MetadataBuilder_TaxonomyRelationshipFlagTest extends MetadataBuilde
 	}
 
 	@Test
-	public void givenTaxonomyRelationshipFlagUndefinedOnMetadataWithoutInheritanceWhenModifyingThenSingleValue()
+	public void givenTaxonomyRelationshipFlagUndefinedOnMetadataWithoutInheritanceWhenModifyingThenFalse()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING);
 
@@ -28,7 +28,7 @@ public class MetadataBuilder_TaxonomyRelationshipFlagTest extends MetadataBuilde
 	}
 
 	@Test
-	public void givenTaxonomyRelationshipFlagSetToFalseOnMetadataWithoutInheritanceWhenBuildingThenSingleValue()
+	public void givenTaxonomyRelationshipFlagSetToFalseOnMetadataWithoutInheritanceWhenBuildingThenFalse()
 			throws Exception {
 		metadataWithoutInheritanceBuilder.setType(STRING).setTaxonomyRelationship(false);
 
@@ -38,7 +38,7 @@ public class MetadataBuilder_TaxonomyRelationshipFlagTest extends MetadataBuilde
 	}
 
 	@Test
-	public void givenTaxonomyRelationshipFlagSetToFalseOnMetadataWithoutInheritanceWhenModifyingThenSingleValue()
+	public void givenTaxonomyRelationshipFlagSetToFalseOnMetadataWithoutInheritanceWhenModifyingThenFalse()
 			throws Exception {
 		metadataWithoutInheritanceBuilder.setType(STRING).setTaxonomyRelationship(false);
 
@@ -48,7 +48,7 @@ public class MetadataBuilder_TaxonomyRelationshipFlagTest extends MetadataBuilde
 	}
 
 	@Test
-	public void givenTaxonomyRelationshipFlagSetToTrueOnMetadataWithoutInheritanceWhenBuildingThenTaxonomyRelationship()
+	public void givenTaxonomyRelationshipFlagSetToTrueOnMetadataWithoutInheritanceWhenBuildingThenTrue()
 			throws Exception {
 		metadataWithoutInheritanceBuilder.setType(STRING).setTaxonomyRelationship(true);
 
@@ -58,7 +58,7 @@ public class MetadataBuilder_TaxonomyRelationshipFlagTest extends MetadataBuilde
 	}
 
 	@Test
-	public void givenTaxonomyRelationshipFlagSetToTrueOnMetadataWithoutInheritanceWhenModifyingThenTaxonomyRelationship()
+	public void givenTaxonomyRelationshipFlagSetToTrueOnMetadataWithoutInheritanceWhenModifyingThenTrue()
 			throws Exception {
 		metadataWithoutInheritanceBuilder.setType(STRING).setTaxonomyRelationship(true);
 

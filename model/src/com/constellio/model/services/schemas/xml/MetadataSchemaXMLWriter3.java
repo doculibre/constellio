@@ -287,7 +287,10 @@ public class MetadataSchemaXMLWriter3 {
 			metadataElement.setAttribute("taxonomyRelationship", writeBoolean(metadata.isTaxonomyRelationship()));
 		}
 		if (metadata.getMaxLength() != null) {
-			metadataElement.setAttribute("maxLength", metadata.getMaxLength().toString());//%V
+			metadataElement.setAttribute("maxLength", metadata.getMaxLength().toString());
+		}
+		if (metadata.getMeasurementUnit() != null) {
+			metadataElement.setAttribute("measuringUnit", metadata.getMeasurementUnit());
 		}
 		if (metadata.isRelationshipProvidingSecurity()) {
 			metadataElement.setAttribute("providingSecurity", writeBoolean(metadata.isRelationshipProvidingSecurity()));
@@ -444,7 +447,12 @@ public class MetadataSchemaXMLWriter3 {
 		}
 		if (metadata.getMaxLength() != null
 			&& !Objects.equals(globalMetadataInCollection.getMaxLength(), metadata.getMaxLength())) {
-			metadataElement.setAttribute("maxLength", metadata.getMaxLength().toString());//%V
+			metadataElement.setAttribute("maxLength", metadata.getMaxLength().toString());
+			different = true;
+		}
+		if (metadata.getMeasurementUnit() != null
+			&& !Objects.equals(globalMetadataInCollection.getMeasurementUnit(), metadata.getMeasurementUnit())) {
+			metadataElement.setAttribute("measurementUnit", metadata.getMeasurementUnit());
 			different = true;
 		}
 		if (globalMetadataInCollection.isUniqueValue() != metadata.isUniqueValue()) {

@@ -8,11 +8,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MetadataBuilder_MaxLengthFlagTest extends MetadataBuilderTest {
 
 	@Test
-	public void givenMaxLengthFlagUndefinedOnMetadataWithoutInheritanceWhenBuildingThenSingleValue()
+	public void givenMaxLengthUndefinedOnMetadataWithoutInheritanceWhenBuildingThenNull()
 			throws Exception {
-		//		inheritedMetadataBuilder.setType(BOOLEAN);//%V set le mauvais type pour taxonomyRelationship, donc set mauvais type ici aussi?
-		inheritedMetadataBuilder.setType(STRING);//%V set le mauv
-		// ais type pour taxonomyRelationship, donc set mauvais type ici aussi?
+		inheritedMetadataBuilder.setType(STRING);
 
 		build();
 
@@ -20,7 +18,7 @@ public class MetadataBuilder_MaxLengthFlagTest extends MetadataBuilderTest {
 	}
 
 	@Test
-	public void givenMaxLengthFlagUndefinedOnMetadataWithoutInheritanceWhenModifyingThenSingleValue()
+	public void givenMaxLengthUndefinedOnMetadataWithoutInheritanceWhenModifyingThenNull()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING);
 
@@ -30,27 +28,7 @@ public class MetadataBuilder_MaxLengthFlagTest extends MetadataBuilderTest {
 	}
 
 	@Test
-	public void givenMaxLengthFlagSetTo7OnMetadataWithoutInheritanceWhenBuildingThenSingleValue()
-			throws Exception {
-		metadataWithoutInheritanceBuilder.setType(STRING).setMaxLength(8);
-
-		build();
-
-		assertThat(metadataWithoutInheritance.getMaxLength()).isNotEqualTo(7);
-	}
-
-	@Test
-	public void givenMaxLengthFlagSetTo7OnMetadataWithoutInheritanceWhenModifyingThenSingleValue()
-			throws Exception {
-		metadataWithoutInheritanceBuilder.setType(STRING).setMaxLength(8);
-
-		buildAndModify();
-
-		assertThat(metadataWithoutInheritanceBuilder.getMaxLength()).isNotEqualTo(7);
-	}
-
-	@Test
-	public void givenMaxLengthFlagSetToTrueOnMetadataWithoutInheritanceWhenBuildingThenMaxLength()
+	public void givenMaxLengthSetTo7OnMetadataWithoutInheritanceWhenBuildingThen7()
 			throws Exception {
 		metadataWithoutInheritanceBuilder.setType(STRING).setMaxLength(7);
 
@@ -60,7 +38,7 @@ public class MetadataBuilder_MaxLengthFlagTest extends MetadataBuilderTest {
 	}
 
 	@Test
-	public void givenMaxLengthFlagSetToTrueOnMetadataWithoutInheritanceWhenModifyingThenMaxLength()
+	public void givenMaxLengthSetTo7OnMetadataWithoutInheritanceWhenModifyingThen7()
 			throws Exception {
 		metadataWithoutInheritanceBuilder.setType(STRING).setMaxLength(7);
 
@@ -69,6 +47,47 @@ public class MetadataBuilder_MaxLengthFlagTest extends MetadataBuilderTest {
 		assertThat(metadataWithoutInheritanceBuilder.getMaxLength()).isEqualTo(7);
 	}
 
+	@Test
+	public void givenMaxLengthSetTo0OnMetadataWithoutInheritanceWhenBuildingThen0()
+			throws Exception {
+		metadataWithoutInheritanceBuilder.setType(STRING).setMaxLength(0);
+
+		build();
+
+		assertThat(metadataWithoutInheritance.getMaxLength()).isEqualTo(0);
+	}
+
+	@Test
+	public void givenMaxLengthSetTo0OnMetadataWithoutInheritanceWhenModifyingThen0()
+			throws Exception {
+		metadataWithoutInheritanceBuilder.setType(STRING).setMaxLength(0);
+
+		buildAndModify();
+
+		assertThat(metadataWithoutInheritanceBuilder.getMaxLength()).isEqualTo(0);
+	}
+
+	@Test
+	public void givenMaxLengthSetToMinus1OnMetadataWithoutInheritanceWhenBuildingThenMinus1()
+			throws Exception {
+		metadataWithoutInheritanceBuilder.setType(STRING).setMaxLength(-1);
+
+		build();
+
+		assertThat(metadataWithoutInheritance.getMaxLength()).isEqualTo(-1);
+	}
+
+	@Test
+	public void givenMaxLengthSetToMinus1OnMetadataWithoutInheritanceWhenModifyingThenMinus1()
+			throws Exception {
+		metadataWithoutInheritanceBuilder.setType(STRING).setMaxLength(-1);
+
+		buildAndModify();
+
+		assertThat(metadataWithoutInheritanceBuilder.getMaxLength()).isEqualTo(-1);
+	}
+
+	//%Q givenMultivalueFlag... prend en compte que la md est multivalue ou lui fixe le multivalue?
 	@Test
 	public void givenMutlivalueFlagOnMetadataWithInheritanceWhenBuildingThenSetToInheritedValue()
 			throws Exception {
@@ -80,7 +99,7 @@ public class MetadataBuilder_MaxLengthFlagTest extends MetadataBuilderTest {
 	}
 
 	@Test
-	public void givenTaxonomyRelationshipFlagOnMetadataWithInheritanceWhenModifyingThenSetToInheritedValue()
+	public void givenMutlivalueFlagOnMetadataWithInheritanceWhenModifyingThenSetToInheritedValue()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING).setMaxLength(7);
 
@@ -90,18 +109,11 @@ public class MetadataBuilder_MaxLengthFlagTest extends MetadataBuilderTest {
 	}
 
 	@Test
-	public void givenTrueFlagModifiedInInheritedMetadataBuilderThenModifiedInMetadataWithHeritance()
+	public void givenMaxLengthModifiedInInheritedMetadataBuilderThenModifiedInMetadataWithInheritance()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING).setMaxLength(7);
 		assertThat(metadataWithInheritanceBuilder.getMaxLength()).isEqualTo(7);
 
 	}
 
-	@Test
-	public void givenFalseFlagModifiedInInheritedMetadataBuilderThenModifiedInMetadataWithHeritance()
-			throws Exception {
-		inheritedMetadataBuilder.setType(STRING).setMaxLength(8);
-		assertThat(metadataWithInheritanceBuilder.getMaxLength()).isNotEqualTo(7);
-
-	}
 }
