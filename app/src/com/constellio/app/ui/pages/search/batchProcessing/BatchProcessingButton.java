@@ -7,7 +7,7 @@ import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveStringLookupField;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveMetadataVOLookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -50,7 +49,7 @@ public class BatchProcessingButton extends WindowButton {
 	LookupRecordField typeField;
 	String currentSchema;
 	BatchProcessingForm form;
-	ListAddRemoveStringLookupField metadatasToEmptyField;
+	ListAddRemoveMetadataVOLookupField metadatasToEmptyField;
 	VerticalLayout vLayout;
 
 	public BatchProcessingButton(BatchProcessingPresenter presenter, BatchProcessingView view) {
@@ -233,13 +232,15 @@ public class BatchProcessingButton extends WindowButton {
 
 	private Component buildBatchProcessingEmptyMetadataForm() {
 		List<MetadataVO> metadatas = presenter.getMetadataAllowedInBatchEdit(view.getSchemaType());
-		List<String> metadataCodes = metadatas.stream().map(MetadataVO::getLocalCode).collect(Collectors.toList());
-		Collections.sort(metadataCodes);
-
-		metadatasToEmptyField = new ListAddRemoveStringLookupField(metadataCodes);
+		metadatasToEmptyField = new ListAddRemoveMetadataVOLookupField(metadatas);
 		metadatasToEmptyField.setCaption($("BatchProcess.selectMetadatasToEmpty"));
-
 		return metadatasToEmptyField;
+	}
+
+	private List<String> getMetadataCodesToEmpty() {
+		List<MetadataVO> metadatasToEmpty = metadatasToEmptyField.getValue();
+		List<String> metadataCodesToEmpty = metadatasToEmpty.stream().map(MetadataVO::getLocalCode).collect(Collectors.toList());
+		return metadataCodesToEmpty;
 	}
 
 	private Component buildBatchProcessingActions() {
@@ -252,7 +253,7 @@ public class BatchProcessingButton extends WindowButton {
 
 				try {
 					InputStream inputStream = presenter.simulateButtonClicked((String) typeField.getValue(),
-							view.getSchemaType(), form.getViewObject(), metadatasToEmptyField.getValue());
+							view.getSchemaType(), form.getViewObject(), getMetadataCodesToEmpty());
 
 					downloadBatchProcessingResults(inputStream);
 				} catch (RecordServicesException.ValidationException e) {
@@ -278,7 +279,7 @@ public class BatchProcessingButton extends WindowButton {
 
 				try {
 					boolean success = presenter.processBatchButtonClicked((String) typeField.getValue(),
-							view.getSchemaType(), form.getViewObject(), metadatasToEmptyField.getValue());
+							view.getSchemaType(), form.getViewObject(), getMetadataCodesToEmpty());
 
 					getWindow().close();
 
