@@ -102,8 +102,6 @@ public class Toggle {
 
 	public static AvailableToggle TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(false);
 
-	public static AvailableToggle STRUCTURE_CACHE_BASED_ON_EXISTING_IDS = newToggle(true);
-
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();
