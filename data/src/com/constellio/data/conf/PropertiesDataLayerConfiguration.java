@@ -386,4 +386,9 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	public boolean isSystemDistributed() {
 		return getElectionServiceType() != ElectionServiceType.STANDALONE;
 	}
+
+	@Override
+	public boolean areTiffFilesConvertedForPreview() {
+		return getBoolean("conversion.tiffConversion.enabled", false);
+	}
 }
