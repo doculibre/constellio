@@ -445,6 +445,15 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustFollowersField();
 		adjustRequiredUSRMetadatasFields();
 		adjustFieldsForCollaborators();
+		adjustDisabledFields();
+	}
+
+	private void adjustDisabledFields() {
+		if (rmModuleExtensions != null) {
+			for (TaskAddEditTaskPresenterExtension extension : rmModuleExtensions.getTaskAddEditTaskPresenterExtension()) {
+				extension.adjustDisabledFields(view, taskVO);
+			}
+		}
 	}
 
 	private void adjustRequiredUSRMetadatasFields() {
@@ -664,6 +673,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustInclusiveDecisionField();
 		adjustRelativeDueDate();
 		adjustReasonField();
+		adjustDisabledFields();
 		adjustRequiredUSRMetadatasFields();
 		adjustFieldsForCollaborators();
 	}
