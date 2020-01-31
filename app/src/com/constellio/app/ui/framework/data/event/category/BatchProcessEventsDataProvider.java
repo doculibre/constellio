@@ -18,9 +18,6 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-/**
- * Created by Nouha on 2015-01-30.
- */
 public class BatchProcessEventsDataProvider extends AbstractDataProvider implements EventsCategoryDataProvider {
 
 	transient List<EventStatistics> events;
