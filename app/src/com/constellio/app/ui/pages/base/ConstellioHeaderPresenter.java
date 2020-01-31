@@ -345,7 +345,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 					if (metadata.isEnabled() && (!isSeparateCopiedMetadata || !isCopiedMetadata)) {
 						if (metadata.getInheritance() != null) {
 							metadataCodes.add(metadata.getInheritance().getCode());
-						} else if (metadata.getInheritance() == null) {
+						} else {
 							metadataCodes.add(metadata.getCode());
 						}
 					}
@@ -353,7 +353,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 			} else {
 				for (Metadata metadata : schemaType.getAllMetadatas()) {
 					boolean isCopiedMetadata = metadata.getDataEntry().getType() == DataEntryType.COPIED;
-					if ((!isSeparateCopiedMetadata || !isCopiedMetadata)) {
+					if (!isSeparateCopiedMetadata || !isCopiedMetadata) {
 						metadataCodes.add(metadata.getCode());
 					}
 				}
@@ -380,7 +380,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 						if (dataEntry.getReferenceMetadata().equals(referenceCode)) {
 							if (metadata.getInheritance() != null) {
 								metadataCodes.add(metadata.getInheritance().getCode());
-							} else if (metadata.getInheritance() == null) {
+							} else {
 								metadataCodes.add(metadata.getCode());
 							}
 						}

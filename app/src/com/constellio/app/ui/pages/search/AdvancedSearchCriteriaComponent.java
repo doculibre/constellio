@@ -959,7 +959,9 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		List<MetadataVO> getMetadataAllowedInCriteria();
 
-		List<MetadataVO> getCopiedMetadataAllowedInCriteria(String referenceCode);
+		default List<MetadataVO> getCopiedMetadataAllowedInCriteria(String referenceCode) {
+			return getMetadataAllowedInCriteria();
+		}
 
 		Map<String, String> getMetadataSchemasList(String schemaTypeCode);
 
@@ -969,6 +971,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		void showErrorMessage(String message);
 
-		boolean isSeparateCopiedMetadata();
+		default boolean isSeparateCopiedMetadata() {
+			return false;
+		}
 	}
 }

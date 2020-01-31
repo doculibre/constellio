@@ -298,16 +298,6 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	@Override
-	public boolean isSeparateCopiedMetadata() {
-		return false;
-	}
-
-	@Override
-	public List<MetadataVO> getCopiedMetadataAllowedInCriteria(String referenceCode) {
-		return getMetadataAllowedInCriteria();
-	}
-
-	@Override
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
 		return getMetadataAllowedInAdvancedSearch(getSchemaType());
 	}

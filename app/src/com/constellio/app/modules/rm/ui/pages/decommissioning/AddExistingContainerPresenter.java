@@ -179,16 +179,6 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	}
 
 	@Override
-	public boolean isSeparateCopiedMetadata() {
-		return false;
-	}
-
-	@Override
-	public List<MetadataVO> getCopiedMetadataAllowedInCriteria(String referenceCode) {
-		return getMetadataAllowedInCriteria();
-	}
-
-	@Override
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
 		return getMetadataAllowedInAdvancedSearch(ContainerRecord.SCHEMA_TYPE);
 	}
