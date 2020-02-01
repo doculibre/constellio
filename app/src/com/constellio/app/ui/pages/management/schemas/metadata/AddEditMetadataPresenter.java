@@ -369,29 +369,29 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		builder.setDefaultRequirement(formMetadataVO.isRequired());
 		builder.setDuplicable(formMetadataVO.isDuplicable());
 
-		MetadataBuilder builderDefaultSchema = null;
+		MetadataBuilder metadataBuilder = null;
 
 		if (schemaCode.endsWith("_default")) {
-			builderDefaultSchema = builder;
+			metadataBuilder = builder;
 		} else {
 			try {
-				builderDefaultSchema = types.getSchema(schemaCode).get(formMetadataVO.getCode());
+				metadataBuilder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
 			} catch (MetadataSchemaBuilderRuntimeException.NoSuchMetadata e) {
 				// error
 			} catch (MetadataSchemaBuilderRuntimeException.InvalidAttribute e) {
 				// error take provided schema
 			}
 
-			if (builderDefaultSchema != null && builderDefaultSchema.getInheritance() != null) {
-				builderDefaultSchema = types.getSchema(schemaCode).getDefaultSchema().get(formMetadataVO.getCode());
+			if (metadataBuilder != null && metadataBuilder.getInheritance() != null) {
+				metadataBuilder = types.getSchema(schemaCode).getDefaultSchema().get(formMetadataVO.getCode());
 			}
 
-			if (builderDefaultSchema == null) {
-				builderDefaultSchema = builder;
+			if (metadataBuilder == null) {
+				metadataBuilder = builder;
 			}
 		}
 
-		builderDefaultSchema.setMultiLingual(formMetadataVO.isMultiLingual());
+		metadataBuilder.setMultiLingual(formMetadataVO.isMultiLingual());
 
 		if (isInherited(code)) {
 			MetadataSchemaBuilder defaultSchemaBuilder = types
@@ -418,6 +418,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 
 		saveDisplayConfig(formMetadataVO, code, schemasManager, editMode);
+
+		MetadataSchema schema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
+		Metadata metadata = schema.getMetadata(formMetadataVO.getCode());
+		User user = getCurrentUser();
+		appCollectionExtentions.metadataSavedFromView(metadata, user);
 
 		if (reindexRequired) {
 			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
