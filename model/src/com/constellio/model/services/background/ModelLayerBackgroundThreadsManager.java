@@ -27,6 +27,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	AuthorizationWithTimeRangeTokenUpdateBackgroundAction authorizationWithTimeRangeTokenUpdateBackgroundAction;
 	FlushRecordsBackgroundAction flushRecordsBackgroundAction;
 	TemporaryFolderCleanerBackgroundAction temporaryFolderCleanerBackgroundAction;
+	BuildRecordIdListBackgroundAction buildRecordIdListBackgroundAction;
 	FlushOldEmailToSend flushOldEmailToSend;
 
 	public ModelLayerBackgroundThreadsManager(ModelLayerFactory modelLayerFactory) {
@@ -77,6 +78,10 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		flushOldEmailToSend = new FlushOldEmailToSend(modelLayerFactory);
 		backgroundThreadsManager.configure(repeatingAction("flushOldEmail", flushOldEmailToSend)
 				.executedEvery(standardHours(3)).handlingExceptionWith(CONTINUE));
+
+		buildRecordIdListBackgroundAction = new BuildRecordIdListBackgroundAction(modelLayerFactory);
+		backgroundThreadsManager.configure(repeatingAction("buildRecordIdList", buildRecordIdListBackgroundAction)
+				.executedEvery(standardHours(1)).handlingExceptionWith(CONTINUE));
 
 		//Disabled for the moment
 		//		eventService = new EventService(modelLayerFactory);
