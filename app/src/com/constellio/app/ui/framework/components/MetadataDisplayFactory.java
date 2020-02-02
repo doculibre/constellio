@@ -2,29 +2,22 @@ package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.api.extensions.params.MetadataDisplayCustomValueExtentionParams;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.framework.buttons.BaseLink;
-import com.constellio.app.ui.framework.components.converters.BaseStringToDateConverter;
-import com.constellio.app.ui.framework.components.converters.BaseStringToDateTimeConverter;
-import com.constellio.app.ui.framework.components.converters.CommentToStringConverter;
-import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
-import com.constellio.app.ui.framework.components.converters.JodaDateToStringConverter;
-import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
+import com.constellio.app.ui.framework.components.converters.*;
 import com.constellio.app.ui.framework.components.display.EnumWithSmallCodeDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.AllowedReferences;
@@ -47,11 +40,7 @@ import org.joda.time.LocalDateTime;
 
 import java.io.Serializable;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -111,7 +100,7 @@ public class MetadataDisplayFactory implements Serializable {
 					}
 				}
 				if (!elementDisplayComponents.isEmpty()) {
-					displayComponent = newCollectionValueDisplayComponent(elementDisplayComponents);
+					displayComponent = newCollectionValueDisplayComponent(metadataVO, elementDisplayComponents);
 					displayComponent.setVisible(hasAVisibleComponent);
 				} else {
 					displayComponent = null;
@@ -285,8 +274,18 @@ public class MetadataDisplayFactory implements Serializable {
 	//		return new DownloadContentVersionLink(contentVersionVO);
 	//	}
 
-	public Component newCollectionValueDisplayComponent(List<Component> elementDisplayComponents) {
+	public Component newCollectionValueDisplayComponent(MetadataVO metadataVO,
+														List<Component> elementDisplayComponents) {
 		VerticalLayout verticalLayout = new VerticalLayout();
+		if (metadataVO.getMetadataSortingType() == MetadataSortingType.ALPHANUMERICAL_ORDER) {
+			Collections.sort(elementDisplayComponents, new Comparator<Component>() {
+				@Override
+				public int compare(Component o1, Component o2) {
+					return LangUtils.compareStrings(o1.getCaption(), o2.getCaption());
+				}
+			});
+		}
+
 		for (Component elementDisplayComponent : elementDisplayComponents) {
 			verticalLayout.addComponent(elementDisplayComponent);
 		}

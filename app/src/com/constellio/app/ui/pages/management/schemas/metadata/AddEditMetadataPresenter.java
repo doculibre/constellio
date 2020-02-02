@@ -420,7 +420,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		saveDisplayConfig(formMetadataVO, code, schemasManager, editMode);
 
 		MetadataSchema schema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
-		Metadata metadata = schema.getMetadata(formMetadataVO.getCode());
+		Metadata metadata = schema.getMetadata(code);
 		User user = getCurrentUser();
 		appCollectionExtentions.metadataSavedFromView(metadata, user);
 
