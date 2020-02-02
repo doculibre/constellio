@@ -1504,6 +1504,14 @@ $popup-view-z-index: 3;
 			color: #6c2621;
     	}
     }
+    
+    .list-add-remove-table-sortable, .metadata-groups {
+    	.v-table-table {
+    		.v-table-row, .v-table-row-odd {
+    			cursor: all-scroll;
+    		}
+    	}
+    }
 
     .list-add-remove-error {
     	border-color: #ed473b !important;
