@@ -611,7 +611,7 @@ public class SettingsImportServices {
 			metadataBuilder.setUnmodifiable(importedMetadata.getUnmodifiable());
 		}
 
-		if(importedMetadata.getRequiredReadRoles() != null && importedMetadata.getRequiredReadRoles().size() > 0) {
+		if (importedMetadata.getRequiredReadRoles() != null && importedMetadata.getRequiredReadRoles().size() > 0) {
 			final MetadataAccessRestrictionBuilder originalMetadataAccessRestrictionBuilder = metadataBuilder.defineAccessRestrictions();
 			final MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder;
 			MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(importedMetadata.getRequiredReadRoles(), originalMetadataAccessRestrictionBuilder.getRequiredWriteRoles(),
