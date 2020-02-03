@@ -13,7 +13,20 @@ public class OffHeapByteArrayList2 {
 	private OffHeapByteList itemsAreaId = new OffHeapByteList();
 	private OffHeapIntList itemsAreaKey = new OffHeapIntList();
 
+	/**
+	 * The default required free space ratio is defined to 0.05, which means the cache may have up to 5% of unused space
+	 * A lesser ratio would reduce unused space, while increasing compaction frequency and CPU time
+	 */
+	private double requiredFreeSpaceRatioForCompacting = 0.05;
+
 	private List<OffHeapBytesArrayListArea> areas = new ArrayList<>();
+
+	public OffHeapByteArrayList2(double requiredFreeSpaceRatioForCompacting) {
+		this.requiredFreeSpaceRatioForCompacting = requiredFreeSpaceRatioForCompacting;
+	}
+
+	public OffHeapByteArrayList2() {
+	}
 
 	public int getHeapConsumption() {
 		int heapConsumption = itemsAreaId.getHeapConsumption() + itemsAreaKey.getHeapConsumption();
@@ -82,15 +95,12 @@ public class OffHeapByteArrayList2 {
 
 	/**
 	 * This is the mapping strategy!
-	 *
-	 * First area are small for instances with small amount of data and become larger
-	 *
-	 * The required free space ratio is defined to 0.10, which means the cache may have up to 10% of unused space
-	 * A lesser ratio would reduce unused space, while increasing compaction frequency and
+	 * <p>
+	 * First areas are small for clients with small amount of data and become larger. Current mapping could store up to 30go of data
 	 *
 	 * @return
 	 */
-	private OffHeapBytesArrayListArea newArea() {
+	protected OffHeapBytesArrayListArea newArea() {
 
 		int length;
 		if (areas.size() == 0) {
@@ -107,7 +117,7 @@ public class OffHeapByteArrayList2 {
 
 		}
 
-		return new OffHeapBytesArrayListArea(length, 0.10);
+		return new OffHeapBytesArrayListArea(length, requiredFreeSpaceRatioForCompacting);
 	}
 
 	public byte[] get(int index) {
@@ -122,6 +132,10 @@ public class OffHeapByteArrayList2 {
 		}
 
 		return null;
+	}
+
+	public int getMappedAreasCount() {
+		return areas.size();
 	}
 
 	/**

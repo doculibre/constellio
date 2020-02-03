@@ -1,12 +1,7 @@
 package com.constellio.model.services.contents;
 
 import com.constellio.data.conf.HashingEncoding;
-import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.data.dao.dto.records.RecordDTOMode;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.data.dao.dto.records.SolrRecordDTO;
-import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.dto.records.*;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -25,28 +20,15 @@ import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
 import com.constellio.data.io.streamFactories.services.one.StreamOperationThrowingException;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
 import com.constellio.data.threads.BackgroundThreadsManager;
-import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.data.utils.Factory;
-import com.constellio.data.utils.ImageUtils;
-import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.*;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.conf.ModelLayerConfiguration;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ParsedContent;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.*;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.VaultScanReport;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadInputStream;
@@ -89,14 +71,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
@@ -105,9 +81,7 @@ import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_S
 import static com.constellio.model.conf.FoldersLocator.usingAppWrapper;
 import static com.constellio.model.entities.enums.ParsingBehavior.ASYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static java.util.Arrays.asList;
 
 public class ContentManager implements StatefulService {
@@ -935,24 +909,6 @@ public class ContentManager implements StatefulService {
 		String mimeType = content.getCurrentVersion().getMimetype();
 		ContentDao contentDao = getContentDao();
 
-		if (!contentDao.isDocumentExisting(hash + ".preview")) {
-			try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
-				if (LOG_CONVERSION_FILENAME_AND_SIZE.isEnabled()) {
-					LOGGER.info("Converting file " + filename + " : " + content.getCurrentVersion().getLength() / (1024 * 1024));
-				}
-				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder);
-				contentDao.moveFileToVault(pdfPreviewFile, hash + ".preview");
-
-			} catch (ContentDaoException_NoSuchContent e) {
-				//Missing content are not logged from the conversion thread. Instead, they are checked by system diagnostic and other mechanisms
-				return false;
-
-			} catch (Throwable t) {
-				LOGGER.warn("Cannot generate preview for content '" + filename + "' with hash '" + hash + "'", t);
-				return false;
-			}
-		}
-
 		if (mimeType.startsWith("image/")) {
 			Dimension dimension = ImageUtils.getImageDimension(contentDao.getFileOf(hash));
 
@@ -968,6 +924,22 @@ public class ContentManager implements StatefulService {
 					LOGGER.warn("Cannot generate JPEG conversion for content '" + filename + "' with hash '" + hash + "'", t);
 					return false;
 				}
+			}
+		} else if (!contentDao.isDocumentExisting(hash + ".preview")) {
+			try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
+				if (LOG_CONVERSION_FILENAME_AND_SIZE.isEnabled()) {
+					LOGGER.info("Converting file " + filename + " : " + content.getCurrentVersion().getLength() / (1024 * 1024));
+				}
+				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder);
+				contentDao.moveFileToVault(pdfPreviewFile, hash + ".preview");
+
+			} catch (ContentDaoException_NoSuchContent e) {
+				//Missing content are not logged from the conversion thread. Instead, they are checked by system diagnostic and other mechanisms
+				return false;
+
+			} catch (Throwable t) {
+				LOGGER.warn("Cannot generate preview for content '" + filename + "' with hash '" + hash + "'", t);
+				return false;
 			}
 		}
 

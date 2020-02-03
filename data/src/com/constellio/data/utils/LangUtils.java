@@ -33,6 +33,7 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -981,6 +982,25 @@ public class LangUtils {
 		}
 
 		return 0;
+	}
+
+
+
+	public static IntStream forEachInRandomOrder(int nbValues) {
+		List<Integer> integers = getIntValuesInRandomOrder(nbValues);
+
+		return integers.stream().mapToInt((i) -> i);
+	}
+
+	public static List<Integer> getIntValuesInRandomOrder(int nbValues) {
+		List<Integer> integers = new ArrayList<>();
+
+		for (int i = 0; i < nbValues; i++) {
+			integers.add(i);
+		}
+
+		Collections.shuffle(integers);
+		return integers;
 	}
 
 }
