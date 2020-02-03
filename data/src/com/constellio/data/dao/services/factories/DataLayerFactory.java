@@ -1,18 +1,7 @@
 package com.constellio.data.dao.services.factories;
 
-import com.constellio.data.conf.CacheType;
-import com.constellio.data.conf.ConfigManagerType;
-import com.constellio.data.conf.ContentDaoType;
-import com.constellio.data.conf.DataLayerConfiguration;
-import com.constellio.data.conf.EventBusSendingServiceType;
-import com.constellio.data.conf.IdGeneratorType;
-import com.constellio.data.conf.SolrServerType;
-import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.data.dao.dto.records.RecordDTOMode;
-import com.constellio.data.dao.dto.records.RecordDeltaDTO;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.data.dao.dto.records.SolrRecordDTO;
-import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.conf.*;
+import com.constellio.data.dao.dto.records.*;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.CachedConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManager;
@@ -36,11 +25,7 @@ import com.constellio.data.dao.services.contents.HadoopContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
-import com.constellio.data.dao.services.leaderElection.IgniteLeaderElectionManager;
-import com.constellio.data.dao.services.leaderElection.LeaderElectionManager;
-import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionManager;
-import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
-import com.constellio.data.dao.services.leaderElection.ZookeeperLeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.*;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
@@ -53,11 +38,7 @@ import com.constellio.data.dao.services.solr.serverFactories.HttpSolrServerFacto
 import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.XMLSecondTransactionLogManager;
-import com.constellio.data.events.EventBus;
-import com.constellio.data.events.EventBusManager;
-import com.constellio.data.events.EventBusSendingService;
-import com.constellio.data.events.SolrEventBusSendingService;
-import com.constellio.data.events.StandaloneEventBusSendingService;
+import com.constellio.data.events.*;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.IOServicesFactory;
@@ -72,11 +53,7 @@ import org.apache.ignite.Ignite;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static com.constellio.data.conf.ElectionServiceType.IGNITE;
 import static com.constellio.data.conf.ElectionServiceType.ZOOKEEPER;
@@ -242,7 +219,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		IOServices ioServices = ioServicesFactory.newIOServices();
 		conversionManager = add(new ConversionManager(ioServices, dataLayerConfiguration.getConversionProcesses(),
-				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions()));
+				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions(), dataLayerConfiguration));
 		lastCreatedInstance = this;
 
 		dataLayerBackgroundThreadsManager = new DataLayerBackgroundThreadsManager(this);

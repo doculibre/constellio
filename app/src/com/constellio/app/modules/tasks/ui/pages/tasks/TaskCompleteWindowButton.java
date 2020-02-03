@@ -23,6 +23,8 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.ErrorDisplayUtil;
 import com.constellio.app.ui.framework.components.fields.comment.CommentField;
+import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
+import com.constellio.app.ui.framework.components.fields.date.JodaDateTimeField;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
@@ -42,6 +44,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -228,7 +231,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		}
 
 		if (!userPromted) {
-			quickCompleteTask(task, decision, decisionCode, accepted, reason, comment);
+			exception = !quickCompleteTask(task, decision, decisionCode, accepted, reason, comment);
 		}
 
 
@@ -261,8 +264,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			throws RecordServicesException {
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(task.getCollection(), appLayerFactory);
 		TasksSearchServices tasksSearchServices = new TasksSearchServices(tasksSchemas);
-		TaskStatus finishedStatus = tasksSearchServices
-				.getFirstFinishedStatus();
+		TaskStatus finishedStatus = tasksSearchServices.getFirstFinishedStatus();
 		if (finishedStatus != null) {
 			task.setStatus(finishedStatus.getId());
 		}
@@ -321,7 +323,10 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			Field field = entry.getValue();
 
 			Object value = field.getValue();
-			if (value instanceof Date) {
+			if (field instanceof JodaDateTimeField) {
+				value = LocalDateTime.fromDateFields((Date) value);
+			}
+			if (value instanceof JodaDateField) {
 				value = LocalDate.fromDateFields((Date) value);
 			}
 			record.set(taskSchema.getMetadata(m.getCode()), value);

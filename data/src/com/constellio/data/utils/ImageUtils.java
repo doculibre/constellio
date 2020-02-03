@@ -4,12 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 
 @Slf4j
@@ -19,20 +21,46 @@ public class ImageUtils {
 
 	public static Dimension getImageDimension(File file) {
 		try (ImageInputStream in = ImageIO.createImageInputStream(file)) {
-			final Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
-			if (readers.hasNext()) {
-				ImageReader reader = readers.next();
-				try {
-					reader.setInput(in);
-					return new Dimension(reader.getWidth(0), reader.getHeight(0));
-				} finally {
-					reader.dispose();
+			if (in != null) {
+				final Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
+				if (readers.hasNext()) {
+					ImageReader reader = readers.next();
+					try {
+						reader.setInput(in);
+						return new Dimension(reader.getWidth(0), reader.getHeight(0));
+					} finally {
+						reader.dispose();
+					}
 				}
 			}
-		} catch (IOException e) {
-			// swallow it
+		} catch (IOException ignored) {
 		}
 		throw new RuntimeException("No image reader found for image : " + file.getName());
+	}
+
+	public static BufferedImage resizeWithSubSampling(InputStream inputStream) throws IOException {
+		ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream);
+		Iterator iter = ImageIO.getImageReaders(imageInputStream);
+		if (!iter.hasNext()) {
+			log.error("No ImageIO reader found");
+			return null;
+		}
+		ImageReader reader = (ImageReader) iter.next();
+		reader.setInput(imageInputStream, true, true);
+
+		int width = reader.getWidth(0);
+		int height = reader.getHeight(0);
+		ImageReadParam params = reader.getDefaultReadParam();
+
+		int newHeight = OVERSIZED_HEIGHT_LIMIT;
+		int newWidth = newHeight * width / height;
+		params.setSourceSubsampling(width / newWidth, height / newHeight, 0, 0);
+
+		BufferedImage subsampleImage = reader.read(0, params);
+		reader.dispose();
+		imageInputStream.close();
+
+		return resize(subsampleImage, OVERSIZED_HEIGHT_LIMIT);
 	}
 
 	public static BufferedImage resize(BufferedImage img) {

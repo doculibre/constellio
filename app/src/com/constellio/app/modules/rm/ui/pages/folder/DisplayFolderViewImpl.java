@@ -206,7 +206,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		});
 
-		recordDisplay = new RecordDisplay(recordVO, new RMMetadataDisplayFactory());
+		recordDisplay = new RecordDisplay(recordVO, new RMMetadataDisplayFactory(), true);
 		folderContentComponent = new CustomComponent();
 		tasksComponent = new CustomComponent();
 

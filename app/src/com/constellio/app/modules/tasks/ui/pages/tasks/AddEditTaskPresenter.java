@@ -11,6 +11,7 @@ import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormParams;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormRetValue;
 import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
+import com.constellio.app.modules.tasks.model.utils.DateUtils;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -66,6 +67,7 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordUtils;
@@ -76,6 +78,7 @@ import com.vaadin.ui.Field;
 import com.vaadin.ui.OptionGroup;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -279,7 +282,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			}
 
 			if (!task.isModel() && task.getDueDate() == null && task.getRelativeDueDate() != null && task.getAssignedOn() != null) {
-				task.setDueDate(task.getAssignedOn().plusDays(task.getRelativeDueDate()));
+				ConstellioEIMConfigs constellioEIMConfigs = appLayerFactory.getModelLayerFactory().getSystemConfigs();
+				LocalDate dueDate = DateUtils.addWorkingDays(task.getAssignedOn(), task.getRelativeDueDate(), constellioEIMConfigs.getCalendarCountry());
+				task.setDueDate(dueDate);
 			}
 
 			TaskModuleExtensions taskModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
@@ -289,13 +294,16 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			if (taskModuleExtensions != null) {
 				TaskFormRetValue taskFormRetValue = taskModuleExtensions.taskFormExtentions(new TaskFormParams(this, task));
 				for (Record currentRecord : taskFormRetValue.getRecords()) {
-					saveRecord(task, currentRecord, taskFormRetValue.isSaveWithValidation(currentRecord));
+					RecordUpdateOptions taskUpdateOptions = getTaskUpdateOptions(task, taskFormRetValue.isSaveWithValidation(currentRecord));
+					saveRecord(currentRecord, taskUpdateOptions);
 				}
 			}
 			boolean isPromptUser = false;
 
 			// this is in case of special validation that would only occur when saving the task.
 			Transaction transaction = new Transaction();
+			RecordUpdateOptions taskUpdateOptions = getTaskUpdateOptions(task, true);
+			transaction.setOptions(taskUpdateOptions);
 			transaction.addUpdate(task.getWrappedRecord());
 			recordServices().prepareRecords(transaction);
 
@@ -303,12 +311,12 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				isPromptUser = rmModuleExtensions.isPromptUser(new PromptUserParam(task, new Action() {
 					@Override
 					public void doAction() {
-						saveAndNavigate(task);
+						saveAndNavigate(task, taskUpdateOptions);
 					}
 				}));
 			}
 			if (!isPromptUser) {
-				saveAndNavigate(task);
+				saveAndNavigate(task, taskUpdateOptions);
 			}
 
 		} catch (final IcapException e) {
@@ -320,8 +328,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 	}
 
-	private void saveAndNavigate(Task task) {
-		saveRecord(task, task.getWrappedRecord(), true);
+	private void saveAndNavigate(Task task, RecordUpdateOptions taskUpdateOptions) {
+		saveRecord(task.getWrappedRecord(), taskUpdateOptions);
 
 
 		if (StringUtils.isNotBlank(workflowId)) {
@@ -333,8 +341,12 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 	}
 
-	private void saveRecord(Task task, Record record, boolean withRequiredValidation) {
-		RecordUpdateOptions recordUpdateOptions = null;
+	private void saveRecord(Record record, RecordUpdateOptions recordUpdateOptions) {
+		addOrUpdate(record, recordUpdateOptions);
+	}
+
+	private RecordUpdateOptions getTaskUpdateOptions(Task task, boolean withRequiredValidation) {
+		RecordUpdateOptions recordUpdateOptions = new RecordUpdateOptions();
 
 		if (rmModuleExtensions != null) {
 			for (TaskAddEditTaskPresenterExtension extension : rmModuleExtensions.getTaskAddEditTaskPresenterExtension()) {
@@ -347,15 +359,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 
 		if (withRequiredValidation) {
-			addOrUpdate(record, recordUpdateOptions);
+			return recordUpdateOptions;
 		} else {
-			if (recordUpdateOptions == null) {
-				recordUpdateOptions = new RecordUpdateOptions();
-			}
-			addOrUpdate(record, recordUpdateOptions.setSkippingRequiredValuesValidation(true));
+			return recordUpdateOptions.setSkippingRequiredValuesValidation(true);
 		}
 	}
-
 
 	private Field getAssignerField() {
 		TaskForm form = view.getForm();
@@ -437,6 +445,15 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustFollowersField();
 		adjustRequiredUSRMetadatasFields();
 		adjustFieldsForCollaborators();
+		adjustDisabledFields();
+	}
+
+	private void adjustDisabledFields() {
+		if (rmModuleExtensions != null) {
+			for (TaskAddEditTaskPresenterExtension extension : rmModuleExtensions.getTaskAddEditTaskPresenterExtension()) {
+				extension.adjustDisabledFields(view, taskVO);
+			}
+		}
 	}
 
 	private void adjustRequiredUSRMetadatasFields() {
@@ -656,6 +673,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustInclusiveDecisionField();
 		adjustRelativeDueDate();
 		adjustReasonField();
+		adjustDisabledFields();
 		adjustRequiredUSRMetadatasFields();
 		adjustFieldsForCollaborators();
 	}
@@ -820,7 +838,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private boolean currentUserHasWriteAuthorisation() {
-		return getCurrentUser().hasWriteAccess().on(toRecord(taskVO));
+		return getCurrentUser().hasWriteAccess().on(toRecord(taskVO)) || !isEditMode();
 	}
 
 	private void adjustFieldsForCollaborators() {
