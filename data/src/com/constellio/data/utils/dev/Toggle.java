@@ -71,7 +71,7 @@ public class Toggle {
 
 	public static AvailableToggle ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID = newToggle(false);
 
-	public static AvailableToggle USE_CACHE_FOR_QUERY_EXECUTION = newToggle(true);
+	public static AvailableToggle USE_CACHE_FOR_QUERY_EXECUTION = newToggle(false);
 
 	public static AvailableToggle USE_BYTE_ARRAY_DTOS_FOR_SUMMARY_CACHE = newToggle(true);
 
