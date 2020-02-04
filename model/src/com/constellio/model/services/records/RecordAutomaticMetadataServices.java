@@ -777,7 +777,7 @@ public class RecordAutomaticMetadataServices {
 	Metadata getMetadataFromDependency(RecordImpl record, Dependency dependency, boolean throwExceptionIfNoMetadata) {
 		String localMetadataCode = dependency.getLocalMetadataCode();
 		MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
-		return schema.hasMetadataWithCode(localMetadataCode) || throwExceptionIfNoMetadata ? schema.get(localMetadataCode) : null;
+		return throwExceptionIfNoMetadata || schema.hasMetadataWithCode(localMetadataCode) ? schema.get(localMetadataCode) : null;
 	}
 
 	void copyValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
