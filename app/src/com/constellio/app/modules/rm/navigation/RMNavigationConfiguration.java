@@ -115,6 +115,9 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String CLASSIFICATION_PLAN = "classificationPlan";
 	public static final String CLASSIFICATION_PLAN_ICON = "images/icons/config/classification-plan.png";
 
+	public static final String BORROWINGS = "borrowings";
+	public static final String BORROWINGS_ICON = "images/icons/config/borrowing-audit.png";
+
 	public static final String ARCHIVES_MANAGEMENT = "archiveManagement";
 	public static final String USER_DOCUMENTS = "userDocuments";
 	public static final String AGENT = "agent";
@@ -423,6 +426,17 @@ public class RMNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.hasAny(RMPermissionsTo.MANAGE_RETENTIONRULE, RMPermissionsTo.CONSULT_RETENTIONRULE).globally());
+			}
+		});
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(BORROWINGS, BORROWINGS_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).listRetentionRules();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(user.has(RMPermissionsTo.MANAGE_BORROWINGS).globally());
 			}
 		});
 		config.replace(AdminView.COLLECTION_SECTION,

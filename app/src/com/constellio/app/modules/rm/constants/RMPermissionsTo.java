@@ -137,6 +137,8 @@ public class RMPermissionsTo {
 	public static final String CONSULT_RETENTIONRULE = permission(RM_MANAGEMENT, "consultRetentionRule");
 	public static final String MANAGE_RETENTIONRULE = permission(RM_MANAGEMENT, "manageRetentionRule");
 
+	public static final String MANAGE_BORROWINGS = permission(RM_MANAGEMENT, "manageBorrowings");
+
 
 	public static final List<String> RM_COLLECTION_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(RM_MANAGEMENT);
 }
