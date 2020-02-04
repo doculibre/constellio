@@ -53,7 +53,7 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 		if (Strings.isNotBlank(name)) {
 			try {
 				cart.setTitle(name);
-				recordServices.update(cart.getWrappedRecord());
+				recordServices.update(cart.getWrappedRecord(), getCurrentUser());
 			} catch (RecordServicesException e) {
 				throw new RuntimeException("Unexpected error when updating cart");
 			}
