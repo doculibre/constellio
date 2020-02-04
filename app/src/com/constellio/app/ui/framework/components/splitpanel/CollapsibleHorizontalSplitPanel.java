@@ -201,32 +201,36 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 
 	private boolean getCookieValue() {
 		boolean cookieValue = true;
-		String cookieName = getCookieName();
-		Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
-		for (Cookie cookie : cookies) {
-			if (cookie.getName().equals(cookieName)) {
-				cookieValue = !"false".equals(cookie.getValue());
-				break;
+		if (VaadinService.getCurrentRequest() != null) {
+			String cookieName = getCookieName();
+			Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
+			for (Cookie cookie : cookies) {
+				if (cookie.getName().equals(cookieName)) {
+					cookieValue = !"false".equals(cookie.getValue());
+					break;
+				}
 			}
 		}
 		return cookieValue;
 	}
 
 	private void setCookie(Boolean cookieValue) {
-		String cookieName = getCookieName();
-		Cookie cookie = new Cookie(cookieName, "" + cookieValue);
-		if (cookieValue != null) {
-			cookie.setMaxAge(Integer.MAX_VALUE);
-		} else {
-			// Delete the cookie
-			cookie.setMaxAge(0);
+		if (VaadinService.getCurrentRequest() != null) {
+			String cookieName = getCookieName();
+			Cookie cookie = new Cookie(cookieName, "" + cookieValue);
+			if (cookieValue != null) {
+				cookie.setMaxAge(Integer.MAX_VALUE);
+			} else {
+				// Delete the cookie
+				cookie.setMaxAge(0);
+			}
+
+			// Set the cookie path.
+			cookie.setPath(VaadinService.getCurrentRequest().getContextPath());
+
+			// Save cookie
+			VaadinService.getCurrentResponse().addCookie(cookie);
 		}
-
-		// Set the cookie path.
-		cookie.setPath(VaadinService.getCurrentRequest().getContextPath());
-
-		// Save cookie
-		VaadinService.getCurrentResponse().addCookie(cookie);
 	}
 	
 	public Component getRealFirstComponent() {

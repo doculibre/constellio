@@ -198,6 +198,16 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
 	}
 
+	public void addScannedDocument(String userDocumentId, String folderId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("userDocumentId", userDocumentId);
+		params.put("ocr", "true");
+		if (folderId != null) {
+			params.put("parentId", folderId);
+		}
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
+	}
+
 	public void addDocumentWithContentFromFavorites(String id, String favGroupId) {
 		Map<String, String> params = new HashMap<>();
 		params.put("idCopy", id);

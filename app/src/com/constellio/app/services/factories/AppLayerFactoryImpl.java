@@ -11,6 +11,7 @@ import com.constellio.app.modules.restapi.ConstellioRestApiModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
+import com.constellio.app.modules.scanner.ConstellioScannerModule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
@@ -66,12 +67,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.model.services.records.reindexing.ReindexationParams.recalculateAndRewriteSchemaTypesInBackground;
 
@@ -156,6 +152,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		pluginManager.registerModule(new ConstellioRobotsModule());
 		pluginManager.registerModule(new ESRMRobotsModule());
 		pluginManager.registerModule(new ConstellioRestApiModule());
+		pluginManager.registerModule(new ConstellioScannerModule());
 
 		Delayed<MigrationServices> migrationServicesDelayed = new Delayed<>();
 		this.modulesManager = add(new ConstellioModulesManagerImpl(this, pluginManager, migrationServicesDelayed));
