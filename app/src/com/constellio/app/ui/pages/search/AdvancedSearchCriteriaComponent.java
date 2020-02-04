@@ -4,6 +4,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.MouseOverHelpIcon;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDoubleConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToUtilConverter;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -57,6 +58,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 	public static final String RIGHT_PARENS_FIELD = "rightParensField";
 	public static final String OPERATOR_FIELD = "operatorField";
 	public static final String DELETE_BUTTON = "delete";
+	public static final String HELP_MESSAGE = "helpMessage";
 
 	private final BeanItemContainer<Criterion> container;
 	private String schemaType;
@@ -73,14 +75,16 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		addGeneratedColumn(RIGHT_PARENS_FIELD, new ParensFieldGenerator("rightParens", ")"));
 		addGeneratedColumn(OPERATOR_FIELD, new OperatorFieldGenerator());
 		addGeneratedColumn(DELETE_BUTTON, new DeleteButtonGenerator());
+		addGeneratedColumn(HELP_MESSAGE, new HelpIconGenerator(presenter));
 
 		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
-		Object[] visibleColumns = {LEFT_PARENS_FIELD, METADATA_FIELD, VALUE_FIELD, RIGHT_PARENS_FIELD, OPERATOR_FIELD, DELETE_BUTTON};
+		Object[] visibleColumns = {LEFT_PARENS_FIELD, METADATA_FIELD, HELP_MESSAGE, VALUE_FIELD, RIGHT_PARENS_FIELD, OPERATOR_FIELD, DELETE_BUTTON};
 		if (isRightToLeft()) {
 			ArrayUtils.reverse(visibleColumns);
 		}
 		setVisibleColumns(visibleColumns);
 		setColumnExpandRatio(VALUE_FIELD, 1);
+		setColumnWidth(HELP_MESSAGE, 50);
 	}
 
 	public void setSchemaType(String schemaType) {
@@ -857,6 +861,26 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			};
 			delete.setEnabled(source.size() > 1);
 			return delete;
+		}
+	}
+
+	private static class HelpIconGenerator implements ColumnGenerator {
+		private SearchCriteriaPresenter presenter;
+
+		public HelpIconGenerator(SearchCriteriaPresenter presenter) {
+			this.presenter = presenter;
+		}
+
+		@Override
+		public Component generateCell(final Table source, final Object itemId, Object columnId) {
+			Criterion criterion = (Criterion) itemId;
+
+			if (criterion.getMetadataCode() == null) {
+				return null;
+			} else {
+				String helpMessage = presenter.getMetadataVO(criterion.getMetadataCode()).getHelpMessage();
+				return helpMessage.isEmpty() ? null : new MouseOverHelpIcon(helpMessage);
+			}
 		}
 	}
 
