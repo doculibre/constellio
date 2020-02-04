@@ -202,7 +202,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 		try {
 			synchronized (this) {
-				index = ids.binarySearch(id);
+				//index = ids.binarySearch(id);
 				boolean newRecord = index == -1;
 				if (index < 0) {
 					boolean fullyCached = dto instanceof SolrRecordDTO;
