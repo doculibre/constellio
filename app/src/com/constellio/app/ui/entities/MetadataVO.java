@@ -282,6 +282,10 @@ public class MetadataVO implements Serializable {
 		return labels;
 	}
 
+	public String getHelpMessage() {
+		return helpMessage;
+	}
+
 	public String getLabel(Locale locale) {
 		String label;
 		if (labels.containsKey(locale)) {

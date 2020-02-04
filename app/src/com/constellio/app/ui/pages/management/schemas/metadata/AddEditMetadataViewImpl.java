@@ -244,7 +244,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		availableInSummary.setValue(presenter.isAvailableInSummaryFlagAlwaysTrue(value));
 		helpMessage.setEnabled(true);
 		helpMessage.setRequired(false);
-		helpMessage.setValue("TEST");
 
 		switch (value) {
 			case BOOLEAN:
@@ -468,7 +467,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		helpMessage = new RichTextArea();
 		helpMessage.setCaption($("AddEditMetadataView.helpMessage"));
 		helpMessage.setRequired(false);
-		helpMessage.setNullRepresentation("");
 		helpMessage.setId("helpMessage");
 		helpMessage.addStyleName("helpMessage");
 		helpMessage.setEnabled(true);

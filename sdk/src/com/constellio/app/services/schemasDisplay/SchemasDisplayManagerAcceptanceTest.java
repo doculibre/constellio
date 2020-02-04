@@ -700,26 +700,17 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, "myType_default_metadata");
 		assertThat(metadataDisplay.getHelpMessage()).isEmpty();
 
-		String meow = "<pre>\n" +
-					  "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░\n" +
-					  "░░░░░░░░░░▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄░░░░░░░░░\n" +
-					  "░░░░░░░░▄▀░░░░░░░░░░░░▄░░░░░░░▀▄░░░░░░░\n" +
-					  "░░░░░░░░█░░▄░░░░▄░░░░░░░░░░░░░░█░░░░░░░\n" +
-					  "░░░░░░░░█░░░░░░░░░░░░▄█▄▄░░▄░░░█░▄▄▄░░░\n" +
-					  "░▄▄▄▄▄░░█░░░░░░▀░░░░▀█░░▀▄░░░░░█▀▀░██░░\n" +
-					  "░██▄▀██▄█░░░▄░░░░░░░██░░░░▀▀▀▀▀░░░░██░░\n" +
-					  "░░▀██▄▀██░░░░░░░░▀░██▀░░░░░░░░░░░░░▀██░\n" +
-					  "░░░░▀████░▀░░░░▄░░░██░░░▄█░░░░▄░▄█░░██░\n" +
-					  "░░░░░░░▀█░░░░▄░░░░░██░░░░▄░░░▄░░▄░░░██░\n" +
-					  "░░░░░░░▄█▄░░░░░░░░░░░▀▄░░▀▀▀▀▀▀▀▀░░▄▀░░\n" +
-					  "░░░░░░█▀▀█████████▀▀▀▀████████████▀░░░░\n" +
-					  "░░░░░░████▀░░███▀░░░░░░▀███░░▀██▀░░░░░░\n" +
-					  "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░</pre>";
+		String help = "<pre>\n" +
+					  "h\n" +
+					  " e\n" +
+					  "  l\n" +
+					  "   p" +
+					  "</pre>";
 
-		manager.saveMetadata(metadataDisplay.withHelpMessage(meow));
+		manager.saveMetadata(metadataDisplay.withHelpMessage(help));
 
 		metadataDisplay = manager.getMetadata(zeCollection, "myType_default_metadata");
-		assertThat(metadataDisplay.getHelpMessage()).isEqualTo(meow);
+		assertThat(metadataDisplay.getHelpMessage()).isEqualTo(help);
 	}
 
 	private Map<String, Map<Language, String>> configureLabels(List<String> values) {
