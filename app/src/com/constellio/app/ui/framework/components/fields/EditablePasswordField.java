@@ -68,16 +68,6 @@ public class EditablePasswordField extends CustomField<String> {
 		return String.class;
 	}
 
-	@SuppressWarnings("rawtypes")
-	public Property getPropertyDataSource() {
-		return super.getPropertyDataSource();//passwordField.getPropertyDataSource();
-	}
-
-	@SuppressWarnings("rawtypes")
-	public void setPropertyDataSource(Property newDataSource) {
-		super.setPropertyDataSource(newDataSource);//passwordField.setPropertyDataSource(newDataSource);
-	}
-
 	public void setValue(String newValue)
 			throws ReadOnlyException {
 		super.setValue(newValue);
@@ -122,25 +112,4 @@ public class EditablePasswordField extends CustomField<String> {
 	public void setComponentError(ErrorMessage componentError) {
 		passwordField.setComponentError(componentError);
 	}
-
-	public void commit()
-			throws SourceException, InvalidValueException {
-		passwordField.commit();
-	}
-
-	public void discard()
-			throws SourceException {
-		passwordField.discard();
-	}
-
-	public boolean isValid() {
-		return passwordField.isValid();
-	}
-
-	public void validate()
-			throws InvalidValueException {
-		passwordField.validate();
-	}
-
-
 }
