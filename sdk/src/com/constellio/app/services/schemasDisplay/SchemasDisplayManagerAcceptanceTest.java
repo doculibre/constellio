@@ -345,16 +345,16 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, "group_default_title");
 		assertThat(metadataDisplay.getInputType()).isEqualTo(FIELD);
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isFalse();
-		assertThat(metadataDisplay.getHelpMessage()).isEmpty();
+		assertThat(metadataDisplay.getHelpMessages()).isEmpty();
 
 		manager.saveMetadata(metadataDisplay.withInputType(MetadataInputType.HIDDEN)
 				.withVisibleInAdvancedSearchStatus(true)
-				.withHelpMessage("123"));
+				.withFrenchHelpMessage("BeepBeepBoop"));
 
 		metadataDisplay = manager.getMetadata(zeCollection, "group_default_title");
 		assertThat(metadataDisplay.getInputType()).isEqualTo(MetadataInputType.HIDDEN);
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isTrue();
-		assertThat(metadataDisplay.getHelpMessage()).isEqualTo("123");
+		assertThat(metadataDisplay.getFrenchHelpMessage()).isEqualTo("BeepBeepBoop");
 
 	}
 
@@ -698,19 +698,16 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);
 
 		MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, "myType_default_metadata");
-		assertThat(metadataDisplay.getHelpMessage()).isEmpty();
+		assertThat(metadataDisplay.getHelpMessages()).isEmpty();
 
-		String help = "<pre>\n" +
-					  "h\n" +
-					  " e\n" +
-					  "  l\n" +
-					  "   p" +
-					  "</pre>";
-
-		manager.saveMetadata(metadataDisplay.withHelpMessage(help));
+		manager.saveMetadata(metadataDisplay
+				.withEnglishHelpMessage("help")
+				.withFrenchHelpMessage("aide")
+		);
 
 		metadataDisplay = manager.getMetadata(zeCollection, "myType_default_metadata");
-		assertThat(metadataDisplay.getHelpMessage()).isEqualTo(help);
+		assertThat(metadataDisplay.getEnglishHelpMessage()).isEqualTo("help");
+		assertThat(metadataDisplay.getFrenchHelpMessage()).isEqualTo("aide");
 	}
 
 	private Map<String, Map<Language, String>> configureLabels(List<String> values) {

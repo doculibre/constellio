@@ -101,7 +101,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 	private Layout wrapFieldWithHelpMessage(MetadataVO metadataVO, Field<?> field) {
 		I18NHorizontalLayout layout = new I18NHorizontalLayout();
-		String metadataHelp = metadataVO.getHelpMessage();
+		String metadataHelp = metadataVO.getHelpMessage(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
 		BaseMouseOverIcon baseMouseOverIcon = new BaseMouseOverIcon(new ThemeResource("images/icons/information2.png"), metadataHelp);
 
 		baseMouseOverIcon.setVisible(!metadataHelp.isEmpty());

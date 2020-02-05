@@ -170,7 +170,6 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				form.setAvailableInSummary(true);
 			}
 
-			form.setHelpMessage(displayManager.getDisplayConfig(metadata).getHelpMessage());
 		}
 
 		return form;
@@ -508,16 +507,21 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 		MetadataDisplayConfig displayConfig = displayManager.getMetadata(collection, code);
 
+		Map<Language, String> metadataHelpMessages = new HashMap<>();
+		for (Entry<String, String> helpMessage : formMetadataVO.getHelpMessages().entrySet()) {
+			metadataHelpMessages.put(Language.withCode(helpMessage.getKey()), helpMessage.getValue());
+		}
+
 		if (displayConfig == null) {
 			displayConfig = new MetadataDisplayConfig(collection, code,
 					!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch(),
-					type, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup(), displayType, formMetadataVO.getHelpMessage());
+					type, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup(), displayType, metadataHelpMessages);
 		} else {
 			displayConfig = displayConfig.withHighlightStatus(formMetadataVO.isHighlight())
 					.withVisibleInAdvancedSearchStatus(!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch())
 					.withInputType(type)
 					.withDisplayType(displayType).withMetadataGroup(formMetadataVO.getMetadataGroup())
-					.withHelpMessage(formMetadataVO.getHelpMessage());
+					.withHelpMessages(metadataHelpMessages);
 		}
 
 		displayManager.saveMetadata(displayConfig);
@@ -526,7 +530,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			String codeInDefaultSchema = schemaTypeCode + "_default_" + new SchemaUtils().getLocalCodeFromMetadataCode(code);
 			displayConfig = displayManager.getMetadata(collection, codeInDefaultSchema)
 					.withVisibleInAdvancedSearchStatus(formMetadataVO.isAdvancedSearch())
-					.withHelpMessage(formMetadataVO.getHelpMessage());
+					.withHelpMessages(metadataHelpMessages);
 			displayManager.saveMetadata(displayConfig);
 		}
 

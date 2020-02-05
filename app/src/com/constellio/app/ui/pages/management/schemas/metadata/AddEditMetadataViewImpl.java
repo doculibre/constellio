@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCr
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
+import com.constellio.app.ui.framework.components.fields.MultilingualRichTextField;
 import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
@@ -29,7 +30,6 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.RichTextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -84,8 +84,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private CheckBox duplicableField;
 	@PropertyId("ParentMetadataLabel")
 	private TextField parentMetadataLabel;
-	@PropertyId("helpMessage")
-	private RichTextArea helpMessage;
+	@PropertyId("helpMessages")
+	private MultilingualRichTextField helpMessagesField;
 
 	@PropertyId("readAccessRoles")
 	private ListOptionGroup listOptionGroupRole;
@@ -242,8 +242,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		sortableField.setEnabled(true);
 		availableInSummary.setEnabled(presenter.isAvailableInSummaryFlagButtonEnabled(value));
 		availableInSummary.setValue(presenter.isAvailableInSummaryFlagAlwaysTrue(value));
-		helpMessage.setEnabled(true);
-		helpMessage.setRequired(false);
 
 		switch (value) {
 			case BOOLEAN:
@@ -342,6 +340,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		//		labelsField.setRequired(true);
 		labelsField.setId("labels");
 		labelsField.addStyleName("labels");
+
+		helpMessagesField = new MultilingualRichTextField(false);
+		helpMessagesField.setId("helpMessages");
+		helpMessagesField.addStyleName("helpMessages");
 
 		if (inherited) {
 			parentMetadataLabel = new TextField();
@@ -463,13 +465,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		sortableField.setId("sortable");
 		sortableField.addStyleName("sortable");
 		sortableField.setEnabled(!inherited);
-
-		helpMessage = new RichTextArea();
-		helpMessage.setCaption($("AddEditMetadataView.helpMessage"));
-		helpMessage.setRequired(false);
-		helpMessage.setId("helpMessage");
-		helpMessage.addStyleName("helpMessage");
-		helpMessage.setEnabled(true);
 
 		advancedSearchField = new CheckBox() {
 			@Override
@@ -610,7 +605,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, valueType, multivalueType,
 				inputType, inputMask, metadataGroup, listOptionGroupRole, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
-				advancedSearchField, highlight, autocomplete, availableInSummary, helpMessage, uniqueField, multiLingualField));
+				advancedSearchField, highlight, autocomplete, availableInSummary, helpMessagesField, uniqueField, multiLingualField));
 
 		for (CheckBox customAttributeField : customAttributesField) {
 			fields.add(customAttributeField);
@@ -633,6 +628,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			@Override
 			public void commit() {
 				labelsField.commit();
+				helpMessagesField.commit();
 				for (Field<?> field : fieldGroup.getFields()) {
 					try {
 						field.commit();
@@ -657,11 +653,12 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 				try {
 					labelsField.validateFields();
+					helpMessagesField.validateFields();
 				} catch (InvalidValueException e) {
 					showErrorMessage(e.getMessage());
 					return;
 				}
-				formMetadataVO.setHelpMessage(helpMessage.getValue());
+
 				presenter.preSaveButtonClicked(formMetadataVO, editMode);
 			}
 

@@ -2,8 +2,11 @@ package com.constellio.app.entities.schemasDisplay;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.model.entities.Language;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MetadataDisplayConfig implements Serializable {
 
@@ -21,11 +24,11 @@ public class MetadataDisplayConfig implements Serializable {
 
 	private final boolean highlight;
 
-	private final String helpMessage;
+	private final Map<Language, String> helpMessages;
 
 	public MetadataDisplayConfig(String collection, String metadataCode, boolean visibleInAdvancedSearch,
 								 MetadataInputType inputType, boolean highlight, String metadataGroupCode,
-								 MetadataDisplayType displayType, String helpMessage) {
+								 MetadataDisplayType displayType, Map<Language, String> helpMessages) {
 		this.collection = collection;
 		this.metadataCode = metadataCode;
 		this.visibleInAdvancedSearch = visibleInAdvancedSearch;
@@ -33,7 +36,13 @@ public class MetadataDisplayConfig implements Serializable {
 		this.highlight = highlight;
 		this.metadataGroupCode = metadataGroupCode;
 		this.displayType = displayType;
-		this.helpMessage = (helpMessage == null ? "" : helpMessage);
+
+		if (helpMessages == null) {
+			this.helpMessages = new HashMap<>();
+		} else {
+			this.helpMessages = helpMessages;
+		}
+
 	}
 
 	public boolean isVisibleInAdvancedSearch() {
@@ -64,48 +73,78 @@ public class MetadataDisplayConfig implements Serializable {
 		return metadataGroupCode;
 	}
 
-	public String getHelpMessage() {
-		return helpMessage;
+	public String getHelpMessage(Language language) {
+		String helpMessage = helpMessages.get(language);
+
+		return helpMessage == null ? "" : helpMessage;
+	}
+
+	public String getFrenchHelpMessage() {
+		return getHelpMessage(Language.French);
+	}
+
+	public String getEnglishHelpMessage() {
+		return getHelpMessage(Language.English);
+	}
+
+	public Map<Language, String> getHelpMessages() {
+		return helpMessages;
 	}
 
 	public MetadataDisplayConfig withVisibleInAdvancedSearchStatus(boolean visibleInAdvancedSearch) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType, helpMessage);
+				metadataGroupCode, displayType, helpMessages);
 	}
 
 	public MetadataDisplayConfig withHighlightStatus(boolean highlight) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType, helpMessage);
+				metadataGroupCode, displayType, helpMessages);
 	}
 
 	public MetadataDisplayConfig withInputType(MetadataInputType inputType) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType, helpMessage);
+				metadataGroupCode, displayType, helpMessages);
 	}
 
 	public MetadataDisplayConfig withDisplayType(MetadataDisplayType displayType) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType, helpMessage);
+				metadataGroupCode, displayType, helpMessages);
 	}
 
 	public MetadataDisplayConfig withMetadataGroup(String metadataGroupCode) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType, helpMessage);
+				metadataGroupCode, displayType, helpMessages);
 	}
 
 	public static MetadataDisplayConfig inheriting(String metadataCode, MetadataDisplayConfig inheritance) {
 		return new MetadataDisplayConfig(inheritance.collection, metadataCode, inheritance.visibleInAdvancedSearch,
-				inheritance.inputType, inheritance.highlight, inheritance.metadataGroupCode, inheritance.displayType, inheritance.helpMessage);
+				inheritance.inputType, inheritance.highlight, inheritance.metadataGroupCode, inheritance.displayType, inheritance.helpMessages);
 	}
 
 	public MetadataDisplayConfig withCode(String code) {
 		return new MetadataDisplayConfig(collection, code, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType, helpMessage);
+				metadataGroupCode, displayType, helpMessages);
 	}
 
-	public MetadataDisplayConfig withHelpMessage(String helpMessage) {
+	public MetadataDisplayConfig withHelpMessages(Map<Language, String> helpMessages) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode, displayType, helpMessage);
+				metadataGroupCode, displayType, helpMessages);
+	}
+
+	public MetadataDisplayConfig withFrenchHelpMessage(String frenchHelpMessage) {
+		Map<Language, String> helpMessages = new HashMap<>(this.helpMessages);
+		helpMessages.put(Language.French, frenchHelpMessage);
+
+		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
+				metadataGroupCode, displayType, helpMessages);
+	}
+
+	public MetadataDisplayConfig withEnglishHelpMessage(String englishHelpMessage) {
+		Map<Language, String> helpMessages = new HashMap<>(this.helpMessages);
+		helpMessages.put(Language.English, englishHelpMessage);
+
+		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
+				metadataGroupCode, displayType, helpMessages);
 	}
 
 	@Override
@@ -137,7 +176,7 @@ public class MetadataDisplayConfig implements Serializable {
 		if (displayType != that.displayType) {
 			return false;
 		}
-		if (helpMessage != that.helpMessage) {
+		if (!this.helpMessages.equals(that.helpMessages)) {
 			return false;
 		}
 
@@ -153,7 +192,7 @@ public class MetadataDisplayConfig implements Serializable {
 		result = 31 * result + (displayType != null ? displayType.hashCode() : 0);
 		result = 31 * result + (metadataGroupCode != null ? metadataGroupCode.hashCode() : 0);
 		result = 31 * result + (highlight ? 1 : 0);
-		result = 31 * result + (helpMessage != null ? helpMessage.hashCode() : 0);
+		result = 31 * result + (helpMessages != null ? helpMessages.hashCode() : 0);
 		return result;
 	}
 }

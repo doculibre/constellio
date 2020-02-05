@@ -51,6 +51,8 @@ public class SchemasDisplayReader1 {
 	private static final String LABELS = "labels";
 	private static final String HELP_MESSAGE = "HelpMessage";
 
+	public static final String HELP_MESSAGE_CODE_SEPARATOR = "_";
+
 	MetadataSchemaTypes types;
 	Document document;
 	List<Language> languages;
@@ -294,7 +296,7 @@ public class SchemasDisplayReader1 {
 
 		String inputTypeString = metadataDisplayConfigElement.getAttributeValue(INPUT_TYPE);
 		String displayTypeString = metadataDisplayConfigElement.getAttributeValue(DISPLAY_TYPE);
-		String helpMessage = metadataDisplayConfigElement.getAttributeValue(HELP_MESSAGE);
+		Map<Language, String> helpMessages = readHelpMessages(metadataDisplayConfigElement);
 		if (displayTypeString == null) {
 			displayTypeString = "VERTICAL";
 		}
@@ -302,7 +304,17 @@ public class SchemasDisplayReader1 {
 		MetadataDisplayType metadataDisplayType = MetadataDisplayType.valueOf(displayTypeString);
 
 		MetadataDisplayConfig metadataDisplayConfig = new MetadataDisplayConfig(collection, metadataCode,
-				visibleInAdvancedSearch, metadataInputType, highlight, metadataGroup, metadataDisplayType, helpMessage);
+				visibleInAdvancedSearch, metadataInputType, highlight, metadataGroup, metadataDisplayType, helpMessages);
 		return metadataDisplayConfig;
+	}
+
+	private Map<Language, String> readHelpMessages(Element metadataDisplayConfigElement) {
+		Map<Language, String> helpMessages = new HashMap<>();
+
+		for (Language language : languages) {
+			helpMessages.put(language, metadataDisplayConfigElement
+					.getAttributeValue(HELP_MESSAGE + HELP_MESSAGE_CODE_SEPARATOR + language.getCode()));
+		}
+		return helpMessages;
 	}
 }
