@@ -1050,7 +1050,7 @@ public class MetadataBuilder {
 			throw new MetadataBuilderRuntimeException.CannotHaveMaxLengthSpecifiedIfNotOfTypeStringOrText(code);
 		}
 
-		if (measurementUnit != null
+		if ((measurementUnit != null && !measurementUnit.equals(""))
 			&& !builder.getType().equals(MetadataValueType.INTEGER)
 			&& !builder.getType().equals(MetadataValueType.NUMBER)) {
 			throw new CannotHaveMeasurementUnitSpecifiedIfNotOfTypeIntegerOrNumber(code);
@@ -1098,9 +1098,13 @@ public class MetadataBuilder {
 		return inheritance == null ? measurementUnit : inheritance.measurementUnit;
 	}
 
-	public MetadataBuilder setMeasurementUnit(String measuringUnit) {
+	public MetadataBuilder setMeasurementUnit(String measurementUnit) {
 		ensureCanModify("measurementUnit");
-		this.measurementUnit = measuringUnit;
+		if (measurementUnit != null) {
+			this.measurementUnit = !measurementUnit.equals("") ? measurementUnit : null;
+		} else {
+			this.measurementUnit = null;
+		}
 		return this;
 	}
 

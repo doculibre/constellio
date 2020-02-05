@@ -147,10 +147,13 @@ public class RecordValidationServices {
 					transaction.isSkippingReferenceToLogicallyDeletedValidation())
 					.validate(record, validationErrors);
 		}
-		new MetadataValueTypeValidator(metadatas).validate(record, validationErrors);
+		boolean skipMaxLength = transaction.getRecordUpdateOptions().isSkippingMaxLengthValidation();
+		boolean skipMeasurementUnit = transaction.getRecordUpdateOptions().isSkippingMeasurementUnitValidation();
+
+		new MetadataValueTypeValidator(metadatas, skipMaxLength, skipMeasurementUnit).validate(record, validationErrors);
 		if (!transaction.isSkippingRequiredValuesValidation()) {
 			boolean skipUSRMetadatas = transaction.getRecordUpdateOptions().isSkipUSRMetadatasRequirementValidations();
-			new ValueRequirementValidator(metadatas, skipUSRMetadatas, recordAutomaticMetadataServices, afterCalculate)
+			new ValueRequirementValidator(metadatas, skipUSRMetadatas, recordAutomaticMetadataServices, afterCalculate, skipMaxLength)
 					.validate(record, validationErrors);
 		}
 		new MetadataUnmodifiableValidator(metadatas).validate(record, validationErrors);

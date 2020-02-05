@@ -290,7 +290,7 @@ public class MetadataSchemaXMLWriter3 {
 			metadataElement.setAttribute("maxLength", metadata.getMaxLength().toString());
 		}
 		if (metadata.getMeasurementUnit() != null) {
-			metadataElement.setAttribute("measuringUnit", metadata.getMeasurementUnit());
+			metadataElement.setAttribute("measurementUnit", metadata.getMeasurementUnit());
 		}
 		if (metadata.isRelationshipProvidingSecurity()) {
 			metadataElement.setAttribute("providingSecurity", writeBoolean(metadata.isRelationshipProvidingSecurity()));

@@ -328,7 +328,11 @@ public class Metadata implements DataStoreField {
 	}
 
 	public String getLabel(Language language) {
-		return labels.get(language);
+		String retVal = labels.get(language);
+		if (this.getMeasurementUnit() != null) {
+			retVal += " (" + this.getMeasurementUnit() + ")";
+		}
+		return retVal;
 	}
 
 	public Map<Language, String> getLabels() {

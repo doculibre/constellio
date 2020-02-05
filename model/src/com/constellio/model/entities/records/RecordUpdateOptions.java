@@ -25,6 +25,10 @@ public class RecordUpdateOptions {
 
 	private boolean skipUSRMetadatasRequirementValidations = false;
 
+	private boolean skipMaxLengthValidation = false;
+
+	private boolean skipMeasurementUnitValidation = false;
+
 	private boolean catchExtensionsExceptions = false;
 
 	private boolean catchExtensionsValidationsErrors = false;
@@ -80,6 +84,9 @@ public class RecordUpdateOptions {
 		this.catchBrokenReferenceErrors = copy.catchBrokenReferenceErrors;
 
 		this.skipUSRMetadatasRequirementValidations = copy.skipUSRMetadatasRequirementValidations;
+
+		this.skipMaxLengthValidation = copy.skipMaxLengthValidation;
+		this.skipMeasurementUnitValidation = copy.skipMeasurementUnitValidation;
 
 		this.skippingRequiredValuesValidation = copy.skippingRequiredValuesValidation;
 		this.skippingReferenceToLogicallyDeletedValidation = copy.skippingReferenceToLogicallyDeletedValidation;
@@ -255,6 +262,24 @@ public class RecordUpdateOptions {
 		return this;
 	}
 
+	public boolean isSkippingMaxLengthValidation() {
+		return skipMaxLengthValidation;
+	}
+
+	public RecordUpdateOptions setSkippingMaxLengthValidation(boolean skipMaxLengthValidation) {
+		this.skipMaxLengthValidation = skipMaxLengthValidation;
+		return this;
+	}
+
+	public boolean isSkippingMeasurementUnitValidation() {
+		return skipMeasurementUnitValidation;
+	}
+
+	public RecordUpdateOptions setSkippingMeasurementUnitValidation(boolean skipMeasurementUnitValidation) {
+		this.skipMeasurementUnitValidation = skipMeasurementUnitValidation;
+		return this;
+	}
+
 	public boolean isSkippingReferenceToLogicallyDeletedValidation() {
 		return skippingReferenceToLogicallyDeletedValidation;
 	}
@@ -269,11 +294,13 @@ public class RecordUpdateOptions {
 		return new RecordUpdateOptions().setSkipReferenceValidation(true).setValidationsEnabled(false)
 				.setSkipMaskedMetadataValidations(true).setUnicityValidationsEnabled(false)
 				.setSkippingReferenceToLogicallyDeletedValidation(true).setSkippingRequiredValuesValidation(true)
-				.setCatchExtensionsExceptions(true).setCatchExtensionsValidationsErrors(true).setCatchBrokenReferenceErrors(true);
+				.setCatchExtensionsExceptions(true).setCatchExtensionsValidationsErrors(true).setCatchBrokenReferenceErrors(true)
+				.setSkippingMaxLengthValidation(true).setSkippingMeasurementUnitValidation(true);
 	}
 
 	public static RecordUpdateOptions userModificationsSafeOptions() {
-		return new RecordUpdateOptions().setSkipUSRMetadatasRequirementValidations(true).setSkipMaskedMetadataValidations(true);
+		return new RecordUpdateOptions().setSkipUSRMetadatasRequirementValidations(true).setSkipMaskedMetadataValidations(true)
+				.setSkippingMaxLengthValidation(true).setSkippingMeasurementUnitValidation(true);
 	}
 
 	public boolean isCatchExtensionsExceptions() {

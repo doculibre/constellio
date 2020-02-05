@@ -88,9 +88,9 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private ListOptionGroup listOptionGroupRole;
 
 	@PropertyId("maxLength")
-	private TextField maxLength;
+	private BaseTextField maxLength;
 	@PropertyId("measurementUnit")
-	private TextField measurementUnit;
+	private BaseTextField measurementUnit;
 
 	@PropertyId("uniqueValue")
 	private CheckBox uniqueField;
@@ -319,13 +319,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		refType.setValue(null);
 		searchableField.setValue(false);
-
-		if (!maxLength.isEnabled()) {
-			maxLength.setValue("");//%Q nécessaire?
-		}
-		if (!measurementUnit.isEnabled()) {
-			measurementUnit.setValue("");
-		}
 
 		switch (value) {
 			case BOOLEAN:
@@ -612,6 +605,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		maxLength.setEnabled(formMetadataVO.getValueType() == MetadataValueType.STRING
 							 || formMetadataVO.getValueType() == MetadataValueType.TEXT);
 		maxLength.setVisible(maxLength.isEnabled());
+		if (presenter.getMaxLengthFieldValue() != null && !presenter.getMaxLengthFieldValue().equals("")) {
+			formMetadataVO.setMaxLength(Integer.parseInt(presenter.getMaxLengthFieldValue()));
+			maxLength.setValue(presenter.getMaxLengthFieldValue());
+		}
 
 		measurementUnit = new BaseTextField();
 		measurementUnit.setCaption($("AddEditMetadataView.measurementUnit"));
@@ -620,6 +617,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		measurementUnit.setEnabled(formMetadataVO.getValueType() == MetadataValueType.INTEGER
 								   || formMetadataVO.getValueType() == MetadataValueType.NUMBER);
 		measurementUnit.setVisible(measurementUnit.isEnabled());
+		if (presenter.getMeasurementUnitFieldValue() != null && !presenter.getMeasurementUnitFieldValue().equals("")) {
+			measurementUnit.setValue(presenter.getMeasurementUnitFieldValue());
+			formMetadataVO.setMeasurementUnit(presenter.getMeasurementUnitFieldValue());
+		}
 
 		List<RoleVO> roleList = presenter.getAllCollectionRole();
 		listOptionGroupRole.setMultiSelect(true);

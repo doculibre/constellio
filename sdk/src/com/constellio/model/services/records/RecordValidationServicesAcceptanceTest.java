@@ -55,6 +55,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMa
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasLabel;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivaluesAndLimitedTo50Characters;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichMaxLengthIs7;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 import static org.junit.Assert.fail;
@@ -528,6 +529,45 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 				.getValidationErrors();
 
 		assertThat(errors).hasSize(2);
+	}
+
+	@Test
+	public void givenMetadataLengthIsEqualToMaxLengthThenOk() throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichMaxLengthIs7));
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+
+		record.set(zeSchema.stringMetadata(), "1234567");
+
+		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
+				.getValidationErrors();
+
+		assertThat(errors).isEmpty();
+	}
+
+	@Test
+	public void givenMetadataLengthIsLesserThenMaxLengthThenOk() throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichMaxLengthIs7));
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+
+		record.set(zeSchema.stringMetadata(), "123456");
+
+		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
+				.getValidationErrors();
+
+		assertThat(errors).isEmpty();
+	}
+
+	@Test
+	public void givenMetadataLengthIsBiggerThenMaxLengthThenSingleError() throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichMaxLengthIs7));
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+
+		record.set(zeSchema.stringMetadata(), "12345678");
+
+		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
+				.getValidationErrors();
+
+		assertThat(errors).hasSize(1);
 	}
 
 	@Test
