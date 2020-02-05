@@ -566,8 +566,11 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
 				.getValidationErrors();
-
+		// valider code erreur avec message en francais
 		assertThat(errors).hasSize(1);
+		assertThat(errors.get(0)).has(
+				codeBasedOn(ValueRequirementValidator.class, ValueRequirementValidator.METADATA_VALUE_DOESNT_RESPECT_MAX_LENGTH)
+		);
 	}
 
 	@Test
