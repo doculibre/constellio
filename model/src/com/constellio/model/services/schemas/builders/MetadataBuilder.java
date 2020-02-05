@@ -295,8 +295,6 @@ public class MetadataBuilder {
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
 		builder.maxLength = metadata.getMaxLength();
-		//		builder.maxLength = inheritanceMetadata.getMaxLength();//%v Ce que ma logique me dirait de faire, mais taxonomyRelationship ne récupère pas sa valeur d'inherited?
-		//		builder.measurementUnit = inheritanceMetadata.getMeasurementUnit();
 		builder.measurementUnit = metadata.getMeasurementUnit();
 		builder.relationshipProvidingSecurity = metadata.isRelationshipProvidingSecurity();
 		builder.markedForDeletion = metadata.isMarkedForDeletion();

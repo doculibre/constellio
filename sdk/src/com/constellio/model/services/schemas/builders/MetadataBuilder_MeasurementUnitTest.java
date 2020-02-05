@@ -5,7 +5,7 @@ import org.junit.Test;
 import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MetadataBuilder_MeasurementUnitFlagTest extends MetadataBuilderTest {
+public class MetadataBuilder_MeasurementUnitTest extends MetadataBuilderTest {
 
 	@Test
 	public void givenMeasurementUnitUndefinedOnMetadataWithoutInheritanceWhenBuildingThenNull()

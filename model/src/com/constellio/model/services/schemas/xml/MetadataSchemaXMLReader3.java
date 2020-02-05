@@ -461,7 +461,6 @@ public class MetadataSchemaXMLReader3 {
 			if (maxLengthStringValue != null) {
 				metadataBuilder.setMaxLength(Integer.parseInt(maxLengthStringValue));
 			}
-			//else laisse comme ça???
 		}
 
 		String measurementUnitStringValue = metadataElement.getAttributeValue("measurementUnit");

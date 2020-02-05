@@ -5,7 +5,7 @@ import org.junit.Test;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MetadataBuilder_MaxLengthFlagTest extends MetadataBuilderTest {
+public class MetadataBuilder_MaxLengthTest extends MetadataBuilderTest {
 
 	@Test
 	public void givenMaxLengthUndefinedOnMetadataWithoutInheritanceWhenBuildingThenNull()
