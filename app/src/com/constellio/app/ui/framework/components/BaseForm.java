@@ -101,8 +101,6 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	private boolean isSpecialContainerTitleCase = false;
 
-	private boolean isNeedingConfirmation = false;
-
 	private Class<?> validatorClass = null;
 
 	public BaseForm(T viewObject, Serializable objectWithMemberFields, Field<?>... fields) {
