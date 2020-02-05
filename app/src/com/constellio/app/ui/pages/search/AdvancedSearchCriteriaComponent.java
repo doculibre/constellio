@@ -867,7 +867,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 	private static class HelpIconGenerator implements ColumnGenerator {
 		private SearchCriteriaPresenter presenter;
 
-		public HelpIconGenerator(SearchCriteriaPresenter presenter) {
+		HelpIconGenerator(SearchCriteriaPresenter presenter) {
 			this.presenter = presenter;
 		}
 
