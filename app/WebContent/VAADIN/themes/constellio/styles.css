@@ -16992,6 +16992,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .base-display .display-value {
 	text-align: right;
+	display: initial;
 }
 
 .constellio .right-to-left .back-button {
