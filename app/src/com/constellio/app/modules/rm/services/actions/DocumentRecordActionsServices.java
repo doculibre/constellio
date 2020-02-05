@@ -56,6 +56,13 @@ public class DocumentRecordActionsServices {
 			   rmModuleExtensions.isEditActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
+	public boolean isRenameActionPossible(Record record, User user) {
+		return hasUserWriteAccess(record, user) &&
+			   rm.wrapDocument(record).hasContent() &&
+			   !record.isLogicallyDeleted() &&
+			   rmModuleExtensions.isRenameActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
+
 	public boolean isDownloadActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
 		return hasUserReadAccess(record, user) && document.hasContent() &&
