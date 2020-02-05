@@ -10,6 +10,8 @@ public class BulkImportParams {
 
 	boolean isAllowingReferencesToNonExistingUsers = false;
 
+	boolean simulate = false;
+
 	ImportErrorsBehavior importErrorsBehavior = ImportErrorsBehavior.STOP_ON_FIRST_ERROR;
 
 	ImportValidationErrorsBehavior importValidationErrorsBehavior = ImportValidationErrorsBehavior.STOP_IMPORT;
@@ -26,6 +28,14 @@ public class BulkImportParams {
 			boolean warningsForRequiredUSRMetadatasWithoutValue) {
 		this.warningsForRequiredUSRMetadatasWithoutValue = warningsForRequiredUSRMetadatasWithoutValue;
 		return this;
+	}
+
+	public boolean isSimulate() {
+		return simulate;
+	}
+
+	public void setSimulate(boolean simulate) {
+		this.simulate = simulate;
 	}
 
 	public int getThreads() {

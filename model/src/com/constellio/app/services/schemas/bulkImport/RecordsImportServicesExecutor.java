@@ -239,7 +239,13 @@ public class RecordsImportServicesExecutor {
 		try {
 			initialize();
 			validate(errors);
-			return run(errors);
+			if (params.isSimulate()) {
+				throwIfNonEmptyErrorOrWarnings(errors);
+				return importResults;
+			} else {
+				return run(errors);
+			}
+
 		} finally {
 			importDataProvider.close();
 		}
