@@ -4137,6 +4137,13 @@ $popup-view-z-index: 3;
 		direction: rtl;
 	}
 
+	.right-to-left.confirm-dialog {
+		.v-horizontallayout {
+			float: left;
+			direction: rtl;
+		}
+	}
+	
 	.right-to-left {
 		.popupContent {
 			.v-window-header {

@@ -16649,6 +16649,11 @@ div.v-layout.v-horizontal.v-widget {
 	direction: rtl;
 }
 
+.constellio .right-to-left.confirm-dialog .v-horizontallayout {
+	float: left;
+	direction: rtl;
+}
+
 .constellio .right-to-left .popupContent .v-window-header {
 	float: right;
 	margin-right: initial;
