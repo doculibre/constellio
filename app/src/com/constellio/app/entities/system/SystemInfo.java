@@ -17,7 +17,6 @@ import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,10 +40,6 @@ public class SystemInfo {
 	private static final String CONSTELLIO_MEMORY_CONSUMPTION_HIGH = "constellioMemoryConsumptionHigh";
 	private static final String CONSTELLIO_MEMORY_CONSUMPTION_LOW = "constellioMemoryConsumptionLow";
 	private static final String PRIVATE_REPOSITORY_IS_NOT_INSTALLED = "privateRepositoryIsNotInstalled";
-
-	private static final DecimalFormat format = new DecimalFormat("#,##0.#");
-	private static final DecimalFormat longFormat = new DecimalFormat("#,##0.####");
-
 
 	private static SystemInfo instance;
 
@@ -111,9 +106,9 @@ public class SystemInfo {
 			userRunningConstellio = systemInformationsService.getConstellioUser();
 			optDiskUsageExtended = systemInformationsService.getDiskUsageExtended("/opt");
 			solrDiskUsageExtended = systemInformationsService.getDiskUsageExtended("/var/solr");
-			//optDiskUsageExtended retournera une string sous cette forme
+			//optDiskUsageExtended will return a String witht his structure (same for solrDiskUsageExtended)
 			//44G 6.3G 35G 16%
-			//où les champs représentent, en ordre:
+			//Where fields are representing, in order:
 			//Size, Usage, Availability, Use%(optDiskUsage)
 			optDiskUsage = optDiskUsageExtended.split(" ")[3];
 			solrDiskUsage = solrDiskUsageExtended.split(" ")[3];
@@ -432,7 +427,9 @@ public class SystemInfo {
 	}
 
 	private String formatDependingValueToGb(double value) {
-		return Math.round(value / 1024) >= 1 ? format.format(value / 1024) + " GB" : longFormat.format(value / 1024) + " GB";
+		return Math.round(value / 1024) >= 1
+			   ? new MemoryDetails(value, MemoryUnit.MB).toString(MemoryUnit.GB, 1)
+			   : new MemoryDetails(value, MemoryUnit.MB).toString(MemoryUnit.GB, 2);
 	}
 
 	private void validateRepository() {
