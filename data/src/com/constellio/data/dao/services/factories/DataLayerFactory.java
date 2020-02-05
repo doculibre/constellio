@@ -21,6 +21,7 @@ import com.constellio.data.dao.managers.config.ZooKeeperConfigManager;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.BigVaultRecordDao;
+import com.constellio.data.dao.services.bigVault.BigVaultSearchDao;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultLogger;
@@ -87,6 +88,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private static final String SECONDARY_SEQUENCE_TABLE_CONFIG_PATH = "/secondarySequence.properties";
 	static final String RECORDS_COLLECTION = "records";
 	static final String EVENTS_COLLECTION = "events";
+	static final String SEARCH_COLLECTION = "search";
 	static final String CONTENTS_COLLECTION = "contents";
 	static final String NOTIFICATIONS_COLLECTION = "notifications";
 
@@ -273,6 +275,10 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		return new BigVaultRecordDao(getEventsVaultServer(), newTypesFactory(), null, dataLayerLogger);
 	}
 
+	public RecordDao newSearchDao() {
+		return new BigVaultSearchDao(getSearchVaultServer(), newTypesFactory(), null, dataLayerLogger);
+	}
+
 	public RecordDao newNotificationsDao() {
 		return new BigVaultRecordDao(getNotificationsVaultServer(), newTypesFactory(), null, dataLayerLogger);
 	}
@@ -299,6 +305,10 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	public BigVaultServer getEventsVaultServer() {
 		return solrServers.getSolrServer(EVENTS_COLLECTION);
+	}
+
+	public BigVaultServer getSearchVaultServer() {
+		return solrServers.getSolrServer(SEARCH_COLLECTION);
 	}
 
 	public BigVaultServer getContentsVaultServer() {

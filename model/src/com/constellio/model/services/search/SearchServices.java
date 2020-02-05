@@ -1791,6 +1791,8 @@ public class SearchServices {
 	RecordDao dataStoreDao(String dataStore) {
 		if (dataStore == null || dataStore.equals(DataStore.RECORDS)) {
 			return modelLayerFactory.getDataLayerFactory().newRecordDao();
+		} else if (dataStore == null || dataStore.equals(DataStore.SEARCH)) {
+			return modelLayerFactory.getDataLayerFactory().newSearchDao();
 		} else {
 			return modelLayerFactory.getDataLayerFactory().newEventsDao();
 		}

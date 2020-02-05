@@ -48,6 +48,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 	RecordsCaches recordsCaches;
 	RecordDao recordDao;
 	RecordDao eventsDao;
+	RecordDao searchDao;
 	RecordDao notificationsDao;
 	RecordServicesImpl recordServices;
 	BatchProcessControllerAcceptanceTestSchemasSetup schemas = new BatchProcessControllerAcceptanceTestSchemasSetup();
@@ -72,10 +73,11 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 		recordsCaches = getModelLayerFactory().getRecordsCaches();
 		eventsDao = spy(getDataLayerFactory().newEventsDao());
 		recordDao = spy(getDataLayerFactory().newRecordDao());
+		searchDao = spy(getDataLayerFactory().newSearchDao());
 		notificationsDao = spy(getDataLayerFactory().newNotificationsDao());
 		DataStoreTypesFactory typesFactory = getDataLayerFactory().newTypesFactory();
 		UniqueIdGenerator uniqueIdGenerator = getDataLayerFactory().getUniqueIdGenerator();
-		recordServices = spy(new RecordServicesImpl(recordDao, eventsDao, notificationsDao, getModelLayerFactory(), typesFactory,
+		recordServices = spy(new RecordServicesImpl(recordDao, eventsDao, searchDao, notificationsDao, getModelLayerFactory(), typesFactory,
 				uniqueIdGenerator, recordsCaches));
 
 		modelFactory = getModelLayerFactory();
@@ -131,7 +133,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 		doThrow(Error.class).when(batchProcessManager)
 				.addBatchProcessInStandby(any(LogicalSearchCondition.class), any(BatchProcessAction.class), anyString());
 		when(modelFactory.getBatchProcessesManager()).thenReturn(batchProcessManager);
-		recordServices = new RecordServicesImpl(recordDao, eventsDao, notificationsDao, modelFactory,
+		recordServices = new RecordServicesImpl(recordDao, eventsDao, searchDao, notificationsDao, modelFactory,
 				getDataLayerFactory().newTypesFactory(), getDataLayerFactory().getUniqueIdGenerator(), recordsCaches);
 
 		zeSchemaRecord.set(zeSchema.text(), anotherSchemaRecordNewText);
