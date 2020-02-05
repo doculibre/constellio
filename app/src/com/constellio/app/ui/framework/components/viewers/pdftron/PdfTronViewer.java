@@ -12,6 +12,7 @@ import com.constellio.app.ui.framework.components.resource.ConstellioResourceHan
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.JavascriptUtils;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
@@ -36,6 +37,8 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.json.simple.JSONObject;
 
@@ -49,7 +52,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 @Slf4j
 public class PdfTronViewer extends VerticalLayout implements ViewChangeListener {
 
-	public static final String[] SUPPORTED_EXTENTION = {"pdf", "pdf/a", "xfdf", "fdf", "docx", "xlsx", "pptx", "jpg", "png"};
+	public static final String[] SUPPORTED_EXTENTION = {"pdf", "pdf/a", "xfdf", "fdf", "docx", "xlsx", "pptx", "jpg", "png", "mp4"};
 	private static final String CONTENT_RESOURCE_KEY_PREFIX = "document.file.";
 	private static final String ANNOTATION_RESOURCE_KEY = "document.annotation";
 	public static final String PDFTRON_CANVAS_ID = "pdftron-canvas";
@@ -99,16 +102,26 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		String filename = contentVersion.getFileName();
 		ConstellioUI current = ConstellioUI.getCurrent();
 
-		this.pdfTronLicense = license;
+		if (ArrayUtils.contains(PdfTronViewer.SUPPORTED_EXTENTION, FilenameUtils.getExtension(filename))) {
+			this.documentContentResource = ConstellioResourceHandler.createResource(recordId, metadataCode, contentVersion.getVersion(), filename, ResourceType.NORMAL, false, contentVersion.getContentId());
+		} else {
+			ContentManager contentManager = getAppLayerFactory().getModelLayerFactory().getContentManager();
+			if (contentManager.hasContentPreview(contentVersion.getHash())) {
+				this.documentContentResource = ConstellioResourceHandler.createPreviewResource(recordId, metadataCode, contentVersion.getVersion(), filename);
+			} else {
+				this.setVisible(false);
+				return;
+			}
+		}
 
-		this.documentContentResource = ConstellioResourceHandler.createResource(recordId, metadataCode, contentVersion.getVersion(), filename, ResourceType.NORMAL, false, contentVersion.getContentId());
 		this.documentContentResourceKey = CONTENT_RESOURCE_KEY_PREFIX + UUID.randomUUID().toString();
+		ResourceReference documentContentResourceReference = ResourceReference.create(documentContentResource, current, documentContentResourceKey);
+		documentContentUrl = documentContentResourceReference.getURL();
+
+		this.pdfTronLicense = license;
 
 		this.documentAnnotationResource = ConstellioResourceHandler.createAnnotationResource(recordId, metadataCode, contentVersion.getVersion(), filename, contentVersion.getContentId());
 		this.documentAnnotationResourceKey = ANNOTATION_RESOURCE_KEY + UUID.randomUUID().toString();
-
-		ResourceReference documentContentResourceReference = ResourceReference.create(documentContentResource, current, documentContentResourceKey);
-		documentContentUrl = documentContentResourceReference.getURL();
 
 		ResourceReference documentAnnotationResourceReference = ResourceReference.create(documentAnnotationResource, current, documentAnnotationResourceKey);
 		documentAnnotationUrl = documentAnnotationResourceReference.getURL();
