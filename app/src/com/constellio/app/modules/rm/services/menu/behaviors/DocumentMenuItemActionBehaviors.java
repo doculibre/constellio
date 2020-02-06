@@ -16,6 +16,7 @@ import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.ui.buttons.RenameDialogButton;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
+import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
@@ -31,6 +32,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -68,11 +70,15 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
+import com.vaadin.shared.ui.MarginInfo;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -81,13 +87,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.ui.framework.components.ErrorDisplayUtil.showErrorMessage;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+@Slf4j
 public class DocumentMenuItemActionBehaviors {
 
 	private RMModuleExtensions rmModuleExtensions;
@@ -304,6 +313,50 @@ public class DocumentMenuItemActionBehaviors {
 			}
 		};
 		publicLinkButton.click();
+	}
+
+	public void move(Document document, MenuItemActionBehaviorParams params) {
+		Button moveInFolderButton = new WindowButton($("DocumentContextMenu.changeParentFolder"),
+				$("DocumentContextMenu.changeParentFolder"), WindowButton.WindowConfiguration.modalDialog("570px", "140px")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout verticalLayout = new VerticalLayout();
+				verticalLayout.setSpacing(true);
+				final LookupFolderField field = new LookupFolderField(true);
+				verticalLayout.addComponent(field);
+				verticalLayout.setMargin(new MarginInfo(true, true, false, true));
+				BaseButton saveButton = new BaseButton($("save")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						String parentId = (String) field.getValue();
+						try {
+							RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+							String currentDocumentId = document.getId();
+							if (isNotBlank(parentId)) {
+								try {
+									recordServices.update(rmSchemas.getDocument(currentDocumentId).setFolder(parentId), params.getUser());
+									params.getView().navigate().to(RMViews.class).displayDocument(currentDocumentId);
+								} catch (RecordServicesException.ValidationException e) {
+									params.getView().showErrorMessage($(e.getErrors()));
+								}
+							}
+						} catch (Throwable e) {
+							log.warn("Error when trying to move this document to folder " + parentId, e);
+							showErrorMessage("DocumentContextMenu.changeParentFolderException");
+						}
+						getWindow().close();
+					}
+				};
+				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				HorizontalLayout hlayout = new HorizontalLayout();
+				hlayout.setSizeFull();
+				hlayout.addComponent(saveButton);
+				hlayout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
+				verticalLayout.addComponent(hlayout);
+				return verticalLayout;
+			}
+		};
+		moveInFolderButton.click();
 	}
 
 

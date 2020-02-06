@@ -36,6 +36,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GENERATE_REPORT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GET_PUBLIC_LINK;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_MANAGE_AUTHORIZATIONS;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_MOVE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_OPEN;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PRINT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PUBLISH;
@@ -97,6 +98,12 @@ public class DocumentMenuItemServices {
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).download(document, params)));
 		}
 
+		if (!filteredActionTypes.contains(DOCUMENT_MOVE.name())) {
+			menuItemActions.add(buildMenuItemAction(DOCUMENT_MOVE.name(),
+					isMenuItemActionPossible(DOCUMENT_MOVE.name(), document, user, params),//todo check destination?
+					$("DocumentContextMenu.changeParentFolder"), null, -1, 425,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).move(document, params)));
+		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_CONTENT_RENAME.name())) {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_CONTENT_RENAME.name(),
@@ -306,6 +313,8 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.isEditActionPossible(record, user);
 			case DOCUMENT_FINALIZE:
 				return documentRecordActionsServices.isFinalizeActionPossible(record, user);
+			case DOCUMENT_MOVE:
+				return documentRecordActionsServices.isMoveActionPossible(record, user);
 			case DOCUMENT_PUBLISH:
 				return documentRecordActionsServices.isPublishActionPossible(record, user);
 			case DOCUMENT_UNPUBLISH:
@@ -366,6 +375,7 @@ public class DocumentMenuItemServices {
 		DOCUMENT_CONTENT_RENAME,
 		DOCUMENT_CONSULT_LINK,
 		DOCUMENT_DOWNLOAD,
+		DOCUMENT_MOVE,
 		DOCUMENT_DELETE,
 		DOCUMENT_COPY,
 		DOCUMENT_FINALIZE,
