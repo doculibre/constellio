@@ -195,7 +195,7 @@ public class DocumentMenuItemActionBehaviors {
 
 				document.getContent().renameCurrentVersion(newValue);
 				try {
-					recordServices.update(document.getWrappedRecord());
+					recordServices.update(document.getWrappedRecord(), params.getUser());
 					getWindow().close();
 					navigateToDisplayDocument(document.getId(), params.getFormParams());
 				} catch (RecordServicesException e) {
