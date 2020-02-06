@@ -66,7 +66,7 @@ public class MultilingualRichTextField extends CustomField<Map<String, String>> 
 	private void prepareEntryFields() {
 		layout.removeAllComponents();
 		for (final String language : getCollectionLanguages()) {
-			final RichTextArea field = new RichTextArea($(language));
+			final RichTextArea field = new RichTextArea($("MultilingualRichTextField." + language));
 			field.setValue(value.get(language));
 			field.addValueChangeListener(new ValueChangeListener() {
 				@Override
