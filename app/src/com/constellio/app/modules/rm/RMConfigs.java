@@ -60,6 +60,7 @@ public class RMConfigs {
 			MIXED_CONTAINERS_ALLOWED,
 			ACTIVES_IN_CONTAINER_ALLOWED,
 			BORROWING_DURATION_IN_DAYS,
+			DOCUMENT_BORROWING_DURATION_IN_DAYS,
 			DOCUMENTS_TYPES_CHOICE,
 			ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER,
 			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
@@ -260,6 +261,8 @@ public class RMConfigs {
 				.scriptedBy(EnableOrDisableTypeRestrictionInFolderScript.class).whichIsHidden());
 
 		add(BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
+
+		add(DOCUMENT_BORROWING_DURATION_IN_DAYS = others.createInteger("documentBorrowingDurationDays").withDefaultValue(7));
 
 		add(OPEN_HOLDER = others.createBooleanFalseByDefault("openHolder"));
 
@@ -509,6 +512,10 @@ public class RMConfigs {
 
 	public int getBorrowingDurationDays() {
 		return manager.getValue(BORROWING_DURATION_IN_DAYS);
+	}
+
+	public int getDocumentBorrowingDurationDays() {
+		return manager.getValue(DOCUMENT_BORROWING_DURATION_IN_DAYS);
 	}
 
 	public boolean isOpenHolder() {
