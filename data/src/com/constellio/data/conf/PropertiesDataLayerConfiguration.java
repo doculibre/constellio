@@ -164,6 +164,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getBoolean("dao.records.http.faultInjection", false);
 	}
 
+	@Override
+	public boolean useSolrTupleStreamsIfSupported() {
+		return getBoolean("dao.records.useTuppleStreamsIfSupported", true);
+	}
+
 	public ContentDaoType getContentDaoType() {
 		return (ContentDaoType) getRequiredEnum("dao.contents.type", ContentDaoType.class);
 	}
@@ -308,6 +313,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	public boolean isWriteZZRecords() {
 		return getBoolean("writeZZRecords", false);
 	}
+
 
 	@Override
 	public HashingEncoding getHashingEncoding() {

@@ -71,6 +71,8 @@ public class MetadataSchemaType implements Serializable {
 
 	private MetadataSchemaTypes schemaTypes;
 
+	private Metadata mainSortMetadata;
+
 	public MetadataSchemaType(short id, String code, String smallCode, CollectionInfo collectionInfo,
 							  Map<Language, String> labels,
 							  List<MetadataSchema> customSchemas,
@@ -107,6 +109,16 @@ public class MetadataSchemaType implements Serializable {
 			customSchema.setBuiltSchemaType(this);
 		}
 		defaultSchema.setBuiltSchemaType(this);
+
+		if (!code.startsWith("ddv") && defaultSchema.hasMetadataWithCode("code") && defaultSchema.get("code").isDefaultRequirement()) {
+			mainSortMetadata = defaultSchema.getMetadata("code");
+
+		} else if (defaultSchema.hasMetadataWithCode("title")) {
+			mainSortMetadata = defaultSchema.getMetadata("title");
+
+		} else {
+			mainSortMetadata = null;
+		}
 	}
 
 	void setBuiltSchemaTypes(MetadataSchemaTypes schemaTypes) {
@@ -628,5 +640,9 @@ public class MetadataSchemaType implements Serializable {
 
 
 		return null;
+	}
+
+	public Metadata getMainSortMetadata() {
+		return mainSortMetadata;
 	}
 }

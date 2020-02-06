@@ -23,6 +23,7 @@ import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
 
 public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordDTO, Supplier<byte[]> {
 
+
 	MetadataSchemaProvider schemaProvider;
 	long version;
 	boolean summary;
@@ -68,13 +69,21 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 
 		int id;
 
+		int mainSortValue;
+
 		public ByteArrayRecordDTOWithIntegerId(
 				int id, MetadataSchemaProvider schemaProvider, long version, boolean summary,
 				short tenantId, String collectionCode, byte collectionId, String typeCode, short typeId,
-				String schemaCode, short schemaId, byte[] data) {
+				String schemaCode, short schemaId, byte[] data, int mainSortValue) {
 			super(schemaProvider, version, summary, tenantId, collectionCode, collectionId, typeCode, typeId,
 					schemaCode, schemaId, data);
+			this.mainSortValue = mainSortValue;
 			this.id = id;
+		}
+
+		@Override
+		public int getMainSortValue() {
+			return mainSortValue;
 		}
 
 		@Override
@@ -121,19 +130,32 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	public static class ByteArrayRecordDTOWithStringId extends ByteArrayRecordDTO {
 
 		String id;
+		int mainSortValue;
 
 		public ByteArrayRecordDTOWithStringId(
 				String id, MetadataSchemaProvider schemaProvider, long version, boolean summary,
 				short instanceId, String collectionCode, byte collectionId, String typeCode, short typeId,
-				String schemaCode, short schemaId, byte[] data) {
+				String schemaCode, short schemaId, byte[] data, int mainSortValue) {
 			super(schemaProvider, version, summary, instanceId, collectionCode, collectionId, typeCode, typeId,
 					schemaCode, schemaId, data);
+			this.mainSortValue = mainSortValue;
 			this.id = id;
+		}
+
+		public ByteArrayRecordDTOWithStringId setMainSortValue(int mainSortValue) {
+			this.mainSortValue = mainSortValue;
+			return this;
 		}
 
 		@Override
 		public String getId() {
 			return id;
+		}
+
+
+		@Override
+		public int getMainSortValue() {
+			return mainSortValue;
 		}
 
 		@Override

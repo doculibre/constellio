@@ -78,7 +78,7 @@ public class Toggle {
 	public static AvailableToggle VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR = newToggle(false);
 
 	//For test puroposes only
-	public static AvailableToggle USE_ONLY_SUMMARY_SOLR_RECORD_DTO = newToggle(true);
+	public static AvailableToggle USE_ONLY_SUMMARY_SOLR_RECORD_DTO = newToggle(false);
 
 	//Debug the dtos!
 	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(false);
@@ -119,7 +119,6 @@ public class Toggle {
 
 	public static AvailableToggle USE_MEMORY_STRING_ID_MAPPING = newToggle(false);
 	public static AvailableToggle DOCUMENT_RETENTION_RULES = newToggle(false);
-
 
 
 	// ------------------------------------------------

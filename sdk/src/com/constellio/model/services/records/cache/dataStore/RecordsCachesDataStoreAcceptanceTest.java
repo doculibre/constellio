@@ -212,6 +212,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(setup.withABooleanMetadata(whichIsEssentialInSummary));
 
+
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
@@ -220,6 +221,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		});
 		initTestVariables();
 
+		assertThat(dataStore.intIdsDataStore.collection.stream().collect(toList())).isEmpty();
 		ByteArrayRecordDTO dto1, dto2, dto3, dto6, dto7, dto8, dto10, dto12;
 		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), SUMMARY));
 		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), SUMMARY));

@@ -2592,19 +2592,19 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 			}
 			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
 					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
-					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory, RecordDTO.MAIN_SORT_UNDEFINED);
 		} else {
 			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
 				ByteArrayRecordDTOWithIntegerId byteArrayRecordDTO = new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
 						instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),
-						type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+						type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory, -1);
 				SummaryCacheSingletons.dataStore.get(instanceId).saveIntKeyPersistedAndMemoryData(intId, bytesArray.bytesToPersist, byteArrayRecordDTO);
 			} else {
 				//SummaryCacheSingletons.dataStore.removeIntKey(intId);
 			}
 			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
 					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),
-					type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+					type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory, RecordDTO.MAIN_SORT_UNDEFINED);
 		}
 
 	}

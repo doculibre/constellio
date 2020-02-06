@@ -44,7 +44,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 	@Override
 	public void afterTest(boolean failed) {
-		testSession.close(false, failed);
+		testSession.close(false, failed, false);
 	}
 
 	private static ConstellioTest currentInstance;
@@ -81,7 +81,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 			}
 
-			testSession.close(true, false);
+			testSession.close(true, false, false);
 			ReindexingServices.markReindexingHasFinished();
 
 			System.out.print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
@@ -137,14 +137,14 @@ public class ConstellioTest extends AbstractConstellioTest {
 	}
 
 	public void resetTestSession() {
-		testSession.close(true, false);
+		testSession.close(true, false, false);
 
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 	}
 
 	protected void clearTestSession() {
 		if (!isPreservingState()) {
-			testSession.close(false, false);
+			testSession.close(false, false, false);
 			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		}
 	}
@@ -240,6 +240,11 @@ public class ConstellioTest extends AbstractConstellioTest {
 			}
 		}
 
+	}
+
+	public void restartLayers() {
+		getCurrentTestSession().closeForRestarting();
+		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 	}
 
 	private ValidationErrors checkCacheAndReturnErrors(boolean waitForBatchProcesses, boolean runTwice) {

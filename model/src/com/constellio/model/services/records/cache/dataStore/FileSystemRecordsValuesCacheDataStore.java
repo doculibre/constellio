@@ -41,90 +41,98 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	private boolean recreated;
 
-	private DB onDiskDatabase;
+	private DB onDiskFileSystemCacheDatabase;
 
-	private DB bufferDatabase;
-
-	private BTreeMap<Integer, byte[]> intKeyMap;
+	private DB onDiskRebootMemoryCacheDatabase;
 
 	private final LRUMap<Integer, byte[]> tempIntKeyMap = new LRUMap<>(40_000);
-	//private HTreeMap<Integer, byte[]> tempIntKeyMap;
 
-	private BTreeMap<String, byte[]> stringKeyMap;
+	private BTreeMap<Integer, byte[]> onDiskFileSystemCacheIntKeyMap;
+	private BTreeMap<String, byte[]> onDiskFileSystemCacheStringKeyMap;
 
-	private File file;
+	//Used for faster memory cache rebuild when Constellio is restarting
+	private BTreeMap<Integer, byte[]> onDiskRebootMemoryCacheIntKeyMap;
+
+	private File filesystemCacheFile;
+	private File rebootMemoryCacheFile;
 
 	private boolean busy = false;
 
-	public FileSystemRecordsValuesCacheDataStore(File file) {
-		this.file = file;
+	public FileSystemRecordsValuesCacheDataStore(File filesystemCacheFile, File rebootMemoryCacheFile) {
+		this.filesystemCacheFile = filesystemCacheFile;
+		this.rebootMemoryCacheFile = rebootMemoryCacheFile;
 
 		//Possibly enable mmap for faster loading
-		open(file, Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled());
-		stringKeyMap.clear();
+		open(Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled());
+		onDiskFileSystemCacheStringKeyMap.clear();
 	}
 
-	private void open(File file, boolean useMmap) {
+	private void open(boolean useMmap) {
 		if (Toggle.USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE.isEnabled()) {
 
-			//	try {
-			recreated = !file.exists();
-			Maker dbMaker = DBMaker.fileDB(file);
+			recreated = !filesystemCacheFile.exists();
+			Maker onDiskFileSystemCacheDatabaseMaker = DBMaker.fileDB(filesystemCacheFile);
+			Maker onDiskRebootMemoryCacheDatabaseMaker = DBMaker.fileDB(rebootMemoryCacheFile);
 			if (useMmap) {
 				LOGGER.info("Opening MapDB with MMAP support");
-				dbMaker.fileMmapEnableIfSupported().fileMmapPreclearDisable().cleanerHackEnable();
-				dbMaker.allocateStartSize(500 * 1024 * 1024).allocateIncrement(500 * 1024 * 1024);
+				onDiskFileSystemCacheDatabaseMaker.fileMmapEnableIfSupported().fileMmapPreclearDisable().cleanerHackEnable();
+				onDiskFileSystemCacheDatabaseMaker.allocateStartSize(500 * 1024 * 1024).allocateIncrement(500 * 1024 * 1024);
+
+				onDiskRebootMemoryCacheDatabaseMaker.fileMmapEnableIfSupported().fileMmapPreclearDisable().cleanerHackEnable();
+				onDiskRebootMemoryCacheDatabaseMaker.allocateStartSize(50 * 1024 * 1024).allocateIncrement(50 * 1024 * 1024);
 			} else {
-				dbMaker.fileChannelEnable();
 				LOGGER.info("Opening MapDB without MMAP support");
+				onDiskFileSystemCacheDatabaseMaker.fileChannelEnable();
+				onDiskRebootMemoryCacheDatabaseMaker.fileChannelEnable();
+
 			}
-			dbMaker.checksumHeaderBypass();
-			dbMaker.closeOnJvmShutdownWeakReference();
-			this.onDiskDatabase = dbMaker.fileLockDisable().make();
+			onDiskFileSystemCacheDatabaseMaker.checksumHeaderBypass();
+			onDiskFileSystemCacheDatabaseMaker.closeOnJvmShutdownWeakReference();
+
+			onDiskRebootMemoryCacheDatabaseMaker.checksumHeaderBypass();
+			onDiskRebootMemoryCacheDatabaseMaker.closeOnJvmShutdownWeakReference();
+
+			this.onDiskFileSystemCacheDatabase = onDiskFileSystemCacheDatabaseMaker.fileLockDisable().make();
+			this.onDiskRebootMemoryCacheDatabase = onDiskRebootMemoryCacheDatabaseMaker.fileLockDisable().make();
+
 
 		} else {
 			Maker dbMaker = DBMaker.memoryDB();
-			this.onDiskDatabase = dbMaker.make();
+			this.onDiskFileSystemCacheDatabase = dbMaker.make();
+			this.onDiskRebootMemoryCacheDatabase = dbMaker.make();
 		}
 
-		bufferDatabase = DBMaker.memoryDB().make();
-
-		//TODO 50mo for small servers, 200 for big ones (average length of 5ko per document)
-		//		tempIntKeyMap = bufferDatabase.hashMap("tempIntKeysDataStore")
-		//				.keySerializer(Serializer.INTEGER)
-		//				.valueSerializer(Serializer.BYTE_ARRAY)
-		//				.expireStoreSize(200_000_000)
-		//				.expireMaxSize(40_000)
-		//				.expireAfterGet()
-		//				.expireAfterCreate()
-		//				.create();
-
-		intKeyMap = onDiskDatabase.treeMap("intKeysDataStore")
+		onDiskFileSystemCacheIntKeyMap = onDiskFileSystemCacheDatabase.treeMap("intKeysDataStore")
 				.valuesOutsideNodesEnable()
 				.keySerializer(Serializer.INTEGER)
 				.valueSerializer(Serializer.BYTE_ARRAY)
 				.createOrOpen();
 
-		recreated = intKeyMap.isEmpty();
+		onDiskRebootMemoryCacheIntKeyMap = onDiskRebootMemoryCacheDatabase.treeMap("intKeysDataStore")
+				.valuesOutsideNodesEnable()
+				.keySerializer(Serializer.INTEGER)
+				.valueSerializer(Serializer.BYTE_ARRAY)
+				.createOrOpen();
+
+		recreated |= onDiskFileSystemCacheIntKeyMap.isEmpty();
 		if (recreated) {
 			byte[] bytes = new byte[1];
 			bytes[0] = VERSION;
-			intKeyMap.put(0, bytes);
+			onDiskFileSystemCacheIntKeyMap.put(0, bytes);
 		} else {
-			byte[] version = intKeyMap.get(0);
+			byte[] version = onDiskFileSystemCacheIntKeyMap.get(0);
 			//Will fail if previous map is from previous war with different structure
 			recreated = version == null || version.length == 0 || version[0] != VERSION;
 			if (recreated) {
-				intKeyMap.clear();
+				onDiskFileSystemCacheIntKeyMap.clear();
 
 				byte[] bytes = new byte[1];
 				bytes[0] = VERSION;
-				intKeyMap.put(0, bytes);
+				onDiskFileSystemCacheIntKeyMap.put(0, bytes);
 			}
 		}
 
-
-		stringKeyMap = onDiskDatabase.treeMap("stringKeysDataStore")
+		onDiskFileSystemCacheStringKeyMap = onDiskFileSystemCacheDatabase.treeMap("stringKeysDataStore")
 				.valuesOutsideNodesEnable()
 				.keySerializer(Serializer.STRING)
 				.valueSerializer(Serializer.BYTE_ARRAY)
@@ -137,25 +145,26 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	public void saveStringKey(String id, byte[] bytes) {
 		ensureNotBusy();
-		stringKeyMap.put(id, bytes);
+		onDiskFileSystemCacheStringKeyMap.put(id, bytes);
 	}
 
 	public void saveIntKeyPersistedAndMemoryData(int id, byte[] persistedData, ByteArrayRecordDTO memoryRecordDTO) {
-		Stats.compilerFor("FileSystemRecordsValuesCacheDataStore:save").log(() -> {
+		Stats.compilerFor("FileSystemRecordsValuesCacheDataStore:savePersisted").log(() -> {
 			ensureNotBusy();
 			synchronized (tempIntKeyMap) {
 				tempIntKeyMap.put(id, persistedData);
 			}
+
+			onDiskFileSystemCacheIntKeyMap.put(id, persistedData);
+		});
+
+		Stats.compilerFor("FileSystemRecordsValuesCacheDataStore:saveMemoryCopy").log(() -> {
+			ensureNotBusy();
 			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 			ObjectOutputStream objectOutputStream = null;
 			try {
 				objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-				objectOutputStream.writeInt(persistedData.length);
-				objectOutputStream.flush();
 				objectOutputStream.writeLong(memoryRecordDTO.getVersion());
-				objectOutputStream.flush();
-				objectOutputStream.write(persistedData);
-				objectOutputStream.flush();
 				objectOutputStream.writeShort(memoryRecordDTO.getTenantId());
 				objectOutputStream.writeByte(memoryRecordDTO.getCollectionId());
 				objectOutputStream.writeShort(memoryRecordDTO.getTypeId());
@@ -169,13 +178,13 @@ public class FileSystemRecordsValuesCacheDataStore {
 				IOUtils.closeQuietly(objectOutputStream);
 			}
 
-			intKeyMap.put(id, byteArrayOutputStream.toByteArray());
+			onDiskRebootMemoryCacheIntKeyMap.put(id, byteArrayOutputStream.toByteArray());
 		});
 	}
 
 	public void removeStringKey(String id) {
 		ensureNotBusy();
-		stringKeyMap.remove(id);
+		onDiskFileSystemCacheStringKeyMap.remove(id);
 	}
 
 	public void removeIntKey(int id) {
@@ -184,13 +193,14 @@ public class FileSystemRecordsValuesCacheDataStore {
 			synchronized (tempIntKeyMap) {
 				tempIntKeyMap.remove(id);
 			}
-			intKeyMap.remove(id);
+			onDiskFileSystemCacheIntKeyMap.remove(id);
+			onDiskRebootMemoryCacheIntKeyMap.remove(id);
 		});
 	}
 
 	public byte[] loadStringKey(String id) {
 		ensureNotBusy();
-		byte[] bytes = stringKeyMap.get(id);
+		byte[] bytes = onDiskFileSystemCacheStringKeyMap.get(id);
 		if (bytes == null) {
 			throw new IllegalStateException("Record '" + id + "' has no stored bytes");
 		}
@@ -202,37 +212,21 @@ public class FileSystemRecordsValuesCacheDataStore {
 		return Stats.compilerFor("FileSystemRecordsValuesCacheDataStore:get").log(() -> {
 			byte[] persistedDataInMemory = null;
 			synchronized (tempIntKeyMap) {
-				tempIntKeyMap.get(id);
+				persistedDataInMemory = tempIntKeyMap.get(id);
 			}
+
 			if (persistedDataInMemory != null) {
 				return persistedDataInMemory;
 			}
-			byte[] bytes = intKeyMap.get(id);
+
+			byte[] bytes = onDiskFileSystemCacheIntKeyMap.get(id);
 			if (bytes == null) {
 				throw new IllegalStateException("Record '" + id + "' has no stored bytes");
 			}
-
-			ObjectInputStream objectInputStream = null;
-			try {
-				objectInputStream = new ObjectInputStream(new ByteArrayInputStream(bytes));
-				int dataLength = objectInputStream.readInt();
-				objectInputStream.skipBytes(Long.BYTES);
-				byte[] returnedBytes = new byte[dataLength];
-				for (int i = 0; i < returnedBytes.length; i++) {
-					returnedBytes[i] = objectInputStream.readByte();
-				}
-				synchronized (tempIntKeyMap) {
-					tempIntKeyMap.put(id, returnedBytes);
-				}
-				//System.arraycopy(bytes, Integer.BYTES + Long.BYTES, returnedBytes, 0, returnedBytes.length);
-				//int results = objectInputStream.read(returnedBytes);
-				//System.out.println(results);
-				return returnedBytes;
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			} finally {
-				IOUtils.closeQuietly(objectInputStream);
+			synchronized (tempIntKeyMap) {
+				tempIntKeyMap.put(id, bytes);
 			}
+			return bytes;
 		});
 	}
 
@@ -240,7 +234,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 													 MetadataSchemasManager schemasManager,
 													 MetadataSchemaType schemaType) {
 		ensureNotBusy();
-		byte[] bytes = intKeyMap.get(id);
+		byte[] bytes = onDiskRebootMemoryCacheIntKeyMap.get(id);
 		if (bytes == null) {
 			return null;
 		}
@@ -250,17 +244,15 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	@Nullable
 	private ByteArrayRecordDTO toByteArrayRecordDTO(int id, long expectedVersion, MetadataSchemasManager schemasManager,
-													MetadataSchemaType schemaType, byte[] bytes) {
+													MetadataSchemaType schemaType, byte[] memoryBytes) {
 		ensureNotBusy();
 		ObjectInputStream objectInputStream = null;
 		try {
-			objectInputStream = new ObjectInputStream(new ByteArrayInputStream(bytes));
-			int persitedDataLength = objectInputStream.readInt();
+			objectInputStream = new ObjectInputStream(new ByteArrayInputStream(memoryBytes));
 			long version = objectInputStream.readLong();
 			if (expectedVersion != 0 && expectedVersion != version) {
 				return null;
 			}
-			objectInputStream.skipBytes(persitedDataLength);
 			short tenantId = objectInputStream.readShort();
 			byte collectionId = objectInputStream.readByte();
 			short typeId = objectInputStream.readShort();
@@ -270,14 +262,14 @@ public class FileSystemRecordsValuesCacheDataStore {
 			}
 			short schemaId = objectInputStream.readShort();
 
-			byte[] memoryData = new byte[bytes.length - Integer.BYTES - Long.BYTES - persitedDataLength
+			byte[] memoryData = new byte[memoryBytes.length - Long.BYTES
 										 - Short.BYTES - Byte.BYTES - Short.BYTES - Short.BYTES];
 			objectInputStream.read(memoryData);
 
 			return new ByteArrayRecordDTOWithIntegerId(id, schemasManager, version, true, tenantId,
 					schemaType.getCollection(), schemaType.getCollectionInfo().getCollectionId(),
 					schemaType.getCode(), schemaType.getId(), schemaType.getSchema(schemaId).getCode(), schemaId,
-					memoryData);
+					memoryData, -1);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -286,15 +278,13 @@ public class FileSystemRecordsValuesCacheDataStore {
 	}
 
 	public void close() {
-		intKeyMap.close();
-		stringKeyMap.close();
-		onDiskDatabase.close();
-		bufferDatabase.close();
+		onDiskFileSystemCacheIntKeyMap.close();
+		onDiskFileSystemCacheStringKeyMap.close();
+		onDiskRebootMemoryCacheIntKeyMap.close();
 
-		intKeyMap = null;
-		stringKeyMap = null;
-		onDiskDatabase = null;
-		bufferDatabase = null;
+		onDiskFileSystemCacheIntKeyMap = null;
+		onDiskFileSystemCacheStringKeyMap = null;
+		onDiskRebootMemoryCacheIntKeyMap = null;
 	}
 
 	public void closeThenReopenWithoutMmap() {
@@ -311,7 +301,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 			}
 
 			close();
-			open(file, false);
+			open(false);
 
 			busy = false;
 		}
@@ -332,10 +322,9 @@ public class FileSystemRecordsValuesCacheDataStore {
 		synchronized (tempIntKeyMap) {
 			tempIntKeyMap.clear();
 		}
-		intKeyMap.clear();
-		stringKeyMap.clear();
-		intKeyMap.clear();
-		stringKeyMap.clear();
+		onDiskFileSystemCacheIntKeyMap.close();
+		onDiskFileSystemCacheStringKeyMap.close();
+		onDiskRebootMemoryCacheIntKeyMap.close();
 	}
 
 	public List<RecordIdVersion> retrieveIdVersionForRecordOfType(MetadataSchemasManager schemasManager,
@@ -345,7 +334,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 		ensureNotBusy();
 		List<RecordIdVersion> idVersions = new ArrayList<>();
 
-		Iterator<Entry<Integer, byte[]>> entryIterator = intKeyMap.entryIterator();
+		Iterator<Entry<Integer, byte[]>> entryIterator = onDiskRebootMemoryCacheIntKeyMap.entryIterator();
 		while (entryIterator.hasNext()) {
 			Entry<Integer, byte[]> entry = entryIterator.next();
 			int id = entry.getKey();

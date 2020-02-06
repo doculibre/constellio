@@ -84,13 +84,15 @@ public class FactoriesTestFeatures {
 		ConstellioFactories.instanceProvider = new SDKConstellioFactoriesInstanceProvider();
 	}
 
-	public List<Runnable> afterTest() {
+	public List<Runnable> afterTest(boolean restarting) {
 
 		List<Runnable> runtimes = new ArrayList<>();
 
 
 		if (ConstellioFactories.instanceProvider.isInitialized()) {
-			runtimes.addAll(clear());
+			if (!restarting) {
+				runtimes.addAll(clear());
+			}
 		}
 
 		ConstellioFactories.clear();
@@ -232,6 +234,13 @@ public class FactoriesTestFeatures {
 			vaultServer.getSolrServerFactory().clear();
 			CloseableUtils.closeQuietly(vaultServer.getNestedSolrServer());
 		}
+	}
+
+
+	public void restart() {
+		SDKConstellioFactoriesInstanceProvider instanceProvider = (SDKConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider;
+		instanceProvider.clear();
+		getConstellioFactories();
 	}
 
 	public synchronized ConstellioFactories getConstellioFactories() {

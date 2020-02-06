@@ -44,7 +44,7 @@ public class CacheManagerAcceptanceTest extends ConstellioTest {
 		assertThat(valueCache1).isEqualTo("value1b");
 		assertThat(valueCache2).isEqualTo("value2b");
 
-		for (Runnable runnable : getCurrentTestSession().getFactoriesTestFeatures().afterTest()) {
+		for (Runnable runnable : getCurrentTestSession().getFactoriesTestFeatures().afterTest(false)) {
 			runnable.run();
 		}
 

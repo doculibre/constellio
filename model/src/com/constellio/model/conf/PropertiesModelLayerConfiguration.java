@@ -86,6 +86,11 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 		public void setRecordsVolatileCacheMemorySize(String volatileCacheSizeInMemory) {
 			setString("dao.cache.volatileCacheSizeInMemory", volatileCacheSizeInMemory);
 		}
+
+		public void setForceCacheLoadingFromSolr(boolean forcingCacheLoadingFromSolr) {
+			setBoolean("dao.cache.forcingCacheLoadingFromSolr", forcingCacheLoadingFromSolr);
+		}
+
 	}
 
 	@Override

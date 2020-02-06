@@ -55,6 +55,8 @@ public interface DataLayerConfiguration {
 
 	boolean isWriteZZRecords();
 
+	boolean useSolrTupleStreamsIfSupported();
+
 	HashingEncoding getHashingEncoding();
 
 	File getSecondTransactionLogBaseFolder();

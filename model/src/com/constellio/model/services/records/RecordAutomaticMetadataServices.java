@@ -56,6 +56,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.LogicalSearchQueryExecutionCancelledException;
 import com.constellio.model.services.search.LogicalSearchQueryExecutorInCache;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
@@ -268,22 +269,30 @@ public class RecordAutomaticMetadataServices {
 
 						query.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
 						if (stream == null) {
-							if (!executorInCache.isQueryExecutableInCache(query)) {
+							try {
+								if (executorInCache.isQueryExecutableInCache(query)) {
+									stream = executorInCache.stream(query);
+								}
+							} catch (LogicalSearchQueryExecutionCancelledException ignored) {
+							}
+							if (stream == null) {
 								String message = "Aggregated metadata '" + aggregatedMetadata.getNoInheritanceCode() + "' should use cache for recalculation : query unsupported in cache";
 								logImportantWarningOnce(message);
 								stream = searchServices.streamFromSolr(query);
-
-							} else {
-								stream = executorInCache.stream(query);
-
 							}
+
 						}
 					} else {
-						if (executorInCache.isQueryExecutableInCache(query)) {
-							stream = executorInCache.stream(query);
+						try {
+							if (executorInCache.isQueryExecutableInCache(query)) {
+								stream = executorInCache.stream(query);
 
-						} else {
-							LOGGER.warn("Aggregated metadata '" + aggregatedMetadata.getCode() + "' should use cache for recalculation");
+							} else {
+								LOGGER.warn("Aggregated metadata '" + aggregatedMetadata.getCode() + "' should use cache for recalculation");
+								stream = searchServices.streamFromSolr(query);
+
+							}
+						} catch (LogicalSearchQueryExecutionCancelledException ignored) {
 							stream = searchServices.streamFromSolr(query);
 						}
 					}

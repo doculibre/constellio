@@ -222,10 +222,11 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		File workFolder = new FoldersLocator().getWorkFolder();
 		workFolder.mkdirs();
 
-		File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), (instanceName == null ? "constellio" : instanceName) + "-cache.db");
+		File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), (instanceName == null ? "constellio" : instanceName) + "-fsCache.db");
+		File memoryCacheCopyCacheFolder = new File(new FoldersLocator().getWorkFolder(), (instanceName == null ? "constellio" : instanceName) + "-memoryCacheCopy.db");
 		//FileUtils.deleteQuietly(fileSystemCacheFolder);
 		FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
-				= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
+				= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder, memoryCacheCopyCacheFolder);
 
 		RecordsCachesDataStore memoryDataStore = new RecordsCachesDataStore(this);
 		this.recordsCaches = add(new EventsBusRecordsCachesImpl(this, fileSystemRecordsValuesCacheDataStore, memoryDataStore));

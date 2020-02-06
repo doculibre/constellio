@@ -79,7 +79,7 @@ public class CacheMemoryConsumptionReportBuilder {
 		builder.append("\n" + "\t- Volatile cache : " + humanReadableByteCount(volatileCacheMemorySize, true));
 		builder.append("\n" + "\t- Taxonomies hasChildren cache : " + humanReadableByteCount(taxonomiesCacheHeap, true));
 
-		File mapDbFile = new File(new FoldersLocator().getWorkFolder(), "null-cache.db");
+		File mapDbFile = new File(new FoldersLocator().getWorkFolder(), "constellio-fsCache.db");
 		if (mapDbFile.exists()) {
 			builder.append("\n" + "File system usage : " + humanReadableByteCount(mapDbFile.length(), true));
 		}
