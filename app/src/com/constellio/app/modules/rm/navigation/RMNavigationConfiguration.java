@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMe
 import com.constellio.app.modules.rm.ui.pages.agent.AgentRequestViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.AgentSetupViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.ListAgentLogsViewImpl;
+import com.constellio.app.modules.rm.ui.pages.borrowing.ListBorrowingsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.cart.CartViewImpl;
 import com.constellio.app.modules.rm.ui.pages.cart.CartsListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersByAdministrativeUnitsViewImpl;
@@ -155,6 +156,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String RETENTION_RULES_SEARCH = "retentionRuleSearch";
 	public static final String LIST_USER_DOCUMENTS = "listUserDocuments";
 	public static final String LIST_USER_DOCUMENTS_ICON = "images/icons/config/briefcase.png";
+	public static final String LIST_BORROWINGS = "listBorrowings";
 
 
 	public static void configureNavigation(NavigationConfig config) {
@@ -201,6 +203,7 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(LIST_RETENTION_RULES, ListRetentionRulesViewImpl.class);
 		service.register(RETENTION_RULES_SEARCH, SearchRetentionRulesViewImpl.class);
 		service.register(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class);
+		service.register(LIST_BORROWINGS, ListBorrowingsViewImpl.class);
 
 	}
 
@@ -431,7 +434,7 @@ public class RMNavigationConfiguration implements Serializable {
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(BORROWINGS, BORROWINGS_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
-				navigate.to(RMViews.class).listRetentionRules();
+				navigate.to(RMViews.class).listBorrowings();
 			}
 
 			@Override
