@@ -7,6 +7,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
@@ -48,6 +49,16 @@ public class EventFactory {
 		setDefaultMetadata(event, user);
 		event.setIp(user.getLastIPAddress());
 		event.setType(EventType.OPEN_SESSION);
+		return event;
+	}
+
+	public Event newFailedLoginEvent(String username, String ip) {
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		Event event = schemasRecords.newEvent();
+		event.setCreatedOn(TimeProvider.getLocalDateTime());
+		event.setUsername(username);
+		event.setIp(ip);
+		event.setType(EventType.ATTEMPTED_OPEN_SESSION);
 		return event;
 	}
 
