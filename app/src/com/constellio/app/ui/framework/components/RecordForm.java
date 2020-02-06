@@ -7,6 +7,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -16,7 +17,6 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.Item;
-import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
@@ -102,12 +102,12 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	private Layout wrapFieldWithHelpMessage(MetadataVO metadataVO, Field<?> field) {
 		I18NHorizontalLayout layout = new I18NHorizontalLayout();
 		String metadataHelp = metadataVO.getHelpMessage(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
-		BaseMouseOverIcon baseMouseOverIcon = new BaseMouseOverIcon(new ThemeResource("images/icons/information2.png"), metadataHelp);
+		IconButton helpIcon = new MouseOverHelpIcon(metadataHelp);
 
-		baseMouseOverIcon.setVisible(!metadataHelp.isEmpty());
+		helpIcon.setVisible(!metadataHelp.isEmpty());
 
 		layout.setSizeFull();
-		layout.addComponents(field, baseMouseOverIcon);
+		layout.addComponents(field, helpIcon);
 		layout.setExpandRatio(field, 1);
 		return layout;
 	}

@@ -4,7 +4,6 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
-import com.constellio.app.ui.framework.components.MouseOverHelpIcon;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDoubleConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToUtilConverter;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -14,6 +13,7 @@ import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumW
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.lookup.PathLookupField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
@@ -58,7 +58,6 @@ public class AdvancedSearchCriteriaComponent extends Table {
 	public static final String RIGHT_PARENS_FIELD = "rightParensField";
 	public static final String OPERATOR_FIELD = "operatorField";
 	public static final String DELETE_BUTTON = "delete";
-	public static final String HELP_MESSAGE = "helpMessage";
 
 	private final BeanItemContainer<Criterion> container;
 	private String schemaType;
@@ -75,16 +74,14 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		addGeneratedColumn(RIGHT_PARENS_FIELD, new ParensFieldGenerator("rightParens", ")"));
 		addGeneratedColumn(OPERATOR_FIELD, new OperatorFieldGenerator());
 		addGeneratedColumn(DELETE_BUTTON, new DeleteButtonGenerator());
-		addGeneratedColumn(HELP_MESSAGE, new HelpIconGenerator(presenter));
 
 		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
-		Object[] visibleColumns = {LEFT_PARENS_FIELD, METADATA_FIELD, HELP_MESSAGE, VALUE_FIELD, RIGHT_PARENS_FIELD, OPERATOR_FIELD, DELETE_BUTTON};
+		Object[] visibleColumns = {LEFT_PARENS_FIELD, METADATA_FIELD, VALUE_FIELD, RIGHT_PARENS_FIELD, OPERATOR_FIELD, DELETE_BUTTON};
 		if (isRightToLeft()) {
 			ArrayUtils.reverse(visibleColumns);
 		}
 		setVisibleColumns(visibleColumns);
 		setColumnExpandRatio(VALUE_FIELD, 1);
-		setColumnWidth(HELP_MESSAGE, 50);
 	}
 
 	public void setSchemaType(String schemaType) {
@@ -176,6 +173,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			}
 			MetadataVO metadataVO = presenter.getMetadataVO(criterion.getMetadataCode());
 			comboBox.setValue(metadataVO);
+
 			comboBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
@@ -184,6 +182,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					if (metadataVO.getEnumClass() != null) {
 						enumClassName = metadataVO.getEnumClass().getName();
 					}
+
 					criterion.setMetadata(metadataVO.getCode(), metadataVO.getType(), enumClassName);
 					source.refreshRowCache();
 				}
@@ -212,36 +211,46 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component generateCell(Criterion criterion) {
+			Component cell;
 			if (criterion.getMetadataCode() == null) {
 				return null;
 			}
 			Component extensionComponentForCriterion = presenter.getExtensionComponentForCriterion(criterion);
 			if (extensionComponentForCriterion != null) {
-				return extensionComponentForCriterion;
-			}
-			if (criterion.getMetadataCode().endsWith("_schema")) {
-				return buildSchemaCriterionComponent(criterion);
-			}
-			switch (criterion.getMetadataType()) {
+				cell = extensionComponentForCriterion;
+			} else if (criterion.getMetadataCode().endsWith("_schema")) {
+				cell = buildSchemaCriterionComponent(criterion);
+			} else {
+				switch (criterion.getMetadataType()) {
 				case STRING:
 				case TEXT:
-					return criterion.getSearchOperator() == SearchOperator.IN_HIERARCHY ?
+					cell = criterion.getSearchOperator() == SearchOperator.IN_HIERARCHY ?
 						   buildHierarchyValueCriterion(criterion) :
 						   buildStringValueComponent(criterion);
+					break;
 				case DATE:
 				case DATE_TIME:
-					return buildDateValueComponent(criterion);
+					cell = buildDateValueComponent(criterion);
+					break;
 				case NUMBER:
 				case INTEGER:
-					return buildNumberValueComponent(criterion);
+					cell = buildNumberValueComponent(criterion);
+					break;
 				case BOOLEAN:
-					return buildBooleanValueComponent(criterion);
+					cell = buildBooleanValueComponent(criterion);
+					break;
 				case ENUM:
-					return buildEnumValueComponent(criterion);
+					cell = buildEnumValueComponent(criterion);
+					break;
 				case REFERENCE:
-					return buildReferenceValueComponent(criterion);
+					cell = buildReferenceValueComponent(criterion);
+					break;
+					default:
+						return null;
+				}
 			}
-			return null;
+			new NiceTitle(presenter.getMetadataVO(criterion.getMetadataCode()).getHelpMessage()).setParent(cell);
+			return cell;
 		}
 
 		private Component buildReferenceValueComponent(final Criterion criterion) {
@@ -861,26 +870,6 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			};
 			delete.setEnabled(source.size() > 1);
 			return delete;
-		}
-	}
-
-	private static class HelpIconGenerator implements ColumnGenerator {
-		private SearchCriteriaPresenter presenter;
-
-		HelpIconGenerator(SearchCriteriaPresenter presenter) {
-			this.presenter = presenter;
-		}
-
-		@Override
-		public Component generateCell(final Table source, final Object itemId, Object columnId) {
-			Criterion criterion = (Criterion) itemId;
-
-			if (criterion.getMetadataCode() == null) {
-				return null;
-			} else {
-				String helpMessage = presenter.getMetadataVO(criterion.getMetadataCode()).getHelpMessage();
-				return helpMessage.isEmpty() ? null : new MouseOverHelpIcon(helpMessage);
-			}
 		}
 	}
 
