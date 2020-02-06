@@ -1141,10 +1141,12 @@ public class SearchServices {
 		//props.put("qt", "/export");
 		if (sort == null) {
 			props.put("sort", "id asc");
+			props.put("fl", "id, _version_");
 		} else {
 			props.put("sort", sort.getDataStoreCode() + " asc");
+			props.put("fl", "id, _version_," + sort.getDataStoreCode());
 		}
-		props.put("fl", "id, _version_");
+
 		props.put("rows", "100000000");
 
 		TupleStream tupleStream = dataStoreDao(DataStore.RECORDS).tupleStream(props);
@@ -1925,19 +1927,25 @@ public class SearchServices {
 		props.put("q", "schema_s:" + schemaType.getCode() + "_*");
 		props.put("fq", "collection_s:" + schemaType.getCollection());
 
-		StringBuilder fieldsCodes = new StringBuilder();
+		StringBuilder fields = new StringBuilder("id,");
+		StringBuilder sort = new StringBuilder();
 
 		if (metadata.isSortable()) {
-			fieldsCodes.append(metadata.getSortMetadata().getDataStoreCode());
-			fieldsCodes.append(" asc");
-			fieldsCodes.append(", ");
+			sort.append(metadata.getSortMetadata().getDataStoreCode());
+			sort.append(" asc");
+			sort.append(", ");
+
+			fields.append(metadata.getSortMetadata().getDataStoreCode());
+			fields.append(", ");
 		}
 
-		fieldsCodes.append(metadata.getDataStoreCode());
-		fieldsCodes.append(" asc");
+		sort.append(metadata.getDataStoreCode());
+		sort.append(" asc");
 
-		props.put("sort", fieldsCodes.toString());
-		props.put("fl", "id," + fieldsCodes.toString());
+		fields.append(metadata.getDataStoreCode());
+
+		props.put("sort", sort.toString());
+		props.put("fl", fields.toString());
 		props.put("rows", "10000");
 
 		TupleStream tupleStream = dataStoreDao(DataStore.RECORDS).tupleStream(props);

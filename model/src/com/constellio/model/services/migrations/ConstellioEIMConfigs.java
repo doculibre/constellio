@@ -241,7 +241,7 @@ public class ConstellioEIMConfigs {
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(1000));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
-				.scriptedBy(WriteZZRecordsScript.class));
+				.scriptedBy(WriteZZRecordsScript.class).whichIsHidden());
 		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));
 
 		add(REMOVE_EXTENSION_FROM_RECORD_TITLE = advanced.createBooleanFalseByDefault("removeExtensionFromDocument"));
@@ -331,7 +331,7 @@ public class ConstellioEIMConfigs {
 
 		add(NO_LINKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
 		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
-		add(SEARCH_RESULTS_HIGHLIGHTING_ENABLED = search.createBooleanTrueByDefault("searchResultsHighlightingEnabled"));
+		add(SEARCH_RESULTS_HIGHLIGHTING_ENABLED = search.createBooleanTrueByDefault("searchResultsHighlightingEnabled").whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 
@@ -343,8 +343,8 @@ public class ConstellioEIMConfigs {
 
 		add(DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES = search.createBooleanFalseByDefault("displayOnlySummaryMetadatasInTables"));
 
-		add(SEARCH_USING_EDISMAX = search.createBooleanTrueByDefault("searchUsingEDismax"));
-		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanTrueByDefault("searchUsingBQ"));
+		add(SEARCH_USING_EDISMAX = search.createBooleanTrueByDefault("searchUsingEDismax").whichIsHidden());
+		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanTrueByDefault("searchUsingBQ").whichIsHidden());
 
 	}
 
