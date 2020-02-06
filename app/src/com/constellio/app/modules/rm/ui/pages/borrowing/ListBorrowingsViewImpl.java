@@ -19,7 +19,10 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
+import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.VerticalLayout;
 
 import java.util.ArrayList;
@@ -33,13 +36,13 @@ import static com.constellio.app.ui.i18n.i18n.$;
 // TODO::JOLA --> Fix document "forced return" issue
 // TODO::JOLA --> Add batch return option
 // TODO::JOLA --> Add batch reminder option
-// TODO::JOLA --> Add a config for borrowed document time ***in a side branch: 9.0-patchedVersion-[name]
-// TODO::JOLA --> Add a copied metadata in document that track the borrowed date of its content	***in a side branch: 9.0-patchedVersion-[name]
 public class ListBorrowingsViewImpl extends BaseViewImpl implements ListBorrowingsView {
 	private final ListBorrowingsPresenter presenter;
 
 	private LookupRecordField administrativeUnitFilter;
 	private CheckBox overdueFilter;
+	private TabSheet tabSheet;
+	private List<BorrowingTab> tabs;
 
 	public ListBorrowingsViewImpl() {
 		presenter = new ListBorrowingsPresenter(this);
@@ -70,7 +73,8 @@ public class ListBorrowingsViewImpl extends BaseViewImpl implements ListBorrowin
 		administrativeUnitFilter.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				refreshTable();
+				presenter.setAdministrativeUnit((String) administrativeUnitFilter.getValue());
+				refreshTab();
 			}
 		});
 		mainLayout.addComponent(administrativeUnitFilter);
@@ -79,23 +83,40 @@ public class ListBorrowingsViewImpl extends BaseViewImpl implements ListBorrowin
 		overdueFilter.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				refreshTable();
+				presenter.setShowOverdueOnly(overdueFilter.getValue());
+				refreshTab();
 			}
 		});
 		mainLayout.addComponent(overdueFilter);
 
-		// TODO::JOLA --> Optimize tab to load only 1 table at a time
-		TabSheet tabSheet = new TabSheet();
-		tabSheet.addTab(buildBorrowingsTable(Document.SCHEMA_TYPE), Document.SCHEMA_TYPE);
-		tabSheet.addTab(buildBorrowingsTable(Folder.SCHEMA_TYPE), Folder.SCHEMA_TYPE);
-		tabSheet.addTab(buildBorrowingsTable(ContainerRecord.SCHEMA_TYPE), ContainerRecord.SCHEMA_TYPE);
+		tabs = new ArrayList<>();
+		tabs.add(new BorrowingTab(Document.SCHEMA_TYPE));
+		tabs.add(new BorrowingTab(Folder.SCHEMA_TYPE));
+		tabs.add(new BorrowingTab(ContainerRecord.SCHEMA_TYPE));
+
+		tabSheet = new TabSheet();
+		for (BorrowingTab tab : tabs) {
+			tabSheet.addTab(tab.getLayout(), tab.getCaption());
+		}
+		tabSheet.addSelectedTabChangeListener(new SelectedTabChangeListener() {
+			@Override
+			public void selectedTabChange(SelectedTabChangeEvent event) {
+				refreshTab();
+			}
+		});
 		mainLayout.addComponent(tabSheet);
+		refreshTab();
 
 		return mainLayout;
 	}
 
-	private void refreshTable() {
-		// TODO::JOLA --> Refresh displayed table!
+	private void refreshTab() {
+		for (BorrowingTab tab : tabs) {
+			tab.resetLayout();
+			if (tab.layout.equals(tabSheet.getSelectedTab())) {
+				tab.setTable(buildBorrowingsTable(tab.getSchemaType()));
+			}
+		}
 	}
 
 	private Component buildBorrowingsTable(String schemaType) {
@@ -106,14 +127,45 @@ public class ListBorrowingsViewImpl extends BaseViewImpl implements ListBorrowin
 		return table;
 	}
 
+	private class BorrowingTab {
+		private String schemaType;
+		private HorizontalLayout layout;
+
+		private BorrowingTab(String schemaType) {
+			this.schemaType = schemaType;
+			layout = new HorizontalLayout();
+			layout.setSizeFull();
+		}
+
+		private void setTable(Component table) {
+			layout.addComponent(table);
+		}
+
+		private void resetLayout() {
+			layout.removeAllComponents();
+		}
+
+		private String getSchemaType() {
+			return schemaType;
+		}
+
+		private Component getLayout() {
+			return layout;
+		}
+
+		private String getCaption() {
+			return schemaType;
+		}
+	}
+
 	private class ViewableRecordItemTablePanel extends SelectionTable {
 
 		public ViewableRecordItemTablePanel(RecordVODataProvider dataProvider) {
 			super(new RecordVOLazyContainer(dataProvider) {
 			});
 
-			// TODO::JOLA --> Add visible column (Action, borrowing user, borrowed date, return date)
-			// TODO::JOLA --> Add a style to return date column to highlight overdue in red (see TaskStyleGenerator in TaskTable.java)
+			// TODO::JOLA --> Add visible column (borrowing user, borrowed date, return date, action)
+			// TODO::JOLA --> Add a style to "return date" column to highlight overdue in red (see TaskStyleGenerator in TaskTable.java)
 			setVisibleColumns();
 			setSelectionActionButtons();
 			setTableMode(TableMode.TABLE);
