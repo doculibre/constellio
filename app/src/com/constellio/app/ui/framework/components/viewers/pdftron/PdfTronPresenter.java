@@ -163,13 +163,14 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		return doesCurrentPageHaveLock;
 	}
 
-	public void releaseAnnotationLockIfUserhasIt() {
-		if (!doesCurrentUserHaveAnnotationLock) {
+	public void releaseAnnotationLockIfPagehasIt() {
+		if (!doesCurrentPageHaveLock) {
 			return;
 		}
 
 		annotationLockManager.releaseLock(contentVersionVO.getHash(), recordId, contentVersionVO.getVersion(), getCurrentUser().getId(), this.pageRandomId);
 		doesCurrentUserHaveAnnotationLock = false;
+		doesCurrentPageHaveLock = false;
 	}
 
 
