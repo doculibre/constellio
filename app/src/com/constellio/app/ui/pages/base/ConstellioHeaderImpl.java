@@ -89,6 +89,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 @SuppressWarnings("serial")
 public class ConstellioHeaderImpl extends I18NHorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener, BrowserWindowResizeListener {
@@ -369,6 +370,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		showDeactivatedMetadatasButton.addStyleName(ValoTheme.BUTTON_LINK);
 
 		Label criteriaLabel = new Label($("ConstellioHeader.searchCriteriaLabel"));
+		criteriaLabel.setWidthUndefined();
+		
 		criteria = new AdvancedSearchCriteriaComponent(presenter);
 		criteria.addEmptyCriterion();
 		criteria.addEmptyCriterion();
@@ -415,6 +418,10 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		bottom.setSpacing(true);
 
 		VerticalLayout paramsUI = new VerticalLayout(top, showDeactivatedMetadatasButton, criteriaLabel, criteria);
+		if (isRightToLeft()) {
+			paramsUI.setComponentAlignment(showDeactivatedMetadatasButton, Alignment.TOP_RIGHT);
+			paramsUI.setComponentAlignment(criteriaLabel, Alignment.TOP_RIGHT);
+		}
 		VerticalLayout searchUI = new VerticalLayout(paramsUI, bottom);
 		searchUI.setSpacing(true);
 		return searchUI;
