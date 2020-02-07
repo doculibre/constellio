@@ -9,8 +9,6 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.utils.LangUtils;
-import com.constellio.data.utils.Octets;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -328,31 +326,26 @@ public class ReindexingServices {
 				.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)
 				.setTransactionOptions(transactionOptions).showProgressionInConsole(false);
 
-		if (Toggle.FASTER_REINDEXING.isEnabled()) {
-			options.withRecordsPerBatch(100000);
-			options.setMaxRecordsTotalSizePerBatch(Octets.megaoctets(25).getOctets());
+		int batchSize = params.getBatchSize();
+		if (batchSize == 0) {
 
-		} else {
-			int batchSize = params.getBatchSize();
-			if (batchSize == 0) {
+			if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LEAST_MEMORY_CONSUMPTION) {
+				batchSize = 20;
 
-				if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LEAST_MEMORY_CONSUMPTION) {
-					batchSize = 20;
+			} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
+				batchSize = 20;
 
-				} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
-					batchSize = 20;
-
-				} else {
-					batchSize = modelLayerFactory.getConfiguration().getReindexingThreadBatchSize();
-				}
-
+			} else {
+				batchSize = modelLayerFactory.getConfiguration().getReindexingThreadBatchSize();
 			}
-			options.withRecordsPerBatch(batchSize);
-			int countOfBatchesFilledByASingleQuery = mainThreadQueryRows / batchSize;
 
-			//The reader thread must have enough space in the queue to store the entire query result
-			options.setQueueSize(countOfBatchesFilledByASingleQuery + 1);
 		}
+		options.withRecordsPerBatch(batchSize);
+
+		int countOfBatchesFilledByASingleQuery = mainThreadQueryRows / batchSize;
+		//The reader thread must have enough space in the queue to store the entire query result
+		options.setQueueSize(countOfBatchesFilledByASingleQuery + 1);
+		options.setMaxRecordsTotalSizePerBatch(modelLayerFactory.getConfiguration().getReindexingThreadMaxBatchMemorySize());
 
 		try {
 			int level = 0;
