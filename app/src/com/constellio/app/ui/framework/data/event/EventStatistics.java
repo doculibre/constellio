@@ -11,6 +11,10 @@ public class EventStatistics implements Serializable {
 		this.label = label;
 	}
 
+	public String getLabel() {
+		return label;
+	}
+
 	public Float getValue() {
 		return value;
 	}
@@ -25,10 +29,5 @@ public class EventStatistics implements Serializable {
 
 	public String getType() {
 		return this.type;
-	}
-
-	public String getLabel() {
-
-		return label;
 	}
 }

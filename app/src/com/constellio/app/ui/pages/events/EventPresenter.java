@@ -327,7 +327,11 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 					return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
 				}
 			default:
-				return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
+				if (EventType.OPEN_SESSION.equals(eventType)) {
+					return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
+				} else {
+					return rmSchemasEventsServices().newFindFailedLoginsByDateRangeQuery(currentUser, startDate, endDate);
+				}
 		}
 	}
 

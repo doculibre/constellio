@@ -19,6 +19,7 @@ import com.constellio.app.ui.framework.data.event.UnsupportedEventTypeRuntimeExc
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.vaadin.data.Item;
 import com.vaadin.event.ItemClickEvent;
@@ -49,7 +50,6 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	private EventPresenter presenter;
 	private Table table;
 	private Map<String, String> parameters;
-	public static final String OPEN_SESSION = "open_session";
 
 	public static final String EVENT_DEFAULT_TYPE = "event_default_type";
 	public static final String EVENT_DEFAULT_USERNAME = "event_default_username";
@@ -176,7 +176,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 
 			@Override
 			protected TableColumnsManager newColumnsManager() {
-				if (OPEN_SESSION.equalsIgnoreCase(presenter.getEventType())) {
+				if (EventType.OPEN_SESSION.equalsIgnoreCase(presenter.getEventType())) {
 					return new RecordVOTableColumnsManager() {
 						@Override
 						protected List<String> getDefaultVisibleColumnIds(Table table) {

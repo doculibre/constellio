@@ -16,118 +16,121 @@ import static java.util.Arrays.asList;
 public class EventTypeUtils implements Serializable {
 
 	public static String getEventTypeCaption(String eventType) {
-		if (eventType.equals(EventType.OPEN_SESSION)) {
-			return $("ListEventsView.openedSessions");
-		} else if (eventType.equals(EventType.VIEW_FOLDER)) {
-			return $("ListEventsView.foldersView");
-		} else if (eventType.equals(EventType.CREATE_FOLDER)) {
-			return $("ListEventsView.foldersCreation");
-		} else if (eventType.equals(EventType.MODIFY_FOLDER)) {
-			return $("ListEventsView.foldersModification");
-		} else if (eventType.equals(EventType.DELETE_FOLDER)) {
-			return $("ListEventsView.foldersDeletion");
-		} else if (eventType.equals(EventType.BORROW_FOLDER)) {
-			return $("ListEventsView.borrowedFolders");
-		} else if (eventType.equals(EventType.RETURN_FOLDER)) {
-			return $("ListEventsView.returnedFolders");
-		} else if (eventType.equals(EventType.VIEW_DOCUMENT)) {
-			return $("ListEventsView.documentsView");
-		} else if (eventType.equals(EventType.CREATE_DOCUMENT)) {
-			return $("ListEventsView.documentsCreation");
-		} else if (eventType.equals(EventType.MODIFY_DOCUMENT)) {
-			return $("ListEventsView.documentsModification");
-		} else if (eventType.equals(EventType.DELETE_DOCUMENT)) {
-			return $("ListEventsView.documentsDeletion");
-		} else if (eventType.equals(EventType.CURRENT_BORROW_DOCUMENT)) {
-			return $("ListEventsView.currentlyBorrowedDocuments");
-		} else if (eventType.equals(EventType.BORROW_DOCUMENT)) {
-			return $("ListEventsView.borrowedDocuments");
-		} else if (eventType.equals(EventType.RETURN_DOCUMENT)) {
-			return $("ListEventsView.returnedDocuments");
-		} else if (eventType.equals(EventType.BORROW_CONTAINER)) {
-			return $("ListEventsView.borrowedContainers");
-		} else if (eventType.equals(EventType.RETURN_CONTAINER)) {
-			return $("ListEventsView.returnedContainers");
-		} else if (eventType.equals(EventType.CREATE_USER)) {
-			return $("ListEventsView.createdUsersEvent");
-		} else if (eventType.equals(EventType.MODIFY_USER)) {
-			return $("ListEventsView.modifiedUsersEvent");
-		} else if (eventType.equals(EventType.DELETE_USER)) {
-			return $("ListEventsView.deletedUsersEvent");
-		} else if (eventType.equals(EventType.CREATE_GROUP)) {
-			return $("ListEventsView.createdGroupsEvent");
-		} else if (eventType.equals(EventType.DELETE_GROUP)) {
-			return $("ListEventsView.deletedGroupsEvent");
-		} else if (eventType.equals(EventType.GRANT_PERMISSION_FOLDER)) {
-			return $("ListEventsView.grantedPermissions.folder");
-		} else if (eventType.equals(EventType.MODIFY_PERMISSION_FOLDER)) {
-			return $("ListEventsView.modifiedPermissions.folder");
-		} else if (eventType.equals(EventType.DELETE_PERMISSION_FOLDER)) {
-			return $("ListEventsView.deletedPermissions.folder");
-		} else if (eventType.equals(EventType.GRANT_PERMISSION_DOCUMENT)) {
-			return $("ListEventsView.grantedPermissions.document");
-		} else if (eventType.equals(EventType.MODIFY_PERMISSION_DOCUMENT)) {
-			return $("ListEventsView.modifiedPermissions.document");
-		} else if (eventType.equals(EventType.DELETE_PERMISSION_DOCUMENT)) {
-			return $("ListEventsView.deletedPermissions.document");
-		} else if (eventType.equals(EventType.FOLDER_RELOCATION)) {
-			return $("ListEventsView.folderRelocation");
-		} else if (eventType.equals(EventType.FOLDER_DEPOSIT)) {
-			return $("ListEventsView.folderDeposit");
-		} else if (eventType.equals(EventType.FOLDER_DESTRUCTION)) {
-			return $("ListEventsView.folderDestruction");
-		} else if (eventType.equals(EventType.PDF_A_GENERATION)) {
-			return $("ListEventsView.pdfAGeneration");
-		} else if (eventType.equals(EventType.RECEIVE_FOLDER)) {
-			return $("ListEventsView.receiveFolder");
-		} else if (eventType.equals(EventType.RECEIVE_CONTAINER)) {
-			return $("ListEventsView.receiveContainer");
-		} else if (eventType.equals(EventType.CURRENTLY_BORROWED_FOLDERS)) {
-			return $("ListEventsView.currentlyBorrowedFolders");
-		} else if (eventType.equals(EventType.LATE_BORROWED_FOLDERS)) {
-			return $("ListEventsView.lateBorrowedFolders");
-		} else if (eventType.equals(EventType.CONSULTATION_FOLDER)) {
-			return $("ListEventsView.consultationFolders");
-		} else if (eventType.equals(EventType.CREATE_TASK)) {
-			return $("ListEventsView.createTask");
-		} else if (eventType.equals(EventType.MODIFY_TASK)) {
-			return $("ListEventsView.modifyTask");
-		} else if (eventType.equals(EventType.DELETE_TASK)) {
-			return $("ListEventsView.deleteTask");
-		} else if (eventType.equals(EventType.REINDEXING)) {
-			return $("ListEventsView.reindexing");
-		} else if (eventType.equals(EventType.RESTARTING)) {
-			return $("ListEventsView.restarting");
-		} else if (eventType.equals(EventType.BORROW_REQUEST_FOLDER)) {
-			return $("ListEventsView.borrowRequestFolder");
-		} else if (eventType.equals(EventType.RETURN_REQUEST_FOLDER)) {
-			return $("ListEventsView.returnRequestFolder");
-		} else if (eventType.equals(EventType.REACTIVATION_REQUEST_FOLDER)) {
-			return $("ListEventsView.reactivationRequestFolder");
-		} else if (eventType.equals(EventType.BORROW_EXTENSION_REQUEST_FOLDER)) {
-			return $("ListEventsView.borrowExtensionRequestFolder");
-		} else if (eventType.equals(EventType.BORROW_REQUEST_CONTAINER)) {
-			return $("ListEventsView.borrowRequestContainer");
-		} else if (eventType.equals(EventType.RETURN_REQUEST_CONTAINER)) {
-			return $("ListEventsView.returnRequestContainer");
-		} else if (eventType.equals(EventType.REACTIVATION_REQUEST_CONTAINER)) {
-			return $("ListEventsView.reactivationRequestContainer");
-		} else if (eventType.equals(EventType.BORROW_EXTENSION_REQUEST_CONTAINER)) {
-			return $("ListEventsView.borrowExtensionRequestContainer");
-		} else if (eventType.equals(EventType.OPEN_DOCUMENT)) {
-			return $("ListEventsView.openDocument");
-		} else if (eventType.equals(EventType.DOWNLOAD_DOCUMENT)) {
-			return $("ListEventsView.downloadDocument");
-		} else if (eventType.equals(EventType.UPLOAD_DOCUMENT)) {
-			return $("ListEventsView.uploadDocument");
-		} else if (eventType.equals(EventType.SHARE_DOCUMENT)) {
-			return $("ListEventsView.shareDocument");
-		} else if (eventType.equals(EventType.FINALIZE_DOCUMENT)) {
-			return $("ListEventsView.finalizeDocument");
-		} else if (eventType.equals(EventType.SHARE_FOLDER)) {
-			return $("ListEventsView.shareFolder");
-		} else {
-			throw new UnsupportedEventTypeRuntimeException(eventType);
+		switch (eventType) {
+			case EventType.OPEN_SESSION:
+				return $("ListEventsView.openedSessions");
+			case EventType.ATTEMPTED_OPEN_SESSION:
+				return $("ListEventsView.failedLogins");
+			case EventType.VIEW_FOLDER:
+				return $("ListEventsView.foldersView");
+			case EventType.CREATE_FOLDER:
+				return $("ListEventsView.foldersCreation");
+			case EventType.MODIFY_FOLDER:
+				return $("ListEventsView.foldersModification");
+			case EventType.DELETE_FOLDER:
+				return $("ListEventsView.foldersDeletion");
+			case EventType.BORROW_FOLDER:
+				return $("ListEventsView.borrowedFolders");
+			case EventType.RETURN_FOLDER:
+				return $("ListEventsView.returnedFolders");
+			case EventType.VIEW_DOCUMENT:
+				return $("ListEventsView.documentsView");
+			case EventType.CREATE_DOCUMENT:
+				return $("ListEventsView.documentsCreation");
+			case EventType.MODIFY_DOCUMENT:
+				return $("ListEventsView.documentsModification");
+			case EventType.DELETE_DOCUMENT:
+				return $("ListEventsView.documentsDeletion");
+			case EventType.CURRENT_BORROW_DOCUMENT:
+				return $("ListEventsView.currentlyBorrowedDocuments");
+			case EventType.BORROW_DOCUMENT:
+				return $("ListEventsView.borrowedDocuments");
+			case EventType.RETURN_DOCUMENT:
+				return $("ListEventsView.returnedDocuments");
+			case EventType.BORROW_CONTAINER:
+				return $("ListEventsView.borrowedContainers");
+			case EventType.RETURN_CONTAINER:
+				return $("ListEventsView.returnedContainers");
+			case EventType.CREATE_USER:
+				return $("ListEventsView.createdUsersEvent");
+			case EventType.MODIFY_USER:
+				return $("ListEventsView.modifiedUsersEvent");
+			case EventType.DELETE_USER:
+				return $("ListEventsView.deletedUsersEvent");
+			case EventType.CREATE_GROUP:
+				return $("ListEventsView.createdGroupsEvent");
+			case EventType.DELETE_GROUP:
+				return $("ListEventsView.deletedGroupsEvent");
+			case EventType.GRANT_PERMISSION_FOLDER:
+				return $("ListEventsView.grantedPermissions.folder");
+			case EventType.MODIFY_PERMISSION_FOLDER:
+				return $("ListEventsView.modifiedPermissions.folder");
+			case EventType.DELETE_PERMISSION_FOLDER:
+				return $("ListEventsView.deletedPermissions.folder");
+			case EventType.GRANT_PERMISSION_DOCUMENT:
+				return $("ListEventsView.grantedPermissions.document");
+			case EventType.MODIFY_PERMISSION_DOCUMENT:
+				return $("ListEventsView.modifiedPermissions.document");
+			case EventType.DELETE_PERMISSION_DOCUMENT:
+				return $("ListEventsView.deletedPermissions.document");
+			case EventType.FOLDER_RELOCATION:
+				return $("ListEventsView.folderRelocation");
+			case EventType.FOLDER_DEPOSIT:
+				return $("ListEventsView.folderDeposit");
+			case EventType.FOLDER_DESTRUCTION:
+				return $("ListEventsView.folderDestruction");
+			case EventType.PDF_A_GENERATION:
+				return $("ListEventsView.pdfAGeneration");
+			case EventType.RECEIVE_FOLDER:
+				return $("ListEventsView.receiveFolder");
+			case EventType.RECEIVE_CONTAINER:
+				return $("ListEventsView.receiveContainer");
+			case EventType.CURRENTLY_BORROWED_FOLDERS:
+				return $("ListEventsView.currentlyBorrowedFolders");
+			case EventType.LATE_BORROWED_FOLDERS:
+				return $("ListEventsView.lateBorrowedFolders");
+			case EventType.CONSULTATION_FOLDER:
+				return $("ListEventsView.consultationFolders");
+			case EventType.CREATE_TASK:
+				return $("ListEventsView.createTask");
+			case EventType.MODIFY_TASK:
+				return $("ListEventsView.modifyTask");
+			case EventType.DELETE_TASK:
+				return $("ListEventsView.deleteTask");
+			case EventType.REINDEXING:
+				return $("ListEventsView.reindexing");
+			case EventType.RESTARTING:
+				return $("ListEventsView.restarting");
+			case EventType.BORROW_REQUEST_FOLDER:
+				return $("ListEventsView.borrowRequestFolder");
+			case EventType.RETURN_REQUEST_FOLDER:
+				return $("ListEventsView.returnRequestFolder");
+			case EventType.REACTIVATION_REQUEST_FOLDER:
+				return $("ListEventsView.reactivationRequestFolder");
+			case EventType.BORROW_EXTENSION_REQUEST_FOLDER:
+				return $("ListEventsView.borrowExtensionRequestFolder");
+			case EventType.BORROW_REQUEST_CONTAINER:
+				return $("ListEventsView.borrowRequestContainer");
+			case EventType.RETURN_REQUEST_CONTAINER:
+				return $("ListEventsView.returnRequestContainer");
+			case EventType.REACTIVATION_REQUEST_CONTAINER:
+				return $("ListEventsView.reactivationRequestContainer");
+			case EventType.BORROW_EXTENSION_REQUEST_CONTAINER:
+				return $("ListEventsView.borrowExtensionRequestContainer");
+			case EventType.OPEN_DOCUMENT:
+				return $("ListEventsView.openDocument");
+			case EventType.DOWNLOAD_DOCUMENT:
+				return $("ListEventsView.downloadDocument");
+			case EventType.UPLOAD_DOCUMENT:
+				return $("ListEventsView.uploadDocument");
+			case EventType.SHARE_DOCUMENT:
+				return $("ListEventsView.shareDocument");
+			case EventType.FINALIZE_DOCUMENT:
+				return $("ListEventsView.finalizeDocument");
+			case EventType.SHARE_FOLDER:
+				return $("ListEventsView.shareFolder");
+			default:
+				throw new UnsupportedEventTypeRuntimeException(eventType);
 		}
 	}
 
