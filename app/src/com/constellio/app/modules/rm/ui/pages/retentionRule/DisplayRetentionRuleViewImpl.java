@@ -119,6 +119,9 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 		folderTabContentLayout.setSpacing(true);
 		folderTabContentLayout.setMargin(new MarginInfo(true, true, false, true));//todo
 
+		//		RecordVOTable table = new RecordVOTable($())
+		//		table.setWi
+
 		return folderTabContentLayout;
 	}
 
