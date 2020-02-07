@@ -141,6 +141,12 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
 	}
 
+	//	public List<RecordVODataProvider> getDataProviders(){
+	//		MetadataSchemaTypes schemaTypes = modelLayerFactory.getMetadataSchemasManager()
+	//				.getSchemaTypes(decommissioningService.getCollection());
+	//		List<RecordVODataProvider> dataProviders = currentRetentionRuleRecord.getC
+	//	}
+
 	@Override
 	public CopyRetentionRule newDocumentCopyRetentionRule() {
 		return new CopyRetentionRule();
