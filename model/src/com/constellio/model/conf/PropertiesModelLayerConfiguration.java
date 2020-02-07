@@ -224,6 +224,11 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 		return getBoolean("caches.summary.enabled", true);
 	}
 
+	@Override
+	public long getReindexingThreadMaxBatchMemorySize() {
+		return getBytesSize("reindexing.threadBatchMaxMemorySize", "1M");
+	}
+
 
 	@Override
 	public Factory<EncryptionServices> getEncryptionServicesFactory() {

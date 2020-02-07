@@ -66,4 +66,6 @@ public interface ModelLayerConfiguration {
 	long getRecordsVolatileCacheMemorySize();
 
 	boolean isSummaryCacheEnabled();
+
+	long getReindexingThreadMaxBatchMemorySize();
 }
