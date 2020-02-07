@@ -50,7 +50,7 @@ public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator
 															 AutocompleteSplitCriteria autocompleteSplitCriteria) {
 		String regex = autocompleteSplitCriteria.getRegex();
 
-		if (value instanceof List) {
+		if (valueIsStringList(value)) {
 			for (String item : (List<String>) value) {
 				splitInLowerCasedTermsRemovingAccents(words, item, regex);
 			}
@@ -58,6 +58,11 @@ public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator
 			splitInLowerCasedTermsRemovingAccents(words, (String) value, regex);
 
 		}
+	}
+
+	private static boolean valueIsStringList(Object value) {
+		return (value instanceof List && !((List) value).isEmpty())
+			   && ((List) value).get(0) instanceof String;
 	}
 
 	private static void splitInLowerCasedTermsRemovingAccents(Set<String> words, String value, String regex) {
