@@ -50,13 +50,26 @@ public class SystemUsageEventsDataProvider extends AbstractDataProvider implemen
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		RMEventsSearchServices rmSchemasRecordsServices = new RMEventsSearchServices(modelLayerFactory, collection);
 		events = new ArrayList<>();
+
 		EventStatistics openedSessions = new EventStatistics();
 		openedSessions.setLabel($("ListEventsView.openedSessions"));
+		openedSessions.setType(EventType.OPEN_SESSION);
+
+		EventStatistics failedLogins = new EventStatistics();
+		failedLogins.setLabel($("ListEventsView.failedLogins"));
+		openedSessions.setType(EventType.ATTEMPTED_OPEN_SESSION);
+
 		User currentUser = modelLayerFactory.newUserServices().getUserInCollection(currentUserName, collection);
-		LogicalSearchQuery query = rmSchemasRecordsServices
+
+		LogicalSearchQuery openedSessionQuery = rmSchemasRecordsServices
 				.newFindOpenedSessionsByDateRangeQuery(currentUser, startDate, endDate);
-		openedSessions.setValue((float) searchServices.getResultsCount(query));
+		openedSessions.setValue((float) searchServices.getResultsCount(openedSessionQuery));
 		events.add(openedSessions);
+
+		LogicalSearchQuery failedLoginsQuery = rmSchemasRecordsServices
+				.newFindFailedLoginsByDateRangeQuery(currentUser, startDate, endDate);
+		failedLogins.setValue((float) searchServices.getResultsCount(failedLoginsQuery));
+		events.add(failedLogins);
 	}
 
 	public int size() {
@@ -84,7 +97,7 @@ public class SystemUsageEventsDataProvider extends AbstractDataProvider implemen
 
 	@Override
 	public String getEventType(Integer index) {
-		return EventType.OPEN_SESSION;
+		return events.get(index).getType();
 	}
 
 	@Override

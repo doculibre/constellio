@@ -5,6 +5,7 @@ import java.io.Serializable;
 public class EventStatistics implements Serializable {
 	private String label;
 	private Float value;
+	private String type;
 
 	public void setLabel(String label) {
 		this.label = label;
@@ -16,6 +17,14 @@ public class EventStatistics implements Serializable {
 
 	public void setValue(Float value) {
 		this.value = value;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getType() {
+		return this.type;
 	}
 
 	public String getLabel() {

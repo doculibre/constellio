@@ -50,6 +50,11 @@ public class RMEventsSearchServices {
 		return newFindEventByDateRangeQuery(currentUser, EventType.OPEN_SESSION, startDate, endDate);
 	}
 
+	public LogicalSearchQuery newFindFailedLoginsByDateRangeQuery(User currentUser, LocalDateTime startDate,
+																  LocalDateTime endDate) {
+		return newFindEventByDateRangeQuery(currentUser, EventType.ATTEMPTED_OPEN_SESSION, startDate, endDate);
+	}
+
 	//by range date
 	public LogicalSearchQuery newFindCreatedDocumentsByDateRangeQuery(User currentUser, LocalDateTime startDate,
 																	  LocalDateTime endDate) {
