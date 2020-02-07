@@ -104,7 +104,7 @@ public class RecordsCachesDataStoreStartupAcceptanceTest extends ConstellioTest 
 		}
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions().setMaxRecordsTotalSizePerBatch(5000);
+		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions();
 
 		for (String collection : asList("zeCollection", "collection2")) {
 			BulkRecordTransactionHandler handler = new BulkRecordTransactionHandler(
