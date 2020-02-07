@@ -214,6 +214,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		File workFolder = new FoldersLocator().getWorkFolder();
 		workFolder.mkdirs();
+
 		File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), instanceName + "-cache.db");
 		//FileUtils.deleteQuietly(fileSystemCacheFolder);
 		FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore

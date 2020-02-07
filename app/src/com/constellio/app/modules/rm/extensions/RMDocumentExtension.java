@@ -9,7 +9,6 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
-import com.constellio.data.io.ConversionManager;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -156,7 +155,8 @@ public class RMDocumentExtension extends RecordExtension {
 
 	private boolean isFilePreviewSupportedFor(String filename) {
 		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
-		return asList(ConversionManager.getSupportedExtensions()).contains(extension);
+		return modelLayerFactory.getDataLayerFactory().getConversionManager().isSupportedExtension(extension)
+			   || extension.equalsIgnoreCase("pdf");
 	}
 
 	@Override

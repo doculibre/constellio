@@ -54,7 +54,8 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 		if (!Toggle.PERFORMANCE_TESTING.isEnabled()
 
 			&& ReindexingServices.getReindexingInfos() == null
-			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+			&& (modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized() ||
+				!modelLayerFactory.getConfiguration().isSummaryCacheEnabled())) {
 			boolean found = false;
 			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 				LogicalSearchQuery query = new LogicalSearchQuery();

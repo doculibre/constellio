@@ -157,4 +157,20 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 			   ", version=" + version +
 			   '}';
 	}
+
+	public RecordDTO createSummaryKeeping(List<String> summaryMetadatas) {
+		Map<String, Object> newFields = new HashMap<>();
+
+		for (Map.Entry<String, Object> entry : this.fields.entrySet()) {
+			if (summaryMetadatas.contains(entry.getKey())) {
+				newFields.put(entry.getKey(), entry.getValue());
+			}
+		}
+		newFields.put("schema_s", fields.get("schema_s"));
+		newFields.put("collection_s", fields.get("collection_s"));
+
+		Map<String, Object> copyfields = new HashMap<>();
+
+		return new SolrRecordDTO(id, version, newFields, copyfields, RecordDTOMode.SUMMARY);
+	}
 }

@@ -40,14 +40,12 @@ public class DocumentViewer extends CustomComponent {
 	private static File tempDir;
 
 	static {
-		if (useCache) {
-			conversionManager = ConstellioFactories.getInstance().getDataLayerFactory().getConversionManager();
-		}
+		conversionManager = ConstellioFactories.getInstance().getDataLayerFactory().getConversionManager();
 	}
 
-	public static String[] CONVERSION_EXTENSIONS = ArrayUtils.removeElements(ConversionManager.getSupportedExtensions(), new String[]{"pdf"});
+	public static String[] CONVERSION_EXTENSIONS = ArrayUtils.removeElements(conversionManager.getSupportedExtensions(), new String[]{"pdf"});
 
-	public static String[] SUPPORTED_EXTENSIONS = ArrayUtils.add(ConversionManager.getSupportedExtensions(), "pdf");
+	public static String[] SUPPORTED_EXTENSIONS = ArrayUtils.add(conversionManager.getSupportedExtensions(), "pdf");
 
 	private static final int DEFAULT_WIDTH = 750;
 
