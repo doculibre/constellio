@@ -8,10 +8,10 @@ import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices.RecordIdVersion;
+import org.apache.commons.collections4.map.LRUMap;
 import org.apache.tika.io.IOUtils;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.LocalDateTime;
-import org.apache.commons.collections4.map.LRUMap;
 import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -150,8 +150,9 @@ public class FileSystemRecordsValuesCacheDataStore {
 			IOUtils.closeQuietly(objectOutputStream);
 		}
 
-		intKeyMap.put(id, byteArrayOutputStream.toByteArray());
-		tempIntKeyMap.put(id, bytes);
+		byte[] byteArray = byteArrayOutputStream.toByteArray();
+		intKeyMap.put(id, byteArray);
+		tempIntKeyMap.put(id, byteArray);
 	}
 
 	public void removeStringKey(String id) {

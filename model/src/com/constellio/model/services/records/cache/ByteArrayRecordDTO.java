@@ -4,9 +4,14 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.cache.CacheRecordDTOUtils.CacheRecordDTOBytesArray;
 import com.constellio.model.services.schemas.MetadataSchemaProvider;
+import com.constellio.model.services.schemas.SchemaUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,6 +25,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
+import static com.constellio.model.services.records.cache.CacheRecordDTOUtils.convertDTOToByteArrays;
 
 public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordDTO, Supplier<byte[]> {
 

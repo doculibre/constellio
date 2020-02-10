@@ -80,6 +80,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -830,36 +831,35 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				typesLoadedAsync.addAll(loadSummaryPermanentCache(collection));
 			}
 
+			if (!typesLoadedAsync.isEmpty()) {
+				new Thread(() -> {
+					Stats.compilerFor("SummaryCacheLoading").log(() -> {
+						//One loading at a time
+						synchronized (RecordsCaches2Impl.class) {
+							boolean useMapDb = !fileSystemDataStore.isRecreated() && !params.isRebuildCacheFromSolr();
+							typesLoadedAsync.forEach(type -> loadSchemaType(type, useMapDb));
+						}
+						summaryCacheInitialized = true;
+						CacheRecordDTOUtils.stopCompilingDTOsStats();
+						LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
+						cacheLoadingProgression = null;
+					});
 
-		if (!typesLoadedAsync.isEmpty()) {
-			new Thread(() -> {
-				Stats.compilerFor("SummaryCacheLoading").log(() -> {
-					//One loading at a time
-					synchronized (RecordsCaches2Impl.class) {
-						boolean useMapDb = !fileSystemDataStore.isRecreated() && !params.isRebuildCacheFromSolr();
-						typesLoadedAsync.forEach(type -> loadSchemaType(type, useMapDb));
+					if (Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled() && !Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.isEnabled()) {
+						fileSystemDataStore.closeThenReopenWithoutMmap();
 					}
-					summaryCacheInitialized = true;
-					CacheRecordDTOUtils.stopCompilingDTOsStats();
-					LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
-					cacheLoadingProgression = null;
-				});
+					if (params.getCacheLoadingFinishedCallback() != null) {
+						params.getCacheLoadingFinishedCallback().run();
+					}
+				}).start();
 
-				if (Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled() && !Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.isEnabled()) {
-					fileSystemDataStore.closeThenReopenWithoutMmap();
-				}
-				if (params.getCacheLoadingFinishedCallback() != null) {
-					params.getCacheLoadingFinishedCallback().run();
-				}
-			}).start();
-
-		} else {
-			summaryCacheInitialized = true;
-			CacheRecordDTOUtils.stopCompilingDTOsStats();
-			LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
-			cacheLoadingProgression = null;
+			} else {
+				summaryCacheInitialized = true;
+				CacheRecordDTOUtils.stopCompilingDTOsStats();
+				LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
+				cacheLoadingProgression = null;
+			}
 		}
-
 	}
 
 	@Override
