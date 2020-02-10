@@ -19,6 +19,7 @@ import com.constellio.app.ui.framework.data.event.UnsupportedEventTypeRuntimeExc
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.vaadin.data.Item;
@@ -213,7 +214,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 			@Override
 			protected String getTitleColumnStyle(RecordVO recordVO) {
 				return null;
-			} 
+			}
 		};
 
 		if (isRecordEvent) {
@@ -311,6 +312,14 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
 		return true;
+	}
+
+	@Override
+	public String getCollection() {
+		if (EventType.ATTEMPTED_OPEN_SESSION.equals(presenter.getEventType())) {
+			return Collection.SYSTEM_COLLECTION;
+		}
+		return super.getCollection();
 	}
 
 }

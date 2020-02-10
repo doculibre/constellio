@@ -6,7 +6,6 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
@@ -36,12 +35,10 @@ public class RMEventsSearchServices {
 	private ModelLayerFactory modelLayerFactory;
 
 	private RMSchemasRecordsServices schemas;
-	private RMSchemasRecordsServices systemSchemas;
 
 	public RMEventsSearchServices(ModelLayerFactory modelLayerFactory, String collection) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
-		this.systemSchemas = new RMSchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
 	public List<Event> findLoggedUsers(User currentUser) {
@@ -55,7 +52,7 @@ public class RMEventsSearchServices {
 
 	public LogicalSearchQuery newFindFailedLoginsByDateRangeQuery(User currentUser, LocalDateTime startDate,
 																  LocalDateTime endDate) {
-		return newFindEventByDateRangeQuery(currentUser, EventType.ATTEMPTED_OPEN_SESSION, startDate, endDate);
+		return newFindEventByDateRangeSystemQuery(currentUser, EventType.ATTEMPTED_OPEN_SESSION, startDate, endDate);
 	}
 
 	//by range date
@@ -228,7 +225,7 @@ public class RMEventsSearchServices {
 	public LogicalSearchQuery newFindEventByDateRangeSystemQuery(User currentUser, String eventType,
 																 LocalDateTime startDate,
 																 LocalDateTime endDate) {
-		Metadata type = systemSchemas.eventSchema().getMetadata(Event.TYPE);
+		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
 		Metadata timestamp = Schemas.CREATED_ON;
 
 		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser)

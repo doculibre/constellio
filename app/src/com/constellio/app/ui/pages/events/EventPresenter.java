@@ -135,7 +135,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		if (metadataCodes == null) {
 			metadataCodes = EventTypeUtils.getDisplayedMetadataCodes(defaultSchema(), getEventType());
 			schemaVO = new MetadataSchemaToVOBuilder()
-					.build(defaultSchema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
+					.build(rmSchemasRecordsServices().eventSchema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
 		}
 		RecordVODataProvider eventsDataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
 				view.getSessionContext()) {

@@ -23,6 +23,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -94,16 +95,20 @@ public class MetadataToVOBuilder implements Serializable {
 				TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 				UserServices userServices = modelLayerFactory.newUserServices();
 
-				if (userVO != null) {
-					User user = userServices.getUserInCollection(userVO.getUsername(), collection);
-					List<Taxonomy> taxonomies = taxonomiesManager
-							.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, user, metadataSchemasManager);
-					taxonomyCodes = new String[taxonomies.size()];
-					for (int i = 0; i < taxonomies.size(); i++) {
-						Taxonomy taxonomy = taxonomies.get(i);
-						taxonomyCodes[i] = taxonomy.getCode();
+				try {
+					if (userVO != null) {
+						User user = userServices.getUserInCollection(userVO.getUsername(), collection);
+						List<Taxonomy> taxonomies = taxonomiesManager
+								.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, user, metadataSchemasManager);
+						taxonomyCodes = new String[taxonomies.size()];
+						for (int i = 0; i < taxonomies.size(); i++) {
+							Taxonomy taxonomy = taxonomies.get(i);
+							taxonomyCodes[i] = taxonomy.getCode();
+						}
+					} else {
+						taxonomyCodes = new String[0];
 					}
-				} else {
+				} catch (UserServicesRuntimeException_UserIsNotInCollection e) {
 					taxonomyCodes = new String[0];
 				}
 			} else {
