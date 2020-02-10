@@ -18,6 +18,7 @@ import com.constellio.app.modules.rm.ui.buttons.RenameDialogButton;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
@@ -46,6 +47,7 @@ import com.constellio.app.ui.framework.components.content.UpdateContentVersionWi
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
@@ -328,20 +330,30 @@ public class DocumentMenuItemActionBehaviors {
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						String parentId = (String) field.getValue();
+						String newParentId = (String) field.getValue();
+						//						Tree tree = (Tree) params.getView().getSessionContext();
+						//						SessionContext sessionContext = params.getView().getSessionContext();
+
+						//						String sourceParentId = document.getFolder();
 						try {
 							RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 							String currentDocumentId = document.getId();
-							if (isNotBlank(parentId)) {
+							if (isNotBlank(newParentId)) {
 								try {
-									recordServices.update(rmSchemas.getDocument(currentDocumentId).setFolder(parentId), params.getUser());
-									params.getView().navigate().to(RMViews.class).displayDocument(currentDocumentId);
+									recordServices.update(rmSchemas.getDocument(currentDocumentId).setFolder(newParentId), params.getUser());
+									if (params.getView().getClass().equals(DisplayFolderViewImpl.class)) {
+										params.getView().navigate().to(RMViews.class).displayFolder(newParentId);
+									} else if (params.getView().getClass().equals(HomeViewImpl.class)) {
+										params.getView().navigate().to(RMViews.class).home();
+									} else {
+										params.getView().navigate().to().currentView();
+									}
 								} catch (RecordServicesException.ValidationException e) {
 									params.getView().showErrorMessage($(e.getErrors()));
 								}
 							}
 						} catch (Throwable e) {
-							log.warn("Error when trying to move this document to folder " + parentId, e);
+							log.warn("Error when trying to move this document to folder " + newParentId, e);
 							showErrorMessage("DocumentContextMenu.changeParentFolderException");
 						}
 						getWindow().close();
