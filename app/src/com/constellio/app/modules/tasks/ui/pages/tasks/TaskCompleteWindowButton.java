@@ -25,6 +25,7 @@ import com.constellio.app.ui.framework.components.ErrorDisplayUtil;
 import com.constellio.app.ui.framework.components.fields.comment.CommentField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateTimeField;
+import com.constellio.app.ui.framework.components.fields.number.BaseDoubleField;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
@@ -318,6 +319,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		MetadataSchema taskSchema = task.getSchema();
 		Record record = task.getWrappedRecord();
 
+		//TODO replace with getConvertedValue?
 		for (Map.Entry<MetadataVO, Field> entry : MapUtils.emptyIfNull(fields).entrySet()) {
 			MetadataVO m = entry.getKey();
 			Field field = entry.getValue();
@@ -325,9 +327,10 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			Object value = field.getValue();
 			if (field instanceof JodaDateTimeField) {
 				value = LocalDateTime.fromDateFields((Date) value);
-			}
-			if (value instanceof JodaDateField) {
+			} else if (field instanceof JodaDateField) {
 				value = LocalDate.fromDateFields((Date) value);
+			} else if(field instanceof BaseDoubleField) {
+				value = ((BaseDoubleField) field).getConvertedValue();
 			}
 			record.set(taskSchema.getMetadata(m.getCode()), value);
 		}
