@@ -2,8 +2,11 @@ package com.constellio.app.modules.rm.services.menu.behaviors;
 
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
@@ -30,6 +33,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -50,9 +54,13 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentConversionManager;
@@ -70,10 +78,12 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +95,7 @@ import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
+@Slf4j
 public class DocumentMenuItemActionBehaviors {
 
 	private RMModuleExtensions rmModuleExtensions;
@@ -94,6 +105,8 @@ public class DocumentMenuItemActionBehaviors {
 	private ModelLayerFactory modelLayerFactory;
 	private RecordServices recordServices;
 	private RMSchemasRecordsServices rm;
+	private ConstellioEIMConfigs eimConfigs;
+	private MetadataSchemaTypes schemaTypes;
 	private LoggingServices loggingServices;
 	private DecommissioningLoggingService decommissioningLoggingService;
 	private DocumentRecordActionsServices documentRecordActionsServices;
@@ -105,6 +118,8 @@ public class DocumentMenuItemActionBehaviors {
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		recordServices = modelLayerFactory.newRecordServices();
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		loggingServices = modelLayerFactory.newLoggingServices();
 		decommissioningLoggingService = new DecommissioningLoggingService(appLayerFactory.getModelLayerFactory());
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
@@ -396,6 +411,63 @@ public class DocumentMenuItemActionBehaviors {
 		} else if (documentRecordActionsServices.isCheckOutActionNotPossibleDocumentDeleted(document.getWrappedRecord(), params.getUser())) {
 			params.getView().showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
 		}
+	}
+
+	public void sendReturnRemainder(Document document, MenuItemActionBehaviorParams params) {
+		Button reminderReturnDocumentButton = new BaseButton($("DisplayFolderView.reminderReturnFolder")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				try {
+					EmailToSend emailToSend = newEmailToSend();
+					String constellioUrl = eimConfigs.getConstellioUrl();
+					User borrower = null;
+					if (document.getContentCheckedOutBy() != null) {
+						borrower = rm.getUser(document.getContentCheckedOutBy());
+					}
+
+					EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
+					emailToSend.setTo(Arrays.asList(borrowerAddress));
+					emailToSend.setSendOn(TimeProvider.getLocalDateTime());
+					emailToSend.setSubject($("DisplayFolderView.reminderReturnFolder") + document.getTitle());
+					emailToSend.setTemplate(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
+					List<String> parameters = new ArrayList<>();
+					String previewReturnDate = document.getContentCheckedOutDate().plusDays(getBorrowingDuration()).toString();
+					parameters.add("previewReturnDate" + EmailToSend.PARAMETER_SEPARATOR + previewReturnDate);
+					parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + borrower.getUsername());
+					parameters.add("borrowedFolderTitle" + EmailToSend.PARAMETER_SEPARATOR + document.getTitle());
+					boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+					if (isAddingRecordIdInEmails) {
+						parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.reminderReturnFolder") + " \""
+									   + document.getTitle() + "\" (" + document.getId() + ")");
+					} else {
+						parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.reminderReturnFolder") + " \""
+									   + document.getTitle() + "\"");
+					}
+
+					parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+					parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!"
+								   + RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + document.getId());
+					emailToSend.setParameters(parameters);
+
+					recordServices.add(emailToSend);
+					params.getView().showMessage($("DisplayFolderView.reminderEmailSent"));
+				} catch (RecordServicesException e) {
+					log.error("DisplayFolderView.cannotSendEmail", e);
+					params.getView().showMessage($("DisplayFolderView.cannotSendEmail"));
+				}
+			}
+		};
+		reminderReturnDocumentButton.click();
+	}
+
+	private EmailToSend newEmailToSend() {
+		MetadataSchema schema = schemaTypes.getSchemaType(EmailToSend.SCHEMA_TYPE).getDefaultSchema();
+		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
+		return new EmailToSend(emailToSendRecord, schemaTypes);
+	}
+
+	private int getBorrowingDuration() {
+		return new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()).getDocumentBorrowingDurationDays();
 	}
 
 	public void addAuthorization(Document document, MenuItemActionBehaviorParams params) {
