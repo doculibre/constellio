@@ -298,6 +298,8 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 
 	public abstract boolean seeAccessField();
 
+	public abstract boolean seeSharedBy();
+
 	public Boolean hasUserAccess(String accessCode) {
 		return getCurrentUser().hasCollectionAccess(accessCode);
 	}

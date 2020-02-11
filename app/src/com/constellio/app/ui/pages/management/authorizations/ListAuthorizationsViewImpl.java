@@ -257,7 +257,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		Table table = new BaseTable(getClass().getName(), tableCaption, container);
 		table.setPageLength(container.size());
 		table.addStyleName(source == AuthorizationSource.OWN ? AUTHORIZATIONS : INHERITED_AUTHORIZATIONS);
-		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeAccessField(), getSessionContext().getCurrentLocale()).attachTo(table, presenter.isRecordNotATaxonomyConcept());
+		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeSharedBy(), presenter.seeAccessField(), getSessionContext().getCurrentLocale()).attachTo(table, presenter.isRecordNotATaxonomyConcept());
 		return table;
 	}
 
@@ -438,6 +438,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	public class Authorizations implements ColumnGenerator {
 		public static final String PRINCIPALS = "principal";
 		public static final String CONTENT = "content";
+		public static final String SHARED_BY = "sharedBy";
 		public static final String ACCESS = "access";
 		public static final String USER_ROLES = "userRoles";
 		public static final String START_DATE = "startDate";
@@ -452,15 +453,17 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		private boolean seeRolesField;
 		private boolean seeAccessField;
 		private boolean seeMetadataField;
+		private boolean seeSharedBy;
 		private Locale currentLocale;
 		private final JodaDateToStringConverter converter;
 
-		public Authorizations(AuthorizationSource source, DisplayMode mode, boolean seeRolesField,
+		public Authorizations(AuthorizationSource source, DisplayMode mode, boolean seeRolesField, boolean seeSharedBy,
 							  boolean seeAccessField, Locale currentLocale) {
 			this.source = source;
 			this.mode = mode;
 			this.seeRolesField = seeRolesField;
 			this.seeAccessField = seeAccessField;
+			this.seeSharedBy = seeSharedBy;
 			this.seeMetadataField = source == AuthorizationSource.INHERITED_FROM_METADATA;
 			this.currentLocale = currentLocale;
 			converter = new JodaDateToStringConverter();
@@ -497,6 +500,12 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				table.addGeneratedColumn(USER_ROLES, this);
 				table.setColumnHeader(USER_ROLES, $("AuthorizationsView.userRoles"));
 				columnIds.add(USER_ROLES);
+			}
+
+			if(seeSharedBy){
+				table.addGeneratedColumn(SHARED_BY, this);
+				table.setColumnHeader(SHARED_BY, $("AuthorizationsView.sharedBy"));
+				columnIds.add(SHARED_BY);
 			}
 
 			if (seeMetadataField) {
@@ -550,6 +559,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 					return authorization.getReceivedFromRecordCaption();
 				case POSITIVE_OR_NEGATIVE:
 					return buildNegativeAuthorizationsColumn(authorization);
+				case SHARED_BY:
+					return authorization.getSharedBy();
 				default:
 					LocalDate date = (LocalDate) source.getItem(itemId).getItemProperty(columnId).getValue();
 					return converter.convertToPresentation(

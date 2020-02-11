@@ -15,6 +15,7 @@ import com.constellio.app.services.menu.behavior.DesktopMenuItemActionBehaviors;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -132,7 +133,9 @@ public class MenuItemServices {
 			excludedActionTypes = new ArrayList<>(excludedActionTypes);
 		}
 
-		if (!(params.getView() instanceof ListUserDocumentsViewImpl)) {
+		BaseView view = params.getView();
+
+		if (!(view instanceof ListUserDocumentsViewImpl)) {
 			excludedActionTypes.add(CLASSIFY.name());
 		}
 

@@ -789,6 +789,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
+	public void setUnshareDocumentButtonState(ComponentState state) {
+
+	}
+
+	@Override
 	public void setCreatePDFAButtonState(ComponentState state) {
 	}
 

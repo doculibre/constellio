@@ -41,6 +41,7 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 	}
 
 	public void authorizationCreationRequested(AuthorizationVO authorizationVO) {
+		authorizationVO.setSharedBy(getCurrentUser().getId());
 		AuthorizationAddRequest authorization = toAuthorization(authorizationVO);
 		authorizationsServices().add(authorization, getCurrentUser());
 		modelLayerFactory.newLoggingServices().shareDocument(presenterService().getRecord(recordId), getCurrentUser());
@@ -93,7 +94,7 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 		principals.addAll(authorizationVO.getGroups());
 
 		return AuthorizationAddRequest.authorizationInCollection(collection).giving(roles)
-				.forPrincipalsIds(principals).on(authorizationVO.getRecord())
+				.forPrincipalsIds(principals).on(authorizationVO.getRecord()).sharedBy(authorizationVO.getSharedBy())
 				.startingOn(authorizationVO.getStartDate()).endingOn(authorizationVO.getEndDate());
 	}
 

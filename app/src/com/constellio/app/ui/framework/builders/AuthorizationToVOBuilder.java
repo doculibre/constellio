@@ -103,7 +103,7 @@ public class AuthorizationToVOBuilder implements Serializable {
 		String authorizationType = authorization.isNegative() ? $(DISABLE) : $(ENABLE);
 		AuthorizationVO authorizationVO = new AuthorizationVO(users, groups, records, accessRoles, userRoles, userRolesTitles,
 				authorization.getId(), authorization.getStartDate(),
-				authorization.getEndDate(), authorization.isSynced(), metadataLabel, recordCaption, authorizationType);
+				authorization.getEndDate(), authorization.getSharedBy(),authorization.isSynced(), metadataLabel, recordCaption, authorizationType);
 
 		return authorizationVO;
 	}

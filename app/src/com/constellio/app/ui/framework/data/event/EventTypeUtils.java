@@ -60,6 +60,12 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.deletedGroupsEvent");
 		} else if (eventType.equals(EventType.GRANT_PERMISSION_FOLDER)) {
 			return $("ListEventsView.grantedPermissions.folder");
+		} else if (eventType.equals(EventType.CREATE_SHARE_FOLDER)) {
+			return $("ListEventsView.createShare.folder");
+		} else if (eventType.equals(EventType.MODIFY_SHARE_FOLDER)) {
+			return $("ListEventsView.modifyShare.folder");
+		} else if (eventType.equals(EventType.DELETE_SHARE_FOLDER)) {
+			return $("ListEventsView.deleteShare.folder");
 		} else if (eventType.equals(EventType.MODIFY_PERMISSION_FOLDER)) {
 			return $("ListEventsView.modifiedPermissions.folder");
 		} else if (eventType.equals(EventType.DELETE_PERMISSION_FOLDER)) {
@@ -70,6 +76,12 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.modifiedPermissions.document");
 		} else if (eventType.equals(EventType.DELETE_PERMISSION_DOCUMENT)) {
 			return $("ListEventsView.deletedPermissions.document");
+		} else if (eventType.equals(EventType.CREATE_SHARE_DOCUMENT)) {
+			return $("ListEventsView.createShare.document");
+		} else if (eventType.equals(EventType.MODIFY_SHARE_DOCUMENT)) {
+			return $("ListEventsView.modifyShare.document");
+		} else if (eventType.equals(EventType.DELETE_SHARE_DOCUMENT)) {
+			return $("ListEventsView.deleteShare.document");
 		} else if (eventType.equals(EventType.FOLDER_RELOCATION)) {
 			return $("ListEventsView.folderRelocation");
 		} else if (eventType.equals(EventType.FOLDER_DEPOSIT)) {
@@ -268,7 +280,10 @@ public class EventTypeUtils implements Serializable {
 	private static boolean isPermissionEvent(String eventType) {
 		if (eventType.contains(EventType.DELETE_PERMISSION) ||
 			eventType.contains(EventType.GRANT_PERMISSION) ||
-			eventType.contains(EventType.MODIFY_PERMISSION)) {
+			eventType.contains(EventType.MODIFY_PERMISSION)||
+			eventType.contains(EventType.CREATE_SHARE)||
+			eventType.contains(EventType.MODIFY_SHARE)||
+			eventType.contains(EventType.DELETE_SHARE)) {
 			return true;
 		} else {
 			return false;

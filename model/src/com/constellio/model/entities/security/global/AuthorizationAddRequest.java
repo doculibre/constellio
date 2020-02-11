@@ -24,6 +24,7 @@ public class AuthorizationAddRequest {
 	private Authorization existingAuthorization;
 	private LocalDate start, end;
 	private User executedBy;
+	private String sharedBy;
 	private boolean negative;
 	private boolean overridingInheritedAuths;
 
@@ -59,6 +60,16 @@ public class AuthorizationAddRequest {
 
 	public AuthorizationAddRequest forPrincipalsIds(String... principals) {
 		this.principals = asList(principals);
+		return this;
+	}
+
+	public AuthorizationAddRequest sharedBy(String userId) {
+		this.sharedBy = userId;
+		return this;
+	}
+
+	public AuthorizationAddRequest sharedBy(User user) {
+		this.sharedBy = user.getId();
 		return this;
 	}
 
@@ -241,6 +252,14 @@ public class AuthorizationAddRequest {
 
 	public User getExecutedBy() {
 		return executedBy;
+	}
+
+	public String getSharedBy() {
+		return sharedBy;
+	}
+
+	public void setSharedBy(String sharedBy) {
+		this.sharedBy = sharedBy;
 	}
 
 	public AuthorizationAddRequest setExecutedBy(User executedBy) {

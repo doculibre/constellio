@@ -43,6 +43,7 @@ import com.constellio.app.ui.framework.components.content.UpdateContentVersionWi
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
@@ -50,9 +51,12 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentConversionManager;
@@ -82,6 +86,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
@@ -388,6 +393,61 @@ public class DocumentMenuItemActionBehaviors {
 		updateSearchResultClicked(document.getWrappedRecord());
 	}
 
+	public void unshare(Document document, MenuItemActionBehaviorParams params) {
+
+		Button unshareDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ConfirmDialog.confirmUnshare");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				unshareDocumentButtonClicked(ParamUtils.getCurrentParams(),document, params.getUser());
+			}
+		};
+
+		unshareDocumentButton.click();
+	}
+
+	public void unshareDocumentButtonClicked(Map<String, String> params, Document document, User user) {
+
+		Authorization authorization = rm.getSolrAuthorizationDetails(user, document.getId());
+		try {
+			rm.getModelLayerFactory()
+					.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+
+			return;
+		}
+	}
+
+	private AuthorizationModificationRequest toAuthorizationModificationRequest(Authorization authorization,
+																				 String recordId, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationModificationRequest request = modifyAuthorizationOnRecord(authId, user.getCollection(), recordId);
+		request = request.withNewAccessAndRoles(authorization.getRoles());
+		request = request.withNewStartDate(authorization.getStartDate());
+		request = request.withNewEndDate(authorization.getEndDate());
+
+		List<String> principals = new ArrayList<>();
+		principals.addAll(authorization.getPrincipals());
+		request = request.withNewPrincipalIds(principals);
+		request = request.setExecutedBy(user);
+
+		return request;
+
+	}
+
+	private AuthorizationDeleteRequest toAuthorizationDeleteRequest(Authorization authorization,User user) {
+		String authId = authorization.getId();
+
+		AuthorizationDeleteRequest request = AuthorizationDeleteRequest.authorizationDeleteRequest(authId, user.getCollection());
+
+		return request;
+
+	}
 
 	public void manageAuthorizations(Document document, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to().listObjectAccessAndRoleAuthorizations(document.getId());

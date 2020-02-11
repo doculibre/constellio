@@ -286,7 +286,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		Authorization authorization = newAuthorization("MANAGER", Arrays.asList(users.bobIn(zeCollection)),
 				records.getFolder_A01().getWrappedRecord());
 		User alice = users.aliceIn(zeCollection);
-		loggingServices.grantPermission(authorization, alice);
+		loggingServices.grantPermission(authorization, alice, false);
 		recordServices.flush();
 
 		LogicalSearchQuery query = new LogicalSearchQuery();

@@ -33,6 +33,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddAuhtorizationInNonPrincipalTaxonomy;
@@ -66,6 +67,7 @@ import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZ
 import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.records.RecordUtils.unwrap;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
@@ -109,6 +111,20 @@ public class AuthorizationsServices {
 		Authorization authDetails = getDetails(collection, id);
 		if (authDetails == null) {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(id);
+		}
+		return authDetails;
+	}
+
+	public Authorization getAuthorization(User user, String recordId) {
+		if (user == null) {
+			throw new IllegalArgumentException("user is null");
+		}
+		if (recordId == null) {
+			throw new IllegalArgumentException("record id is null");
+		}
+		Authorization authDetails = getDetails(user, recordId);
+		if (authDetails == null) {
+			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(recordId);
 		}
 		return authDetails;
 	}
@@ -236,6 +252,7 @@ public class AuthorizationsServices {
 
 	}
 
+
 	public List<User> getUsersWithRoleForRecord(String role, Record record) {
 		List<User> users = new ArrayList<>();
 		List<Authorization> recordAuths = getRecordAuthorizations(record);
@@ -306,6 +323,7 @@ public class AuthorizationsServices {
 				request.getStart(), request.getEnd(), request.isOverridingInheritedAuths(), request.isNegative())
 				.setTarget(request.getTarget()).setTargetSchemaType(record.getTypeCode());
 		details.setPrincipals(principalToRecordIds(schemas(record.getCollection()), request.getPrincipals()));
+		details.setSharedBy(request.getSharedBy());
 		return add(details, request.getExecutedBy());
 	}
 
@@ -345,7 +363,7 @@ public class AuthorizationsServices {
 		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
 
 		if (userAddingTheAuth != null) {
-			loggingServices.grantPermission(authorization, userAddingTheAuth);
+			loggingServices.grantPermission(authorization, userAddingTheAuth, authorization.getSharedBy() != null);
 		}
 
 		return authId;
@@ -468,6 +486,35 @@ public class AuthorizationsServices {
 		}
 	}
 
+	private Authorization getDetails(User user, String recordId) {
+		try {
+			String userId = user.getId();
+
+			SchemasRecordsServices schemas = schemas(user.getCollection());
+
+			Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+			Metadata principalMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.PRINCIPALS);
+			Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+
+			LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+					.whereAllConditions(anyConditions(where(sharedByMeta).isEqualTo(user.getId()),
+							where(principalMeta).isContainingText(user.getId())), where(targetMeta).isEqualTo(recordId));
+
+
+			List<Record> records = searchServices.search(new LogicalSearchQuery(condition));
+
+			if(records.size() > 0)
+			{
+				return schemas(user.getCollection()).wrapSolrAuthorizationDetails(records.get(0));
+			}
+			else{
+				throw new NoSuchAuthorizationWithId(recordId);
+			}
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			throw new NoSuchAuthorizationWithId(recordId);
+		}
+	}
+
 	private void remove(Authorization details) {
 		Record record = ((Authorization) details).getWrappedRecord();
 		recordServices.logicallyDelete(record, User.GOD);
@@ -499,7 +546,8 @@ public class AuthorizationsServices {
 			}
 
 			try {
-				loggingServices.modifyPermission(authorizationBefore, authorizationAfter, record, request.getExecutedBy());
+				loggingServices.modifyPermission(authorizationBefore, authorizationAfter, record, request.getExecutedBy(),
+						authorization.getSharedBy() != null);
 			} catch (NoSuchAuthorizationWithId e) {
 				//No problemo
 			}
@@ -655,7 +703,6 @@ public class AuthorizationsServices {
 				}
 			}
 
-
 		} else if (Group.DEFAULT_SCHEMA.equals(record.getSchemaCode())) {
 			List<String> authIds = new ArrayList<>(getAuthsReceivedBy(schemas.wrapGroup(record), schemas));
 
@@ -693,6 +740,57 @@ public class AuthorizationsServices {
 
 		}
 
+
+		return authorizations;
+	}
+
+	/**
+	 * Return all records a user authorized as shared.
+	 * Authorizations may be inherited or assigned directly to the record
+	 *
+	 * @param user User sharing
+	 * @return Records
+	 */
+	public List<Authorization> getAllAuthorizationUserShared(User user) {
+		String userId = user.getId();
+
+		SchemasRecordsServices schemas = schemas(user.getCollection());
+
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+				.where(sharedByMeta).isEqualTo(userId);
+
+
+		List<Record> recordsSharedByUser = searchServices.search(new LogicalSearchQuery(condition));
+
+
+		List<Authorization> authorizations = schemas.wrapSolrAuthorizationDetailss(recordsSharedByUser);
+
+		return authorizations;
+	}
+
+	/**
+	 * Return all records a user authorized was shared to him.
+	 * Authorizations may be inherited or assigned directly to the record
+	 *
+	 * @param user User sharing
+	 * @return Records
+	 */
+	public List<Authorization> getAllUserSharedRecords(User user) {
+		String userId = user.getId();
+
+		SchemasRecordsServices schemas = schemas(user.getCollection());
+
+		Metadata principalsMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.PRINCIPALS);
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+				.where(principalsMeta).isContainingText(userId).andWhere(sharedByMeta).isNotNull();
+
+
+		List<Record> recordsSharedToUser = searchServices.search(new LogicalSearchQuery(condition));
+
+
+		List<Authorization> authorizations = schemas.wrapSolrAuthorizationDetailss(recordsSharedToUser);
 
 		return authorizations;
 	}

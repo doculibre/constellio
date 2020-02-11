@@ -297,6 +297,11 @@ public class DocumentRecordActionsServices {
 			   rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
+	public boolean isRemoveAuthorizationActionPossible(Record record, User user) {
+		return user.has(RMPermissionsTo.SHARE_DOCUMENT).on(record) &&
+			   !record.isLogicallyDeleted() &&
+			   rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
 
 	public boolean isManageAuthorizationActionPossible(Record record, User user) {
 		return user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) &&

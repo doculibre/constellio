@@ -26,29 +26,30 @@ public class AuthorizationVO implements Serializable {
 	List<String> userRolesTitles;
 	LocalDate startDate;
 	LocalDate endDate;
+	String sharedBy;
 	boolean synched;
 
 	public static AuthorizationVO forUsers(String id) {
 		return new AuthorizationVO(
 				asList(id), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(),
-				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false, null, null, null);
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, null, false, null, null, null);
 	}
 
 	public static AuthorizationVO forGroups(String id) {
 		return new AuthorizationVO(
 				new ArrayList<String>(), asList(id), new ArrayList<String>(), new ArrayList<String>(),
-				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false, null, null, null);
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, null, false, null, null, null);
 	}
 
 	public static AuthorizationVO forContent(String id) {
 		return new AuthorizationVO(
 				new ArrayList<String>(), new ArrayList<String>(), asList(id), new ArrayList<String>(),
-				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false, null, null, null);
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, null, false, null, null, null);
 	}
 
 	public AuthorizationVO(List<String> users, List<String> groups, List<String> records, List<String> accessRoles,
 						   List<String> userRoles, List<String> userRolesTitles, String authId, LocalDate startDate,
-						   LocalDate endDate,
+						   LocalDate endDate, String sharedBy,
 						   boolean synched, String receivedFromMetadataLabel, String receivedFromRecordCaption,
 						   String negative) {
 		this.users = users;
@@ -60,6 +61,7 @@ public class AuthorizationVO implements Serializable {
 		this.startDate = startDate;
 		this.endDate = endDate;
 		this.groups = groups;
+		this.sharedBy = sharedBy;
 		this.synched = synched;
 		this.receivedFromMetadataLabel = receivedFromMetadataLabel;
 		this.receivedFromRecordCaption = receivedFromRecordCaption;
@@ -84,6 +86,14 @@ public class AuthorizationVO implements Serializable {
 
 	public List<String> getRecords() {
 		return records;
+	}
+
+	public String getSharedBy() {
+		return sharedBy;
+	}
+
+	public void setSharedBy(String sharedBy) {
+		this.sharedBy = sharedBy;
 	}
 
 	public void setRecords(List<String> records) {

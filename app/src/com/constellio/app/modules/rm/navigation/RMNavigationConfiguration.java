@@ -6,6 +6,7 @@ import com.constellio.app.entities.navigation.NavigationItem.Active;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
+import com.constellio.app.entities.navigation.PageItem.SharedItemsTables;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
@@ -36,6 +37,7 @@ import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.home.CheckedOutDocumentsTable;
+import com.constellio.app.modules.rm.ui.pages.home.SharedDocumentsAndFoldersProvider;
 import com.constellio.app.modules.rm.ui.pages.management.ArchiveManagementViewImpl;
 import com.constellio.app.modules.rm.ui.pages.personalspace.PersonnalSpaceView;
 import com.constellio.app.modules.rm.ui.pages.reports.RMReportsViewImpl;
@@ -88,6 +90,7 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
 import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
@@ -103,6 +106,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String LAST_VIEWED_FOLDERS = "lastViewedFolders";
 	public static final String LAST_VIEWED_DOCUMENTS = "lastViewedDocuments";
 	public static final String CHECKED_OUT_DOCUMENTS = "checkedOutDocuments";
+	public static final String SHARED_ITEMS = "sharedDocuments";
 	public static final String TAXONOMIES = "taxonomies";
 
 	public static final String UNIFORM_SUBDIVISIONS = "uniformSubdivisions";
@@ -346,6 +350,13 @@ public class RMNavigationConfiguration implements Serializable {
 			public RecordVODataProvider getDataProvider(AppLayerFactory appLayerFactory,
 														SessionContext sessionContext) {
 				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
+			}
+		});
+		config.add(HomeView.TABS, new SharedItemsTables(SHARED_ITEMS){
+			@Override
+			public Map<String,RecordVODataProvider> getDataProvider(AppLayerFactory appLayerFactory,
+															 SessionContext sessionContext) {
+				return new SharedDocumentsAndFoldersProvider(appLayerFactory, sessionContext).getDataProviders();
 			}
 		});
 	}

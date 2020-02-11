@@ -272,6 +272,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
+	public void setUnshareDocumentButtonState(ComponentState state) {
+		shareDocumentButtonVisible = state.isEnabled();
+	}
+
+	@Override
 	public void setUploadButtonState(ComponentState state) {
 		uploadButtonVisible = state.isEnabled();
 	}

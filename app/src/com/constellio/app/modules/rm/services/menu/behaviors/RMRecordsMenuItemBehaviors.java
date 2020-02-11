@@ -52,8 +52,11 @@ import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
@@ -91,10 +94,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
@@ -110,6 +115,7 @@ public class RMRecordsMenuItemBehaviors {
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 	private ContainerRecordActionsServices containerRecordActionsServices;
+	private RMSchemasRecordsServices rm;
 	private ModelLayerCollectionExtensions modelCollectionExtensions;
 
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
@@ -125,6 +131,8 @@ public class RMRecordsMenuItemBehaviors {
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 		containerRecordActionsServices = new ContainerRecordActionsServices(collection, appLayerFactory);
+
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	public void addToCart(List<String> recordIds, MenuItemActionBehaviorParams params) {
@@ -412,6 +420,50 @@ public class RMRecordsMenuItemBehaviors {
 		button.click();
 	}
 
+	public void batchUnshare(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		Button button = new DeleteButton(false) {
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					unshareFolderButtonClicked( recordIds, params.getUser());
+					Page.getCurrent().reload();
+				}
+
+				@Override
+				protected String getConfirmDialogMessage() {
+					int folderCount = countPerShemaType(Folder.SCHEMA_TYPE, recordIds);
+					int documentCount = countPerShemaType(Document.SCHEMA_TYPE, recordIds);
+
+					return $("CartView.deleteConfirmationMessageWithoutJustification");
+				}
+			};
+
+		button.click();
+	}
+
+	public void unshareFolderButtonClicked(List<String> ids,User user ) {
+
+		List<Authorization> authorizations = rm.getMultipleSolrAuthorizationDetails(user, ids);
+
+		for(Authorization authorization: authorizations) {
+			try {
+				rm.getModelLayerFactory()
+						.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
+
+			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+
+				return;
+			}
+		}
+	}
+
+	private AuthorizationDeleteRequest toAuthorizationDeleteRequest(Authorization authorization, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationDeleteRequest request = AuthorizationDeleteRequest.authorizationDeleteRequest(authId, user.getCollection());
+
+		return request;
+
+	}
 
 	private boolean isBatchDeletePossible(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		return documentRecordActionsServices.canDeleteDocuments(recordIds, params.getUser())
