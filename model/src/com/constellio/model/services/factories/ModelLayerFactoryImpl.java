@@ -11,6 +11,7 @@ import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
@@ -166,14 +167,17 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		add(new StatefulService() {
 			@Override
 			public void initialize() {
-				//if (FoldersLocator.usingAppWrapper()) {
-					//Keeping mapping between runtimes
-					StringRecordId.setMapping(new StringRecordIdLegacyPersistedMapping(dataLayerFactory.getConfigManager()));
-
-				//} else {
+				if (Toggle.USE_MEMORY_STRING_ID_MAPPING.isEnabled()) {
 					//Faster for tests
-				//	StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping());
-				//}
+					StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping(
+							markForReindexingRunnable));
+
+				} else {
+					//Keeping mapping between runtimes
+					StringRecordId.setMapping(new StringRecordIdLegacyPersistedMapping(
+							dataLayerFactory.getConfigManager(), markForReindexingRunnable));
+
+				}
 			}
 
 			@Override
@@ -217,10 +221,12 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		File workFolder = new FoldersLocator().getWorkFolder();
 		workFolder.mkdirs();
-		File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), instanceName + "-cache.db");
+
+		File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), (instanceName == null ? "constellio" : instanceName) + "-fsCache.db");
+		File memoryCacheCopyCacheFolder = new File(new FoldersLocator().getWorkFolder(), (instanceName == null ? "constellio" : instanceName) + "-memoryCacheCopy.db");
 		//FileUtils.deleteQuietly(fileSystemCacheFolder);
 		FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
-				= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
+				= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder, memoryCacheCopyCacheFolder);
 
 		RecordsCachesDataStore memoryDataStore = new RecordsCachesDataStore(this);
 		this.recordsCaches = add(new EventsBusRecordsCachesImpl(this, fileSystemRecordsValuesCacheDataStore, memoryDataStore));

@@ -4,7 +4,29 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+/**
+ * Any id that is not a zero-padded integer id of 11 digits
+ * A mapping table is used to convert this id to a negative integer value in both ways
+ */
 public class StringRecordId implements RecordId {
+
+	/**
+	 * Question : Why am I getting this ID?
+	 * <p>
+	 * Answer : That's a tough one!
+	 * <p>
+	 * Possible situations that can cause this issue :
+	 * - The config file 'legacyConstellioIdsMapping.properties' has lost some mapping entries
+	 * - The id was mapped by a StringRecordIdLegacyMemoryMapping because it was runned by a test with the toggle USE_MEMORY_STRING_ID_MAPPING enabled.
+	 * - The id was mapped by a StringRecordIdLegacyPersistedMapping, then StringRecordIdLegacyMemoryMapping was used for mapping
+	 * <p>
+	 * Is it bad? Probably not
+	 * <p>
+	 * What should I do?
+	 * 1. Make sure the toggle USE_MEMORY_STRING_ID_MAPPING is disabled
+	 * 2. Reindex
+	 */
+	public static final String INVALID_ID = "MappingError_See_StringRecordId_INVALID_ID";
 
 	private static StringRecordIdLegacyMapping mapping;
 

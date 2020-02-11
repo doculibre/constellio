@@ -614,12 +614,12 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_VisibleTreesWithoutChil
 				.has(solrQueryCounts(1, 4, 0))
 				.has(secondSolrQueryCounts(1, 4, 0));
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 1)
-				.has(recordsInOrder(document1InA16))
-				.has(noRecordsWithChildren())
-				.has(listSize(1)).has(numFound(4))
-				.has(solrQueryCounts(1, 1, 0))
-				.has(secondSolrQueryCounts(1, 1, 0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 5)
+				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
+				.has(recordsWithChildren(subFolderId))
+				.has(listSize(4)).has(numFound(4))
+				.has(solrQueryCounts(1, 4, 0))
+				.has(secondSolrQueryCounts(1, 4, 0));
 
 	}
 

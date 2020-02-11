@@ -153,8 +153,8 @@ public class RMSelectedFoldersAndDocumentsSIPBuilder {
 
 
 	private Iterator<String> getChildrenIds(Folder folder) {
-		return searchServices.recordsIdsIterator(new LogicalSearchQuery(
-				fromAllSchemasIn(collection).where(Schemas.PATH_PARTS).isEqualTo(folder.getId())));
+		return searchServices.recordsIdsIterator(new LogicalSearchQuery(fromAllSchemasIn(collection)
+				.where(Schemas.PRINCIPALS_ANCESTORS_INT_IDS).isEqualTo(folder.getWrappedRecordId().intValue())));
 	}
 
 	private List<String> getParentIds(Folder folder) {

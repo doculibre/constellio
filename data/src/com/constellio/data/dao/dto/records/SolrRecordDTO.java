@@ -24,6 +24,8 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 
 	private final Map<String, Object> copyfields;
 
+	private int mainSortValue;
+
 	private RecordDTOMode mode;
 
 	public SolrRecordDTO(String id, Map<String, Object> fields, RecordDTOMode mode) {
@@ -41,12 +43,18 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 
 	public SolrRecordDTO(String id, long version, Map<String, Object> fields,
 						 Map<String, Object> copyfields, RecordDTOMode mode) {
+		this(id, version, fields, copyfields, mode, MAIN_SORT_UNDEFINED);
+	}
+
+	public SolrRecordDTO(String id, long version, Map<String, Object> fields,
+						 Map<String, Object> copyfields, RecordDTOMode mode, int mainSortValue) {
 		super();
 		if (id == null) {
 			throw new RecordDaoRuntimeException("DTO Cannot have a null id");
 		}
 
 		this.id = id;
+		this.mainSortValue = mainSortValue;
 		this.version = version;
 		if (fields == null && copyfields != null) {
 			this.fields = copyfields;
@@ -64,6 +72,11 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 
 	public long getVersion() {
 		return version;
+	}
+
+	@Override
+	public int getMainSortValue() {
+		return mainSortValue;
 	}
 
 	public Map<String, Object> getFields() {
@@ -95,6 +108,10 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 
 	public SolrRecordDTO withVersion(long version) {
 		return new SolrRecordDTO(id, version, fields, copyfields, mode);
+	}
+
+	public SolrRecordDTO withMainSortValue(int mainSortValue) {
+		return new SolrRecordDTO(id, version, fields, copyfields, mode, mainSortValue);
 	}
 
 	private static List<String> alwaysCopiedFields = asList("collection_s", "schema_s");
@@ -156,5 +173,21 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 			   "id='" + id + '\'' +
 			   ", version=" + version +
 			   '}';
+	}
+
+	public RecordDTO createSummaryKeeping(List<String> summaryMetadatas) {
+		Map<String, Object> newFields = new HashMap<>();
+
+		for (Map.Entry<String, Object> entry : this.fields.entrySet()) {
+			if (summaryMetadatas.contains(entry.getKey())) {
+				newFields.put(entry.getKey(), entry.getValue());
+			}
+		}
+		newFields.put("schema_s", fields.get("schema_s"));
+		newFields.put("collection_s", fields.get("collection_s"));
+
+		Map<String, Object> copyfields = new HashMap<>();
+
+		return new SolrRecordDTO(id, version, newFields, copyfields, RecordDTOMode.SUMMARY);
 	}
 }

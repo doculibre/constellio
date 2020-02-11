@@ -41,6 +41,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.aggregations.GetMetadatasUsedToCalculateParams;
 import com.constellio.model.services.records.aggregations.MetadataAggregationHandler;
 import com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory;
+import com.constellio.model.services.records.cache.CacheMemoryConsumptionReportBuilder;
+import com.constellio.model.services.records.reindexing.SystemReindexingConsumptionInfos.SystemReindexingConsumptionHeapInfo;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -53,7 +55,9 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,9 +65,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.constellio.model.conf.FoldersLocatorMode.PROJECT;
 import static com.constellio.model.entities.enums.MemoryConsumptionLevel.LEAST_MEMORY_CONSUMPTION;
@@ -93,6 +99,7 @@ public class ReindexingServices {
 	private SecondTransactionLogManager logManager;
 
 	private int mainThreadQueryRows;
+
 
 	public ReindexingServices(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -144,7 +151,8 @@ public class ReindexingServices {
 				modelLayerFactory.getRecordsCaches().disableVolatileCache();
 				dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(false);
 				int waitedCounter = 0;
-				while (!modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+				while (!modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
+					   && modelLayerFactory.getConfiguration().isSummaryCacheEnabled()) {
 					if (waitedCounter++ % 6 == 0) {
 						LOGGER.info("Waiting end of cache loading to start reindexing");
 					}
@@ -316,83 +324,87 @@ public class ReindexingServices {
 		ReindexingRecordsProvider recordsProvider = new ReindexingRecordsProvider(modelLayerFactory, mainThreadQueryRows);
 		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage = newReindexingAggregatedValuesTempStorage();
 
-		int level = 0;
-		while (isReindexingLevel(level, types)) {
+		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
+				.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)
+				.setTransactionOptions(transactionOptions).showProgressionInConsole(false);
 
-			BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
-					.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)
-					.setTransactionOptions(transactionOptions).showProgressionInConsole(false);
+		if (Toggle.FASTER_REINDEXING.isEnabled()) {
+			options.withRecordsPerBatch(100000);
+			options.setMaxRecordsTotalSizePerBatch(Octets.megaoctets(25).getOctets());
 
-			if (Toggle.FASTER_REINDEXING.isEnabled()) {
-				options.withRecordsPerBatch(100000);
-				options.setMaxRecordsTotalSizePerBatch(Octets.megaoctets(25).getOctets());
+		} else {
+			int batchSize = params.getBatchSize();
+			if (batchSize == 0) {
 
-			} else {
-				int batchSize = params.getBatchSize();
-				if (batchSize == 0) {
+				if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LEAST_MEMORY_CONSUMPTION) {
+					batchSize = 20;
 
-					if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LEAST_MEMORY_CONSUMPTION) {
-						batchSize = 20;
+				} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
+					batchSize = 20;
 
-					} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
-						batchSize = 20;
-
-					} else {
-						batchSize = modelLayerFactory.getConfiguration().getReindexingThreadBatchSize();
-					}
-
+				} else {
+					batchSize = modelLayerFactory.getConfiguration().getReindexingThreadBatchSize();
 				}
-				options.withRecordsPerBatch(batchSize);
-				int countOfBatchesFilledByASingleQuery = mainThreadQueryRows / batchSize;
 
-				//The reader thread must have enough space in the queue to store the entire query result
-				options.setQueueSize(countOfBatchesFilledByASingleQuery + 1);
 			}
+			options.withRecordsPerBatch(batchSize);
+			int countOfBatchesFilledByASingleQuery = mainThreadQueryRows / batchSize;
 
-			BulkRecordTransactionHandler bulkTransactionHandler = new BulkRecordTransactionHandler(
-					modelLayerFactory.newRecordServices(), REINDEX_TYPES, options);
-
-			ReindexingLogger logger = new ReindexingLogger(collection, LOGGER);
-			try {
-
-				List<String> typesSortedByDependency = types.getSchemaTypesSortedByDependency();
-
-				if (level % 2 == 1) {
-					List<String> reversedTypesSortedByDependency = new ArrayList<>(typesSortedByDependency);
-					Collections.reverse(reversedTypesSortedByDependency);
-					typesSortedByDependency = reversedTypesSortedByDependency;
-
-				}
-
-				for (String typeCode : typesSortedByDependency) {
-					if (isReindexingOfTypeRequired(level, types, typeCode)) {
-						logger.startingToReindexSchemaType(typeCode, level);
-
-						MetadataSchemaType type = types.getSchemaType(typeCode);
-						boolean writeZZrecords = modelLayerFactory.getSystemConfigurationsManager()
-								.getValue(WRITE_ZZRECORDS_IN_TLOG);
-						boolean typeReindexed = type.isInTransactionLog() || writeZZrecords;
-
-						FoldersLocator foldersLocator = new FoldersLocator();
-						if (typeReindexed && foldersLocator.getFoldersLocatorMode() == PROJECT) {
-							//Running on dev computer
-							typeReindexed = !Event.SCHEMA_TYPE.equals(type.getCode());
-						}
-
-						if (typeReindexed) {
-							reindexCollectionType(bulkTransactionHandler, types, logger,
-									recordsProvider.newSchemaTypeProvider(type, level), aggregatedValuesTempStorage, params);
-						}
-					}
-				}
-
-			} finally {
-				bulkTransactionHandler.closeAndJoin();
-			}
-			modelLayerFactory.getDataLayerFactory().newRecordDao().removeOldLocks();
-			level++;
+			//The reader thread must have enough space in the queue to store the entire query result
+			options.setQueueSize(countOfBatchesFilledByASingleQuery + 1);
 		}
-		aggregatedValuesTempStorage.clear();
+
+		try {
+			int level = 0;
+			while (isReindexingLevel(level, types)) {
+
+				BulkRecordTransactionHandler bulkTransactionHandler = new BulkRecordTransactionHandler(
+						modelLayerFactory.newRecordServices(), REINDEX_TYPES, options);
+
+				ReindexingLogger logger = new ReindexingLogger(collection, LOGGER);
+				try {
+
+					List<String> typesSortedByDependency = types.getSchemaTypesSortedByDependency();
+
+					if (level % 2 == 1) {
+						List<String> reversedTypesSortedByDependency = new ArrayList<>(typesSortedByDependency);
+						Collections.reverse(reversedTypesSortedByDependency);
+						typesSortedByDependency = reversedTypesSortedByDependency;
+					}
+
+					for (String typeCode : typesSortedByDependency) {
+						if (isReindexingOfTypeRequired(level, types, typeCode)) {
+							logger.startingToReindexSchemaType(typeCode, level);
+
+							MetadataSchemaType type = types.getSchemaType(typeCode);
+							boolean writeZZrecords = modelLayerFactory.getSystemConfigurationsManager()
+									.getValue(WRITE_ZZRECORDS_IN_TLOG);
+							boolean typeReindexed = type.isInTransactionLog() || writeZZrecords;
+
+							FoldersLocator foldersLocator = new FoldersLocator();
+							if (typeReindexed && foldersLocator.getFoldersLocatorMode() == PROJECT) {
+								//Running on dev computer
+								typeReindexed = !Event.SCHEMA_TYPE.equals(type.getCode());
+							}
+
+							if (typeReindexed) {
+								reindexCollectionType(bulkTransactionHandler, type, logger,
+										level, recordsProvider, aggregatedValuesTempStorage, params);
+							}
+						}
+					}
+
+				} finally {
+					bulkTransactionHandler.closeAndJoin();
+				}
+				modelLayerFactory.getDataLayerFactory().newRecordDao().removeOldLocks();
+				level++;
+			}
+		} finally {
+			aggregatedValuesTempStorage.clear();
+			aggregatedValuesTempStorage = null;
+		}
+
 	}
 
 	@NotNull
@@ -433,31 +445,88 @@ public class ReindexingServices {
 		return false;
 	}
 
-	private void reindexCollectionType(BulkRecordTransactionHandler bulkTransactionHandler, MetadataSchemaTypes types,
-									   ReindexingLogger logger, ReindexingSchemaTypeRecordsProvider recordsProvider,
+	private void reindexCollectionType(BulkRecordTransactionHandler bulkTransactionHandler, MetadataSchemaType type,
+									   ReindexingLogger logger, int level,
+									   ReindexingRecordsProvider collectionRecordsProvider,
 									   ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage,
 									   ReindexationParams params) {
 
-		MetadataSchemaType type = recordsProvider.type;
+		MetadataSchemaTypes types = type.getSchemaTypes();
 		long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll())
 				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL));
+
+		//If 2% or less are skipped, they are retrieved using getById
+		int threshold = Math.max(1_000, 2 * (int) counter / 100);
+
+		ReindexingSchemaTypeRecordsProvider recordsProvider = collectionRecordsProvider.newSchemaTypeProvider(type, level, threshold);
 		List<Metadata> metadatas = type.getAllMetadatas().onlyParentReferences().onlyReferencesToType(type.getCode());
 		List<Metadata> metadatasMarkedForDeletion = type.getAllMetadatas().onlyMarkedForDeletion();
 
 		Map<String, List<MetadataNetworkLink>> allAggregationLinksToCurrentSchemaType =
-				types.getMetadataNetwork().getAggregationMetadataNetworkLinkRegroupedByReference(recordsProvider.type.getCode());
+				types.getMetadataNetwork().getAggregationMetadataNetworkLinkRegroupedByReference(type.getCode());
 
 		List<MetadataNetworkLink> allAggregationLinksFromCurrentSchemaType =
-				types.getMetadataNetwork().getAggregationMetadataNetworkLinksFromSchemaType(recordsProvider.type.getCode());
+				types.getMetadataNetwork().getAggregationMetadataNetworkLinksFromSchemaType(type.getCode());
+
+		long lastCacheLogging = counter < 1_000_000 ? new Date().getTime() : 0;
 
 		long current = 0;
-		REINDEXING_TYPE:
 
+		long maxRecordSize = searchServices.getMaxRecordSize(type);
+		long sizePerBatch = maxRecordSize * bulkTransactionHandler.getRecordsPerBatch();
+		long sizeOfThreads = sizePerBatch * bulkTransactionHandler.getNumberOfThreads();
+		long sizeOfQueue = sizePerBatch * bulkTransactionHandler.getMaxQueueSize();
+		long sizeOfIterator = maxRecordSize * recordsProvider.getMainThreadQueryRows();
+
+		Supplier<SystemReindexingConsumptionInfos> consumptionSupplier = () -> {
+			SystemReindexingConsumptionInfos infos = new SystemReindexingConsumptionInfos();
+
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Max record size ", maxRecordSize, false));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Records per batch", bulkTransactionHandler.getRecordsPerBatch(), false));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Number of threads", bulkTransactionHandler.getNumberOfThreads(), false));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Size of queue", bulkTransactionHandler.getMaxQueueSize(), false));
+
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Queue (Estimation based on configs and max record size)", sizeOfQueue, true));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("WriteThreads (Estimation based on configs and max record size)", sizeOfThreads, true));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("ReadIterator (Estimation based on configs and max record size)", sizeOfIterator, true));
+			aggregatedValuesTempStorage.populateCacheConsumptionInfos(infos);
+			return infos;
+		};
+
+		Integer nextBreakPoint = readBreakPoint(type);
+
+		REINDEXING_TYPE:
 		while (true) {
 			//LOGGER.info("starting a new iteration");
 			Iterator<Record> recordsIterator = recordsProvider.startNewSchemaTypeIteration();
 			while (recordsIterator.hasNext()) {
-				REINDEXING_INFOS = new SystemReindexingInfos(type.getCollection(), type.getCode(), current, counter);
+				REINDEXING_INFOS = new SystemReindexingInfos(type.getCollection(), type.getCode(), current, counter, consumptionSupplier);
+
+				if (new Date().getTime() - lastCacheLogging > 30 * 60 * 1000) {
+					String cacheReport = new CacheMemoryConsumptionReportBuilder(modelLayerFactory).build();
+					LOGGER.info(cacheReport);
+
+					String date = new LocalDateTime().toString();
+					File reportFile = new File(new FoldersLocator().getWorkFolder(), "cacheReport-" + date + ".txt");
+
+					try {
+						FileUtils.write(reportFile, cacheReport);
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+
+					lastCacheLogging = new Date().getTime();
+				}
+
+				while (nextBreakPoint != null && current >= nextBreakPoint) {
+					LOGGER.info("Reindexing is currently paused, waiting removal or modification of breakpoint file '/opt/constellio/work/reindexing-breakpoint.txt'");
+					try {
+						Thread.sleep(300_000);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+					nextBreakPoint = readBreakPoint(type);
+				}
 
 				Record record = recordsIterator.next();
 				if (params.getReindexationMode().isFullRecalculation()) {
@@ -564,6 +633,27 @@ public class ReindexingServices {
 
 		}
 
+	}
+
+	private Integer readBreakPoint(MetadataSchemaType type) {
+		FoldersLocator foldersLocator = new FoldersLocator();
+		File breakpointFile = new File(foldersLocator.getWorkFolder(), "reindexing-breakpoint.txt");
+		if (breakpointFile.exists()) {
+			try {
+				List<String> lines = FileUtils.readLines(breakpointFile, "UTF-8");
+				if (!lines.isEmpty()) {
+					String content = lines.get(0).trim();
+					if (StringUtils.isNotBlank(content) &&
+						(content.startsWith(type.getCode() + ":") || content.startsWith(type.getCollection() + ":" + type.getCode() + ":"))) {
+						return Integer.valueOf(StringUtils.substringAfterLast(content, ":"));
+					}
+				}
+			} catch (Throwable t) {
+				LOGGER.error("ERROR reading breakpoint file", t);
+			}
+		}
+
+		return null;
 	}
 
 	private boolean updateAggregatedMetadata(final Record record, final Metadata aggregatingMetadata,

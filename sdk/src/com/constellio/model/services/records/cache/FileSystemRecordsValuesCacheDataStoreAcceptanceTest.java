@@ -13,7 +13,7 @@ public class FileSystemRecordsValuesCacheDataStoreAcceptanceTest extends Constel
 
 	@Before
 	public void setUp() throws Exception {
-		dataStore = new FileSystemRecordsValuesCacheDataStore(new File(newTempFolder(), "test.db"));
+		dataStore = new FileSystemRecordsValuesCacheDataStore(new File(newTempFolder(), "test.db"), null);
 	}
 
 	@After
@@ -30,7 +30,7 @@ public class FileSystemRecordsValuesCacheDataStoreAcceptanceTest extends Constel
 	//
 	//		try {
 	//			assertThat(dataStore.loadStringKey("123")).isNull();
-	//			//Null or exception expected
+	//			//Null or exception expecteds
 	//		} catch (IllegalStateException e) {
 	//			//OK
 	//		}

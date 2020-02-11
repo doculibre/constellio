@@ -137,7 +137,7 @@ public class TaxonomiesSearchServicesSummaryCacheQueryHandler
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
 		query.filteredByStatus(ctx.getOptions().getIncludeStatus());
-		query.sortAsc(Schemas.TITLE);
+		query.sortAsc(classifiedType.getMainSortMetadata());
 		if (ctx.getOptions().getRequiredAccess() != null) {
 			query.filteredWithUserHierarchy(ctx.user, ctx.getOptions().getRequiredAccess(),
 					null, !ctx.isHiddenInvisibleInTree());
@@ -219,7 +219,7 @@ public class TaxonomiesSearchServicesSummaryCacheQueryHandler
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
-		query.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE);
+		query.sortAsc(conceptSchemaType.getMainSortMetadata());
 		if (nullableConcept == null) {
 			query.setCondition(from(conceptSchemaType).where(parentMetadata).isNull());
 		} else {

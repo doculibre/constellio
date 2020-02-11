@@ -141,5 +141,8 @@ public interface RecordsCaches {
 
 	RecordsCachesDataStore getRecordsCachesDataStore();
 
+	default void updateRecordsMainSortValue() {
+
+	}
 
 }

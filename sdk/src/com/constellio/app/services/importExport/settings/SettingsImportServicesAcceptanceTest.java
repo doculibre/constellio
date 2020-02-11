@@ -1753,7 +1753,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.doesNotContain("folder_default_m1", "folder_custom_m2");
 
 		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title")
+				.contains("folder_default_title")
 				.doesNotContain("folder_default_m1", "folder_custom_m2");
 	}
 
@@ -1935,9 +1935,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_custom_title", "folder_custom_m1")
 				.doesNotContain("folder_custom_m2");
 
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title", "folder_custom_m1")
-				.doesNotContain("folder_custom_m2");
 	}
 
 	// VisibleInForm=true, visibleInDisplay=true, visibleInTables= false, visiInSearchResult=false
@@ -1982,9 +1979,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_custom_title", "folder_custom_m1")
 				.doesNotContain("folder_custom_m2");
 
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title", "folder_custom_m1")
-				.doesNotContain("folder_custom_m2");
 	}
 
 	// default_m1: visibleInDisplay=true, visibleInSearch=true, visibleInForm=false, visibleInTables=false
@@ -2038,9 +2032,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_custom_title")
 				.doesNotContain("folder_default_m1", "folder_custom_m2");
 
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title")
-				.doesNotContain("folder_default_m1", "folder_custom_m2");
 	}
 
 	// default_m1: visibleInDisplay=false, visibleInSearch=true, visibleInForm=true, visibleInTables=false
@@ -2091,9 +2082,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_custom_title")
 				.doesNotContain("folder_default_m1", "folder_custom_m2");
 
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title")
-				.doesNotContain("folder_default_m1", "folder_custom_m2");
 	}
 
 	// default_m1: visibleInDisplay=true, visibleInSearch=true, visibleInForm=true, visibleInTables=true
@@ -2140,9 +2128,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_custom_title", "folder_custom_m1")
 				.doesNotContain("folder_default_m1", "folder_custom_m2");
 
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title", "folder_custom_m1")
-				.doesNotContain("folder_default_m1", "folder_custom_m2");
 	}
 
 	// default_m1: visibleInDisplay=false, visibleInSearch=true, visibleInForm=false, visibleInTables=true
@@ -2189,9 +2174,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_custom_title", "folder_custom_m1")
 				.doesNotContain("folder_default_m1", "folder_custom_m2");
 
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title", "folder_custom_m1")
-				.doesNotContain("folder_default_m1", "folder_custom_m2");
 	}
 
 	@Test
@@ -2406,9 +2388,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		SchemaDisplayConfig customFolder = getAppLayerFactory()
 				.getMetadataSchemasDisplayManager().getSchema(zeCollection, "folder_custom");
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title", "folder_custom_m1", "folder_custom_m3", "folder_custom_m5")
-				.doesNotContain("folder_custom_m2", "folder_custom_m4", "folder_custom_m6");
 
 		//Reverse flags and re-import
 		m1.setVisibleInTables(false);
@@ -2426,10 +2405,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_default_title", "folder_default_m2", "folder_default_m5")
 				.doesNotContain("folder_default_m1", "folder_default_m6");
 
-		customFolder = schemasDisplayManager.getSchema(zeCollection, "folder_custom");
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title", "folder_custom_m2", "folder_custom_m4", "folder_custom_m6")
-				.doesNotContain("folder_custom_m1", "folder_custom_m3", "folder_custom_m5");
 	}
 
 	@Test
@@ -2558,15 +2533,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_default").getTableMetadataCodes();
 		assertThat(metadataCodes).contains("folder_default_title", "folder_default_m1").doesNotContain("folder_default_m2");
 
-		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_custom1").getTableMetadataCodes();
-		assertThat(metadataCodes).contains("folder_custom1_title", "folder_custom1_m1").doesNotContain("folder_custom1_m2");
-
-		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_custom2").getTableMetadataCodes();
-		assertThat(metadataCodes).contains("folder_custom2_title", "folder_custom2_m2").doesNotContain("folder_custom2_m1");
-
-		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_custom3").getTableMetadataCodes();
-		assertThat(metadataCodes).contains("folder_custom3_title", "folder_custom3_m2").doesNotContain("folder_custom3_m1");
-
 		//Reverse flags and re-import
 		m1.setVisibleInTablesIn(asList("custom2", "custom3"));
 		m2.setVisibleInTablesIn(asList("default", "custom1"));
@@ -2575,14 +2541,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_default").getTableMetadataCodes();
 		assertThat(metadataCodes).contains("folder_default_title", "folder_default_m2").doesNotContain("folder_default_m1");
 
-		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_custom1").getTableMetadataCodes();
-		assertThat(metadataCodes).contains("folder_custom1_title", "folder_custom1_m2").doesNotContain("folder_custom1_m1");
-
-		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_custom2").getTableMetadataCodes();
-		assertThat(metadataCodes).contains("folder_custom2_title", "folder_custom2_m1").doesNotContain("folder_custom2_m2");
-
-		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_custom3").getTableMetadataCodes();
-		assertThat(metadataCodes).contains("folder_custom3_title", "folder_custom3_m1").doesNotContain("folder_custom3_m2");
 	}
 
 	@Test

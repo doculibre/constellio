@@ -44,9 +44,7 @@ public class Folder extends RMObject {
 	public static final String CLOSING_DATE = "closingDate";
 	public static final String ENTERED_CLOSING_DATE = "enteredClosingDate";
 	public static final String DESCRIPTION = "description";
-	public static final String FILING_SPACE_ENTERED = "filingSpaceEntered";
-	public static final String FILING_SPACE = "filingSpace";
-	public static final String FILING_SPACE_CODE = "filingSpaceCode";
+
 	public static final String KEYWORDS = "keywords";
 	public static final String MEDIUM_TYPES = "mediumTypes";
 	public static final String OPENING_DATE = "openingDate";
@@ -54,14 +52,18 @@ public class Folder extends RMObject {
 	public static final String ACTUAL_TRANSFER_DATE = "actualTransferDate";
 	public static final String ACTUAL_DEPOSIT_DATE = "actualDepositDate";
 	public static final String ACTUAL_DESTRUCTION_DATE = "actualDestructionDate";
-	public static final String COPY_RULES_EXPECTED_TRANSFER_DATES = "copyRulesExpectedTransferDates";
 	public static final String EXPECTED_TRANSFER_DATE = "expectedTransferDate";
-	public static final String COPY_RULES_EXPECTED_DEPOSIT_DATES = "copyRulesExpectedDepositDates";
 	public static final String EXPECTED_DEPOSIT_DATE = "expectedDepositDate";
-	public static final String COPY_RULES_EXPECTED_DESTRUCTION_DATES = "copyRulesExpectedDestructionDates";
 	public static final String EXPECTED_DESTRUCTION_DATE = "expectedDestructionDate";
 	public static final String RETENTION_RULE = "retentionRule";
 	public static final String RETENTION_RULE_ENTERED = "retentionRuleEntered";
+
+	public static final String FILING_SPACE_ENTERED = "filingSpaceEntered";
+	public static final String FILING_SPACE = "filingSpace";
+	public static final String FILING_SPACE_CODE = "filingSpaceCode";
+	public static final String COPY_RULES_EXPECTED_TRANSFER_DATES = "copyRulesExpectedTransferDates";
+	public static final String COPY_RULES_EXPECTED_DEPOSIT_DATES = "copyRulesExpectedDepositDates";
+	public static final String COPY_RULES_EXPECTED_DESTRUCTION_DATES = "copyRulesExpectedDestructionDates";
 
 	public static final String ACTIVE_RETENTION_TYPE = "activeRetentionType";
 	public static final String ACTIVE_RETENTION_CODE = "activeRetentionPeriodCode";

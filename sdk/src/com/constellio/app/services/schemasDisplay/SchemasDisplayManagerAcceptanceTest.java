@@ -554,6 +554,202 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenUnconfiguredSchemaFormWhenGetValueThenReturnDefaultValue()
+			throws Exception {
+		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
+		MetadataSchemaBuilder customSchema = typeBuilder.createCustomSchema("custom");
+		defaultSchema.create("metadata1").setType(MetadataValueType.STRING);
+		defaultSchema.create("metadata2").setType(MetadataValueType.STRING);
+		customSchema.create("customMetadata1").setType(MetadataValueType.STRING);
+		customSchema.create("customMetadata2").setType(MetadataValueType.STRING);
+		schemasManager.saveUpdateSchemaTypes(typesBuilder);
+
+		SchemaDisplayConfig myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		SchemaDisplayConfig myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+
+		assertThat(myTypeDefaultSchema.getFormMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_metadata1", "myType_default_metadata2"));
+
+		assertThat(myTypeCustomSchema.getFormMetadataCodes()).isEqualTo(asList(
+				"myType_custom_title", "myType_custom_metadata1", "myType_custom_metadata2",
+				"myType_custom_customMetadata1", "myType_custom_customMetadata2"));
+
+		manager.saveSchema(myTypeDefaultSchema.withFormMetadataCodes(asList(
+				"myType_default_title", "myType_default_metadata2")));
+
+		myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+		assertThat(myTypeDefaultSchema.getFormMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_metadata2"));
+
+		assertThat(myTypeCustomSchema.getFormMetadataCodes()).isEqualTo(asList(
+				"myType_custom_title", "myType_custom_metadata2",
+				"myType_custom_customMetadata1", "myType_custom_customMetadata2"));
+
+		manager.resetSchema(zeCollection, "myType_default");
+		myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+
+		assertThat(myTypeDefaultSchema.getFormMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_metadata1", "myType_default_metadata2"));
+
+		assertThat(myTypeCustomSchema.getFormMetadataCodes()).isEqualTo(asList(
+				"myType_custom_title", "myType_custom_metadata1", "myType_custom_metadata2",
+				"myType_custom_customMetadata1", "myType_custom_customMetadata2"));
+	}
+
+	@Test
+	public void givenUnconfiguredSchemaTableWhenGetValueThenReturnDefaultValue()
+			throws Exception {
+		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
+		MetadataSchemaBuilder customSchema = typeBuilder.createCustomSchema("custom");
+		defaultSchema.create("metadata1").setType(MetadataValueType.STRING);
+		defaultSchema.create("metadata2").setType(MetadataValueType.STRING);
+		customSchema.create("customMetadata1").setType(MetadataValueType.STRING);
+		customSchema.create("customMetadata2").setType(MetadataValueType.STRING);
+		schemasManager.saveUpdateSchemaTypes(typesBuilder);
+
+		SchemaDisplayConfig myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		SchemaDisplayConfig myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+
+		assertThat(myTypeDefaultSchema.getTableMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_modifiedOn"));
+
+		assertThat(myTypeCustomSchema.getTableMetadataCodes()).isEqualTo(asList(
+				"myType_custom_title", "myType_custom_modifiedOn"));
+
+		manager.saveSchema(myTypeDefaultSchema.withTableMetadataCodes(asList(
+				"myType_default_title", "myType_default_createdBy", "myType_default_modifiedBy", "myType_default_metadata2")));
+
+		myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+		assertThat(myTypeDefaultSchema.getTableMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_createdBy", "myType_default_modifiedBy", "myType_default_metadata2"));
+
+		assertThat(myTypeCustomSchema.getTableMetadataCodes()).isEqualTo(asList(
+				"myType_custom_title", "myType_custom_createdBy", "myType_custom_modifiedBy", "myType_custom_metadata2"));
+
+		manager.resetSchema(zeCollection, "myType_default");
+		myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+
+		assertThat(myTypeDefaultSchema.getTableMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_modifiedOn"));
+
+		assertThat(myTypeCustomSchema.getTableMetadataCodes()).isEqualTo(asList(
+				"myType_custom_title", "myType_custom_modifiedOn"));
+	}
+
+
+	@Test
+	public void whenConfiguringCustomMetadatasInDefaultSchemaThenOnlyKeptForTableConfig()
+			throws Exception {
+		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
+		MetadataSchemaBuilder customSchema = typeBuilder.createCustomSchema("custom");
+		defaultSchema.create("metadata1").setType(MetadataValueType.STRING);
+		defaultSchema.create("metadata2").setType(MetadataValueType.STRING);
+		customSchema.create("customMetadata1").setType(MetadataValueType.STRING);
+		customSchema.create("customMetadata2").setType(MetadataValueType.STRING);
+		schemasManager.saveUpdateSchemaTypes(typesBuilder);
+
+		manager.saveSchema(manager.getSchema(zeCollection, "myType_default")
+				.withFormMetadataCodes(asList("myType_default_title"))
+				.withDisplayMetadataCodes(asList("myType_default_title", "myType_default_createdBy",
+						"myType_default_createdOn", "myType_default_modifiedBy", "myType_default_modifiedOn")));
+
+		SchemaDisplayConfig myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		SchemaDisplayConfig myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+
+		assertThat(myTypeDefaultSchema.getDisplayMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_createdBy", "myType_default_createdOn", "myType_default_modifiedBy",
+				"myType_default_modifiedOn"));
+
+		assertThat(myTypeDefaultSchema.getFormMetadataCodes()).isEqualTo(asList(
+				"myType_default_title"));
+
+		assertThat(myTypeDefaultSchema.getTableMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_modifiedOn"));
+
+		assertThat(myTypeDefaultSchema.getSearchResultsMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_modifiedOn"));
+
+		manager.saveSchema(myTypeDefaultSchema
+				.withNewDisplayMetadataQueued("myType_custom_customMetadata1", "myType_default_metadata1", "myType_default_metadata2")
+				.withNewFormMetadataQueued("myType_custom_customMetadata1", "myType_default_metadata1", "myType_default_metadata2")
+				.withNewSearchMetadataQueued("myType_custom_customMetadata1", "myType_default_metadata1", "myType_default_metadata2")
+				.withNewTableMetadataQueued("myType_custom_customMetadata1", "myType_default_metadata1", "myType_default_metadata2"));
+		myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+
+		assertThat(myTypeDefaultSchema.getDisplayMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_createdBy", "myType_default_createdOn", "myType_default_modifiedBy",
+				"myType_default_modifiedOn", "myType_default_metadata1", "myType_default_metadata2"));
+
+		assertThat(myTypeDefaultSchema.getFormMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_metadata1", "myType_default_metadata2"));
+
+		assertThat(myTypeDefaultSchema.getSearchResultsMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_modifiedOn", "myType_default_metadata1", "myType_default_metadata2"));
+
+		assertThat(myTypeDefaultSchema.getTableMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_modifiedOn", "myType_custom_customMetadata1",
+				"myType_default_metadata1", "myType_default_metadata2"));
+
+
+	}
+
+
+	@Test
+	public void givenUnconfiguredSchemaSearchWhenGetValueThenReturnDefaultValue()
+			throws Exception {
+		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
+		MetadataSchemaBuilder customSchema = typeBuilder.createCustomSchema("custom");
+		defaultSchema.create("metadata1").setType(MetadataValueType.STRING);
+		defaultSchema.create("metadata2").setType(MetadataValueType.STRING);
+		customSchema.create("customMetadata1").setType(MetadataValueType.STRING);
+		customSchema.create("customMetadata2").setType(MetadataValueType.STRING);
+		schemasManager.saveUpdateSchemaTypes(typesBuilder);
+
+		SchemaDisplayConfig myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		SchemaDisplayConfig myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+
+		assertThat(myTypeDefaultSchema.getSearchResultsMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_modifiedOn"));
+
+		assertThat(myTypeCustomSchema.getSearchResultsMetadataCodes()).isEqualTo(asList(
+				"myType_custom_title", "myType_custom_modifiedOn"));
+
+		manager.saveSchema(myTypeDefaultSchema.withSearchResultsMetadataCodes(asList(
+				"myType_default_title", "myType_default_metadata2")));
+
+		myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+		assertThat(myTypeDefaultSchema.getSearchResultsMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_metadata2"));
+
+		assertThat(myTypeCustomSchema.getSearchResultsMetadataCodes()).isEqualTo(asList(
+				"myType_custom_title", "myType_custom_metadata2"));
+
+		manager.resetSchema(zeCollection, "myType_default");
+		myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+
+		assertThat(myTypeDefaultSchema.getSearchResultsMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_modifiedOn"));
+
+		assertThat(myTypeCustomSchema.getSearchResultsMetadataCodes()).isEqualTo(asList(
+				"myType_custom_title", "myType_custom_modifiedOn"));
+	}
+
+	@Test
 	public void givenUnconfiguredMetadataDisplayWhenGetValueThenReturnDefaultValue()
 			throws Exception {
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);

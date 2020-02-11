@@ -384,6 +384,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		query.filteredWithUser(getCurrentUser());
 		query.filteredByStatus(StatusFilter.ACTIVES);
 		// Folder, Document
+
 		query.sortDesc(Schemas.SCHEMA);
 
 		addSortCriteriaForFolderContentQuery(query);

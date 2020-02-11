@@ -882,7 +882,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);
 			if (record.isDirty()) {
 				if (record.isSaved()) {
-					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
+					List<Metadata> modifiedMetadatas = record.getModifiedMetadataList(types);
 					extensions.callRecordInModificationBeforeValidationAndAutomaticValuesCalculation(
 							new RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent(record,
 									modifiedMetadatas, transactionExtensionErrors, transaction.getUser(), transaction.isOnlyBeingPrepared()), options);
@@ -941,14 +941,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 							for (Metadata metadata : step.getMetadatas()) {
 								try {
-									automaticMetadataServices.updateAutomaticMetadata(context, (RecordImpl) record,
+									automaticMetadataServices.updateAutomaticMetadata(context.contextForRecord(record), (RecordImpl) record,
 											recordProvider, metadata, reindexationOptionForThisRecord, types, transaction);
 								} catch (RuntimeException e) {
 									throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), metadata, e);
 								}
 							}
 
-							MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
+							List<Metadata> modifiedMetadatas = record.getModifiedMetadataList(types);
 							if (ReindexingServices.getReindexingInfos() != null) {
 								extensions.callRecordReindexed(new RecordReindexationEvent(record, modifiedMetadatas) {
 									@Override

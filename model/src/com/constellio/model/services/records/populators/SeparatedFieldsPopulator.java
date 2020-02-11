@@ -29,7 +29,7 @@ public abstract class SeparatedFieldsPopulator implements FieldsPopulator {
 	public Map<String, Object> populateCopyfields(MetadataSchema schema, Record record) {
 		Map<String, Object> fields = new HashMap<>();
 
-		List<Metadata> metadatas = record.getModifiedMetadatas(types);
+		List<Metadata> metadatas = record.getModifiedMetadataList(types);
 		if (fullRewrite) {
 			metadatas = schema.getMetadatas();
 		}

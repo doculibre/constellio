@@ -1928,7 +1928,9 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedLinkableTreesAcce
 					.setOpenDate(new LocalDate(2014, 11, 1)));
 		}
 		getModelLayerFactory().newRecordServices().execute(transaction);
+		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
 
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryDebuggingMode(true);
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(0).setRows(20).setFastContinueInfos(null))
 				.has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
 						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
@@ -2034,6 +2036,7 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedLinkableTreesAcce
 		}
 		transaction.add(rootCategory);
 		getModelLayerFactory().newRecordServices().execute(transaction);
+		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
 
 		User alice = users.aliceIn(zeCollection);
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root",

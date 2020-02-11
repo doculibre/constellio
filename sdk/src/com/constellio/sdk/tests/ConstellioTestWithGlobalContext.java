@@ -46,7 +46,7 @@ public class ConstellioTestWithGlobalContext extends AbstractConstellioTest {
 
 	@Test
 	public void __teardownTests__() {
-		testSession.close(false, false);
+		testSession.close(false, false, false);
 		testSession = null;
 	}
 

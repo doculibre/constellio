@@ -19,7 +19,6 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.MetadataListFilter;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.utils.DependencyUtils;
@@ -37,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
@@ -585,12 +585,9 @@ public class RecordUtils {
 		Set<String> idsWithPossibleRemovedChildren = new HashSet<>();
 		for (Record record : records) {
 
-			List<Metadata> metadatas = record.getModifiedMetadatas(types).only(new MetadataListFilter() {
-				@Override
-				public boolean isReturned(Metadata metadata) {
-					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
-				}
-			});
+			List<Metadata> metadatas = record.getModifiedMetadataList(types).stream().filter((m) -> {
+				return m.isTaxonomyRelationship() || m.isChildOfRelationship();
+			}).collect(Collectors.toList());
 
 			for (Metadata metadata : metadatas) {
 				for (String newReference : record.<String>getValues(metadata)) {
@@ -671,17 +668,13 @@ public class RecordUtils {
 		if (record.isSaved()) {
 			ids.add(record.getId());
 		}
-		List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
-			@Override
-			public boolean isReturned(Metadata metadata) {
-				return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
-			}
-		});
 
-		for (Metadata metadata : metadatas) {
-			for (String aReference : record.<String>getValues(metadata)) {
-				if (!ids.contains(aReference)) {
-					ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
+		for (Metadata metadata : types.getSchemaOf(record).getMetadatas()) {
+			if (metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship()) {
+				for (String aReference : record.<String>getValues(metadata)) {
+					if (!ids.contains(aReference)) {
+						ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
+					}
 				}
 			}
 		}

@@ -94,6 +94,12 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 	<T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode,
 						  GetMetadataOption... option);
 
+	List<Metadata> getModifiedMetadataList(MetadataSchemaTypes schemaTypes);
+
+	@Deprecated
+	/**
+	 * Slow, use getModifiedMetadataList instead
+	 */
 	MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes);
 
 	//MetadataList getMetadatasWithValue(MetadataSchemaTypes schemaTypes);

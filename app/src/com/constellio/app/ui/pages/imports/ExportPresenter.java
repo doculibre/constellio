@@ -37,6 +37,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -136,11 +137,13 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		ids.addAll(documentIds);
 		ids.addAll(containerIds);
 
+		//PATH_PARTS replacement
 		List<Iterator<Record>> recordsIterator = new ArrayList<Iterator<Record>>();
 		for (String id : ids) {
 			recordsIterator.add(searchServices().recordsIterator(fromAllSchemasIn(collection).whereAnyCondition(
 					where(Schemas.IDENTIFIER).isEqualTo(id),
-					where(Schemas.PATH_PARTS).isEqualTo(id))
+					where(Schemas.PRINCIPAL_CONCEPTS_INT_IDS).isEqualTo(RecordId.id(id).intValue()),
+					where(Schemas.SECONDARY_CONCEPTS_INT_IDS).isEqualTo(RecordId.id(id).intValue()))
 			));
 		}
 

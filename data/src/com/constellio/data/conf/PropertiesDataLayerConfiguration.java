@@ -164,6 +164,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getBoolean("dao.records.http.faultInjection", false);
 	}
 
+	@Override
+	public boolean useSolrTupleStreamsIfSupported() {
+		return getBoolean("dao.records.useTuppleStreamsIfSupported", true);
+	}
+
 	public ContentDaoType getContentDaoType() {
 		return (ContentDaoType) getRequiredEnum("dao.contents.type", ContentDaoType.class);
 	}
@@ -309,6 +314,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getBoolean("writeZZRecords", false);
 	}
 
+
 	@Override
 	public HashingEncoding getHashingEncoding() {
 		return (HashingEncoding) getEnum("hashing.encoding", HashingEncoding.BASE64);
@@ -379,7 +385,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public boolean areTiffFilesConvertedForPreview() {
-		return getBoolean("conversion.tiffConversion.enabled", false);
+		return getBoolean("conversion.tiffConversion.enabled", true);
 	}
 
 	@Override

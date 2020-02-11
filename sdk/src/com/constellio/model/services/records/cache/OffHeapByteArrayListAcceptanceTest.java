@@ -32,10 +32,10 @@ public class OffHeapByteArrayListAcceptanceTest extends ConstellioTest {
 			insertedValues[modifiedIndex] = newValue;
 			list.set(modifiedIndex, newValue);
 
-			assertSameBytes(newValue, list.getArray(modifiedIndex));
+			assertSameBytes(newValue, list.get(modifiedIndex));
 			if (i % 100 == 0) {
 				for (int j = 0; j < 100_000; j++) {
-					assertSameBytes(insertedValues[j], list.getArray(j));
+					assertSameBytes(insertedValues[j], list.get(j));
 
 
 				}
@@ -64,10 +64,10 @@ public class OffHeapByteArrayListAcceptanceTest extends ConstellioTest {
 			insertedValues[modifiedIndex] = newValue;
 			list.set(modifiedIndex, newValue);
 
-			assertSameBytes(newValue, list.getArray(modifiedIndex));
+			assertSameBytes(newValue, list.get(modifiedIndex));
 			if (i % 100 == 0) {
 				for (int j = 0; j < 100_000; j++) {
-					assertSameBytes(insertedValues[j], list.getArray(j));
+					assertSameBytes(insertedValues[j], list.get(j));
 
 
 				}

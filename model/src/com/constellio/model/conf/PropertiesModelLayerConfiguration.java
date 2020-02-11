@@ -86,6 +86,11 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 		public void setRecordsVolatileCacheMemorySize(String volatileCacheSizeInMemory) {
 			setString("dao.cache.volatileCacheSizeInMemory", volatileCacheSizeInMemory);
 		}
+
+		public void setForceCacheLoadingFromSolr(boolean forcingCacheLoadingFromSolr) {
+			setBoolean("dao.cache.forcingCacheLoadingFromSolr", forcingCacheLoadingFromSolr);
+		}
+
 	}
 
 	@Override
@@ -217,6 +222,16 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 	public long getRecordsVolatileCacheMemorySize() {
 		return getBytesSize("dao.cache.volatileCacheSizeInMemory", "250M");
+	}
+
+	@Override
+	public boolean isForcingCacheLoadingFromSolr() {
+		return getBoolean("dao.cache.forcingCacheLoadingFromSolr", false);
+	}
+
+	@Override
+	public boolean isSummaryCacheEnabled() {
+		return getBoolean("caches.summary.enabled", true);
 	}
 
 

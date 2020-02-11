@@ -59,7 +59,8 @@ public class SummaryColumnCalculator extends AbstractMetadataValueCalculator<Str
 			for (Map currentMap : listMap) {
 				String code = (String) currentMap.get(METADATA_CODE);
 				String localeCode = TypeConvertionUtil.getMetadataLocalCode(code);
-				Metadata metadata = values.getAvailableMetadatasWithAValue().getMetadataWithLocalCode(localeCode);
+				Metadata metadata = values.getAvailableMetadatasWithAValue().stream().filter((m) ->
+						m.getLocalCode().equals(localeCode)).findFirst().orElse(null);
 
 				StringBuilder textForMetadata = new StringBuilder();
 				if (metadata != null) {

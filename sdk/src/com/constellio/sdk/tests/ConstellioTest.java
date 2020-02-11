@@ -44,7 +44,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 	@Override
 	public void afterTest(boolean failed) {
-		testSession.close(false, failed);
+		testSession.close(false, failed, false);
 	}
 
 	private static ConstellioTest currentInstance;
@@ -69,6 +69,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 		}
 		Toggle.ROLES_WITH_NEW_7_2_PERMISSIONS.enable();
 		Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS.disable();
+		Toggle.USE_MEMORY_STRING_ID_MAPPING.enable();
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		if (!isKeepingPreviousState() && testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {
 
@@ -80,7 +81,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 			}
 
-			testSession.close(true, false);
+			testSession.close(true, false, false);
 			ReindexingServices.markReindexingHasFinished();
 
 			System.out.print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
@@ -136,14 +137,14 @@ public class ConstellioTest extends AbstractConstellioTest {
 	}
 
 	public void resetTestSession() {
-		testSession.close(true, false);
+		testSession.close(true, false, false);
 
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 	}
 
 	protected void clearTestSession() {
 		if (!isPreservingState()) {
-			testSession.close(false, false);
+			testSession.close(false, false, false);
 			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		}
 	}
@@ -239,6 +240,11 @@ public class ConstellioTest extends AbstractConstellioTest {
 			}
 		}
 
+	}
+
+	public void restartLayers() {
+		getCurrentTestSession().closeForRestarting();
+		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 	}
 
 	private ValidationErrors checkCacheAndReturnErrors(boolean waitForBatchProcesses, boolean runTwice) {

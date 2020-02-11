@@ -9,6 +9,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,6 +53,10 @@ public class BulkUploader {
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public void uploadAsync(final String key, File file) {
+		uploadAsync(key, ioServices.newInputStreamFactory(file, "BulkUploader-input"), true, file.getName());
 	}
 
 	public void uploadAsync(final String key, final StreamFactory<InputStream> streamFactory) {
