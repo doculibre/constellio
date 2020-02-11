@@ -2,8 +2,6 @@ package com.constellio.app.modules.rm.ui.pages.borrowing;
 
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
-import com.constellio.app.ui.framework.components.menuBar.RecordVOMenuBar;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -57,8 +55,6 @@ public class ListBorrowingsContainerTab extends ListBorrowingsTab {
 			RecordVO recordVO = ((RecordVOItem) source.getItem(itemId)).getRecord();
 
 			switch ((String) columnId) {
-				case BORROWING_USER:
-					return new ReferenceDisplay(getBorrowingUserId(recordVO));
 				case BORROWING_DATE:
 					String convertedJodaDate = jodaDateConverter
 							.convertToPresentation(getBorrowingDate(recordVO), String.class, sessionContext.getCurrentLocale());
@@ -67,11 +63,9 @@ public class ListBorrowingsContainerTab extends ListBorrowingsTab {
 					convertedJodaDate = jodaDateConverter
 							.convertToPresentation(getBorrowingDueDate(recordVO), String.class, sessionContext.getCurrentLocale());
 					return new Label(convertedJodaDate);
-				case ACTIONS:
-					return new RecordVOMenuBar(recordVO, Collections.emptyList());
 			}
 
-			return null;
+			return super.generateCell(source, itemId, columnId);
 		}
 
 		@Override
@@ -79,7 +73,8 @@ public class ListBorrowingsContainerTab extends ListBorrowingsTab {
 			return LocalDate.now().isAfter(getBorrowingDueDate(recordVO));
 		}
 
-		private String getBorrowingUserId(RecordVO recordVO) {
+		@Override
+		protected String getBorrowingUserId(RecordVO recordVO) {
 			return recordVO.get(recordsServices.containerRecord.borrower());
 		}
 

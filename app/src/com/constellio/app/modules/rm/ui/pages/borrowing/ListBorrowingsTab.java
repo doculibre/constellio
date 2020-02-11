@@ -9,6 +9,8 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateToStringConverter;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.menuBar.RecordVOMenuBar;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
@@ -31,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -149,11 +152,26 @@ public abstract class ListBorrowingsTab {
 			getActualTable().setCellStyleGenerator(new ListBorrowingTableStyleGenerator(this, getActualTable().getCellStyleGenerator()));
 		}
 
+		@Override
+		public Object generateCell(Table source, Object itemId, Object columnId) {
+			RecordVO recordVO = ((RecordVOItem) source.getItem(itemId)).getRecord();
+
+			switch ((String) columnId) {
+				case BORROWING_USER:
+					return new ReferenceDisplay(getBorrowingUserId(recordVO));
+				case ACTIONS:
+					return new RecordVOMenuBar(recordVO, Collections.emptyList());
+			}
+
+			return null;
+		}
+
 		protected String getBorrowingDueDateTitle() {
 			return BORROWING_DUE_DATE;
 		}
-
 		protected abstract boolean isOverdue(RecordVO recordVO);
+
+		protected abstract String getBorrowingUserId(RecordVO recordVO);
 	}
 
 	protected class ListBorrowingTableStyleGenerator implements CellStyleGenerator {

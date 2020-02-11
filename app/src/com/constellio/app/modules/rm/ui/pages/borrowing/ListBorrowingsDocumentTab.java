@@ -4,8 +4,6 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
-import com.constellio.app.ui.framework.components.menuBar.RecordVOMenuBar;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -16,8 +14,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import org.joda.time.LocalDateTime;
 import org.joda.time.Period;
-
-import java.util.Collections;
 
 import static com.constellio.model.services.contents.ContentFactory.checkedOut;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
@@ -70,8 +66,6 @@ public class ListBorrowingsDocumentTab extends ListBorrowingsTab {
 			RecordVO recordVO = ((RecordVOItem) source.getItem(itemId)).getRecord();
 
 			switch ((String) columnId) {
-				case BORROWING_USER:
-					return new ReferenceDisplay(getBorrowingUserId(recordVO));
 				case BORROWING_DATE:
 					String convertedJodaDate = jodaDateTimeConverter
 							.convertToPresentation(getBorrowingDate(recordVO), String.class, sessionContext.getCurrentLocale());
@@ -80,11 +74,9 @@ public class ListBorrowingsDocumentTab extends ListBorrowingsTab {
 					convertedJodaDate = jodaDateTimeConverter
 							.convertToPresentation(getBorrowingDueDate(recordVO), String.class, sessionContext.getCurrentLocale());
 					return new Label(convertedJodaDate);
-				case ACTIONS:
-					return new RecordVOMenuBar(recordVO, Collections.emptyList());
 			}
 
-			return null;
+			return super.generateCell(source, itemId, columnId);
 		}
 
 		@Override
@@ -92,7 +84,8 @@ public class ListBorrowingsDocumentTab extends ListBorrowingsTab {
 			return LocalDateTime.now().isAfter(getBorrowingDueDate(recordVO));
 		}
 
-		private String getBorrowingUserId(RecordVO recordVO) {
+		@Override
+		protected String getBorrowingUserId(RecordVO recordVO) {
 			return recordVO.get(recordsServices.document.contentCheckedOutBy());
 		}
 
