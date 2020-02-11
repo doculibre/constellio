@@ -522,8 +522,9 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				query.filteredByVisibilityStatus(VisibilityStatusFilter.ALL);
 				query.setName("*SDK* BatchProcessesManager.waitUntilAllFinished()");
 
-				while (searchServices.hasResults(query)
-					   && modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+				while (searchServices.hasResults(query) &&
+					   (modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized() ||
+						!modelLayerFactory.getConfiguration().isSummaryCacheEnabled())) {
 					recordsReindexingBackgroundAction.run(false);
 				}
 			}

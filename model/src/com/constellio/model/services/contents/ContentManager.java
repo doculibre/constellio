@@ -911,24 +911,6 @@ public class ContentManager implements StatefulService {
 		String mimeType = content.getCurrentVersion().getMimetype();
 		ContentDao contentDao = getContentDao();
 
-		if (!contentDao.isDocumentExisting(hash + ".preview")) {
-			try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
-				if (LOG_CONVERSION_FILENAME_AND_SIZE.isEnabled()) {
-					LOGGER.info("Converting file " + filename + " : " + content.getCurrentVersion().getLength() / (1024 * 1024));
-				}
-				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder);
-				contentDao.moveFileToVault(pdfPreviewFile, hash + ".preview");
-
-			} catch (ContentDaoException_NoSuchContent e) {
-				//Missing content are not logged from the conversion thread. Instead, they are checked by system diagnostic and other mechanisms
-				return false;
-
-			} catch (Throwable t) {
-				LOGGER.warn("Cannot generate preview for content '" + filename + "' with hash '" + hash + "'", t);
-				return false;
-			}
-		}
-
 		if (mimeType.startsWith("image/")) {
 			Dimension dimension = ImageUtils.getImageDimension(contentDao.getFileOf(hash));
 
@@ -944,6 +926,22 @@ public class ContentManager implements StatefulService {
 					LOGGER.warn("Cannot generate JPEG conversion for content '" + filename + "' with hash '" + hash + "'", t);
 					return false;
 				}
+			}
+		} else if (!mimeType.startsWith("application/pdf") && !contentDao.isDocumentExisting(hash + ".preview")) {
+			try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
+				if (LOG_CONVERSION_FILENAME_AND_SIZE.isEnabled()) {
+					LOGGER.info("Converting file " + filename + " : " + content.getCurrentVersion().getLength() / (1024 * 1024));
+				}
+				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder);
+				contentDao.moveFileToVault(pdfPreviewFile, hash + ".preview");
+
+			} catch (ContentDaoException_NoSuchContent e) {
+				//Missing content are not logged from the conversion thread. Instead, they are checked by system diagnostic and other mechanisms
+				return false;
+
+			} catch (Throwable t) {
+				LOGGER.warn("Cannot generate preview for content '" + filename + "' with hash '" + hash + "'", t);
+				return false;
 			}
 		}
 
@@ -964,7 +962,7 @@ public class ContentManager implements StatefulService {
 								   File tempFolder) throws Exception {
 		InputStream thumbnailSourceInputStream = null;
 		try {
-			if (mimeType.startsWith("image/")) {
+			if (mimeType.startsWith("image/") || mimeType.startsWith("application/pdf")) {
 				thumbnailSourceInputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION);
 			} else {
 				thumbnailSourceInputStream = contentDao.getContentInputStream(hash + ".preview", READ_CONTENT_FOR_PREVIEW_CONVERSION);

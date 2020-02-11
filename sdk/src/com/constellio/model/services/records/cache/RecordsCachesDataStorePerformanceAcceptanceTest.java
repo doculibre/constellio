@@ -85,7 +85,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 			fields.put("boolean1_s", createdRecord % 3 == 0);
 
 			SolrRecordDTO dto = new SolrRecordDTO(strId, fields, RecordDTOMode.SUMMARY);
-			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTO.create(modelLayerFactory, dto);
+			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTOUtilsAcceptanceTest.create(modelLayerFactory, dto);
 			structureBytes += 8;
 			structureBytes += 8; //version
 			structureBytes += 2; //byte array length
@@ -153,7 +153,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 			fields.put("boolean1_s", createdRecord % 3 == 0);
 
 			SolrRecordDTO dto = new SolrRecordDTO(strId, fields, RecordDTOMode.SUMMARY);
-			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTO.create(modelLayerFactory, dto);
+			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTOUtilsAcceptanceTest.create(modelLayerFactory, dto);
 			structureBytes += 8;
 			structureBytes += 8; //version
 			structureBytes += 2; //byte array length
@@ -241,7 +241,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 			fields.put("boolean1_s", createdRecord % 3 == 0);
 
 			SolrRecordDTO dto = new SolrRecordDTO(strId, fields, RecordDTOMode.SUMMARY);
-			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTO.create(modelLayerFactory, dto);
+			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTOUtilsAcceptanceTest.create(modelLayerFactory, dto);
 			structureBytes += 8;
 			structureBytes += 8; //version
 			structureBytes += 2; //byte array length

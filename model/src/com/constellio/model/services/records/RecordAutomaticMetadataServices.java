@@ -6,41 +6,17 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
-import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
-import com.constellio.model.entities.calculators.dependencies.HierarchyDependencyValue;
-import com.constellio.model.entities.calculators.dependencies.LocalDependency;
-import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
-import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.calculators.dependencies.*;
 import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluatorParameters;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
-import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.*;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
-import com.constellio.model.entities.schemas.entries.AggregationType;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
-import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.entries.*;
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams.SearchAggregatedValuesParamsQuery;
-import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.entities.security.TransactionSecurityModel;
@@ -67,16 +43,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -194,7 +161,7 @@ public class RecordAutomaticMetadataServices {
 		AggregationType agregationType = aggregatedDataEntry.getAgregationType();
 		if (agregationType != null) {
 			SearchAggregatedValuesParams aggregatedValuesParams = new SearchAggregatedValuesParams(query, queries, record, metadata,
-					aggregatedDataEntry, types, searchServices);
+					aggregatedDataEntry, types, searchServices, modelLayerFactory);
 			Object calculatedValue = getHandlerFor(metadata).calculate(aggregatedValuesParams);
 			(aggregatedValuesParams.getRecord()).updateAutomaticValue(metadata, calculatedValue);
 		}
@@ -361,8 +328,8 @@ public class RecordAutomaticMetadataServices {
 				}
 
 			} else if (!(dependency instanceof ConfigDependency)) {
-				Metadata localMetadata = getMetadataFromDependency(record, dependency);
-				if (record.isModified(localMetadata)) {
+				Metadata localMetadata = getMetadataFromDependency(record, dependency, false);
+				if (localMetadata != null && record.isModified(localMetadata)) {
 					calculatorDependencyModified = true;
 				}
 			}
@@ -733,14 +700,17 @@ public class RecordAutomaticMetadataServices {
 										   Dependency dependency, RecordUpdateOptions options, Locale locale,
 										   LocalisedRecordMetadataRetrieval mode) {
 		ReferenceDependency<?> referenceDependency = (ReferenceDependency<?>) dependency;
-		Metadata referenceMetadata = getMetadataFromDependency(record, referenceDependency);
-
-		if (!referenceMetadata.isMultivalue()) {
-			return addSingleValueReference(record, recordProvider, values, referenceDependency, referenceMetadata, options,
-					locale, mode);
+		Metadata referenceMetadata = getMetadataFromDependency(record, referenceDependency, false);
+		if (referenceMetadata != null) {
+			if (!referenceMetadata.isMultivalue()) {
+				return addSingleValueReference(record, recordProvider, values, referenceDependency, referenceMetadata, options,
+						locale, mode);
+			} else {
+				return addMultivalueReference(record, recordProvider, values, referenceDependency, referenceMetadata, options, locale,
+						mode);
+			}
 		} else {
-			return addMultivalueReference(record, recordProvider, values, referenceDependency, referenceMetadata, options, locale,
-					mode);
+			return false;
 		}
 	}
 
@@ -960,8 +930,13 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	Metadata getMetadataFromDependency(RecordImpl record, Dependency dependency) {
+		return getMetadataFromDependency(record, dependency, true);
+	}
+
+	Metadata getMetadataFromDependency(RecordImpl record, Dependency dependency, boolean throwExceptionIfNoMetadata) {
+		String localMetadataCode = dependency.getLocalMetadataCode();
 		MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
-		return schema.get(dependency.getLocalMetadataCode());
+		return throwExceptionIfNoMetadata || schema.hasMetadataWithCode(localMetadataCode) ? schema.get(localMetadataCode) : null;
 	}
 
 	void copyValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,

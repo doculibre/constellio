@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.data.utils.dev.Toggle;
+import org.apache.commons.collections4.map.LRUMap;
 import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -20,6 +21,9 @@ public class FileSystemRecordsValuesCacheDataStore {
 	private DB onDiskDatabase;
 
 	private BTreeMap<Integer, byte[]> intKeyMap;
+
+	private final LRUMap<Integer, byte[]> tempIntKeyMap = new LRUMap<>(40_000);
+	//private HTreeMap<Integer, byte[]> tempIntKeyMap;
 
 	private BTreeMap<String, byte[]> stringKeyMap;
 
@@ -47,6 +51,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 				dbMaker.fileMmapEnableIfSupported().fileMmapPreclearDisable();
 				dbMaker.allocateStartSize(500 * 1024 * 1024).allocateIncrement(500 * 1024 * 1024);
 			} else {
+				dbMaker.fileChannelEnable();
 				LOGGER.info("Opening MapDB without MMAP support");
 			}
 			dbMaker.checksumHeaderBypass();
@@ -98,6 +103,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 	public void saveIntKey(int id, byte[] bytes) {
 		ensureNotBusy();
 		intKeyMap.put(id, bytes);
+		tempIntKeyMap.put(id, bytes);
 	}
 
 	public void removeStringKey(String id) {
@@ -108,6 +114,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 	public void removeIntKey(int id) {
 		ensureNotBusy();
 		intKeyMap.remove(id);
+		tempIntKeyMap.remove(id);
 	}
 
 	public byte[] loadStringKey(String id) {
@@ -121,7 +128,13 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	public byte[] loadIntKey(int id) {
 		ensureNotBusy();
-		byte[] bytes = intKeyMap.get(id);
+		byte[] bytes = tempIntKeyMap.get(id);
+
+		if (bytes != null) {
+			return bytes;
+		}
+
+		bytes = intKeyMap.get(id);
 		if (bytes == null) {
 			throw new IllegalStateException("Record '" + id + "' has no stored bytes");
 		}
@@ -132,6 +145,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 		intKeyMap.close();
 		stringKeyMap.close();
 		onDiskDatabase.close();
+		tempIntKeyMap.clear();
 
 		intKeyMap = null;
 		stringKeyMap = null;
@@ -169,6 +183,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 	}
 
 	public void clearAll() {
+		tempIntKeyMap.clear();
 		intKeyMap.clear();
 		stringKeyMap.clear();
 		intKeyMap.clear();

@@ -49,8 +49,9 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 		boolean officeHours = TimeProvider.getLocalDateTime().getHourOfDay() >= 7
 							  && TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
 
-		if (ReindexingServices.getReindexingInfos() == null
-			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+		if (ReindexingServices.getReindexingInfos() == null &&
+			(modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized() ||
+			 !modelLayerFactory.getConfiguration().isSummaryCacheEnabled())) {
 			boolean found = false;
 			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 				LogicalSearchQuery query = new LogicalSearchQuery();
