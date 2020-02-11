@@ -259,7 +259,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 			if (newItemCaptionComponent != null) {
 				captionProperty.setValue(newItemCaptionComponent);
 			} else {
-				String newItemCaption = getItemCaption(itemId);
+				String newItemCaption = getExplicitOrDefaultItemCaption(itemId);
 				if (StringUtils.isNotBlank(newItemCaption)) {
 					captionProperty.setValue(newItemCaption);
 				}
@@ -373,7 +373,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		Component itemCaptionComponent;
 		if (multiValue) {
 			if (isSelectable(object)) {
-				String itemCaption = getItemCaption(object);
+				String itemCaption = getExplicitOrDefaultItemCaption(object);
 				final CheckBox checkBox = new CheckBox(itemCaption);
 				checkBox.setValue(ensureListValue().contains(object));
 				checkBox.addValueChangeListener(new Property.ValueChangeListener() {
@@ -412,9 +412,14 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		}
 		return value;
 	}
+	
+	private String getExplicitOrDefaultItemCaption(T object) {
+		String explicitOrDefaultCaption = explicitItemCaptions.get(object);
+		return explicitOrDefaultCaption != null ? explicitOrDefaultCaption : getItemCaption(object);
+	}
 
 	public String getItemCaption(T object) {
-		return explicitItemCaptions.get(object);
+		return null;
 	}
 
 	public void addAttachListener(AttachListener listener) {
@@ -760,7 +765,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 			if (isLoader(itemId)) {
 				itemCaption = getLoaderItemCaption(itemId);
 			} else {
-				itemCaption = LazyTree.this.getItemCaption((T) itemId);
+				itemCaption = LazyTree.this.getExplicitOrDefaultItemCaption((T) itemId);
 				if (itemCaption == null) {
 					itemCaption = defaultGetItemCaption(itemId);
 				}
