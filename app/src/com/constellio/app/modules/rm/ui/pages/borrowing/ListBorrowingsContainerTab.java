@@ -66,6 +66,8 @@ public class ListBorrowingsContainerTab extends ListBorrowingsTab {
 					convertedJodaDate = jodaDateConverter
 							.convertToPresentation(getBorrowingDueDate(recordVO), String.class, sessionContext.getCurrentLocale());
 					return new Label(convertedJodaDate);
+				case ACTIONS:
+					// TODO::JOLA --> Implements
 			}
 
 			return null;

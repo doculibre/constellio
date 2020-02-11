@@ -17,7 +17,6 @@ import com.vaadin.ui.VerticalLayout;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-// TODO::JOLA --> Fix document "forced return" issue
 // TODO::JOLA --> Add batch return option
 // TODO::JOLA --> Add batch reminder option
 public class ListBorrowingsViewImpl extends BaseViewImpl implements ListBorrowingsView {

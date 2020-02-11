@@ -118,6 +118,7 @@ public abstract class ListBorrowingsTab {
 		protected static final String BORROWING_USER = "borrowingUser";
 		protected static final String BORROWING_DATE = "borrowingDate";
 		protected static final String BORROWING_DUE_DATE = "borrowingDueDate";
+		protected static final String ACTIONS = "actions";
 
 		protected ViewableRecordItemTable(RecordVODataProvider dataProvider) {
 			super(new RecordVOLazyContainer(dataProvider) {
@@ -141,7 +142,9 @@ public abstract class ListBorrowingsTab {
 			getActualTable().setColumnHeader(BORROWING_DUE_DATE, $("ListBorrowingsView.previewReturnDate"));
 			getActualTable().setColumnExpandRatio(BORROWING_DUE_DATE, 0.3f);
 
-			// TODO::JOLA --> Add action column
+			getActualTable().addGeneratedColumn(ACTIONS, this);
+			getActualTable().setColumnHeader(ACTIONS, "");
+			getActualTable().setColumnCollapsible(ACTIONS, false);
 
 			getActualTable().setCellStyleGenerator(new ListBorrowingTableStyleGenerator(this, getActualTable().getCellStyleGenerator()));
 		}
