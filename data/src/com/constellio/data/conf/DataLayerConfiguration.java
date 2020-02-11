@@ -107,4 +107,6 @@ public interface DataLayerConfiguration {
 
 	boolean areTiffFilesConvertedForPreview();
 
+	int getSequentialIdReservedBatchSize();
+
 }

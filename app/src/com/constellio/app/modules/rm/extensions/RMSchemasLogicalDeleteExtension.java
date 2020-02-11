@@ -16,6 +16,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
@@ -29,6 +30,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -215,9 +217,9 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 	private ValidationErrors isContainerLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		ValidationErrors validationErrors = new ValidationErrors();
 		List<Record> tasks = searchServices.search(filteredQueryForErrorMessages(from(rm.userTask.schemaType())
-						.where(rm.userTask.linkedContainers()).isContaining(asList(event.getRecord().getId()))
-						.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+				.where(rm.userTask.linkedContainers()).isContaining(asList(event.getRecord().getId()))
+				.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 		));
 		if (!tasks.isEmpty()) {
 			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "containerLinkedToTask", toRecordsParameter(tasks));
@@ -269,6 +271,15 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 
 	private LogicalSearchQuery filteredQueryForErrorMessages(LogicalSearchCondition logicalSearchCondition) {
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
-		return logicalSearchQuery.setNumberOfRows(10).setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.TITLE, Schemas.LOGICALLY_DELETED_STATUS));
+
+		logicalSearchQuery.setNumberOfRows(10).setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.TITLE, Schemas.LOGICALLY_DELETED_STATUS));
+		if (logicalSearchCondition.getFilters() instanceof SchemaFilters) {
+			MetadataSchemaType schemaType = ((SchemaFilters) logicalSearchCondition.getFilters()).getSchemaTypeFilter();
+			if (schemaType != null && schemaType.getCacheType().isSummaryCache()) {
+				logicalSearchQuery.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
+			}
+		}
+
+		return logicalSearchQuery;
 	}
 }

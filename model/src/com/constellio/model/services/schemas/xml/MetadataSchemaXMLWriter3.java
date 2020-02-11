@@ -323,7 +323,7 @@ public class MetadataSchemaXMLWriter3 {
 			utils.toElement(metadata.getDefaultValue(), metadataElement, "defaultValue");
 		}
 		if (!metadata.inheritDefaultSchema()) {
-			Element dataEntryElement = toDataEntryElement(metadata.getDataEntry());
+			Element dataEntryElement = toDataEntryElement(metadata.getDataEntry(), false);
 			if (dataEntryElement != null) {
 				metadataElement.addContent(dataEntryElement);
 			}
@@ -486,7 +486,7 @@ public class MetadataSchemaXMLWriter3 {
 			different = true;
 		}
 		if (!metadata.getDataEntry().equals(globalMetadataInCollection.getDataEntry())) {
-			Element dataEntryElement = toDataEntryElement(metadata.getDataEntry());
+			Element dataEntryElement = toDataEntryElement(metadata.getDataEntry(), true);
 			if (dataEntryElement != null) {
 				metadataElement.addContent(dataEntryElement);
 				different = true;
@@ -691,8 +691,8 @@ public class MetadataSchemaXMLWriter3 {
 		return stringBuffer.toString();
 	}
 
-	private Element toDataEntryElement(DataEntry dataEntryValue) {
-		if (dataEntryValue.getType() == DataEntryType.MANUAL) {
+	private Element toDataEntryElement(DataEntry dataEntryValue, boolean useElementIfManual) {
+		if (dataEntryValue.getType() == DataEntryType.MANUAL && !useElementIfManual) {
 			return null;
 		}
 		Element dataEntry = new Element("dataEntry");
@@ -740,6 +740,8 @@ public class MetadataSchemaXMLWriter3 {
 			if (agregatedDataEntry.getAggregatedCalculator() != null) {
 				dataEntry.setAttribute("aggregatedCalculator", agregatedDataEntry.getAggregatedCalculator().getName());
 			}
+		} else if (dataEntryValue.getType() == DataEntryType.MANUAL) {
+			dataEntry.setText("manual");
 		}
 
 		return dataEntry;

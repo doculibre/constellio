@@ -4,7 +4,9 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
@@ -124,8 +126,10 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(PATH).setType(STRING)
-						.setMultivalue(true)
-						.defineDataEntry().asCalculated(PathCalculator.class);
+						.setMultivalue(true);
+				if (isTypeWithCalculators(schema)) {
+					metadataBuilder.defineDataEntry().asCalculated(PathCalculator.class);
+				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -135,8 +139,10 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(PATH_PARTS).setType(STRING)
-						.setMultivalue(true)
-						.defineDataEntry().asCalculated(PathPartsCalculator.class);
+						.setMultivalue(true);
+				if (isTypeWithCalculators(schema)) {
+					metadataBuilder.defineDataEntry().asCalculated(PathPartsCalculator.class);
+				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -145,8 +151,10 @@ public class CommonMetadataBuilder {
 		metadata.put(PRINCIPAL_PATH, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(PRINCIPAL_PATH).setType(STRING)
-						.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(PRINCIPAL_PATH).setType(STRING);
+				if (isTypeWithCalculators(schema)) {
+					metadataBuilder.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
+				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -179,15 +187,17 @@ public class CommonMetadataBuilder {
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
 						.setMultivalue(true);
-				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
-					&& types.hasSchemaType(Authorization.SCHEMA_TYPE)) {
-					metadataBuilder.defineDataEntry().asCalculated(TokensCalculator4.class);
+				if (isTypeWithCalculators(schema)) {
 
-				} else {
-					metadataBuilder.defineDataEntry().asCalculated(TokensCalculator2.class);
+					if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
+						&& types.hasSchemaType(Authorization.SCHEMA_TYPE)) {
+						metadataBuilder.defineDataEntry().asCalculated(TokensCalculator4.class);
 
+					} else {
+						metadataBuilder.defineDataEntry().asCalculated(TokensCalculator2.class);
+
+					}
 				}
-
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -197,8 +207,11 @@ public class CommonMetadataBuilder {
 		metadata.put(TOKENS_OF_HIERARCHY, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS_OF_HIERARCHY).setType(STRING)
-						.setMultivalue(true).defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS_OF_HIERARCHY).setType(STRING).setMultivalue(true);
+
+				if (isTypeWithCalculators(schema)) {
+					metadataBuilder.defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
+				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -355,8 +368,10 @@ public class CommonMetadataBuilder {
 		metadata.put(ALL_REFERENCES, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(ALL_REFERENCES).setType(STRING).setMultivalue(true)
-						.defineDataEntry().asCalculated(AllReferencesCalculator.class);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(ALL_REFERENCES).setType(STRING).setMultivalue(true);
+				if (isTypeWithCalculators(schema)) {
+					metadataBuilder.defineDataEntry().asCalculated(AllReferencesCalculator.class);
+				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -377,20 +392,25 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(ATTACHED_ANCESTORS).setType(STRING)
-						.setMultivalue(true).setEssential(true)
-						.defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+						.setMultivalue(true).setEssential(true);
+				if (isTypeWithCalculators(schema)) {
+					metadataBuilder.defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
 			}
+
 		});
 
 		metadata.put(ALL_REMOVED_AUTHS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(ALL_REMOVED_AUTHS).setType(STRING)
-						.setMultivalue(true).setEssential(true)
-						.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
+						.setMultivalue(true).setEssential(true);
+				if (isTypeWithCalculators(schema)) {
+					metadataBuilder.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
+				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -401,8 +421,10 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(SCHEMA_AUTOCOMPLETE_FIELD).setType(STRING)
-						.setMultivalue(true).setEssential(true).setMultiLingual(true)
-						.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+						.setMultivalue(true).setEssential(true).setMultiLingual(true);
+				if (isTypeWithCalculators(schema)) {
+					metadataBuilder.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -465,8 +487,10 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = builder.createSystemReserved(ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS)
-						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true)
-						.defineDataEntry().asCalculated(IntegerAttachedPrincipalConceptsAncestorsCalculator.class);
+						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true);
+				if (isTypeWithCalculators(builder)) {
+					metadataBuilder.defineDataEntry().asCalculated(IntegerAttachedPrincipalConceptsAncestorsCalculator.class);
+				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -477,8 +501,10 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = builder.createSystemReserved(DETACHED_PRINCIPALS_ANCESTORS_INT_IDS)
-						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true)
-						.defineDataEntry().asCalculated(IntegerDetachedPrincipalConceptsAncestorsCalculator.class);
+						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true);
+				if (isTypeWithCalculators(builder)) {
+					metadataBuilder.defineDataEntry().asCalculated(IntegerDetachedPrincipalConceptsAncestorsCalculator.class);
+				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -489,8 +515,10 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = builder.createSystemReserved(SECONDARY_CONCEPTS_INT_IDS)
-						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true)
-						.defineDataEntry().asCalculated(SecondaryConceptsIntIdsCalculator.class);
+						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true);
+				if (isTypeWithCalculators(builder)) {
+					metadataBuilder.defineDataEntry().asCalculated(SecondaryConceptsIntIdsCalculator.class);
+				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -501,8 +529,10 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = builder.createSystemReserved(PRINCIPAL_CONCEPTS_INT_IDS)
-						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true)
-						.defineDataEntry().asCalculated(PrincipalConceptsIntIdsCalculator.class);
+						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true);
+				if (isTypeWithCalculators(builder)) {
+					metadataBuilder.defineDataEntry().asCalculated(PrincipalConceptsIntIdsCalculator.class);
+				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -513,8 +543,10 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = builder.createSystemReserved(PRINCIPALS_ANCESTORS_INT_IDS)
-						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true)
-						.defineDataEntry().asCalculated(PrincipalAncestorsCalculator.class);
+						.setType(INTEGER).setMultivalue(true).setEssentialInSummary(true);
+				if (isTypeWithCalculators(builder)) {
+					metadataBuilder.defineDataEntry().asCalculated(PrincipalAncestorsCalculator.class);
+				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -552,5 +584,13 @@ public class CommonMetadataBuilder {
 	private boolean isCollectionUserOrGroupSchema(MetadataSchemaBuilder schema) {
 		String code = new SchemaUtils().getSchemaTypeCode(schema.getCode());
 		return code.equals(Collection.SCHEMA_TYPE) || code.equals(User.SCHEMA_TYPE) || code.equals(Group.SCHEMA_TYPE);
+	}
+
+
+	private boolean isTypeWithCalculators(MetadataSchemaBuilder schema) {
+		//TODO Add flag to remove this dependency!
+		return !Event.SCHEMA_TYPE.equals(schema.getTypeCode())
+			   && !schema.getTypeCode().equals("savedSearch")
+			   && !schema.getTypeCode().equals(SearchEvent.SCHEMA_TYPE);
 	}
 }

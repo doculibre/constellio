@@ -3,6 +3,8 @@ package com.constellio.model.entities.schemas;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchema;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -110,7 +112,9 @@ public class MetadataSchemaType implements Serializable {
 		}
 		defaultSchema.setBuiltSchemaType(this);
 
-		if (!code.startsWith("ddv") && defaultSchema.hasMetadataWithCode("code") && defaultSchema.get("code").isDefaultRequirement()) {
+		if (Event.SCHEMA_TYPE.equals(code) || SearchEvent.SCHEMA_TYPE.equals(code)) {
+			mainSortMetadata = null;
+		} else if (!code.startsWith("ddv") && defaultSchema.hasMetadataWithCode("code") && defaultSchema.get("code").isDefaultRequirement()) {
 			mainSortMetadata = defaultSchema.getMetadata("code");
 
 		} else if (defaultSchema.hasMetadataWithCode("title")) {

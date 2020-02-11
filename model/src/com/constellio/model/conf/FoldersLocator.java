@@ -15,6 +15,8 @@ public class FoldersLocator {
 
 	private static String currentClassPath;
 
+	private static File customWorkFolder;
+
 	private File defaultTempFolder;
 
 	public FoldersLocator() {
@@ -580,8 +582,15 @@ public class FoldersLocator {
 		return new File(getConfFolder(), "license.xml");
 	}
 
+	public static void setCustomWorkFolder(File customWorkFolder) {
+		FoldersLocator.customWorkFolder = customWorkFolder;
+	}
+
 	public File getWorkFolder() {
-		if (getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
+		if (customWorkFolder != null) {
+			return customWorkFolder;
+
+		} else if (getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
 			//File workFolder = new File("/raid/francis/work"); //new File(getSDKProject(), "work");
 			File workFolder = new File(getSDKProject(), "work");
 			workFolder.mkdirs();

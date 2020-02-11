@@ -205,7 +205,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			this.idGenerator = new UUIDV1Generator();
 
 		} else if (dataLayerConfiguration.getIdGeneratorType() == IdGeneratorType.SEQUENTIAL) {
-			this.idGenerator = add(new ZeroPaddedSequentialUniqueIdGenerator(configManager, RECORDS_SEQUENCE_TABLE_CONFIG_PATH));
+			this.idGenerator = add(new ZeroPaddedSequentialUniqueIdGenerator(configManager,
+					RECORDS_SEQUENCE_TABLE_CONFIG_PATH, dataLayerConfiguration.getSequentialIdReservedBatchSize()));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported UniqueIdGenerator");

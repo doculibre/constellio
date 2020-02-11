@@ -18,6 +18,8 @@ import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +43,8 @@ import static com.constellio.model.services.schemas.builders.CommonMetadataBuild
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.SECONDARY_CONCEPTS_INT_IDS;
 
 public class AbstractAncestorCalculator implements MultiMetadatasValueCalculator {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractAncestorCalculator.class);
 
 	protected SpecialDependency<HierarchyDependencyValue> taxonomiesParam = SpecialDependencies.HIERARCHY;
 	protected LocalDependency<List<String>> pathsParam = LocalDependency.toAStringList(CommonMetadataBuilder.PATH);
@@ -161,6 +165,10 @@ public class AbstractAncestorCalculator implements MultiMetadatasValueCalculator
 	@Override
 	public Map<String, Object> calculate(CalculatorParameters parameters) {
 		HierarchyDependencyValue hierarchyDependencyValue = parameters.get(taxonomiesParam);
+
+		if (!RecordId.id(parameters.getId()).isInteger()) {
+			LOGGER.warn("Record with string id " + parameters.getId() + "in schema type " + parameters.getSchemaType().getCode());
+		}
 
 		Set<Integer> ids = new HashSet<>();
 		Set<Integer> possiblyDetachedAncestors = new HashSet<>();

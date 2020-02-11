@@ -485,7 +485,12 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 					data, titleSortValue);
 
 		} else {
-			return fullyCachedData.get(listIndex);
+			int titleSortValue = this.mainSortValues.get(listIndex);
+			RecordDTO recordDTO = fullyCachedData.get(listIndex);
+			if (titleSortValue != RecordDTO.MAIN_SORT_UNDEFINED && recordDTO instanceof SolrRecordDTO) {
+				return ((SolrRecordDTO) recordDTO).withMainSortValue(titleSortValue);
+			}
+			return recordDTO;
 		}
 
 	}
@@ -850,13 +855,16 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 	public void setRecordsMainSortValue(List<RecordId> recordIds) {
 
+
 		mechanism.obtainSystemWideWritingPermit();
 		try {
-			for (int i = 0; i < recordIds.size(); i++) {
-				RecordId recordId = recordIds.get(i);
-				if (recordId.isInteger()) {
-					int index = ids.binarySearch(recordId.intValue());
-					mainSortValues.set(index, i * 2 + 1);
+			synchronized (this) {
+				for (int i = 0; i < recordIds.size(); i++) {
+					RecordId recordId = recordIds.get(i);
+					if (recordId.isInteger()) {
+						int index = ids.binarySearch(recordId.intValue());
+						mainSortValues.set(index, i * 2 + 1);
+					}
 				}
 			}
 		} finally {
@@ -867,6 +875,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 	public int getMainSortValue(RecordId recordId) {
 		mechanism.obtainSystemWideReadingPermit();
 		try {
+
 			int index = ids.binarySearch(recordId.intValue());
 			return mainSortValues.get(index);
 

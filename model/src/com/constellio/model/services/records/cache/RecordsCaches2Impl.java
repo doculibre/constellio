@@ -80,6 +80,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -653,7 +654,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		AtomicInteger added = new AtomicInteger();
 
 		long count = searchServices.streamFromSolr(type, type.getCacheType().isSummaryCache()).count();
-		cacheLoadingProgression = new CacheLoadingProgression(type.getCode(), type.getCollection(), 0, count);
+		String stepName = "Loading '" + type.getCode() + "' of collection '" + type.getCollection() + "'";
+		cacheLoadingProgression = new CacheLoadingProgression(stepName, 0, count);
 		if (count > 0) {
 
 			boolean loadUsingSolr = true;
@@ -680,7 +682,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 						long mb = OffHeapMemoryAllocator.getAllocatedMemory() / (1024 * 1024);
 						LOGGER.info("Adding records " + record.getTypeCode() + " : " + inserted + "/" + count
 									+ " (" + mb + "mb loaded in memory / " + VM.maxDirectMemory() + ")");
-						cacheLoadingProgression = new CacheLoadingProgression(type.getCode(), type.getCollection(), inserted, count);
+						cacheLoadingProgression = new CacheLoadingProgression(stepName, inserted, count);
 					}
 					if (response.getStatus() != CacheInsertionStatus.ACCEPTED) {
 						LOGGER.warn("Could not load record '" + record.getId() + "' in cache : " + response.getStatus());
@@ -702,6 +704,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 			ThreadList<Thread> threadList = running(threadCount, () -> {
 				boolean finished = false;
+				String stepName = "Loading '" + type.getCode() + "' of collection '" + type.getCollection() + "'";
 				while (!finished) {
 					try {
 						Holder<Record> recordHolder = recordsQueue.take();
@@ -718,7 +721,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 								long mb = OffHeapMemoryAllocator.getAllocatedMemory() / (1024 * 1024);
 								LOGGER.info("Adding records " + record.getTypeCode() + " : " + inserted + "/" + count
 											+ " (" + mb + "mb loaded in memory / " + VM.maxDirectMemory() + ")");
-								cacheLoadingProgression = new CacheLoadingProgression(type.getCode(), type.getCollection(), inserted, count);
+
+								cacheLoadingProgression = new CacheLoadingProgression(stepName, inserted, count);
 							}
 							if (response.getStatus() != CacheInsertionStatus.ACCEPTED) {
 								LOGGER.warn("Could not load record '" + record.getId() + "' in cache : " + response.getStatus());
@@ -861,8 +865,55 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 	public void updateRecordsMainSortValue() {
-		memoryDataStore.setRecordsMainSortValue(
-				modelLayerFactory.newSearchServices().recordsIdSortedByTheirDefaultSort());
+		memoryDataStore.setRecordsMainSortValue(recordsIdSortedByTheirDefaultSort());
+		cacheLoadingProgression = null;
+	}
+
+	public List<RecordId> recordsIdSortedByTheirDefaultSort() {
+
+		//Trier par code s'il n'y a pas ddv dans le type de schéma
+		//Sinon par titre
+
+		List<RecordId> returnedIds = new ArrayList<>();
+
+		for (String collection : collectionsListManager.getCollections()) {
+			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypesInDisplayOrder()) {
+
+				if (schemaType.getMainSortMetadata() != null) {
+
+					boolean useTupleStream = modelLayerFactory.getSystemConfigs().isRunningWithSolr6()
+											 && modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
+													 .useSolrTupleStreamsIfSupported();
+
+					String stepName = "Loading sort values of '" + schemaType.getCode() + "' of collection '" + schemaType.getCollection() + "'"
+									  + (useTupleStream ? " (using tuple streams)" : " (using iterator)");
+
+					final long total = modelLayerFactory.newSearchServices().getResultsCount(from(schemaType).returnAll());
+					Consumer<Integer> progressionConsumer = (current) -> {
+
+						if (current % 10000 == 0 || current == total) {
+							cacheLoadingProgression = new CacheLoadingProgression(stepName, current, total);
+						}
+						if (current % 50000 == 0 || current == total) {
+							LOGGER.info(stepName + " - " + current + "/" + total);
+						}
+					};
+
+
+					if (useTupleStream) {
+						returnedIds.addAll(modelLayerFactory.newSearchServices()
+								.recordsIdSortedByTitleUsingTupleStream(schemaType, schemaType.getMainSortMetadata(), progressionConsumer));
+
+
+					} else {
+						returnedIds.addAll(modelLayerFactory.newSearchServices()
+								.recordsIdSortedByTitleUsingIterator(schemaType, schemaType.getMainSortMetadata(), progressionConsumer));
+					}
+				}
+
+			}
+		}
+		return returnedIds;
 	}
 
 	public void onPostLayerInitialization(ModelPostInitializationParams params) {
@@ -883,7 +934,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 							boolean useMapDb = !fileSystemDataStore.isRecreated() && !params.isRebuildCacheFromSolr();
 							typesLoadedAsync.forEach(type -> loadSchemaType(type, useMapDb));
 						}
-						memoryDataStore.setRecordsMainSortValue(modelLayerFactory.newSearchServices().recordsIdSortedByTheirDefaultSort());
+						memoryDataStore.setRecordsMainSortValue(recordsIdSortedByTheirDefaultSort());
 						summaryCacheInitialized = true;
 						CacheRecordDTOUtils.stopCompilingDTOsStats();
 						LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
@@ -901,7 +952,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 			} else {
 
-				memoryDataStore.setRecordsMainSortValue(modelLayerFactory.newSearchServices().recordsIdSortedByTheirDefaultSort());
+				memoryDataStore.setRecordsMainSortValue(recordsIdSortedByTheirDefaultSort());
 
 				summaryCacheInitialized = true;
 				CacheRecordDTOUtils.stopCompilingDTOsStats();

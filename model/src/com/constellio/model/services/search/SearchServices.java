@@ -1892,37 +1892,12 @@ public class SearchServices {
 	}
 
 
-	public List<RecordId> recordsIdSortedByTheirDefaultSort() {
-
-		//Trier par code s'il n'y a pas ddv dans le type de schéma
-		//Sinon par titre
-
-		List<RecordId> returnedIds = new ArrayList<>();
-
-		for (String collection : collectionsListManager.getCollections()) {
-			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypesInDisplayOrder()) {
-
-				if (schemaType.getMainSortMetadata() != null) {
-					if (systemConfigs.isRunningWithSolr6() && modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
-							.useSolrTupleStreamsIfSupported()) {
-						returnedIds.addAll(recordsIdSortedByTitleUsingTupleStream(schemaType, schemaType.getMainSortMetadata()));
-
-
-					} else {
-						returnedIds.addAll(recordsIdSortedByTitleUsingIterator(schemaType, schemaType.getMainSortMetadata()));
-					}
-				}
-
-			}
-		}
-
-		return returnedIds;
-	}
-
 	public List<RecordId> recordsIdSortedByTitleUsingTupleStream(MetadataSchemaType schemaType,
-																 Metadata metadata) {
+																 Metadata metadata,
+																 Consumer<Integer> progressionConsumer) {
 
-		LOGGER.info("Fetching ids of schema type '" + schemaType.getCode() + "' of collection '" + schemaType.getCollection() + "' using tuple stream method...");
+		String message = "Fetching sortValues of schema type '" + schemaType.getCode() + "' of collection '" + schemaType.getCollection() + "' using tuple stream method";
+		LOGGER.info(message + " - starting");
 		Map<String, String> props = new HashMap<>();
 		props.put("q", "schema_s:" + schemaType.getCode() + "_*");
 		props.put("fq", "collection_s:" + schemaType.getCollection());
@@ -1946,7 +1921,7 @@ public class SearchServices {
 
 		props.put("sort", sort.toString());
 		props.put("fl", fields.toString());
-		props.put("rows", "10000");
+		props.put("rows", "1000000000");
 
 		TupleStream tupleStream = dataStoreDao(DataStore.RECORDS).tupleStream(props);
 
@@ -1961,15 +1936,11 @@ public class SearchServices {
 		List<RecordId> ids = new ArrayList<>();
 		try {
 
-			Tuple tuple = tupleStream.read();
-			while (!tuple.EOF) {
-				count.incrementAndGet();
-				if (count.get() % 10000 == 0) {
-					LOGGER.info("Fetching ids using tuple stream method : " + count.get());
-				}
+			Tuple tuple = null;
+			while (!(tuple = tupleStream.read()).EOF) {
 				ids.add(RecordId.toId(tuple.getString("id")));
+				progressionConsumer.accept(count.incrementAndGet());
 			}
-			LOGGER.info("Fetching ids using tuple stream method finished : " + count.get());
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -2013,7 +1984,8 @@ public class SearchServices {
 		//		return ids;
 	}
 
-	public List<RecordId> recordsIdSortedByTitleUsingIterator(MetadataSchemaType schemaType, Metadata metadata) {
+	public List<RecordId> recordsIdSortedByTitleUsingIterator(MetadataSchemaType schemaType, Metadata metadata,
+															  Consumer<Integer> progressionConsumer) {
 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(schemaType).returnAll());
 		if (metadata.isSortable()) {
@@ -2027,16 +1999,11 @@ public class SearchServices {
 		query.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR);
 		Iterator<Record> idIterator = recordsIteratorKeepingOrder(query, 100000);
 
-		long rows = getResultsCount(query);
 		AtomicInteger progress = new AtomicInteger();
-
 		List<RecordId> ids = new ArrayList<>();
-
 		while (idIterator.hasNext()) {
-			if (progress.incrementAndGet() % 100000 == 0) {
-				LOGGER.info("loading ids " + progress.get() + "/" + rows);
-			}
 			ids.add(RecordId.id(idIterator.next().getId()));
+			progressionConsumer.accept(progress.incrementAndGet());
 		}
 
 		return ids;
@@ -2084,7 +2051,7 @@ public class SearchServices {
 		//props.put("qt", "/export");
 		props.put("sort", "id asc");
 		props.put("fl", "id");
-		props.put("rows", "1000000");
+		props.put("rows", "1000000000");
 
 		TupleStream tupleStream = dataStoreDao(DataStore.RECORDS).tupleStream(props);
 
@@ -2105,11 +2072,11 @@ public class SearchServices {
 
 					Tuple tuple = tupleStream.read();
 					if (tuple.EOF) {
-						LOGGER.info("Fetching ids using tuple stream method finished : " + count.get());
+						LOGGER.info("Fetching ids using tuple stream method : " + count.get() + " (finished)");
 						tupleStream.close();
 						return null;
 					} else {
-						//LOGGER.info("Fetching ids and versions of schema type '" + schemaType.getCollection() + ":" + schemaType.getCode() + "' using tuple stream method ... : " + count.get());
+						LOGGER.info("Fetching ids using tuple stream method : " + count.get());
 						count.incrementAndGet();
 						return RecordId.toId(tuple.getString("id"));
 					}

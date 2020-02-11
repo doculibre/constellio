@@ -220,6 +220,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public int getSequentialIdReservedBatchSize() {
+		return getInt("idGenerator.sequential.reservedBatchSize", 1000);
+	}
+
+	@Override
 	public IdGeneratorType getSecondaryIdGeneratorType() {
 		return (IdGeneratorType) getEnum("secondaryIdGenerator.type", IdGeneratorType.UUID_V1);
 	}

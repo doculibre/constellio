@@ -104,8 +104,8 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return wrapFolder(getSummary(folder.schemaType(), id));
 	}
 
-	public Folder getDocumentSummary(String id) {
-		return wrapFolder(getSummary(folder.schemaType(), id));
+	public Document getDocumentSummary(String id) {
+		return wrapDocument(getSummary(document.schemaType(), id));
 	}
 
 	//

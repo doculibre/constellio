@@ -56,7 +56,6 @@ public class BulkRecordTransactionHandler {
 
 	int currentRecordsEstimatedSize = 0;
 	List<Record> currentRecords = new ArrayList<>();
-	long currentRecordsSize = 0;
 
 	Map<String, Record> currentReferencedRecords = new HashMap<>();
 
@@ -113,6 +112,7 @@ public class BulkRecordTransactionHandler {
 
 		}
 
+		total.addAndGet(records.size());
 		currentRecords.addAll(records);
 		currentRecordsEstimatedSize += receivedEstimatedSize;
 		for (Record referencedRecord : referencedRecords) {

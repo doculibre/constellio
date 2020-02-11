@@ -312,7 +312,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 		User user = userServices.getUserInCollection(userVO.getUsername(), collection);
-		Record record = recordServices.getDocumentById(recordId);
+		Record record = recordServices.realtimeGetRecordSummaryById(recordId);
 
 		if (user.hasReadAccess().on(record)) {
 			String schemaCode = record.getSchemaCode();

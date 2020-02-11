@@ -9,6 +9,9 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -72,8 +75,12 @@ public class RMMigrationTo9_0_54 implements MigrationScript {
 
 			for (MetadataSchemaTypeBuilder typeBuilder : typesBuilder.getTypes()) {
 				if (typeBuilder.getDefaultSchema().hasMetadata(CommonMetadataBuilder.ATTACHED_ANCESTORS)) {
-					typeBuilder.getDefaultSchema().getMetadata(CommonMetadataBuilder.ATTACHED_ANCESTORS)
-							.defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+					if (!typeBuilder.getCode().equals(Event.SCHEMA_TYPE)
+						&& !typeBuilder.getCode().equals(SavedSearch.SCHEMA_TYPE)
+						&& !typeBuilder.getCode().equals(SearchEvent.SCHEMA_TYPE)) {
+						typeBuilder.getDefaultSchema().getMetadata(CommonMetadataBuilder.ATTACHED_ANCESTORS)
+								.defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+					}
 				}
 			}
 

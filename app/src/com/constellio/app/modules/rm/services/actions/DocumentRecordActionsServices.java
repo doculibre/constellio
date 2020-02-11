@@ -352,7 +352,7 @@ public class DocumentRecordActionsServices {
 
 	private boolean isDocumentLogicallyDeleted(Document document) {
 		if (document.getId() != null) {
-			return rm.getDocument(document.getId()).isLogicallyDeletedStatus();
+			return rm.getDocumentSummary(document.getId()).isLogicallyDeletedStatus();
 		} else {
 			return true;
 		}

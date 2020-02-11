@@ -87,10 +87,13 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 			setString("dao.cache.volatileCacheSizeInMemory", volatileCacheSizeInMemory);
 		}
 
+		public void setPersistStringRecordIdLegacyMapping(boolean persistLegacyMapping) {
+			setBoolean("dao.stringRecordIds.persistLegacyMapping", persistLegacyMapping);
+		}
+
 		public void setForceCacheLoadingFromSolr(boolean forcingCacheLoadingFromSolr) {
 			setBoolean("dao.cache.forcingCacheLoadingFromSolr", forcingCacheLoadingFromSolr);
 		}
-
 	}
 
 	@Override
@@ -237,6 +240,11 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	@Override
 	public long getReindexingThreadMaxBatchMemorySize() {
 		return getBytesSize("reindexing.threadBatchMaxMemorySize", "1M");
+	}
+
+	@Override
+	public boolean isPersistingStringRecordIdLegacyMapping() {
+		return getBoolean("dao.stringRecordIds.persistLegacyMapping", true);
 	}
 
 

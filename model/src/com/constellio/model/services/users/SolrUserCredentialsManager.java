@@ -5,6 +5,7 @@ import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -165,7 +166,7 @@ public class SolrUserCredentialsManager {
 	}
 
 	public LogicalSearchQuery getUserCredentialsQuery() {
-		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).returnAll()).sortAsc(schemas.credentialUsername());
+		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).returnAll()).sortAsc(Schemas.TITLE);
 	}
 
 	public LogicalSearchQuery getUserCredentialsWithAgreedToPolicyQuery() {
@@ -215,7 +216,7 @@ public class SolrUserCredentialsManager {
 
 	public LogicalSearchQuery getUserCredentialsInGlobalGroupQuery(String group) {
 		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.credentialGroups()).isEqualTo(group))
-				.sortAsc(schemas.credentialUsername());
+				.sortAsc(Schemas.TITLE);
 	}
 
 	public List<UserCredential> getUserCredentialsInGlobalGroup(String group) {
@@ -225,7 +226,7 @@ public class SolrUserCredentialsManager {
 	public LogicalSearchQuery getUserCredentialsInCollectionQuery(String collection) {
 		return new LogicalSearchQuery(
 				from(schemas.credentialSchemaType()).where(schemas.credentialCollections()).isEqualTo(collection))
-				.sortAsc(schemas.credentialUsername());
+				.sortAsc(Schemas.TITLE);
 	}
 
 	public void removeCollection(final String collection) {
@@ -334,6 +335,6 @@ public class SolrUserCredentialsManager {
 
 	private LogicalSearchQuery getQueryFilteredByStatus(UserCredentialStatus status) {
 		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.credentialStatus()).isEqualTo(status))
-				.sortAsc(schemas.credentialUsername());
+				.sortAsc(Schemas.TITLE);
 	}
 }

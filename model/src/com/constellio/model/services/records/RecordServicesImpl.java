@@ -32,6 +32,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -495,7 +496,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			} else {
 				try {
-					realtimeGetRecordById(record.getId());
+
+					Record recordInSolr = realtimeGetRecordById(record.getId());
+					LOGGER.warn("Record '" + record.getId() + "' already existing with version " + recordInSolr.getVersion());
 					throw new RecordServicesRuntimeException.IdAlreadyExisting(record.getId());
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 					//OK
@@ -1498,7 +1501,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		if ("collection_default".equals(schema.getCode())) {
 			id = schema.getCollection();
 
-		} else if (DataStore.EVENTS.equals(schema.getDataStore())) {
+		} else if (DataStore.EVENTS.equals(schema.getDataStore()) || Event.SCHEMA_TYPE.equals(schema.getSchemaType().getCode())) {
 			id = UUIDV1Generator.newRandomId();
 
 		} else if (!schema.isInTransactionLog()) {

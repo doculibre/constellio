@@ -55,7 +55,7 @@ public class RecordsCachesDataStore {
 		if (Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS.isEnabled()) {
 			List<RecordId> recordIds = null;
 			File idsList = new File(new FoldersLocator().getWorkFolder(), "integer-ids.txt");
-			if (FoldersLocator.usingAppWrapper()) {
+			if (FoldersLocator.usingAppWrapper() || Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS_ON_DEV_STATION.isEnabled()) {
 				if (idsList.exists() && new DateTime(idsList.lastModified()).isAfter(new DateTime().minusDays(1))) {
 					try {
 						recordIds = FileUtils.readLines(idsList, "UTF-8").stream().map((line) -> RecordId.toId(line))
@@ -72,7 +72,7 @@ public class RecordsCachesDataStore {
 				recordIds = IteratorUtils.toList(recordIdIterator);
 				List<String> lines = recordIds.stream().filter((id) -> id.isInteger()).map(RecordId::stringValue).collect(Collectors.toList());
 
-				if (FoldersLocator.usingAppWrapper()) {
+				if (FoldersLocator.usingAppWrapper() || Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS_ON_DEV_STATION.isEnabled()) {
 					try {
 
 						FileUtils.writeLines(idsList, lines);

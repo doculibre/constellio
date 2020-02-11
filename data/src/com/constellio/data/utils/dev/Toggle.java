@@ -94,7 +94,7 @@ public class Toggle {
 
 	public static AvailableToggle OFF_HEAP_ADDRESS_VALIDATOR = newToggle(false);
 
-	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(false);
+	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(true);
 
 	public static AvailableToggle PERFORMANCE_TESTING = newToggle(false);
 
@@ -112,6 +112,7 @@ public class Toggle {
 	public static AvailableToggle DEBUG_SOLR_TIMINGS = newToggle(false);
 
 	public static AvailableToggle STRUCTURE_CACHE_BASED_ON_EXISTING_IDS = newToggle(true);
+	public static AvailableToggle STRUCTURE_CACHE_BASED_ON_EXISTING_IDS_ON_DEV_STATION = newToggle(false);
 
 	public static AvailableToggle ENABLE_PDFTRON_TRIAL = newToggle(false);
 

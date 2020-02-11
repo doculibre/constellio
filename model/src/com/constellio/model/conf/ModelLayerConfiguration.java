@@ -70,4 +70,6 @@ public interface ModelLayerConfiguration {
 	boolean isSummaryCacheEnabled();
 
 	long getReindexingThreadMaxBatchMemorySize();
+
+	boolean isPersistingStringRecordIdLegacyMapping();
 }

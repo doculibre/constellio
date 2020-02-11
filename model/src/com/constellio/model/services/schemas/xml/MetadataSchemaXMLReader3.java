@@ -744,6 +744,8 @@ public class MetadataSchemaXMLReader3 {
 					metadataBuilder.defineDataEntry()
 							.as(new AggregatedDataEntry(inputMetadatasByRefMetadata, aggregationType));
 				}
+			} else if ("manual".equals(dataEntry.getValue())) {
+				metadataBuilder.defineDataEntry().asManual();
 			}
 		} else if (!isInheriting(metadataElement)) {
 			if (collectionSchemaBuilder == null) {
