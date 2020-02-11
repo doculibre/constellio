@@ -18,14 +18,28 @@ import com.vaadin.server.Extension;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.AbstractSelect.ItemDescriptionGenerator;
-import com.vaadin.ui.*;
-import com.vaadin.ui.Tree.*;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomField;
+import com.vaadin.ui.Tree;
+import com.vaadin.ui.Tree.CollapseEvent;
+import com.vaadin.ui.Tree.CollapseListener;
+import com.vaadin.ui.Tree.ExpandEvent;
+import com.vaadin.ui.Tree.ExpandListener;
+import com.vaadin.ui.Tree.ItemStyleGenerator;
+import com.vaadin.ui.Tree.TreeDragMode;
+import com.vaadin.ui.TreeTable;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class LazyTree<T extends Serializable> extends CustomField<Object> {
 
@@ -44,6 +58,8 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 	private List<ItemClickListener> itemClickListeners = new ArrayList<ItemClickListener>();
 	
 	private Map<Object, List<Object>> loaderPropertyCache = new HashMap<>();
+
+	private Map<T, String> explicitItemCaptions = new HashMap<>();
 	
 	public LazyTree(LazyTreeDataProvider<T> treeDataProvider) {
 		this(treeDataProvider, false);
@@ -398,7 +414,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 	}
 
 	public String getItemCaption(T object) {
-		return null;
+		return explicitItemCaptions.get(object);
 	}
 
 	public void addAttachListener(AttachListener listener) {
@@ -464,6 +480,8 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 	}
 
 	public void setItemCaption(Object itemId, String caption) {
+		explicitItemCaptions.put((T) itemId, caption);
+		adaptee.fireItemSetChange();
 		adaptee.setItemCaption(itemId, caption);
 	}
 
@@ -851,6 +869,8 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 
 		void setContextMenu(ContextMenu contextMenu);
 
+		void fireItemSetChange();
+
 	}
 
 	private class TreeComponent extends Tree implements BaseTreeComponent {
@@ -908,6 +928,11 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		@Override
 		public void setContextMenu(ContextMenu contextMenu) {
 			contextMenu.setAsTreeContextMenu(this);
+		}
+
+		@Override
+		public void fireItemSetChange() {
+			super.fireItemSetChange();
 		}
 
 		@Override
@@ -1007,6 +1032,11 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		@Override
 		public Resource getItemIcon(Object itemId) {
 			return baseTreeComponentHelper.getItemIcon(itemId);
+		}
+
+		@Override
+		public void fireItemSetChange() {
+			super.fireItemSetChange();
 		}
 
 	}

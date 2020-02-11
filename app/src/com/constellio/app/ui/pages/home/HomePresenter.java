@@ -241,4 +241,12 @@ public class HomePresenter extends BasePresenter<HomeView> {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		return recordServices.getDocumentById(id);
 	}
+
+	public void recordChanged(String recordId) {
+		Record nodeDocument = modelLayerFactory.newRecordServices().getDocumentById(recordId);
+		if (nodeDocument != null) {
+			String newCaption = nodeDocument.getTitle();
+			view.updateCaption(recordId, newCaption);
+		}
+	}
 }
