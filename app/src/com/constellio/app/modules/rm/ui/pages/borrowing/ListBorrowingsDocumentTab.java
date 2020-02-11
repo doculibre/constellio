@@ -1,12 +1,14 @@
 package com.constellio.app.modules.rm.ui.pages.borrowing;
 
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Label;
@@ -39,13 +41,15 @@ public class ListBorrowingsDocumentTab extends ListBorrowingsTab {
 
 	@Override
 	protected LogicalSearchCondition getOverdueCondition() {
-		// TODO::JOLA --> Replace metadata for content_borrowing_date after the merge!
-		return where(recordsServices.document.createdOn()).isLessThan(LocalDateTime.now().minus(Period.days(getBorrowingDuration())));
+		return where(getContentCheckedOutDateMetadata()).isLessThan(LocalDateTime.now().minus(Period.days(getBorrowingDuration())));
+	}
+
+	private Metadata getContentCheckedOutDateMetadata() {
+		return recordsServices.defaultDocumentSchema().getMetadata(Document.CONTENT_CHECKED_OUT_DATE);
 	}
 
 	private int getBorrowingDuration() {
-		// TODO::JOLA --> Replace config for getDocumentBorrowingDurationDays after the merge!
-		return new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()).getBorrowingDurationDays();
+		return new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()).getDocumentBorrowingDurationDays();
 	}
 
 	@Override
@@ -90,8 +94,7 @@ public class ListBorrowingsDocumentTab extends ListBorrowingsTab {
 		}
 
 		private LocalDateTime getBorrowingDate(RecordVO recordVO) {
-			// TODO::JOLA --> Replace metadata for content_borrowing_date after the merge!
-			return recordVO.get(recordsServices.document.createdOn());
+			return recordVO.get(getContentCheckedOutDateMetadata());
 		}
 
 		private LocalDateTime getBorrowingDueDate(RecordVO recordVO) {
