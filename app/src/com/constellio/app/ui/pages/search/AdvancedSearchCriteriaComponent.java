@@ -249,7 +249,6 @@ public class AdvancedSearchCriteriaComponent extends Table {
 						return null;
 				}
 			}
-			new NiceTitle(presenter.getMetadataVO(criterion.getMetadataCode()).getHelpMessage()).setParent(cell);
 			return cell;
 		}
 
@@ -257,6 +256,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			MetadataVO metadata = presenter.getMetadataVO(criterion.getMetadataCode());
 
 			final Field<?> value = buildReferenceEntryField(metadata.getAllowedReferences(), criterion);
+			appendHelpMessage(criterion, value);
 
 			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
 			operator.setNullSelectionAllowed(false);
@@ -354,6 +354,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			final TextField value = new BaseTextField();
 			value.setWidth("100%");
 			value.setValue((String) criterion.getValue());
+			appendHelpMessage(criterion, value);
 			value.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
@@ -419,6 +420,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			component.setExpandRatio(lookup, 1);
 			component.setWidth("100%");
 			component.setSpacing(true);
+			appendHelpMessage(criterion, component);
 
 			return component;
 		}
@@ -439,6 +441,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					criterion.setSearchOperator((SearchOperator) operator.getValue());
 				}
 			});
+
+			appendHelpMessage(criterion, operator);
 			return operator;
 		}
 
@@ -486,6 +490,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			value.setWidth("100%");
 			value.setNullSelectionAllowed(false);
 			value.setValue(criterion.getValue());
+			appendHelpMessage(criterion, value);
 			value.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
@@ -528,6 +533,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			Component endRelativeSearchComponent = buildRelativeSearchComboBox(criterion, true);
 			ComboBox operator = buildComparisonComboBox(criterion, relativeSearchComponent, endRelativeSearchComponent);
 
+			appendHelpMessage(criterion, relativeSearchComponent, endRelativeSearchComponent);
+
 			I18NHorizontalLayout horizontalLayout = new I18NHorizontalLayout();
 			horizontalLayout.setSpacing(true);
 			horizontalLayout.addComponents(operator, relativeSearchComponent);
@@ -563,6 +570,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					verifyNewValue(value, criterion);
 				}
 			});
+
+			appendHelpMessage(criterion, value, endValue);
 
 			final Label label = new Label($("and"));
 			label.setWidth("100px");
@@ -800,6 +809,12 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		private LocalDateTime expandToBeforeMidnight(LocalDateTime date) {
 			return date.withTime(23, 59, 59, 999);
+		}
+
+		protected void appendHelpMessage(Criterion criterion, Component... valueFields) {
+			for (Component valueField : valueFields) {
+				new NiceTitle(presenter.getMetadataVO(criterion.getMetadataCode()).getHelpMessage()).setParent(valueField);
+			}
 		}
 	}
 
