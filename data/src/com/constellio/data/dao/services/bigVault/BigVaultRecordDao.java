@@ -10,6 +10,7 @@ import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
+import com.constellio.data.dao.dto.records.TransactionSearchDTO;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
@@ -84,9 +85,9 @@ public class BigVaultRecordDao implements RecordDao {
 	private static final String ID_FIELD = "id";
 	private static final String VERSION_FIELD = "_version_";
 	public static final String DATE_SEARCH_FIELD = ".search_ss";
-	private final BigVaultServer bigVaultServer;
-	private final DataStoreTypesFactory dataStoreTypesFactory;
-	private final DataLayerLogger dataLayerLogger;
+	protected final BigVaultServer bigVaultServer;
+	protected final DataStoreTypesFactory dataStoreTypesFactory;
+	protected final DataLayerLogger dataLayerLogger;
 	private SecondTransactionLogManager secondTransactionLogManager;
 
 	private static long january1_1900 = new LocalDate(1900, 1, 1).toDate().getTime();
@@ -153,6 +154,12 @@ public class BigVaultRecordDao implements RecordDao {
 			}
 		}
 		return new TransactionResponseDTO(0, new HashMap<String, Long>());
+	}
+
+	@Override
+	public TransactionResponseDTO executeSimple(TransactionSearchDTO transactionSearchDTO) {
+
+		throw new RuntimeException();
 	}
 
 	private void prepareDocumentsForSolrTransaction(TransactionDTO transaction, List<SolrInputDocument> newDocuments,
