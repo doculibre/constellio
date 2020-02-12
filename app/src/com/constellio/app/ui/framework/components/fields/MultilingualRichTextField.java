@@ -6,7 +6,6 @@ import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
-import com.vaadin.ui.RichTextArea;
 import com.vaadin.ui.VerticalLayout;
 
 import java.util.HashMap;
@@ -66,7 +65,7 @@ public class MultilingualRichTextField extends CustomField<Map<String, String>> 
 	private void prepareEntryFields() {
 		layout.removeAllComponents();
 		for (final String language : getCollectionLanguages()) {
-			final RichTextArea field = new RichTextArea($("MultilingualRichTextField." + language));
+			final BaseRichTextArea field = new BaseRichTextArea($("MultilingualRichTextField." + language));
 			field.setValue(value.get(language));
 			field.addValueChangeListener(new ValueChangeListener() {
 				@Override
@@ -77,7 +76,6 @@ public class MultilingualRichTextField extends CustomField<Map<String, String>> 
 			});
 			field.setRequired(areFieldsSetToRequired);
 			field.setId(language);
-			field.setNullRepresentation("");
 			layout.addComponent(field);
 		}
 	}
@@ -92,7 +90,7 @@ public class MultilingualRichTextField extends CustomField<Map<String, String>> 
 		if (areFieldsSetToRequired) {
 			Iterator<Component> componentIterator = layout.iterator();
 			while (componentIterator.hasNext()) {
-				RichTextArea field = (RichTextArea) componentIterator.next();
+				BaseRichTextArea field = (BaseRichTextArea) componentIterator.next();
 				field.setRequiredError($("MultilingualRichTextField.requiredError", $("Language." + field.getId()).toLowerCase()));
 				field.validate();
 			}
