@@ -23,6 +23,7 @@ import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServi
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_EDIT;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_EMPTY_THE_BOX;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_LABELS;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_RETURN_REMAINDER;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_SLIP;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
@@ -77,6 +78,15 @@ public class ContainerMenuItemServices {
 					$("SearchView.printLabels"), FontAwesome.PRINT, -1, 300,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).printLabel(container, params));
 			menuItemActions.add(menuItemAction);
+		}
+
+		// TODO::JOLA --> Add force return with permission
+
+		if (!filteredActionTypes.contains(CONTAINER_RETURN_REMAINDER.name())) {
+			menuItemActions.add(buildMenuItemAction(CONTAINER_RETURN_REMAINDER.name(),
+					isMenuItemActionPossible(CONTAINER_RETURN_REMAINDER.name(), container, user, params),
+					$("SendReturnReminderEmailButton.reminderReturn"), null, -1, 350,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(container, params)));
 		}
 
 		if (!filteredActionTypes.contains(CONTAINER_ADD_TO_CART.name())) {
@@ -137,6 +147,8 @@ public class ContainerMenuItemServices {
 				return containerRecordActionsServices.isSlipActionPossible(record, user);
 			case CONTAINER_LABELS:
 				return containerRecordActionsServices.isPrintLabelActionPossible(record, user);
+			case CONTAINER_RETURN_REMAINDER:
+				return containerRecordActionsServices.isSendReturnReminderActionPossible(record, user);
 			case CONTAINER_ADD_TO_CART:
 				return containerRecordActionsServices.isAddToCartActionPossible(record, user);
 			case CONTAINER_DELETE:
@@ -170,7 +182,8 @@ public class ContainerMenuItemServices {
 		CONTAINER_LABELS,
 		CONTAINER_ADD_TO_CART,
 		CONTAINER_DELETE,
-		CONTAINER_EMPTY_THE_BOX;
+		CONTAINER_EMPTY_THE_BOX,
+		CONTAINER_RETURN_REMAINDER
 	}
 
 }

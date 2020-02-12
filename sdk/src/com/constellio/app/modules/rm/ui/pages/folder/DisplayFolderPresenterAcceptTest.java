@@ -367,13 +367,14 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"previewReturnDate:" + folderC30.getBorrowPreviewReturnDate(),
 				"borrower:chuck",
-				"borrowedFolderTitle:Haricot",
+				"borrowedRecordTitle:Haricot",
+				"borrowedRecordType:" + $("SendReturnReminderEmailButton.folder"),
 				"title:Rappel pour retourner le dossier \"Haricot\"",
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/C30"
 		);
 		assertThat(emailToSend.getFrom()).isEqualTo(null);
-		verify(displayFolderView).showMessage($("DisplayFolderView.reminderEmailSent"));
+		verify(displayFolderView).showMessage($("SendReturnReminderEmailButton.reminderEmailSent"));
 	}
 
 	@Test

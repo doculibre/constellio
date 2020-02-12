@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.menu.behaviors.ui.SendReturnReminderEmailButton;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
@@ -117,6 +118,18 @@ public class ContainerRecordMenuItemActionBehaviors {
 				sessionContext.getCurrentCollection(), sessionContext.getCurrentUser(), params.getRecordVO());
 
 		labels.click();
+	}
+
+	public void sendReturnRemainder(ContainerRecord container, MenuItemActionBehaviorParams params) {
+		User borrower = null;
+		if (container.getBorrower() != null) {
+			borrower = rm.getUser(container.getBorrower());
+		}
+		String previewReturnDate = container.getPlanifiedReturnDate().toString();
+
+		Button reminderReturnContainerButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
+				params.getView(), ContainerRecord.SCHEMA_TYPE, container.get(), borrower, previewReturnDate);
+		reminderReturnContainerButton.click();
 	}
 
 	public void addToCart(ContainerRecord container, MenuItemActionBehaviorParams params) {

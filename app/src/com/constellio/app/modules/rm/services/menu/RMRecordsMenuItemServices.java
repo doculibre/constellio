@@ -314,6 +314,8 @@ public class RMRecordsMenuItemServices {
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).printLabels(ids, params));
 				break;
+			// TODO::JOLA --> Add batch return
+			// TODO::JOLA --> Add batch reminder
 			case RMRECORDS_ADD_SELECTION:
 				menuItemAction = buildMenuItemAction(RMRECORDS_ADD_SELECTION, state,
 						$("SearchView.addToSelection"), SELECTION_ICON_RESOURCE, -1, 800,

@@ -963,7 +963,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			parameters.add("previewReturnDate" + EmailToSend.PARAMETER_SEPARATOR + previewReturnDate);
 			parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + borrower.getUsername());
 			String borrowedFolderTitle = folderVO.getTitle();
-			parameters.add("borrowedFolderTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
+			parameters.add("borrowedRecordTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
+			parameters.add("borrowedRecordType" + EmailToSend.PARAMETER_SEPARATOR + $("SendReturnReminderEmailButton.folder"));
 			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
 			if (isAddingRecordIdInEmails) {
 				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
@@ -979,10 +980,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			emailToSend.setParameters(parameters);
 
 			recordServices.add(emailToSend);
-			view.showMessage($("DisplayFolderView.reminderEmailSent"));
+			view.showMessage($("SendReturnReminderEmailButton.reminderEmailSent"));
 		} catch (RecordServicesException e) {
-			LOGGER.error("DisplayFolderView.cannotSendEmail", e);
-			view.showMessage($("DisplayFolderView.cannotSendEmail"));
+			LOGGER.error("SendReturnReminderEmailButton.cannotSendEmail", e);
+			view.showMessage($("SendReturnReminderEmailButton.cannotSendEmail"));
 		}
 	}
 

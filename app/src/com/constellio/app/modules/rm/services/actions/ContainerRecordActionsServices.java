@@ -77,6 +77,12 @@ public class ContainerRecordActionsServices {
 			   && rmModuleExtensions.isConsultActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user);
 	}
 
+	public boolean isSendReturnReminderActionPossible(Record record, User user) {
+		ContainerRecord container = rm.wrapContainerRecord(record);
+		return Boolean.TRUE.equals(container.getBorrowed()) &&
+			   !user.getId().equals(container.getBorrower());
+	}
+
 	public boolean isAddToCartActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record) &&
 			   (hasUserPermissionToUseCart(user) || hasUserPermissionToUseMyCart(user)) &&

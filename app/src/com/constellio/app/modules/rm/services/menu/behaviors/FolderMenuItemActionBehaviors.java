@@ -4,10 +4,8 @@ import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
@@ -15,6 +13,7 @@ import com.constellio.app.modules.rm.services.actions.FolderRecordActionsService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.menu.behaviors.ui.SendReturnReminderEmailButton;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
@@ -56,15 +55,11 @@ import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.records.RecordServices;
@@ -92,7 +87,6 @@ import org.joda.time.LocalDateTime;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -117,7 +111,6 @@ public class FolderMenuItemActionBehaviors {
 	private MetadataSchemaToVOBuilder schemaVOBuilder;
 	private BorrowingServices borrowingServices;
 	private RMConfigs rmConfigs;
-	private ConstellioEIMConfigs eimConfigs;
 	private MetadataSchemaTypes schemaTypes;
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
@@ -137,7 +130,6 @@ public class FolderMenuItemActionBehaviors {
 		schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
@@ -648,52 +640,16 @@ public class FolderMenuItemActionBehaviors {
 
 	public void sendReturnRemainder(Folder folderSummary, MenuItemActionBehaviorParams params) {
 		Folder folder = loadingFullRecordIfSummary(folderSummary);
-		Button reminderReturnFolderButton = new BaseButton($("DisplayFolderView.reminderReturnFolder")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				try {
-					EmailToSend emailToSend = newEmailToSend();
-					String constellioUrl = eimConfigs.getConstellioUrl();
-					User borrower = null;
-					if (folder.getBorrowUserEntered() != null) {
-						borrower = rm.getUser(folder.getBorrowUserEntered());
-					} else {
-						borrower = rm.getUser(folder.getBorrowUser());
-					}
+		User borrower = null;
+		if (folder.getBorrowUserEntered() != null) {
+			borrower = rm.getUser(folder.getBorrowUserEntered());
+		} else {
+			borrower = rm.getUser(folder.getBorrowUser());
+		}
+		String previewReturnDate = folder.getBorrowPreviewReturnDate().toString();
 
-					EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
-					emailToSend.setTo(Arrays.asList(borrowerAddress));
-					emailToSend.setSendOn(TimeProvider.getLocalDateTime());
-					emailToSend.setSubject($("DisplayFolderView.returnFolderReminder") + folder.getTitle());
-					emailToSend.setTemplate(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
-					List<String> parameters = new ArrayList<>();
-					String previewReturnDate = folder.getBorrowPreviewReturnDate().toString();
-					parameters.add("previewReturnDate" + EmailToSend.PARAMETER_SEPARATOR + previewReturnDate);
-					parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + borrower.getUsername());
-					String borrowedFolderTitle = folder.getTitle();
-					parameters.add("borrowedFolderTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
-					boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
-					if (isAddingRecordIdInEmails) {
-						parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-									   + folder.getTitle() + "\" (" + folder.getId() + ")");
-					} else {
-						parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-									   + folder.getTitle() + "\"");
-					}
-
-					parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
-					parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!"
-								   + RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folder.getId());
-					emailToSend.setParameters(parameters);
-
-					recordServices.add(emailToSend);
-					params.getView().showMessage($("DisplayFolderView.reminderEmailSent"));
-				} catch (RecordServicesException e) {
-					log.error("DisplayFolderView.cannotSendEmail", e);
-					params.getView().showMessage($("DisplayFolderView.cannotSendEmail"));
-				}
-			}
-		};
+		Button reminderReturnFolderButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
+				params.getView(), Folder.SCHEMA_TYPE, folder.get(), borrower, previewReturnDate);
 		reminderReturnFolderButton.click();
 	}
 
@@ -923,12 +879,6 @@ public class FolderMenuItemActionBehaviors {
 
 	private Roles getCollectionRoles() {
 		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
-	}
-
-	private EmailToSend newEmailToSend() {
-		MetadataSchema schema = schemaTypes.getSchemaType(EmailToSend.SCHEMA_TYPE).getDefaultSchema();
-		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
-		return new EmailToSend(emailToSendRecord, schemaTypes);
 	}
 
 	private Folder loadingFullRecordIfSummary(Folder folder) {

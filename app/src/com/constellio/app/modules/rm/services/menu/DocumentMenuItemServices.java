@@ -238,7 +238,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_RETURN_REMAINDER.name())) {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_RETURN_REMAINDER.name(),
 					isMenuItemActionPossible(DOCUMENT_RETURN_REMAINDER.name(), document, user, params),
-					$("DisplayFolderView.reminderReturnFolder"), null, -1, 1850,
+					$("SendReturnReminderEmailButton.reminderReturn"), null, -1, 1850,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(document, params)));
 		}
 
@@ -382,6 +382,6 @@ public class DocumentMenuItemServices {
 		DOCUMENT_ADD_AUTHORIZATION,
 		DOCUMENT_MANAGE_AUTHORIZATIONS,
 		DOCUMENT_GENERATE_REPORT,
-		DOCUMENT_RETURN_REMAINDER;
+		DOCUMENT_RETURN_REMAINDER
 	}
 }
