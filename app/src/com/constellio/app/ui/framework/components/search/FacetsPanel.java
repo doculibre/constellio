@@ -27,10 +27,8 @@ import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
@@ -44,7 +42,6 @@ public abstract class FacetsPanel extends VerticalLayout {
 		addStyleName("search-result-facets");
 		setWidth("250px");
 		setSpacing(true);
-		//facetValuesSelectedMap.clear();
 		this.applyButtonEnabled = applyButtonEnabled;
 	}
 
@@ -115,7 +112,7 @@ public abstract class FacetsPanel extends VerticalLayout {
 		CheckBox deselect = new CheckBox();
 		deselect.setValue(!selectedFacetValues.isEmpty());
 		deselect.setEnabled(!selectedFacetValues.isEmpty());
-		if(applyButtonEnabled) {
+		if (applyButtonEnabled) {
 			deselect.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(ValueChangeEvent event) {
@@ -124,8 +121,7 @@ public abstract class FacetsPanel extends VerticalLayout {
 				}
 
 			});
-		}
-		else{
+		} else {
 			deselect.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(ValueChangeEvent event) {
@@ -177,7 +173,7 @@ public abstract class FacetsPanel extends VerticalLayout {
 			if (selectedFacetValues.contains(facetValue.getValue())) {
 				checkBox.setValue(true);
 			}
-			if(applyButtonEnabled) {
+			if (applyButtonEnabled) {
 				checkBox.addValueChangeListener(new ValueChangeListener() {
 					@Override
 					public void valueChange(ValueChangeEvent event) {
@@ -190,8 +186,7 @@ public abstract class FacetsPanel extends VerticalLayout {
 						apply.setVisible(true);
 					}
 				});
-			}
-			else{
+			} else {
 				checkBox.addValueChangeListener(new ValueChangeListener() {
 					@Override
 					public void valueChange(ValueChangeEvent event) {
@@ -236,7 +231,7 @@ public abstract class FacetsPanel extends VerticalLayout {
 		});
 
 		layout.addComponent(table);
-		if(applyButtonEnabled) {
+		if (applyButtonEnabled) {
 			buttonBar.addComponent(apply);
 			buttonBar.setComponentAlignment(apply, Alignment.BOTTOM_LEFT);
 			buttonBar.setWidth("100%");
@@ -251,13 +246,6 @@ public abstract class FacetsPanel extends VerticalLayout {
 		}
 		return layout;
 	}
-
-	private void formHasChanged() {
-	}
-
-	private void formHasChanged(int facetCount) {
-	}
-
 
 	protected abstract void sortCriterionSelected(String sortCriterion, SortOrder sortOrder);
 
