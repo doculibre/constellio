@@ -825,7 +825,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		List<String> assigneeCandidates = taskVO.get(Task.ASSIGNEE_USERS_CANDIDATES);
 		List<String> userGroups = getCurrentUser().getUserGroups();
 		boolean userIsCandidate = !ListUtils.intersection(assigneeGroupsCandidates, userGroups).isEmpty() || assigneeCandidates.contains(currentUserId);
-		return currentUserId.equals(taskVO.get(Task.ASSIGNEE)) || currentUserId.equals(taskVO.get(Task.ASSIGNER)) || userIsCandidate || isModel || !isEditMode();
+		return userIsCandidate || isModel || !isEditMode() || currentUserId.equals(taskVO.get(Task.ASSIGNEE)) || currentUserId.equals(taskVO.get(Task.ASSIGNER));
 	}
 
 	private boolean currentUserHasWriteAuthorisation() {
