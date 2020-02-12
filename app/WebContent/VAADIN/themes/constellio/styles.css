@@ -1591,6 +1591,69 @@ div.v-layout.v-horizontal.v-widget {
 }
 }
 
+.constellio .v-context-menu {
+	float: left;
+	font-family: Arial;
+	font-size: 12px;
+	background-color: #f0f0f0;
+	box-shadow: 5px 5px 10px #999;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic, .constellio .v-context-menu .v-context-menu-item-basic-submenu {
+	float: left;
+	clear: left;
+	height: 26px;
+	color: #222;
+	cursor: pointer;
+	background-color: #f0f0f0;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-separator, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-separator {
+	border-bottom: 1px solid #d0d0d0;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic-submenu {
+	background: transparent url(../../../VAADIN/themes/contextmenu/img/basic/arrow.png) no-repeat center right;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic:focus, .constellio .v-context-menu .v-context-menu-item-basic-submenu:focus, .constellio .v-context-menu .v-context-menu-item-basic-open {
+	background-color: #e0e0e0;
+	outline: none;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled {
+	opacity: 0.3;
+	filter: alpha(opacity = 30);
+	zoom: 1;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled:hover, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-disabled:hover {
+	background-color: #f0f0f0;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic-icon-container {
+	float: left;
+	width: 26px;
+	height: 26px;
+	margin-right: 5px;
+	border-right: 1px solid #d0d0d0;
+	text-align: center;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic-icon-container .v-icon {
+	float: left;
+	width: 16px;
+	height: 16px;
+	padding: 5px;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic-text {
+	float: left;
+	height: 26px;
+	line-height: 26px;
+	padding: 0 20px 0 10px;
+}
+
 .constellio.v-app, .constellio.v-app-loading {
 	font: 300 16px/1.55 "JF Flat", "Open Sans", sans-serif, FontAwesome;
 	color: #464646;
@@ -2085,8 +2148,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -2178,8 +2241,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #ecf2f8;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #1362b1;
 	border-top-color: #156ab3;
@@ -2226,8 +2289,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #eaf4e9;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #227719;
 	border-top-color: #257d1a;
@@ -2267,8 +2330,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #f9f0ef;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #bb382e;
 	border-top-color: #bc3c31;
@@ -2405,10 +2468,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-tiny {
 	height: 28px;
 	padding: 0 13px;
-
-
+	
+	
 	font-size: 12px;
-
+	
 	border-radius: 4px;
 }
 
@@ -2423,10 +2486,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-small {
 	height: 31px;
 	padding: 0 14px;
-
-
+	
+	
 	font-size: 14px;
-
+	
 	border-radius: 4px;
 }
 
@@ -2441,10 +2504,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-large {
 	height: 44px;
 	padding: 0 19px;
-
-
+	
+	
 	font-size: 20px;
-
+	
 	border-radius: 4px;
 }
 
@@ -2459,10 +2522,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-huge {
 	height: 59px;
 	padding: 0 26px;
-
-
+	
+	
 	font-size: 26px;
-
+	
 	border-radius: 4px;
 }
 
@@ -2592,8 +2655,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 9px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -2722,8 +2785,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 7px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -2852,8 +2915,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 10px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -2945,7 +3008,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -3387,7 +3450,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-tiny {
 	height: 28px;
-
+	
 	font-size: 12px;
 }
 
@@ -3406,14 +3469,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
-
+	
 	padding: 3px 5px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3439,7 +3502,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-tiny span.v-icon {
-
+	
 	width: 28px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -3515,7 +3578,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-compact, .constellio .v-filterselect-small {
 	height: 31px;
-
+	
 }
 
 .constellio .v-filterselect-compact [class*="input"], .constellio .v-filterselect-small [class*="input"] {
@@ -3533,14 +3596,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
-
+	
 	padding: 3px 6px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3566,7 +3629,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-compact span.v-icon, .constellio .v-filterselect-small span.v-icon {
-
+	
 	width: 31px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -3646,7 +3709,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-large {
 	height: 44px;
-
+	
 	font-size: 20px;
 }
 
@@ -3665,14 +3728,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
-
+	
 	padding: 5px 8px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3698,7 +3761,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-large span.v-icon {
-
+	
 	width: 44px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -3774,7 +3837,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-huge {
 	height: 59px;
-
+	
 	font-size: 26px;
 }
 
@@ -3793,14 +3856,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
-
+	
 	padding: 7px 10px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3826,7 +3889,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-huge span.v-icon {
-
+	
 	width: 59px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -4124,13 +4187,13 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
 	border-radius: 0;
 	padding: 4px 7px;
-
+	
 	-webkit-box-shadow: none;
 	box-shadow: none;
 	-webkit-transition: box-shadow 180ms, border 180ms;
@@ -4219,7 +4282,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -4313,14 +4376,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
 	border-radius: 4px;
 	padding: 3px 7px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4345,14 +4408,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
 	border-radius: 4px;
 	padding: 3px 8px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4380,14 +4443,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
 	border-radius: 4px;
 	padding: 5px 10px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4412,14 +4475,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
 	border-radius: 4px;
 	padding: 7px 12px;
-
-
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4686,7 +4749,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -4789,15 +4852,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
 	border-radius: 4px;
 	padding: 6px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4831,15 +4894,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
 	border-radius: 4px;
 	padding: 6px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4873,15 +4936,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
 	border-radius: 4px;
 	padding: 6px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4915,15 +4978,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
 	border-radius: 4px;
 	padding: 6px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4975,7 +5038,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -5617,15 +5680,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
 	border-radius: 4px;
 	padding: 3px 7px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5732,15 +5795,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
 	border-radius: 4px;
 	padding: 3px 8px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5852,15 +5915,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
 	border-radius: 4px;
 	padding: 5px 10px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5968,15 +6031,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
 	border-radius: 4px;
 	padding: 7px 12px;
-
-
-
+	
+	
+	
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -6295,7 +6358,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #191919;
 	font-weight: 400;
-
+	
 	cursor: default;
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
@@ -6377,7 +6440,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 15px;
 	color: inherit;
 	font-weight: 400;
-
+	
 	cursor: pointer;
 	border-radius: 0;
 	border: 1px solid #c5c5c5;
@@ -6474,9 +6537,9 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-menubar > .v-menubar-menuitem-selected {
 	color: #ecf2f8;
-
-
-
+	
+	
+	
 	border-radius: 0;
 	border: 1px solid #1362b1;
 	border-top-color: #156ab3;
@@ -6625,9 +6688,9 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-menubar-small {
 	height: 31px;
 	padding: 0 14px;
-
+	
 	font-weight: 400;
-
+	
 	cursor: default;
 	border-radius: 4px;
 	padding: 0;
@@ -6778,8 +6841,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 9px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -6941,8 +7004,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 7px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7070,8 +7133,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 7px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7233,8 +7296,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 10px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7362,8 +7425,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 10px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -8325,8 +8388,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #191919;
 	font-weight: 400;
-
-
+	
+	
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -8438,8 +8501,8 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio tbody.v-drag-element tr {
 	display: block;
-
-
+	
+	
 	-webkit-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 	border-radius: 4px;
@@ -9704,13 +9767,13 @@ div.v-layout.v-horizontal.v-widget {
 	font-size: 2.4em;
 	margin-top: 1.4em;
 	margin-bottom: 1em;
-
+	
 	letter-spacing: -0.03em;
 }
 
 .constellio h2, .constellio .v-label-h2 {
 	font-size: 1.6em;
-
+	
 	margin-top: 1.6em;
 	margin-bottom: 0.77em;
 	letter-spacing: -0.02em;
@@ -9718,7 +9781,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio h3, .constellio .v-label-h3 {
 	font-size: 1.2em;
-
+	
 	margin-top: 1.8em;
 	margin-bottom: 0.77em;
 	letter-spacing: 0;
@@ -9990,7 +10053,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-
+	
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -11204,7 +11267,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .valo-menu .valo-menu-badge, .constellio .dashboard-view .notifications.unread .v-button-caption {
-
+	
 	-webkit-transition: background-color 300ms;
 	-moz-transition: background-color 300ms;
 	transition: background-color 300ms;
@@ -13969,21 +14032,32 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: 7px;
 }
 
+.constellio .v-button.v-disabled, .constellio .v-button-link.v-disabled {
+	opacity: 1;
+	color: inherit;
+}
+
+.constellio .v-button.v-disabled:hover, .constellio .v-button-link.v-disabled:hover {
+	text-decoration: none;
+}
+
 .constellio .clickable-row .v-table-body tr, .constellio .clickable-row .v-table-body .reference-display {
-	cursor: pointer;
+	cursor: pointer !important;
 	color: #696969;
 }
 
 .constellio .clickable-row .v-table-body tr:hover, .constellio .clickable-row .v-table-body .reference-display:hover {
-	color: white;
+	color: white !important;
 	background-color: #197de1;
 	text-decoration: none;
 }
 
+.constellio .clickable-row .v-table-body tr:hover .v-button, .constellio .clickable-row .v-table-body .reference-display:hover .v-button {
+	color: white !important;
+}
+
 .constellio .v-table .v-table-body .v-disabled {
 	text-align: left;
-	opacity: 10%;
-	color: black;
 }
 
 .constellio .v-table .v-table-body .v-slot-icon-only .v-disabled {
