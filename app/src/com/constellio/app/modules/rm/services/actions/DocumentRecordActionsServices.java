@@ -371,6 +371,11 @@ public class DocumentRecordActionsServices {
 		return !email && (document.getContent() != null && isContentCheckedOut(document));
 	}
 
+	//todo
+	public boolean isAddDTaskActionPossible(Record record, User user) {
+		return true;
+	}
+
 	private boolean isEmail(Document document) {
 		boolean email;
 		if (document.getContent() != null && document.getContent().getCurrentVersion() != null) {
@@ -388,4 +393,6 @@ public class DocumentRecordActionsServices {
 	private boolean hasUserReadAccess(Record record, User user) {
 		return user.hasReadAccess().on(record);
 	}
+
+
 }

@@ -425,6 +425,10 @@ public class DocumentMenuItemActionBehaviors {
 		uploadWindow.open(false);
 	}
 
+	public void addTask(Document document, MenuItemActionBehaviorParams params) {
+
+	}
+
 	public void alertAvailable(Document document, MenuItemActionBehaviorParams params) {
 		List<String> usersToAlert = document.getAlertUsersWhenAvailable();
 		String currentUserId = params.getUser().getId();

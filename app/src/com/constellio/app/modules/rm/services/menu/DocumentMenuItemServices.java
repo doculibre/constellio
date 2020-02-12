@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_AUTHORIZATION;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TASK;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TO_CART;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_AVAILABLE_ALERT;
@@ -270,6 +271,15 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
+
+		MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_TASK.name(),
+				isMenuItemActionPossible(DOCUMENT_ADD_TASK.name(), document, user, params),
+				$("DocumentContextMenu.createTask"), FontAwesome.TASKS, -1, 2300,
+				(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addTask(document, params));
+
+		menuItemActions.add(menuItemAction);
+
+
 		return menuItemActions;
 	}
 
@@ -329,6 +339,8 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.isManageAuthorizationActionPossible(record, user);
 			case DOCUMENT_GENERATE_REPORT:
 				return documentRecordActionsServices.isGenerateReportActionPossible(record, user);
+			case DOCUMENT_ADD_TASK:
+				return documentRecordActionsServices.isAddDTaskActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -371,6 +383,7 @@ public class DocumentMenuItemServices {
 		DOCUMENT_AVAILABLE_ALERT,
 		DOCUMENT_ADD_AUTHORIZATION,
 		DOCUMENT_MANAGE_AUTHORIZATIONS,
-		DOCUMENT_GENERATE_REPORT;
+		DOCUMENT_GENERATE_REPORT,
+		DOCUMENT_ADD_TASK;
 	}
 }
