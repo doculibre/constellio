@@ -332,27 +332,35 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void checkIn(Document document, MenuItemActionBehaviorParams params) {
+		DocumentVO documentVO = getDocumentVO(params, document);
 		if (documentRecordActionsServices.isCheckInActionPossible(document.getWrappedRecord(), params.getUser())) {
 			UpdateContentVersionWindowImpl uploadWindow =
-					createUpdateContentVersionWindow(getDocumentVO(params, document), params.getView());
-			uploadWindow.open(false);
+					createUpdateContentVersionWindow(documentVO, params.getView());
+			if (!isSameVersion(document)) {
+				uploadWindow.open(false);
+			} else {
+				uploadWindow.saveWithSameVersion();
+			}
 		} else if (documentRecordActionsServices.isCancelCheckOutPossible(document)) {
 			Content content = document.getContent();
 			content.checkIn();
 			modelLayerFactory.newLoggingServices().returnRecord(document.getWrappedRecord(), params.getUser());
 			try {
 				recordServices.update(document, new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
-				DocumentVO documentVO = getDocumentVO(params, document);
 				ContentVersionVO currentVersionVO = new ContentVersionToVOBuilder(modelLayerFactory)
 						.build(content, params.getView().getSessionContext());
 				documentVO.setContent(currentVersionVO);
-
 				params.getView().updateUI();
 				params.getView().showMessage($("DocumentActionsComponent.canceledCheckOut"));
 			} catch (RecordServicesException e) {
 				params.getView().showErrorMessage(MessageUtils.toMessage(e));
 			}
 		}
+	}
+
+	private boolean isSameVersion(Document document) {
+		Content content = document.getContent();
+		return content != null && content.getCurrentVersion().getHash().equals(content.getCurrentCheckedOutVersion().getHash());
 	}
 
 	public void checkOut(Document document, MenuItemActionBehaviorParams params) {
