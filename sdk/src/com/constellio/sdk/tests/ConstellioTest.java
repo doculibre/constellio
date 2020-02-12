@@ -54,6 +54,15 @@ public class ConstellioTest extends AbstractConstellioTest {
 	@Before
 	public void beforeConstellioTest() {
 		System.out.println("Allocated memory before test : " + OffHeapMemoryAllocator.getAllocatedMemory() + " bytes");
+		System.out.println("Allocated memory before test - OffHeapByteArrayList_ID : " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapByteArrayList_ID));
+		System.out.println("Allocated memory before test - OffHeapByteList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapByteList_ID));
+		System.out.println("Allocated memory before test - OffHeapIntList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapIntList_ID));
+		System.out.println("Allocated memory before test - OffHeapLongList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapLongList_ID));
+		System.out.println("Allocated memory before test - OffHeapShortList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapShortList_ID));
+		System.out.println("Allocated memory before test - SortedIntIdsList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.SortedIntIdsList_ID));
+		System.out.println("Allocated memory before test - SDK: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.SDK));
+		System.out.println("Allocated memory before test - OffHeapByteArrayListArea_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapByteArrayListArea_ID));
+
 		MockitoAnnotations.initMocks(this);
 		cacheIntegrityCheckedAfterTest = true;
 

@@ -32,8 +32,8 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE;
 import static com.constellio.model.services.records.cache.ByteArrayRecordDTO.MAIN_SORT_UNDEFINED;
-import static com.constellio.model.services.search.LogicalSearchQueryExecutorInCache.NORMALIZED_SORTS_THRESHOLD;
 import static com.constellio.model.services.search.LogicalSearchQueryExecutorInCache.MAIN_SORT_THRESHOLD;
+import static com.constellio.model.services.search.LogicalSearchQueryExecutorInCache.NORMALIZED_SORTS_THRESHOLD;
 import static com.constellio.model.services.search.LogicalSearchQueryExecutorInCache.UNNORMALIZED_SORTS_THRESHOLD;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -161,27 +161,30 @@ public class MainSortValueRecordCacheAcceptanceTest extends ConstellioTest {
 		}
 
 		recordsCaches.updateRecordsMainSortValue();
+		queryCounter.reset();
 
-		assertThat(recordServices.realtimeGetRecordSummaryById(id1).getRecordDTO().getMainSortValue()).isEqualTo(1);
-		assertThat(recordServices.realtimeGetRecordSummaryById(id2).getRecordDTO().getMainSortValue()).isEqualTo(3);
-		assertThat(recordServices.realtimeGetRecordSummaryById(id3).getRecordDTO().getMainSortValue()).isEqualTo(5);
-		assertThat(recordServices.realtimeGetRecordSummaryById(id4).getRecordDTO().getMainSortValue()).isEqualTo(7);
-		assertThat(recordServices.realtimeGetRecordSummaryById(id5).getRecordDTO().getMainSortValue()).isEqualTo(9);
-		assertThat(recordServices.realtimeGetRecordSummaryById(id6).getRecordDTO().getMainSortValue()).isEqualTo(11);
-		assertThat(recordServices.realtimeGetRecordSummaryById(id7).getRecordDTO().getMainSortValue()).isEqualTo(13);
-		assertThat(recordServices.realtimeGetRecordSummaryById(id8).getRecordDTO().getMainSortValue()).isEqualTo(15);
+		assertThat(recordServices.realtimeGetRecordSummaryById(id1).getRecordDTO().getMainSortValue())
+				.isEqualTo(recordServices.realtimeGetRecordSummaryById(id4).getRecordDTO().getMainSortValue() - 2);
 
+		assertThat(recordServices.realtimeGetRecordSummaryById(id5).getRecordDTO().getMainSortValue())
+				.isEqualTo(recordServices.realtimeGetRecordSummaryById(id7).getRecordDTO().getMainSortValue() - 2);
+
+		assertThat(recordServices.realtimeGetRecordSummaryById(id2).getRecordDTO().getMainSortValue())
+				.isEqualTo(recordServices.realtimeGetRecordSummaryById(id3).getRecordDTO().getMainSortValue() - 2);
+
+		assertThat(recordServices.realtimeGetRecordSummaryById(id6).getRecordDTO().getMainSortValue())
+				.isEqualTo(recordServices.realtimeGetRecordSummaryById(id8).getRecordDTO().getMainSortValue() - 2);
 
 		//Given an other metadata is modified, the records keeps it's order
 		recordServices.update(recordServices.getDocumentById(id4).set(zeCollectionSchemaType1.stringMetadata(), "test"));
-		assertThat(recordServices.realtimeGetRecordSummaryById(id4).getRecordDTO().getMainSortValue()).isEqualTo(7);
+		assertThat(recordServices.realtimeGetRecordSummaryById(id4).getRecordDTO().getMainSortValue()).isNotEqualTo(MAIN_SORT_UNDEFINED);
 
 		//Given the title metadata is modified (even for a similar value), the records lose it's order
 		recordServices.update(recordServices.getDocumentById(id4).set(Schemas.TITLE, "Value 34b"));
 		assertThat(recordServices.realtimeGetRecordSummaryById(id4).getRecordDTO().getMainSortValue()).isEqualTo(MAIN_SORT_UNDEFINED);
 
 		recordsCaches.updateRecordsMainSortValue();
-		assertThat(recordServices.realtimeGetRecordSummaryById(id4).getRecordDTO().getMainSortValue()).isEqualTo(7);
+		assertThat(recordServices.realtimeGetRecordSummaryById(id4).getRecordDTO().getMainSortValue()).isNotEqualTo(MAIN_SORT_UNDEFINED);
 	}
 
 
@@ -204,6 +207,7 @@ public class MainSortValueRecordCacheAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(tx);
 		recordsCaches.updateRecordsMainSortValue();
+		queryCounter.reset();
 
 		System.out.println("querying...");
 		LogicalSearchQuery query = new LogicalSearchQuery();
@@ -249,6 +253,7 @@ public class MainSortValueRecordCacheAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(tx);
 		recordsCaches.updateRecordsMainSortValue();
+		queryCounter.reset();
 
 		System.out.println("querying...");
 		LogicalSearchQuery query = new LogicalSearchQuery();
@@ -296,6 +301,7 @@ public class MainSortValueRecordCacheAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(tx);
 		recordsCaches.updateRecordsMainSortValue();
+		queryCounter.reset();
 
 		System.out.println("querying...");
 		LogicalSearchQuery query = new LogicalSearchQuery();

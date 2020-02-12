@@ -58,6 +58,8 @@ public class MetadataIndexCacheDataStore {
 
 	private CollectionsListManager collectionsListManager;
 
+	private Map<Short, MetadataIndex>[][] cacheIndexMaps = new Map[256][];
+
 	public MetadataIndexCacheDataStore(ModelLayerFactory modelLayerFactory) {
 		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
@@ -187,10 +189,13 @@ public class MetadataIndexCacheDataStore {
 			SortedIdsList list = map.get(value.hashCode());
 			return list == null ? 0 : list.size();
 		}
+
+		public void clear() {
+			this.map.values().stream().forEach(SortedIdsList::clear);
+			this.map.clear();
+
+		}
 	}
-
-	private Map<Short, MetadataIndex>[][] cacheIndexMaps = new Map[256][];
-
 
 	public Stream<String> stream(MetadataSchemaType schemaType, Metadata metadata, Object value) {
 		return search(schemaType, metadata, value).stream();
@@ -528,6 +533,38 @@ public class MetadataIndexCacheDataStore {
 			metadataIndex.add(valueList, recordId);
 		}
 	}
+
+	public void close() {
+		lockMechanism.obtainSystemWideWritingPermit();
+		try {
+			for (Map.Entry<Byte, List<IndexedCalculatedKeysHookHandler>> entry : this.hooks.getMapEntries()) {
+				for (IndexedCalculatedKeysHookHandler hookHandler : entry.getValue()) {
+					hookHandler.clear();
+				}
+
+			}
+			this.hooks.clear();
+
+			for (int i = 0; i < this.cacheIndexMaps.length; i++) {
+				Map<Short, MetadataIndex>[] collectionIndexes = this.cacheIndexMaps[i];
+
+				if (collectionIndexes != null) {
+					for (int j = 0; j < collectionIndexes.length; j++) {
+						Map<Short, MetadataIndex> indexes = collectionIndexes[j];
+						if (indexes != null) {
+							indexes.values().stream().forEach((index) -> {
+								index.clear();
+							});
+							indexes.clear();
+						}
+					}
+				}
+			}
+		} finally {
+			lockMechanism.releaseSystemWideWritingPermit();
+		}
+	}
+
 
 	public void clear(CollectionInfo collectionInfo) {
 		lockMechanism.obtainCollectionWritingPermit(collectionInfo.getCollectionId());

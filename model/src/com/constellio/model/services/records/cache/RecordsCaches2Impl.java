@@ -969,6 +969,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	@Override
 	public void close() {
+		metadataIndexCacheDataStore.close();
 		memoryDataStore.close();
 		fileSystemDataStore.close();
 	}
