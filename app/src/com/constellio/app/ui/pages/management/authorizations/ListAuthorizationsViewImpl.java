@@ -55,6 +55,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	public static final String AUTHORIZATIONS = "authorizations";
 	private static final String ENABLE = "AuthorizationsView.enable";
 	private static final String DISABLE = "AuthorizationsView.disable";
+	private static final String SHARED = "AuthorizationsView.shared";
 
 	public enum AuthorizationSource {
 		INHERITED, OWN, INHERITED_FROM_METADATA
@@ -374,7 +375,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			negative.setRequired(presenter.hasManageSecurityPermission());
 			negative.setId("negative");
 			negative.setNullSelectionAllowed(false);
-			negative.addItems(asList($(ENABLE), $(DISABLE)));
+			negative.addItems(asList($(ENABLE), $(DISABLE), $(SHARED)));
 		}
 
 		protected void buildDateFields() {
@@ -447,6 +448,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		public static final String RECEIVED_FROM_METADATA_LABEL = "receivedFromMetadataLabel";
 		public static final String RECEIVED_FROM_RECORD_CAPTION = "receivedFromRecordCaption";
 		public static final String BUTTONS = "buttons";
+		public static final String SHARE_ACCESS = "shareAccess";
 
 		private final AuthorizationSource source;
 		private final DisplayMode mode;
@@ -494,7 +496,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				columnIds.add(ACCESS);
 			}
 
-			columnIds.addAll(asList(START_DATE, END_DATE));
+			columnIds.addAll(asList(START_DATE, END_DATE, SHARE_ACCESS));
 
 			if (seeRolesField) {
 				table.addGeneratedColumn(USER_ROLES, this);
@@ -502,7 +504,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				columnIds.add(USER_ROLES);
 			}
 
-			if(seeSharedBy){
+			if (seeSharedBy) {
 				table.addGeneratedColumn(SHARED_BY, this);
 				table.setColumnHeader(SHARED_BY, $("AuthorizationsView.sharedBy"));
 				columnIds.add(SHARED_BY);
@@ -518,6 +520,9 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 			table.addGeneratedColumn(POSITIVE_OR_NEGATIVE, this);
 			table.setColumnHeader(POSITIVE_OR_NEGATIVE, $("AuthorizationsView.type"));
+
+			table.addGeneratedColumn(SHARE_ACCESS, this);
+			table.setColumnHeader(SHARE_ACCESS, $("AuthorizationsView.method"));
 
 			table.addGeneratedColumn(START_DATE, this);
 			table.setColumnHeader(START_DATE, $("AuthorizationsView.startDate"));
@@ -561,6 +566,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 					return buildNegativeAuthorizationsColumn(authorization);
 				case SHARED_BY:
 					return authorization.getSharedBy();
+				case SHARE_ACCESS:
+					return buildShareAccessColumn(authorization);
 				default:
 					LocalDate date = (LocalDate) source.getItem(itemId).getItemProperty(columnId).getValue();
 					return converter.convertToPresentation(
@@ -573,6 +580,14 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				return new Label($("AuthorizationsView.disable"));
 			} else {
 				return new Label($("AuthorizationsView.enable"));
+			}
+		}
+
+		private Object buildShareAccessColumn(AuthorizationVO authorization) {
+			if (authorization.getSharedBy() != null) {
+				return new Label($("AuthorizationsView.shared"));
+			} else {
+				return new Label($("AuthorizationsView.accessGiven"));
 			}
 		}
 
@@ -630,6 +645,6 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	@Override
 	public Record getAutorizationTarget() {
-		return record == null? null:record.getRecord();
+		return record == null ? null : record.getRecord();
 	}
 }
