@@ -115,7 +115,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		int indexOfSelectedTab = tabSheet.getTabPosition(tab);
 		PageItem tabSource = tabs.get(indexOfSelectedTab);
 
-		if(tabSource instanceof CustomItem) {
+		if (tabSource instanceof CustomItem) {
 			return presenter.isCustomItemVisible((CustomItem) tabSource);
 		} else {
 			return true;
@@ -161,6 +161,35 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			default:
 				throw new RuntimeException("Unsupported tab type : " + tabSource.getType());
 		}
+	}
+
+	private Component getSelectedTabComponent() {
+		Component selectedTabComponent;
+
+		PlaceHolder placeHolder = (PlaceHolder) tabSheet.getSelectedTab();
+		Component compositionRoot = placeHolder.getCompositionRoot();
+		if (compositionRoot != null) {
+			if (compositionRoot instanceof TabSheet) {
+				TabSheet subTabSheet = (TabSheet) compositionRoot;
+				Component subTabSheetSelectedTab = subTabSheet.getSelectedTab();
+				if (subTabSheetSelectedTab instanceof PlaceHolder) {
+					PlaceHolder subTabSheetSelectedTabPlaceHolder = (PlaceHolder) subTabSheet.getSelectedTab();
+					selectedTabComponent = subTabSheetSelectedTabPlaceHolder.getCompositionRoot();
+				} else if (subTabSheetSelectedTab instanceof RecordLazyTreeTabSheet.PlaceHolder) {
+					RecordLazyTreeTabSheet.PlaceHolder subTabSheetSelectedTabPlaceHolder =
+							(RecordLazyTreeTabSheet.PlaceHolder) subTabSheet.getSelectedTab();
+					selectedTabComponent = subTabSheetSelectedTabPlaceHolder.getCompositionRoot();
+				} else {
+					selectedTabComponent = subTabSheetSelectedTab;
+				}
+			} else {
+				selectedTabComponent = compositionRoot;
+			}
+		} else {
+			selectedTabComponent = null;
+		}
+
+		return selectedTabComponent;
 	}
 
 	private Component buildRecentItemTable(RecentItemTable tabSource) {
@@ -287,6 +316,19 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	public void removeContextMenuDecorator(ContextMenuDecorator decorator) {
 		this.contextMenuDecorators.remove(decorator);
+	}
+
+	@Override
+	public void recordChanged(String recordId) {
+		presenter.recordChanged(recordId);
+	}
+
+	public void updateCaption(String recordId, String newCaption) {
+		Component selectedTabComponent = getSelectedTabComponent();
+		if (selectedTabComponent instanceof RecordLazyTree) {
+			RecordLazyTree recordLazyTree = (RecordLazyTree) selectedTabComponent;
+			recordLazyTree.setItemCaption(recordId, newCaption);
+		}
 	}
 
 	private static class PlaceHolder extends CustomComponent {

@@ -133,10 +133,15 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 		return captionConverter.convertToPresentation(taxonomyCode, String.class, getLocale());
 	}
 
-	private static class PlaceHolder extends CustomComponent {
+	public static class PlaceHolder extends CustomComponent {
 		@Override
 		public void setCompositionRoot(Component compositionRoot) {
 			super.setCompositionRoot(compositionRoot);
+		}
+
+		@Override
+		public Component getCompositionRoot() {
+			return super.getCompositionRoot();
 		}
 	}
 }
