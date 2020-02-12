@@ -36,13 +36,7 @@ public class MetadataDisplayConfig implements Serializable {
 		this.highlight = highlight;
 		this.metadataGroupCode = metadataGroupCode;
 		this.displayType = displayType;
-
-		if (helpMessages == null) {
-			this.helpMessages = new HashMap<>();
-		} else {
-			this.helpMessages = helpMessages;
-		}
-
+		this.helpMessages = helpMessages == null ? new HashMap<>() : helpMessages;
 	}
 
 	public boolean isVisibleInAdvancedSearch() {
