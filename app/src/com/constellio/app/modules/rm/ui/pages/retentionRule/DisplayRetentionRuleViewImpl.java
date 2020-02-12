@@ -1,9 +1,12 @@
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
+import com.constellio.app.api.extensions.RetentionRuleClassifiedType;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleDisplay;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
@@ -11,7 +14,14 @@ import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponen
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.vaadin.data.Container;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Button;
@@ -80,13 +90,9 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 
 		folderTabLayout = new VerticalLayout(buildFoldersTabLayout());
 		folderTabLayout.setSizeFull();
-		folderTabLayout.setSpacing(true);
-		folderTabLayout.setMargin(new MarginInfo(true, true, false, true));
 
 		metadataTabLayout = new VerticalLayout(buildMetadataTabLayout());
 		metadataTabLayout.setSizeFull();
-		metadataTabLayout.setSpacing(true);
-		metadataTabLayout.setMargin(new MarginInfo(true, true, false, true));
 
 		tabSheet.addTab(metadataTabLayout, $("DisplayRetentionRuleView.tabs.metadata")).setStyleName("metadata");
 		tabSheet.addTab(folderTabLayout, $("DisplayRetentionRuleView.tabs.folders")).setStyleName("folders");
@@ -100,7 +106,6 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 		VerticalLayout metadataTabContentLayout = new VerticalLayout();
 		metadataTabContentLayout.setSpacing(true);
 		metadataTabContentLayout.setSizeFull();
-		metadataTabContentLayout.setMargin(new MarginInfo(true, true, false, true));//todo revoir margins
 
 		recordDisplay = new RetentionRuleDisplay(presenter, retentionRuleVO, getSessionContext().getCurrentLocale());
 		recordDisplay.setWidth("100%");
@@ -116,22 +121,49 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 	private Component buildFoldersTabLayout() {
 		VerticalLayout folderTabContentLayout = new VerticalLayout();
 		folderTabContentLayout.setSizeFull();
-		folderTabContentLayout.setSpacing(true);
-		folderTabContentLayout.setMargin(new MarginInfo(true, true, false, true));//todo
 
-		//		RecordVOTable table = new RecordVOTable($())
-		//		table.setWi
+		RecordVODataProvider dataProvider = presenter.getDataProvider(retentionRuleVO.getId());
+		Container recordsContainer = new RecordVOLazyContainer(dataProvider);
+		String schemaTypeCode = retentionRuleVO.getSchema().getTypeCode();
 
+		RecordVOTable table = new RecordVOTable($(dataProvider.getSchema().getLabel(), dataProvider.getSchema().getCode()), recordsContainer);
+		table.setWidth("100%");
+		table.setId("retentionRuleFoldersTable");
+		table.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				RecordVOItem item = (RecordVOItem) event.getItem();
+				RecordVO recordVO = item.getRecord();
+				presenter.tabElementClicked(recordVO);
+			}
+		});
+		folderTabContentLayout.addComponent(table);
 		return folderTabContentLayout;
 	}
 
-	//	private Component buildFoldersTable(){
-	//
-	//		presenter.
-	//
-	//		for(final RecordVODataProvider dataProvider : presenter)
-	//		RecordVOTable table = new RecordVOTable($(data))
-	//	}
+	public void setTabs(List<RetentionRuleClassifiedType> classifiedTypes) {
+		for (RetentionRuleClassifiedType classifiedType : classifiedTypes) {
+			MetadataSchemaTypeVO schemaType = classifiedType.getSchemaType();
+			RecordVODataProvider provider = classifiedType.getDataProvider();
+			RecordVOTable table = new RecordVOTable(provider);
+			table.setWidth("100%");
+			table.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					RecordVOItem item = (RecordVOItem) event.getItem();
+					RecordVO recordVO = item.getRecord();
+					presenter.tabElementClicked(recordVO);
+				}
+			});
+			table.setPageLength(Math.min(15, provider.size()));
+
+			table.addStyleName(classifiedType.getSchemaType().getCode() + "Table");
+
+			Component oldComponent = tabComponents.get(schemaType.getCode());
+			tabComponents.put(schemaType.getCode(), table);
+			tabSheet.replaceComponent(oldComponent, table);
+		}
+	}
 
 	private Component buildAdditionalComponent() {
 		Label foldersNumberCaptionLabel = new Label($("DisplayRetentionRuleView.foldersNumber"));
