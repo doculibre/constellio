@@ -169,6 +169,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String TABLE_DISPLAY_FORM = "tableDisplayForm";
 	public static final String FORM_DISPLAY_FORM = "formDisplayForm";
 	public static final String PERMISSION_MANAGEMENT = "permissionManagement";
+	public static final String SHARE_MANAGEMENT = "shareManagement";
 	public static final String COLLECTION_MANAGEMENT = "listCollections";
 	public static final String LIST_ONGLET = "listOnglet";
 	public static final String MODIFY_PROFILE = "modifyProfile";
@@ -289,6 +290,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_TAXONOMY, ListTaxonomyViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_ADD_EDIT, AddEditTaxonomyViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(PERMISSION_MANAGEMENT, PermissionsManagementViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SHARE_MANAGEMENT, PermissionsManagementViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EXPORTER, ExportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(REPORT_DISPLAY_FORM, ReportConfigurationViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EMAIL_SERVER_MANAGEMENT, EmailServerConfigViewImpl.class));

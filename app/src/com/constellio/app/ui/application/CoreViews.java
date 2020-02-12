@@ -180,6 +180,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.PERMISSION_MANAGEMENT);
 	}
 
+	public void shareManagement(){
+		navigator.navigateTo(NavigatorConfigurationService.SHARE_MANAGEMENT);
+	}
+
 	public void listValueDomains() {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_VALUE_DOMAINS);
 	}
