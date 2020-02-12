@@ -57,6 +57,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -75,6 +76,7 @@ import com.jgoodies.common.base.Strings;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.OptionGroup;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -819,7 +821,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			isModel = taskVO.get(RMTask.IS_MODEL);
 		}
 		String currentUserId = getCurrentUser().getId();
-		return currentUserId.equals(taskVO.get(Task.ASSIGNEE)) || currentUserId.equals(taskVO.get(Task.ASSIGNER)) || isModel || !isEditMode();
+		List<Group> assigneeGroupsCandidates = tasksSchemas.getGroups(taskVO.get(Task.ASSIGNEE_GROUPS_CANDIDATES));
+		List<String> assigneeCandidates = taskVO.get(Task.ASSIGNEE_USERS_CANDIDATES);
+		List<String> userGroups = getCurrentUser().getUserGroups();
+		boolean userIsCandidate = !ListUtils.intersection(assigneeGroupsCandidates, userGroups).isEmpty() || assigneeCandidates.contains(currentUserId);
+		return currentUserId.equals(taskVO.get(Task.ASSIGNEE)) || currentUserId.equals(taskVO.get(Task.ASSIGNER)) || userIsCandidate || isModel || !isEditMode();
 	}
 
 	private boolean currentUserHasWriteAuthorisation() {
