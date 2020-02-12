@@ -341,7 +341,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		labelsField.setId("labels");
 		labelsField.addStyleName("labels");
 
-		helpMessagesField = new MultilingualRichTextField(false);
+		helpMessagesField = new MultilingualRichTextField();
 		helpMessagesField.setId("helpMessages");
 		helpMessagesField.addStyleName("helpMessages");
 

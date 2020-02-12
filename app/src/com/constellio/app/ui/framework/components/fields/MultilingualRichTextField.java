@@ -28,6 +28,10 @@ public class MultilingualRichTextField extends CustomField<Map<String, String>> 
 		}
 	}
 
+	public MultilingualRichTextField() {
+		this(false);
+	}
+
 	public void clear() {
 		for (String language : getCollectionLanguages()) {
 			value.put(language, null);
@@ -63,10 +67,8 @@ public class MultilingualRichTextField extends CustomField<Map<String, String>> 
 	}
 
 	private void prepareEntryFields() {
-		layout.removeAllComponents();
 		for (final String language : getCollectionLanguages()) {
-			final BaseRichTextArea field = new BaseRichTextArea($("MultilingualRichTextField." + language));
-			field.setValue(value.get(language));
+			final BaseRichTextArea field = new BaseRichTextArea($("MultilingualRichTextField." + language), value.get(language));
 			field.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
