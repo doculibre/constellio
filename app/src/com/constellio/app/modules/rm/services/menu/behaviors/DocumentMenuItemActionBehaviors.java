@@ -44,6 +44,7 @@ import com.constellio.app.ui.framework.components.content.UpdateContentVersionWi
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
@@ -197,7 +198,12 @@ public class DocumentMenuItemActionBehaviors {
 				try {
 					recordServices.update(document.getWrappedRecord(), params.getUser());
 					getWindow().close();
-					navigateToDisplayDocument(document.getId(), params.getFormParams());
+					if (params.getView() instanceof HomeViewImpl) {
+						HomeViewImpl homeView = (HomeViewImpl) params.getView();
+						homeView.recordChanged(document.getId());
+					} else {
+						navigateToDisplayDocument(document.getId(), params.getFormParams());
+					}
 				} catch (RecordServicesException e) {
 					params.getView().showErrorMessage(MessageUtils.toMessage(e));
 				}

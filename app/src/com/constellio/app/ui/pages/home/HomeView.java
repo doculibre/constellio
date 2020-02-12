@@ -9,4 +9,7 @@ public interface HomeView extends BaseView, RecordsManagementViewGroup {
 
 	String getSelectedTabCode();
 
+	void recordChanged(String recordId);
+
+	void updateCaption(String recordId, String newCaption);
 }
