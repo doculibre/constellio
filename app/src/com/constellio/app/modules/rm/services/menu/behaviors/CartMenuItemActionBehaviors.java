@@ -57,11 +57,9 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.Factory;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -98,8 +96,6 @@ import java.util.List;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 @Slf4j
@@ -243,15 +239,8 @@ public class CartMenuItemActionBehaviors {
 		CartBatchProcessingPresenter cartBatchProcessingPresenter =
 				new CartBatchProcessingPresenter(appLayerFactory, params.getUser(), cartId, params.getView());
 
-		BatchProcessingMode mode = cartBatchProcessingPresenter.getBatchProcessingMode();
-		WindowButton button;
-		if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
-			button = new BatchProcessingButton(cartBatchProcessingPresenter, new CartBatchProcessingViewImpl(schemaType, cartBatchProcessingPresenter));
-		} else if (mode.equals(ONE_METADATA)) {
-			button = new BatchProcessingModifyingOneMetadataButton(cartBatchProcessingPresenter, new CartBatchProcessingViewImpl(schemaType, cartBatchProcessingPresenter));
-		} else {
-			throw new RuntimeException("Unsupported mode " + mode);
-		}
+		WindowButton button = new BatchProcessingButton(cartBatchProcessingPresenter,
+				new CartBatchProcessingViewImpl(schemaType, cartBatchProcessingPresenter));
 
 		return button;
 	}

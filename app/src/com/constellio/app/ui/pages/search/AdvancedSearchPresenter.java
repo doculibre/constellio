@@ -50,7 +50,6 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -277,7 +276,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		List<MetadataVO> result = new ArrayList<>();
 		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		for (Metadata metadata : types().getSchemaType(schemaTypeCode).getAllMetadatas().sortAscTitle(language)) {
-			if (isBatchEditable(metadata)) {
+			if (isBatchEditable(metadata) && !metadata.isEssential()) {
 				result.add(builder.build(metadata, view.getSessionContext()));
 			}
 		}
@@ -608,8 +607,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public String getOriginType(String schemaType) {
-		return batchProcessingPresenterService().getOriginType(buildBatchProcessLogicalSearchQuery());
+	public String getOriginSchema(String schemaType, String selectedType) {
+		return batchProcessingPresenterService().getOriginSchema(schemaType, selectedType, buildBatchProcessLogicalSearchQuery());
 	}
 
 	@Override
@@ -618,15 +617,20 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
-				.simulate(selectedType, buildBatchProcessLogicalSearchQuery().setNumberOfRows(100), viewObject, getCurrentUser());
+				.simulate(selectedType, buildBatchProcessLogicalSearchQuery().setNumberOfRows(100), viewObject, metadatasToEmpty, getCurrentUser());
 		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
 	@Override
 	public boolean validateUserHaveBatchProcessPermissionOnAllRecords(String schemaTypeCode) {
+		if (!getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).globally()) {
+			return false;
+		}
+
 		LogicalSearchQuery logicalSearchQuery = buildBatchProcessLogicalSearchQuery();
 		long numFound = searchServices().query(logicalSearchQuery).getNumFound();
 		logicalSearchQuery = logicalSearchQuery.filteredWithUser(getUser(), CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS);
@@ -637,10 +641,24 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public boolean validateUserHaveBatchProcessPermissionForRecordCount(String schemaType) {
+		if (!getCurrentUser().has(CorePermissions.MODIFY_UNLIMITED_RECORDS_USING_BATCH_PROCESS).globally()) {
+			ConstellioEIMConfigs systemConfigs = modelLayerFactory.getSystemConfigs();
+			int batchProcessingLimit = systemConfigs.getBatchProcessingLimit();
+			if (batchProcessingLimit != -1 && getNumberOfRecords(schemaType) > batchProcessingLimit) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	@Override
+	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		batchProcessingPresenterService()
-				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, getCurrentUser());
+				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, metadatasToEmpty, getCurrentUser());
 		if (searchID != null) {
 			view.navigate().to().advancedSearchReplay(searchID);
 		} else {
@@ -650,18 +668,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public BatchProcessingMode getBatchProcessingMode() {
-		return batchProcessingPresenterService().getBatchProcessingMode();
-	}
-
-	@Override
 	public AppLayerCollectionExtensions getBatchProcessingExtension() {
 		return batchProcessingPresenterService().getBatchProcessingExtension();
-	}
-
-	@Override
-	public String getSchema(String schemaType, String type) {
-		return batchProcessingPresenterService().getSchema(schemaType, type);
 	}
 
 	@Override
