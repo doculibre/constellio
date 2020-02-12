@@ -2575,6 +2575,13 @@ $popup-view-z-index: 3;
 		.v-radiobutton label {
 			color:#000000; 
 		}
+		
+		.facet-apply {
+			left: 14px;
+		    color: #fafafa;
+		    background-color: #414B56;
+		    background-image: none;
+		}
 	}
 
     .viewable-record-table-panel {
@@ -4554,6 +4561,11 @@ $popup-view-z-index: 3;
 				.facet-value > label {
 					margin-right: 25px;
 				}
+
+				.facet-apply {
+                	padding-left: 20px;
+                	background-color: #474747;
+                }
     		}
     	}
 		

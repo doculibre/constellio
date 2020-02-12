@@ -307,6 +307,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		view.setLazyLoadedSearchResults(configs.isLazyLoadedSearchResults());
+		view.setApplyMultipleFacets(configs.isApplyMultipleFacetButtonEnabled());
 	}
 
 	public void resetFacetAndOrder() {
@@ -572,6 +573,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public void facetValueSelected(String facetId, String facetValue) {
 		facetSelections.get(facetId).add(facetValue);
+		view.refreshSearchResultsAndFacets();
+	}
+
+	public void facetValuesChanged(KeySetMap<String, String> facetValues) {
+		facetSelections.clear();
+		facetSelections.addAll(facetValues);
 		view.refreshSearchResultsAndFacets();
 	}
 

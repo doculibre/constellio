@@ -108,7 +108,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private Window documentVersionWindow;
 
-	private I18NHorizontalLayout contentAndFacetsLayout; 
+	private I18NHorizontalLayout contentAndFacetsLayout;
 
 	private RecordVODataProvider folderContentDataProvider;
 	private RecordVODataProvider tasksDataProvider;
@@ -384,7 +384,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		tabSheet.removeSelectedTabChangeListener(selectedTabChangeListener);
 		if (!(folderContentComponent instanceof Table)) {
 			final RecordVOLazyContainer recordVOContainer = new RecordVOLazyContainer(folderContentDataProvider);
-			facetsPanel = new FacetsPanel() {
+			facetsPanel = new FacetsPanel(presenter.isFacetApplyButtonEnabled()) {
 				@Override
 				protected void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
 					presenter.sortCriterionSelected(sortCriterion, sortOrder);
@@ -393,6 +393,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				@Override
 				protected void facetValueSelected(String facetId, String value) {
 					presenter.facetValueSelected(facetId, value);
+				}
+
+				@Override
+				protected void facetValuesChanged(KeySetMap<String, String> facets) {
+					presenter.facetValuesChanged(facets);
 				}
 
 				@Override
