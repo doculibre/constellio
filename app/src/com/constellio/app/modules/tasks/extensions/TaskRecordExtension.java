@@ -320,7 +320,9 @@ public class TaskRecordExtension extends RecordExtension {
 	}
 
 	public void taskInCreation(Task task, RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
-		sendEmailToAssignee(task);
+		if (StringUtils.isBlank(task.getLegacyId())) {
+			sendEmailToAssignee(task);
+		}
 		TaskStatus currentStatus = (task.getStatus() == null) ? null : tasksSchema.getTaskStatus(task.getStatus());
 		updateEndDateAndStartDateIfNecessary(task, currentStatus);
 	}
