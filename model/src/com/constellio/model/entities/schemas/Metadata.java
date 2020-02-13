@@ -26,7 +26,6 @@ import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.schemas.builders.ClassListBuilder.combine;
-import static net.jcores.CoreKeeper.$;
 
 public class Metadata implements DataStoreField {
 
@@ -329,28 +328,7 @@ public class Metadata implements DataStoreField {
 	}
 
 	public String getLabel(Language language) {
-		String retVal = labels.get(language);
-		if (this.getMeasurementUnit() != null) {
-			retVal += " (" + this.getMeasurementUnit() + ")";
-		}
-		if (this.getMaxLength() != null) {
-
-			retVal += " (" + this.getMeasurementUnit() + $("", language.getLocale());
-			retVal += " (" + this.getMeasurementUnit();
-			switch (language) {
-				case French:
-					retVal += " caractères maximum)";
-					break;
-				case English:
-					retVal += " characters maximum";
-					break;
-				case Arabic://todo translate to arabic
-					retVal += " max)";
-					break;
-
-			}
-		}
-		return retVal;
+		return labels.get(language);
 	}
 
 	public Map<Language, String> getLabels() {
