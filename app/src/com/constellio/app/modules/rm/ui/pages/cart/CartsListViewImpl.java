@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.ui.buttons.RenameDialogButton;
 import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable.CartItem;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.ui.entities.RecordVO;
@@ -126,7 +127,7 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 			@Override
 			protected Button newButtonInstance(final Object item, ButtonsContainer<?> container) {
 				final Cart cart = buttonsContainer.getNestedContainer().getCart((DefaultFavoritesTable.CartItem) item);
-				final RenameDialog renameDialog = new RenameDialog(EditButton.ICON_RESOURCE, $("CartsListView.reNameCartGroup"),
+				final RenameDialogButton renameDialogButton = new RenameDialogButton(EditButton.ICON_RESOURCE, $("CartsListView.reNameCartGroup"),
 						$("CartsListView.reNameCartGroup"), true) {
 					@Override
 					public void save(String string) {
@@ -138,13 +139,13 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 				};
 				boolean isVisibleAndEnabled = ((CartItem) item).getCart() != null;
 				if (isVisibleAndEnabled) {
-					renameDialog.setOriginalValue(cart.getTitle());
+					renameDialogButton.setOriginalValue(cart.getTitle());
 				}
 
-				renameDialog.setEnabled(isVisibleAndEnabled);
-				renameDialog.setVisible(isVisibleAndEnabled);
+				renameDialogButton.setEnabled(isVisibleAndEnabled);
+				renameDialogButton.setVisible(isVisibleAndEnabled);
 
-				return renameDialog;
+				return renameDialogButton;
 			}
 		});
 

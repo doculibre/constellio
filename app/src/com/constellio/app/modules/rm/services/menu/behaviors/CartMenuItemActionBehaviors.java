@@ -20,10 +20,10 @@ import com.constellio.app.modules.rm.services.menu.behaviors.ui.CartBatchProcess
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMMessageUtil;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
+import com.constellio.app.modules.rm.ui.buttons.RenameDialogButton;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.pages.cart.CartView;
-import com.constellio.app.modules.rm.ui.pages.cart.RenameDialog;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -136,7 +136,7 @@ public class CartMenuItemActionBehaviors {
 	}
 
 	public void rename(Cart cart, MenuItemActionBehaviorParams params) {
-		RenameDialog button = new RenameDialog(null,
+		RenameDialogButton button = new RenameDialogButton(null,
 				$("CartView.reNameCartGroup"),
 				$("CartView.reNameCartGroup"), false) {
 			@Override

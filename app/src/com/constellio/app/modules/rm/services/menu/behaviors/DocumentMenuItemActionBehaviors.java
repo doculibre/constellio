@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
+import com.constellio.app.modules.rm.ui.buttons.RenameDialogButton;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
@@ -43,6 +44,7 @@ import com.constellio.app.ui.framework.components.content.UpdateContentVersionWi
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
@@ -53,6 +55,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentConversionManager;
@@ -63,6 +66,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
@@ -161,6 +165,58 @@ public class DocumentMenuItemActionBehaviors {
 		document = loadingFullRecordIfSummary(document);
 		params.getView().navigate().to(RMViews.class).editDocument(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
+	}
+
+	public void rename(Document document, MenuItemActionBehaviorParams params) {
+		RenameDialogButton window = new RenameDialogButton(
+				FontAwesome.PENCIL_SQUARE_O,
+				$("DisplayDocumentView.renameContent"),
+				$("DisplayDocumentView.renameContent"),
+				false) {
+			@Override
+			public void save(String newValue) {
+				boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
+				boolean isNotAddOnly = !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
+						.getPopulateConfigs().isAddOnly();
+
+				String filename = document.getContent().getCurrentVersion().getFilename();
+				String extension = FilenameUtils.getExtension(filename);
+
+				if (!(FilenameUtils.getExtension(newValue).equals(extension))) {
+					if (!extension.isEmpty()) {
+						newValue = FilenameUtils.removeExtension(newValue) + "." + extension;
+					} else {
+						newValue = FilenameUtils.removeExtension(newValue);
+					}
+				}
+
+				if (filename.equals(document.getTitle())) {
+					if (isManualEntry && isNotAddOnly) {
+						document.setTitle(newValue);
+					}
+
+				} else if (FilenameUtils.removeExtension(filename).equals(document.getTitle())) {
+					if (isManualEntry && isNotAddOnly) {
+						document.setTitle(FilenameUtils.removeExtension(newValue));
+					}
+				}
+
+				document.getContent().renameCurrentVersion(newValue);
+				try {
+					recordServices.update(document.getWrappedRecord(), params.getUser());
+					getWindow().close();
+					if (params.getView() instanceof HomeViewImpl) {
+						HomeViewImpl homeView = (HomeViewImpl) params.getView();
+						homeView.recordChanged(document.getId());
+					} else {
+						navigateToDisplayDocument(document.getId(), params.getFormParams());
+					}
+				} catch (RecordServicesException e) {
+					params.getView().showErrorMessage(MessageUtils.toMessage(e));
+				}
+			}
+		};
+		window.click();
 	}
 
 	public void download(Document document, MenuItemActionBehaviorParams params) {
