@@ -2078,7 +2078,9 @@ public class SearchServices {
 						tupleStream.close();
 						return null;
 					} else {
-						LOGGER.info("Fetching ids using tuple stream method : " + count.get());
+						if (count.get() % 50000 == 0) {
+							LOGGER.info("Fetching ids using tuple stream method : " + count.get());
+						}
 						count.incrementAndGet();
 						return RecordId.toId(tuple.getString("id"));
 					}
