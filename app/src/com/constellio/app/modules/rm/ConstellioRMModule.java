@@ -79,6 +79,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.background.AlertDocumentBorrowingPeriodBackgroundAction;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -108,7 +109,10 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
+import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
 import static java.util.Arrays.asList;
+import static org.joda.time.Duration.standardHours;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration,
 		InstallableSystemModuleWithRecordMigrations {
@@ -311,6 +315,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	public void start(final String collection, final AppLayerFactory appLayerFactory) {
 		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
+		AlertDocumentBorrowingPeriodBackgroundAction action = new AlertDocumentBorrowingPeriodBackgroundAction(appLayerFactory, collection);
+		appLayerFactory.getModelLayerFactory().getDataLayerFactory().getBackgroundThreadsManager()
+				.configure(repeatingAction("alertDocumentBorrowingPeriod", action)
+						.executedEvery(standardHours(2)).handlingExceptionWith(CONTINUE));
 
 	}
 
