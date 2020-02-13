@@ -68,6 +68,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 			Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.disable();
 		}
 		Toggle.ROLES_WITH_NEW_7_2_PERMISSIONS.enable();
+		Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS.disable();
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		if (!isKeepingPreviousState() && testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {
 
