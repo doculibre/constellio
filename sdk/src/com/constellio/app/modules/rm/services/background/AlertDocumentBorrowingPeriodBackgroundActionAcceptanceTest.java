@@ -44,13 +44,28 @@ public class AlertDocumentBorrowingPeriodBackgroundActionAcceptanceTest extends 
 		Content content = document.getContent();
 		content.checkOut(users.adminIn(zeCollection));
 		document.setContent(content);
-
 		recordServices.add(document);
-
 		doReturn(now.plusDays(8)).when(action).getCurrentDateTime();
+
 		action.run();
 
 		verify(action, times(1)).sendEmail(any(Document.class));
+	}
+
+	@Test
+	public void givenDocumentWithCheckoutPeriodOverAndAlertAlreadySentWhenRunAlertDocumentBorrowingPeriodBackgroundActionThenSendEmail()
+			throws RecordServicesException {
+		Document document = records.getDocumentWithContent_A19().setBorrowed(true);
+		Content content = document.getContent();
+		content.checkOut(users.adminIn(zeCollection));
+		document.setContent(content);
+		document.setCheckoutAlertSent(true);
+		recordServices.add(document);
+		doReturn(now.plusDays(8)).when(action).getCurrentDateTime();
+
+		action.run();
+
+		verify(action, never()).sendEmail(any(Document.class));
 	}
 
 	@Test
