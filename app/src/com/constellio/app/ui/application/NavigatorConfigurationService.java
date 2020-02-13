@@ -290,7 +290,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_TAXONOMY, ListTaxonomyViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_ADD_EDIT, AddEditTaxonomyViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(PERMISSION_MANAGEMENT, PermissionsManagementViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(SHARE_MANAGEMENT, PermissionsManagementViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SHARE_MANAGEMENT, ListContentAccessAuthorizationsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EXPORTER, ExportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(REPORT_DISPLAY_FORM, ReportConfigurationViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EMAIL_SERVER_MANAGEMENT, EmailServerConfigViewImpl.class));
