@@ -80,6 +80,17 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 		setSecondComponentVisible(secondComponentVisibleFromCookie);
 	}
 
+	@Override
+	public void attach() {
+		super.attach();
+
+
+		Page page = Page.getCurrent();
+		if (page.getWebBrowser().isIE()) {
+			setLocked(true);
+		}
+	}
+
 	private boolean computeResizable() {
 		return ResponsiveUtils.isDesktop() && !Page.getCurrent().getWebBrowser().isIE();
 	}

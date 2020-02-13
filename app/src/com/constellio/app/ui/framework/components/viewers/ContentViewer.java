@@ -7,17 +7,15 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.viewers.audio.AudioViewer;
 import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
 import com.constellio.app.ui.framework.components.viewers.image.ImageViewer;
+import com.constellio.app.ui.framework.components.viewers.image.TiffImageViewer;
 import com.constellio.app.ui.framework.components.viewers.video.VideoViewer;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class ContentViewer extends CustomComponent {
 
@@ -32,7 +30,21 @@ public class ContentViewer extends CustomComponent {
 			String fileName = contentVersionVO.getFileName();
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 
-			if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
+			if (Toggle.TIFF_VIEWER.isEnabled() && Arrays.asList(TiffImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
+				TiffImageViewer tiffImageViewer = new TiffImageViewer(recordVO, Document.CONTENT, contentVersionVO) {
+					@Override
+					public void setVisible(boolean newVisibility) {
+						boolean wasVisible = this.isVisible();
+						super.setVisible(newVisibility);
+
+						if (newVisibility != wasVisible) {
+							fireImageViewerVisibilityChangeListerners(newVisibility);
+						}
+					}
+				};
+
+				viewerComponent = tiffImageViewer;
+			} else if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
 				ImageViewer imageViewer = new ImageViewer(recordVO, Document.CONTENT, contentVersionVO) {
 					@Override
 					public void setVisible(boolean newVisibility) {

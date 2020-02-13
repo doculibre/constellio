@@ -300,6 +300,7 @@ public class DocumentRecordActionsServices {
 
 	public boolean isManageAuthorizationActionPossible(Record record, User user) {
 		return user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) &&
+			   user.hasWriteAndDeleteAccess().on(record) &&
 			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isManageAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}

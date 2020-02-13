@@ -52,6 +52,7 @@ import com.constellio.app.modules.tasks.migrations.TasksMigrationTo9_0_1_1;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo9_0_3;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo9_0_4;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo9_1;
+import com.constellio.app.modules.tasks.migrations.TasksMigrationTo9_1_0_1;
 import com.constellio.app.modules.tasks.model.TaskRecordsCachesHook;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
@@ -104,6 +105,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		scripts.add(new TasksMigrationTo9_0_3());
 		scripts.add(new TasksMigrationTo9_0_4());
 		scripts.add(new TasksMigrationTo9_1());
+		scripts.add(new TasksMigrationTo9_1_0_1());
 		//		scripts.add(new TasksMigrationTo_8_3_1_1());
 
 		return scripts;
