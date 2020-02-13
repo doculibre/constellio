@@ -172,8 +172,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration SEARCH_USING_EDISMAX;
 	public static final SystemConfiguration SEARCH_USING_TERMS_IN_BQ;
 
-	public static final SystemConfiguration SEARCH_DATASTORE_OPTIMIZATION;
-
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -346,7 +344,6 @@ public class ConstellioEIMConfigs {
 
 		add(SEARCH_USING_EDISMAX = search.createBooleanTrueByDefault("searchUsingEDismax").whichIsHidden());
 		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanTrueByDefault("searchUsingBQ").whichIsHidden());
-		add(SEARCH_DATASTORE_OPTIMIZATION = search.createBooleanFalseByDefault("addIndexSearchDatastoreOptimization"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -687,7 +684,4 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(LEGACY_IDENTIFIER_INDEXED_IN_MEMORY);
 	}
 
-	public boolean isSearchDatastoreEnabled() {
-		return manager.getValue(SEARCH_DATASTORE_OPTIMIZATION);
-	}
 }

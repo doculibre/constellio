@@ -166,10 +166,6 @@ public class AbstractAncestorCalculator implements MultiMetadatasValueCalculator
 	public Map<String, Object> calculate(CalculatorParameters parameters) {
 		HierarchyDependencyValue hierarchyDependencyValue = parameters.get(taxonomiesParam);
 
-		if (!RecordId.id(parameters.getId()).isInteger()) {
-			LOGGER.warn("Record with string id " + parameters.getId() + "in schema type " + parameters.getSchemaType().getCode());
-		}
-
 		Set<Integer> ids = new HashSet<>();
 		Set<Integer> possiblyDetachedAncestors = new HashSet<>();
 		Set<Integer> detachedAncestors = new HashSet<>();

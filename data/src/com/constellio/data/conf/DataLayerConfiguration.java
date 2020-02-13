@@ -11,6 +11,8 @@ public interface DataLayerConfiguration {
 
 	SolrServerType getRecordsDaoSolrServerType();
 
+	boolean isCopyingRecordsInSearchCollection();
+
 	String getRecordsDaoHttpSolrServerUrl();
 
 	String getRecordsDaoCloudSolrServerZKHost();

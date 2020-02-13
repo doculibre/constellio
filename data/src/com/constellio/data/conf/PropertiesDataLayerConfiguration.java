@@ -152,6 +152,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return (SolrServerType) getRequiredEnum(RECORD_TYPE, SolrServerType.class);
 	}
 
+	@Override
+	public boolean isCopyingRecordsInSearchCollection() {
+		return getBoolean("dao.records.copyInSearchCollection", false);
+	}
+
 	public String getRecordsDaoHttpSolrServerUrl() {
 		return getRequiredString("dao.records.http.url");
 	}

@@ -1298,7 +1298,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 											 ? transaction.getIdsToReindex() : Collections.<String>emptySet();
 		if (!modifiedOrUnsavedRecords.isEmpty() || !idsMarkedForReindexing.isEmpty()) {
 			Map<String, TransactionDTO> transactionDTOs = createTransactionDTOs(transaction, modifiedOrUnsavedRecords);
-			if (modelLayerFactory.getSystemConfigs().isSearchDatastoreEnabled()) {
+			if (modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().isCopyingRecordsInSearchCollection()) {
 				Map<String, TransactionSearchDTO> transactionSearches = createTransactionSearchDTOs(transaction, modifiedOrUnsavedRecords);
 				for (Map.Entry<String, TransactionSearchDTO> transactionSearchDTOEntry : transactionSearches.entrySet()) {
 
