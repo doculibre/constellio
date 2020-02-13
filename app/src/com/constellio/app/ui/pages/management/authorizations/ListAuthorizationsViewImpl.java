@@ -619,6 +619,6 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	@Override
 	public Record getAutorizationTarget() {
-		return record == null? null:record.getRecord();
+		return record == null ? null : record.getRecord();
 	}
 }

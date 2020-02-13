@@ -26,7 +26,6 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -36,6 +35,7 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -108,8 +108,8 @@ public class CartBatchProcessingPresenter implements BatchProcessingPresenter {
 
 
 	@Override
-	public String getOriginType(String schemaType) {
-		return batchProcessingPresenterService.getOriginType(getNotDeletedRecordsIds(schemaType));
+	public String getOriginSchema(String schemaType, String selectedType) {
+		return batchProcessingPresenterService.getOriginSchema(schemaType, selectedType, getNotDeletedRecordsIds(schemaType));
 	}
 
 
@@ -123,25 +123,29 @@ public class CartBatchProcessingPresenter implements BatchProcessingPresenter {
 	}
 
 	@Override
-	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
-		return simulateButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject);
+		return simulateButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject, metadatasToEmpty);
 	}
 
-	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService
-				.simulate(selectedType, records, viewObject, user);
+				.simulate(selectedType, records, viewObject, metadatasToEmpty, user);
 		return batchProcessingPresenterService.formatBatchProcessingResults(results);
 	}
 
 	@Override
-	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
-		return processBatchButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject);
+		return processBatchButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject, metadatasToEmpty);
 	}
 
-	public boolean processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		for (Record record : recordServices.getRecordsById(view.getCollection(), records)) {
 			if (modelLayerCollectionExtensions.isModifyBlocked(record, user)) {
@@ -151,24 +155,14 @@ public class CartBatchProcessingPresenter implements BatchProcessingPresenter {
 		}
 
 		batchProcessingPresenterService
-				.execute(selectedType, records, viewObject, user);
+				.execute(selectedType, records, viewObject, metadatasToEmpty, user);
 		view.navigate().to(RMViews.class).cart(cartId);
 		return true;
 	}
 
 	@Override
-	public BatchProcessingMode getBatchProcessingMode() {
-		return batchProcessingPresenterService.getBatchProcessingMode();
-	}
-
-	@Override
 	public AppLayerCollectionExtensions getBatchProcessingExtension() {
 		return batchProcessingPresenterService.getBatchProcessingExtension();
-	}
-
-	@Override
-	public String getSchema(String schemaType, String type) {
-		return batchProcessingPresenterService.getSchema(schemaType, type);
 	}
 
 	@Override
@@ -249,7 +243,7 @@ public class CartBatchProcessingPresenter implements BatchProcessingPresenter {
 		List<MetadataVO> result = new ArrayList<>();
 		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		for (Metadata metadata : types().getSchemaType(schemaType).getAllMetadatas().sortAscTitle(language)) {
-			if (isBatchEditable(metadata)) {
+			if (isBatchEditable(metadata) && !metadata.isEssential()) {
 				result.add(builder.build(metadata, view.getSessionContext()));
 			}
 		}
@@ -284,6 +278,10 @@ public class CartBatchProcessingPresenter implements BatchProcessingPresenter {
 
 	@Override
 	public boolean validateUserHaveBatchProcessPermissionOnAllRecords(String schemaType) {
+		if (!user.has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).globally()) {
+			return false;
+		}
+
 		switch (schemaType) {
 			case Folder.SCHEMA_TYPE:
 				return doesQueryAndQueryWithFilterOnBatchProcessPermHaveSameResult(cartUtil.getCartFoldersLogicalSearchQuery(cartId));
@@ -307,4 +305,16 @@ public class CartBatchProcessingPresenter implements BatchProcessingPresenter {
 		return speQueryResponse.getNumFound() == numberFound;
 	}
 
+	@Override
+	public boolean validateUserHaveBatchProcessPermissionForRecordCount(String schemaType) {
+		if (!user.has(CorePermissions.MODIFY_UNLIMITED_RECORDS_USING_BATCH_PROCESS).globally()) {
+			ConstellioEIMConfigs systemConfigs = appLayerFactory.getModelLayerFactory().getSystemConfigs();
+			int batchProcessingLimit = systemConfigs.getBatchProcessingLimit();
+			if (batchProcessingLimit != -1 && getNumberOfRecords(schemaType) > batchProcessingLimit) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 }

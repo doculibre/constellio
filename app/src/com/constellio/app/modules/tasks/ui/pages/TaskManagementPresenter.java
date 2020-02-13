@@ -89,6 +89,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 		tasksTabs.add(TaskManagementView.TASKS_ASSIGNED_BY_CURRENT_USER);
 		tasksTabs.add(TaskManagementView.TASKS_NOT_ASSIGNED);
 		tasksTabs.add(TaskManagementView.TASKS_RECENTLY_COMPLETED);
+		tasksTabs.add(TaskManagementView.TASKS_RECENTLY_CLOSED);
 
 		view.setTasksTabs(tasksTabs);
 	}
@@ -398,6 +399,22 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 						addStarredSortToQuery(query);
 					}
 				};
+			case TaskManagementView.TASKS_RECENTLY_CLOSED:
+				return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+					@Override
+					public LogicalSearchQuery getQuery() {
+						LogicalSearchQuery query = tasksSearchServices.getRecentlyClosedTasks(getCurrentUser());
+						addTimeStampToQuery(query);
+						addStarredSortToQuery(query);
+						return query;
+					}
+
+					@Override
+					protected void clearSort(LogicalSearchQuery query) {
+						super.clearSort(query);
+						addStarredSortToQuery(query);
+					}
+				};
 			case TaskManagementView.SHARED_TASKS:
 				return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 					@Override
@@ -456,6 +473,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 			case TaskManagementView.TASKS_ASSIGNED_BY_CURRENT_USER:
 			case TaskManagementView.TASKS_NOT_ASSIGNED:
 			case TaskManagementView.TASKS_RECENTLY_COMPLETED:
+			case TaskManagementView.TASKS_RECENTLY_CLOSED:
 			case TaskManagementView.SHARED_TASKS:
 				return true;
 			default:
@@ -516,8 +534,8 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 	}
 
 	@Override
-	public boolean currentUserIsCollaborator(RecordVO recordVO) {
-		return taskPresenterServices.currentUserIsCollaborator(recordVO, getCurrentUserId());
+	public boolean currentUserHasWriteAuthorisationWithoutBeingCollaborator(RecordVO recordVO) {
+		return taskPresenterServices.currentUserHasWriteAuthorisationWithoutBeingCollaborator(recordVO, getCurrentUserId());
 	}
 
 	@Override

@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static java.util.Locale.CANADA_FRENCH;
+import static junit.framework.TestCase.fail;
 import static org.apache.commons.io.FileUtils.readFileToByteArray;
 
 public class AutoSplittedSIPZipWriterAcceptanceTest extends ConstellioTest {
@@ -18,6 +19,7 @@ public class AutoSplittedSIPZipWriterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenLotOfFilesThenSplittedByBatchOf250K() throws IOException {
 
+		fail("fix me - no asserts");
 		File outputFolder = new File("/Users/francisbaril/Downloads/test");
 		FileUtils.deleteQuietly(outputFolder);
 		outputFolder.mkdirs();

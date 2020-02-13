@@ -3,6 +3,7 @@ package com.constellio.model.services.logging;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -56,6 +57,17 @@ public class EventFactory {
 		Event event = schemasRecords.newEvent();
 		setDefaultMetadata(event, user);
 		event.setType(EventType.CLOSE_SESSION);
+		return event;
+	}
+
+	public Event newBatchProcessEvent(BatchProcess process, int totalModifiedRecords, String eventType) {
+		User user = modelLayerFactory.newUserServices().getUserInCollection(process.getUsername(), process.getCollection());
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
+		Event event = schemasRecords.newEvent();
+		setDefaultMetadata(event, user);
+		event.setBatchProcessId(process.getId());
+		event.setTotalModifiedRecord(totalModifiedRecords);
+		event.setType(eventType);
 		return event;
 	}
 

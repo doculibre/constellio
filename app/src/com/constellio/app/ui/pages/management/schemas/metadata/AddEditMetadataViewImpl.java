@@ -242,9 +242,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		switch (value) {
 			case BOOLEAN:
-				if (multivalueType.getValue()) {
-					multivalueType.setValue(false);
-				}
 				multivalueType.setEnabled(false);
 				sortableField.setEnabled(false);
 				searchableField.setValue(false);

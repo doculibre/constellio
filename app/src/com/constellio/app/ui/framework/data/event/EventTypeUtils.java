@@ -126,6 +126,8 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.finalizeDocument");
 		} else if (eventType.equals(EventType.SHARE_FOLDER)) {
 			return $("ListEventsView.shareFolder");
+		} else if (eventType.equals(EventType.BATCH_PROCESS_CREATED)) {
+			return $("ListEventsView.batchProcessEvents.created");
 		} else {
 			throw new UnsupportedEventTypeRuntimeException(eventType);
 		}
@@ -182,7 +184,15 @@ public class EventTypeUtils implements Serializable {
 		if (isRequestTaskEvent(eventType)) {
 			metadataCodes.add(Event.ACCEPTED);
 		}
+		if (isBatchProcessEvent(eventType)) {
+			metadataCodes.addAll(getEventBatchProcessMetadata(metadataSchema));
+		}
 		return metadataCodes;
+	}
+
+	private static boolean isBatchProcessEvent(String eventType) {
+		return asList(EventType.BATCH_PROCESS_CREATED)
+				.contains(eventType);
 	}
 
 	private static boolean isRequestTaskEvent(String eventType) {
@@ -196,6 +206,21 @@ public class EventTypeUtils implements Serializable {
 				EventType.BORROW_REQUEST_FOLDER, EventType.RETURN_REQUEST_FOLDER, EventType.REACTIVATION_REQUEST_FOLDER, EventType.BORROW_EXTENSION_REQUEST_FOLDER,
 				EventType.BORROW_REQUEST_CONTAINER, EventType.RETURN_REQUEST_CONTAINER, EventType.REACTIVATION_REQUEST_CONTAINER, EventType.BORROW_EXTENSION_REQUEST_CONTAINER)
 				.contains(eventType);
+	}
+
+	private static List<String> getEventBatchProcessMetadata(MetadataSchema metadataSchema) {
+		List<String> metadataCodes = new ArrayList<>();
+
+		Metadata eventProcessIdMetadata = metadataSchema.getMetadata(Event.BATCH_PROCESS_ID);
+		metadataCodes.add(eventProcessIdMetadata.getCode());
+
+		Metadata eventTotalRecordMetadata = metadataSchema.getMetadata(Event.TOTAL_MODIFIED_RECORD);
+		metadataCodes.add(eventTotalRecordMetadata.getCode());
+
+		Metadata eventContentMetadata = metadataSchema.getMetadata(Event.CONTENT);
+		metadataCodes.add(eventContentMetadata.getCode());
+
+		return metadataCodes;
 	}
 
 	private static List<String> getEventUserMetadata(MetadataSchema metadataSchema) {
