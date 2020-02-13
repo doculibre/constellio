@@ -245,6 +245,40 @@ public class RMRecordsMenuItemBehaviors {
 		pdfButton.click();
 	}
 
+	// TODO::JOLA --> Add batch borrow
+	public void checkOut(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		/*List<Record> records = recordServices.getRecordsById(collection, recordIds);
+		Record record = records.get(0);
+
+		if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+			documentRecordActionsServices
+		} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+			folderRecordActionsServices
+		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+			containerRecordActionsServices
+		}*/
+	}
+
+	// TODO::JOLA --> Add batch task for borrow (only 1 task by administrative unit or a filter on assignee*)
+	public void checkOutRequest(List<String> recordIds, MenuItemActionBehaviorParams params) {
+
+	}
+
+	// TODO::JOLA --> Add batch return
+	public void checkIn(List<String> recordIds, MenuItemActionBehaviorParams params) {
+
+	}
+
+	// TODO::JOLA --> Add batch task for return (only 1 task by administrative unit or a filter on assignee*)
+	public void checkInRequest(List<String> recordIds, MenuItemActionBehaviorParams params) {
+
+	}
+
+	// TODO::JOLA --> Add batch reminder (only 1 mail*)
+	public void sendReturnRemainder(List<String> recordIds, MenuItemActionBehaviorParams params) {
+
+	}
+
 	public void printLabels(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		if (recordIds.isEmpty()) {
 			return;

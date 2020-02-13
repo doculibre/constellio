@@ -5,8 +5,10 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -18,6 +20,7 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class FolderRecordActionsServices {
 
+	private AppLayerFactory appLayerFactory;
 	private RMSchemasRecordsServices rm;
 	private ModelLayerCollectionExtensions extensions;
 	private RMModuleExtensions rmModuleExtensions;
@@ -26,6 +29,7 @@ public class FolderRecordActionsServices {
 	private BorrowingServices borrowingServices;
 
 	public FolderRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
@@ -212,6 +216,32 @@ public class FolderRecordActionsServices {
 			   rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, user);
 	}
 
+	public boolean isBorrowRequestActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+
+		ContainerRecord containerRecord = null;
+		if (folder.getContainer() != null) {
+			containerRecord = rm.getContainerRecord(folder.getContainer());
+		}
+
+		return isFolderBorrowable(folder, containerRecord, user, collection);
+	}
+
+	private boolean isFolderBorrowable(Folder folder, ContainerRecord container, User currentUser, String collection) {
+		if (folder != null) {
+			try {
+				this.borrowingServices.validateCanBorrow(currentUser, folder, TimeProvider.getLocalDate());
+			} catch (Exception e) {
+				return false;
+			}
+		}
+		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+
+		return folder != null && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER)
+				.on(folder)
+			   && !(container != null && Boolean.TRUE.equals(container.getBorrowed())) && rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, currentUser);
+	}
+
 	public boolean isReturnActionPossible(Record record, User user) {
 		Folder folder = rm.wrapFolder(record);
 		try {
@@ -220,6 +250,18 @@ public class FolderRecordActionsServices {
 			return false;
 		}
 		return rmModuleExtensions.isReturnActionPossibleOnFolder(rm.wrapFolder(record), user);
+	}
+
+	public boolean isReturnRequestActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		return folder != null && Boolean.TRUE.equals(folder.getBorrowed())
+			   && user.getId().equals(folder.getBorrowUserEntered());
+	}
+
+	public boolean isSendReturnReminderActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		return Boolean.TRUE.equals(folder.getBorrowed()) &&
+			   !user.getId().equals(folder.getBorrowUserEntered());
 	}
 
 	public boolean isPrintLabelActionPossible(Record record, User user) {
