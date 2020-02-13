@@ -77,6 +77,11 @@ public class ContainerRecordActionsServices {
 			   && rmModuleExtensions.isConsultActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user);
 	}
 
+	public boolean isCheckInActionPossible(Record record, User user) {
+		return user.has(RMPermissionsTo.RETURN_OTHER_USERS_CONTAINERS).on(record)
+			   && isSendReturnReminderActionPossible(record, user);
+	}
+
 	public boolean isSendReturnReminderActionPossible(Record record, User user) {
 		ContainerRecord container = rm.wrapContainerRecord(record);
 		return Boolean.TRUE.equals(container.getBorrowed()) &&

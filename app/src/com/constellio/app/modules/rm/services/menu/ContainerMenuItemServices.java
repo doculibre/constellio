@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_ADD_TO_CART;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CHECK_IN;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CONSULT;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_DELETE;
@@ -80,7 +81,12 @@ public class ContainerMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		// TODO::JOLA --> Add force return with permission
+		if (!filteredActionTypes.contains(CONTAINER_CHECK_IN.name())) {
+			menuItemActions.add(buildMenuItemAction(CONTAINER_CHECK_IN.name(),
+					isMenuItemActionPossible(CONTAINER_CHECK_IN.name(), container, user, params),
+					$("DisplayContainerView.checkIn"), null, -1, 325,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).checkIn(container, params)));
+		}
 
 		if (!filteredActionTypes.contains(CONTAINER_RETURN_REMAINDER.name())) {
 			menuItemActions.add(buildMenuItemAction(CONTAINER_RETURN_REMAINDER.name(),
@@ -147,6 +153,8 @@ public class ContainerMenuItemServices {
 				return containerRecordActionsServices.isSlipActionPossible(record, user);
 			case CONTAINER_LABELS:
 				return containerRecordActionsServices.isPrintLabelActionPossible(record, user);
+			case CONTAINER_CHECK_IN:
+				return containerRecordActionsServices.isCheckInActionPossible(record, user);
 			case CONTAINER_RETURN_REMAINDER:
 				return containerRecordActionsServices.isSendReturnReminderActionPossible(record, user);
 			case CONTAINER_ADD_TO_CART:
@@ -183,7 +191,8 @@ public class ContainerMenuItemServices {
 		CONTAINER_ADD_TO_CART,
 		CONTAINER_DELETE,
 		CONTAINER_EMPTY_THE_BOX,
-		CONTAINER_RETURN_REMAINDER
+		CONTAINER_RETURN_REMAINDER,
+		CONTAINER_CHECK_IN
 	}
 
 }
