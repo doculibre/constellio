@@ -4,6 +4,7 @@ import com.constellio.app.ui.application.CoreViews;
 import com.vaadin.navigator.Navigator;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.params.ParamUtils.addParams;
@@ -50,6 +51,17 @@ public class TaskViews extends CoreViews {
 			params.put("documentId", documentId);
 		}
 		navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, params));
+	}
+
+	public void addTaskToFoldersOrDocuments(List<String> foldersId, List<String> documentsId) {
+		Map<String, List<String>> params = new HashMap<>();
+		if (foldersId != null) {
+			params.put("folderId", foldersId);
+		}
+		if (documentsId != null) {
+			params.put("documentId", documentsId);
+		}
+		//navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, params));
 	}
 
 	public void listTasksLogs() {
