@@ -117,4 +117,9 @@ public class ContentVersion implements Serializable {
 		return new ContentVersion(contentVersionDataSummary, filename, version, lastModifiedBy, modificationDatetime,
 				comment);
 	}
+
+	public ContentVersion withLastModifiedBy(String lastModifiedBy) {
+		return new ContentVersion(contentVersionDataSummary, filename, version, lastModifiedBy, lastModificationDateTime,
+				comment);
+	}
 }
