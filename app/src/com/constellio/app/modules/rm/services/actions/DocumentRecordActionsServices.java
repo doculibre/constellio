@@ -104,6 +104,11 @@ public class DocumentRecordActionsServices {
 			   !document.isPublished();
 	}
 
+	//todo: permissions
+	public boolean isAddDTaskActionPossible(Record record, User user) {
+		return true;
+	}
+
 	public boolean isPrintLabelActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
 		return user.hasReadAccess().on(record) &&
@@ -371,10 +376,6 @@ public class DocumentRecordActionsServices {
 		return !email && (document.getContent() != null && isContentCheckedOut(document));
 	}
 
-	//todo
-	public boolean isAddDTaskActionPossible(Record record, User user) {
-		return true;
-	}
 
 	private boolean isEmail(Document document) {
 		boolean email;

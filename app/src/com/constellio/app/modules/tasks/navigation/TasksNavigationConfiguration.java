@@ -33,7 +33,7 @@ import java.io.Serializable;
 
 public class TasksNavigationConfiguration implements Serializable {
 	public static final String TASK_MANAGEMENT = "taskManagement";
-	public static final String ADD_TASK = "addTask";
+	public static final String ADD_TASK = "createTask";
 	public static final String WORKFLOW_MANAGEMENT = "workflowManagement";
 	public static final String WORKFLOW_MANAGEMENT_ICON = "images/icons/config/workflows.png";
 	public static final String EDIT_TASK = "editTask";

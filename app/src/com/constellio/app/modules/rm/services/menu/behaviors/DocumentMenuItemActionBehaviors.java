@@ -427,8 +427,8 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	//todo
-	public void addTask(Document document, MenuItemActionBehaviorParams params) {
-		params.getView().navigate().to(TaskViews.class).addTask();
+	public void createTask(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(TaskViews.class).addTaskToDocument(document.getId());
 	}
 
 	public void alertAvailable(Document document, MenuItemActionBehaviorParams params) {

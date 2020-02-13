@@ -251,6 +251,18 @@ public class DocumentMenuItemServicesAcceptanceTest extends ConstellioTest {
 		assertThat(rmRecords.getDocumentWithContent_A19().getAlertUsersWhenAvailable()).isEmpty();
 	}
 
+	@Test
+	public void givenSingleDocumentWhenCreateTaskThenDocumentIsAutomaticallyLinkedToTask() {
+		//todo: verif que la métadonnée "dossiers liés" contient le document sélectionné
+		assertThat(false).isTrue();
+	}
+
+	@Test
+	public void givenSingleFolderWhenCreateTaskThenFolderIsAutomaticallyLinkedToTask() {
+		//todo: verif que la métadonnée "dossiers liés" contient le dossier sélectionné
+		assertThat(false).isTrue();
+	}
+
 	private void retrieveMenuItemActions(Document document) {
 		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecord(document.getWrappedRecord(),
 				Collections.singletonList(DOCUMENT_OPEN.name()), menuItemActionBehaviorParams);
