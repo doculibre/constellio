@@ -185,14 +185,14 @@ public class EventTypeUtils implements Serializable {
 		if (isRequestTaskEvent(eventType)) {
 			metadataCodes.add(Event.ACCEPTED);
 		}
-		if (isAuthentificationEvent(eventType)) {
+		if (isAuthenticationEvent(eventType)) {
 			metadataCodes.add(Event.USERNAME);
 			metadataCodes.add(Event.IP);
 		}
 		return metadataCodes;
 	}
 
-	private static boolean isAuthentificationEvent(String eventType) {
+	private static boolean isAuthenticationEvent(String eventType) {
 		return asList(EventType.ATTEMPTED_OPEN_SESSION).contains(eventType);
 	}
 

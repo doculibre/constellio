@@ -49,8 +49,8 @@ public class SystemUsageEventsDataProvider extends AbstractDataProvider implemen
 
 	void init(ModelLayerFactory modelLayerFactory) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		RMEventsSearchServices rmSchemasRecordsServices = new RMEventsSearchServices(modelLayerFactory, collection);
-		RMEventsSearchServices rmSystem = new RMEventsSearchServices(modelLayerFactory, Collection.SYSTEM_COLLECTION);
+		RMEventsSearchServices rmEvents = new RMEventsSearchServices(modelLayerFactory, collection);
+		RMEventsSearchServices rmSystemEvents = new RMEventsSearchServices(modelLayerFactory, Collection.SYSTEM_COLLECTION);
 		events = new ArrayList<>();
 
 		EventStatistics openedSessions = new EventStatistics();
@@ -63,12 +63,12 @@ public class SystemUsageEventsDataProvider extends AbstractDataProvider implemen
 
 		User currentUser = modelLayerFactory.newUserServices().getUserInCollection(currentUserName, collection);
 
-		LogicalSearchQuery openedSessionQuery = rmSchemasRecordsServices
+		LogicalSearchQuery openedSessionQuery = rmEvents
 				.newFindOpenedSessionsByDateRangeQuery(currentUser, startDate, endDate);
 		openedSessions.setValue((float) searchServices.getResultsCount(openedSessionQuery));
 		events.add(openedSessions);
 
-		LogicalSearchQuery failedLoginsQuery = rmSystem
+		LogicalSearchQuery failedLoginsQuery = rmSystemEvents
 				.newFindFailedLoginsByDateRangeQuery(currentUser, startDate, endDate);
 		failedLogins.setValue((float) searchServices.getResultsCount(failedLoginsQuery));
 		events.add(failedLogins);

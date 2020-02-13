@@ -463,7 +463,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 	@Test
 	public void whenLoginAttemptFailsThenGetAttemptData()
 			throws Exception {
-		loggingServices.failingLogin("xXBadActorXx666", "real.ip.address");
+		loggingServices.failingLogin("john_doe", "real.ip.address");
 		recordServices.flush();
 
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
@@ -476,7 +476,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		assertThat(events).hasSize(1);
 		Event event = rmSystem.wrapEvent(events.get(0));
 
-		assertThat(event.getUsername()).isEqualTo("xXBadActorXx666");
+		assertThat(event.getUsername()).isEqualTo("john_doe");
 		assertThat((String) event.get(event.IP)).isEqualTo("real.ip.address");
 	}
 
