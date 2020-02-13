@@ -134,6 +134,9 @@ public final class MainConstellio {
 		String serverPortConfig = properties.get("server.port");
 		params.setPort(StringUtils.isNotBlank(serverPortConfig) ? Integer.valueOf(serverPortConfig) : 8080);
 
+		Boolean isForceSecuredCookies = new Boolean(properties.get("server.forceSecuredCookies"));
+		params.setForceSecuredCookies(isForceSecuredCookies);
+
 		ApplicationStarter.startApplication(params);
 	}
 
