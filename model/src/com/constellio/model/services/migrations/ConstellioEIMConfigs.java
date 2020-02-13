@@ -6,7 +6,6 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
 import com.constellio.model.entities.enums.AutocompleteSplitCriteria;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.enums.EmailTextFormat;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.enums.MemoryConsumptionLevel;
@@ -57,7 +56,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration CONSTELLIO_URL;
 	public static final SystemConfiguration CLEAN_DURING_INSTALL;
 	public static final SystemConfiguration IN_UPDATE_PROCESS;
-	public static final SystemConfiguration BATCH_PROCESSING_MODE;
+	public static final SystemConfiguration BATCH_PROCESSING_LIMIT;
 
 	public static final SystemConfiguration CMIS_NEVER_RETURN_ACL;
 
@@ -163,6 +162,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration NO_LINKS_IN_SEARCH_RESULTS;
 	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
 	public static final SystemConfiguration LEGACY_IDENTIFIER_INDEXED_IN_MEMORY;
+	public static final SystemConfiguration ENABLE_FACETS_APPLY_BUTTON;
+
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -205,8 +206,7 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
 		add(LOGIN_NOTIFICATION_ALERT = hiddenSystemConfigs.createBinary("loginNotificationAlert").whichIsHidden());
-		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class)
-				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA));
+		add(BATCH_PROCESSING_LIMIT = others.createInteger("batchProcessingLimit").withDefaultValue(-1));
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
@@ -328,6 +328,8 @@ public class ConstellioEIMConfigs {
 		add(ENABLE_SYSTEM_STATE_MEMORY_ALLOCATION = systemState.createBooleanTrueByDefault("enableSystemStateMemoryAllocation"));
 		add(ENABLE_SYSTEM_STATE_OPT_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateOptDiskUsage"));
 		add(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateSolrDiskUsage"));
+
+		add(ENABLE_FACETS_APPLY_BUTTON = search.createBooleanFalseByDefault("applyMultipleFacets"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -397,8 +399,8 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(TRASH_PURGE_DELAI);
 	}
 
-	public BatchProcessingMode getBatchProcessingMode() {
-		return manager.getValue(BATCH_PROCESSING_MODE);
+	public Integer getBatchProcessingLimit() {
+		return manager.getValue(BATCH_PROCESSING_LIMIT);
 	}
 
 	public SearchSortType getSearchSortType() {
@@ -626,6 +628,10 @@ public class ConstellioEIMConfigs {
 
 	public boolean isSystemStateSolrDiskUsageValidationEnabled() {
 		return manager.getValue(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE);
+	}
+
+	public boolean isApplyMultipleFacetButtonEnabled() {
+		return manager.getValue(ENABLE_FACETS_APPLY_BUTTON);
 	}
 
 	public boolean isUpdateServerConnectionEnabled() {

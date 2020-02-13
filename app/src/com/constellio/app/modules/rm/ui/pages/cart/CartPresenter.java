@@ -54,7 +54,6 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -69,6 +68,7 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
@@ -512,12 +512,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public String getOriginType(String schemaType) {
-		return batchProcessingPresenterService().getOriginType(getNotDeletedRecordsIds(schemaType));
-	}
-
-	public String getOriginType(List<String> selectedRecordIds) {
-		return batchProcessingPresenterService().getOriginType(selectedRecordIds);
+	public String getOriginSchema(String schemaType, String selectedType) {
+		return batchProcessingPresenterService().getOriginSchema(schemaType, selectedType, getNotDeletedRecordsIds(schemaType));
 	}
 
 	@Override
@@ -530,25 +526,29 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
-		return simulateButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject);
+		return simulateButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject, metadatasToEmpty);
 	}
 
-	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
-				.simulate(selectedType, records, viewObject, getCurrentUser());
+				.simulate(selectedType, records, viewObject, metadatasToEmpty, getCurrentUser());
 		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
 	@Override
-	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
-		return processBatchButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject);
+		return processBatchButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject, metadatasToEmpty);
 	}
 
-	public boolean processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		for (Record record : recordServices().getRecordsById(view.getCollection(), records)) {
 			if (modelLayerExtensions.isModifyBlocked(record, getCurrentUser())) {
@@ -558,7 +558,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		}
 
 		batchProcessingPresenterService()
-				.execute(selectedType, records, viewObject, getCurrentUser());
+				.execute(selectedType, records, viewObject, metadatasToEmpty, getCurrentUser());
 		view.navigate().to(RMViews.class).cart(cartId);
 		return true;
 	}
@@ -578,18 +578,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public BatchProcessingMode getBatchProcessingMode() {
-		return batchProcessingPresenterService().getBatchProcessingMode();
-	}
-
-	@Override
 	public AppLayerCollectionExtensions getBatchProcessingExtension() {
 		return batchProcessingPresenterService().getBatchProcessingExtension();
-	}
-
-	@Override
-	public String getSchema(String schemaType, String type) {
-		return batchProcessingPresenterService().getSchema(schemaType, type);
 	}
 
 	@Override
@@ -945,7 +935,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		List<MetadataVO> result = new ArrayList<>();
 		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		for (Metadata metadata : types().getSchemaType(schemaType).getAllMetadatas().sortAscTitle(language)) {
-			if (isBatchEditable(metadata)) {
+			if (isBatchEditable(metadata) && !metadata.isEssential()) {
 				result.add(builder.build(metadata, view.getSessionContext()));
 			}
 		}
@@ -960,6 +950,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	@Override
 	public boolean validateUserHaveBatchProcessPermissionOnAllRecords(String schemaType) {
+		if (!getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).globally()) {
+			return false;
+		}
+
 		switch (schemaType) {
 		case Folder.SCHEMA_TYPE:
 			return doesQueryAndQueryWithFilterOnBatchProcessPermHaveSameResult(getCartFoldersLogicalSearchQuery());
@@ -981,6 +975,19 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		long numberFound = searchServices().getResultsCount(logicalSearchQueryWithFilter);
 
 		return speQueryResponse.getNumFound() == numberFound;
+	}
+
+	@Override
+	public boolean validateUserHaveBatchProcessPermissionForRecordCount(String schemaType) {
+		if (!getCurrentUser().has(CorePermissions.MODIFY_UNLIMITED_RECORDS_USING_BATCH_PROCESS).globally()) {
+			ConstellioEIMConfigs systemConfigs = modelLayerFactory.getSystemConfigs();
+			int batchProcessingLimit = systemConfigs.getBatchProcessingLimit();
+			if (batchProcessingLimit != -1 && getNumberOfRecords(schemaType) > batchProcessingLimit) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private boolean isBatchEditable(Metadata metadata) {

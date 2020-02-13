@@ -113,7 +113,6 @@ public class SolrGlobalGroupsManager implements StatefulService {
 		return schemas.wrapGlobalGroups(searchServices.search(getAllGroupsQuery()));
 	}
 
-
 	public LogicalSearchQuery getDeletedGroupsQuery() {
 		return getAllGroupsQuery().filteredByStatus(StatusFilter.DELETED);
 	}

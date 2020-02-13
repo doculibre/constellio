@@ -27,7 +27,7 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 
 	private List<TaskCollaboratorsGroupItem> taskCollaboratorGroupItem;
 
-	private boolean currentUserIsCollaborator = false;
+	private boolean currentUserCanModifyDelete = false;
 
 	private boolean writeButtonVisible = true;
 
@@ -133,8 +133,8 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 		this.writeButtonVisible = writeButtonIsVisible;
 	}
 
-	public void setCurrentUserIsCollaborator(boolean currentUserIsCollaborator) {
-		this.currentUserIsCollaborator = currentUserIsCollaborator;
+	public void setCurrentUserCanModifyDelete(boolean currentUserCanModifyDelete) {
+		this.currentUserCanModifyDelete = currentUserCanModifyDelete;
 	}
 
 	private class CollaboratorValuesContainer extends ValuesContainer {
@@ -168,7 +168,7 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 
 	@Override
 	protected boolean isEditButtonVisible(TaskCollaboratorsGroupItem item) {
-		if (currentUserIsCollaborator) {
+		if (!currentUserCanModifyDelete) {
 			return false;
 		} else {
 			return super.isEditButtonVisible(item);
@@ -177,7 +177,7 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 
 	@Override
 	protected boolean isDeleteButtonVisible(TaskCollaboratorsGroupItem item) {
-		if (currentUserIsCollaborator) {
+		if (!currentUserCanModifyDelete) {
 			return false;
 		} else {
 			return super.isDeleteButtonVisible(item);

@@ -90,15 +90,17 @@ public class ByUserEventsDataProvider extends DefaultEventsDataProvider implemen
 			return EventType.CREATE_TASK;
 		} else if (index == 26) {
 			return EventType.MODIFY_TASK;
-		} else {
+		} else if (index == 27) {
 			return EventType.DELETE_TASK;
+		} else {
+			return EventType.BATCH_PROCESS_CREATED;
 		}
 
 	}
 
 	@Override
 	public int specificSize() {
-		return 28;
+		return 29;
 	}
 
 	@Override

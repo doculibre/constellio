@@ -154,8 +154,8 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	}
 
 	@Override
-	public boolean currentUserIsCollaborator(RecordVO recordVO) {
-		return taskPresenterServices.currentUserIsCollaborator(recordVO, getCurrentUserId());
+	public boolean currentUserHasWriteAuthorisationWithoutBeingCollaborator(RecordVO recordVO) {
+		return taskPresenterServices.currentUserHasWriteAuthorisationWithoutBeingCollaborator(recordVO, getCurrentUserId());
 	}
 
 	@Override
