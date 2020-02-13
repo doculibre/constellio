@@ -54,6 +54,8 @@ public class MetadataVO implements Serializable {
 	final boolean isSynthetic;
 	final boolean summaryMetadata;
 	private boolean forceHidden = false;
+	final Integer maxLength;
+	final String measurementUnit;
 
 
 	public MetadataVO(short id, String code, String localCode, MetadataValueType type, String collection,
@@ -86,6 +88,25 @@ public class MetadataVO implements Serializable {
 					  String inputMask, Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
 					  boolean isSynthectic, boolean summaryMetadata) {
+		this(id, code, localCode, datastoreCode, type, collection, schema, required, multivalue,
+				readOnly, unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
+				metadataDisplayType, allowedReferences, enabled, structureFactory, metadataGroup, defaultValue, inputMask,
+				customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSynthectic,
+				summaryMetadata, null, null);
+	}
+
+	public MetadataVO(short id, String code, String localCode, String datastoreCode, MetadataValueType type,
+					  String collection,
+					  MetadataSchemaVO schema,
+					  boolean required, boolean multivalue, boolean readOnly, boolean unmodifiable,
+					  Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
+					  String schemaTypeCode, MetadataInputType metadataInputType,
+					  MetadataDisplayType metadataDisplayType,
+					  AllowedReferences allowedReferences,
+					  boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue,
+					  String inputMask, Set<String> customAttributes, boolean multiLingual, Locale locale,
+					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
+					  boolean isSynthectic, boolean summaryMetadata, Integer maxLength, String measurementUnit) {
 		super();
 		this.id = id;
 		this.code = code;
@@ -118,6 +139,8 @@ public class MetadataVO implements Serializable {
 		this.sortable = sortable;
 		this.isSynthetic = isSynthectic;
 		this.summaryMetadata = summaryMetadata;
+		this.maxLength = maxLength;
+		this.measurementUnit = measurementUnit;
 
 		if (schema != null && !schema.getMetadatas().stream().anyMatch(
 				(m) -> (m.getId() == id && m.getId() != 0 && id != 0 && (m.getLocale() == null || m.getLocale().toLanguageTag().equals(locale.toLanguageTag()))) || ((m.getId() == 0 || id == 0) && m.getLocalCode().equals(localCode)))) {
@@ -194,6 +217,8 @@ public class MetadataVO implements Serializable {
 		this.sortable = false;
 		this.isSynthetic = false;
 		this.summaryMetadata = false;
+		this.maxLength = null;
+		this.measurementUnit = null;
 	}
 
 	public String getCode() {
@@ -360,6 +385,14 @@ public class MetadataVO implements Serializable {
 
 	public String getInputMask() {
 		return inputMask;
+	}
+
+	public Integer getMaxLength() {
+		return maxLength;
+	}
+
+	public String getMeasurementUnit() {
+		return measurementUnit;
 	}
 
 	@Override

@@ -174,7 +174,45 @@ public class MetadataToVOBuilder implements Serializable {
 				enabled,
 				structureFactory, metadataGroup, metadata.getDefaultValue(), metadata.getInputMask(),
 				metadata.getCustomAttributes(), isMultiLingual, locale, metadata.getCustomParameter(),
-				schemaVO != null ? schemaVO.getCollectionInfoVO() : null, sortable, metadata.isStoredInSummaryCache());
+				schemaVO != null ? schemaVO.getCollectionInfoVO() : null, sortable, metadata.isStoredInSummaryCache(),
+				metadata.getMaxLength(), metadata.getMeasurementUnit());
+	}
+
+	protected MetadataVO newMetadataVO(
+			short id,
+			String metadataCode,
+			String metadataLocalCode,
+			String datastoreCode,
+			MetadataValueType type,
+			String collection,
+			MetadataSchemaVO schemaVO,
+			boolean required,
+			boolean multivalue,
+			boolean readOnly,
+			boolean unmodifiable,
+			Map<Locale, String> labels,
+			Class<? extends Enum<?>> enumClass,
+			String[] taxonomyCodes,
+			String schemaTypeCode,
+			MetadataInputType metadataInputType,
+			MetadataDisplayType metadataDisplayType,
+			AllowedReferences allowedReferences,
+			boolean enabled,
+			StructureFactory structureFactory,
+			String metadataGroup,
+			Object defaultValue,
+			String inputMask,
+			Set<String> customAttributes,
+			boolean isMultiLingual,
+			Locale locale,
+			Map<String, Object> customParameters,
+			CollectionInfoVO collectionInfoVO, boolean sortable,
+			boolean summaryMetadata) {
+		return newMetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required,
+				multivalue, readOnly, unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
+				metadataDisplayType, allowedReferences, enabled, structureFactory, metadataGroup, defaultValue,
+				inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable,
+				summaryMetadata, null, null);
 	}
 
 	protected MetadataVO newMetadataVO(
@@ -204,11 +242,11 @@ public class MetadataToVOBuilder implements Serializable {
 			boolean isMultiLingual, Locale locale,
 			Map<String, Object> customParameters,
 			CollectionInfoVO collectionInfoVO, boolean sortable,
-			boolean summaryMetadata) {
+			boolean summaryMetadata, Integer maxLength, String measurementUnit) {
 		return new MetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
 				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
 				enabled,
-				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata);
+				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata, maxLength, measurementUnit);
 	}
 
 }

@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 @SuppressWarnings("serial")
 public class MetadataFieldFactory implements Serializable {
 
@@ -96,9 +98,17 @@ public class MetadataFieldFactory implements Serializable {
 		boolean readOnly = metadata.isReadOnly();
 		boolean required = metadata.isRequired();
 		String caption = metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+		String modifiedCaption = caption;
+
+		if (metadata.getMaxLength() != null) {
+			modifiedCaption = $("MetadataFieldFactory.addMaxLength", caption, metadata.getMaxLength());
+		}
+		if (metadata.getMeasurementUnit() != null) {
+			modifiedCaption = $("MetadataFieldFactory.addMeasurementUnit", caption, metadata.getMeasurementUnit());
+		}
 
 		field.setId(metadata.getCode());
-		field.setCaption(caption);
+		field.setCaption(modifiedCaption);
 		field.setRequired(required);
 		field.setReadOnly(readOnly);
 		if (field instanceof AbstractTextField) {
