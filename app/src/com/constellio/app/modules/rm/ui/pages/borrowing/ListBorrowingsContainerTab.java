@@ -5,6 +5,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Label;
@@ -37,7 +38,7 @@ public class ListBorrowingsContainerTab extends ListBorrowingsTab {
 
 	@Override
 	protected LogicalSearchCondition getOverdueCondition() {
-		return where(recordsServices.containerRecord.planifiedReturnDate()).isLessThan(LocalDate.now());
+		return where(recordsServices.containerRecord.planifiedReturnDate()).isLessThan(TimeProvider.getLocalDate());
 	}
 
 	@Override
@@ -70,7 +71,7 @@ public class ListBorrowingsContainerTab extends ListBorrowingsTab {
 
 		@Override
 		protected boolean isOverdue(RecordVO recordVO) {
-			return LocalDate.now().isAfter(getBorrowingDueDate(recordVO));
+			return TimeProvider.getLocalDate().isAfter(getBorrowingDueDate(recordVO));
 		}
 
 		@Override
