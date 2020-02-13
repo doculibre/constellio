@@ -23,6 +23,10 @@ import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -56,10 +60,13 @@ import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.records.RecordServices;
@@ -67,7 +74,9 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.Roles;
+import com.nimbusds.oauth2.sdk.util.CollectionUtils;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -115,6 +124,7 @@ public class FolderMenuItemActionBehaviors {
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 	private RecordHierarchyServices recordHierarchyServices;
+	private LoggingServices loggingServices;
 
 	public static final String USER_LOOKUP = "user-lookup";
 
@@ -134,6 +144,7 @@ public class FolderMenuItemActionBehaviors {
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 		recordHierarchyServices = new RecordHierarchyServices(modelLayerFactory);
+		this.loggingServices = modelLayerFactory.newLoggingServices();
 	}
 
 	public void getConsultationLink(Folder folder, MenuItemActionBehaviorParams params) {
@@ -848,6 +859,13 @@ public class FolderMenuItemActionBehaviors {
 		return borrowed;
 	}
 
+	public boolean returnFolder(Folder folder, LocalDate returnDate, MenuItemActionBehaviorParams params) {
+		folder = loadingFullRecordIfSummary(folder);
+		LocalDateTime borrowDateTime = folder.getBorrowDate();
+		LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
+		return returnFolder(folder, returnDate, borrowDate, params);
+	}
+
 	private boolean returnFolder(Folder folder, LocalDate returnDate, LocalDate borrowingDate,
 								 MenuItemActionBehaviorParams params) {
 		String errorMessage = borrowingServices.validateReturnDate(returnDate, borrowingDate);
@@ -857,6 +875,7 @@ public class FolderMenuItemActionBehaviors {
 		}
 		try {
 			borrowingServices.returnFolder(folder.getId(), params.getUser(), returnDate, true);
+			deletePendingReturnRequestForRecord(folder, params.getUser());
 			RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
 					appLayerFactory, collection);
 			return true;
@@ -866,11 +885,29 @@ public class FolderMenuItemActionBehaviors {
 		}
 	}
 
-	public boolean returnFolder(Folder folder, LocalDate returnDate, MenuItemActionBehaviorParams params) {
-		folder = loadingFullRecordIfSummary(folder);
-		LocalDateTime borrowDateTime = folder.getBorrowDate();
-		LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
-		return returnFolder(folder, returnDate, borrowDate, params);
+	private void deletePendingReturnRequestForRecord(Folder folder, User user) {
+		List<String> pendingRequests = getPendingReturnRequestForRecord(folder);
+
+		if (CollectionUtils.isNotEmpty(pendingRequests)) {
+			for (String recordId : pendingRequests) {
+				Record record = recordServices.getDocumentById(recordId);
+				recordServices.logicallyDelete(record, user);
+				loggingServices.logDeleteRecordWithJustification(record, user, "");
+			}
+		}
+	}
+
+	private List<String> getPendingReturnRequestForRecord(Folder folder) {
+		TasksSchemasRecordsServices tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		MetadataSchemaType taskSchemaType = tasksSchemasRecordsServices.taskSchemaType();
+		Metadata metadataLinkedFolder = taskSchemaType.getAllMetadatas().getMetadataWithLocalCode(Task.LINKED_FOLDERS);
+		Metadata metadataStatus = taskSchemaType.getAllMetadatas().getMetadataWithLocalCode(Task.STATUS_TYPE);
+		LogicalSearchCondition logicalSearchCondition = from(taskSchemaType)
+				.where(Schemas.SCHEMA).isEqualTo(ReturnRequest.FULL_SCHEMA_NAME)
+				.andWhere(metadataLinkedFolder).isEqualTo(folder)
+				.andWhere(metadataStatus).isEqualTo(TaskStatusType.STANDBY);
+
+		return searchServices.searchRecordIds(logicalSearchCondition);
 	}
 
 	private User wrapUser(Record record) {

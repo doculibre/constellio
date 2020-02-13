@@ -223,8 +223,6 @@ public class ContainerRecordMenuItemActionBehaviors {
 	}
 
 	private List<String> getPendingReturnRequestForRecord(ContainerRecord container) {
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-
 		TasksSchemasRecordsServices tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		MetadataSchemaType taskSchemaType = tasksSchemasRecordsServices.taskSchemaType();
 		Metadata metadataLinkedContainer = taskSchemaType.getAllMetadatas().getMetadataWithLocalCode(Task.LINKED_CONTAINERS);
