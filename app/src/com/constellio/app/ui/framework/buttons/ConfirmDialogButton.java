@@ -31,6 +31,10 @@ public abstract class ConfirmDialogButton extends IconButton {
 		this.statName = Stats.getCurrentName();
 	}
 
+	public ConfirmDialogButton(Resource iconResource, String caption, boolean iconOnly, boolean borderless) {
+		super(iconResource, caption, iconOnly, borderless);
+	}
+
 	public DialogMode getDialogMode() {
 		return dialogMode;
 	}
