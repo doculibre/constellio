@@ -653,7 +653,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		return formLayout;
 	}
 
-	protected boolean isActivatedByConfigAndNeedConfirmation() {    //$Q nomenclature à revoir puisque toujours false dans BaseForm?
+	protected boolean isActivatedByConfigAndNeedConfirmation() {
 		return false;
 	}
 }
