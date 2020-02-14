@@ -1,6 +1,7 @@
 package com.constellio.data.dao.services.transactionLog;
 
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
+import com.constellio.data.conf.SecondTransactionLogType;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServices;
@@ -60,7 +61,7 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(InMemoryDataLayerConfiguration configuration) {
 				configuration.setSecondTransactionLogEnabled(true);
-				configuration.setSecondTransactionLogMode("kafka");
+				configuration.setSecondTransactionLogMode(SecondTransactionLogType.KAFKA);
 				configuration.setSecondTransactionLogMergeFrequency(Duration.standardSeconds(5));
 				configuration.setSecondTransactionLogBackupCount(3);
 				configuration.setReplayTransactionStartVersion(0L);
