@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.navigation;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.data.utils.TemporaryUrlParameters;
@@ -44,17 +45,24 @@ public class TaskViews extends CoreViews {
 		if (folderId != null) {
 			params.put("folderId", folderId);
 		}
+		params.put("previousPage", getCurrentPageFragment());
 		navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, params));
 	}
 
 	public void addTaskToDocument(String documentId) {
-		Map<String, String> params = new HashMap<>();
+		Map<String, Object> params = new HashMap<>();
 		if (documentId != null) {
 			params.put("documentId", documentId);
 		}
+		params.put("previousPage", getCurrentPageFragment());
+
+
 		navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, params));
 	}
 
+	private String getCurrentPageFragment() {
+		return ConstellioUI.getCurrent().getPage().getLocation().getFragment().substring(1);
+	}
 
 	public void addTaskToFoldersOrDocuments(List<String> foldersId, List<String> documentsId,
 											BaseView view) {
@@ -76,6 +84,8 @@ public class TaskViews extends CoreViews {
 
 			Map<String, String> paramMap = new HashMap<>();
 			paramMap.put("tempParams", KEY);
+			paramMap.put("previousPage", getCurrentPageFragment());
+
 			navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, paramMap));
 
 			//navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, cachedParam));

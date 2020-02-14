@@ -104,9 +104,8 @@ public class DocumentRecordActionsServices {
 			   !document.isPublished();
 	}
 
-	//todo: permissions
 	public boolean isAddDTaskActionPossible(Record record, User user) {
-		return true;
+		return user.hasWriteAccess().on(record);
 	}
 
 	public boolean isPrintLabelActionPossible(Record record, User user) {

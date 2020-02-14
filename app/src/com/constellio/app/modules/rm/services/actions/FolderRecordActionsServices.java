@@ -262,7 +262,7 @@ public class FolderRecordActionsServices {
 
 	//todo: check permissions
 	public boolean isCreateTaskActionPossible(Record record, User user) {
-		return true;
+		return user.hasWriteAccess().on(record);
 	}
 
 	private boolean hasUserWriteAccess(Record record, User user) {

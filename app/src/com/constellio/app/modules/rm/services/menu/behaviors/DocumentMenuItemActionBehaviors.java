@@ -426,7 +426,6 @@ public class DocumentMenuItemActionBehaviors {
 		uploadWindow.open(false);
 	}
 
-	//todo
 	public void createTask(Document document, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to(TaskViews.class).addTaskToDocument(document.getId());
 	}

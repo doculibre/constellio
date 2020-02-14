@@ -30,6 +30,8 @@ import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveC
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -68,6 +70,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.*;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
@@ -95,6 +98,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private static Logger LOGGER = LoggerFactory.getLogger(AddEditTaskPresenter.class);
 	List<String> finishedOrClosedStatuses;
 	private RMModuleExtensions rmModuleExtensions;
+	private String previousPage;
 
 	boolean inclusideDecision = false;
 	boolean exclusiveDecision = false;
@@ -306,8 +310,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private void saveAndNavigate(Task task) {
 		saveRecord(task, task.getWrappedRecord(), true);
 
-
-		if (StringUtils.isNotBlank(workflowId)) {
+		if (previousPage != null) {
+			URI location = ConstellioUI.getCurrent().getPage().getLocation();
+			view.navigate().to(CoreViews.class).navigateTo(location.getPath(), previousPage, false);
+			//view.showMessage("tache créée avec succes pour les documents x blabla");
+		} else if (StringUtils.isNotBlank(workflowId)) {
 			view.navigateToWorkflow(workflowId);
 		} else if (StringUtils.isNotBlank(parentId)) {
 			view.navigate().to(TaskViews.class).displayTask(parentId);
@@ -378,12 +385,16 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				new RMTask(task).setLinkedDocuments(asList(documentId));
 			}
 
+			previousPage = paramsMap.get("previousPage");
+
 			String tempParamKey = paramsMap.get("tempParams");
 			if (tempParamKey != null) {
 				TemporaryUrlParameters tempParam = this.getView().getUIContext().getAttribute(tempParamKey);
 				Map param = (Map) tempParam.getParameters().get(tempParamKey);
+
 				Object folders = param.get("folderId");
 				Object documents = param.get("documentId");
+
 
 				if (folders != null && folders instanceof List) {
 					new RMTask(task).setLinkedFolders((List<String>) folders);
@@ -392,7 +403,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				if (documents != null && documents instanceof List) {
 					new RMTask(task).setLinkedDocuments((List<String>) documents);
 				}
+
 			}
+
+
 		}
 
 		completeMode = "true".
