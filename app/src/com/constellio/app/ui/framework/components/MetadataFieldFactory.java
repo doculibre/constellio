@@ -165,10 +165,16 @@ public class MetadataFieldFactory implements Serializable {
 					if (metadataInputType != null) {
 						switch (metadataInputType) {
 							case RICHTEXT:
-								field = new BaseRichTextArea();
+								String richInputMask = metadata.getInputMask();
+								BaseRichTextArea richTextArea = new BaseRichTextArea();
+								richTextArea.setInputMask(richInputMask);
+								field = richTextArea;
 								break;
 							default:
-								field = new BaseTextArea();
+								String inputMask = metadata.getInputMask();
+								BaseTextArea textArea = new BaseTextArea();
+								textArea.setInputMask(inputMask);
+								field = textArea;
 								break;
 						}
 					} else {

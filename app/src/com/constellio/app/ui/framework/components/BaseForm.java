@@ -476,7 +476,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 			for (Field<?> field : fieldGroup.getFields()) {
 				if (!field.isValid() && field.isRequired() && isEmptyValue(field.getValue())) {
 					field.setRequiredError($("requiredField"));
-					addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + field.getCaption() + "\""));
+					addErrorMessage(missingRequiredFields, $("requiredFieldWithName", field.getCaption()));
 					if (firstFieldWithError == null) {
 						firstFieldWithError = field;
 					}
@@ -484,12 +484,33 @@ public abstract class BaseForm<T> extends CustomComponent {
 					try {
 						field.validate();
 					} catch (Validator.EmptyValueException e) {
-						addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + e.getMessage() + "\""));
+						addErrorMessage(missingRequiredFields, $("requiredFieldWithName", field.getCaption()));
 						if (firstFieldWithError == null) {
 							firstFieldWithError = field;
 						}
 					} catch (Validator.InvalidValueException e) {
-						addErrorMessage(missingRequiredFields, $("invalidFieldWithName", "\"" + e.getMessage() + "\""));
+						if (field.getCaption() != null && field.getValue() != null) {
+							if (field.getCaption().contains("(") && field.getCaption().contains(")")) {
+								boolean isCaptionsPartBetweenParenthesisRepresentingMaxLength =
+										Character.isDigit(field.getCaption().split("\\(")[1].charAt(0));
+								if (isCaptionsPartBetweenParenthesisRepresentingMaxLength) {
+									Integer maxLength = Character.getNumericValue(field.getCaption().split("\\(")[1].charAt(0));
+									if (field.getValue().toString().length() > maxLength) {
+										addErrorMessage(missingRequiredFields,
+												$("invalidFieldWithNameWithErrorMessage",
+														StringUtils.removeEnd(field.getCaption().split("\\(")[0], " "),
+														e.getMessage()));
+									}
+								} else {
+									addErrorMessage(missingRequiredFields,
+											$("invalidFieldWithNameWithErrorMessage",
+													StringUtils.removeEnd(field.getCaption().split("\\(")[0], " "),
+													e.getMessage()));
+								}
+							}
+						} else {
+							addErrorMessage(missingRequiredFields, $("invalidFieldWithName", field.getCaption()));
+						}
 						if (firstFieldWithError == null) {
 							firstFieldWithError = field;
 						}
@@ -498,8 +519,9 @@ public abstract class BaseForm<T> extends CustomComponent {
 			}
 			if (firstFieldWithError != null) {
 				firstFieldWithError.focus();
-				showErrorMessage(missingRequiredFields.toString());
 			}
+			showErrorMessage(missingRequiredFields.toString());
+
 		}
 	}
 
