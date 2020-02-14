@@ -172,6 +172,10 @@ public class LoggingServices {
 		executeTransaction(eventFactory.newLoginEvent(user));
 	}
 
+	public void failingLogin(String attemptedUsername, String ip) {
+		executeTransaction(eventFactory.newFailedLoginEvent(attemptedUsername, ip));
+	}
+
 	public void logout(User user) {
 		executeTransaction(eventFactory.newLogoutEvent(user));
 	}

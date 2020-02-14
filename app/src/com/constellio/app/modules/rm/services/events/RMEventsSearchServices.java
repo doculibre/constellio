@@ -50,6 +50,11 @@ public class RMEventsSearchServices {
 		return newFindEventByDateRangeQuery(currentUser, EventType.OPEN_SESSION, startDate, endDate);
 	}
 
+	public LogicalSearchQuery newFindFailedLoginsByDateRangeQuery(User currentUser, LocalDateTime startDate,
+																  LocalDateTime endDate) {
+		return newFindEventByDateRangeSystemQuery(currentUser, EventType.ATTEMPTED_OPEN_SESSION, startDate, endDate);
+	}
+
 	//by range date
 	public LogicalSearchQuery newFindCreatedDocumentsByDateRangeQuery(User currentUser, LocalDateTime startDate,
 																	  LocalDateTime endDate) {
@@ -214,6 +219,17 @@ public class RMEventsSearchServices {
 
 	public LogicalSearchQuery newFindEventByDateRangeQuery(User currentUser, String eventType, LocalDateTime startDate,
 														   LocalDateTime endDate) {
+		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
+		Metadata timestamp = Schemas.CREATED_ON;
+
+		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser)
+				.andWhere(type).isEqualTo(eventType).andWhere(timestamp).isValueInRange(startDate, endDate);
+		return new LogicalSearchQuery(condition).sortDesc(timestamp);
+	}
+
+	public LogicalSearchQuery newFindEventByDateRangeSystemQuery(User currentUser, String eventType,
+																 LocalDateTime startDate,
+																 LocalDateTime endDate) {
 		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
 		Metadata timestamp = Schemas.CREATED_ON;
 
