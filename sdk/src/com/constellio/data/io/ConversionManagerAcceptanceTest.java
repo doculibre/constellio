@@ -1,5 +1,6 @@
 package com.constellio.data.io;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronViewer;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -25,26 +26,27 @@ public class ConversionManagerAcceptanceTest extends ConstellioTest {
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, "licence");
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, false);
 
-		assertThat(ConversionManager.getAllSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
-		assertThat(ConversionManager.getSupportedExtensions()).doesNotContain(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
+		ConversionManager conversionManager = ConstellioFactories.getInstance().getDataLayerFactory().getConversionManager();
+		assertThat(conversionManager.getAllSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
+		assertThat(conversionManager.getSupportedExtensions()).doesNotContain(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
 
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, null);
 
-		assertThat(ConversionManager.getAllSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
-		assertThat(ConversionManager.getSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
+		assertThat(conversionManager.getAllSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
+		assertThat(conversionManager.getSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
 
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, "licence");
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, true);
 
-		assertThat(ConversionManager.getAllSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
-		assertThat(ConversionManager.getSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
+		assertThat(conversionManager.getAllSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
+		assertThat(conversionManager.getSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
 
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, null);
 		Toggle.ENABLE_PDFTRON_TRIAL.enable();
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, false);
 
-		assertThat(ConversionManager.getAllSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
-		assertThat(ConversionManager.getSupportedExtensions()).doesNotContain(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
+		assertThat(conversionManager.getAllSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
+		assertThat(conversionManager.getSupportedExtensions()).doesNotContain(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
 
 	}
 
