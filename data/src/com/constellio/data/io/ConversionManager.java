@@ -166,7 +166,7 @@ public class ConversionManager implements StatefulService {
 
 	private static final Map<String, String> COPY_EXTENSIONS = new HashMap<>();
 
-	public static String[] SUPPORTED_EXTENSIONS = new String[0];
+	private static String[] SUPPORTED_EXTENSIONS = new String[0];
 
 	private static boolean openOfficeOrLibreOfficeInstalled = false;
 
@@ -209,6 +209,7 @@ public class ConversionManager implements StatefulService {
 			COPY_EXTENSIONS.put("pps", "ppt");
 			supportedExtensionsList.addAll(COPY_EXTENSIONS.keySet());
 
+			// To get the values use getSupportedExtensions();
 			SUPPORTED_EXTENSIONS = supportedExtensionsList.toArray(new String[0]);
 			LOGGER.info("Conversion to PDF supported for the following extensions: " + Arrays.toString(SUPPORTED_EXTENSIONS));
 			openOfficeOrLibreOfficeInstalled = true;
@@ -237,6 +238,15 @@ public class ConversionManager implements StatefulService {
 		this.onlineConversionUrl = onlineConversionUrl;
 		this.extensions = extensions;
 		this.tiffFilesSupported = dataLayerConfiguration.areTiffFilesConvertedForPreview();
+	}
+
+	public static String[] getAllSupportedExtensions() {
+		return (String[]) ArrayUtils.addAll(SUPPORTED_EXTENSIONS, extensions.getSupportedExtensionExtensions());
+	}
+
+	public static String[] getSupportedExtensions() {
+		return (String[]) org.apache.commons.lang3.ArrayUtils
+				.removeElements(ArrayUtils.addAll(SUPPORTED_EXTENSIONS, extensions.getSupportedExtensionExtensions()), extensions.getExtentionDisabledForPreviewConvertion());
 	}
 
 	public boolean isOpenOfficeOrLibreOfficeInstalled() {

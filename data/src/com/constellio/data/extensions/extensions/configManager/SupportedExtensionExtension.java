@@ -9,6 +9,10 @@ public class SupportedExtensionExtension {
 		return Collections.emptyList();
 	}
 
+	public List<String> getExtentionDisabledForPreviewConvertion() {
+		return Collections.emptyList();
+	}
+
 	public ExtensionConverter getConverter() {
 		return null;
 	}
