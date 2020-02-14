@@ -1,6 +1,8 @@
 package com.constellio.app.modules.tasks.navigation;
 
 import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.data.utils.TemporaryUrlParameters;
 import com.vaadin.navigator.Navigator;
 
 import java.util.HashMap;
@@ -53,15 +55,33 @@ public class TaskViews extends CoreViews {
 		navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, params));
 	}
 
-	public void addTaskToFoldersOrDocuments(List<String> foldersId, List<String> documentsId) {
+
+	public void addTaskToFoldersOrDocuments(List<String> foldersId, List<String> documentsId,
+											BaseView view) {
+		String KEY = "keykey_test";
+
 		Map<String, List<String>> params = new HashMap<>();
 		if (foldersId != null) {
-			params.put("folderId", foldersId);
+			if (foldersId != null) {
+				params.put("folderId", foldersId);
+			}
+			if (documentsId != null) {
+				params.put("documentId", documentsId);
+			}
+
+			TemporaryUrlParameters cachedParam = new TemporaryUrlParameters(KEY);
+			cachedParam.addParameters(KEY, params);
+
+			view.getUIContext().setAttribute(KEY, cachedParam);
+
+			Map<String, String> paramMap = new HashMap<>();
+			paramMap.put("tempParams", KEY);
+			navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, paramMap));
+
+			//navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, cachedParam));
+
 		}
-		if (documentsId != null) {
-			params.put("documentId", documentsId);
-		}
-		//navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, params));
+
 	}
 
 	public void listTasksLogs() {

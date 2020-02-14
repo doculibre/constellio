@@ -15,11 +15,7 @@ import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
-import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
-import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.*;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -28,15 +24,7 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
-import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationEnumField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListRecordLookupField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskFormImpl;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskProgressPercentageField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskQuestionFieldImpl;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskRelativeDueDateField;
+import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsGroupsField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
@@ -51,6 +39,7 @@ import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.utils.TemporaryUrlParameters;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -79,16 +68,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
 import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.READ;
 import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.WRITE;
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
@@ -379,7 +361,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			task = tasksSchemas.newTask();
 			TaskUser taskUser = new TaskUser(getCurrentUser().getWrappedRecord(), types(),
 					modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory));
-			if(!Boolean.FALSE.equals(taskUser.getAssignTaskAutomatically())) {
+			if (!Boolean.FALSE.equals(taskUser.getAssignTaskAutomatically())) {
 				task.setAssignee(getCurrentUser().getId());
 			}
 
@@ -395,8 +377,27 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			if (documentId != null) {
 				new RMTask(task).setLinkedDocuments(asList(documentId));
 			}
+
+			String tempParamKey = paramsMap.get("tempParams");
+			if (tempParamKey != null) {
+				TemporaryUrlParameters tempParam = this.getView().getUIContext().getAttribute(tempParamKey);
+				Map param = (Map) tempParam.getParameters().get(tempParamKey);
+				Object folders = param.get("folderId");
+				Object documents = param.get("documentId");
+
+				if (folders != null && folders instanceof List) {
+					new RMTask(task).setLinkedFolders((List<String>) folders);
+				}
+
+				if (documents != null && documents instanceof List) {
+					new RMTask(task).setLinkedDocuments((List<String>) documents);
+				}
+			}
 		}
-		completeMode = "true".equals(paramsMap.get("completeTask"));
+
+		completeMode = "true".
+
+				equals(paramsMap.get("completeTask"));
 		if (completeMode) {
 			TaskStatus finishedStatus = tasksSearchServices
 					.getFirstFinishedStatus();
@@ -404,17 +405,35 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				task.setStatus(finishedStatus.getId());
 			}
 		}
+
 		workflowId = paramsMap.get("workflowId");
 
-		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
-		isCompletedOrClosedOnInitialization = isCompletedOrClosedStatus(taskVO);
+		taskVO = new
+
+				TaskVO(new TaskToVOBuilder().
+
+				build(task.getWrappedRecord(), FORM, view.
+
+						getSessionContext()));
+		isCompletedOrClosedOnInitialization =
+
+				isCompletedOrClosedStatus(taskVO);
 		view.setRecord(taskVO);
-		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + ASSIGNEE)) {
+		if (taskVO.getMetadataCodes().
+
+				contains(taskVO.getSchema().
+
+						getCode() + "_" + ASSIGNEE)) {
 			originalAssignedTo = taskVO.getAssignee();
 		}
-		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNER)) {
+		if (taskVO.getMetadataCodes().
+
+				contains(taskVO.getSchema().
+
+						getCode() + "_" + Task.ASSIGNER)) {
 			originalAssigner = taskVO.get(Task.ASSIGNER);
 		}
+
 	}
 
 	public String getViewTitle() {
@@ -504,8 +523,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustAssignerField() {
 		Field assignerField = getAssignerField();
-		if (assignerField != null && taskVO != null &&  taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNEE)
-				&& !Objects.equals(originalAssignedTo, taskVO.getAssignee())) {
+		if (assignerField != null && taskVO != null && taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNEE)
+			&& !Objects.equals(originalAssignedTo, taskVO.getAssignee())) {
 			assignerField.setValue(getCurrentUser().getId());
 		}
 	}
@@ -644,7 +663,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		TaskUser taskUser = new TaskUser(getCurrentUser().getWrappedRecord(), types(),
 				modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory));
 		TaskFollower defaultFollower = taskUser.getDefaultFollowerWhenCreatingTask();
-		if(!editMode && field != null && defaultFollower != null) {
+		if (!editMode && field != null && defaultFollower != null) {
 			field.addTaskFollower(defaultFollower);
 		}
 	}

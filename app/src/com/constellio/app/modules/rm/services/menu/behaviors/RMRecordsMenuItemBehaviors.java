@@ -408,7 +408,7 @@ public class RMRecordsMenuItemBehaviors {
 				documentsId.add(record.getId());
 			}
 		}
-		params.getView().navigate().to(TaskViews.class).addTaskToFoldersOrDocuments(folderIds, documentsId);
+		params.getView().navigate().to(TaskViews.class).addTaskToFoldersOrDocuments(folderIds, documentsId, params.getView());
 	}
 
 	private boolean isBatchDeletePossible(List<String> recordIds, MenuItemActionBehaviorParams params) {
