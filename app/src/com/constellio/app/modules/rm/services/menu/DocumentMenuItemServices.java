@@ -100,7 +100,7 @@ public class DocumentMenuItemServices {
 
 		if (!filteredActionTypes.contains(DOCUMENT_MOVE.name())) {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_MOVE.name(),
-					isMenuItemActionPossible(DOCUMENT_MOVE.name(), document, user, params),//todo check destination?
+					isMenuItemActionPossible(DOCUMENT_MOVE.name(), document, user, params),
 					$("DocumentContextMenu.changeParentFolder"), FontAwesome.FOLDER_O, -1, 425,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).move(document, params)));
 		}

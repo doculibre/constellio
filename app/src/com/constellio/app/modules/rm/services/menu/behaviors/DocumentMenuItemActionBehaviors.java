@@ -331,10 +331,6 @@ public class DocumentMenuItemActionBehaviors {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						String newParentId = (String) field.getValue();
-						//						Tree tree = (Tree) params.getView().getSessionContext();
-						//						SessionContext sessionContext = params.getView().getSessionContext();
-
-						//						String sourceParentId = document.getFolder();
 						try {
 							RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 							String currentDocumentId = document.getId();
