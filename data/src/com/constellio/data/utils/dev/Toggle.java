@@ -120,8 +120,6 @@ public class Toggle {
 	public static AvailableToggle DOCUMENT_RETENTION_RULES = newToggle(false);
 
 
-	public static AvailableToggle STRUCTURE_CACHE_BASED_ON_EXISTING_IDS = newToggle(true);
-
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

@@ -20,8 +20,6 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.wrappers.EventType;
-import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.vaadin.data.Item;
 import com.vaadin.event.ItemClickEvent;
@@ -59,7 +57,6 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	public static final String EVENT_DEFAULT_DATE = "event_default_createdOn";
 	public static final String EVENT_DEFAULT_MODIFIEDRECORDS = "event_default_totalModifiedRecord";
 	public static final String EVENT_DEFAULT_CONTENT = "event_default_content";
-	public static final String EVENT_DEFAULT_TYPE = "event_default_type";
 	public static final String EVENT_USERNAME_COLUMN = "event_default_username";
 	public static final String EVENT_IP_COLUMN = "event_default_ip";
 	public static final String EVENT_TITLE_COLUMN = "event_default_title";
@@ -138,7 +135,8 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		final Boolean isRecordEvent = EventTypeUtils.isRecordEvent(eventType);
 		final RecordVOTable table = new RecordVOTable(title, container, isRecordEvent) {
 			@Override
-			protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue, RecordVO recordVO) {
+			protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue,
+													   RecordVO recordVO) {
 				if (presenter.isDeltaMetadata(metadataValue)) {
 					return displayButton(metadataValue);
 				} else if (presenter.isTypeMetadata(metadataValue)) {
@@ -393,7 +391,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	@Override
 	public String getCollection() {
 		if (EventType.ATTEMPTED_OPEN_SESSION.equals(presenter.getEventType())) {
-			return Collection.SYSTEM_COLLECTION;
+			return com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 		}
 		return super.getCollection();
 	}
