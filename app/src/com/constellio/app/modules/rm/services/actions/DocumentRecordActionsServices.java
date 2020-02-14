@@ -34,7 +34,7 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isMoveActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) &&
+		return isEditActionPossible(record, user) &&
 			   rmModuleExtensions.isMoveActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
