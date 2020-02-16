@@ -17,15 +17,15 @@ public interface SecondTransactionLogManager extends StatefulService {
 
 	void nextSequence(String sequenceId, TransactionResponseDTO transactionInfo);
 
-	String regroupAndMoveInVault();
+	String regroupAndMove();
 
 	void destroyAndRebuildSolrCollection();
 
-	void moveTLOGToBackup();
+	void transactionLOGReindexationStartStrategy();
 
-	void deleteLastTLOGBackup();
+	void transactionLOGReindexationCleanupStrategy();
 
-	void setAutomaticRegroupAndMoveInVaultEnabled(boolean enabled);
+	void setAutomaticRegroupAndMoveEnabled(boolean enabled);
 
 	void deleteUnregroupedLog()
 			throws SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException;

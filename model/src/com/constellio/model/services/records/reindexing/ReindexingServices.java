@@ -7,6 +7,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecord
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.systemLogger.SystemLogger;
@@ -61,6 +62,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -163,8 +165,8 @@ public class ReindexingServices {
 
 				SystemLogger.info("Reindexing started");
 				if (logManager != null && params.getReindexationMode().isFullRewrite()) {
-					logManager.regroupAndMoveInVault();
-					logManager.moveTLOGToBackup();
+					logManager.regroupAndMove();
+					logManager.transactionLOGReindexationStartStrategy();
 					RecordDao recordDao = dataLayerFactory.newRecordDao();
 					try {
 
@@ -195,8 +197,8 @@ public class ReindexingServices {
 				}
 
 				if (logManager != null && params.getReindexationMode().isFullRewrite()) {
-					logManager.regroupAndMoveInVault();
-					logManager.deleteLastTLOGBackup();
+					logManager.regroupAndMove();
+					logManager.transactionLOGReindexationCleanupStrategy();
 				}
 
 				RecordDao recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
@@ -729,5 +731,9 @@ public class ReindexingServices {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void resetLogVersionSql() throws SQLException {
+		this.dataLayerFactory.getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).resetVersion();
 	}
 }

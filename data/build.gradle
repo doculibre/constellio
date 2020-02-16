@@ -3,6 +3,8 @@ dependencies {
     compile 'org.quartz-scheduler:quartz:2.3.0'
     compile "org.apache.poi:poi-ooxml:4.0.0"
     compile "org.apache.poi:poi:4.0.0"
+    compile 'commons-dbutils:commons-dbutils:1.7'
+    compile group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '7.4.1.jre8'
     compile "org.libreoffice:juh:5.2.0"
     compile "org.libreoffice:jurt:5.2.0"
     compile "org.libreoffice:ridl:5.2.0"

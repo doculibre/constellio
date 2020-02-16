@@ -15,6 +15,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -262,6 +263,101 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		assertThat(recordServices.validateLogicallyDeletable(wordDocument.getWrappedRecord(), User.GOD).isEmpty()).isTrue();
 		assertThat(recordServices.validateLogicallyDeletable(childFolder.getWrappedRecord(), User.GOD).isEmpty()).isTrue();
 		assertThat(recordServices.validateLogicallyDeletable(records.getFolder_A03().getWrappedRecord(), User.GOD).isEmpty()).isTrue();
+	}
+
+	@Test
+	public void whenCreatingADocumentThatRequireNoConversionWithPDFTronThenNoConvertion() throws Exception {
+
+		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
+
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, "licence");
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, false);
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+
+		ContentVersionDataSummary version1 = contentManager.upload(getTestResourceFile("test.docx"));
+
+		Document wordDocument = newDocumentWithContent(contentManager.createMajor(dakota, "test.docx", version1));
+		recordServices.add(wordDocument);
+
+		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
+		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isFalse();
+		contentManager.convertPendingContentForPreview();
+		recordServices.flush();
+		recordServices.refresh(wordDocument);
+		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
+		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isFalse();
+	}
+
+	@Test
+	public void whenADocumentIsCreatedWithThumbnailAndPdfTronIsActivatedThenFilePreviewIsCreated() throws Exception {
+		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
+
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, "licence");
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, true);
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+
+		ContentVersionDataSummary version1 = contentManager.upload(getTestResourceFile("test.docx"));
+
+		Document wordDocument = newDocumentWithContent(contentManager.createMajor(dakota, "test.docx", version1));
+		recordServices.add(wordDocument);
+
+		assertThat(wordDocument.isMarkedForPreviewConversion()).isTrue();
+		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isFalse();
+		contentManager.convertPendingContentForPreview();
+		recordServices.flush();
+		recordServices.refresh(wordDocument);
+		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
+		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isTrue();
+	}
+
+	@Test
+	public void whenADocumentIsMarkWithPreviewConversionButPdfTronIsActivatedBeforeConvertPendingPreviewIsCalledThenNoPreviewConvertion()
+			throws Exception {
+
+
+		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+
+		ContentVersionDataSummary version1 = contentManager.upload(getTestResourceFile("test.docx"));
+
+		Document wordDocument = newDocumentWithContent(contentManager.createMajor(dakota, "test.docx", version1));
+		wordDocument.setMarkedForPreviewConversion(true);
+		recordServices.add(wordDocument);
+
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, "licence");
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, false);
+
+		contentManager.convertPendingContentForPreview();
+		recordServices.flush();
+		recordServices.refresh(wordDocument);
+
+
+		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
+		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isFalse();
+	}
+
+	@Test
+	public void whenCreatingADocumentThatRequireNoConversionWithPDFTronAndIsMarkForConversionThenNoConversion()
+			throws Exception {
+
+		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
+
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, "licence");
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, false);
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+
+		ContentVersionDataSummary version1 = contentManager.upload(getTestResourceFile("test.docx"));
+
+		Document wordDocument = newDocumentWithContent(contentManager.createMajor(dakota, "test.docx", version1));
+		wordDocument.setMarkedForPreviewConversion(true);
+		recordServices.add(wordDocument);
+
+		// RMDocumentExtension on modification and creation set markedPreviewConversion if content is modified
+		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
 	}
 
 	@Test

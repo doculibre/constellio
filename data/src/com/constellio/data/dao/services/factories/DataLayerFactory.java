@@ -6,6 +6,7 @@ import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.EventBusSendingServiceType;
 import com.constellio.data.conf.IdGeneratorType;
+import com.constellio.data.conf.SecondTransactionLogType;
 import com.constellio.data.conf.SolrServerType;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
@@ -42,7 +43,8 @@ import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionM
 import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
 import com.constellio.data.dao.services.leaderElection.ZookeeperLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.recovery.TransactionLogRecovery;
+import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.dao.services.sequence.SolrSequencesManager;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
@@ -50,8 +52,12 @@ import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.SolrServers;
 import com.constellio.data.dao.services.solr.serverFactories.CloudSolrServerFactory;
 import com.constellio.data.dao.services.solr.serverFactories.HttpSolrServerFactory;
+import com.constellio.data.dao.services.sql.SqlConnector;
+import com.constellio.data.dao.services.sql.SqlRecordDaoFactory;
+import com.constellio.data.dao.services.sql.SqlServerConnector;
 import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
+import com.constellio.data.dao.services.transactionLog.SqlServerTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.XMLSecondTransactionLogManager;
 import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusManager;
@@ -72,6 +78,7 @@ import org.apache.ignite.Ignite;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -94,6 +101,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	private final IOServicesFactory ioServicesFactory;
 	private final SolrServers solrServers;
+	private final SqlConnector sqlConnector;
+	private SqlRecordDaoFactory sqlRecordDaoFactory;
 	private ConstellioCacheManager localCacheManager;
 	private ConstellioCacheManager distributedCacheManager;
 	private final ConfigManager configManager;
@@ -107,7 +116,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final ConstellioJobManager constellioJobManager;
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
-	final TransactionLogRecoveryManager transactionLogRecoveryManager;
+	final TransactionLogRecovery transactionLogXmlRecoveryManager;
 	private String constellioVersion;
 	private final ConversionManager conversionManager;
 	private final EventBusManager eventBusManager;
@@ -133,6 +142,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		this.ioServicesFactory = ioServicesFactory;
 		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions);
 		this.dataLayerLogger = new DataLayerLogger();
+		this.sqlConnector = new SqlServerConnector();
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
 
@@ -225,18 +235,34 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			throw new ImpossibleRuntimeException("Unsupported UniqueIdGenerator");
 		}
 
+		if(dataLayerConfiguration.getMicrosoftSqlServerUrl() != null){
+			try {
+				this.sqlConnector.setConnection(dataLayerConfiguration);
+				this.sqlRecordDaoFactory = new SqlRecordDaoFactory(this.sqlConnector);
+			}catch(SQLException sqlException){
+				throw new RuntimeException(sqlException);
+			}
+		}
+
 		updateContentDao();
 
-		transactionLogRecoveryManager = new TransactionLogRecoveryManager(this);
+		transactionLogXmlRecoveryManager = new TransactionLogXmlRecoveryManager(this);
 
 		if (dataLayerConfiguration.isSecondTransactionLogEnabled()) {
-			if ("kafka".equals(dataLayerConfiguration.getSecondTransactionLogMode())) {
+			if (dataLayerConfiguration.getSecondTransactionLogMode() == SecondTransactionLogType.KAFKA) {
 				secondTransactionLogManager = add(new KafkaTransactionLogManager(dataLayerConfiguration,
 						dataLayerExtensions.getSystemWideExtensions(), newRecordDao(), dataLayerLogger));
-			} else {
+			}
+			else if(dataLayerConfiguration.getSecondTransactionLogMode()==SecondTransactionLogType.SQL_SERVER){
+
+				secondTransactionLogManager = add(new SqlServerTransactionLogManager(dataLayerConfiguration,
+						ioServicesFactory.newIOServices(), newRecordDao(), sqlRecordDaoFactory ,contentDao, backgroundThreadsManager, dataLayerLogger,
+						dataLayerExtensions.getSystemWideExtensions(), transactionLogXmlRecoveryManager, this.leaderElectionManager));
+			}
+			else {
 				secondTransactionLogManager = add(new XMLSecondTransactionLogManager(dataLayerConfiguration,
 						ioServicesFactory.newIOServices(), newRecordDao(), contentDao, backgroundThreadsManager, dataLayerLogger,
-						dataLayerExtensions.getSystemWideExtensions(), transactionLogRecoveryManager));
+						dataLayerExtensions.getSystemWideExtensions(), transactionLogXmlRecoveryManager));
 			}
 		} else {
 			secondTransactionLogManager = null;
@@ -300,6 +326,10 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		return contentDao;
 	}
 
+	public SqlRecordDaoFactory getSqlRecordDao(){
+		return sqlRecordDaoFactory;
+	}
+
 	public BigVaultServer getRecordsVaultServer() {
 		return solrServers.getSolrServer(RECORDS_COLLECTION);
 	}
@@ -336,6 +366,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		return dataLayerLogger;
 	}
 
+
 	public IOServicesFactory getIOServicesFactory() {
 		return ioServicesFactory;
 	}
@@ -350,12 +381,22 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	@Override
 	public void close() {
 		super.close();
+		try {
+			sqlConnector.closeConnection();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		solrServers.close();
 	}
 
 	@Override
 	public void close(boolean closeBottomLayers) {
 		super.close(closeBottomLayers);
+		try {
+			sqlConnector.closeConnection();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		solrServers.close();
 	}
 
@@ -430,8 +471,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		}
 	}
 
-	public TransactionLogRecoveryManager getTransactionLogRecoveryManager() {
-		return this.transactionLogRecoveryManager;
+	public TransactionLogRecovery getTransactionLogXmlRecoveryManager() {
+		return this.transactionLogXmlRecoveryManager;
 	}
 
 	public SequencesManager getSequencesManager() {
@@ -466,4 +507,5 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	public boolean isDistributed() {
 		return !(leaderElectionManager.getNestedLeaderElectionManager() instanceof StandaloneLeaderElectionManager);
 	}
+
 }

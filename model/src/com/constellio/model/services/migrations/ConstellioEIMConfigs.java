@@ -173,6 +173,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ALWAYS_SEARCH_USING_EDISMAX;
 	public static final SystemConfiguration SEARCH_USING_TERMS_IN_BQ;
 
+	public static final SystemConfiguration ASK_FOR_CONFIRMATION_BEFORE_EDIT_OR_DELETE;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -212,6 +214,8 @@ public class ConstellioEIMConfigs {
 
 		add(LEGACY_IDENTIFIER_INDEXED_IN_MEMORY = advanced.createBooleanFalseByDefault("legacyIdentifierIndexedInMemory")
 				.whichRequiresReboot());
+
+		add(ASK_FOR_CONFIRMATION_BEFORE_EDIT_OR_DELETE = others.createBooleanTrueByDefault("askForConfirmationBeforeEditOrDelete"));
 
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
@@ -688,6 +692,10 @@ public class ConstellioEIMConfigs {
 
 	public boolean isLegacyIdentifierIndexedInMemory() {
 		return manager.getValue(LEGACY_IDENTIFIER_INDEXED_IN_MEMORY);
+	}
+
+	public boolean isAskForConfirmationBeforeDeleteOrEdit() {
+		return manager.getValue(ASK_FOR_CONFIRMATION_BEFORE_EDIT_OR_DELETE);
 	}
 
 }

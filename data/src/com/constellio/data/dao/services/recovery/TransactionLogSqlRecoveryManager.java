@@ -8,12 +8,10 @@ import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerAd
 import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerQueryListener;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
-import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LazyIterator;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -27,7 +25,6 @@ import org.apache.solr.common.params.SolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,21 +33,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-public class TransactionLogRecoveryManager implements RecoveryService, BigVaultServerAddEditListener,
-		BigVaultServerQueryListener {
-	private final static Logger LOGGER = LoggerFactory.getLogger(TransactionLogRecoveryManager.class);
-	private static final String RECOVERY_WORK_DIR = TransactionLogRecoveryManager.class.getName() + "recoveryWorkDir";
+public class TransactionLogSqlRecoveryManager implements TransactionLogRecovery{
+
+	private final static Logger LOGGER = LoggerFactory.getLogger(TransactionLogXmlRecoveryManager.class);
+	//private static final String RECOVERY_WORK_DIR = TransactionLogXmlRecoveryManager.class.getName() + "recoveryWorkDir";
 
 	final DataLayerFactory dataLayerFactory;
-	File recoveryWorkDir, recoveryFile;
 	RecoveryTransactionReadWriteServices readWriteServices;
-	private final IOServices ioServices;
 	private boolean inRollbackMode;
-	Set<String> loadedRecordsIds, fullyLoadedRecordsIds, newRecordsIds, deletedRecordsIds, updatedRecordsIds;
+	Set<String> loadedRecordsIds, fullyLoadedRecordsIds, newRecordsIds, contentRecords;
 
-	public TransactionLogRecoveryManager(DataLayerFactory dataLayerFactory) {
+	public TransactionLogSqlRecoveryManager(DataLayerFactory dataLayerFactory) {
 		this.dataLayerFactory = dataLayerFactory;
-		ioServices = this.dataLayerFactory.getIOServicesFactory().newIOServices();
 	}
 
 	@Override
@@ -61,25 +55,17 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		}
 	}
 
-	void realStartRollback() {
+	@Override
+	public void realStartRollback() {
 		loadedRecordsIds = new HashSet<>();
 		fullyLoadedRecordsIds = new HashSet<>();
 		newRecordsIds = new HashSet<>();
-		deletedRecordsIds = new HashSet<>();
-		updatedRecordsIds = new HashSet<>();
-		createRecoveryFile();
 		inRollbackMode = true;
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
 				.getSecondTransactionLogManager();
-		transactionLogManager.setAutomaticRegroupAndMoveInVaultEnabled(false);
-		transactionLogManager.regroupAndMoveInVault();
+		transactionLogManager.setAutomaticRegroupAndMoveEnabled(false);
+		transactionLogManager.regroupAndMove();
 		dataLayerFactory.getRecordsVaultServer().registerListener(this);
-	}
-
-	private void createRecoveryFile() {
-		recoveryWorkDir = ioServices.newTemporaryFolder(RECOVERY_WORK_DIR);
-		this.recoveryFile = new File(recoveryWorkDir, "rollbackLogs");
-		readWriteServices = new RecoveryTransactionReadWriteServices(ioServices, dataLayerFactory.getDataLayerConfiguration());
 	}
 
 	@Override
@@ -90,18 +76,15 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		}
 	}
 
-	void realStopRollback() {
+	@Override
+	public void realStopRollback() {
 		dataLayerFactory.getRecordsVaultServer().unregisterListener(this);
-		deleteRecoveryFile();
 		inRollbackMode = false;
+		contentRecords.clear();
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
 				.getSecondTransactionLogManager();
-		transactionLogManager.regroupAndMoveInVault();
-		transactionLogManager.setAutomaticRegroupAndMoveInVaultEnabled(true);
-	}
-
-	private void deleteRecoveryFile() {
-		ioServices.deleteQuietly(recoveryWorkDir);
+		transactionLogManager.regroupAndMove();
+		transactionLogManager.setAutomaticRegroupAndMoveEnabled(true);
 	}
 
 	@Override
@@ -109,6 +92,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		return inRollbackMode;
 	}
 
+	@Override
 	public void disableRollbackModeDuringSolrRestore() {
 		stopRollbackMode();
 	}
@@ -124,30 +108,28 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		}
 	}
 
-	void realRollback(Throwable t) {
+	@Override
+	public void realRollback(Throwable t) {
 		dataLayerFactory.getRecordsVaultServer().unregisterListener(this);
 		recover();
 		LOGGER.info("Rollback - recovered solr");
-		deleteRecoveryFile();
+		contentRecords.clear();
 		LOGGER.info("deleteRecoveryFile() done");
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
 				.getSecondTransactionLogManager();
 		transactionLogManager.deleteUnregroupedLog();
 		LOGGER.info("transactionLogManager.deleteUnregroupedLog() done");
-		transactionLogManager.setAutomaticRegroupAndMoveInVaultEnabled(true);
-		LOGGER.info("transactionLogManager.setAutomaticRegroupAndMoveInVaultEnabled(true) done");
+		transactionLogManager.setAutomaticRegroupAndMoveEnabled(true);
+		LOGGER.info("transactionLogManager.setAutomaticRegroupAndMoveEnabled(true) done");
 		inRollbackMode = false;
 	}
 
 	private void recover() {
 		BigVaultServer bigVaultServer = dataLayerFactory.getRecordsVaultServer();
 		SolrClient server = bigVaultServer.getNestedSolrServer();
-		this.deletedRecordsIds.removeAll(this.newRecordsIds);
-		this.updatedRecordsIds.removeAll(this.newRecordsIds);
+
 		removeNewRecords(server);
-		Set<String> alteredDocuments = new HashSet<>(this.deletedRecordsIds);
-		alteredDocuments.addAll(this.updatedRecordsIds);
-		restore(server, alteredDocuments);
+
 		try {
 			bigVaultServer.softCommit();
 		} catch (IOException e) {
@@ -163,7 +145,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		}
 
 		final Iterator<BigVaultServerTransaction> transactionsIterator = this.readWriteServices
-				.newOperationsIterator(recoveryFile);
+				.newOperationsIterator(null);
 
 		Iterator<List<SolrInputDocument>> docsToRecoverIterator = new LazyIterator<List<SolrInputDocument>>() {
 			@Override
@@ -239,7 +221,6 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 			}
 		}
 		handleAddUpdateFullDocuments(transaction.getNewDocuments());
-		handleUpdatedPartialDocuments(transaction.getUpdatedDocuments());
 		handleDeletedDocuments(transaction.getDeletedRecords());
 	}
 
@@ -256,7 +237,6 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 			deletedRecordsIds.add(deletedRecordId);
 		}
 		ensureRecordLoaded(deletedRecordsIds);
-		this.deletedRecordsIds.addAll(deletedRecords);
 	}
 
 	void ensureRecordLoaded(Set<String> recordsIds) {
@@ -289,32 +269,6 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		}
 	}
 
-	void handleUpdatedPartialDocuments(List<SolrInputDocument> updatedDocuments) {
-		handleUpdatedDocuments(updatedDocuments, true);
-	}
-
-	void handleUpdatedFullDocuments(List<SolrInputDocument> updatedDocuments) {
-		handleUpdatedDocuments(updatedDocuments, false);
-	}
-
-	void handleUpdatedDocuments(List<SolrInputDocument> updatedDocuments, boolean partialDocument) {
-		if (updatedDocuments == null || updatedDocuments.isEmpty()) {
-			return;
-		}
-		Set<String> updatedDocumentsIds = new HashSet<>();
-		for (SolrInputDocument document : updatedDocuments) {
-			String id = (String) document.getFieldValue("id");
-			updatedDocumentsIds.add(id);
-		}
-		if (partialDocument) {
-			ensureRecordLoaded(updatedDocumentsIds);
-		} else {
-			List<Object> updatedDocumentsAsObjects = new ArrayList<>();
-			updatedDocumentsAsObjects.addAll(updatedDocuments);
-			appendLoadedRecordsFile(updatedDocumentsAsObjects);
-		}
-		this.updatedRecordsIds.addAll(updatedDocumentsIds);
-	}
 
 	void handleAddUpdateFullDocuments(List<SolrInputDocument> addUpdateFullDocuments) {
 		if (addUpdateFullDocuments == null || addUpdateFullDocuments.isEmpty()) {
@@ -337,7 +291,6 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		} else {
 			updatedFullDocuments = addUpdateFullDocumentsIds;
 		}
-		handleUpdatedFullDocuments(getDocumentsHavingIds(addUpdateFullDocuments, updatedFullDocuments));
 	}
 
 	//TODO test me
@@ -434,11 +387,6 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		this.fullyLoadedRecordsIds.addAll(notAlreadyLoadedDocumentsIds);
 		String transaction = this.readWriteServices.toLogEntry(notAlreadySavedDocuments);
 
-		try {
-			FileUtils.writeStringToFile(this.recoveryFile, transaction, true);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	private String getDocumentId(Object document) {
@@ -459,7 +407,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 
 	public void close() {
 		stopRollbackMode();
-		deleteRecoveryFile();
+		contentRecords.clear();
 	}
 
 }

@@ -1,5 +1,6 @@
 package com.constellio.data.dao.services.records;
 
+import com.constellio.data.conf.SecondTransactionLogType;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
@@ -10,6 +11,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException;
+import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils.MapBuilder;
 import com.constellio.sdk.tests.annotations.LoadTest;
@@ -19,11 +21,13 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -511,7 +515,6 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	public void whenLoadingARecordWith__NULL__InTextFieldsThenConsideredAsNull()
 			throws Exception {
 		givenDisabledAfterTestValidations();
-
 		SolrInputDocument solrInputDocument = new SolrInputDocument();
 		solrInputDocument.setField("id", "zeId");
 		solrInputDocument.setField("field1_t", "__NULL__");
@@ -966,6 +969,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 
 	private void givenExceptionWhenExecutingTransactionThenNoModificationsApplied()
 			throws Exception {
+		givenDisabledAfterTestValidations();
 		List<SolrParams> deleteByQueries = asList((SolrParams) new ModifiableSolrParams().set("q", "savedField_s:666"));
 
 		RecordDTO firstAlreadySavedRecord = givenSavedRecordWithInitialValueInSavedMetadataFieldName();
@@ -1039,6 +1043,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	public void givenDeleteByQueryCalledThenDeleteOnlyTargettedRecords()
 			throws Exception {
 
+		givenDisabledAfterTestValidations();
 		Map<String, Object> fieldWith42 = new HashMap();
 		fieldWith42.put("afield_s", 42);
 		Map<String, Object> fieldWith42AndChuckNorris = new HashMap();
@@ -1230,4 +1235,6 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	private MapBuilder<String, Object> buildParamMapWith(String collection, String schema) {
 		return MapBuilder.with("collection_s", (Object) collection).andWith("schema_s", schema);
 	}
+
+
 }

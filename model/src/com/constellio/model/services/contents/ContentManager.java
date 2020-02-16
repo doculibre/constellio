@@ -17,6 +17,7 @@ import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
@@ -73,6 +74,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.utils.MimeTypes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -148,6 +150,7 @@ public class ContentManager implements StatefulService {
 	private final ModelLayerFactory modelLayerFactory;
 	private final IcapService icapService;
 	private final ThumbnailGenerator thumbnailGenerator;
+	private final DataLayerSystemExtensions dataLayerSystemExtensions;
 
 	private boolean serviceThreadEnabled = true;
 
@@ -175,6 +178,7 @@ public class ContentManager implements StatefulService {
 		this.icapService = icapService;
 		this.thumbnailGenerator = new ThumbnailGenerator();
 		this.conversionManager = modelLayerFactory.getDataLayerFactory().getConversionManager();
+		this.dataLayerSystemExtensions = modelLayerFactory.getDataLayerFactory().getExtensions().getSystemWideExtensions();
 	}
 
 	@Override
@@ -920,13 +924,23 @@ public class ContentManager implements StatefulService {
 		for (Metadata contentMetadata : schema.getMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
 			if (!contentMetadata.isMultivalue()) {
 				Content content = record.get(contentMetadata);
-				if (content != null) {
+
+				if (content != null && !isExtentionIsDisabledForPreview(content)) {
 					isConversionSuccessful = isConversionSuccessful &&
 											 tryConvertContentForPreview(content, tempFolder);
 				}
 			}
 		}
+
 		return isConversionSuccessful;
+	}
+
+	private boolean isExtentionIsDisabledForPreview(Content content) {
+		String fileName = content.getCurrentVersion().getFilename();
+
+		String ext = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+
+		return asList(this.dataLayerSystemExtensions.getExtentionDisabledForPreviewConvertion()).contains(ext);
 	}
 
 	private boolean tryConvertContentForPreview(Content content, File tempFolder) {

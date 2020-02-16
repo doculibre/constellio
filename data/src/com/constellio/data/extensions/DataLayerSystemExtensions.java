@@ -185,6 +185,15 @@ public class DataLayerSystemExtensions {
 		return allExtension.toArray(new String[0]);
 	}
 
+	public String[] getExtentionDisabledForPreviewConvertion() {
+		List<String> allNotSupportedExtensionNoMatterWhat = new ArrayList<>();
+		for (SupportedExtensionExtension extensionExtension : supportedExtensionExtensions.getExtensions()) {
+			allNotSupportedExtensionNoMatterWhat.addAll(extensionExtension.getExtentionDisabledForPreviewConvertion());
+		}
+
+		return allNotSupportedExtensionNoMatterWhat.toArray(new String[0]);
+	}
+
 	public ExtensionConverter getConverterForSupportedExtension(String extension) {
 		for (SupportedExtensionExtension extensionExtension : supportedExtensionExtensions.getExtensions()) {
 			if (extensionExtension.getAdditionalSupportedExtension().contains(extension)) {

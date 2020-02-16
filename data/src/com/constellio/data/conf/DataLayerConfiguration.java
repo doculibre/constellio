@@ -87,7 +87,7 @@ public interface DataLayerConfiguration {
 
 	String getKafkaServers();
 
-	String getSecondTransactionLogMode();
+	SecondTransactionLogType getSecondTransactionLogMode();
 
 	String getKafkaTopic();
 
@@ -110,5 +110,19 @@ public interface DataLayerConfiguration {
 	boolean areTiffFilesConvertedForPreview();
 
 	int getSequentialIdReservedBatchSize();
+
+	String getMicrosoftSqlServerUrl();
+
+	String getMicrosoftSqlServerDatabase();
+
+	String getMicrosoftSqlServeruser();
+
+	String getMicrosoftSqlServerpassword();
+
+	boolean getMicrosoftSqlServerencrypt();
+
+	boolean getMicrosoftSqlServertrustServerCertificate();
+
+	int getMicrosoftSqlServerloginTimeout();
 
 }

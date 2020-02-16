@@ -5,6 +5,14 @@
 #phantomJSBinary=
 port=7070
 
+# === SQL SERVER DATABSE CONFIGURATION ===
+sql.server.url=jdbc:sqlserver://localhost:1433
+sql.server.database=constellio
+sql.server.user=yourusername@yourserver
+sql.server.password=yourpassword
+sql.server.encrypt=true
+sql.server.trustServerCertificate=false
+sql.server.loginTimeout=15
 
 # === DATASTORE CONFIGURATION ===
 # *** WARNING : collections will be deleted ***3

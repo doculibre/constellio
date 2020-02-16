@@ -8,7 +8,7 @@ import com.constellio.data.extensions.extensions.configManager.ExtensionConverte
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImageUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.detect.Detector;
@@ -166,7 +166,7 @@ public class ConversionManager implements StatefulService {
 
 	private static final Map<String, String> COPY_EXTENSIONS = new HashMap<>();
 
-	public static String[] SUPPORTED_EXTENSIONS = new String[0];
+	private static String[] SUPPORTED_EXTENSIONS = new String[0];
 
 	private static boolean openOfficeOrLibreOfficeInstalled = false;
 
@@ -209,6 +209,7 @@ public class ConversionManager implements StatefulService {
 			COPY_EXTENSIONS.put("pps", "ppt");
 			supportedExtensionsList.addAll(COPY_EXTENSIONS.keySet());
 
+			// To get the values use getSupportedExtensions();
 			SUPPORTED_EXTENSIONS = supportedExtensionsList.toArray(new String[0]);
 			LOGGER.info("Conversion to PDF supported for the following extensions: " + Arrays.toString(SUPPORTED_EXTENSIONS));
 			openOfficeOrLibreOfficeInstalled = true;
@@ -510,15 +511,19 @@ public class ConversionManager implements StatefulService {
 		return pdfaFormat;
 	}
 
-	public String[] getSupportedExtensions() {
+	public String[] getAllSupportedExtensions() {
 		List<String> supportedExtensions = new ArrayList<>();
-		String[] potentiallySupportedExtensions = (String[]) ArrayUtils.addAll(SUPPORTED_EXTENSIONS, extensions.getSupportedExtensionExtensions());
+		String[] potentiallySupportedExtensions = ArrayUtils.addAll(SUPPORTED_EXTENSIONS, extensions.getSupportedExtensionExtensions());
 		supportedExtensions.addAll(Arrays.asList(potentiallySupportedExtensions));
 		if (!tiffFilesSupported) {
 			supportedExtensions.remove("tif");
 			supportedExtensions.remove("tiff");
 		}
 		return supportedExtensions.toArray(new String[0]);
+	}
+
+	public String[] getSupportedExtensions() {
+		return ArrayUtils.removeElements(getAllSupportedExtensions(), extensions.getExtentionDisabledForPreviewConvertion());
 	}
 
 	public boolean isSupportedExtension(String ext) {

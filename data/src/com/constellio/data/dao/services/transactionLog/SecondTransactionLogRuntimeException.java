@@ -83,6 +83,15 @@ public class SecondTransactionLogRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class SecondTransactionLogRuntimeException_CannotParseJsonLogCommand
+			extends SecondTransactionLogRuntimeException {
+
+		public SecondTransactionLogRuntimeException_CannotParseJsonLogCommand(String json,
+																		  Throwable t) {
+			super("Cannot parse json log command in String : " + json, t);
+		}
+	}
+
 	public static class SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException extends SecondTransactionLogRuntimeException {
 		final List<String> notDeletedFiles;
 
