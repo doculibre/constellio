@@ -96,7 +96,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
 		when(folderView.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(folderView.navigate()).thenReturn(navigator);
 		when(folderView.getUIContext()).thenReturn(uiContext);
-		when(folderView.getRecord()).thenReturn(folderVO);
+		when(folderView.getSummaryRecord()).thenReturn(folderVO);
 		when(uiContext.getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE)).thenReturn("plan");
 
 		when(containerView.getSessionContext()).thenReturn(sessionContext);

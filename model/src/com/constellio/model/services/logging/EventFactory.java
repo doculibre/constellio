@@ -131,7 +131,8 @@ public class EventFactory {
 
 	private void setRecordMetadata(Event event, Record record) {
 		event.setRecordId(record.getId());
-		String principalPath = record.get(Schemas.PRINCIPAL_PATH);
+		String principalPath = record.get(metadataSchemasManager.getSchemaOf(record).get(Schemas.PRINCIPAL_PATH.getLocalCode()));
+
 		event.setEventPrincipalPath(principalPath);
 		Object title = record.get(Schemas.TITLE);
 		if (title != null) {
@@ -159,7 +160,8 @@ public class EventFactory {
 		String recordSchemaType = schemaUtils.getSchemaTypeCode(recordSchema);
 
 		if (record.isSaved()) {
-			if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)) {
+			if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)
+				|| record.isModified(Schemas.LOGICALLY_DELETED_ON)) {
 				// event.setType(EventType.DELETE + "_" + recordSchemaType);
 				// Deletions are logged separately
 				return null;

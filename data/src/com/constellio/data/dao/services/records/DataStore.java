@@ -8,7 +8,7 @@ public class DataStore {
 
 	public static final String RECORDS = "records";
 	public static final String EVENTS = "events";
-	public static final String SEARCH = "search22";
+	public static final String SEARCH = "search";
 
 	public static final List<String> ALL = asList(RECORDS, EVENTS, SEARCH);
 }

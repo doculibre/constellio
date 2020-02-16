@@ -575,8 +575,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record toRecord(RecordDTO recordDTO, boolean allFields) {
-		MetadataSchema schema = modelFactory.getMetadataSchemasManager().getSchemaOf(recordDTO);
-		return toRecord(schema, recordDTO, allFields);
+		if (recordDTO.getCollection() == null) {
+			return recordsCaches.getRecordSummary(recordDTO.getId());
+
+		} else {
+			MetadataSchema schema = modelFactory.getMetadataSchemasManager().getSchemaOf(recordDTO);
+			return toRecord(schema, recordDTO, allFields);
+		}
 	}
 
 	public Record toRecord(MetadataSchemaType schemaType, RecordDTO recordDTO, boolean allFields) {

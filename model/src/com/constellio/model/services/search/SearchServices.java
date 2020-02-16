@@ -175,45 +175,49 @@ public class SearchServices {
 		return disconnectableRecordsCaches;
 	}
 
+
+	public SPEQueryResponse queryUsingsolr(LogicalSearchQuery query) {
+			return buildResponse(query);
+	}
+
 	public SPEQueryResponse query(LogicalSearchQuery query) {
-		//		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
-		//
-		//
-		//			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
-		//				List<Record> records = searchUsingCache(new LogicalSearchQuery(query));
-		//
-		//				if (query.getSortFields() == null || query.getSortFields().isEmpty()) {
-		//					Set<String> cacheRecordIds = records.stream().limit(query.getNumberOfRows())
-		//							.map(Record::getId).collect(Collectors.toSet());
-		//					Set<String> solrRecordIds = searchUsingSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
-		//							.stream().map(Record::getId).collect(Collectors.toSet());
-		//
-		//					if (!cacheRecordIds.equals(solrRecordIds)) {
-		//						throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
-		//												   + "\nWas : " + cacheRecordIds);
-		//					}
-		//				} else {
-		//					List<String> cacheRecordIds = records.stream().limit(query.getNumberOfRows())
-		//							.map(Record::getId).collect(Collectors.toList());
-		//					List<String> solrRecordIds = searchUsingSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
-		//							.stream().map(Record::getId).collect(Collectors.toList());
-		//
-		//					if (!cacheRecordIds.equals(solrRecordIds)) {
-		//						throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
-		//												   + "\nWas : " + cacheRecordIds);
-		//					}
-		//				}
-		//
-		//			}
-		//
-		//			List<Record> records = searchUsingCache(new LogicalSearchQuery(query).setNumberOfRows(1_000_000));
-		//
-		//			int to = Math.min(query.getStartRow() + query.getNumberOfRows(), records.size());
-		//			return new SPEQueryResponse(records.subList(query.getStartRow(), to), records.size());
-		//
-		//		} else {
-		return buildResponse(query);
-		//		}
+		if (!query.isHighlighting() && logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
+
+			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+				List<Record> records = searchUsingCache(new LogicalSearchQuery(query));
+
+				if (query.getSortFields() == null || query.getSortFields().isEmpty()) {
+					Set<String> cacheRecordIds = records.stream().limit(query.getNumberOfRows())
+							.map(Record::getId).collect(Collectors.toSet());
+					Set<String> solrRecordIds = searchUsingSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
+							.stream().map(Record::getId).collect(Collectors.toSet());
+
+					if (!cacheRecordIds.equals(solrRecordIds)) {
+						throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
+												   + "\nWas : " + cacheRecordIds);
+					}
+				} else {
+					List<String> cacheRecordIds = records.stream().limit(query.getNumberOfRows())
+							.map(Record::getId).collect(Collectors.toList());
+					List<String> solrRecordIds = searchUsingSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
+							.stream().map(Record::getId).collect(Collectors.toList());
+
+					if (!cacheRecordIds.equals(solrRecordIds)) {
+						throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
+												   + "\nWas : " + cacheRecordIds);
+					}
+				}
+
+			}
+
+			List<Record> records = searchUsingCache(new LogicalSearchQuery(query).setNumberOfRows(1_000_000));
+
+			int to = Math.min(query.getStartRow() + query.getNumberOfRows(), records.size());
+			return new SPEQueryResponse(records.subList(query.getStartRow(), to), records.size());
+
+		} else {
+			return queryUsingsolr(query);
+		}
 
 
 	}
@@ -287,7 +291,7 @@ public class SearchServices {
 	}
 
 	private List<Record> searchUsingSolr(LogicalSearchQuery query) {
-		return query(query).getRecords();
+		return queryUsingsolr(query).getRecords();
 	}
 
 	private List<Record> retrieveRecordsUsingCache(LogicalSearchQuery query)
@@ -304,7 +308,7 @@ public class SearchServices {
 	}
 
 	public List<MoreLikeThisRecord> searchWithMoreLikeThis(LogicalSearchQuery query) {
-		return query(query).getMoreLikeThisRecords();
+		return queryUsingsolr(query).getMoreLikeThisRecords();
 	}
 
 	public Stream<Record> stream(MetadataSchemaType schemaType, boolean summary) {
@@ -568,7 +572,7 @@ public class SearchServices {
 				String facet = condition.getSolrQuery(newSolrQueryBuilderContext(clonedQuery));
 				clonedQuery.addQueryFacet("filterMatch", facet);
 				clonedQuery.setNumberOfRows(0);
-				SPEQueryResponse response = query(clonedQuery);
+				SPEQueryResponse response = queryUsingsolr(clonedQuery);
 				return response.getNumFound() == 0 || response.getNumFound() == response.getQueryFacetCount(facet);
 
 			}
@@ -765,7 +769,7 @@ public class SearchServices {
 
 	@Nullable
 	private Record searchSingleResultUsingSolr(LogicalSearchCondition condition) {
-		SPEQueryResponse response = query(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL).setNumberOfRows(1));
+		SPEQueryResponse response = queryUsingsolr(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL).setNumberOfRows(1));
 		if (response.getNumFound() > 1) {
 			SolrQueryBuilderContext params = new SolrQueryBuilderContext(false, new ArrayList<>(), "?", null, null, null) {
 			};
@@ -1332,7 +1336,7 @@ public class SearchServices {
 				}
 			}
 
-			if (systemConfigs.isSearchUsingEDismax()) {
+			if (systemConfigs.isAlwaysSearchUsingEDismax() || isFreeTextRequiringEDismax(query)) {
 				params.add("defType", "edismax");
 			} else {
 				params.add("defType", "dismax");
@@ -1518,6 +1522,19 @@ public class SearchServices {
 		}
 
 		return params;
+	}
+
+	private boolean isFreeTextRequiringEDismax(LogicalSearchQuery query) {
+
+		if (query.getFreeTextQuery() == null) {
+			return false;
+
+		} else {
+			String freeText = query.getFreeTextQuery().toLowerCase();
+			return freeText.contains("?") || freeText.contains("*") || freeText.contains("(")
+				   || freeText.contains(")") || freeText.contains("and") || freeText.contains("or")
+				   || freeText.contains("not");
+		}
 	}
 
 	@NotNull
@@ -1745,7 +1762,29 @@ public class SearchServices {
 
 	private QueryResponseDTO queryDao(LogicalSearchQuery query) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		QueryResponseDTO responseDTO = dataStoreDao(query.getDataStore()).query(query.getName(), params);
+		QueryResponseDTO responseDTO = null;
+		if (modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().isCopyingRecordsInSearchCollection()
+			&& isSupportedInSearchCollection(query, params)) {
+			responseDTO = dataStoreDao(DataStore.SEARCH).query(query.getName(), params);
+
+			//			QueryResponseDTO expectedResponseDTO = dataStoreDao(query.getDataStore()).query(query.getName(), params);
+			//
+			//			List<String> ids = responseDTO.getResults().stream().map(RecordDTO::getId).collect(Collectors.toList());
+			//			List<String> expectedIds = expectedResponseDTO.getResults().stream().map(RecordDTO::getId)
+			//					.collect(Collectors.toList());
+			//
+			//			if (!ids.equals(expectedIds)) {
+			//				System.out.println("Ids : " + ids);
+			//				System.out.println("Expected ids : " + expectedIds);
+			//				System.out.println();
+			//			} else {
+			//				System.out.println("Success!");
+			//			}
+
+		} else {
+			responseDTO = dataStoreDao(query.getDataStore()).query(query.getName(), params);
+		}
+
 		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()
 			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
 
@@ -1770,6 +1809,10 @@ public class SearchServices {
 		} else {
 			return responseDTO;
 		}
+	}
+
+	private boolean isSupportedInSearchCollection(LogicalSearchQuery query, ModifiableSolrParams params) {
+		return query.getReturnedMetadatas().isOnlyId() && query.getFreeTextQuery() != null;
 	}
 
 	private List<MoreLikeThisRecord> getResultWithMoreLikeThis(List<MoreLikeThisDTO> moreLikeThisResults) {

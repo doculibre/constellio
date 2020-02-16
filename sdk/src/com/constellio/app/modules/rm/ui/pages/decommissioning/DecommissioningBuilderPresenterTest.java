@@ -59,6 +59,7 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 		when(typesDisplayConfig.getFacetMetadataCodes()).thenReturn(Arrays.asList(FACET_CODE));
 		when(factories.getModelLayerFactory().getSystemConfigs()).thenReturn(mockedConfigs);
 		when(mockedConfigs.getSearchSortType()).thenReturn(SearchSortType.RELEVENCE);
+		when(mockedConfigs.isApplyMultipleFacetButtonEnabled()).thenReturn(false);
 		when(factories.getAppLayerFactory().getModulesManager()).thenReturn(modulesManager);
 		when(factories.getModelLayerFactory().getConfiguration()).thenReturn(modelLayerConfiguration);
 		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn(Locale.FRENCH.getLanguage());

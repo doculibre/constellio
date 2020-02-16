@@ -404,6 +404,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				if (facets) {
 					service.configureQueryToComputeFacets(query);
 				}
+
 				return query;
 			}
 
@@ -707,6 +708,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		} else {
 			query.setReturnedMetadatas(ReturnedMetadatasFilter.allExceptContentAndLargeText());
 		}
+
 
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);

@@ -90,12 +90,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	public static final String STYLE_NAME = "display-folder";
 	public static final String USER_LOOKUP = "user-lookup";
-	private RecordVO recordVO;
+	private RecordVO summaryRecordVO;
 	private String taxonomyCode;
 	private VerticalLayout mainLayout;
 	private ContentVersionUploadField uploadField;
 	private TabSheet tabSheet;
-	private RecordDisplay recordDisplay;
+	private Component recordDisplay;
 	private FacetsSliderPanel facetsSliderPanel;
 	private Component folderContentComponent;
 	private ViewableRecordVOTablePanel viewerPanel;
@@ -165,13 +165,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
-	public RecordVO getRecord() {
-		return recordVO;
+	public RecordVO getSummaryRecord() {
+		return summaryRecordVO;
 	}
 
 	@Override
-	public void setRecord(RecordVO recordVO) {
-		this.recordVO = recordVO;
+	public void setSummaryRecord(RecordVO recordVO) {
+		this.summaryRecordVO = recordVO;
 	}
 
 	@Override
@@ -210,7 +210,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		});
 
-		recordDisplay = new RecordDisplay(recordVO, new RMMetadataDisplayFactory());
+		recordDisplay = new CustomComponent();
 		folderContentComponent = new CustomComponent();
 		tasksComponent = new CustomComponent();
 
@@ -344,7 +344,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				FolderMenuItemActionType.FOLDER_DISPLAY.name(),
 				FolderMenuItemActionType.FOLDER_EDIT.name(),
 				FolderMenuItemActionType.FOLDER_ADD_DOCUMENT.name());
-		return new RecordVOActionButtonFactory(recordVO, excludedActionTypes).build();
+		return new RecordVOActionButtonFactory(summaryRecordVO, excludedActionTypes).build();
 	}
 
 	@Override
@@ -380,6 +380,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void selectMetadataTab() {
+
+		if (!(recordDisplay instanceof RecordDisplay)) {
+			RecordDisplay newRecordDisplay = new RecordDisplay(presenter.getLazyFullFolderVO(), new RMMetadataDisplayFactory());
+			tabSheet.replaceComponent(recordDisplay, newRecordDisplay);
+			recordDisplay = newRecordDisplay;
+		}
+
 		tabSheet.setSelectedTab(recordDisplay);
 	}
 

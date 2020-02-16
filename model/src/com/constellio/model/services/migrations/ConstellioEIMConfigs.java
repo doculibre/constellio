@@ -170,7 +170,7 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES;
 
-	public static final SystemConfiguration SEARCH_USING_EDISMAX;
+	public static final SystemConfiguration ALWAYS_SEARCH_USING_EDISMAX;
 	public static final SystemConfiguration SEARCH_USING_TERMS_IN_BQ;
 
 	static {
@@ -342,7 +342,7 @@ public class ConstellioEIMConfigs {
 
 		add(DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES = search.createBooleanFalseByDefault("displayOnlySummaryMetadatasInTables"));
 
-		add(SEARCH_USING_EDISMAX = search.createBooleanTrueByDefault("searchUsingEDismax").whichIsHidden());
+		add(ALWAYS_SEARCH_USING_EDISMAX = search.createBooleanFalseByDefault("alwaysSearchUsingEDismax").whichIsHidden());
 		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanTrueByDefault("searchUsingBQ").whichIsHidden());
 
 		add(ENABLE_FACETS_APPLY_BUTTON = search.createBooleanFalseByDefault("applyMultipleFacets"));
@@ -439,8 +439,8 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(SEARCH_USING_TERMS_IN_BQ);
 	}
 
-	public boolean isSearchUsingEDismax() {
-		return manager.getValue(SEARCH_USING_EDISMAX);
+	public boolean isAlwaysSearchUsingEDismax() {
+		return manager.getValue(ALWAYS_SEARCH_USING_EDISMAX);
 	}
 
 	public boolean isShowResultsNumberingInListView() {
@@ -655,7 +655,7 @@ public class ConstellioEIMConfigs {
 	}
 
 	public boolean isApplyMultipleFacetButtonEnabled() {
-		return manager.getValue(ENABLE_FACETS_APPLY_BUTTON);
+		return manager != null && manager.<Boolean>getValue(ENABLE_FACETS_APPLY_BUTTON);
 	}
 
 	public boolean isUpdateServerConnectionEnabled() {

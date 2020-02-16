@@ -49,6 +49,12 @@ public interface RecordId extends Comparable, Serializable {
 		return recordId.intValue();
 	}
 
+	static boolean isIntId(String stringValue) {
+		long intValue = LangUtils.tryParseLong(stringValue, -1);
+		return intValue != -1;
+	}
+
+
 	static RecordId toId(String stringValue) {
 		if (stringValue == null) {
 			return null;

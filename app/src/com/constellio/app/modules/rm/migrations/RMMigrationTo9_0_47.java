@@ -10,10 +10,10 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class RMMigrationTo9_0_46 implements MigrationScript {
+public class RMMigrationTo9_0_47 implements MigrationScript {
 	@Override
 	public String getVersion() {
-		return "9.0.46";
+		return "9.0.47";
 	}
 
 	@Override
@@ -38,11 +38,13 @@ public class RMMigrationTo9_0_46 implements MigrationScript {
 			//TODO : Should not exist!
 			folderSchema.get(Folder.ACTIVE_RETENTION_CODE).setEssentialInSummary(false);
 			folderSchema.get(Folder.SEMIACTIVE_RETENTION_CODE).setEssentialInSummary(false);
+			folderSchema.get(Schemas.PRINCIPAL_PATH).setEssentialInSummary(true);
 
 			MetadataSchemaBuilder documentSchema = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
 			documentSchema.get(Schemas.ATTACHED_ANCESTORS).setEssentialInSummary(false);
 			documentSchema.get(Document.FOLDER_CATEGORY).setCacheIndex(false);
 			documentSchema.get(Schemas.PATH_PARTS).setEssentialInSummary(false).setCacheIndex(false);
+			documentSchema.get(Schemas.PRINCIPAL_PATH).setEssentialInSummary(true);
 
 		}
 	}
