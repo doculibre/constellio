@@ -44,6 +44,7 @@ public class FormMetadataVO implements Serializable {
 	boolean uniqueValue;
 	boolean isMultiLingual;
 	List<String> readAccessRoles;
+	private Map<String, String> helpMessages;
 
 	public FormMetadataVO(short id, String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO,
 						  String reference,
@@ -54,7 +55,8 @@ public class FormMetadataVO implements Serializable {
 						  boolean autocomplete, boolean availableInSummary, boolean enabled,
 						  String metadataGroup,
 						  Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue,
-						  Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual) {
+						  Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual,
+						  Map<String, String> helpMessages) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR", 2)[1];
@@ -87,6 +89,7 @@ public class FormMetadataVO implements Serializable {
 		this.inheritance = null;
 		this.uniqueValue = uniqueValue;
 		this.isMultiLingual = isMultiLingual;
+		this.helpMessages = helpMessages;
 	}
 
 	public FormMetadataVO(SessionContext sessionContext) {
@@ -117,6 +120,7 @@ public class FormMetadataVO implements Serializable {
 		this.customAttributes = new HashSet<>();
 		this.inheritance = null;
 		this.isMultiLingual = false;
+		this.helpMessages = new HashMap<>();
 	}
 
 	public short getId() {
@@ -360,6 +364,22 @@ public class FormMetadataVO implements Serializable {
 
 	public void removeCustomAttribute(String attribute) {
 		customAttributes.remove(attribute);
+	}
+
+	public String getHelpMessage(String currentLanguageCode) {
+		return helpMessages.get(currentLanguageCode);
+	}
+
+	public Map<String, String> getHelpMessages() {
+		return helpMessages;
+	}
+
+	public void setHelpMessage(String currentLanguageCode, String helpMessage) {
+		this.helpMessages.put(currentLanguageCode, helpMessage);
+	}
+
+	public void setHelpMessages(Map<String, String> helpMessages) {
+		this.helpMessages = new HashMap<>(helpMessages);
 	}
 
 

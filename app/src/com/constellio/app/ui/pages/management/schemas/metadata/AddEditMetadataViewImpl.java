@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCr
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
+import com.constellio.app.ui.framework.components.fields.MultilingualRichTextField;
 import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
@@ -83,6 +84,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private CheckBox duplicableField;
 	@PropertyId("ParentMetadataLabel")
 	private TextField parentMetadataLabel;
+	@PropertyId("helpMessages")
+	private MultilingualRichTextField helpMessagesField;
 
 	@PropertyId("readAccessRoles")
 	private ListOptionGroup listOptionGroupRole;
@@ -312,17 +315,11 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			case CONTENT:
 				sortableField.setValue(false);
 			case REFERENCE:
-				break;
 			case DATE:
-				break;
 			case DATE_TIME:
-				break;
 			case INTEGER:
-				break;
 			case STRING:
-				break;
 			case NUMBER:
-				break;
 			case STRUCTURE:
 				break;
 		}
@@ -340,6 +337,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		//		labelsField.setRequired(true);
 		labelsField.setId("labels");
 		labelsField.addStyleName("labels");
+
+		helpMessagesField = new MultilingualRichTextField();
+		helpMessagesField.setId("helpMessages");
+		helpMessagesField.addStyleName("helpMessages");
 
 		if (inherited) {
 			parentMetadataLabel = new TextField();
@@ -601,7 +602,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, valueType, multivalueType,
 				inputType, inputMask, metadataGroup, listOptionGroupRole, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
-				advancedSearchField, highlight, autocomplete, availableInSummary, uniqueField, multiLingualField));
+				advancedSearchField, highlight, autocomplete, availableInSummary, helpMessagesField, uniqueField, multiLingualField));
 
 		for (CheckBox customAttributeField : customAttributesField) {
 			fields.add(customAttributeField);
@@ -624,6 +625,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			@Override
 			public void commit() {
 				labelsField.commit();
+				helpMessagesField.commit();
 				for (Field<?> field : fieldGroup.getFields()) {
 					try {
 						field.commit();
@@ -648,10 +650,12 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 				try {
 					labelsField.validateFields();
+					helpMessagesField.validateFields();
 				} catch (InvalidValueException e) {
 					showErrorMessage(e.getMessage());
 					return;
 				}
+
 				presenter.preSaveButtonClicked(formMetadataVO, editMode);
 			}
 

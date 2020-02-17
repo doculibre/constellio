@@ -1,18 +1,5 @@
 package com.constellio.app.services.schemasDisplay;
 
-import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getCustomSchemaDefaultDisplay;
-import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getDefaultSchemaDefaultDisplay;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -32,6 +19,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -208,7 +196,7 @@ public class SchemasDisplayManagerCache implements Serializable {
 		if (metadata.getInheritance() == null) {
 			config = new MetadataDisplayConfig(collection, metadataCode, false, getDefaultMetadataInputType(
 					metadataCode, metadataSchemasManager), false, "",
-					getDefaultMetadataDisplayType());
+					getDefaultMetadataDisplayType(), null);
 		} else {
 			MetadataDisplayConfig inheritedConfig = getMetadata(metadata.getInheritance().getCode(), metadataSchemasManager);
 			config = MetadataDisplayConfig.inheriting(metadataCode, inheritedConfig);

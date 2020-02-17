@@ -28,21 +28,23 @@ public class MetadataSchemaVO implements Serializable {
 	final String localCode;
 	final CollectionInfoVO collectionInfoVO;
 	final RecordCacheType cacheType;
+	final Map<Locale, String> helpMessages;
 
 	public MetadataSchemaVO(String code, String collection, Map<Locale, String> labels,
-							CollectionInfoVO collectionInfoVO) {
-		this(code, collection, null, null, null, null, null, null, labels, collectionInfoVO, null);
+							CollectionInfoVO collectionInfoVO, Map<Locale, String> helpMessages) {
+		this(code, collection, null, null, null, null, null, null, labels, collectionInfoVO, null, helpMessages);
 	}
 
 	public MetadataSchemaVO(String code, String collection, String localCode, Map<Locale, String> labels,
-							CollectionInfoVO collectionInfoVO) {
-		this(code, collection, localCode, null, null, null, null, null, labels, collectionInfoVO, null);
+							CollectionInfoVO collectionInfoVO, Map<Locale, String> helpMessage) {
+		this(code, collection, localCode, null, null, null, null, null, labels, collectionInfoVO, null, helpMessage);
 	}
 
 	public MetadataSchemaVO(String code, String collection, String localCode, List<String> formMetadataCodes,
 							List<String> hiddenFormMetadataCodes, List<String> displayMetadataCodes,
 							List<String> tableMetadataCodes, List<String> searchMetadataCodes,
-							Map<Locale, String> labels, CollectionInfoVO collectionInfoVO, RecordCacheType cacheType) {
+							Map<Locale, String> labels, CollectionInfoVO collectionInfoVO, RecordCacheType cacheType,
+							Map<Locale, String> helpMessages) {
 		super();
 		this.code = code;
 		this.collection = collection;
@@ -55,6 +57,7 @@ public class MetadataSchemaVO implements Serializable {
 		this.localCode = localCode;
 		this.collectionInfoVO = collectionInfoVO;
 		this.cacheType = cacheType;
+		this.helpMessages = helpMessages;
 	}
 
 	public RecordCacheType getCacheType() {
@@ -171,6 +174,10 @@ public class MetadataSchemaVO implements Serializable {
 
 	public void setLabel(Locale locale, String label) {
 		labels.put(locale, label);
+	}
+
+	public String getHelpMessage(Locale locale) {
+		return helpMessages.get(locale);
 	}
 
 	@Override

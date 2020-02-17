@@ -345,13 +345,16 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, "group_default_title");
 		assertThat(metadataDisplay.getInputType()).isEqualTo(FIELD);
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isFalse();
+		assertThat(metadataDisplay.getHelpMessages()).isEmpty();
 
 		manager.saveMetadata(metadataDisplay.withInputType(MetadataInputType.HIDDEN)
-				.withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true)
+				.withFrenchHelpMessage("BeepBeepBoop"));
 
 		metadataDisplay = manager.getMetadata(zeCollection, "group_default_title");
 		assertThat(metadataDisplay.getInputType()).isEqualTo(MetadataInputType.HIDDEN);
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isTrue();
+		assertThat(metadataDisplay.getFrenchHelpMessage()).isEqualTo("BeepBeepBoop");
 
 	}
 
@@ -878,6 +881,29 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.getMetadataGroup()).hasSize(4);
 		assertThat(typeDisplay.getMetadataGroup().keySet()).containsOnly("group1", "group2", "group3", "group4");
+	}
+
+	@Test
+	public void givenMetadataWhenWithAddedHelpMessageThenMessageConserved()
+		throws Exception {
+
+		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
+		defaultSchema.create("metadata").setType(MetadataValueType.STRING);
+		schemasManager.saveUpdateSchemaTypes(typesBuilder);
+
+		MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, "myType_default_metadata");
+		assertThat(metadataDisplay.getHelpMessages()).isEmpty();
+
+		manager.saveMetadata(metadataDisplay
+				.withEnglishHelpMessage("help")
+				.withFrenchHelpMessage("aide")
+		);
+
+		metadataDisplay = manager.getMetadata(zeCollection, "myType_default_metadata");
+		assertThat(metadataDisplay.getEnglishHelpMessage()).isEqualTo("help");
+		assertThat(metadataDisplay.getFrenchHelpMessage()).isEqualTo("aide");
 	}
 
 	private Map<String, Map<Language, String>> configureLabels(List<String> values) {
