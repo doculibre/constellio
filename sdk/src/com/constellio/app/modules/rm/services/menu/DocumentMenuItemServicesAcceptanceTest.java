@@ -251,22 +251,6 @@ public class DocumentMenuItemServicesAcceptanceTest extends ConstellioTest {
 		assertThat(rmRecords.getDocumentWithContent_A19().getAlertUsersWhenAvailable()).isEmpty();
 	}
 
-	@Test
-	public void givenSingleDocumentWhenCreateTaskThenDocumentIsAutomaticallyLinkedToTask() {
-		//todo: verif que la métadonnée "dossiers liés" est prefilled avec le document sélectionné
-		/*retrieveMenuItemActions(rm.getDocument(rmRecords.document_A19));
-		clickAction(menuItemActionByType.get(DocumentMenuItemActionType.DOCUMENT_ADD_TASK.name()));*/
-	}
-
-
-	@Test
-	public void givenUserWithNoAccessOnDocumentWhenContextualMenuThenTasksOptionIsDisabled() {
-		/*connectAsAlice(rm.getDocument(rmRecords.document_A19));
-		MenuItemAction tasksMenu = menuItemActionByType.get(DocumentMenuItemActionType.DOCUMENT_ADD_TASK.name());
-		assertThat(tasksMenu.getState().getStatus()).isEqualTo(MenuItemActionStateStatus.DISABLED);*/
-	}
-
-
 	private void retrieveMenuItemActions(Document document) {
 		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecord(document.getWrappedRecord(),
 				Collections.singletonList(DOCUMENT_OPEN.name()), menuItemActionBehaviorParams);

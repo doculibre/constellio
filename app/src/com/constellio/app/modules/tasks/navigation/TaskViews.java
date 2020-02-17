@@ -80,7 +80,6 @@ public class TaskViews extends CoreViews {
 			}
 			TimedCache timedCache = new TimedCache(Duration.standardHours(1));
 			timedCache.insert(TASK_PARAM_KEY, params);
-
 			view.getSessionContext().setAttribute(TASK_PARAM_KEY, timedCache);
 
 			Map<String, String> paramMap = new HashMap<>();

@@ -301,12 +301,6 @@ public class FolderMenuItemServicesAcceptanceTest extends ConstellioTest {
 		assertThat(state.getStatus()).isEqualTo(MenuItemActionStateStatus.VISIBLE);
 	}
 
-	@Test
-	public void givenSingleFolderWhenCreateTaskThenFolderIsAutomaticallyLinkedToTask() {
-		//todo: verif que la métadonnée "dossiers liés" contient le dossier sélectionné
-		assertThat(false).isTrue();
-	}
-
 	private void givenRemovedPermissionToModifyBorrowedFolder(String permission) {
 		for (Role role : rolesManager.getAllRoles(zeCollection)) {
 			List<String> roles = role.getOperationPermissions();
