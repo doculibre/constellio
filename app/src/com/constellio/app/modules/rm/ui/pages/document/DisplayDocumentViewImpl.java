@@ -469,6 +469,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
+	public void refreshActionMenu() {
+		super.refreshActionMenu();
+		com.vaadin.ui.JavaScript.eval("setTimeout(function () { if(resetToCurrentValues) { resetToCurrentValues(); }}, 2200)");
+	}
+
+	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		String saveSearchDecommissioningId = null;
 		String searchTypeAsString = null;
