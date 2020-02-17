@@ -305,11 +305,20 @@ public class MetadataVO implements Serializable {
 	}
 
 	public String getLabel(Locale locale) {
+		return getLabel(locale, true);
+	}
+
+	public String getLabel(Locale locale, boolean withMeasurementUnit) {
 		String label;
 		if (labels.containsKey(locale)) {
 			label = labels.get(locale);
 		} else {
 			label = labels.get(new Locale(locale.getLanguage()));
+		}
+		if (withMeasurementUnit) {
+			if (this.getMeasurementUnit() != null) {
+				label += " (" + this.getMeasurementUnit() + ")";
+			}
 		}
 		return label;
 	}
