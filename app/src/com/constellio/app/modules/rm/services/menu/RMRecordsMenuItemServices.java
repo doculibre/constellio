@@ -231,19 +231,18 @@ public class RMRecordsMenuItemServices {
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
-			case RMRECORDS_CREATE_TASK:    //todo: valider si possible de le faire pour dossiers et documents en même temps. Sinon, ajouter une validation ici.
-				// todo: aussi valider les permissions
-				return new MenuItemActionState(VISIBLE);
-
-				/*for (Record record : records) {
+			case RMRECORDS_CREATE_TASK:
+				for (Record record : records) {
 					boolean actionPossible = false;
 					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
-						actionPossible = documentRecordActionsServices.isCreatePdfActionPossible(record, user);
+						actionPossible = user.hasWriteAccess().on(record);
+					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = user.hasWriteAccess().on(record);
 					}
 					possibleCount += actionPossible ? 1 : 0;
-				}*/
-				/*return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						$("RMRecordsMenuItemServices.actionImpossible"));*/
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
 		}
 
 		return new MenuItemActionState(HIDDEN);
