@@ -103,9 +103,6 @@ public class MetadataFieldFactory implements Serializable {
 		if (metadata.getMaxLength() != null) {
 			modifiedCaption = $("MetadataFieldFactory.addMaxLength", caption, metadata.getMaxLength());
 		}
-		if (metadata.getMeasurementUnit() != null) {
-			modifiedCaption = $("MetadataFieldFactory.addMeasurementUnit", caption, metadata.getMeasurementUnit());
-		}
 
 		field.setId(metadata.getCode());
 		field.setCaption(modifiedCaption);

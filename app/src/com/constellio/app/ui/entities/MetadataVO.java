@@ -20,6 +20,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 @SuppressWarnings("serial")
 public class MetadataVO implements Serializable {
 	final String code;
@@ -317,7 +319,7 @@ public class MetadataVO implements Serializable {
 		}
 		if (withMeasurementUnit) {
 			if (this.getMeasurementUnit() != null) {
-				label += " (" + this.getMeasurementUnit() + ")";
+				label = $("labelWithMeasurementUnit", label, this.getMeasurementUnit());
 			}
 		}
 		return label;
