@@ -76,6 +76,9 @@ public class RecordDisplay extends BaseDisplay {
 
 					MetadataVO metadata = metadataValue.getMetadata();
 					String caption = metadata.getLabel(locale);
+					if (metadata.getMeasurementUnit() != null) {
+						caption += " (" + metadata.getMeasurementUnit() + ")";
+					}
 					Label captionLabel = new Label(caption);
 
 					String captionId = STYLE_CAPTION + "-" + metadata.getCode();
