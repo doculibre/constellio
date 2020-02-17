@@ -83,6 +83,7 @@ public class MetadataToVOBuilder implements Serializable {
 		MetadataInputType metadataInputType;
 		MetadataDisplayType metadataDisplayType;
 		String metadataGroup;
+		Map<Locale, String> metadataHelpMessages = new HashMap<>();
 
 		if (collection != null) {
 			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
@@ -124,6 +125,11 @@ public class MetadataToVOBuilder implements Serializable {
 
 			Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
 			metadataGroup = metadataDisplayConfig.getMetadataGroupCode();
+
+			for (Language keyset : metadata.getLabels().keySet()) {
+				metadataHelpMessages.put(keyset.getLocale(), metadataDisplayConfig.getHelpMessage(keyset));
+			}
+
 			String typeCode = metadata.getSchemaTypeCode();
 			Map<String, Map<Language, String>> groups = schemasDisplayManager.getType(collection, typeCode)
 					.getMetadataGroup();
@@ -179,7 +185,8 @@ public class MetadataToVOBuilder implements Serializable {
 				enabled,
 				structureFactory, metadataGroup, metadata.getDefaultValue(), metadata.getInputMask(),
 				metadata.getCustomAttributes(), isMultiLingual, locale, metadata.getCustomParameter(),
-				schemaVO != null ? schemaVO.getCollectionInfoVO() : null, sortable, metadata.isStoredInSummaryCache());
+				schemaVO != null ? schemaVO.getCollectionInfoVO() : null, sortable, metadata.isStoredInSummaryCache(),
+				metadataHelpMessages);
 	}
 
 	protected MetadataVO newMetadataVO(
@@ -209,11 +216,11 @@ public class MetadataToVOBuilder implements Serializable {
 			boolean isMultiLingual, Locale locale,
 			Map<String, Object> customParameters,
 			CollectionInfoVO collectionInfoVO, boolean sortable,
-			boolean summaryMetadata) {
+			boolean summaryMetadata, Map<Locale, String> metadataHelpMessages) {
 		return new MetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
 				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
 				enabled,
-				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata);
+				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata, metadataHelpMessages);
 	}
 
 }

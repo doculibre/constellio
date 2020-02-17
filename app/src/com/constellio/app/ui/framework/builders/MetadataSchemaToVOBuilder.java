@@ -77,6 +77,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		List<String> displayMetadataCodes = new ArrayList<>();
 		List<String> searchMetadataCodes = new ArrayList<>();
 		List<String> tableMetadataCodes = new ArrayList<>();
+		Map<Locale, String> helpMessages = new HashMap();
 
 		if (viewMode == VIEW_MODE.FORM) {
 			if (metadataCodes != null) {
@@ -140,7 +141,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		CollectionInfoVO collectionInfoVO = new CollectionInfoVO(collectionInfo.getMainSystemLanguage(), collectionInfo.getCode(), collectionInfo.getCollectionLanguages(),
 				collectionInfo.getMainSystemLocale(), collectionInfo.getSecondaryCollectionLanguesCodes(), collectionInfo.getCollectionLanguesCodes(), collectionInfo.getCollectionLocales());
 		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, localCode, formMetadataCodes, formHiddenMetadataCodes,
-				displayMetadataCodes, tableMetadataCodes, searchMetadataCodes, labels, collectionInfoVO, schema.getSchemaType().getCacheType());
+				displayMetadataCodes, tableMetadataCodes, searchMetadataCodes, labels, collectionInfoVO, schema.getSchemaType().getCacheType(), helpMessages);
 
 		if (!withoutBuildingMetadatas) {
 			boolean isMultiLingualActivated = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SEIZE_MULTILANGUAL_VALUES);
@@ -171,7 +172,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 	}
 
 	public MetadataSchemaVO buildCommon(VIEW_MODE viewMode, SessionContext sessionContext) {
-		MetadataSchemaVO schemaVO = new MetadataSchemaVO("null", sessionContext.getCurrentCollection(), new HashMap<>(), null);
+		MetadataSchemaVO schemaVO = new MetadataSchemaVO("null", sessionContext.getCurrentCollection(), new HashMap<>(), null, new HashMap<>());
 		MetadataToVOBuilder metadataToVOBuilder = newMetadataToVOBuilder();
 		MetadataVO titleMetadataVO = metadataToVOBuilder.build(Schemas.TITLE, sessionContext);
 		MetadataVO modifiedOnMetadataVO = metadataToVOBuilder.build(Schemas.MODIFIED_ON, sessionContext);

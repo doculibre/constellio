@@ -13,6 +13,7 @@ import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumW
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.lookup.PathLookupField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
@@ -172,6 +173,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			}
 			MetadataVO metadataVO = presenter.getMetadataVO(criterion.getMetadataCode());
 			comboBox.setValue(metadataVO);
+
 			comboBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
@@ -180,6 +182,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					if (metadataVO.getEnumClass() != null) {
 						enumClassName = metadataVO.getEnumClass().getName();
 					}
+
 					criterion.setMetadata(metadataVO.getCode(), metadataVO.getType(), enumClassName);
 					source.refreshRowCache();
 				}
@@ -208,42 +211,52 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component generateCell(Criterion criterion) {
+			Component cell;
 			if (criterion.getMetadataCode() == null) {
 				return null;
 			}
 			Component extensionComponentForCriterion = presenter.getExtensionComponentForCriterion(criterion);
 			if (extensionComponentForCriterion != null) {
-				return extensionComponentForCriterion;
-			}
-			if (criterion.getMetadataCode().endsWith("_schema")) {
-				return buildSchemaCriterionComponent(criterion);
-			}
-			switch (criterion.getMetadataType()) {
+				cell = extensionComponentForCriterion;
+			} else if (criterion.getMetadataCode().endsWith("_schema")) {
+				cell = buildSchemaCriterionComponent(criterion);
+			} else {
+				switch (criterion.getMetadataType()) {
 				case STRING:
 				case TEXT:
-					return criterion.getSearchOperator() == SearchOperator.IN_HIERARCHY ?
+					cell = criterion.getSearchOperator() == SearchOperator.IN_HIERARCHY ?
 						   buildHierarchyValueCriterion(criterion) :
 						   buildStringValueComponent(criterion);
+					break;
 				case DATE:
 				case DATE_TIME:
-					return buildDateValueComponent(criterion);
+					cell = buildDateValueComponent(criterion);
+					break;
 				case NUMBER:
 				case INTEGER:
-					return buildNumberValueComponent(criterion);
+					cell = buildNumberValueComponent(criterion);
+					break;
 				case BOOLEAN:
-					return buildBooleanValueComponent(criterion);
+					cell = buildBooleanValueComponent(criterion);
+					break;
 				case ENUM:
-					return buildEnumValueComponent(criterion);
+					cell = buildEnumValueComponent(criterion);
+					break;
 				case REFERENCE:
-					return buildReferenceValueComponent(criterion);
+					cell = buildReferenceValueComponent(criterion);
+					break;
+					default:
+						return null;
+				}
 			}
-			return null;
+			return cell;
 		}
 
 		private Component buildReferenceValueComponent(final Criterion criterion) {
 			MetadataVO metadata = presenter.getMetadataVO(criterion.getMetadataCode());
 
 			final Field<?> value = buildReferenceEntryField(metadata.getAllowedReferences(), criterion);
+			appendHelpMessage(criterion, value);
 
 			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
 			operator.setNullSelectionAllowed(false);
@@ -341,6 +354,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			final TextField value = new BaseTextField();
 			value.setWidth("100%");
 			value.setValue((String) criterion.getValue());
+			appendHelpMessage(criterion, value);
 			value.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
@@ -406,6 +420,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			component.setExpandRatio(lookup, 1);
 			component.setWidth("100%");
 			component.setSpacing(true);
+			appendHelpMessage(criterion, component);
 
 			return component;
 		}
@@ -426,6 +441,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					criterion.setSearchOperator((SearchOperator) operator.getValue());
 				}
 			});
+
+			appendHelpMessage(criterion, operator);
 			return operator;
 		}
 
@@ -473,6 +490,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			value.setWidth("100%");
 			value.setNullSelectionAllowed(false);
 			value.setValue(criterion.getValue());
+			appendHelpMessage(criterion, value);
 			value.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
@@ -515,6 +533,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			Component endRelativeSearchComponent = buildRelativeSearchComboBox(criterion, true);
 			ComboBox operator = buildComparisonComboBox(criterion, relativeSearchComponent, endRelativeSearchComponent);
 
+			appendHelpMessage(criterion, relativeSearchComponent, endRelativeSearchComponent);
+
 			I18NHorizontalLayout horizontalLayout = new I18NHorizontalLayout();
 			horizontalLayout.setSpacing(true);
 			horizontalLayout.addComponents(operator, relativeSearchComponent);
@@ -550,6 +570,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					verifyNewValue(value, criterion);
 				}
 			});
+
+			appendHelpMessage(criterion, value, endValue);
 
 			final Label label = new Label($("and"));
 			label.setWidth("100px");
@@ -787,6 +809,12 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		private LocalDateTime expandToBeforeMidnight(LocalDateTime date) {
 			return date.withTime(23, 59, 59, 999);
+		}
+
+		protected void appendHelpMessage(Criterion criterion, Component... valueFields) {
+			for (Component valueField : valueFields) {
+				new NiceTitle(presenter.getMetadataVO(criterion.getMetadataCode()).getHelpMessage()).setParent(valueField);
+			}
 		}
 	}
 

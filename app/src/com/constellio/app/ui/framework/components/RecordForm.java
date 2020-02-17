@@ -7,6 +7,8 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.IconButton;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.SchemaVOUtils;
@@ -16,6 +18,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.Item;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 
 import java.util.ArrayList;
@@ -83,11 +86,30 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	@Override
 	protected void addFieldToLayout(Field<?> field, VerticalLayout fieldLayout) {
 		Object propertyId = fieldGroup.getPropertyId(field);
-		if (propertyId instanceof MetadataVO && ((MetadataVO) propertyId).isForceHidden()) {
-			hiddenLayout.addComponent(field);
+
+		if (propertyId instanceof MetadataVO) {
+			Layout wrappedField = wrapFieldWithHelpMessage(((MetadataVO) propertyId), field);
+			if (((MetadataVO) propertyId).isForceHidden()) {
+				hiddenLayout.addComponent(wrappedField);
+			} else {
+				formLayout.addComponent(wrappedField);
+			}
 		} else {
 			super.addFieldToLayout(field, fieldLayout);
 		}
+	}
+
+	private Layout wrapFieldWithHelpMessage(MetadataVO metadataVO, Field<?> field) {
+		I18NHorizontalLayout layout = new I18NHorizontalLayout();
+		String metadataHelp = metadataVO.getHelpMessage(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+		IconButton helpIcon = new MouseOverHelpIcon(metadataHelp);
+
+		helpIcon.setVisible(!metadataHelp.isEmpty());
+
+		layout.setSizeFull();
+		layout.addComponents(field, helpIcon);
+		layout.setExpandRatio(field, 1);
+		return layout;
 	}
 
 	private static boolean isVisibleField(MetadataVO metadataVO, RecordVO recordVO) {

@@ -164,10 +164,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			Metadata metadata = types.getMetadata(metadataCode);
 
 			MetadataToFormVOBuilder voBuilder = new MetadataToFormVOBuilder(view.getSessionContext());
+
 			form = voBuilder.build(metadata, displayManager, schemaTypeCode, view.getSessionContext());
 			if (isAvailableInSummaryFlagAlwaysTrue(form.getValueType())) {
 				form.setAvailableInSummary(true);
 			}
+
 		}
 
 		return form;
@@ -395,7 +397,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 			if (isSaveButtonClicked) {
 				saveButtonClicked(formMetadataVO, editMode, schemaCode,
-						schemasManager, types, code, false, false, builder);
+						schemasManager, types, code,
+						false, false, builder);
 			}
 		}
 	}
@@ -503,15 +506,22 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 
 		MetadataDisplayConfig displayConfig = displayManager.getMetadata(collection, code);
+
+		Map<Language, String> metadataHelpMessages = new HashMap<>();
+		for (Entry<String, String> helpMessage : formMetadataVO.getHelpMessages().entrySet()) {
+			metadataHelpMessages.put(Language.withCode(helpMessage.getKey()), helpMessage.getValue());
+		}
+
 		if (displayConfig == null) {
 			displayConfig = new MetadataDisplayConfig(collection, code,
 					!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch(),
-					type, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup(), displayType);
+					type, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup(), displayType, metadataHelpMessages);
 		} else {
 			displayConfig = displayConfig.withHighlightStatus(formMetadataVO.isHighlight())
 					.withVisibleInAdvancedSearchStatus(!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch())
 					.withInputType(type)
-					.withDisplayType(displayType).withMetadataGroup(formMetadataVO.getMetadataGroup());
+					.withDisplayType(displayType).withMetadataGroup(formMetadataVO.getMetadataGroup())
+					.withHelpMessages(metadataHelpMessages);
 		}
 
 		displayManager.saveMetadata(displayConfig);
@@ -519,7 +529,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		if (formMetadataVO.isInheritance()) {
 			String codeInDefaultSchema = schemaTypeCode + "_default_" + new SchemaUtils().getLocalCodeFromMetadataCode(code);
 			displayConfig = displayManager.getMetadata(collection, codeInDefaultSchema)
-					.withVisibleInAdvancedSearchStatus(formMetadataVO.isAdvancedSearch());
+					.withVisibleInAdvancedSearchStatus(formMetadataVO.isAdvancedSearch())
+					.withHelpMessages(metadataHelpMessages);
 			displayManager.saveMetadata(displayConfig);
 		}
 
@@ -717,7 +728,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 					new HashMap<Locale, String>(), enumClass, new String[]{}, formMetadataVO.getReference(), inputType, displayType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),
 					formMetadataVO.getDefaultValue(), false, formMetadataVO.getCustomAttributes(),
-					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), collectionInfoVO, formMetadataVO.isSortable(), true);
+					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), collectionInfoVO, formMetadataVO.isSortable(), true, null);
 			return metadataVO;
 		} catch (Exception ex) {
 			log.error("error", ex);

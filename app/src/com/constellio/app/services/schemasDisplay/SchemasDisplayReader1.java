@@ -50,6 +50,9 @@ public class SchemasDisplayReader1 {
 	private static final String METADATA_GROUP = "metadataGroup";
 	private static final String METADATA_GROUP_CODE = "code";
 	private static final String LABELS = "labels";
+	private static final String HELP_MESSAGE = "HelpMessage";
+
+	public static final String HELP_MESSAGE_CODE_SEPARATOR = "_";
 
 	MetadataSchemaTypes types;
 	Document document;
@@ -316,10 +319,22 @@ public class SchemasDisplayReader1 {
 		if (displayTypeString == null) {
 			displayTypeString = "VERTICAL";
 		}
+		Map<Language, String> helpMessages = readHelpMessages(metadataDisplayConfigElement);
 		MetadataInputType metadataInputType = MetadataInputType.valueOf(inputTypeString);
 		MetadataDisplayType metadataDisplayType = MetadataDisplayType.valueOf(displayTypeString);
+
 		MetadataDisplayConfig metadataDisplayConfig = new MetadataDisplayConfig(collection, metadataCode,
-				visibleInAdvancedSearch, metadataInputType, highlight, metadataGroup, metadataDisplayType);
+				visibleInAdvancedSearch, metadataInputType, highlight, metadataGroup, metadataDisplayType, helpMessages);
 		return metadataDisplayConfig;
+	}
+
+	private Map<Language, String> readHelpMessages(Element metadataDisplayConfigElement) {
+		Map<Language, String> helpMessages = new HashMap<>();
+
+		for (Language language : languages) {
+			helpMessages.put(language, metadataDisplayConfigElement
+					.getAttributeValue(HELP_MESSAGE + HELP_MESSAGE_CODE_SEPARATOR + language.getCode()));
+		}
+		return helpMessages;
 	}
 }
