@@ -41,8 +41,8 @@ import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.data.utils.TemporaryUrlParameters;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.TimedCache;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -388,13 +388,12 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			previousPage = paramsMap.get("previousPage");
 
 			String tempParamKey = paramsMap.get("tempParams");
-			if (tempParamKey != null) {
-				TemporaryUrlParameters tempParam = this.getView().getUIContext().getAttribute(tempParamKey);
-				Map param = (Map) tempParam.getParameters().get(tempParamKey);
-
-				Object folders = param.get("folderId");
-				Object documents = param.get("documentId");
-
+			Object tempParamValue = this.getView().getUIContext().getAttribute(tempParamKey);
+			if (tempParamKey != null && tempParamValue instanceof TimedCache) {
+				TimedCache timedCache = (TimedCache) tempParamValue;
+				Map params = (Map) timedCache.get(tempParamKey);
+				Object folders = params.get("folderId");
+				Object documents = params.get("documentId");
 
 				if (folders != null && folders instanceof List) {
 					new RMTask(task).setLinkedFolders((List<String>) folders);
@@ -403,7 +402,6 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				if (documents != null && documents instanceof List) {
 					new RMTask(task).setLinkedDocuments((List<String>) documents);
 				}
-
 			}
 
 

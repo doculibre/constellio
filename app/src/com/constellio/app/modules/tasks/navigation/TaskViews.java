@@ -3,8 +3,9 @@ package com.constellio.app.modules.tasks.navigation;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.data.utils.TemporaryUrlParameters;
+import com.constellio.data.utils.TimedCache;
 import com.vaadin.navigator.Navigator;
+import org.joda.time.Duration;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,8 @@ import java.util.Map;
 import static com.constellio.app.ui.params.ParamUtils.addParams;
 
 public class TaskViews extends CoreViews {
+	public static String TASK_PARAM_KEY = "createTask";
+
 	public TaskViews(Navigator navigator) {
 		super(navigator);
 	}
@@ -66,7 +69,6 @@ public class TaskViews extends CoreViews {
 
 	public void addTaskToFoldersOrDocuments(List<String> foldersId, List<String> documentsId,
 											BaseView view) {
-		String KEY = "keykey_test";
 
 		Map<String, List<String>> params = new HashMap<>();
 		if (foldersId != null) {
@@ -76,19 +78,16 @@ public class TaskViews extends CoreViews {
 			if (documentsId != null) {
 				params.put("documentId", documentsId);
 			}
+			TimedCache timedCache = new TimedCache(Duration.standardHours(1));
+			timedCache.insert(TASK_PARAM_KEY, params);
 
-			TemporaryUrlParameters cachedParam = new TemporaryUrlParameters(KEY);
-			cachedParam.addParameters(KEY, params);
-
-			view.getUIContext().setAttribute(KEY, cachedParam);
+			view.getUIContext().setAttribute(TASK_PARAM_KEY, timedCache);
 
 			Map<String, String> paramMap = new HashMap<>();
-			paramMap.put("tempParams", KEY);
+			paramMap.put("tempParams", TASK_PARAM_KEY);
 			paramMap.put("previousPage", getCurrentPageFragment());
 
 			navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, paramMap));
-
-			//navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, cachedParam));
 
 		}
 

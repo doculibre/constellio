@@ -31,11 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.constellio.sdk.tests.FakeSessionContext.forRealUserIncollection;
@@ -303,6 +299,12 @@ public class FolderMenuItemServicesAcceptanceTest extends ConstellioTest {
 				FolderMenuItemActionType.FOLDER_BORROW.name(), recordServices.getDocumentById(rmRecords.folder_A48),
 				getMenuItemActionBehaviorParams());
 		assertThat(state.getStatus()).isEqualTo(MenuItemActionStateStatus.VISIBLE);
+	}
+
+	@Test
+	public void givenSingleFolderWhenCreateTaskThenFolderIsAutomaticallyLinkedToTask() {
+		//todo: verif que la métadonnée "dossiers liés" contient le dossier sélectionné
+		assertThat(false).isTrue();
 	}
 
 	private void givenRemovedPermissionToModifyBorrowedFolder(String permission) {
