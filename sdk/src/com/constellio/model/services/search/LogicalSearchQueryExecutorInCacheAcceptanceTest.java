@@ -68,7 +68,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaType("testschema").setSecurity(true);
 
 			MetadataSchemaBuilder defaultTestSchemaBuilder = testSchemaBuilder.getDefaultSchema();
-
+			defaultTestSchemaBuilder.get("title").setSortable(true);
 			defaultTestSchemaBuilder.create("cacheIndex").setType(MetadataValueType.STRING).setCacheIndex(true);
 			defaultTestSchemaBuilder.create("notCacheIndex").setType(MetadataValueType.STRING);
 			defaultTestSchemaBuilder.create("cacheIndexMultiValue").setType(MetadataValueType.STRING).setCacheIndex(true)
@@ -179,7 +179,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 	}
 
 	@Test
-	public void testCompositeLogicalSearchConditionIsEqualCriterionThenSmallBaseListUsed() {
+	public void testCompositeLogicalSearchConditionIsEqualCriterionThenSmallBaseListUsed() throws Exception {
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
 				.from(testsSchemaDefault).where(cacheIndex).isEqualTo("toBeFound3").andWhere(unique).isEqualTo("unique3"));
 
@@ -193,7 +193,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 	}
 
 	@Test
-	public void testDataStoreFieldLogicalSearchConditionIsEqualCriterionThenSmallBaseListUsed() {
+	public void testDataStoreFieldLogicalSearchConditionIsEqualCriterionThenSmallBaseListUsed() throws Exception {
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
 				.from(testsSchemaDefault).where(cacheIndex).isEqualTo("toBeFound3"));
 
@@ -206,7 +206,8 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 	}
 
 	@Test
-	public void testDataStoreFieldLogicalSearchConditionIsEqualCriterionOnNonCacheIndexThenSmallBaseListNotUsed() {
+	public void testDataStoreFieldLogicalSearchConditionIsEqualCriterionOnNonCacheIndexThenSmallBaseListNotUsed()
+			throws Exception {
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
 				.from(testsSchemaDefault).where(notCacheIndex).isEqualTo("nonCached1"));
 
@@ -219,7 +220,8 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 	}
 
 	@Test
-	public void testCompositeLogicalSearchConditionIsEqualCriterionNotUsingCacheWhenWrongTypeThenSmallBaseListNotUsed() {
+	public void testCompositeLogicalSearchConditionIsEqualCriterionNotUsingCacheWhenWrongTypeThenSmallBaseListNotUsed()
+			throws Exception {
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
 				.from(testsSchemaDefault).where(cacheIndex).isEqualTo(Arrays.asList("toBeFound2")).andWhere(unique).isEqualTo(Arrays.asList("unique2")));
 
@@ -232,7 +234,21 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 	}
 
 	@Test
-	public void testDataStoreFieldLogicalSearchConditionIsEqualCriterionNotUsingCacheWhenWrongTypeThenSmallBaseListNotUsed() {
+	public void testDataStoreFieldLogicalSearchConditionIsEqualCriterionNotUsingCacheWhenWrongTypeThenSmallBaseListNotUsed()
+			throws Exception {
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
+				.from(testsSchemaDefault).where(cacheIndex).isEqualTo(Arrays.asList("unique3")));
+
+		validateExecutableInCacheTrue(logicalSearchQuery);
+
+		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
+
+		assertThat(queryResult.size()).isEqualTo(0);
+
+	}
+
+	@Test
+	public void givenQueryIsSortingOnTitleThenUsingMainSortFieldInsteadTitleSortNormalizer() throws Exception {
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
 				.from(testsSchemaDefault).where(cacheIndex).isEqualTo(Arrays.asList("unique3")));
 

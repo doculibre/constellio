@@ -35,8 +35,6 @@ public class Toggle {
 
 	public static AvailableToggle RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS = newToggle(true);
 
-	public static AvailableToggle FASTER_REINDEXING = newToggle(false);
-
 	public static AvailableToggle RETENTION_RULE_DATE_TYPES = newToggle(false);
 
 	public static AvailableToggle FOLDER_SUMMARY_CONFIG = newToggle(false);
@@ -77,15 +75,18 @@ public class Toggle {
 
 	public static AvailableToggle VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR = newToggle(false);
 
+	//For test puroposes only
+	public static AvailableToggle USE_ONLY_SUMMARY_SOLR_RECORD_DTO = newToggle(false);
+
 	//Debug the dtos!
-	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(true);
+	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(false);
 	public static AvailableToggle DEBUG_DTOS = newToggle(false);
 
 	public static AvailableToggle MIGRATING_LEGACY_SAVESTATE = newToggle(false);
 
 	public static AvailableToggle TRI_LEVEL_CACHE_LOCKING_Mecanism = newToggle(false);
 
-	public static AvailableToggle USE_MMAP_WITHMAP_DB_FOR_LOADING = newToggle(true);
+	public static AvailableToggle USE_MMAP_WITHMAP_DB_FOR_LOADING = newToggle(false);
 	public static AvailableToggle USE_MMAP_WITHMAP_DB_FOR_RUNTIME = newToggle(false);
 
 	public static AvailableToggle USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE = newToggle(true);
@@ -93,9 +94,11 @@ public class Toggle {
 
 	public static AvailableToggle OFF_HEAP_ADDRESS_VALIDATOR = newToggle(false);
 
-	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(false);
+	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(true);
 
 	public static AvailableToggle PERFORMANCE_TESTING = newToggle(false);
+
+	public static AvailableToggle CONTENT_CONVERSION = newToggle(true);
 
 	public static AvailableToggle OLD_DELETE_UNUSED_CONTENT_METHOD = newToggle(false);
 
@@ -109,8 +112,13 @@ public class Toggle {
 	public static AvailableToggle DEBUG_SOLR_TIMINGS = newToggle(false);
 
 	public static AvailableToggle STRUCTURE_CACHE_BASED_ON_EXISTING_IDS = newToggle(true);
+	public static AvailableToggle STRUCTURE_CACHE_BASED_ON_EXISTING_IDS_ON_DEV_STATION = newToggle(false);
 
-	public static AvailableToggle ENABLE_PDTRON_TRIAL = newToggle(false);
+	public static AvailableToggle ENABLE_PDFTRON_TRIAL = newToggle(false);
+
+	public static AvailableToggle USE_MEMORY_STRING_ID_MAPPING = newToggle(false);
+	public static AvailableToggle DOCUMENT_RETENTION_RULES = newToggle(false);
+
 
 	// ------------------------------------------------
 

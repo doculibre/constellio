@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.CacheStat;
 import com.constellio.data.utils.Holder;
 import com.constellio.data.utils.LangUtils;
@@ -8,7 +9,9 @@ import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
+import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithStringId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 import java.util.ArrayList;
@@ -33,6 +36,7 @@ public class StringIdsRecordsCachesDataStore {
 	private Map<String, Holder<RecordDTO>> allRecordsWithStringKey = new HashMap<>();
 	private List<Holder<RecordDTO>>[] recordsWithStringKeyRegroupedByCollection = new List[256];
 	private List<Holder<RecordDTO>>[][] recordsWithStringKeyRegroupedByCollectionAndType = new List[256][];
+	private Map<Integer, Integer> mainSortValues = new HashMap<>();
 
 	private ModelLayerFactory modelLayerFactory;
 	private CollectionsListManager collectionsListManager;
@@ -139,6 +143,12 @@ public class StringIdsRecordsCachesDataStore {
 		} else {
 			recordDTOHolder.set(dto);
 		}
+
+		if (dto.getMainSortValue() != RecordDTO.MAIN_SORT_UNCHANGED) {
+			synchronized (mainSortValues) {
+				mainSortValues.put(RecordId.id(dto.getId()).intValue(), dto.getMainSortValue());
+			}
+		}
 	}
 
 
@@ -180,7 +190,26 @@ public class StringIdsRecordsCachesDataStore {
 
 	public RecordDTO get(String id) {
 		Holder<RecordDTO> recordDTOHolder = allRecordsWithStringKey.get(id);
-		return recordDTOHolder == null ? null : recordDTOHolder.get();
+		RecordDTO dto = recordDTOHolder == null ? null : recordDTOHolder.get();
+		return transform(dto);
+	}
+
+	private RecordDTO transform(RecordDTO dto) {
+		if (dto == null) {
+			return null;
+		} else if (dto instanceof ByteArrayRecordDTOWithStringId) {
+			int mainSortValue = mainSortValues.get(RecordId.id(dto.getId()).intValue());
+			if (mainSortValue > 0) {
+				((ByteArrayRecordDTOWithStringId) dto).setMainSortValue(mainSortValue);
+			}
+
+		} else if (dto instanceof SolrRecordDTO) {
+			int mainSortValue = mainSortValues.get(RecordId.id(dto.getId()).intValue());
+			if (mainSortValue > 0) {
+				return ((SolrRecordDTO) dto).withMainSortValue(mainSortValue);
+			}
+		}
+		return dto;
 	}
 
 	public Iterator<RecordDTO> iterator() {
@@ -211,7 +240,7 @@ public class StringIdsRecordsCachesDataStore {
 							if (recordDTOHolder != null) {
 								RecordDTO recordDTO = recordDTOHolder.get();
 								if (recordDTO != null) {
-									return recordDTO;
+									return transform(recordDTO);
 								}
 							}
 						}
@@ -248,7 +277,7 @@ public class StringIdsRecordsCachesDataStore {
 					if (recordDTOHolder != null) {
 						RecordDTO recordDTO = recordDTOHolder.get();
 						if (recordDTO != null) {
-							return recordDTO;
+							return transform(recordDTO);
 						}
 					}
 				}
@@ -280,7 +309,7 @@ public class StringIdsRecordsCachesDataStore {
 					if (recordDTOHolder != null) {
 						RecordDTO recordDTO = recordDTOHolder.get();
 						if (recordDTO != null) {
-							return recordDTO;
+							return transform(recordDTO);
 						}
 					}
 				}
@@ -314,7 +343,7 @@ public class StringIdsRecordsCachesDataStore {
 					if (recordDTOHolder != null) {
 						RecordDTO recordDTO = recordDTOHolder.get();
 						if (recordDTO != null && LangUtils.isEqual(recordDTO.getFields().get(metadataDataStoreCode), value)) {
-							return recordDTO;
+							return transform(recordDTO);
 						}
 					}
 				}
@@ -420,5 +449,16 @@ public class StringIdsRecordsCachesDataStore {
 			stats.add(new CacheStat("!!! Records with string ids are not calculated : " + allRecordsWithStringKey.size(), 1, 0));
 		}
 		return stats;
+	}
+
+	public void setRecordsMainSortValue(List<RecordId> recordIds) {
+		synchronized (mainSortValues) {
+			for (int i = 0; i < recordIds.size(); i++) {
+				RecordId recordId = recordIds.get(i);
+				if (!recordId.isInteger()) {
+					mainSortValues.put(recordId.intValue(), i * 2 + 1);
+				}
+			}
+		}
 	}
 }

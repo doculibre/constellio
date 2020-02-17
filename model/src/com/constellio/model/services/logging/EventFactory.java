@@ -3,10 +3,12 @@ package com.constellio.model.services.logging;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
@@ -51,11 +53,32 @@ public class EventFactory {
 		return event;
 	}
 
+	public Event newFailedLoginEvent(String username, String ip) {
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		Event event = schemasRecords.newEvent();
+		event.setCreatedOn(TimeProvider.getLocalDateTime());
+		event.setUsername(username);
+		event.setIp(ip);
+		event.setType(EventType.ATTEMPTED_OPEN_SESSION);
+		return event;
+	}
+
 	public Event newLogoutEvent(User user) {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
 		Event event = schemasRecords.newEvent();
 		setDefaultMetadata(event, user);
 		event.setType(EventType.CLOSE_SESSION);
+		return event;
+	}
+
+	public Event newBatchProcessEvent(BatchProcess process, int totalModifiedRecords, String eventType) {
+		User user = modelLayerFactory.newUserServices().getUserInCollection(process.getUsername(), process.getCollection());
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
+		Event event = schemasRecords.newEvent();
+		setDefaultMetadata(event, user);
+		event.setBatchProcessId(process.getId());
+		event.setTotalModifiedRecord(totalModifiedRecords);
+		event.setType(eventType);
 		return event;
 	}
 
@@ -108,7 +131,8 @@ public class EventFactory {
 
 	private void setRecordMetadata(Event event, Record record) {
 		event.setRecordId(record.getId());
-		String principalPath = record.get(Schemas.PRINCIPAL_PATH);
+		String principalPath = record.get(metadataSchemasManager.getSchemaOf(record).get(Schemas.PRINCIPAL_PATH.getLocalCode()));
+
 		event.setEventPrincipalPath(principalPath);
 		Object title = record.get(Schemas.TITLE);
 		if (title != null) {
@@ -136,7 +160,8 @@ public class EventFactory {
 		String recordSchemaType = schemaUtils.getSchemaTypeCode(recordSchema);
 
 		if (record.isSaved()) {
-			if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)) {
+			if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)
+				|| record.isModified(Schemas.LOGICALLY_DELETED_ON)) {
 				// event.setType(EventType.DELETE + "_" + recordSchemaType);
 				// Deletions are logged separately
 				return null;

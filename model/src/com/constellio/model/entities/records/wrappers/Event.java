@@ -1,5 +1,6 @@
 package com.constellio.model.entities.records.wrappers;
 
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
@@ -23,6 +24,9 @@ public class Event extends RecordWrapper {
 	public static final String DESCRIPTION = "description";
 	public static final String ACCEPTED = "accepted";
 	public static final String NEGATIVE_AUTHORIZATION = "negative";
+	public static final String BATCH_PROCESS_ID = "batchProcessIdentifier";
+	public static final String TOTAL_MODIFIED_RECORD = "totalModifiedRecord";
+	public static final String CONTENT = "content";
 
 	public Event(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE + "_");
@@ -179,6 +183,33 @@ public class Event extends RecordWrapper {
 
 	public Event setNegative(Boolean negative) {
 		set(NEGATIVE_AUTHORIZATION, negative);
+		return this;
+	}
+
+	public String getBatchProcessId() {
+		return get(BATCH_PROCESS_ID);
+	}
+
+	public Event setBatchProcessId(String batchProcessId) {
+		set(BATCH_PROCESS_ID, batchProcessId);
+		return this;
+	}
+
+	public int getTotalModifiedRecord() {
+		return get(TOTAL_MODIFIED_RECORD);
+	}
+
+	public Event setTotalModifiedRecord(int totalModifiedRecord) {
+		set(TOTAL_MODIFIED_RECORD, totalModifiedRecord);
+		return this;
+	}
+
+	public Content getContent() {
+		return get(CONTENT);
+	}
+
+	public Event setContent(Content content) {
+		set(CONTENT, content);
 		return this;
 	}
 }

@@ -14988,14 +14988,14 @@ div.v-layout.v-horizontal.v-widget {
 	width: 0px;
 }
 
-.constellio .v-multifileupload-dropzone {
+.constellio .v-multifileupload-dropzone, .constellio .v-multifileupload-no-dropzone {
 	width: 100%;
 	background-color: #fafafa;
 	background-image: none;
 	padding-top: 8px;
 }
 
-.constellio .v-multifileupload-dropzone .v-label {
+.constellio .v-multifileupload-dropzone .v-label, .constellio .v-multifileupload-no-dropzone .v-label {
 	font-size: inherit;
 }
 
@@ -15348,6 +15348,13 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .-facets-sliderpanel .v-radiobutton label {
 	color: #000000;
+}
+
+.constellio .-facets-sliderpanel .facet-apply {
+	left: 14px;
+	color: #fafafa;
+	background-color: #414B56;
+	background-image: none;
 }
 
 .constellio .viewable-record-table-panel .v-slot-main-component {
@@ -16981,6 +16988,11 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .v-slot-search-result-facets .facet-box .facet-value > label {
 	margin-right: 25px;
+}
+
+.constellio .right-to-left .v-slot-search-result-facets .facet-box .facet-apply {
+	padding-left: 20px;
+	background-color: #474747;
 }
 
 .constellio .right-to-left .header .header-search {

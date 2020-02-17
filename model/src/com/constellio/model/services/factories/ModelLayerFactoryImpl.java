@@ -166,14 +166,17 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		add(new StatefulService() {
 			@Override
 			public void initialize() {
-				//if (FoldersLocator.usingAppWrapper()) {
-					//Keeping mapping between runtimes
-					StringRecordId.setMapping(new StringRecordIdLegacyPersistedMapping(dataLayerFactory.getConfigManager()));
-
-				//} else {
+				if (!modelLayerConfiguration.isPersistingStringRecordIdLegacyMapping()) {
 					//Faster for tests
-				//	StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping());
-				//}
+					StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping(
+							markForReindexingRunnable));
+
+				} else {
+					//Keeping mapping between runtimes
+					StringRecordId.setMapping(new StringRecordIdLegacyPersistedMapping(
+							dataLayerFactory.getConfigManager(), markForReindexingRunnable));
+
+				}
 			}
 
 			@Override
@@ -217,10 +220,12 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		File workFolder = new FoldersLocator().getWorkFolder();
 		workFolder.mkdirs();
-		File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), instanceName + "-cache.db");
+
+		File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), (instanceName == null ? "constellio" : instanceName) + "-fsCache.db");
+		File memoryCacheCopyCacheFolder = new File(new FoldersLocator().getWorkFolder(), (instanceName == null ? "constellio" : instanceName) + "-memoryCacheCopy.db");
 		//FileUtils.deleteQuietly(fileSystemCacheFolder);
 		FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
-				= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
+				= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder, memoryCacheCopyCacheFolder);
 
 		RecordsCachesDataStore memoryDataStore = new RecordsCachesDataStore(this);
 		this.recordsCaches = add(new EventsBusRecordsCachesImpl(this, fileSystemRecordsValuesCacheDataStore, memoryDataStore));
@@ -322,9 +327,14 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	public RecordServicesImpl newCachelessRecordServices(RecordsCaches recordsCaches) {
 		RecordDao recordDao = dataLayerFactory.newRecordDao();
 		RecordDao eventsDao = dataLayerFactory.newEventsDao();
+		RecordDao searchDao = null;
+
+		if (dataLayerFactory.getDataLayerConfiguration().isCopyingRecordsInSearchCollection()) {
+			searchDao = dataLayerFactory.newSearchDao();
+		}
 		RecordDao notificationsDao = dataLayerFactory.newNotificationsDao();
 		DataStoreTypesFactory typesFactory = dataLayerFactory.newTypesFactory();
-		return new RecordServicesImpl(recordDao, eventsDao, notificationsDao, this, typesFactory,
+		return new RecordServicesImpl(recordDao, eventsDao, searchDao, notificationsDao, this, typesFactory,
 				dataLayerFactory.getUniqueIdGenerator(), recordsCaches);
 	}
 

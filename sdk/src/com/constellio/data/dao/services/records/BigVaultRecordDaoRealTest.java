@@ -511,7 +511,6 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	public void whenLoadingARecordWith__NULL__InTextFieldsThenConsideredAsNull()
 			throws Exception {
 		givenDisabledAfterTestValidations();
-
 		SolrInputDocument solrInputDocument = new SolrInputDocument();
 		solrInputDocument.setField("id", "zeId");
 		solrInputDocument.setField("field1_t", "__NULL__");
@@ -966,6 +965,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 
 	private void givenExceptionWhenExecutingTransactionThenNoModificationsApplied()
 			throws Exception {
+		givenDisabledAfterTestValidations();
 		List<SolrParams> deleteByQueries = asList((SolrParams) new ModifiableSolrParams().set("q", "savedField_s:666"));
 
 		RecordDTO firstAlreadySavedRecord = givenSavedRecordWithInitialValueInSavedMetadataFieldName();
@@ -1039,6 +1039,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	public void givenDeleteByQueryCalledThenDeleteOnlyTargettedRecords()
 			throws Exception {
 
+		givenDisabledAfterTestValidations();
 		Map<String, Object> fieldWith42 = new HashMap();
 		fieldWith42.put("afield_s", 42);
 		Map<String, Object> fieldWith42AndChuckNorris = new HashMap();
@@ -1230,4 +1231,6 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	private MapBuilder<String, Object> buildParamMapWith(String collection, String schema) {
 		return MapBuilder.with("collection_s", (Object) collection).andWith("schema_s", schema);
 	}
+
+
 }

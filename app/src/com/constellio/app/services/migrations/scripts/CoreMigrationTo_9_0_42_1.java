@@ -5,6 +5,9 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
@@ -42,8 +45,14 @@ public class CoreMigrationTo_9_0_42_1 extends MigrationHelper implements Migrati
 
 			for (MetadataSchemaTypeBuilder typeBuilder : typesBuilder.getTypes()) {
 				if (typeBuilder.getDefaultSchema().hasMetadata(CommonMetadataBuilder.ATTACHED_ANCESTORS)) {
-					typeBuilder.getDefaultSchema().getMetadata(CommonMetadataBuilder.ATTACHED_ANCESTORS)
-							.defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+					if (!typeBuilder.getCode().equals(Event.SCHEMA_TYPE)
+						&& !typeBuilder.getCode().equals(SavedSearch.SCHEMA_TYPE)
+						&& !typeBuilder.getCode().equals(SearchEvent.SCHEMA_TYPE)) {
+						typeBuilder.getDefaultSchema().getMetadata(CommonMetadataBuilder.ATTACHED_ANCESTORS)
+								.defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+					} else {
+						typeBuilder.getDefaultSchema().getMetadata(CommonMetadataBuilder.ATTACHED_ANCESTORS).defineDataEntry().asManual();
+					}
 				}
 			}
 		}

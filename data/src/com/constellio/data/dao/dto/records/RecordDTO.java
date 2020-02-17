@@ -6,6 +6,9 @@ import java.util.Set;
 
 public interface RecordDTO extends RecordsOperationDTO, Serializable {
 
+	int MAIN_SORT_UNDEFINED = 0;
+	int MAIN_SORT_UNCHANGED = -1;
+
 	String getId();
 
 	default short getTenantId() {
@@ -13,6 +16,8 @@ public interface RecordDTO extends RecordsOperationDTO, Serializable {
 	}
 
 	long getVersion();
+
+	int getMainSortValue();
 
 	Map<String, Object> getFields();
 

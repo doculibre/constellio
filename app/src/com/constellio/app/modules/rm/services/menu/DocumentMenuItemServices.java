@@ -25,6 +25,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CHECK_IN;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CHECK_OUT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CONSULT_LINK;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CONTENT_RENAME;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_COPY;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CREATE_PDF;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_DELETE;
@@ -35,6 +36,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GENERATE_REPORT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GET_PUBLIC_LINK;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_MANAGE_AUTHORIZATIONS;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_MOVE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_OPEN;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PRINT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PUBLISH;
@@ -94,6 +96,20 @@ public class DocumentMenuItemServices {
 					isMenuItemActionPossible(DOCUMENT_DOWNLOAD.name(), document, user, params),
 					$("DocumentContextMenu.downloadDocument"), FontAwesome.DOWNLOAD, -1, 400,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).download(document, params)));
+		}
+
+		if (!filteredActionTypes.contains(DOCUMENT_MOVE.name())) {
+			menuItemActions.add(buildMenuItemAction(DOCUMENT_MOVE.name(),
+					isMenuItemActionPossible(DOCUMENT_MOVE.name(), document, user, params),
+					$("DocumentContextMenu.changeParentFolder"), FontAwesome.FOLDER_O, -1, 425,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).move(document, params)));
+		}
+
+		if (!filteredActionTypes.contains(DOCUMENT_CONTENT_RENAME.name())) {
+			menuItemActions.add(buildMenuItemAction(DOCUMENT_CONTENT_RENAME.name(),
+					isMenuItemActionPossible(DOCUMENT_CONTENT_RENAME.name(), document, user, params),
+					$("DisplayDocumentView.renameContent"), FontAwesome.PENCIL_SQUARE_O, -1, 450,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).rename(document, params)));
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_DELETE.name())) {
@@ -281,6 +297,8 @@ public class DocumentMenuItemServices {
 		switch (DocumentMenuItemActionType.valueOf(menuItemActionType)) {
 			case DOCUMENT_EDIT:
 				return documentRecordActionsServices.isEditActionPossible(record, user);
+			case DOCUMENT_CONTENT_RENAME:
+				return documentRecordActionsServices.isRenameActionPossible(record, user);
 			case DOCUMENT_DISPLAY:
 				return documentRecordActionsServices.isDisplayActionPossible(record, user);
 			case DOCUMENT_CONSULT_LINK:
@@ -295,6 +313,8 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.isEditActionPossible(record, user);
 			case DOCUMENT_FINALIZE:
 				return documentRecordActionsServices.isFinalizeActionPossible(record, user);
+			case DOCUMENT_MOVE:
+				return documentRecordActionsServices.isMoveActionPossible(record, user);
 			case DOCUMENT_PUBLISH:
 				return documentRecordActionsServices.isPublishActionPossible(record, user);
 			case DOCUMENT_UNPUBLISH:
@@ -352,8 +372,10 @@ public class DocumentMenuItemServices {
 		DOCUMENT_DISPLAY,
 		DOCUMENT_OPEN,
 		DOCUMENT_EDIT,
+		DOCUMENT_CONTENT_RENAME,
 		DOCUMENT_CONSULT_LINK,
 		DOCUMENT_DOWNLOAD,
+		DOCUMENT_MOVE,
 		DOCUMENT_DELETE,
 		DOCUMENT_COPY,
 		DOCUMENT_FINALIZE,

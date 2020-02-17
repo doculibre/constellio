@@ -12,6 +12,7 @@ import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayR
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,29 +51,37 @@ public class RecordsCachesDataStore {
 		this.intIdsDataStore = new IntegerIdsMemoryEfficientRecordsCachesDataStore(modelLayerFactory);
 		this.stringIdsDataStore = new StringIdsRecordsCachesDataStore(modelLayerFactory);
 
+
 		if (Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS.isEnabled()) {
-			File idsList = new File(new FoldersLocator().getWorkFolder(), "integer-ids.txt");
 			List<RecordId> recordIds = null;
-			if (idsList.exists()) {
-				try {
-					recordIds = FileUtils.readLines(idsList, "UTF-8").stream().map((line) -> RecordId.toId(line))
-							.filter((id) -> id.isInteger()).collect(Collectors.toList());
-				} catch (IOException e) {
-					e.printStackTrace();
-					recordIds = null;
+			File idsList = new File(new FoldersLocator().getWorkFolder(), "integer-ids.txt");
+			if (FoldersLocator.usingAppWrapper() || Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS_ON_DEV_STATION.isEnabled()) {
+				if (idsList.exists() && new DateTime(idsList.lastModified()).isAfter(new DateTime().minusDays(1))) {
+					try {
+						recordIds = FileUtils.readLines(idsList, "UTF-8").stream().map((line) -> RecordId.toId(line))
+								.filter((id) -> id.isInteger()).collect(Collectors.toList());
+					} catch (IOException e) {
+						e.printStackTrace();
+						recordIds = null;
+					}
 				}
 			}
-
 			if (recordIds == null) {
 				LOGGER.info("Loading ids from solr... could take up to 30 minutes, please wait...");
 				Iterator<RecordId> recordIdIterator = modelLayerFactory.newSearchServices().recordsIdIteratorExceptEvents();
 				recordIds = IteratorUtils.toList(recordIdIterator);
-				List<String> lines = recordIds.stream().map(RecordId::stringValue).collect(Collectors.toList());
+				List<String> lines = recordIds.stream().filter((id) -> id.isInteger()).map(RecordId::stringValue).collect(Collectors.toList());
 
-				try {
-					FileUtils.writeLines(idsList, lines);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
+				if (FoldersLocator.usingAppWrapper() || Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS_ON_DEV_STATION.isEnabled()) {
+					try {
+
+						FileUtils.writeLines(idsList, lines);
+						if (!lines.isEmpty()) {
+							LOGGER.info("Last line is : " + lines.get(lines.size() - 1));
+						}
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
 				}
 			}
 
@@ -271,5 +280,20 @@ public class RecordsCachesDataStore {
 	public void structureCacheUsingExistingIds(Iterator<RecordId> existingIdsIterator) {
 		intIdsDataStore.structureCacheUsingExistingIds(existingIdsIterator);
 
+	}
+
+	public void setRecordsMainSortValue(List<RecordId> existingIds) {
+		intIdsDataStore.setRecordsMainSortValue(existingIds);
+		stringIdsDataStore.setRecordsMainSortValue(existingIds);
+
+	}
+
+	public int getMainSortValue(RecordId recordId) {
+		if (recordId.isInteger()) {
+			return intIdsDataStore.getMainSortValue(recordId);
+
+		} else {
+			return -1;
+		}
 	}
 }

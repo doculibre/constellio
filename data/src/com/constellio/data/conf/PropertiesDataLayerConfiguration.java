@@ -68,8 +68,8 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setFile("secondTransactionLog.folder", value);
 		}
 
-		public void setSecondTransactionLogMode(String value) {
-			setString("secondTransactionLog.mode", value);
+		public void setSecondTransactionLogMode(SecondTransactionLogType value) {
+			setEnum("secondTransactionLog.mode", value);
 		}
 
 		public void setReplayTransactionStartVersion(long value) {
@@ -146,10 +146,43 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setEnum(RECORD_TYPE, solrServerType);
 		}
 
+		public void setMicrosoftSqlServerUrl(String value) {
+			setString("sql.server.url", value);
+		}
+
+		public void setMicrosoftSqlServerDatabase(String value) {
+			setString("sql.server.database", value);
+		}
+
+		public void setMicrosoftSqlServeruser(String value) {
+			setString("sql.server.user", value);
+		}
+
+		public void setMicrosoftSqlServerpassword(String value) {
+			setString("sql.server.password", value);
+		}
+
+		public void setMicrosoftSqlServerencrypt(boolean value) {
+			setBoolean("sql.server.encrypt", value);
+		}
+
+		public void setMicrosoftSqlServertrustServerCertificate(boolean value) {
+			setBoolean("sql.server.trustServerCertificate", value);
+		}
+
+		public void setMicrosoftSqlServerloginTimeout(int value) {
+			setInt("sql.server.loginTimeout", value);
+		}
+
 	}
 
 	public SolrServerType getRecordsDaoSolrServerType() {
 		return (SolrServerType) getRequiredEnum(RECORD_TYPE, SolrServerType.class);
+	}
+
+	@Override
+	public boolean isCopyingRecordsInSearchCollection() {
+		return getBoolean("dao.records.copyInSearchCollection", false);
 	}
 
 	public String getRecordsDaoHttpSolrServerUrl() {
@@ -162,6 +195,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	public boolean isRecordsDaoHttpSolrServerFaultInjectionEnabled() {
 		return getBoolean("dao.records.http.faultInjection", false);
+	}
+
+	@Override
+	public boolean useSolrTupleStreamsIfSupported() {
+		return getBoolean("dao.records.useTuppleStreamsIfSupported", true);
 	}
 
 	public ContentDaoType getContentDaoType() {
@@ -215,6 +253,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public int getSequentialIdReservedBatchSize() {
+		return getInt("idGenerator.sequential.reservedBatchSize", 1000);
+	}
+
+	@Override
 	public IdGeneratorType getSecondaryIdGeneratorType() {
 		return (IdGeneratorType) getEnum("secondaryIdGenerator.type", IdGeneratorType.UUID_V1);
 	}
@@ -230,8 +273,8 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
-	public String getSecondTransactionLogMode() {
-		return getString("secondTransactionLog.mode", "xml");
+	public SecondTransactionLogType getSecondTransactionLogMode() {
+		return (SecondTransactionLogType) getEnum("secondTransactionLog.mode", SecondTransactionLogType.XML);
 	}
 
 	@Override
@@ -309,6 +352,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getBoolean("writeZZRecords", false);
 	}
 
+
 	@Override
 	public HashingEncoding getHashingEncoding() {
 		return (HashingEncoding) getEnum("hashing.encoding", HashingEncoding.BASE64);
@@ -379,7 +423,42 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public boolean areTiffFilesConvertedForPreview() {
-		return getBoolean("conversion.tiffConversion.enabled", false);
+		return getBoolean("conversion.tiffConversion.enabled", true);
+	}
+
+	@Override
+	public String getMicrosoftSqlServerUrl() {
+		return getString("sql.server.url", null);
+	}
+
+	@Override
+	public String getMicrosoftSqlServerDatabase() {
+		return getString("sql.server.database", null);
+	}
+
+	@Override
+	public String getMicrosoftSqlServeruser() {
+		return getString("sql.server.user", null);
+	}
+
+	@Override
+	public String getMicrosoftSqlServerpassword() {
+		return getString("sql.server.password", null);
+	}
+
+	@Override
+	public boolean getMicrosoftSqlServerencrypt() {
+		return getBoolean("sql.server.encrypt", false);
+	}
+
+	@Override
+	public boolean getMicrosoftSqlServertrustServerCertificate() {
+		return getBoolean("sql.server.trustServerCertificate", false);
+	}
+
+	@Override
+	public int getMicrosoftSqlServerloginTimeout() {
+		return getInt("sql.server.loginTimeout", 0);
 	}
 
 	@Override

@@ -64,4 +64,12 @@ public interface ModelLayerConfiguration {
 	int getReindexingThreadBatchSize();
 
 	long getRecordsVolatileCacheMemorySize();
+
+	boolean isForcingCacheLoadingFromSolr();
+
+	boolean isSummaryCacheEnabled();
+
+	long getReindexingThreadMaxBatchMemorySize();
+
+	boolean isPersistingStringRecordIdLegacyMapping();
 }

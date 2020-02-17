@@ -10,8 +10,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class OffHeapMemoryAllocator {
 
+	static AtomicLong totalFreedMemory = new AtomicLong();
 	static AtomicLong totalAllocatedMemory = new AtomicLong();
 	static AtomicLong[] memoryAllocationByUsingClass = new AtomicLong[]{
+			new AtomicLong(),
 			new AtomicLong(),
 			new AtomicLong(),
 			new AtomicLong(),
@@ -35,6 +37,7 @@ public class OffHeapMemoryAllocator {
 	public static final int OffHeapShortList_ID = 4;
 	public static final int SortedIntIdsList_ID = 5;
 	public static final int SDK = 6;
+	public static final int OffHeapByteArrayListArea_ID = 7;
 
 
 	static synchronized long allocateMemory(int length, int classId) {
@@ -55,6 +58,7 @@ public class OffHeapMemoryAllocator {
 
 	static synchronized void freeMemory(long address, long length, int classId) {
 		totalAllocatedMemory.addAndGet(-1 * length);
+		totalFreedMemory.addAndGet(length);
 		memoryAllocationByUsingClass[classId].addAndGet(-1 * length);
 		Unsafe unsafe = getUnsafe();
 		unsafe.freeMemory(address);
@@ -192,6 +196,10 @@ public class OffHeapMemoryAllocator {
 
 		}
 		return unsafe;
+	}
+
+	public static long getFreedMemory() {
+		return totalFreedMemory.get();
 	}
 
 	public static long getAllocatedMemory() {

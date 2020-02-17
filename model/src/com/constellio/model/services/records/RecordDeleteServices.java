@@ -68,6 +68,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
@@ -291,18 +292,19 @@ public class RecordDeleteServices {
 		return validationErrors;
 	}
 
-	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options) {
-		if (TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS))) {
-			physicallyDelete(record, user, options);
+	public void physicallyDeleteNoMatterTheStatus(Supplier<Record> record, User user,
+												  RecordPhysicalDeleteOptions options) {
+		if (TRUE.equals(record.get().get(Schemas.LOGICALLY_DELETED_STATUS))) {
+			physicallyDelete(record.get(), user, options);
 
 		} else {
-			logicallyDelete(record, user);
+			logicallyDelete(record.get(), user);
 			recordServices.refreshUsingCache(record);
 			try {
-				physicallyDelete(record, user, options);
+				physicallyDelete(record.get(), user, options);
 			} catch (RecordServicesRuntimeException e) {
 				recordServices.refreshUsingCache(record);
-				restore(record, user);
+				restore(record.get(), user);
 				throw e;
 			}
 		}
@@ -364,6 +366,10 @@ public class RecordDeleteServices {
 														  new Transaction(RecordUpdateOptions.validationExceptionSafeOptions()) :
 														  new Transaction();
 
+								if (options.getTransactionOptionsConsumer() != null) {
+									options.getTransactionOptionsConsumer().accept(transaction.getRecordUpdateOptions());
+								}
+
 								for (Record recordWithRef : recordsWithRef) {
 									String recordWithRefType = new SchemaUtils().getSchemaTypeCode(recordWithRef.getSchemaCode());
 									for (Metadata metadata : metadatas) {
@@ -422,7 +428,7 @@ public class RecordDeleteServices {
 
 			try {
 				recordDao.execute(
-						new TransactionDTO(RecordsFlushing.NOW).withDeletedRecords(recordsDTO));
+						new TransactionDTO(options.getRecordsFlushing()).withDeletedRecords(recordsDTO));
 
 			} catch (OptimisticLocking optimisticLocking) {
 				throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId(), optimisticLocking);
@@ -434,6 +440,9 @@ public class RecordDeleteServices {
 			}
 
 			Transaction transaction = new Transaction();
+			if (options.getTransactionOptionsConsumer() != null) {
+				options.getTransactionOptionsConsumer().accept(transaction.getRecordUpdateOptions());
+			}
 			transaction.add(recordServices.getDocumentById(record.getCollection()));
 			transaction.addAllRecordsToReindex(ids);
 
@@ -617,7 +626,9 @@ public class RecordDeleteServices {
 		}
 
 		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
-
+		if (options.getTransactionOptionsConsumer() != null) {
+			options.getTransactionOptionsConsumer().accept(transaction.getRecordUpdateOptions());
+		}
 		if (!options.isCheckForValidationErrorEnable()) {
 			transaction.getRecordUpdateOptions().setValidationsEnabled(false);
 		}
@@ -636,7 +647,6 @@ public class RecordDeleteServices {
 			currentHierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, now);
 			transaction.add(currentHierarchyRecord);
 		}
-		transaction.setRecordFlushing(options.getRecordsFlushing());
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 		transaction.setUser(user);
 		try {

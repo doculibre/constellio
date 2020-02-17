@@ -106,37 +106,7 @@ public class MetadataSchemaTypes implements Serializable {
 
 		return listMap.getNestedMap();
 	}
-//
-//	private static Map<String, List<MetadataSchemaType>> buildClassifiedSchemaTypes(
-//			List<MetadataSchemaType> schemaTypes) {
-//		KeyListMap<String, MetadataSchemaType> listMap = new KeyListMap<>();
-//
-//		for (MetadataSchemaType type : schemaTypes) {
-//			for (MetadataSchemaType anotherType : schemaTypes) {
-//				if (type != anotherType) {
-//					for (Metadata metadata : anotherType.getDefaultSchema().getMetadatas()) {
-//						if ((metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship())
-//							&& type.getCode().equals(metadata.getReferencedSchemaType())) {
-//							listMap.add(type.getCode(), anotherType);
-//						}
-//					}
-//
-//
-//				} else {
-//					//TODO Retirer cette passe de l'ours
-//					for (Metadata metadata : anotherType.getDefaultSchema().getMetadatas()) {
-//						if ((metadata.isChildOfRelationship()) && type.getCode().equals(metadata.getReferencedSchemaType())
-//							&& type.getCode().equals("folder")) {
-//							listMap.add(type.getCode(), anotherType);
-//						}
-//					}
-//
-//				}
-//			}
-//		}
-//
-//		return listMap.getNestedMap();
-//	}
+
 
 	private List<MetadataSchemaType> buildTypesById(List<MetadataSchemaType> schemaTypes) {
 		MetadataSchemaType[] types = new MetadataSchemaType[LIMIT_OF_TYPES_IN_COLLECTION];
@@ -247,6 +217,49 @@ public class MetadataSchemaTypes implements Serializable {
 
 	public List<MetadataSchemaType> getSchemaTypes() {
 		return schemaTypes;
+	}
+
+	public List<MetadataSchemaType> getSchemaTypesInDisplayOrder() {
+		//TODO : Improve this ugly coupling!!!
+		List<MetadataSchemaType> schemaTypesInDisplayOrder = new ArrayList<>();
+
+		MetadataSchemaType folderSchemaType = null;
+		MetadataSchemaType documentSchemaType = null;
+		MetadataSchemaType taskSchemaType = null;
+
+		for (MetadataSchemaType type : getSchemaTypes()) {
+			switch (type.getCode()) {
+				case "folder":
+					folderSchemaType = type;
+
+					break;
+				case "document":
+					documentSchemaType = type;
+
+					break;
+				case "userTask":
+					taskSchemaType = type;
+
+					break;
+				default:
+					schemaTypesInDisplayOrder.add(type);
+					break;
+			}
+		}
+
+		if (folderSchemaType != null) {
+			schemaTypesInDisplayOrder.add(folderSchemaType);
+		}
+
+		if (documentSchemaType != null) {
+			schemaTypesInDisplayOrder.add(documentSchemaType);
+		}
+
+		if (taskSchemaType != null) {
+			schemaTypesInDisplayOrder.add(taskSchemaType);
+		}
+
+		return schemaTypesInDisplayOrder;
 	}
 
 	public MetadataSchemaType getSchemaType(String schemaTypeCode) {

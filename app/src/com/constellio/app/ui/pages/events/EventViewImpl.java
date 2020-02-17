@@ -19,6 +19,7 @@ import com.constellio.app.ui.framework.data.event.UnsupportedEventTypeRuntimeExc
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.vaadin.data.Item;
 import com.vaadin.event.ItemClickEvent;
@@ -36,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -49,10 +51,16 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	private EventPresenter presenter;
 	private Table table;
 	private Map<String, String> parameters;
-	public static final String OPEN_SESSION = "open_session";
 
-	public static final String EVENT_DEFAULT_TYPE = "event_default_type";
 	public static final String EVENT_DEFAULT_USERNAME = "event_default_username";
+	public static final String EVENT_DEFAULT_TYPE = "event_default_type";
+	public static final String EVENT_DEFAULT_DATE = "event_default_createdOn";
+	public static final String EVENT_DEFAULT_MODIFIEDRECORDS = "event_default_totalModifiedRecord";
+	public static final String EVENT_DEFAULT_CONTENT = "event_default_content";
+	public static final String EVENT_USERNAME_COLUMN = "event_default_username";
+	public static final String EVENT_IP_COLUMN = "event_default_ip";
+	public static final String EVENT_TITLE_COLUMN = "event_default_title";
+	public static final String EVENT_ID_COLUMN = "event_default_recordIdentifier";
 
 	private DownloadLink generateCSVDownloadLink;
 	private LazyStreamRessource lazyStreamRessource;
@@ -127,7 +135,8 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		final Boolean isRecordEvent = EventTypeUtils.isRecordEvent(eventType);
 		final RecordVOTable table = new RecordVOTable(title, container, isRecordEvent) {
 			@Override
-			protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue, RecordVO recordVO) {
+			protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue,
+													   RecordVO recordVO) {
 				if (presenter.isDeltaMetadata(metadataValue)) {
 					return displayButton(metadataValue);
 				} else if (presenter.isTypeMetadata(metadataValue)) {
@@ -176,18 +185,75 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 
 			@Override
 			protected TableColumnsManager newColumnsManager() {
-				if (OPEN_SESSION.equalsIgnoreCase(presenter.getEventType())) {
+				if (EventType.OPEN_SESSION.equalsIgnoreCase(presenter.getEventType())) {
 					return new RecordVOTableColumnsManager() {
 						@Override
 						protected List<String> getDefaultVisibleColumnIds(Table table) {
 							List<String> defaultVisibleColumnIds = super.getDefaultVisibleColumnIds(table);
-							String usernameColumnId = "event_default_username";
-							String titleColumnId = "event_default_title";
-							if (!defaultVisibleColumnIds.contains(usernameColumnId)) {
-								defaultVisibleColumnIds.add(usernameColumnId);
-								defaultVisibleColumnIds.remove(titleColumnId);
+							if (!defaultVisibleColumnIds.contains(EVENT_USERNAME_COLUMN)) {
+								defaultVisibleColumnIds.add(EVENT_USERNAME_COLUMN);
+								defaultVisibleColumnIds.remove(EVENT_TITLE_COLUMN);
 							}
 							return defaultVisibleColumnIds;
+						}
+					};
+				} else if (EventType.ATTEMPTED_OPEN_SESSION.equalsIgnoreCase(presenter.getEventType())) {
+					return new RecordVOTableColumnsManager() {
+						@Override
+						protected List<String> getDefaultVisibleColumnIds(Table table) {
+							List<String> defaultVisibleColumnIds = super.getDefaultVisibleColumnIds(table);
+							if (!defaultVisibleColumnIds.contains(EVENT_USERNAME_COLUMN)) {
+								defaultVisibleColumnIds.add(EVENT_USERNAME_COLUMN);
+							}
+							if (!defaultVisibleColumnIds.contains(EVENT_IP_COLUMN)) {
+								defaultVisibleColumnIds.add(EVENT_IP_COLUMN);
+							}
+							if (defaultVisibleColumnIds.contains(EVENT_TITLE_COLUMN)) {
+								defaultVisibleColumnIds.remove(EVENT_TITLE_COLUMN);
+							}
+							if (defaultVisibleColumnIds.contains(EVENT_ID_COLUMN)) {
+								defaultVisibleColumnIds.remove(EVENT_ID_COLUMN);
+							}
+							return defaultVisibleColumnIds;
+						}
+
+						@Override
+						public void manage(Table table, String tableId) {
+							super.manage(table, tableId);
+
+							List<String> visibleIds = getDefaultVisibleColumnIds(table);
+							Collection<?> propertyIds = table.getContainerPropertyIds();
+							for (Object propertyId : propertyIds) {
+								String columnId = toColumnId(propertyId);
+								boolean visible = visibleIds.contains(columnId);
+								table.setColumnCollapsed(propertyId, !visible);
+							}
+						}
+					};
+				} else if (EventType.BATCH_PROCESS_CREATED.equalsIgnoreCase(presenter.getEventType())) {
+					return new RecordVOTableColumnsManager() {
+						@Override
+						protected List<String> getDefaultVisibleColumnIds(Table table) {
+							List<String> defaultVisibleColumnIds = new ArrayList<>();
+							defaultVisibleColumnIds.add(EVENT_DEFAULT_USERNAME);
+							defaultVisibleColumnIds.add(EVENT_DEFAULT_TYPE);
+							defaultVisibleColumnIds.add(EVENT_DEFAULT_DATE);
+							defaultVisibleColumnIds.add(EVENT_DEFAULT_MODIFIEDRECORDS);
+							defaultVisibleColumnIds.add(EVENT_DEFAULT_CONTENT);
+							return defaultVisibleColumnIds;
+						}
+
+						@Override
+						public void manage(Table table, String tableId) {
+							super.manage(table, tableId);
+
+							List<String> visibleIds = getDefaultVisibleColumnIds(table);
+							Collection<?> propertyIds = table.getContainerPropertyIds();
+							for (Object propertyId : propertyIds) {
+								String columnId = toColumnId(propertyId);
+								boolean visible = visibleIds.contains(columnId);
+								table.setColumnCollapsed(propertyId, !visible);
+							}
 						}
 					};
 				} else {
@@ -196,7 +262,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 						protected List<String> getDefaultVisibleColumnIds(Table table) {
 							List<String> defaultVisibleColumnIds = super.getDefaultVisibleColumnIds(table);
 							defaultVisibleColumnIds.add(EVENT_DEFAULT_TYPE);
-							defaultVisibleColumnIds.add(EVENT_DEFAULT_USERNAME);
+							defaultVisibleColumnIds.add(EVENT_USERNAME_COLUMN);
 							defaultVisibleColumnIds.add(Document.DEFAULT_SCHEMA + "_" + Document.CONTENT_CHECKED_OUT_BY);
 							return defaultVisibleColumnIds;
 						}
@@ -204,6 +270,15 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 						@Override
 						public void manage(Table table, String tableId) {
 							super.manage(table, tableId);
+
+							List<String> visibleIds = getDefaultVisibleColumnIds(table);
+							Collection<?> propertyIds = table.getContainerPropertyIds();
+							for (Object propertyId : propertyIds) {
+								String columnId = toColumnId(propertyId);
+								boolean visible = visibleIds.contains(columnId);
+								table.setColumnCollapsed(propertyId, !visible);
+							}
+
 							setColumnCollapsed("event_default_negative", false);
 						}
 					};
@@ -213,7 +288,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 			@Override
 			protected String getTitleColumnStyle(RecordVO recordVO) {
 				return null;
-			} 
+			}
 		};
 
 		if (isRecordEvent) {
@@ -311,6 +386,14 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
 		return true;
+	}
+
+	@Override
+	public String getCollection() {
+		if (EventType.ATTEMPTED_OPEN_SESSION.equals(presenter.getEventType())) {
+			return com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
+		}
+		return super.getCollection();
 	}
 
 }

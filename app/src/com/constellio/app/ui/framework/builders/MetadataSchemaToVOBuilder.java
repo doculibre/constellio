@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.TABLE;
+
 @SuppressWarnings("serial")
 public class MetadataSchemaToVOBuilder implements Serializable {
 
@@ -102,7 +104,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 			formHiddenMetadataCodes.addAll(schemaDisplayConfig.getFormHiddenMetadataCodes());
 			searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
 			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
-		} else if (viewMode == VIEW_MODE.TABLE) {
+		} else if (viewMode == TABLE) {
 			if (metadataCodes != null) {
 				if (addMetadataCodes) {
 					tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
@@ -143,7 +145,8 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		if (!withoutBuildingMetadatas) {
 			boolean isMultiLingualActivated = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SEIZE_MULTILANGUAL_VALUES);
 
-			for (Metadata metadata : schema.getMetadatas()) {
+			List<Metadata> metadatas = viewMode == TABLE ? schema.getSchemaType().getAllMetadatas() : schema.getMetadatas();
+			for (Metadata metadata : metadatas) {
 				if (viewMode == VIEW_MODE.FORM && metadata.isMultiLingual() && isMultiLingualActivated) {
 					List<Locale> supportedLocales = schema.getCollectionInfo().getCollectionLocales();
 					for (Locale supportedLocale : supportedLocales) {

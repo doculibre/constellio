@@ -11,6 +11,8 @@ public interface DataLayerConfiguration {
 
 	SolrServerType getRecordsDaoSolrServerType();
 
+	boolean isCopyingRecordsInSearchCollection();
+
 	String getRecordsDaoHttpSolrServerUrl();
 
 	String getRecordsDaoCloudSolrServerZKHost();
@@ -55,6 +57,8 @@ public interface DataLayerConfiguration {
 
 	boolean isWriteZZRecords();
 
+	boolean useSolrTupleStreamsIfSupported();
+
 	HashingEncoding getHashingEncoding();
 
 	File getSecondTransactionLogBaseFolder();
@@ -83,7 +87,7 @@ public interface DataLayerConfiguration {
 
 	String getKafkaServers();
 
-	String getSecondTransactionLogMode();
+	SecondTransactionLogType getSecondTransactionLogMode();
 
 	String getKafkaTopic();
 
@@ -104,5 +108,21 @@ public interface DataLayerConfiguration {
 	Duration getSolrEventBusSendingServiceTypePollAndRetrieveFrequency();
 
 	boolean areTiffFilesConvertedForPreview();
+
+	int getSequentialIdReservedBatchSize();
+
+	String getMicrosoftSqlServerUrl();
+
+	String getMicrosoftSqlServerDatabase();
+
+	String getMicrosoftSqlServeruser();
+
+	String getMicrosoftSqlServerpassword();
+
+	boolean getMicrosoftSqlServerencrypt();
+
+	boolean getMicrosoftSqlServertrustServerCertificate();
+
+	int getMicrosoftSqlServerloginTimeout();
 
 }

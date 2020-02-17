@@ -56,6 +56,18 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	}
 
 	@Override
+	protected ConstellioHeader getHeader() {
+		return header;
+	}
+
+	public AdvancedSearchViewImpl(ConstellioHeader header) {
+		presenter = new AdvancedSearchPresenter(this);
+		presenter.addObserver(this);
+		presenter.resetFacetAndOrder();
+		this.header = header;
+	}
+
+	@Override
 	public List<Criterion> getSearchCriteria() {
 		return header.getAdvancedSearchCriteria();
 	}

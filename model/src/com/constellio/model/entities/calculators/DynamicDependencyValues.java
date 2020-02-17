@@ -1,29 +1,34 @@
 package com.constellio.model.entities.calculators;
 
+import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LazyIterator;
+import com.constellio.data.utils.Pair;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CalculatorIsUsingAnForbiddenMetadata;
-import com.constellio.model.services.schemas.MetadataList;
-import com.constellio.model.services.schemas.SchemaUtils;
 
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.stream.Collectors.toList;
 
 public class DynamicDependencyValues {
 
-	Map<String, Object> values;
 	private MetadataValueCalculator calculator;
-	private MetadataList availableMetadatas;
+	private List<Metadata> availableMetadatas;
+	private List<Object> availableMetadataValues;
 	private List<String> availableMetadatasLocalCodes;
-	private MetadataList availableMetadatasWithValue;
+	private List<Metadata> availableMetadatasWithValue;
 
-	public DynamicDependencyValues(MetadataValueCalculator calculator, Map<String, Object> values,
-								   MetadataList availableMetadatas,
-								   MetadataList availableMetadatasWithValue) {
+	public DynamicDependencyValues(MetadataValueCalculator calculator,
+								   List<Metadata> availableMetadatas,
+								   List<Object> availableMetadataValues,
+								   List<Metadata> availableMetadatasWithValue) {
 		this.calculator = calculator;
-		this.values = values;
 		this.availableMetadatas = availableMetadatas;
-		this.availableMetadatasLocalCodes = availableMetadatas.toLocalCodesList();
+		this.availableMetadatasLocalCodes = availableMetadatas.stream().map((m) -> m.getLocalCode()).collect(toList());
 		this.availableMetadatasWithValue = availableMetadatasWithValue;
+		this.availableMetadataValues = availableMetadataValues;
 	}
 
 	public <T> T getValue(Metadata metadata) {
@@ -41,19 +46,37 @@ public class DynamicDependencyValues {
 					calculator.getClass().getName(), localCode);
 		}
 
-		return (T) values.get(localCode);
+		int index = availableMetadatasLocalCodes.indexOf(localCode);
+		return index == -1 ? null : (T) availableMetadataValues.get(index);
 	}
 
-	public MetadataList getAvailableMetadatas() {
+	public List<Metadata> getAvailableMetadatas() {
 		return availableMetadatas;
 	}
 
-	public MetadataList getAvailableMetadatasWithAValue() {
+	public List<Metadata> getAvailableMetadatasWithAValue() {
 		return availableMetadatasWithValue;
 	}
 
-	public boolean isAvailable(String metadata) {
-		String localCode = new SchemaUtils().getLocalCodeFromMetadataCode(metadata);
-		return getAvailableMetadatas().containsMetadataWithLocalCode(localCode);
+	public Iterator<Pair<Metadata, Object>> iterateWithValues() {
+		AtomicInteger index = new AtomicInteger();
+		return new LazyIterator<Pair<Metadata, Object>>() {
+			@Override
+			protected Pair<Metadata, Object> getNextOrNull() {
+
+				while (index.get() < availableMetadatas.size()) {
+					Metadata metadata = availableMetadatas.get(index.get());
+					Object value = availableMetadataValues.get(index.get());
+
+					index.incrementAndGet();
+					if (LangUtils.isNotEmptyValue(value)) {
+						return new Pair<>(metadata, value);
+					}
+				}
+
+				return null;
+			}
+		};
 	}
+
 }

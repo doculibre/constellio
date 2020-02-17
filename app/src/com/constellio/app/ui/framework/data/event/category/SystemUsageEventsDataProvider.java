@@ -5,6 +5,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.event.EventStatistics;
 import com.constellio.app.ui.pages.events.EventsCategoryDataProvider;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -48,24 +49,38 @@ public class SystemUsageEventsDataProvider extends AbstractDataProvider implemen
 
 	void init(ModelLayerFactory modelLayerFactory) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		RMEventsSearchServices rmSchemasRecordsServices = new RMEventsSearchServices(modelLayerFactory, collection);
+		RMEventsSearchServices rmEvents = new RMEventsSearchServices(modelLayerFactory, collection);
+		RMEventsSearchServices rmSystemEvents = new RMEventsSearchServices(modelLayerFactory, Collection.SYSTEM_COLLECTION);
 		events = new ArrayList<>();
+
 		EventStatistics openedSessions = new EventStatistics();
 		openedSessions.setLabel($("ListEventsView.openedSessions"));
+		openedSessions.setType(EventType.OPEN_SESSION);
+
+		EventStatistics failedLogins = new EventStatistics();
+		failedLogins.setLabel($("ListEventsView.failedLogins"));
+		failedLogins.setType(EventType.ATTEMPTED_OPEN_SESSION);
+
 		User currentUser = modelLayerFactory.newUserServices().getUserInCollection(currentUserName, collection);
-		LogicalSearchQuery query = rmSchemasRecordsServices
+
+		LogicalSearchQuery openedSessionQuery = rmEvents
 				.newFindOpenedSessionsByDateRangeQuery(currentUser, startDate, endDate);
-		openedSessions.setValue((float) searchServices.getResultsCount(query));
+		openedSessions.setValue((float) searchServices.getResultsCount(openedSessionQuery));
 		events.add(openedSessions);
+
+		LogicalSearchQuery failedLoginsQuery = rmSystemEvents
+				.newFindFailedLoginsByDateRangeQuery(currentUser, startDate, endDate);
+		failedLogins.setValue((float) searchServices.getResultsCount(failedLoginsQuery));
+		events.add(failedLogins);
 	}
 
 	public int size() {
-		return 1;
+		return events.size();
 	}
 
 	@Override
 	public String getDataTitle() {
-		return $("ListEventsView.connectedUsersEvent");
+		return $("ListEventsView.systemUsage");
 	}
 
 	@Override
@@ -84,7 +99,7 @@ public class SystemUsageEventsDataProvider extends AbstractDataProvider implemen
 
 	@Override
 	public String getEventType(Integer index) {
-		return EventType.OPEN_SESSION;
+		return events.get(index).getType();
 	}
 
 	@Override

@@ -29,7 +29,6 @@ public class MetadataList implements List<Metadata>, Serializable {
 	List<Metadata> nestedList = new ArrayList<>();
 	Map<String, Metadata> localCodeIndex = new HashMap<>();
 	Map<String, Metadata> codeIndex = new HashMap<>();
-	Map<String, Metadata> datastoreCodeIndex = new HashMap<>();
 
 	public MetadataList() {
 		super();
@@ -39,6 +38,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 		super();
 		addAll(asList(metadatas));
 	}
+
 
 	public MetadataList(Collection<? extends Metadata> collection) {
 		super();
@@ -410,26 +410,22 @@ public class MetadataList implements List<Metadata>, Serializable {
 	private void addToIndex(Metadata metadata) {
 		localCodeIndex.put(metadata.getLocalCode(), metadata);
 		codeIndex.put(metadata.getInheritanceCode(), metadata);
-		datastoreCodeIndex.put(metadata.getDataStoreCode(), metadata);
 	}
 
 	private void removeFromIndex(Metadata metadata) {
 		localCodeIndex.remove(metadata.getLocalCode());
 		codeIndex.remove(metadata.getInheritanceCode());
-		datastoreCodeIndex.remove(metadata.getDataStoreCode());
 	}
 
 	private void clearIndexes() {
 		localCodeIndex.clear();
 		codeIndex.clear();
-		datastoreCodeIndex.clear();
 	}
 
 	private void setIndexes(int index, Metadata element) {
 		removeFromIndex(nestedList.get(index));
 		localCodeIndex.put(element.getLocalCode(), element);
 		codeIndex.put(element.getInheritanceCode(), element);
-		datastoreCodeIndex.put(element.getDataStoreCode(), element);
 	}
 
 	private void retainAllInIndexes(Collection<?> c) {

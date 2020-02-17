@@ -54,8 +54,7 @@ public class SearchServiceSortAcceptTest extends ConstellioTest {
 		Record recordWithNull = transaction.add(new TestRecord(zeSchema).set(zeSchema.dateTimeMetadata(), dateTime1));
 		recordServices.execute(transaction);
 
-		assertThat(searchServices.search(findAllQuery().sortAsc(zeSchema.dateTimeMetadata())))
-				.containsExactly(recordWithNull, record2, record3, record4, record5);
+		assertThat(searchServices.search(findAllQuery().sortAsc(zeSchema.dateTimeMetadata()))).containsExactly(recordWithNull, record2, record3, record4, record5);
 		assertThat(searchServices.searchRecordIds(findAllQuery().sortAsc(zeSchema.dateTimeMetadata())))
 				.containsExactly(recordWithNull.getId(), record2.getId(), record3.getId(), record4.getId(), record5.getId());
 		assertThat(searchServices.search(findAllQuery().sortDesc(zeSchema.dateTimeMetadata())))

@@ -1975,6 +1975,9 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 					.setOpenDate(new LocalDate(2014, 11, 1)));
 		}
 		getModelLayerFactory().newRecordServices().execute(transaction);
+		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
+
+		assertThat(rm.getCategory("category_" + 2).get().getRecordDTO().getMainSortValue()).isGreaterThan(0);
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(0).setRows(20))
 				.has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
@@ -2038,6 +2041,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 		}
 		transaction.add(rootCategory);
 		getModelLayerFactory().newRecordServices().execute(transaction);
+		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
 
 		User alice = users.aliceIn(zeCollection);
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(0).setRows(20))
@@ -2111,6 +2115,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 		}
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
+		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
 
 		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 		for (String id : ids) {
@@ -2173,6 +2178,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 		}
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
+		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
 
 		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 		for (String id : ids) {

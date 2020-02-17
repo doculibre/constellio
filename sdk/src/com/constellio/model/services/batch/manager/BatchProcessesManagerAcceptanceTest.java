@@ -73,7 +73,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 
 		finishedBatchProcesses = batchProcessesManager.getFinishedBatchProcesses();
 		assertThat(finishedBatchProcesses).extracting("id")
-				.containsExactly(batchProcessIds.get(1), batchProcessIds.get(2), process.getId());
+				.contains(batchProcessIds.get(1), batchProcessIds.get(2), process.getId());
 	}
 
 	@Test
@@ -103,7 +103,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 
 		finishedBatchProcesses = batchProcessesManager.getFinishedBatchProcesses();
 		assertThat(finishedBatchProcesses).extracting("id")
-				.containsExactly(batchProcessIds.get(4), process.getId());
+				.contains(batchProcessIds.get(4), process.getId());
 	}
 
 }

@@ -8,6 +8,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,6 +17,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -23,6 +25,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterators;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -30,6 +33,7 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -37,6 +41,8 @@ import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
 import static java.lang.String.format;
 
 public class LangUtils {
+
+	public static final int OBJECT_REF_BYTES = 4;
 
 	public static <T, V extends T, D extends T> T valueOrDefault(V value, D defaultValue) {
 		return value != null ? value : defaultValue;
@@ -400,10 +406,102 @@ public class LangUtils {
 
 	}
 
+
+	static int[] defaultListCapacities = new int[]{
+			10, 15, 22, 33, 49, 73, 109, 163, 244, 366, 549, 823, 1234, 1851, 2776, 4164, 6246, 9369, 14053, 21079,
+			31618, 47427, 71140, 106710, 160065, 240097, 360145, 540217, 810325, 1215487, 1823230, 2734845,
+			4102267, 6153400, 9230100, 13845150, 20767725, 31151587, 46727380, 70091070, 105136605};
+
+	public static long estimatedSizeOfListStructureBasedOnSize(List object) {
+
+		int size = object.size();
+		if (object instanceof ArrayList) {
+			int capacity = Integer.MAX_VALUE;
+			for (int i = 0; i < defaultListCapacities.length; i++) {
+				if (defaultListCapacities[i] > size) {
+					capacity = defaultListCapacities[i];
+					break;
+				}
+			}
+			return 16 + OBJECT_REF_BYTES * capacity;
+		} else if (object instanceof LinkedList) {
+			return 16 + OBJECT_REF_BYTES + OBJECT_REF_BYTES + Integer.BYTES + (24 * size);
+
+
+		}
+
+		return 0;
+	}
+
+
+	public static long estimatedSizeOfSetStructureBasedOnSize(Set aSet) {
+		if (aSet instanceof HashSet) {
+			int size = aSet.size();
+			int capacity = estimateSetCapacityBasedOnSizeAndDefaultLoadFactor(size);
+
+			return 32 * size + OBJECT_REF_BYTES * capacity;
+
+		} else if (aSet instanceof TreeSet) {
+			return 40 * aSet.size();
+
+		} else {
+			return 40 * aSet.size();
+		}
+
+	}
+
+	public static void main(String[] args) throws Exception {
+
+		ArrayList<Short> test = new ArrayList<>();
+
+		Field field = test.getClass().getDeclaredField("elementData");
+		field.setAccessible(true);
+
+		StringBuilder sb = new StringBuilder();
+
+		int lastCapacity = 0;
+		for (int i = 0; i < 100_000_000; i++) {
+			test.add((short) 42);
+			Object[] elements = (Object[]) field.get(test);
+			int capacity = elements.length;
+
+
+			if (lastCapacity != capacity) {
+				System.out.println(i + ":" + lastCapacity + "=>" + capacity);
+				sb.append(capacity + ",");
+				lastCapacity = capacity;
+			}
+
+		}
+		System.out.println(sb.toString());
+
+
+	}
+
+	static List<Integer> defaultSetCapacities = new ArrayList<>();
+
+	static {
+		int capacity = 16;
+		while (capacity < 1_000_000_000) {
+			defaultSetCapacities.add(capacity);
+			capacity += capacity * 0.75;
+		}
+	}
+
+	static int estimateSetCapacityBasedOnSizeAndDefaultLoadFactor(int size) {
+		for (int defaultCapacity : defaultSetCapacities) {
+			if (size < defaultCapacity) {
+				return defaultCapacity;
+			}
+		}
+
+		return Integer.MAX_VALUE;
+	}
+
 	public static long estimatedizeOfMapStructureBasedOnSize(Map aMap) {
 		if (aMap instanceof HashMap) {
 
-			int capacity = aMap.size();
+			int capacity = estimateSetCapacityBasedOnSizeAndDefaultLoadFactor(aMap.size());
 			//			try {
 			//				HashMap m = (HashMap) aMap;
 			//				Field tableField = HashMap.class.getDeclaredField("table");
@@ -432,6 +530,7 @@ public class LangUtils {
 		sortedValues.sort(null);
 		return sortedValues;
 	}
+
 
 	public static class StringReplacer {
 
@@ -856,11 +955,20 @@ public class LangUtils {
 			return 16 + 2 * ((String) object).length();
 
 		} else if (object instanceof List) {
-			int size = 4;
+			long size = estimatedSizeOfListStructureBasedOnSize((List) object);
 			for (Object element : ((List) object)) {
 				size += sizeOf(element);
 			}
 			return size;
+
+
+		} else if (object instanceof Set) {
+			long size = estimatedSizeOfSetStructureBasedOnSize((Set) object);
+			for (Object element : ((Set) object)) {
+				size += sizeOf(element);
+			}
+			return size;
+
 
 		} else if (object instanceof Map) {
 			long size = estimatedizeOfMapStructureBasedOnSize((Map) object);
@@ -874,6 +982,24 @@ public class LangUtils {
 		}
 
 		return 0;
+	}
+
+
+	public static IntStream forEachInRandomOrder(int nbValues) {
+		List<Integer> integers = getIntValuesInRandomOrder(nbValues);
+
+		return integers.stream().mapToInt((i) -> i);
+	}
+
+	public static List<Integer> getIntValuesInRandomOrder(int nbValues) {
+		List<Integer> integers = new ArrayList<>();
+
+		for (int i = 0; i < nbValues; i++) {
+			integers.add(i);
+		}
+
+		Collections.shuffle(integers);
+		return integers;
 	}
 
 }

@@ -195,12 +195,13 @@ public class RecordAcceptTest extends ConstellioTest {
 						new MapStringStringStructure().with("key3", "value3").with("key4", "value4"));
 
 		assertThat(record.getModifiedMetadatas(setup.getTypes()).only(startingWithMeta)).extracting("localCode")
-				.containsOnly("meta8", "meta7", "meta10", "meta13", "meta2");
+				.containsOnly("meta7", "meta8", "meta10", "meta13", "meta2");
 		record.set(schema2.get("meta3"), "34");
 		record.changeSchema(schema2, schema2);
 
 		assertThatRecord(record)
 				.hasNoMetadataValue(inexistentMetadata1InSchema2)
+				.hasNoMetadataValue(schema1.get("meta1"))
 				.hasMetadataValue(schema2.get("meta2"), "23")
 				.hasMetadataValue(schema2.get("meta3"), "34")
 				.hasMetadataValue(schema2.get("meta7"), asList("78", "89"))

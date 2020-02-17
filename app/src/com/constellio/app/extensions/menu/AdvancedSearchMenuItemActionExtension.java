@@ -17,11 +17,9 @@ import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionException;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
@@ -56,8 +54,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 @Slf4j
@@ -159,17 +155,8 @@ public abstract class AdvancedSearchMenuItemActionExtension extends MenuItemActi
 		AdvancedViewBatchProcessingViewImpl batchProcessingView =
 				new AdvancedViewBatchProcessingViewImpl(batchProcessingPresenter);
 
-		WindowButton button;
-		BatchProcessingMode mode = batchProcessingPresenter.getBatchProcessingMode();
-		if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
-			button = new BatchProcessingButton(batchProcessingPresenter, batchProcessingView)
+		WindowButton button = new BatchProcessingButton(batchProcessingPresenter, batchProcessingView)
 					.hasResultSelected(!batchProcessingView.getSelectedRecordIds().isEmpty());
-		} else if (mode.equals(ONE_METADATA)) {
-			button = new BatchProcessingModifyingOneMetadataButton(batchProcessingPresenter, batchProcessingView)
-					.hasResultSelected(!batchProcessingView.getSelectedRecordIds().isEmpty());
-		} else {
-			throw new RuntimeException("Unsupported mode " + mode);
-		}
 		button.click();
 	}
 

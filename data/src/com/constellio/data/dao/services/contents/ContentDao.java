@@ -19,6 +19,8 @@ public interface ContentDao {
 
 	void delete(List<String> contentIds);
 
+	void deleteFileNameContaining(String contentId, String filter);
+
 	LocalDateTime getLastModification(String contentId);
 
 	InputStream getContentInputStream(String contentId, String streamName)

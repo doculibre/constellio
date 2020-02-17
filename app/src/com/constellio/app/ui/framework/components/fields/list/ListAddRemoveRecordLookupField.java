@@ -71,19 +71,7 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 
 	@Override
 	protected LookupRecordField newAddEditField() {
-		final LookupRecordField field = recordTextInputDataProvider == null ?
-										new LookupRecordField(schemaTypeCode, schemaCode)
-																			: new LookupRecordField(schemaTypeCode, schemaCode, false, recordTextInputDataProvider) {
-			@Override
-			protected String getReadOnlyMessage() {
-				String readOnlyMessage = ListAddRemoveRecordLookupField.this.getReadOnlyMessage();
-				if (!StringUtils.isBlank(readOnlyMessage)) {
-					return readOnlyMessage;
-				} else {
-					return super.getReadOnlyMessage();
-				}
-			}
-		};
+		final LookupRecordField field = buildBaseLookupField();
 
 		for (ValueChangeListener listener : lookupFieldListenerList) {
 			field.addValueChangeListener(listener);
@@ -101,6 +89,22 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 			}
 		});
 		return field;
+	}
+
+	protected LookupRecordField buildBaseLookupField() {
+		return recordTextInputDataProvider == null ?
+			   new LookupRecordField(schemaTypeCode, schemaCode)
+												   : new LookupRecordField(schemaTypeCode, schemaCode, false, recordTextInputDataProvider) {
+			@Override
+			protected String getReadOnlyMessage() {
+				String readOnlyMessage = ListAddRemoveRecordLookupField.this.getReadOnlyMessage();
+				if (!StringUtils.isBlank(readOnlyMessage)) {
+					return readOnlyMessage;
+				} else {
+					return super.getReadOnlyMessage();
+				}
+			}
+		};
 	}
 
 	protected String getReadOnlyMessage() {

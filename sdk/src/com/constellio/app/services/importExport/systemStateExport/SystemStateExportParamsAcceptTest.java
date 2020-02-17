@@ -82,7 +82,7 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(document1, document2));
 
 		zipService = getModelLayerFactory().getIOServicesFactory().newZipService();
-		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMoveInVault();
+		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMove();
 	}
 
 	@Test

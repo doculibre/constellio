@@ -5,11 +5,14 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AuthorizationsButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.RolesButton;
+import com.constellio.app.ui.framework.buttons.TransferPermissionsButton;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenter;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -62,6 +65,14 @@ public class CollectionUserViewImpl extends BaseViewImpl implements CollectionUs
 			}
 		};
 		buttons.add(roles);
+
+		TransferPermissionPresenter transferPermissionPresenter = new TransferPermissionPresenter(this, presenter.recordId);
+		Button transferUserPermissions = new TransferPermissionsButton(
+				$("TransferPermissionsButton.title"),
+				$("TransferPermissionsButton.title"),
+				transferPermissionPresenter);
+		transferUserPermissions.setIcon(FontAwesome.EXCHANGE);
+		buttons.add(transferUserPermissions);
 
 		Button delete = new DeleteButton(false) {
 			@Override

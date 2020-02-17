@@ -33,6 +33,7 @@ import com.vaadin.ui.Tree.TreeDragMode;
 import com.vaadin.ui.TreeTable;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
 
 import java.io.Serializable;
@@ -60,7 +61,9 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 	private List<ItemClickListener> itemClickListeners = new ArrayList<ItemClickListener>();
 	
 	private Map<Object, List<Object>> loaderPropertyCache = new HashMap<>();
-	
+
+	private Map<T, String> explicitItemCaptions = new HashMap<>();
+
 	public LazyTree(LazyTreeDataProvider<T> treeDataProvider) {
 		this(treeDataProvider, false);
 	}
@@ -103,7 +106,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 				return itemDescription;
 			}
 		});
-		adaptee.addContainerProperty(CAPTION_PROPERTY, Component.class, null);
+		adaptee.addContainerProperty(CAPTION_PROPERTY, Object.class, null);
 		adaptee.addContainerProperty(LOADER_NEXT_LOADED_INDEX_ID, Integer.class, null);
 		adaptee.addContainerProperty(LOADER_PARENT_ITEM_ID, LazyTree.this.getType(), null);
 		adaptee.setVisibleColumns(CAPTION_PROPERTY);
@@ -250,6 +253,23 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		return dataProvider;
 	}
 
+	@SuppressWarnings("unchecked")
+	public void reloadItem(T itemId) {
+		if (!isLoader(itemId)) {
+			Item item = adaptee.getItem(itemId);
+			Property<Object> captionProperty = item.getItemProperty(CAPTION_PROPERTY);
+			Component newItemCaptionComponent = getItemCaptionComponent((T) itemId);
+			if (newItemCaptionComponent != null) {
+				captionProperty.setValue(newItemCaptionComponent);
+			} else {
+				String newItemCaption = getExplicitOrDefaultItemCaption(itemId);
+				if (StringUtils.isNotBlank(newItemCaption)) {
+					captionProperty.setValue(newItemCaption);
+				}
+			}
+		}
+	}
+
 	private void addItem(T child, T parent) {
 		addItem(child, parent, true);
 	}
@@ -357,7 +377,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		if (multiValue) {
 			if (isSelectable(object)) {
 				VerticalLayout wrapper = new VerticalLayout();
-				String itemCaption = getItemCaption(object);
+				String itemCaption = getExplicitOrDefaultItemCaption(object);
 				final CheckBox checkBox = new CheckBox(itemCaption);
 				checkBox.setValue(ensureListValue().contains(object));
 				checkBox.addValueChangeListener(new Property.ValueChangeListener() {
@@ -394,7 +414,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 						}
 					}
 				});
-				
+
 				itemCaptionComponent = wrapper;
 			} else {
 				itemCaptionComponent = null;
@@ -413,6 +433,11 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 			value = new ArrayList<>();
 		}
 		return value;
+	}
+
+	private String getExplicitOrDefaultItemCaption(T object) {
+		String explicitOrDefaultCaption = explicitItemCaptions.get(object);
+		return explicitOrDefaultCaption != null ? explicitOrDefaultCaption : getItemCaption(object);
 	}
 
 	public String getItemCaption(T object) {
@@ -474,14 +499,16 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 	}
 
 	public void setItemIcon(Object itemId, Resource icon, String altText) {
-//		adaptee.setItemIcon(itemId, icon, altText);
+		adaptee.setItemIcon(itemId, icon, altText);
 	}
 
 	public void setItemIconAlternateText(Object itemId, String altText) {
-//		adaptee.setItemIconAlternateText(itemId, altText);
+		adaptee.setItemIconAlternateText(itemId, altText);
 	}
 
 	public void setItemCaption(Object itemId, String caption) {
+		explicitItemCaptions.put((T) itemId, caption);
+		adaptee.fireItemSetChange();
 		adaptee.setItemCaption(itemId, caption);
 	}
 
@@ -490,7 +517,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 	}
 
 	public void setItemStyleGenerator(ItemStyleGenerator itemStyleGenerator) {
-//		adaptee.setItemStyleGenerator(itemStyleGenerator);
+		adaptee.setItemStyleGenerator(itemStyleGenerator);
 	}
 
 	public void setItemCaptionPropertyId(Object propertyId) {
@@ -760,7 +787,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 			if (isLoader(itemId)) {
 				itemCaption = getLoaderItemCaption(itemId);
 			} else {
-				itemCaption = LazyTree.this.getItemCaption((T) itemId);
+				itemCaption = LazyTree.this.getExplicitOrDefaultItemCaption((T) itemId);
 				if (itemCaption == null) {
 					itemCaption = defaultGetItemCaption(itemId);
 				}
@@ -796,6 +823,12 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 	private interface BaseTreeComponent {
 
 		void setItemDescriptionGenerator(ItemDescriptionGenerator itemDescriptionGenerator);
+
+		void setItemStyleGenerator(ItemStyleGenerator itemStyleGenerator);
+
+		void setItemIconAlternateText(Object itemId, String altText);
+
+		void setItemIcon(Object itemId, Resource icon, String altText);
 
 		Collection<?> getChildren(Object parentId);
 
@@ -871,6 +904,8 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 
 		void setContextMenu(ContextMenu contextMenu);
 
+		void fireItemSetChange();
+
 	}
 
 	private class TreeComponent extends Tree implements BaseTreeComponent {
@@ -933,6 +968,11 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		@Override
 		public void setContextMenu(ContextMenu contextMenu) {
 			contextMenu.setAsTreeContextMenu(this);
+		}
+
+		@Override
+		public void fireItemSetChange() {
+			super.fireItemSetChange();
 		}
 
 		@Override
@@ -1037,6 +1077,30 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		@Override
 		public Resource getItemIcon(Object itemId) {
 			return baseTreeComponentHelper.getItemIcon(itemId);
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void setItemIcon(Object itemId, Resource icon, String altText) {
+			Object iconPropertyId = getItemIconPropertyId();
+			if (iconPropertyId != null) {
+				getItem(itemId).getItemProperty(iconPropertyId).setValue(icon);
+			}
+		}
+
+		@Override
+		public void setItemStyleGenerator(ItemStyleGenerator itemStyleGenerator) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void setItemIconAlternateText(Object itemId, String altText) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void fireItemSetChange() {
+			super.fireItemSetChange();
 		}
 
 	}

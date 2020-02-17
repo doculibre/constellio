@@ -7,6 +7,7 @@ import com.constellio.data.utils.ThreadList;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerRuntimeException.BulkRecordTransactionHandlerRuntimeException_ExceptionExecutingTransaction;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerRuntimeException.BulkRecordTransactionHandlerRuntimeException_Interrupted;
 import com.constellio.model.services.records.cache.RecordsCache;
@@ -48,12 +49,13 @@ public class BulkRecordTransactionHandler {
 
 	RecordServices recordServices;
 
+	int maxQueueSize = 0;
 	LinkedBlockingQueue<BulkRecordTransactionHandlerTask> tasks;
 
 	ThreadList<Thread> threadList;
 
+	int currentRecordsEstimatedSize = 0;
 	List<Record> currentRecords = new ArrayList<>();
-	long currentRecordsSize = 0;
 
 	Map<String, Record> currentReferencedRecords = new HashMap<>();
 
@@ -73,6 +75,7 @@ public class BulkRecordTransactionHandler {
 		this.options = options;
 		this.resourceName = resourceName;
 		this.id = "" + sequence.incrementAndGet();
+		maxQueueSize = options.queueSize;
 		tasks = new LinkedBlockingQueue<>(options.queueSize);
 		try {
 			this.threadList = createThreadsAndStartThem();
@@ -99,14 +102,42 @@ public class BulkRecordTransactionHandler {
 	public synchronized void append(List<Record> records, List<Record> referencedRecords) {
 		ensureNoExceptions();
 
+		int receivedEstimatedSize = estimatedSizeOf(records);
+
 		if (currentRecords.size() + records.size() > options.recordsPerBatch) {
 			pushCurrent();
+
+		} else if (currentRecordsEstimatedSize + receivedEstimatedSize > options.maxRecordsTotalSizePerBatch) {
+			pushCurrent();
+
 		}
+
 		total.addAndGet(records.size());
 		currentRecords.addAll(records);
+		currentRecordsEstimatedSize += receivedEstimatedSize;
 		for (Record referencedRecord : referencedRecords) {
 			currentReferencedRecords.put(referencedRecord.getId(), referencedRecord);
 		}
+	}
+
+	private int estimatedSizeOf(List<Record> records) {
+		int totalEstimatedSize = 0;
+
+		for (Record record : records) {
+			Integer estimatedSize = record.get(Schemas.ESTIMATED_SIZE);
+			if (estimatedSize == null) {
+				try {
+					estimatedSize = RecordUtils.estimateRecordSize(record);
+				} catch (Throwable t) {
+					t.printStackTrace();
+					estimatedSize = 50_000;
+				}
+
+			}
+			totalEstimatedSize += estimatedSize;
+		}
+
+		return totalEstimatedSize;
 	}
 
 	public void pushCurrent() {
@@ -127,6 +158,7 @@ public class BulkRecordTransactionHandler {
 				throw new BulkRecordTransactionHandlerRuntimeException_Interrupted(e);
 			}
 			currentRecords = new ArrayList<>();
+			currentRecordsEstimatedSize = 0;
 			currentReferencedRecords = new HashMap<>();
 		}
 	}
@@ -141,6 +173,7 @@ public class BulkRecordTransactionHandler {
 			pushCurrent();
 		} catch (BulkRecordTransactionHandlerRuntimeException_ExceptionExecutingTransaction e) {
 			currentRecords.clear();
+			currentRecordsEstimatedSize = 0;
 			tasks.clear();
 			throw e;
 		} finally {
@@ -338,5 +371,13 @@ public class BulkRecordTransactionHandler {
 
 	public int getNumberOfThreads() {
 		return options.getNumberOfThreads();
+	}
+
+	public int getRecordsPerBatch() {
+		return options.getRecordsPerBatch();
+	}
+
+	public int getMaxQueueSize() {
+		return maxQueueSize;
 	}
 }

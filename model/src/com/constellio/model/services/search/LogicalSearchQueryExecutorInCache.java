@@ -1,5 +1,6 @@
 package com.constellio.model.services.search;
 
+import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.dev.Toggle;
@@ -8,6 +9,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
@@ -33,17 +35,23 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
 import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_CACHE;
 import static java.util.Arrays.asList;
@@ -51,6 +59,12 @@ import static java.util.Arrays.asList;
 public class LogicalSearchQueryExecutorInCache {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(LogicalSearchQueryExecutorInCache.class);
+
+	public static int MAIN_SORT_THRESHOLD = 10000;
+
+	public static int NORMALIZED_SORTS_THRESHOLD = 250;
+
+	public static int UNNORMALIZED_SORTS_THRESHOLD = 1000;
 
 	SearchServices searchServices;
 	RecordsCaches recordsCaches;
@@ -75,7 +89,8 @@ public class LogicalSearchQueryExecutorInCache {
 		this.searchConfigurationsManager = searchConfigurationsManager;
 	}
 
-	public Stream<Record> stream(LogicalSearchQuery query) {
+	public Stream<Record> stream(LogicalSearchQuery query)
+			throws LogicalSearchQueryExecutionCancelledException {
 
 		if (isQueryReturningNoResults(query)) {
 			return Stream.empty();
@@ -95,10 +110,70 @@ public class LogicalSearchQueryExecutorInCache {
 		Stream<Record> stream = newBaseRecordStream(query, schemaType, recordFilter);
 
 		if (!query.getSortFields().isEmpty()) {
-			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
+			List<Record> records = consummeAndSort(stream, query, schemaType);
+			records.sort(newQuerySortFieldsComparator(query, schemaType));
+			return records.stream();
+
+			//return stream.sorted();
 		} else {
 			return stream;
 		}
+	}
+
+	private List<Record> consummeAndSort(Stream<Record> stream, LogicalSearchQuery query, MetadataSchemaType schemaType)
+			throws LogicalSearchQueryExecutionCancelledException {
+		Iterator<Record> iterator = stream.iterator();
+
+		int recordsLimit = Integer.MAX_VALUE;
+		boolean usingMainSort = false;
+
+		for (LogicalSearchQuerySort querySort : query.getSortFields()) {
+			if (querySort instanceof FieldLogicalSearchQuerySort) {
+				MetadataValueType type = ((FieldLogicalSearchQuerySort) querySort).getField().getType();
+
+				Metadata mainSortMetadata = schemaType.getMainSortMetadata();
+				String localCode = ((FieldLogicalSearchQuerySort) querySort).getField().getLocalCode();
+				if (mainSortMetadata != null && localCode.equals(mainSortMetadata.getLocalCode())) {
+					usingMainSort = true;
+					recordsLimit = Math.min(recordsLimit, MAIN_SORT_THRESHOLD);
+
+				} else if (type == STRING || type == TEXT || type == REFERENCE) {
+					//Schema sorts are used to separate records by schema types (sorting by the custom schema is irrelevant)
+					//Since the stream is already on a schemaType, this comparison is skipped
+					if (!Schemas.SCHEMA.getLocalCode().equals(localCode)) {
+
+						recordsLimit = Math.min(recordsLimit, NORMALIZED_SORTS_THRESHOLD);
+					}
+
+				} else {
+					recordsLimit = Math.min(recordsLimit, UNNORMALIZED_SORTS_THRESHOLD);
+
+				}
+			}
+		}
+
+		int recordsCountWithoutSortValue = 0;
+		List<Record> records = new ArrayList<>();
+		while (iterator.hasNext()) {
+			Record record = iterator.next();
+			records.add(record);
+
+			if (records.size() > recordsLimit) {
+				throw new LogicalSearchQueryExecutionCancelledException("Too much records to sort, max limit of " + recordsLimit);
+			}
+
+			if (usingMainSort) {
+				if (record.getRecordDTO().getMainSortValue() == RecordDTO.MAIN_SORT_UNDEFINED) {
+					recordsCountWithoutSortValue++;
+
+					if (recordsCountWithoutSortValue > NORMALIZED_SORTS_THRESHOLD) {
+						throw new LogicalSearchQueryExecutionCancelledException("Too much records without sort value to sort, max limit of " + NORMALIZED_SORTS_THRESHOLD);
+					}
+				}
+			}
+		}
+
+		return records;
 	}
 
 	private Predicate<TestedQueryRecord> toStreamFilter(LogicalSearchQuery query, MetadataSchemaType schemaType) {
@@ -274,7 +349,11 @@ public class LogicalSearchQueryExecutorInCache {
 				FieldLogicalSearchQuerySort fieldSort = (FieldLogicalSearchQuerySort) sort;
 				Metadata metadata =
 						schemaType.getDefaultSchema().getMetadataByDatastoreCode(fieldSort.getField().getDataStoreCode());
-				if (metadata != null) {
+
+				//Schema sorts are used to separate records by schema types (sorting by the custom schema is irrelevant)
+				//Since the stream is already on a schemaType, this comparison is skipped
+				if (metadata != null && !Schemas.SCHEMA.isSameLocalCode(metadata)) {
+
 					int sortValue;
 					sortValue = compareMetadatasValues(o1, o2, metadata, locale, sort.isAscending());
 
@@ -298,6 +377,15 @@ public class LogicalSearchQueryExecutorInCache {
 
 	private int compareMetadatasValues(Record record1, Record record2, Metadata metadata, Locale preferedLanguage,
 									   boolean ascending) {
+
+		if (metadata.isSameLocalCode(Schemas.TITLE)) {
+			int value1 = record1.getRecordDTO().getMainSortValue();
+			int value2 = record2.getRecordDTO().getMainSortValue();
+			if (value1 > 0 && value2 > 0) {
+				return ascending ? new Integer(value1).compareTo(value2) : new Integer(value2).compareTo(value1);
+			}
+		}
+
 		Object value1 = record1.get(metadata, preferedLanguage, PREFERRING);
 		Object value2 = record2.get(metadata, preferedLanguage, PREFERRING);
 
@@ -342,7 +430,8 @@ public class LogicalSearchQueryExecutorInCache {
 		return ascending ? sort : (-1 * sort);
 	}
 
-	public Stream<Record> stream(LogicalSearchCondition condition) {
+	public Stream<Record> stream(LogicalSearchCondition condition)
+			throws LogicalSearchQueryExecutionCancelledException {
 		return stream(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL));
 	}
 
@@ -456,6 +545,8 @@ public class LogicalSearchQueryExecutorInCache {
 				FieldLogicalSearchQuerySort fieldSort = (FieldLogicalSearchQuerySort) sort;
 				return fieldSort.getField().getType() == STRING
 					   || fieldSort.getField().getType() == NUMBER
+					   || fieldSort.getField().getType() == DATE
+					   || fieldSort.getField().getType() == DATE_TIME
 					   || fieldSort.getField().getType() == INTEGER;
 			}
 		}

@@ -1,6 +1,7 @@
 package com.constellio.app.services.migrations;
 
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
 import com.constellio.app.services.extensions.core.CoreSearchFieldExtension;
 import com.constellio.app.services.extensions.core.CoreUserProfileFieldsExtension;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -78,8 +79,11 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_0_5;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_3;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_40;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_89;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -169,8 +173,10 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_9_0_1_1());
 		scripts.add(new CoreMigrationTo_9_0_1_2());
 		scripts.add(new CoreMigrationTo_9_0_1_3());
+		scripts.add(new CoreMigrationTo_9_0_1_40());
 		scripts.add(new CoreMigrationTo_9_0_42_1());
 		scripts.add(new CoreMigrationTo_9_0_1_89());
+		scripts.add(new CoreMigrationTo_9_0_42_2());
 		return scripts;
 	}
 
@@ -204,5 +210,7 @@ public class ConstellioEIM {
 	}
 
 	private static void configureBaseDataLayerExtensions(AppLayerFactory appLayerFactory, String collection) {
+		DataLayerSystemExtensions dataLayerSystemExtensions = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getExtensions().getSystemWideExtensions();
+		dataLayerSystemExtensions.supportedExtensionExtensions.add(new AppSupportedExtensionExtension(appLayerFactory));
 	}
 }

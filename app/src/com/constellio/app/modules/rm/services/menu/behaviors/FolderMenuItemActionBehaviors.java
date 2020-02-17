@@ -75,6 +75,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.roles.Roles;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -163,13 +164,14 @@ public class FolderMenuItemActionBehaviors {
 
 	public void move(Folder folder, MenuItemActionBehaviorParams params) {
 		Button moveInFolderButton = new WindowButton($("DisplayFolderView.parentFolder"),
-				$("DisplayFolderView.parentFolder"), WindowButton.WindowConfiguration.modalDialog("570px", "160px")) {
+				$("DisplayFolderView.parentFolder"), WindowButton.WindowConfiguration.modalDialog("570px", "140px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout verticalLayout = new VerticalLayout();
 				verticalLayout.setSpacing(true);
-				final LookupFolderField field = new LookupFolderField();
+				final LookupFolderField field = new LookupFolderField(true);
 				verticalLayout.addComponent(field);
+				verticalLayout.setMargin(new MarginInfo(true, true, false, true));
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {

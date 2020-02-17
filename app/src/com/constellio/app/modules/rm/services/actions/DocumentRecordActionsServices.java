@@ -34,7 +34,7 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isMoveActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) &&
+		return isEditActionPossible(record, user) &&
 			   rmModuleExtensions.isMoveActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
@@ -54,6 +54,13 @@ public class DocumentRecordActionsServices {
 		return hasUserWriteAccess(record, user) &&
 			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isEditActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
+
+	public boolean isRenameActionPossible(Record record, User user) {
+		return hasUserWriteAccess(record, user) &&
+			   rm.wrapDocument(record).hasContent() &&
+			   !record.isLogicallyDeleted() &&
+			   rmModuleExtensions.isRenameActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isDownloadActionPossible(Record record, User user) {
@@ -352,7 +359,7 @@ public class DocumentRecordActionsServices {
 
 	private boolean isDocumentLogicallyDeleted(Document document) {
 		if (document.getId() != null) {
-			return rm.getDocument(document.getId()).isLogicallyDeletedStatus();
+			return rm.getDocumentSummary(document.getId()).isLogicallyDeletedStatus();
 		} else {
 			return true;
 		}

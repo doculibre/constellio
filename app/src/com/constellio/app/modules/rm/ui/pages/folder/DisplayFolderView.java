@@ -9,9 +9,9 @@ import com.constellio.app.ui.pages.base.BaseView;
 
 public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup {
 
-	RecordVO getRecord();
+	RecordVO getSummaryRecord();
 
-	void setRecord(RecordVO recordVO);
+	void setSummaryRecord(RecordVO recordVO);
 
 	void setEvents(RecordVODataProvider dataProvider);
 

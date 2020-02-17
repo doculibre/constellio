@@ -246,7 +246,7 @@ public class MigrationServices {
 				migrate(migration);
 			}
 		} catch (Throwable e) {
-			if (!dataLayerFactory.getTransactionLogRecoveryManager().isInRollbackMode()) {
+			if (!dataLayerFactory.getTransactionLogXmlRecoveryManager().isInRollbackMode()) {
 				constellioPluginManager
 						.handleModuleNotMigratedCorrectly(migration.getModuleId(), collection, e);
 

@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
@@ -23,6 +24,7 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -77,6 +79,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
+		LoggingServices loggingServices = modelLayerFactory.newLoggingServices();
 
 		UserCredential userCredential = userServices.getUserCredential(enteredUsername);
 		String username = userCredential != null ? userCredential.getUsername() : enteredUsername;
@@ -138,6 +141,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 				view.setUsernameCookie(null);
 			}
 		} else {
+			loggingServices.failingLogin(enteredUsername, ConstellioUI.getCurrent().getPage().getWebBrowser().getAddress());
 			view.showBadLoginMessage();
 		}
 	}

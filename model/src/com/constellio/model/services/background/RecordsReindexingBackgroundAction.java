@@ -52,9 +52,9 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 							  && TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
 
 		if (!Toggle.PERFORMANCE_TESTING.isEnabled()
-
-			&& ReindexingServices.getReindexingInfos() == null
-			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+			&& ReindexingServices.getReindexingInfos() == null &&
+			(modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized() ||
+			 !modelLayerFactory.getConfiguration().isSummaryCacheEnabled())) {
 			boolean found = false;
 			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 				LogicalSearchQuery query = new LogicalSearchQuery();

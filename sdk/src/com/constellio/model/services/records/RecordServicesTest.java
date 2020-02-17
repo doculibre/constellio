@@ -118,6 +118,7 @@ public class RecordServicesTest extends ConstellioTest {
 	@Mock MetadataSchemasManager schemaManager;
 	@Mock RecordDao recordDao;
 	@Mock RecordDao eventsDao;
+	@Mock RecordDao searchDao;
 	@Mock RecordDao notificationsDao;
 	@Mock RecordsCaches recordsCaches;
 	@Mock RecordsCache recordsCache;
@@ -269,7 +270,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(collectionsManager.getCollectionLanguages(zeCollection)).thenReturn(Arrays.asList("fr", "en"));
 
 		recordServices = spy(
-				(RecordServicesImpl) new RecordServicesImpl(recordDao, eventsDao, notificationsDao, modelFactory, typesFactory,
+				(RecordServicesImpl) new RecordServicesImpl(recordDao, eventsDao, searchDao, notificationsDao, modelFactory, typesFactory,
 						uniqueIdGenerator, recordsCaches));
 		doNothing().when(recordServices).sleep(anyLong());
 
@@ -1050,6 +1051,7 @@ public class RecordServicesTest extends ConstellioTest {
 
 		verify(recordDao).flush();
 		verify(eventsDao).flush();
+		verify(searchDao).flush();
 
 	}
 

@@ -164,7 +164,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 		recordServices.logicallyDelete(record1, User.GOD);
 		recordServices.physicallyDelete(record1, User.GOD);
 
-		log.regroupAndMoveInVault();
+		log.regroupAndMove();
 		log.destroyAndRebuildSolrCollection();
 
 		assertThat(completeTLOG()).doesNotContain(record1.getId());
@@ -184,7 +184,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 		record1.set(zeSchema.contentMetadata(), contentManager.createMajor(admin, "guide.pdf", data));
 		recordServices.add(record1);
 
-		log.regroupAndMoveInVault();
+		log.regroupAndMove();
 		log.destroyAndRebuildSolrCollection();
 
 		Content content = recordServices.getDocumentById("zeRecord").get(zeSchema.contentMetadata());
@@ -206,7 +206,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 		}
 		getDataLayerFactory().getSequencesManager().set("anotherSequence", 666);
 
-		log.regroupAndMoveInVault();
+		log.regroupAndMove();
 		log.destroyAndRebuildSolrCollection();
 
 		assertThat(getDataLayerFactory().getSequencesManager().getLastSequenceValue("zeSequence")).isEqualTo(42);
@@ -228,7 +228,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 
 		getModelLayerFactory().newReindexingServices().reindexCollections(RECALCULATE_AND_REWRITE);
 
-		log.regroupAndMoveInVault();
+		log.regroupAndMove();
 		log.destroyAndRebuildSolrCollection();
 
 		assertThat(getDataLayerFactory().getSequencesManager().getLastSequenceValue("zeSequence")).isEqualTo(42);
@@ -242,12 +242,12 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 		Record record1 = new TestRecord(zeSchema);
 		record1.set(zeSchema.stringMetadata(), "Darth Vador");
 		recordServices.add(record1);
-		log.regroupAndMoveInVault();
+		log.regroupAndMove();
 
 		Record record2 = new TestRecord(zeSchema);
 		record2.set(zeSchema.stringMetadata(), "Luke Skywalker");
 		recordServices.add(record2);
-		log.regroupAndMoveInVault();
+		log.regroupAndMove();
 
 		assertThat(completeTLOG()).is(onlyContainingValues("Darth Vador", "Luke Skywalker"));
 
@@ -256,19 +256,19 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 		recordServices.update(record2.set(zeSchema.stringMetadata(), "Anakin Skywalker"));
 
 		reindexServices.reindexCollection(zeCollection, new ReindexationParams(ReindexationMode.REWRITE));
-		log.regroupAndMoveInVault();
+		log.regroupAndMove();
 		assertThat(completeTLOG()).is(containingAllValues());
 
 		reindexServices.reindexCollection(zeCollection, new ReindexationParams(ReindexationMode.RECALCULATE));
-		log.regroupAndMoveInVault();
+		log.regroupAndMove();
 		assertThat(completeTLOG()).is(containingAllValues());
 
 		reindexServices.reindexCollection(zeCollection, new ReindexationParams(RECALCULATE_AND_REWRITE));
-		log.regroupAndMoveInVault();
+		log.regroupAndMove();
 		assertThat(completeTLOG()).is(containingAllValues());
 
 		reindexServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE));
-		log.regroupAndMoveInVault();
+		log.regroupAndMove();
 
 		assertThat(completeTLOG()).is(containingAllValues());
 	}
@@ -281,7 +281,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 		Record record1 = new TestRecord(zeSchema, "ze42");
 		record1.set(zeSchema.stringMetadata(), "Darth Vador");
 		recordServices.add(record1);
-		log.regroupAndMoveInVault();
+		log.regroupAndMove();
 		assertThat(completeTLOG()).is(onlyContainingValues("Darth Vador"));
 
 		givenTimeIs(shishOClockPlus1Hour);

@@ -1,6 +1,8 @@
 package com.constellio.sdk.tests;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.conf.SecondTransactionLogType;
+import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.entities.records.Record;
@@ -44,7 +46,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 	@Override
 	public void afterTest(boolean failed) {
-		testSession.close(false, failed);
+		testSession.close(false, failed, false);
 	}
 
 	private static ConstellioTest currentInstance;
@@ -54,6 +56,15 @@ public class ConstellioTest extends AbstractConstellioTest {
 	@Before
 	public void beforeConstellioTest() {
 		System.out.println("Allocated memory before test : " + OffHeapMemoryAllocator.getAllocatedMemory() + " bytes");
+		System.out.println("Allocated memory before test - OffHeapByteArrayList_ID : " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapByteArrayList_ID));
+		System.out.println("Allocated memory before test - OffHeapByteList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapByteList_ID));
+		System.out.println("Allocated memory before test - OffHeapIntList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapIntList_ID));
+		System.out.println("Allocated memory before test - OffHeapLongList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapLongList_ID));
+		System.out.println("Allocated memory before test - OffHeapShortList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapShortList_ID));
+		System.out.println("Allocated memory before test - SortedIntIdsList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.SortedIntIdsList_ID));
+		System.out.println("Allocated memory before test - SDK: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.SDK));
+		System.out.println("Allocated memory before test - OffHeapByteArrayListArea_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapByteArrayListArea_ID));
+
 		MockitoAnnotations.initMocks(this);
 		cacheIntegrityCheckedAfterTest = true;
 
@@ -80,7 +91,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 			}
 
-			testSession.close(true, false);
+			testSession.close(true, false, false);
 			ReindexingServices.markReindexingHasFinished();
 
 			System.out.print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
@@ -136,14 +147,14 @@ public class ConstellioTest extends AbstractConstellioTest {
 	}
 
 	public void resetTestSession() {
-		testSession.close(true, false);
+		testSession.close(true, false, false);
 
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 	}
 
 	protected void clearTestSession() {
 		if (!isPreservingState()) {
-			testSession.close(false, false);
+			testSession.close(false, false, false);
 			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		}
 	}
@@ -238,7 +249,16 @@ public class ConstellioTest extends AbstractConstellioTest {
 				setFailMessage("Cache problems : \n" + StringUtils.join(messages, "\n"));
 			}
 		}
+		if (ConstellioFactories.getInstance().getDataLayerFactory().getDataLayerConfiguration().getSecondTransactionLogMode() == SecondTransactionLogType.SQL_SERVER) {
+			ConstellioFactories.getInstance().getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).deleteAll();
+			ConstellioFactories.getInstance().getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll();
+		}
 
+	}
+
+	public void restartLayers() {
+		getCurrentTestSession().closeForRestarting();
+		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 	}
 
 	private ValidationErrors checkCacheAndReturnErrors(boolean waitForBatchProcesses, boolean runTwice) {

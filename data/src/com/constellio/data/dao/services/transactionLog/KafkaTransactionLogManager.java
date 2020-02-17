@@ -167,7 +167,7 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 	}
 
 	@Override
-	public String regroupAndMoveInVault() {
+	public String regroupAndMove() {
 		if (transactions.isEmpty()) {
 			return null;
 		}
@@ -234,12 +234,12 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 	}
 
 	@Override
-	public void moveTLOGToBackup() {
+	public void transactionLOGReindexationStartStrategy() {
 		// TODO : Kafka backup?
 	}
 
 	@Override
-	public void deleteLastTLOGBackup() {
+	public void transactionLOGReindexationCleanupStrategy() {
 		// TODO : Delete Kafka backup?
 	}
 
@@ -249,7 +249,7 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 	}
 
 	@Override
-	public void setAutomaticRegroupAndMoveInVaultEnabled(boolean enabled) {
+	public void setAutomaticRegroupAndMoveEnabled(boolean enabled) {
 		automaticRegroupAndMoveInVaultEnabled = enabled;
 	}
 

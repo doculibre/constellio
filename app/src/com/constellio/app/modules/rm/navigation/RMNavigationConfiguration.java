@@ -139,6 +139,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String DOCUMENT_DECOMMISSIONING_LIST_DISPLAY = "documentDecommissioningList";
 	public static final String DECOMMISSIONING_LIST_EDIT = "editDecommissioningList";
 	public static final String EDIT_DOCUMENT = "editDocument";
+	public static final String RENAME_CONTENT = "renameContent";
 	public static final String DUPLICATE_FOLDER = "duplicateFolder";
 	public static final String DISPLAY_DOCUMENT = "displayDocument";
 	public static final String ADD_EMAIL_ATTACHMENTS_TO_FOLDER = "addEmailAttachmentsToFolder";
@@ -208,7 +209,7 @@ public class RMNavigationConfiguration implements Serializable {
 				View currentView = ConstellioUI.getCurrent().getCurrentView();
 				if (currentView instanceof DisplayFolderView) {
 					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
-					String parentFolderId = displayFolderView.getRecord().getId();
+					String parentFolderId = displayFolderView.getSummaryRecord().getId();
 					navigate.to(RMViews.class).addFolder(parentFolderId);
 				} else {
 					navigate.to(RMViews.class).addFolder();
@@ -235,7 +236,7 @@ public class RMNavigationConfiguration implements Serializable {
 				View currentView = ConstellioUI.getCurrent().getCurrentView();
 				if (currentView instanceof DisplayFolderView) {
 					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
-					String folderId = displayFolderView.getRecord().getId();
+					String folderId = displayFolderView.getSummaryRecord().getId();
 					navigate.to(RMViews.class).newDocument(folderId);
 				} else {
 					navigate.to(RMViews.class).newDocument();
@@ -253,7 +254,7 @@ public class RMNavigationConfiguration implements Serializable {
 				View currentView = ConstellioUI.getCurrent().getCurrentView();
 				if (currentView instanceof DisplayFolderView) {
 					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
-					String folderId = displayFolderView.getRecord().getId();
+					String folderId = displayFolderView.getSummaryRecord().getId();
 					navigate.to(RMViews.class).addDocument(folderId);
 				} else {
 					navigate.to(RMViews.class).addDocument();

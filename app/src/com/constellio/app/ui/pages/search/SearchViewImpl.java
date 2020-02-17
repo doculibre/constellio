@@ -4,8 +4,16 @@ import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.
 import com.constellio.app.api.extensions.params.ExtraTabForSimpleSearchResultParams;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.*;
-import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.entities.FacetVO;
+import com.constellio.app.ui.entities.FacetValueVO;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.SearchResultVO;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.BaseLink;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
@@ -28,6 +36,7 @@ import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
@@ -53,20 +62,39 @@ import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.ComponentContainer;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.TabSheet.Tab;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.jetbrains.annotations.Nullable;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.sliderpanel.SliderPanel;
 import org.vaadin.sliderpanel.client.SliderPanelListener;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -103,6 +131,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private List<SaveSearchListener> saveSearchListenerList = new ArrayList<>();
 	private Map<String, String> extraParameters = null;
 	private boolean lazyLoadedSearchResults;
+	private boolean applyButtonEnabled;
 	private List<SelectionChangeListener> selectionChangeListenerStorage = new ArrayList<>();
 	private boolean facetsOpened;
 	private TabSheet resultTabSheet;
@@ -258,7 +287,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	@Override
 	public void setSearchExpression(String expression) {
-		ConstellioUI.getCurrent().getHeader().setSearchExpression(expression);
+		getHeader().setSearchExpression(expression);
+	}
+
+	protected ConstellioHeader getHeader() {
+		return ConstellioUI.getCurrent().getHeader();
 	}
 
 	public void refreshSearchResultsAndFacets(boolean temporarySave) {
@@ -382,6 +415,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		this.lazyLoadedSearchResults = lazyLoadedSearchResults;
 	}
 
+	@Override
+	public void setApplyMultipleFacets(boolean applyButtonEnabled) {
+		this.applyButtonEnabled = applyButtonEnabled;
+	}
+
 	private boolean isDetailedView() {
 		return !SearchResultsViewMode.TABLE.equals(presenter.getResultsViewMode());
 	}
@@ -442,7 +480,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//		resultsArea.setWidth("100%");
 		resultsArea.setSpacing(true);
 
-		facetsArea = new FacetsPanel() {
+		facetsArea = new FacetsPanel(applyButtonEnabled) {
 			@Override
 			protected void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
 				presenter.sortCriterionSelected(sortCriterion, sortOrder);
@@ -456,6 +494,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			@Override
 			protected void facetValueSelected(String facetId, String value) {
 				presenter.facetValueSelected(facetId, value);
+			}
+
+			@Override
+			protected void facetValuesChanged(KeySetMap<String, String> facets) {
+
+				presenter.facetValuesChanged(facets);
 			}
 
 			@Override

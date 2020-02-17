@@ -15,11 +15,15 @@ public interface MetadataValueCalculator<T> extends Serializable {
 
 	T getDefaultValue();
 
-	MetadataValueType getReturnType();
-
-	boolean isMultiValue();
-
 	List<? extends Dependency> getDependencies();
+
+	default MetadataValueType getReturnType() {
+		return null;
+	}
+
+	default boolean isMultiValue() {
+		return false;
+	}
 
 	default List<? extends Dependency> getEvaluatorDependencies() {
 		return Collections.emptyList();

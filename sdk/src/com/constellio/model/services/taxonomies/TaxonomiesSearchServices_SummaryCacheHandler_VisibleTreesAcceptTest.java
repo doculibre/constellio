@@ -875,6 +875,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 		}
 		transaction.add(rootCategory);
 		getModelLayerFactory().newRecordServices().execute(transaction);
+		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
 
 		User alice = users.aliceIn(zeCollection);
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
@@ -933,6 +934,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 					.setOpenDate(new LocalDate(2014, 11, 1)));
 		}
 		getModelLayerFactory().newRecordServices().execute(transaction);
+		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
 
 		User alice = users.aliceIn(zeCollection);
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(0).setRows(20).setFastContinueInfos(null))

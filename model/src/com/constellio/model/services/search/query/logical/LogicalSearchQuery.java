@@ -344,7 +344,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	public LogicalSearchQuery sortAsc(DataStoreField field) {
-		if (!field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
+		if (field != null && !field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
 			DataStoreField sortField = field.getSortField();
 			sortFields.add(new FieldLogicalSearchQuerySort(field, true));
 		}

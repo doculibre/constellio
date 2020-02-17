@@ -54,6 +54,10 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private static final String ANNOTATION_RESOURCE_KEY = "document.annotation";
 	public static final String PDFTRON_CANVAS_ID = "pdftron-canvas";
 
+	public static final String ENGLISH_CODE = "en";
+	public static final String ARABIC_CODE = "ar";
+	public static final String FRENCH_CODE = "fr";
+
 	private Component canvas;
 	private Resource documentContentResource;
 	private String documentContentResourceKey;
@@ -420,6 +424,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		toExecute.append("admin=" + userHasRightToEditOtherUserAnnotation + ";");
 		toExecute.append("license=" + pdfTronLicense + ";");
 		toExecute.append("isReadOnly=" + isViewerInReadOnly + ";");
+		toExecute.append("language='" + getPdfTronLanguageCode() + "';");
 
 		if (searchTerm != null) {
 			toExecute.append("searchTerm='" + searchTerm + "';");
@@ -431,6 +436,20 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		JavascriptUtils.loadScript("pdftron/lib/webviewer.min.js");
 		JavascriptUtils.loadScript("pdftron/constellio-pdftron.js");
+	}
+
+	public String getPdfTronLanguageCode() {
+		String locale = getCurrentSessionContext().getCurrentLocale().getLanguage();
+
+		switch (locale) {
+			case ENGLISH_CODE:
+			case ARABIC_CODE:
+				return "en";
+			case FRENCH_CODE:
+				return "fr";
+			default:
+				throw new IllegalStateException("Language not supported for PDFtron");
+		}
 	}
 
 	@Override

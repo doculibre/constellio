@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class AbstractTaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+	protected boolean VALIDATE_SOLR_QUERIES_COUNT = true;
 
 	private AtomicInteger queriesCount = new AtomicInteger();
 	private AtomicInteger facetsCount = new AtomicInteger();

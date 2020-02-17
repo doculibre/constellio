@@ -28,11 +28,6 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
-
 public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuthorizationsView> {
 	private static final String DISABLE = "AuthorizationsView.disable";
 	private transient AuthorizationsServices authorizationsServices;

@@ -100,6 +100,14 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		super(collection, appLayerFactory.getModelLayerFactory(), locale);
 	}
 
+	public Folder getFolderSummary(String id) {
+		return wrapFolder(getSummary(folder.schemaType(), id));
+	}
+
+	public Document getDocumentSummary(String id) {
+		return wrapDocument(getSummary(document.schemaType(), id));
+	}
+
 	//
 
 	//Generic

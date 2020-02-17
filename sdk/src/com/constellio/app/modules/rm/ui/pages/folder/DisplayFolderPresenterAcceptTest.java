@@ -48,12 +48,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -61,7 +58,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
@@ -121,13 +117,13 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams("C30");
 
 
-
 		rolesManager = getModelLayerFactory().getRolesManager();
 
 		givenTimeIs(nowDate);
 	}
 
-	private DisplayFolderPresenter displayFolderPresenterCreation(DisplayFolderView displayFolderView, RecordVO recordVO, boolean popup) {
+	private DisplayFolderPresenter displayFolderPresenterCreation(DisplayFolderView displayFolderView,
+																  RecordVO recordVO, boolean popup) {
 		presenter = spy(new DisplayFolderPresenter(displayFolderView, recordVO, popup, false));//spy(
 		doNothing().when(presenter).navigateToFolder(any(String.class));
 		doNothing().when(presenter).navigateToDocument(any(RecordVO.class));
@@ -293,16 +289,6 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	}
 
 
-
-	@Test
-	public void givenFolderWhenAddToDefaultFavoritesThenIsAdded() {
-		Map<String, String> params = new HashMap<>();
-		params.put("id", "C30");
-		presenter.forParams("C30");
-		presenter.addToDefaultFavorite();
-		assertThat(presenter.inDefaultFavorites()).isTrue();
-	}
-
 	@Test
 	public void whenGetTemplatesThenReturnFolderTemplates()
 			throws Exception {
@@ -337,48 +323,6 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 	}
 
-	@Test
-	public void givenBorrowedFolderWhenRemindingReturnThenOk()
-			throws Exception {
-
-		givenTimeIs(shishOClock);
-		presenter.forParams("C30");
-		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
-		Folder folderC30 = rmRecords.getFolder_C30();
-
-		presenter.forParams("C30");
-		presenter.reminderReturnFolder();
-
-		Metadata subjectMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)
-				.getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SUBJECT);
-		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE))
-				.where(subjectMetadata).isContainingText($("DisplayFolderView.returnFolderReminder") + folderC30.getTitle());
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(condition);
-		List<Record> emailToSendRecords = searchServices.search(query);
-
-		assertThat(emailToSendRecords).hasSize(1);
-		EmailToSend emailToSend = new EmailToSend(emailToSendRecords.get(0), getSchemaTypes());
-		assertThat(emailToSend.getSendOn()).isEqualTo(shishOClock);
-		assertThat(emailToSend.getSubject()).isEqualTo($("DisplayFolderView.returnFolderReminder") + folderC30.getTitle());
-		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
-		assertThat(emailToSend.getTo().get(0).getEmail())
-				.isEqualTo(rmSchemasRecordsServices.getUser(folderC30.getBorrowUser()).getEmail());
-		assertThat(emailToSend.getTo().get(0).getName())
-				.isEqualTo(rmSchemasRecordsServices.getUser(folderC30.getBorrowUser()).getTitle());
-		assertThat(emailToSend.getError()).isNull();
-		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
-		assertThat(emailToSend.getParameters()).containsOnly(
-				"previewReturnDate:" + folderC30.getBorrowPreviewReturnDate(),
-				"borrower:chuck",
-				"borrowedFolderTitle:Haricot",
-				"title:Rappel pour retourner le dossier \"Haricot\"",
-				"constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayFolder/C30"
-		);
-		assertThat(emailToSend.getFrom()).isEqualTo(null);
-		verify(displayFolderView).showMessage($("DisplayFolderView.reminderEmailSent"));
-	}
 
 	@Test
 	public void whenAlertWhenAvailableThenOk()

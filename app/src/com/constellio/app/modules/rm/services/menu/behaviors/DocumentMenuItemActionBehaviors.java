@@ -14,8 +14,11 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
+import com.constellio.app.modules.rm.ui.buttons.RenameDialogButton;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
+import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
@@ -30,6 +33,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -43,6 +47,7 @@ import com.constellio.app.ui.framework.components.content.UpdateContentVersionWi
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
@@ -53,6 +58,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentConversionManager;
@@ -63,13 +69,18 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
+import com.vaadin.shared.ui.MarginInfo;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -78,13 +89,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.ui.framework.components.ErrorDisplayUtil.showErrorMessage;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+@Slf4j
 public class DocumentMenuItemActionBehaviors {
 
 	private RMModuleExtensions rmModuleExtensions;
@@ -161,6 +175,58 @@ public class DocumentMenuItemActionBehaviors {
 		document = loadingFullRecordIfSummary(document);
 		params.getView().navigate().to(RMViews.class).editDocument(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
+	}
+
+	public void rename(Document document, MenuItemActionBehaviorParams params) {
+		RenameDialogButton window = new RenameDialogButton(
+				FontAwesome.PENCIL_SQUARE_O,
+				$("DisplayDocumentView.renameContent"),
+				$("DisplayDocumentView.renameContent"),
+				false) {
+			@Override
+			public void save(String newValue) {
+				boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
+				boolean isNotAddOnly = !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
+						.getPopulateConfigs().isAddOnly();
+
+				String filename = document.getContent().getCurrentVersion().getFilename();
+				String extension = FilenameUtils.getExtension(filename);
+
+				if (!(FilenameUtils.getExtension(newValue).equals(extension))) {
+					if (!extension.isEmpty()) {
+						newValue = FilenameUtils.removeExtension(newValue) + "." + extension;
+					} else {
+						newValue = FilenameUtils.removeExtension(newValue);
+					}
+				}
+
+				if (filename.equals(document.getTitle())) {
+					if (isManualEntry && isNotAddOnly) {
+						document.setTitle(newValue);
+					}
+
+				} else if (FilenameUtils.removeExtension(filename).equals(document.getTitle())) {
+					if (isManualEntry && isNotAddOnly) {
+						document.setTitle(FilenameUtils.removeExtension(newValue));
+					}
+				}
+
+				document.getContent().renameCurrentVersion(newValue);
+				try {
+					recordServices.update(document.getWrappedRecord(), params.getUser());
+					getWindow().close();
+					if (params.getView() instanceof HomeViewImpl) {
+						HomeViewImpl homeView = (HomeViewImpl) params.getView();
+						homeView.recordChanged(document.getId());
+					} else {
+						navigateToDisplayDocument(document.getId(), params.getFormParams());
+					}
+				} catch (RecordServicesException e) {
+					params.getView().showErrorMessage(MessageUtils.toMessage(e));
+				}
+			}
+		};
+		window.click();
 	}
 
 	public void download(Document document, MenuItemActionBehaviorParams params) {
@@ -254,6 +320,56 @@ public class DocumentMenuItemActionBehaviors {
 			}
 		};
 		publicLinkButton.click();
+	}
+
+	public void move(Document document, MenuItemActionBehaviorParams params) {
+		Button moveInFolderButton = new WindowButton($("DocumentContextMenu.changeParentFolder"),
+				$("DocumentContextMenu.changeParentFolder"), WindowButton.WindowConfiguration.modalDialog("570px", "140px")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout verticalLayout = new VerticalLayout();
+				verticalLayout.setSpacing(true);
+				final LookupFolderField field = new LookupFolderField(true);
+				verticalLayout.addComponent(field);
+				verticalLayout.setMargin(new MarginInfo(true, true, false, true));
+				BaseButton saveButton = new BaseButton($("save")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						String newParentId = (String) field.getValue();
+						try {
+							RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+							String currentDocumentId = document.getId();
+							if (isNotBlank(newParentId)) {
+								try {
+									recordServices.update(rmSchemas.getDocument(currentDocumentId).setFolder(newParentId), params.getUser());
+									if (params.getView().getClass().equals(DisplayFolderViewImpl.class)) {
+										params.getView().navigate().to(RMViews.class).displayFolder(newParentId);
+									} else if (params.getView().getClass().equals(HomeViewImpl.class)) {
+										params.getView().navigate().to(RMViews.class).home();
+									} else {
+										params.getView().navigate().to().currentView();
+									}
+								} catch (RecordServicesException.ValidationException e) {
+									params.getView().showErrorMessage($(e.getErrors()));
+								}
+							}
+						} catch (Throwable e) {
+							log.warn("Error when trying to move this document to folder " + newParentId, e);
+							showErrorMessage("DocumentContextMenu.changeParentFolderException");
+						}
+						getWindow().close();
+					}
+				};
+				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				HorizontalLayout hlayout = new HorizontalLayout();
+				hlayout.setSizeFull();
+				hlayout.addComponent(saveButton);
+				hlayout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
+				verticalLayout.addComponent(hlayout);
+				return verticalLayout;
+			}
+		};
+		moveInFolderButton.click();
 	}
 
 

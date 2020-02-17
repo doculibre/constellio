@@ -69,8 +69,8 @@ public class OffHeapByteArrayList {
 
 	}
 
-	public byte[] getArray(int index) {
-		OffHeapBytesSupplier supplier = get(index);
+	public byte[] get(int index) {
+		OffHeapBytesSupplier supplier = getSupplier(index);
 		return supplier == null ? null : supplier.toArray();
 	}
 
@@ -100,7 +100,7 @@ public class OffHeapByteArrayList {
 		this.byteArraySizes.clear();
 	}
 
-	public OffHeapBytesSupplier get(int index) {
+	private OffHeapBytesSupplier getSupplier(int index) {
 
 		long address = byteArrayMemoryAdresses.get(index);
 		short size = byteArraySizes.get(index);
@@ -114,11 +114,6 @@ public class OffHeapByteArrayList {
 			@Override
 			public byte getByte(int index) {
 				return OffHeapMemoryAllocator.getByte(address + index);
-			}
-
-			@Override
-			public short getShort(int index) {
-				return OffHeapMemoryAllocator.getShort(address + index);
 			}
 
 			@Override

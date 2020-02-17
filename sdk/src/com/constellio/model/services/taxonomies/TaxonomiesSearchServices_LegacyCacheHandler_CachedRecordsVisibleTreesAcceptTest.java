@@ -564,12 +564,12 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedRecordsVisibleTre
 				.has(solrQueryCounts(2, 4, 4))
 				.has(secondSolrQueryCounts(2, 4, 4));
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 1)
-				.has(recordsInOrder(document1InA16))
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 5)
+				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
 				.has(noRecordsWithChildren())
-				.has(listSize(1)).has(numFound(4))
-				.has(solrQueryCounts(2, 1, 1))
-				.has(secondSolrQueryCounts(2, 1, 1));
+				.has(listSize(4)).has(numFound(4))
+				.has(solrQueryCounts(2, 4, 4))
+				.has(secondSolrQueryCounts(2, 4, 4));
 
 	}
 
@@ -962,6 +962,7 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedRecordsVisibleTre
 		}
 		transaction.add(rootCategory);
 		getModelLayerFactory().newRecordServices().execute(transaction);
+		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
 
 		User alice = users.aliceIn(zeCollection);
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
@@ -1068,6 +1069,7 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedRecordsVisibleTre
 					.setOpenDate(new LocalDate(2014, 11, 1)));
 		}
 		getModelLayerFactory().newRecordServices().execute(transaction);
+		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
 
 		User alice = users.aliceIn(zeCollection);
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(0).setRows(20).setFastContinueInfos(null))

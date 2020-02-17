@@ -22,6 +22,7 @@ import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
@@ -530,7 +531,8 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				query.setName("*SDK* BatchProcessesManager.waitUntilAllFinished()");
 
 				while (searchServices.hasResults(query)
-					   && modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+					   && (modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized() ||
+						   !modelLayerFactory.getConfiguration().isSummaryCacheEnabled())) {
 					if (timeout == -1 || new Date().getTime() - start < timeout) {
 						recordsReindexingBackgroundAction.run(false);
 					} else {
@@ -560,6 +562,9 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				new BatchProcessListWriter(document).markBatchProcessAsFinished(batchProcess, errorsCount);
 			}
 		});
+
+		LoggingServices loggingServices = modelLayerFactory.newLoggingServices();
+		loggingServices.updateBatchProcess(batchProcess);
 
 		addFinishedBatchProcessIdToHistoryList(batchProcess.getId());
 	}

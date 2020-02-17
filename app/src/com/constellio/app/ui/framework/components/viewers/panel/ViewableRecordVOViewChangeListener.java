@@ -33,7 +33,7 @@ public class ViewableRecordVOViewChangeListener implements ViewChangeListener {
 			}
 		} else if (oldView instanceof DisplayFolderView) {
 			DisplayFolderView displayFolderView = (DisplayFolderView) oldView;
-			RecordVO recordVO = displayFolderView.getRecord();
+			RecordVO recordVO = displayFolderView.getSummaryRecord();
 			Integer returnIndex = displayFolderView.getReturnIndex();
 			RecordVO returnRecordVO = displayFolderView.getReturnRecordVO();
 			if (recordVO != null) {
@@ -49,7 +49,7 @@ public class ViewableRecordVOViewChangeListener implements ViewChangeListener {
 		BaseView newView = (BaseView) event.getNewView();
 		if (newView instanceof DisplayFolderView) {
 			DisplayFolderView displayFolderView = (DisplayFolderView) newView;
-			RecordVO recordVO = displayFolderView.getRecord();
+			RecordVO recordVO = displayFolderView.getSummaryRecord();
 			String recordId = recordVO.getId();
 			Integer returnIndex = displayFolderViewReturnIndexes.get(recordId);
 			RecordVO returnRecordVO = displayFolderViewReturnRecordVOs.get(recordId);

@@ -1,7 +1,10 @@
 package com.constellio.data.dao.services.idGenerator;
 
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.services.records.RecordId;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -15,6 +18,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class UUIDV1GeneratorAcceptTest extends ConstellioTest {
+
+	@Before
+	public void setUp() throws Exception {
+		configure(new ModelLayerConfigurationAlteration() {
+			@Override
+			public void alter(InMemoryModelLayerConfiguration configuration) {
+				configuration.setPersistStringRecordIdLegacyMapping(false);
+			}
+		});
+	}
 
 	@Test
 	public void whenGeneratingNewIdThenAlwaysDifferentAndThreadSafe()
@@ -57,7 +70,7 @@ public class UUIDV1GeneratorAcceptTest extends ConstellioTest {
 
 		Map<Integer, String> mapping = new HashMap<>();
 
-		for (int i = 0; i < 1_000_000; i++) {
+		for (int i = 0; i < 100_000; i++) {
 
 			String stringId = UUIDV1Generator.newRandomId();
 			int intId = RecordId.toIntId(stringId);
@@ -66,7 +79,7 @@ public class UUIDV1GeneratorAcceptTest extends ConstellioTest {
 			mapping.put(intId, stringId);
 		}
 
-		assertThat(mapping).hasSize(1_000_000);
+		assertThat(mapping).hasSize(100_000);
 
 		for (Map.Entry<Integer, String> entry : mapping.entrySet()) {
 			assertThat(RecordId.id(entry.getKey()).stringValue()).isEqualTo(entry.getValue());

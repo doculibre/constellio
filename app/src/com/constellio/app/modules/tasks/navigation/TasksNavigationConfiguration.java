@@ -71,7 +71,7 @@ public class TasksNavigationConfiguration implements Serializable {
 				View currentView = ConstellioUI.getCurrent().getCurrentView();
 				if (currentView instanceof DisplayFolderView) {
 					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
-					String folderId = displayFolderView.getRecord().getId();
+					String folderId = displayFolderView.getSummaryRecord().getId();
 					navigate.to(TaskViews.class).addTaskToFolder(folderId);
 				} else if (currentView instanceof DisplayDocumentView) {
 					DisplayDocumentView displayFolderView = (DisplayDocumentView) currentView;
