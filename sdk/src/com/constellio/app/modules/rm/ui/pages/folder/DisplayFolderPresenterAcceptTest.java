@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.RecordVO;
@@ -23,6 +24,7 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
@@ -32,6 +34,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -51,6 +54,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -586,6 +590,91 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenDocumentsLinkedToFolderWhenDifferentPermissionsThenAllDocumentsProvided()
+			throws Exception {
+
+		AuthorizationsServices authsServices = getModelLayerFactory().newAuthorizationsServices();
+		MetadataSchema schema = rmSchemasRecordsServices.schemaType("document").getDefaultSchema();
+		//Metadata metadata = schema.getMetadata("linkedTo");
+		User bob = users.bobIn(zeCollection);
+		User charles = users.charlesIn(zeCollection);
+
+		AdministrativeUnit au1 = rmSchemasRecordsServices.getAdministrativeUnit(rmRecords.unitId_10);
+		AdministrativeUnit au2 = rmSchemasRecordsServices.newAdministrativeUnitWithId(rmRecords.unitId_20);
+
+		Folder folder1 = newFolderInUnit(au1, "folder1");
+		Folder folder2 = newFolderInUnit(au1, "folder2");
+		Folder folder3 = newFolderInUnit(au1, "folder3");
+		Folder folder4 = newFolderInUnit(au1, "folder4");
+		Folder folder5 = newFolderInUnit(au1, "folder5");
+		Folder folderZ = newFolderInUnit(au2, "folderZ");
+
+		Document doc0 = rmSchemasRecordsServices.newDocumentWithId("doc0").setFolder(folder4).setTitle("Beta");
+		Document doc1 = rmSchemasRecordsServices.newDocumentWithId("doc1").setFolder(folderZ).setTitle("Zeta");
+		Document doc2 = rmSchemasRecordsServices.newDocumentWithId("doc2").setFolder(folderZ).setTitle("Gamma");
+		Document doc3 = rmSchemasRecordsServices.newDocumentWithId("doc3").setFolder(folderZ).setTitle("Alpha");
+		Document doc4 = rmSchemasRecordsServices.newDocumentWithId("doc4").setFolder(folder4).setTitle("Delta");
+
+		// Setting document links to folders
+		/*
+		List<Folder> doc0Refs = new ArrayList<>();
+		doc0Refs.add(folder4);
+		doc0.set(metadata, doc0Refs);
+
+		List<Folder> doc1Refs = new ArrayList<>();
+		doc1Refs.add(folder2);
+		doc1Refs.add(folder4);
+		doc1.set(metadata, doc1Refs);
+
+		List<Folder> doc2Refs = new ArrayList<>();
+		doc2Refs.add(folder3);
+		doc2Refs.add(folder4);
+		doc2.set(metadata, doc2Refs);
+
+		List<Folder> doc3Refs = new ArrayList<>();
+		doc3Refs.add(folder3);
+		doc3Refs.add(folder5);
+		doc3.set(metadata, doc3Refs);
+
+		List<Folder> doc4Refs = new ArrayList<>();
+		doc4Refs.add(folder4);
+		doc4.set(metadata, doc4Refs);
+		*/
+		recordServices.execute(new Transaction(
+				folder1,
+				folder2,
+				folder3,
+				folder4,
+				folder5,
+				folderZ,
+				doc0,
+				doc1,
+				doc2,
+				doc3,
+				doc4
+		));
+
+		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder1.getId()).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder2.getId()).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder3.getId()).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder4.getId()).givingReadAccess());
+
+		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(doc1.getId()).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(doc2.getId()).givingReadAccess());
+
+		authsServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(au1.getId()).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(au2.getId()).givingReadAccess());
+	}
+
+	private List<String> idsOf(RecordVODataProvider recordVODataProvider) {
+		List<String> ids = new ArrayList<>();
+		for (int i = 0; i < recordVODataProvider.size(); i++) {
+			RecordVO recordVO = recordVODataProvider.getRecordVO(i);
+			ids.add(recordVO.getId());
+		}
+		return ids;
+	}
 
 	private MetadataSchemaTypes getSchemaTypes() {
 		return getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
@@ -629,4 +718,11 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		displayFolderView.selectFolderContentTab();
 
 	}
+
+
+	private Folder newFolderInUnit(AdministrativeUnit unit, String title) {
+		return rmSchemasRecordsServices.newFolder().setCategoryEntered(rmRecords.categoryId_X100).setTitle(title).setOpenDate(new LocalDate())
+				.setRetentionRuleEntered(rmRecords.ruleId_1).setAdministrativeUnitEntered(unit);
+	}
+
 }
