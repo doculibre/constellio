@@ -81,14 +81,13 @@ public class TaskViews extends CoreViews {
 			TimedCache timedCache = new TimedCache(Duration.standardHours(1));
 			timedCache.insert(TASK_PARAM_KEY, params);
 
-			view.getUIContext().setAttribute(TASK_PARAM_KEY, timedCache);
+			view.getSessionContext().setAttribute(TASK_PARAM_KEY, timedCache);
 
 			Map<String, String> paramMap = new HashMap<>();
 			paramMap.put("tempParams", TASK_PARAM_KEY);
 			paramMap.put("previousPage", getCurrentPageFragment());
 
 			navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, paramMap));
-
 		}
 
 	}

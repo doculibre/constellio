@@ -387,23 +387,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 			previousPage = paramsMap.get("previousPage");
 
+
 			String tempParamKey = paramsMap.get("tempParams");
-			Object tempParamValue = this.getView().getUIContext().getAttribute(tempParamKey);
-			if (tempParamKey != null && tempParamValue instanceof TimedCache) {
-				TimedCache timedCache = (TimedCache) tempParamValue;
-				Map params = (Map) timedCache.get(tempParamKey);
-				Object folders = params.get("folderId");
-				Object documents = params.get("documentId");
-
-				if (folders != null && folders instanceof List) {
-					new RMTask(task).setLinkedFolders((List<String>) folders);
-				}
-
-				if (documents != null && documents instanceof List) {
-					new RMTask(task).setLinkedDocuments((List<String>) documents);
-				}
+			if (tempParamKey != null) {
+				setLinkedRecordsFromUserCache(task, tempParamKey);
 			}
-
 
 		}
 
@@ -446,6 +434,29 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			originalAssigner = taskVO.get(Task.ASSIGNER);
 		}
 
+	}
+
+	private void setLinkedRecordsFromUserCache(Task task, String key) {
+		Object cachedParam = this.getView().getSessionContext().getAttribute(key);
+		if (cachedParam instanceof TimedCache) {
+			TimedCache timedCache = (TimedCache) cachedParam;
+			Map params = (Map) timedCache.get(key);
+			if (params != null) {
+				Object folders = params.get("folderId");
+				Object documents = params.get("documentId");
+
+				if (folders != null && folders instanceof List) {
+					new RMTask(task).setLinkedFolders((List<String>) folders);
+				}
+
+				if (documents != null && documents instanceof List) {
+					new RMTask(task).setLinkedDocuments((List<String>) documents);
+				}
+			} else {
+				this.getView().showMessage($("AddEditTaskPresenter.error.expiredCache"));
+
+			}
+		}
 	}
 
 	public String getViewTitle() {
