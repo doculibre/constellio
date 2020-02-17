@@ -1367,7 +1367,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 		authsServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(au1.getId()).givingReadAccess());
 		authsServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(au2.getId()).givingReadAccess());
 
-		//Bob
+		// Bob
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(bob, folder1.getId())
 				.has(recordsInOrder())
 				.has(numFoundAndListSize(0))
@@ -1398,9 +1398,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 				.has(numFoundAndListSize(0))
 				.has(solrQueryCounts(0, 0, 0));
 
-		//Charles
-
-
+		// Charles
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(charles, folder1.getId())
 				.has(recordsInOrder())
 				.has(numFoundAndListSize(0))
@@ -1412,8 +1410,8 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 				.has(solrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(charles, folder3.getId())
-				.has(recordsInOrder(doc3.getId()))
-				.has(numFoundAndListSize(1))
+				.has(recordsInOrder(doc2.getId(), doc3.getId()))
+				.has(numFoundAndListSize(2))
 				.has(solrQueryCounts(0, 0, 0));
 
 		// Should be sorted by title in alphabetical order

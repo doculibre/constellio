@@ -34,7 +34,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -51,7 +50,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -537,10 +535,8 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	@Test
 	public void givenDocumentsLinkedToFolderWhenDifferentPermissionsThenAllDocumentsProvided()
 			throws Exception {
-
-		AuthorizationsServices authsServices = getModelLayerFactory().newAuthorizationsServices();
 		MetadataSchema schema = rmSchemasRecordsServices.schemaType("document").getDefaultSchema();
-		//Metadata metadata = schema.getMetadata("linkedTo");
+		Metadata metadata = schema.getMetadata("linkedTo");
 		User bob = users.bobIn(zeCollection);
 		User charles = users.charlesIn(zeCollection);
 
@@ -561,7 +557,6 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		Document doc4 = rmSchemasRecordsServices.newDocumentWithId("doc4").setFolder(folder4).setTitle("Delta");
 
 		// Setting document links to folders
-		/*
 		List<Folder> doc0Refs = new ArrayList<>();
 		doc0Refs.add(folder4);
 		doc0.set(metadata, doc0Refs);
@@ -584,7 +579,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		List<Folder> doc4Refs = new ArrayList<>();
 		doc4Refs.add(folder4);
 		doc4.set(metadata, doc4Refs);
-		*/
+
 		recordServices.execute(new Transaction(
 				folder1,
 				folder2,
@@ -599,25 +594,25 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 				doc4
 		));
 
-		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder1.getId()).givingReadAccess());
-		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder2.getId()).givingReadAccess());
-		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder3.getId()).givingReadAccess());
-		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder4.getId()).givingReadAccess());
+		presenter.forParams(folder1.getId());
+		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
+				.isEmpty();
 
-		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(doc1.getId()).givingReadAccess());
-		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(doc2.getId()).givingReadAccess());
+		presenter.forParams(folder2.getId());
+		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
+				.containsOnly(doc1);
 
-		authsServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(au1.getId()).givingReadAccess());
-		authsServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(au2.getId()).givingReadAccess());
-	}
+		presenter.forParams(folder3.getId());
+		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
+				.containsOnly(doc2, doc3);
 
-	private List<String> idsOf(RecordVODataProvider recordVODataProvider) {
-		List<String> ids = new ArrayList<>();
-		for (int i = 0; i < recordVODataProvider.size(); i++) {
-			RecordVO recordVO = recordVODataProvider.getRecordVO(i);
-			ids.add(recordVO.getId());
-		}
-		return ids;
+		presenter.forParams(folder4.getId());
+		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
+				.containsOnly(doc0, doc1, doc2, doc4);
+
+		presenter.forParams(folder5.getId());
+		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
+				.containsOnly(doc3);
 	}
 
 	private MetadataSchemaTypes getSchemaTypes() {
