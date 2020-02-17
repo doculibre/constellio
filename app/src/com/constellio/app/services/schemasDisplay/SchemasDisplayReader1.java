@@ -296,10 +296,10 @@ public class SchemasDisplayReader1 {
 
 		String inputTypeString = metadataDisplayConfigElement.getAttributeValue(INPUT_TYPE);
 		String displayTypeString = metadataDisplayConfigElement.getAttributeValue(DISPLAY_TYPE);
-		Map<Language, String> helpMessages = readHelpMessages(metadataDisplayConfigElement);
 		if (displayTypeString == null) {
 			displayTypeString = "VERTICAL";
 		}
+		Map<Language, String> helpMessages = readHelpMessages(metadataDisplayConfigElement);
 		MetadataInputType metadataInputType = MetadataInputType.valueOf(inputTypeString);
 		MetadataDisplayType metadataDisplayType = MetadataDisplayType.valueOf(displayTypeString);
 

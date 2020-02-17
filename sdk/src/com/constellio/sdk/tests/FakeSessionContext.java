@@ -161,7 +161,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		labels.put(Locale.FRENCH, "Utilisateur");
 		labels.put(Locale.ENGLISH, "User");
 
-		return new MetadataSchemaVO(User.DEFAULT_SCHEMA, collection, labels, getCollectionInfoVO(collection), new ArrayList<String>());
+		return new MetadataSchemaVO(User.DEFAULT_SCHEMA, collection, labels, getCollectionInfoVO(collection), new HashMap<>());
 	}
 
 	private static MetadataVO emailMetadata(MetadataSchemaVO userSchema) {
