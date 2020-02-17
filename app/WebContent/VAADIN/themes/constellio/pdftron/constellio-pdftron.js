@@ -29,7 +29,7 @@ const FitWidth = "FitWidth";
 
                 ignoreAnnotationChange = true;
                 if(data) {
-                    webViewerInstance.docViewer.getAnnotationManager();
+                    webViewerInstance.docViewer.getAnnotationManager().importAnnotations(data);
                 }
                 ignoreAnnotationChange = false;
             });
