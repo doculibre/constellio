@@ -28,6 +28,9 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RMModuleExtensions implements ModuleExtensions {
 
 	private RMReportBuilderFactories rmReportBuilderFactories;
@@ -44,6 +47,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<NavigateToFromAPageImportExtension> navigateToFromAPageExtensions;
 	private VaultBehaviorsList<TaskPreCompletionExtention> taskPreCompletionExetention;
 	private VaultBehaviorsList<CartExtensions> cartExtensions;
+	private VaultBehaviorsList<FilteredActionsExtension> filteredActionsExtension;
 
 	private ModelLayerExtensions modelLayerExtensions;
 
@@ -62,6 +66,27 @@ public class RMModuleExtensions implements ModuleExtensions {
 		this.cartExtensions = new VaultBehaviorsList<>();
 		this.modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
 		this.containerRecordExtensions = new VaultBehaviorsList<>();
+		this.filteredActionsExtension = new VaultBehaviorsList<>();
+	}
+
+	public List<String> getFilteredActionsForContainers() {
+		List<String> filteredActions = new ArrayList<>();
+
+		for (FilteredActionsExtension actionExtensions : filteredActionsExtension) {
+			filteredActions.addAll(actionExtensions.getFilteredActionsForContainers());
+		}
+
+		return filteredActions;
+	}
+
+	public List<String> getFilteredActionsForFolders() {
+		List<String> filteredActions = new ArrayList<>();
+
+		for (FilteredActionsExtension actionExtensions : filteredActionsExtension) {
+			filteredActions.addAll(actionExtensions.getFilteredActionsForFolders());
+		}
+
+		return filteredActions;
 	}
 
 	public RMReportBuilderFactories getReportBuilderFactories() {
@@ -83,6 +108,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 	public void setDecommissioningListFolderTableExtension(
 			DecommissioningListFolderTableExtension decommissioningListFolderTableExtension) {
 		this.decommissioningListFolderTableExtension = decommissioningListFolderTableExtension;
+	}
+
+	public VaultBehaviorsList<FilteredActionsExtension> getFilteredActionsExtension() {
+		return filteredActionsExtension;
 	}
 
 	public VaultBehaviorsList<NavigateToFromAPageImportExtension> getNavigateToFromAPageExtensions() {
