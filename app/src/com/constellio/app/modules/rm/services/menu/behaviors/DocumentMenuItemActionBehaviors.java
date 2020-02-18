@@ -500,6 +500,11 @@ public class DocumentMenuItemActionBehaviors {
 		document.setFormModifiedOn(TimeProvider.getLocalDateTime());
 		document.setFormModifiedBy(user);
 
+		document.setCreatedOn(TimeProvider.getLocalDateTime());
+		document.setCreatedBy(user);
+		document.setModifiedOn(TimeProvider.getLocalDateTime());
+		document.setModifiedBy(user.getId());
+
 		ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 		ContentVersionDataSummary contentVersion = contentManager.upload(documentInputStream);
 		Content content;
