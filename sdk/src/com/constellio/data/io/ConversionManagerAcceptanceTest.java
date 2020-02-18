@@ -28,25 +28,25 @@ public class ConversionManagerAcceptanceTest extends ConstellioTest {
 
 		ConversionManager conversionManager = ConstellioFactories.getInstance().getDataLayerFactory().getConversionManager();
 		assertThat(conversionManager.getAllSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
-		assertThat(conversionManager.getSupportedExtensions()).doesNotContain(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
+		assertThat(conversionManager.getPreviewSupportedExtensions()).doesNotContain(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
 
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, null);
 
 		assertThat(conversionManager.getAllSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
-		assertThat(conversionManager.getSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
+		assertThat(conversionManager.getPreviewSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
 
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, "licence");
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, true);
 
 		assertThat(conversionManager.getAllSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
-		assertThat(conversionManager.getSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
+		assertThat(conversionManager.getPreviewSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
 
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, null);
 		Toggle.ENABLE_PDFTRON_TRIAL.enable();
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, false);
 
 		assertThat(conversionManager.getAllSupportedExtensions()).contains(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
-		assertThat(conversionManager.getSupportedExtensions()).doesNotContain(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
+		assertThat(conversionManager.getPreviewSupportedExtensions()).doesNotContain(getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted());
 
 	}
 
