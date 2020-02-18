@@ -388,31 +388,19 @@ public class CartActionsServices {
 		return user.getId().equals(cartId);
 	}
 
-	public boolean isFolderBorrowActionPossible(Record record, User user) {
+	public boolean isBorrowActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
 		String schemaTypeCode = Folder.SCHEMA_TYPE;
 		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
 			return hasCartPermission(cart.getId(), user)
-				   && isBorrowButtonVisible(schemaTypeCode, cart.getId())
-				   && rmModuleExtensions.isFolderBorrowActionPossibleOnCart(cart, user);
+				   && isCartEmpty(schemaTypeCode, cart.getId())
+				   && rmModuleExtensions.isRecordBorrowActionPossibleOnCart(cart, user);
 		} else {
 			return false;
 		}
 	}
 
-	public boolean isContainersBorrowActionPossible(Record record, User user) {
-		Cart cart = rm.wrapCart(record);
-		String schemaTypeCode = ContainerRecord.SCHEMA_TYPE;
-		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
-			return hasCartPermission(cart.getId(), user)
-				   && isBorrowButtonVisible(schemaTypeCode, cart.getId())
-				   && rmModuleExtensions.isContainerBorrowActionPossibleOnCart(cart, user);
-		} else {
-			return false;
-		}
-	}
-
-	public boolean isBorrowButtonVisible(String schemaType, String cartId) {
+	public boolean isCartEmpty(String schemaType, String cartId) {
 		switch (schemaType) {
 			case Folder.SCHEMA_TYPE:
 				return !cartUtil.cartFoldersIsEmpty(cartId);

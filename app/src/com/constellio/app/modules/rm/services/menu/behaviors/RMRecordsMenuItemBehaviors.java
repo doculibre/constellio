@@ -279,10 +279,7 @@ public class RMRecordsMenuItemBehaviors {
 	}
 
 	public void batchBorrow(List<String> recordIds, MenuItemActionBehaviorParams params) {
-		List<Record> records = new ArrayList<>();
-		for (String selectedRecordId : recordIds) {
-			records.add(recordServices.getDocumentById(selectedRecordId));
-		}
+		List<Record> records = getSelectedRecords(recordIds);
 
 		Button borrowButton = new BorrowWindowButton(records, params);
 		borrowButton.click();
@@ -295,10 +292,7 @@ public class RMRecordsMenuItemBehaviors {
 			documentMenuItemActionBehaviors.checkOut(rm.wrapDocument(recordServices.getDocumentById(ids.get(0))), params);
 		}
 		else {
-			List<Document> documents = new ArrayList<>();
-			for (String id : ids) {
-				documents.add(rm.wrapDocument(recordServices.getDocumentById(id)));
-			}
+			List<Document> documents = rm.wrapDocuments(getSelectedRecords(ids));
 			documentMenuItemActionBehaviors.checkOut(documents, params);
 		}
 	}

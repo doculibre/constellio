@@ -225,14 +225,9 @@ public class RMModuleExtensions implements ModuleExtensions {
 				(behavior) -> behavior.isConsolidatedPdfActionPossible(new CartExtensionActionPossibleParams(cart, user)));
 	}
 
-	public boolean isFolderBorrowActionPossibleOnCart(final Cart cart, final User user) {
+	public boolean isRecordBorrowActionPossibleOnCart(final Cart cart, final User user) {
 		return cartExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isFoldersBorrowActionPossible(new CartExtensionActionPossibleParams(cart, user)));
-	}
-
-	public boolean isContainerBorrowActionPossibleOnCart(final Cart cart, final User user) {
-		return cartExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isContainersBorrowActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+				(behavior) -> behavior.isRecordBorrowActionPossible(new CartExtensionActionPossibleParams(cart, user)));
 	}
 
 	public boolean isAddDocumentActionPossibleOnFolder(final Folder folder, final User user) {

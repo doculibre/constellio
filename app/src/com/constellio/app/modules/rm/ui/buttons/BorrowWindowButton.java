@@ -148,14 +148,8 @@ public class BorrowWindowButton extends WindowButton {
 				
 				boolean closeWindow = false;
 				for (Record record : records) {
-					if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
-						closeWindow = borrowFolder(rm.wrapFolder(record), borrowLocalDate, previewReturnLocalDate, userId,
-								borrowingType, returnLocalDate, params) || closeWindow;
-					}
-					else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
-						closeWindow = borrowContainer(rm.wrapContainerRecord(record), borrowLocalDate, previewReturnLocalDate, userId,
-								borrowingType, returnLocalDate, params) || closeWindow;
-					}
+					closeWindow = borrowRecord(record, borrowLocalDate, previewReturnLocalDate, userId,
+							borrowingType, returnLocalDate, params) || closeWindow;
 				}
 				if(closeWindow) {
 					getWindow().close();
@@ -186,61 +180,58 @@ public class BorrowWindowButton extends WindowButton {
 		return verticalLayout;
 	}
 
-	private boolean borrowContainer(ContainerRecord container, LocalDate borrowingDate, LocalDate previewReturnDate, String userId, BorrowingType borrowingType, LocalDate returnDate, MenuItemActionBehaviorParams params) {
-		boolean borrowed;
-		String errorMessage = borrowingServices
-				.validateBorrowingInfos(userId, borrowingDate, previewReturnDate, borrowingType, returnDate);
-		if (errorMessage != null) {
-			params.getView().showErrorMessage($(errorMessage));
-			borrowed = false;
-		} else {
-			Record record = recordServices.getDocumentById(userId);
-			User borrowerEntered = wrapUser(record);
-			try {
-				borrowingServices.borrowContainer(container.getId(), borrowingDate, previewReturnDate,
-						params.getUser(), borrowerEntered, borrowingType, true);
-				borrowed = true;
-			} catch (RecordServicesException e) {
-				log.error(e.getMessage(), e);
-				params.getView().showErrorMessage($("DisplayFolderView.cannotBorrowFolder"));
-				borrowed = false;
-			}
-		}
-		if (returnDate != null) {
-			return new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory)
-					.returnContainer(container, returnDate, params);
-		}
-		return borrowed;
-	}
-
-	private boolean borrowFolder(Folder folder, LocalDate borrowingDate, LocalDate previewReturnDate, String userId,
+	private boolean borrowRecord(Record record, LocalDate borrowingDate, LocalDate previewReturnDate, String userId,
 								 BorrowingType borrowingType, LocalDate returnDate,
 								 MenuItemActionBehaviorParams params) {
-		boolean borrowed;
+		boolean borrowed = false;
 		String errorMessage = borrowingServices
 				.validateBorrowingInfos(userId, borrowingDate, previewReturnDate, borrowingType, returnDate);
 		if (errorMessage != null) {
 			params.getView().showErrorMessage($(errorMessage));
-			borrowed = false;
 		} else {
-			Record record = recordServices.getDocumentById(userId);
-			User borrowerEntered = wrapUser(record);
-			try {
-				borrowingServices.borrowFolder(folder.getId(), borrowingDate, previewReturnDate,
-						params.getUser(), borrowerEntered, borrowingType, true);
-				RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
-						appLayerFactory, collection);
-				borrowed = true;
-			} catch (RecordServicesException e) {
-				log.error(e.getMessage(), e);
-				params.getView().showErrorMessage($("DisplayFolderView.cannotBorrowFolder"));
-				borrowed = false;
+			User borrowerEntered = wrapUser(recordServices.getDocumentById(userId));
+
+			if (record.isOfSchemaType(rm.folder.schemaType().getCode())) {
+				Folder folder = rm.wrapFolder(record);
+				if (errorMessage != null) {
+					params.getView().showErrorMessage($(errorMessage));
+				} else {
+					try {
+						borrowingServices.borrowFolder(folder.getId(), borrowingDate, previewReturnDate,
+								params.getUser(), borrowerEntered, borrowingType, true);
+						RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
+								appLayerFactory, collection);
+						borrowed = true;
+					} catch (RecordServicesException e) {
+						log.error(e.getMessage(), e);
+						params.getView().showErrorMessage($("DisplayFolderView.cannotBorrowFolder"));
+					}
+				}
+				if (returnDate != null) {
+					return new FolderMenuItemActionBehaviors(collection, appLayerFactory)
+							.returnFolder(folder, returnDate, params);
+				}
+			} else if (record.isOfSchemaType(rm.containerRecord.schemaType().getCode())) {
+				ContainerRecord container = rm.wrapContainerRecord(record);
+				if (errorMessage != null) {
+					params.getView().showErrorMessage($(errorMessage));
+				} else {
+					try {
+						borrowingServices.borrowContainer(container.getId(), borrowingDate, previewReturnDate,
+								params.getUser(), borrowerEntered, borrowingType, true);
+						borrowed = true;
+					} catch (RecordServicesException e) {
+						log.error(e.getMessage(), e);
+						params.getView().showErrorMessage($("DisplayFolderView.cannotBorrowFolder"));
+					}
+				}
+				if (returnDate != null) {
+					return new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory)
+							.returnContainer(container, returnDate, params);
+				}
 			}
 		}
-		if (returnDate != null) {
-			return new FolderMenuItemActionBehaviors(collection, appLayerFactory)
-					.returnFolder(folder, returnDate, params);
-		}
+
 		return borrowed;
 	}
 

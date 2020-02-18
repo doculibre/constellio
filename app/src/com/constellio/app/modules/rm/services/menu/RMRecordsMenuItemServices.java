@@ -359,7 +359,7 @@ public class RMRecordsMenuItemServices {
 				break;
 				case RMRECORDS_DOCUMENT_BORROW:
 				menuItemAction = buildMenuItemAction(RMRECORDS_DOCUMENT_BORROW, state,
-						$("DisplayFolderView.borrow"), null, -1, 700,
+						$("DisplayDocumentView.borrow"), null, -1, 700,
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).documentBorrow(ids, params));
 				break;

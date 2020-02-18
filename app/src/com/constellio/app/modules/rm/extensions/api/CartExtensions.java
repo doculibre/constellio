@@ -71,11 +71,8 @@ public class CartExtensions {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
-	public ExtensionBooleanResult isFoldersBorrowActionPossible(CartExtensionActionPossibleParams cartExtensionActionPossibleParams) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
-	}
-
-	public ExtensionBooleanResult isContainersBorrowActionPossible(CartExtensionActionPossibleParams cartExtensionActionPossibleParams) {
+	public ExtensionBooleanResult isRecordBorrowActionPossible(
+			CartExtensionActionPossibleParams cartExtensionActionPossibleParams) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 

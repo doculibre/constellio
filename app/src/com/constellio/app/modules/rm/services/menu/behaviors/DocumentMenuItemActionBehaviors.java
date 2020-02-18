@@ -74,6 +74,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -394,37 +395,12 @@ public class DocumentMenuItemActionBehaviors {
 		}
 
 		if (checkedOutDocuments != 0) {
-			params.getView().showMessage($("DocumentActionsComponent.checkedOutMultiple", checkedOutDocuments));
+			params.getView().showMessage($("DocumentMenuItemActionBehaviors.checkedOutMultiple", checkedOutDocuments));
 		}
 	}
 
 	public void checkOut(Document document, MenuItemActionBehaviorParams params) {
-		document = loadingFullRecordIfSummary(document);
-		if (documentRecordActionsServices.isCheckOutActionPossible(document.getWrappedRecord(), params.getUser())) {
-			updateSearchResultClicked(document.getWrappedRecord());
-			Content content = document.getContent();
-			content.checkOut(params.getUser());
-			modelLayerFactory.newLoggingServices().borrowRecord(document.getWrappedRecord(), params.getUser(), TimeProvider.getLocalDateTime());
-			try {
-				recordServices.update(document.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
-
-				DocumentVO documentVO = getDocumentVO(params, document);
-
-				params.getView().refreshActionMenu();
-
-				String checkedOutVersion = content.getCurrentVersion().getVersion();
-				params.getView().showMessage($("DocumentActionsComponent.checkedOut", checkedOutVersion));
-				String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent(), params.getView().getSessionContext());
-				if (agentURL != null) {
-					Page.getCurrent().open(agentURL, null);
-					loggingServices.openDocument(document.getWrappedRecord(), params.getUser());
-				}
-			} catch (RecordServicesException e) {
-				params.getView().showErrorMessage(MessageUtils.toMessage(e));
-			}
-		} else if (documentRecordActionsServices.isCheckOutActionNotPossibleDocumentDeleted(document.getWrappedRecord(), params.getUser())) {
-			params.getView().showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
-		}
+		checkOut(Arrays.asList(document), params);
 	}
 
 	public void addAuthorization(Document document, MenuItemActionBehaviorParams params) {
