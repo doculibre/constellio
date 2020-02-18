@@ -664,7 +664,7 @@ public class RMRecordsMenuItemBehaviors {
 
 			params.getView().updateUI();
 			params.getView().refreshActionMenu();
-			params.getView().showMessage($("DocumentActionsComponent.multipleCheckIn"));
+			params.getView().showMessage($("DocumentActionsComponent.canceledCheckOut"));
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}

@@ -32,6 +32,7 @@ import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServi
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BORROW;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BORROW_REQUEST;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CANCEL_RETURN;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_COPY;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF;
@@ -259,6 +260,7 @@ public class RMRecordsMenuItemServices {
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_RETURN:
+			case RMRECORDS_CANCEL_RETURN:
 				numberOfDocument = 0;
 				numberOfFolder = 0;
 				numberOfContainer = 0;
@@ -444,6 +446,12 @@ public class RMRecordsMenuItemServices {
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkIn(ids, params));
 				break;
+			case RMRECORDS_CANCEL_RETURN:
+				menuItemAction = buildMenuItemAction(RMRECORDS_CANCEL_RETURN, state,
+						$("DocumentContextMenu.cancelCheckOut"), null, -1, 750,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkIn(ids, params));
+				break;
 			case RMRECORDS_RETURN_REQUEST:
 				menuItemAction = buildMenuItemAction(RMRECORDS_RETURN_REQUEST, state,
 						$("RMRequestTaskButtonExtension.returnRequest"), null, -1, 760,
@@ -523,7 +531,8 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_PRINT_LABEL(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
 		RMRECORDS_BORROW(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000),
 		RMRECORDS_BORROW_REQUEST(asList(Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
-		RMRECORDS_RETURN(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
+		RMRECORDS_RETURN(asList(Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
+		RMRECORDS_CANCEL_RETURN(asList(Document.SCHEMA_TYPE), 100000),
 		RMRECORDS_RETURN_REQUEST(asList(Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
 		RMRECORDS_RETURN_REMAINDER(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
 		RMRECORDS_ADD_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
