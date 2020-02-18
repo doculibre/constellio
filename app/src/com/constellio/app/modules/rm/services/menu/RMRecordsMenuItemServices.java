@@ -240,21 +240,28 @@ public class RMRecordsMenuItemServices {
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_BORROW_REQUEST:
+				numberOfFolder = 0;
+				int numberOfContainer = 0;
 				for (Record record : records) {
 					boolean actionPossible = false;
 					if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
 						actionPossible = folderRecordActionsServices.isBorrowRequestActionPossible(record, user);
+						numberOfFolder = actionPossible ? numberOfFolder + 1 : numberOfFolder;
 					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 						actionPossible = containerRecordActionsServices.isBorrowRequestActionPossible(record, user);
+						numberOfContainer = actionPossible ? numberOfContainer + 1 : numberOfContainer;
 					}
 					possibleCount += actionPossible ? 1 : 0;
+				}
+				if ((numberOfFolder > 0 && numberOfContainer > 0)) {
+					return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.actionImpossibleOnDifferentSchema"));
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_RETURN:
 				numberOfDocument = 0;
 				numberOfFolder = 0;
-				int numberOfContainer = 0;
+				numberOfContainer = 0;
 				for (Record record : records) {
 					boolean actionPossible = false;
 					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
@@ -277,14 +284,21 @@ public class RMRecordsMenuItemServices {
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_RETURN_REQUEST:
+				numberOfFolder = 0;
+				numberOfContainer = 0;
 				for (Record record : records) {
 					boolean actionPossible = false;
 					if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
 						actionPossible = folderRecordActionsServices.isReturnRequestActionPossible(record, user);
+						numberOfFolder = actionPossible ? numberOfFolder + 1 : numberOfFolder;
 					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 						actionPossible = containerRecordActionsServices.isReturnRequestActionPossible(record, user);
+						numberOfContainer = actionPossible ? numberOfContainer + 1 : numberOfContainer;
 					}
 					possibleCount += actionPossible ? 1 : 0;
+				}
+				if ((numberOfFolder > 0 && numberOfContainer > 0)) {
+					return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.actionImpossibleOnDifferentSchema"));
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));

@@ -78,6 +78,9 @@ public interface RecordServices {
 	<T extends Supplier<Record>> void update(List<T> records, User user)
 			throws RecordServicesException;
 
+	<T extends Supplier<Record>> void update(List<T> records, RecordUpdateOptions options, User user)
+			throws RecordServicesException;
+
 	Record getRecordByMetadata(Metadata metadata, String value);
 
 	Record getRecordSummaryByMetadata(Metadata metadata, String value);
