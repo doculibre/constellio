@@ -15,6 +15,7 @@ import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.*;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.*;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.getLanguage;
 import static com.vaadin.server.FontAwesome.STAR;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -91,8 +93,9 @@ public class RMRecordsMenuItemServices {
 		if (recordWithSupportedSchemaTypeCount == 0) {
 			return new MenuItemActionState(HIDDEN);
 		} else if (recordWithSupportedSchemaTypeCount != records.size()) {
+			List<String> schemaTypes = getLocalizedSchemaTypes(menuItemActionType.getSchemaTypes());
 			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.unsupportedSchema",
-					StringUtils.join(menuItemActionType.getSchemaTypes(), ",")));
+					StringUtils.join(schemaTypes, ",")));
 		}
 
 		int possibleCount = 0;
@@ -373,6 +376,16 @@ public class RMRecordsMenuItemServices {
 				.filter(t -> !excludedActionTypes.contains(t.name()))
 				.collect(Collectors.toList());
 	}
+
+	public List<String> getLocalizedSchemaTypes(List<String> schemaTypes) {
+		ArrayList<String> localizedSchemas = new ArrayList<>();
+		MetadataSchemasManager schemaManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+		for (String schema : schemaTypes) {
+			localizedSchemas.add(schemaManager.getSchemaTypes(collection).getSchemaType(schema).getLabel(getLanguage()));
+		}
+		return localizedSchemas;
+	}
+
 
 	@AllArgsConstructor
 	@Getter
