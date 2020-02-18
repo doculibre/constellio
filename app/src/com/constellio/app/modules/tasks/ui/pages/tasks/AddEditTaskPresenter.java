@@ -182,7 +182,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	public void cancelButtonClicked() {
-		if (StringUtils.isNotBlank(workflowId)) {
+		if (previousPage != null) {
+			navigateToPreviousPage();
+		} else if (StringUtils.isNotBlank(workflowId)) {
 			view.navigateToWorkflow(workflowId);
 		} else {
 			view.navigate().to(TaskViews.class).taskManagement();
@@ -311,8 +313,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		saveRecord(task, task.getWrappedRecord(), true);
 
 		if (previousPage != null) {
-			URI location = ConstellioUI.getCurrent().getPage().getLocation();
-			view.navigate().to(CoreViews.class).navigateTo(location.getPath(), previousPage, false);
+			navigateToPreviousPage();
 			//view.showMessage("tache créée avec succes pour les documents x blabla");
 		} else if (StringUtils.isNotBlank(workflowId)) {
 			view.navigateToWorkflow(workflowId);
@@ -920,5 +921,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				authorizationField.setValue(READ);
 			}
 		}
+	}
+
+	private void navigateToPreviousPage() {
+		URI location = ConstellioUI.getCurrent().getPage().getLocation();
+		view.navigate().to(CoreViews.class).navigateTo(location.getPath(), previousPage, false);
 	}
 }
