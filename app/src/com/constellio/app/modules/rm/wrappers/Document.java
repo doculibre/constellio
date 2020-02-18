@@ -410,7 +410,7 @@ public class Document extends RMObject {
 		return getWrappedRecord().getLoadedFieldsMode() != RecordDTOMode.FULLY_LOADED;
 	}
 
-	public String getLinkedTo() {
+	public List<Folder> getLinkedTo() {
 		return get(LINKED_TO);
 	}
 

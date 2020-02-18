@@ -1356,6 +1356,9 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 				doc4
 		));
 
+		assertThat((Object) rm.wrapDocument(recordServices.getDocumentById(doc1.getId())).get(metadata)).isInstanceOf(List.class);
+		assertThat((List) rm.wrapDocument(recordServices.getDocumentById(doc1.getId())).getLinkedTo()).isEqualTo(doc1.getLinkedTo());
+
 		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder1.getId()).givingReadAccess());
 		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder2.getId()).givingReadAccess());
 		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder3.getId()).givingReadAccess());
@@ -1364,8 +1367,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(doc1.getId()).givingReadAccess());
 		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(doc2.getId()).givingReadAccess());
 
-		authsServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(au1.getId()).givingReadAccess());
-		authsServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(au2.getId()).givingReadAccess());
+		recordServices.update(charles.setCollectionReadAccess(true));
 
 		// Bob
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(bob, folder1.getId())
