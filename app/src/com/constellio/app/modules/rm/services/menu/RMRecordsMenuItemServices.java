@@ -95,7 +95,7 @@ public class RMRecordsMenuItemServices {
 		} else if (recordWithSupportedSchemaTypeCount != records.size()) {
 			List<String> schemaTypes = getLocalizedSchemaTypes(menuItemActionType.getSchemaTypes());
 			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.unsupportedSchema",
-					StringUtils.join(schemaTypes, ",")));
+					StringUtils.join(schemaTypes, ", ")));
 		}
 
 		int possibleCount = 0;
