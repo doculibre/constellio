@@ -1,11 +1,9 @@
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
-import com.constellio.app.api.extensions.RetentionRuleClassifiedType;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleDisplay;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
@@ -122,7 +120,7 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 		VerticalLayout folderTabContentLayout = new VerticalLayout();
 		folderTabContentLayout.setSizeFull();
 
-		RecordVODataProvider dataProvider = presenter.getDataProvider(retentionRuleVO.getId());
+		RecordVODataProvider dataProvider = presenter.getDataProvider();
 		Container recordsContainer = new RecordVOLazyContainer(dataProvider);
 		String schemaTypeCode = retentionRuleVO.getSchema().getTypeCode();
 
@@ -139,30 +137,6 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 		});
 		folderTabContentLayout.addComponent(table);
 		return folderTabContentLayout;
-	}
-
-	public void setTabs(List<RetentionRuleClassifiedType> classifiedTypes) {
-		for (RetentionRuleClassifiedType classifiedType : classifiedTypes) {
-			MetadataSchemaTypeVO schemaType = classifiedType.getSchemaType();
-			RecordVODataProvider provider = classifiedType.getDataProvider();
-			RecordVOTable table = new RecordVOTable(provider);
-			table.setWidth("100%");
-			table.addItemClickListener(new ItemClickListener() {
-				@Override
-				public void itemClick(ItemClickEvent event) {
-					RecordVOItem item = (RecordVOItem) event.getItem();
-					RecordVO recordVO = item.getRecord();
-					presenter.tabElementClicked(recordVO);
-				}
-			});
-			table.setPageLength(Math.min(15, provider.size()));
-
-			table.addStyleName(classifiedType.getSchemaType().getCode() + "Table");
-
-			Component oldComponent = tabComponents.get(schemaType.getCode());
-			tabComponents.put(schemaType.getCode(), table);
-			tabSheet.replaceComponent(oldComponent, table);
-		}
 	}
 
 	private Component buildAdditionalComponent() {

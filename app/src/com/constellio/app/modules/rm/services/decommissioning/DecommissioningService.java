@@ -1492,9 +1492,5 @@ public class DecommissioningService {
 			return getMaximalLocalDateForRecord(record, true);
 		}
 	}
-
-	public String getCollection() {
-		return collection;
-	}
 }
 

@@ -32,7 +32,6 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,14 +46,14 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 	private transient DecommissioningService decommissioningService;
 	private Record currentRetentionRuleRecord;
 
-	private RMSchemasRecordsServices recordServices;
+	private RMSchemasRecordsServices rmSchemasRecordsServices;
 	private SessionContext sessionContext;
 
 	public DisplayRetentionRulePresenter(DisplayRetentionRuleView view) {
 		super(view, RetentionRule.DEFAULT_SCHEMA);
 		decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		sessionContext = view.getSessionContext();
-		recordServices = new RMSchemasRecordsServices(sessionContext.getCurrentCollection(), appLayerFactory);
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(sessionContext.getCurrentCollection(), appLayerFactory);
 	}
 
 	public void forParams(String params) {
@@ -162,8 +161,8 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
 	}
 
-	public RecordVODataProvider getDataProvider(String retentionRule) {
-		MetadataSchemaType folderSchemaType = recordServices.folderSchemaType();
+	public RecordVODataProvider getDataProvider() {
+		MetadataSchemaType folderSchemaType = rmSchemasRecordsServices.folderSchemaType();
 		MetadataSchemaVO schema = new MetadataSchemaToVOBuilder().build(
 				folderSchemaType.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext
 		);
@@ -173,8 +172,8 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 			public LogicalSearchQuery getQuery() {
 				List<LogicalSearchCondition> conditions = new ArrayList<>();
 
-				if (StringUtils.isNotBlank(retentionRule)) {
-					conditions.add(getRetentionRuleCondition(retentionRule));
+				if (currentRetentionRuleRecord != null) {
+					conditions.add(getRetentionRuleCondition(retentionRuleVO.getId()));
 				}
 
 				return new LogicalSearchQuery(from(folderSchemaType).whereAllConditions(conditions))
@@ -182,7 +181,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 			}
 
 			private LogicalSearchCondition getRetentionRuleCondition(String retentionRule) {
-				return where(recordServices.folder.retentionRule()).isEqualTo(recordServices.getRetentionRule(retentionRule));
+				return where(rmSchemasRecordsServices.folder.retentionRule()).isEqualTo(rmSchemasRecordsServices.getRetentionRule(retentionRule));
 			}
 		};
 	}
