@@ -9,6 +9,8 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
@@ -22,21 +24,9 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.DragAndDropWrapper;
-import com.vaadin.ui.JavaScript;
-import com.vaadin.ui.JavaScriptFunction;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.SingleComponentContainer;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
@@ -74,6 +64,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private I18NHorizontalLayout staticFooterExtraComponentsLayout;
 	private Component staticFooterContent;
 	private BaseButton guideButton;
+	private WindowButton guideButtonConfig;
+
 
 	public MainLayoutImpl(final AppLayerFactory appLayerFactory) {
 		this.presenter = new MainLayoutPresenter(this);
@@ -145,6 +137,15 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		guideButton.setVisible(false);
 		guideButton.addExtension(new NiceTitle($("guide.details")));
 
+		guideButtonConfig = new WindowButton($("config button"),
+				$("config button title"),
+				WindowConfiguration.modalDialog("800px", "450px")) {
+			@Override
+			protected Component buildWindowContent() {
+				return null;
+			}
+		};
+
 		addComponent(header);
 		addComponent(dragAndDropWrapper);
 		setExpandRatio(dragAndDropWrapper, 1);
@@ -170,6 +171,9 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 
 		staticFooterContentAndGuideLayout.addComponent(guideButton);
 		staticFooterContentAndGuideLayout.setComponentAlignment(guideButton, Alignment.MIDDLE_RIGHT);
+
+		staticFooterContentAndGuideLayout.addComponent(guideButtonConfig);
+		staticFooterContentAndGuideLayout.setComponentAlignment(guideButtonConfig, Alignment.MIDDLE_RIGHT);
 
 		PagesComponentsExtensionParams params = new PagesComponentsExtensionParams(header, mainMenu, staticFooterExtraComponentsLayout, this,
 				contentViewWrapper, contentFooterWrapperLayout, presenter.getUser());
@@ -275,6 +279,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		String guideUrl = view.getGuideUrl();
 		boolean guideButtonVisible = StringUtils.isNotBlank(guideUrl);
 		guideButton.setVisible(guideButtonVisible);
+		guideButtonConfig.setVisible(guideButtonVisible); // && userHasCorrectRole()
 	}
 
 	private void updateStaticFooterState() {
