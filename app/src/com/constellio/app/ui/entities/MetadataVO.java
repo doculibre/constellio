@@ -306,11 +306,19 @@ public class MetadataVO implements Serializable {
 		return labels;
 	}
 
-	public String getLabel(Locale locale) {
-		return getLabel(locale, true);
+	public String getLabel(Locale locale, boolean fromAddEditView) {
+		boolean withMaxLength = false;
+		if (fromAddEditView) {
+			withMaxLength = true;
+		}
+		return getLabel(locale, withMaxLength, true);
 	}
 
-	public String getLabel(Locale locale, boolean withMeasurementUnit) {
+	public String getLabel(Locale locale) {
+		return getLabel(locale, false, true);
+	}
+
+	public String getLabel(Locale locale, boolean withMaxLength, boolean withMeasurementUnit) {
 		String label;
 		if (labels.containsKey(locale)) {
 			label = labels.get(locale);
@@ -320,6 +328,11 @@ public class MetadataVO implements Serializable {
 		if (withMeasurementUnit) {
 			if (this.getMeasurementUnit() != null) {
 				label = $("labelWithMeasurementUnit", label, this.getMeasurementUnit());
+			}
+		}
+		if (withMaxLength) {
+			if (this.getMaxLength() != null) {
+				label = $("labelWithMaxLength", label, this.getMaxLength());
 			}
 		}
 		return label;
