@@ -50,6 +50,10 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 @JavaScript({"theme://jquery/jquery-2.1.4.min.js"})
 @Slf4j
+/**
+ * Faire attention avec les utilisations de cette classe, Vaadin parfois fait redémarrer le iframe lorsqu'un composante est enlevé ou
+ * mis non visible. Lorsque c'est cas occure il faut resetter des propriété sur le viewer pdftron. Voir pdftron-constellio.js
+ */
 public class PdfTronViewer extends VerticalLayout implements ViewChangeListener {
 
 	public static final String[] SUPPORTED_EXTENTION = {"pdf", "pdf/a", "xfdf", "fdf", "docx", "xlsx", "pptx", "jpg", "png", "mp4"};

@@ -471,7 +471,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void refreshActionMenu() {
 		super.refreshActionMenu();
-		com.vaadin.ui.JavaScript.eval("setTimeout(function () { if(typeof resetToCurrentValues  === \"function\") { resetToCurrentValues(); }}, 2200)");
+		com.vaadin.ui.JavaScript.eval("setTimeout(function () { if(typeof resetToCurrentValues  === \"function\") { resetToCurrentValues(); }}, 650)");
 	}
 
 	@Override
