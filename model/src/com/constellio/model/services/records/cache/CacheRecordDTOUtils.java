@@ -908,7 +908,6 @@ public class CacheRecordDTOUtils {
 		byte[] stringValueAsByte = Arrays.copyOfRange(byteArray, startingStringPosition, startingStringPosition + stringBytesLength);
 
 		try {
-			System.out.println(stringValueAsByte.length);
 			return new String(stringValueAsByte, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
