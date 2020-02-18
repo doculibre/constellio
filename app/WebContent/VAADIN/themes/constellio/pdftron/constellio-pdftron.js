@@ -1,35 +1,39 @@
-var webViewerInstance = null;
-var annotationEnabled = null;
-var isViewerReadOnly = null;
+var webViewerInstance = false;
+var annotationEnabled = true;
+var isViewerReadOnly = true;
 
 const FitWidth = "FitWidth";
 
+(window.isWebViewerInstanceSet = function() {
+    return window.webViewerInstance && true;
+})
+
 (window.setWebViewerReadOnly = function(isReadOnly) {
-    if(webViewerInstance !== null) {
-        webViewerInstance.setReadOnly(isReadOnly);
+    if(isWebViewerInstanceSet()) {
+        window.webViewerInstance.setReadOnly(isReadOnly);
         isViewerReadOnly = isReadOnly;
     }
 });
 
 (window.setEnableAnnotations = function(enableAnnotations) {
-    if(webViewerInstance !== null) {
+    if(isWebViewerInstanceSet()) {
         if(enableAnnotations) {
-               webViewerInstance.enableAnnotations();
+               window.webViewerInstance.enableAnnotations();
                annotationEnabled=true;
         } else {
-            webViewerInstance.disableAnnotations();
+            window.webViewerInstance.disableAnnotations();
             annotationEnabled=false;
         }
     }
 });
 
 (window.rePullAnnotations = function() {
-    if(webViewerInstance !== null) {
+    if(isWebViewerInstanceSet()) {
             $.get(documentAnnotationUrl, (data) => {
 
                 ignoreAnnotationChange = true;
                 if(data) {
-                    webViewerInstance.docViewer.getAnnotationManager().importAnnotations(data);
+                    window.webViewerInstance.docViewer.getAnnotationManager().importAnnotations(data);
                 }
                 ignoreAnnotationChange = false;
             });
@@ -39,22 +43,22 @@ const FitWidth = "FitWidth";
 (window.resetToCurrentValues = function() {
     let viewerControl = document.getElementById(canvasId).childNodes[0].contentWindow.readerControl;
 
-    if(webViewerInstance != null && webViewerInstance != viewerControl) {
-        webViewerInstance = viewerControl;
-        webViewerInstance.setAnnotationUser(name);
-        webViewerInstance.setAdminUser(admin);
+    if(isWebViewerInstanceSet() && window.webViewerInstance != viewerControl) {
+        window.webViewerInstance = viewerControl;
+        window.webViewerInstance.setAnnotationUser(name);
+        window.webViewerInstance.setAdminUser(admin);
 
-        webViewerInstance.setLanguage(language);
+        window.webViewerInstance.setLanguage(language);
 
-        registerEvents(webViewerInstance);
-        registerAnnotationLoaded(webViewerInstance);
+        registerAnnotationChanged(window.webViewerInstance);
+        registerAnnotationLoaded(window.webViewerInstance);
 
-        webViewerInstance.setFitMode(FitWidth);
-        webViewerInstance.setReadOnly(isViewerReadOnly);
+        window.webViewerInstance.setFitMode(FitWidth);
+        window.webViewerInstance.setReadOnly(isViewerReadOnly);
     }
 });
 
-(window.registerEvents = function(instance) {
+(window.registerAnnotationChanged = function(instance) {
 
     const {docViewer} = instance;
     const annotManager = docViewer.getAnnotationManager();
@@ -87,7 +91,6 @@ const FitWidth = "FitWidth";
             ignoreAnnotationChange = true;
             if(data) {
                 annotManager.importAnnotations(data);
-                console.log(data);
             }
             ignoreAnnotationChange = false;
 
@@ -96,6 +99,7 @@ const FitWidth = "FitWidth";
             if(searchTerm) {
                 instance.searchTextFull(searchTerm);
             }
+
             instance.setReadOnly(isViewerReadOnly);
         });
     });
@@ -119,7 +123,9 @@ $(() => {
 
     WebViewer(mapParams,
         document.getElementById(canvasId)).then(instance => {
-            webViewerInstance = instance;
+
+            window.webViewerInstance = instance;
+
             instance.setAnnotationUser(name);
             instance.setAdminUser(admin);
             instance.setReadOnly(isReadOnly);
@@ -127,7 +133,7 @@ $(() => {
             annotationEnabled=true;
             isViewerReadOnly = isReadOnly;
 
-            registerEvents(instance);
+            registerAnnotationChanged(instance);
             registerAnnotationLoaded(instance);
         });
 })
