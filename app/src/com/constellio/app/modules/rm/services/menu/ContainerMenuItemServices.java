@@ -18,12 +18,14 @@ import java.util.function.Consumer;
 
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_ADD_TO_CART;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_BORROW;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CHECK_IN;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CONSULT;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_DELETE;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_EDIT;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_EMPTY_THE_BOX;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_LABELS;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_RETURN_REMAINDER;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_SLIP;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
@@ -77,6 +79,20 @@ public class ContainerMenuItemServices {
 					$("SearchView.printLabels"), FontAwesome.PRINT, -1, 300,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).printLabel(container, params));
 			menuItemActions.add(menuItemAction);
+		}
+
+		if (!filteredActionTypes.contains(CONTAINER_CHECK_IN.name())) {
+			menuItemActions.add(buildMenuItemAction(CONTAINER_CHECK_IN.name(),
+					isMenuItemActionPossible(CONTAINER_CHECK_IN.name(), container, user, params),
+					$("DisplayContainerView.checkIn"), null, -1, 325,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).checkIn(container, params)));
+		}
+
+		if (!filteredActionTypes.contains(CONTAINER_RETURN_REMAINDER.name())) {
+			menuItemActions.add(buildMenuItemAction(CONTAINER_RETURN_REMAINDER.name(),
+					isMenuItemActionPossible(CONTAINER_RETURN_REMAINDER.name(), container, user, params),
+					$("SendReturnReminderEmailButton.reminderReturn"), null, -1, 350,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(container, params)));
 		}
 
 		if (!filteredActionTypes.contains(CONTAINER_ADD_TO_CART.name())) {
@@ -144,6 +160,10 @@ public class ContainerMenuItemServices {
 				return containerRecordActionsServices.isSlipActionPossible(record, user);
 			case CONTAINER_LABELS:
 				return containerRecordActionsServices.isPrintLabelActionPossible(record, user);
+			case CONTAINER_CHECK_IN:
+				return containerRecordActionsServices.isCheckInActionPossible(record, user);
+			case CONTAINER_RETURN_REMAINDER:
+				return containerRecordActionsServices.isSendReturnReminderActionPossible(record, user);
 			case CONTAINER_ADD_TO_CART:
 				return containerRecordActionsServices.isAddToCartActionPossible(record, user);
 			case CONTAINER_DELETE:
@@ -181,6 +201,9 @@ public class ContainerMenuItemServices {
 		CONTAINER_DELETE,
 		CONTAINER_EMPTY_THE_BOX,
 		CONTAINER_BORROW;
+		CONTAINER_EMPTY_THE_BOX,
+		CONTAINER_RETURN_REMAINDER,
+		CONTAINER_CHECK_IN
 	}
 
 }

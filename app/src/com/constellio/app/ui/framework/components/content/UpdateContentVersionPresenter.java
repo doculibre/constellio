@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components.content;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -99,22 +100,30 @@ public class UpdateContentVersionPresenter implements Serializable {
 		return content != null && content.getCheckoutUserId() != null;
 	}
 
-	private boolean validateSavePossible(RecordVO recordVO) {
-		boolean uploadPossible;
-		if (isContentCheckedOut(recordVO) && !isCurrentUserBorrower(recordVO)) {
-			uploadPossible = false;
-			window.setFormVisible(false);
+	private boolean canReturnForOther(RecordVO recordVO) {
+		User currentUser = getPresenterUtils(recordVO).getCurrentUser();
+		return currentUser.has(RMPermissionsTo.RETURN_OTHER_USERS_DOCUMENTS).on(recordVO.getRecord());
+	}
 
-			Record record = getPresenterUtils(recordVO).getRecord(recordVO.getId());
-			Metadata contentMetadata = getPresenterUtils(recordVO).getMetadata(records.get(recordVO).getCode());
-			Content content = record.get(contentMetadata);
-			String checkoutUserId = content.getCheckoutUserId();
-			String userCaption = SchemaCaptionUtils.getCaptionForRecordId(checkoutUserId);
-			window.showErrorMessage("UpdateContentVersionWindow.borrowed", userCaption);
-		} else {
-			uploadPossible = true;
+	private boolean validateSavePossible(RecordVO recordVO) {
+		if (!isContentCheckedOut(recordVO) || isCurrentUserBorrower(recordVO)) {
+			return true;
 		}
-		return uploadPossible;
+
+		Record record = getPresenterUtils(recordVO).getRecord(recordVO.getId());
+		Metadata contentMetadata = getPresenterUtils(recordVO).getMetadata(records.get(recordVO).getCode());
+		Content content = record.get(contentMetadata);
+		String checkoutUserId = content.getCheckoutUserId();
+		String userCaption = SchemaCaptionUtils.getCaptionForRecordId(checkoutUserId);
+		window.showErrorMessage("UpdateContentVersionWindow.borrowed", userCaption);
+
+		if (canReturnForOther(recordVO)) {
+			return true;
+		}
+
+		window.setFormVisible(false);
+
+		return false;
 	}
 
 	public void contentVersionSaved(ContentVersionVO newVersionVO, Boolean majorVersion) {

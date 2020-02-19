@@ -284,7 +284,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 			setHeight("200px");
 			updatedTitle = $("UpdateContentVersionWindow.checkInTitle");
 		} else {
-			setHeight("300px");
+			setHeight("350px");
 			updatedTitle = $("UpdateContentVersionWindow.newVersionTitle");
 		}
 		setCaption(updatedTitle);

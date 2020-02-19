@@ -2,12 +2,14 @@ package com.constellio.app.modules.rm.services.menu.behaviors;
 
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
+import com.constellio.app.modules.rm.services.menu.behaviors.ui.SendReturnReminderEmailButton;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
@@ -526,6 +528,23 @@ public class DocumentMenuItemActionBehaviors {
 
 	public void checkOut(Document document, MenuItemActionBehaviorParams params) {
 		checkOut(Arrays.asList(document), params);
+	}
+
+	public void sendReturnRemainder(Document documentSummary, MenuItemActionBehaviorParams params) {
+		Document document = loadingFullRecordIfSummary(documentSummary);
+		User borrower = null;
+		if (document.getContentCheckedOutBy() != null) {
+			borrower = rm.getUser(document.getContentCheckedOutBy());
+		}
+		String previewReturnDate = document.getContentCheckedOutDate().plusDays(getBorrowingDuration()).toString();
+
+		Button reminderReturnDocumentButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
+				params.getView(), Document.SCHEMA_TYPE, document.get(), borrower, previewReturnDate);
+		reminderReturnDocumentButton.click();
+	}
+
+	private int getBorrowingDuration() {
+		return new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()).getDocumentBorrowingDurationDays();
 	}
 
 	public void addAuthorization(Document document, MenuItemActionBehaviorParams params) {

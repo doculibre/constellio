@@ -958,51 +958,52 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
 		return new EmailToSend(emailToSendRecord, types);
 	}
-	//
-	//	public void reminderReturnFolder() {
-	//
-	//		try {
-	//			EmailToSend emailToSend = newEmailToSend();
-	//			String constellioUrl = eimConfigs.getConstellioUrl();
-	//			User borrower = null;
-	//			if (folderVO.getBorrowUserEnteredId() != null) {
-	//				borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserEnteredId());
-	//			} else {
-	//				borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserId());
-	//			}
-	//
-	//			EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
-	//			emailToSend.setTo(Arrays.asList(borrowerAddress));
-	//			emailToSend.setSendOn(TimeProvider.getLocalDateTime());
-	//			emailToSend.setSubject($("DisplayFolderView.returnFolderReminder") + folderVO.getTitle());
-	//			emailToSend.setTemplate(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
-	//			List<String> parameters = new ArrayList<>();
-	//			String previewReturnDate = folderVO.getPreviewReturnDate().toString();
-	//			parameters.add("previewReturnDate" + EmailToSend.PARAMETER_SEPARATOR + previewReturnDate);
-	//			parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + borrower.getUsername());
-	//			String borrowedFolderTitle = folderVO.getTitle();
-	//			parameters.add("borrowedFolderTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
-	//			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
-	//			if (isAddingRecordIdInEmails) {
-	//				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-	//							   + folderVO.getTitle() + "\" (" + folderVO.getId() + ")");
-	//			} else {
-	//				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-	//							   + folderVO.getTitle() + "\"");
-	//			}
-	//
-	//			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
-	//			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!"
-	//						   + RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderVO.getId());
-	//			emailToSend.setParameters(parameters);
-	//
-	//			recordServices.add(emailToSend);
-	//			view.showMessage($("DisplayFolderView.reminderEmailSent"));
-	//		} catch (RecordServicesException e) {
-	//			LOGGER.error("DisplayFolderView.cannotSendEmail", e);
-	//			view.showMessage($("DisplayFolderView.cannotSendEmail"));
-	//		}
-	//	}
+
+	public void reminderReturnFolder() {
+
+		try {
+			EmailToSend emailToSend = newEmailToSend();
+			String constellioUrl = eimConfigs.getConstellioUrl();
+			User borrower = null;
+			if (folderVO.getBorrowUserEnteredId() != null) {
+				borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserEnteredId());
+			} else {
+				borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserId());
+			}
+
+			EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
+			emailToSend.setTo(Arrays.asList(borrowerAddress));
+			emailToSend.setSendOn(TimeProvider.getLocalDateTime());
+			emailToSend.setSubject($("DisplayFolderView.returnFolderReminder") + folderVO.getTitle());
+			emailToSend.setTemplate(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
+			List<String> parameters = new ArrayList<>();
+			String previewReturnDate = folderVO.getPreviewReturnDate().toString();
+			parameters.add("previewReturnDate" + EmailToSend.PARAMETER_SEPARATOR + previewReturnDate);
+			parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + borrower.getUsername());
+			String borrowedFolderTitle = folderVO.getTitle();
+			parameters.add("borrowedRecordTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
+			parameters.add("borrowedRecordType" + EmailToSend.PARAMETER_SEPARATOR + $("SendReturnReminderEmailButton.folder"));
+			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+			if (isAddingRecordIdInEmails) {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
+							   + folderVO.getTitle() + "\" (" + folderVO.getId() + ")");
+			} else {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
+							   + folderVO.getTitle() + "\"");
+			}
+
+			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!"
+						   + RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderVO.getId());
+			emailToSend.setParameters(parameters);
+
+			recordServices.add(emailToSend);
+			view.showMessage($("SendReturnReminderEmailButton.reminderEmailSent"));
+		} catch (RecordServicesException e) {
+			LOGGER.error("SendReturnReminderEmailButton.cannotSendEmail", e);
+			view.showMessage($("SendReturnReminderEmailButton.cannotSendEmail"));
+		}
+	}
 
 	public void alertWhenAvailable() {
 		try {

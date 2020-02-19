@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -244,7 +245,8 @@ public class EmailBuilderAcceptTest extends ConstellioTest {
 		parameters.add("completeTask" + EmailToSend.PARAMETER_SEPARATOR + "http://localhost:7070/constellio/");
 		parameters.add("previewReturnDate" + EmailToSend.PARAMETER_SEPARATOR + LocalDate.now());
 		parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + chuckNorris);
-		parameters.add("borrowedFolderTitle" + EmailToSend.PARAMETER_SEPARATOR + "dossier école");
+		parameters.add("borrowedRecordTitle" + EmailToSend.PARAMETER_SEPARATOR + "dossier école");
+		parameters.add("borrowedRecordType" + EmailToSend.PARAMETER_SEPARATOR + $("SendReturnReminderEmailButton.folder"));
 		//parameters.add(logo);
 		//parameters.add(backgroundImg);
 	}
