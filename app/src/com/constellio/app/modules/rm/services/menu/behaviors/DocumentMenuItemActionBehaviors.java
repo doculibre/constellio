@@ -488,6 +488,7 @@ public class DocumentMenuItemActionBehaviors {
 
 	public void checkOut(List<Document> documents, MenuItemActionBehaviorParams params) {
 		int checkedOutDocuments = 0;
+		boolean openThroughAgent = (documents.size() == 1);
 
 		for (Document document : documents) {
 			document = loadingFullRecordIfSummary(document);
@@ -501,6 +502,14 @@ public class DocumentMenuItemActionBehaviors {
 					params.getView().refreshActionMenu();
 
 					checkedOutDocuments++;
+					if (openThroughAgent) {
+						DocumentVO documentVO = getDocumentVO(params, document);
+						String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent(), params.getView().getSessionContext());
+						if (agentURL != null) {
+							Page.getCurrent().open(agentURL, null);
+							loggingServices.openDocument(document.getWrappedRecord(), params.getUser());
+						}
+					}
 
 				} catch (RecordServicesException e) {
 					params.getView().showErrorMessage(MessageUtils.toMessage(e));
