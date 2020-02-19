@@ -37,6 +37,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -533,7 +534,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenDocumentsLinkedToFolderWhenDifferentPermissionsThenAllDocumentsProvided()
+	public void whenDocumentsLinkedToFolderThenAllDocumentsProvidedWithoutQuery()
 			throws Exception {
 		MetadataSchema schema = rmSchemasRecordsServices.schemaType("document").getDefaultSchema();
 		Metadata metadata = schema.getMetadata("linkedTo");
@@ -594,25 +595,29 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 				doc4
 		));
 
+		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), DisplayFolderPresenterAcceptTest.class);
+
 		presenter.forParams(folder1.getId());
 		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
 				.isEmpty();
 
 		presenter.forParams(folder2.getId());
 		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
-				.containsOnly(doc1);
+				.containsOnly(doc1.getId());
 
 		presenter.forParams(folder3.getId());
 		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
-				.containsOnly(doc2, doc3);
+				.containsOnly(doc2.getId(), doc3.getId());
 
 		presenter.forParams(folder4.getId());
 		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
-				.containsOnly(doc0, doc1, doc2, doc4);
+				.containsOnly(doc0.getId(), doc1.getId(), doc2.getId(), doc4.getId());
 
 		presenter.forParams(folder5.getId());
 		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
-				.containsOnly(doc3);
+				.containsOnly(doc3.getId());
+
+		assertThat(queryCounter.newQueryCalls()).isZero();
 	}
 
 	private MetadataSchemaTypes getSchemaTypes() {
