@@ -197,15 +197,18 @@ public class BorrowWindowButton extends WindowButton {
 
 					borrowingServices.borrowFolder(folder.getId(), borrowingDate, previewReturnDate,
 							params.getUser(), borrowerEntered, borrowingType, true);
-					RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
-							appLayerFactory, collection);
 					borrowed = true;
 
 					if (returnDate != null) {
 						return new FolderMenuItemActionBehaviors(collection, appLayerFactory)
 								.returnFolder(folder, returnDate, params);
 					}
+					try {
+						RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
+								appLayerFactory, collection);
+					} catch (IllegalArgumentException e) {
 
+					}
 				} else if (record.isOfSchemaType(rm.containerRecord.schemaType().getCode())) {
 					ContainerRecord container = rm.wrapContainerRecord(record);
 
