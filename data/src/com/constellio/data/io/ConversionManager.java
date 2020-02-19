@@ -209,7 +209,6 @@ public class ConversionManager implements StatefulService {
 			COPY_EXTENSIONS.put("pps", "ppt");
 			supportedExtensionsList.addAll(COPY_EXTENSIONS.keySet());
 
-			// To get the values use getSupportedExtensions();
 			SUPPORTED_EXTENSIONS = supportedExtensionsList.toArray(new String[0]);
 			LOGGER.info("Conversion to PDF supported for the following extensions: " + Arrays.toString(SUPPORTED_EXTENSIONS));
 			openOfficeOrLibreOfficeInstalled = true;
@@ -522,12 +521,12 @@ public class ConversionManager implements StatefulService {
 		return supportedExtensions.toArray(new String[0]);
 	}
 
-	public String[] getSupportedExtensions() {
+	public String[] getPreviewSupportedExtensions() {
 		return ArrayUtils.removeElements(getAllSupportedExtensions(), extensions.getExtentionDisabledForPreviewConvertion());
 	}
 
 	public boolean isSupportedExtension(String ext) {
-		for (String aSupportedExtension : getSupportedExtensions()) {
+		for (String aSupportedExtension : getPreviewSupportedExtensions()) {
 			if (aSupportedExtension.equalsIgnoreCase(ext)) {
 				return true;
 			}

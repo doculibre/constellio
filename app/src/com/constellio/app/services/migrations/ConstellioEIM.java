@@ -79,10 +79,10 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_0_5;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_3;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_40;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_89;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_40;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -193,7 +193,7 @@ public class ConstellioEIM {
 	private static void configureBaseExtensions(AppLayerFactory appLayerFactory, String collection) {
 		configureBaseAppLayerExtensions(appLayerFactory, collection);
 		configureBaseModelLayerExtensions(appLayerFactory, collection);
-		configureBaseDataLayerExtensions(appLayerFactory, collection);
+		configureBaseDataLayerExtensions(appLayerFactory);
 
 	}
 
@@ -209,7 +209,7 @@ public class ConstellioEIM {
 				.schemaExtensions.add(new CoreSearchFieldExtension(collection, appLayerFactory));
 	}
 
-	private static void configureBaseDataLayerExtensions(AppLayerFactory appLayerFactory, String collection) {
+	private static void configureBaseDataLayerExtensions(AppLayerFactory appLayerFactory) {
 		DataLayerSystemExtensions dataLayerSystemExtensions = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getExtensions().getSystemWideExtensions();
 		dataLayerSystemExtensions.supportedExtensionExtensions.add(new AppSupportedExtensionExtension(appLayerFactory));
 	}
