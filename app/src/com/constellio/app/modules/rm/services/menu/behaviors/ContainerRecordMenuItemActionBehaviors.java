@@ -196,8 +196,8 @@ public class ContainerRecordMenuItemActionBehaviors {
 		returnButton.click();
 	}
 
-	private boolean returnContainer(ContainerRecord container, LocalDate returnDate,
-									MenuItemActionBehaviorParams params) {
+	public boolean returnContainer(ContainerRecord container, LocalDate returnDate,
+								   MenuItemActionBehaviorParams params) {
 		String errorMessage = borrowingServices.validateReturnDate(returnDate, container.getBorrowDate());
 		if (errorMessage != null) {
 			params.getView().showErrorMessage($(errorMessage));
@@ -348,11 +348,14 @@ public class ContainerRecordMenuItemActionBehaviors {
 		}
 	}
 
+	/*
+	// FIXME duplicated code
 	public boolean returnContainer(ContainerRecord containerRecord, LocalDate returnDate, MenuItemActionBehaviorParams params) {
 		LocalDate borrowDateTime = containerRecord.getBorrowDate();
 		LocalDate borrowDate = borrowDateTime != null ? borrowDateTime : null;
 		return returnContainer(containerRecord, returnDate, borrowDate, params);
 	}
+	*/
 
 	private class ContainerReportPresenter implements NewReportPresenter {
 

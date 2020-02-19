@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.folder;
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
@@ -76,6 +77,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -965,36 +967,36 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			EmailToSend emailToSend = newEmailToSend();
 			String constellioUrl = eimConfigs.getConstellioUrl();
 			User borrower = null;
-			if (folderVO.getBorrowUserEnteredId() != null) {
-				borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserEnteredId());
+			if (summaryFolderVO.getBorrowUserEnteredId() != null) {
+				borrower = rmSchemasRecordsServices.getUser(summaryFolderVO.getBorrowUserEnteredId());
 			} else {
-				borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserId());
+				borrower = rmSchemasRecordsServices.getUser(summaryFolderVO.getBorrowUserId());
 			}
 
 			EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
 			emailToSend.setTo(Arrays.asList(borrowerAddress));
 			emailToSend.setSendOn(TimeProvider.getLocalDateTime());
-			emailToSend.setSubject($("DisplayFolderView.returnFolderReminder") + folderVO.getTitle());
+			emailToSend.setSubject($("DisplayFolderView.returnFolderReminder") + summaryFolderVO.getTitle());
 			emailToSend.setTemplate(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
 			List<String> parameters = new ArrayList<>();
-			String previewReturnDate = folderVO.getPreviewReturnDate().toString();
+			String previewReturnDate = summaryFolderVO.getPreviewReturnDate().toString();
 			parameters.add("previewReturnDate" + EmailToSend.PARAMETER_SEPARATOR + previewReturnDate);
 			parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + borrower.getUsername());
-			String borrowedFolderTitle = folderVO.getTitle();
+			String borrowedFolderTitle = summaryFolderVO.getTitle();
 			parameters.add("borrowedRecordTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
 			parameters.add("borrowedRecordType" + EmailToSend.PARAMETER_SEPARATOR + $("SendReturnReminderEmailButton.folder"));
 			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
 			if (isAddingRecordIdInEmails) {
 				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-							   + folderVO.getTitle() + "\" (" + folderVO.getId() + ")");
+							   + summaryFolderVO.getTitle() + "\" (" + summaryFolderVO.getId() + ")");
 			} else {
 				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-							   + folderVO.getTitle() + "\"");
+							   + summaryFolderVO.getTitle() + "\"");
 			}
 
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!"
-						   + RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderVO.getId());
+						   + RMNavigationConfiguration.DISPLAY_FOLDER + "/" + summaryFolderVO.getId());
 			emailToSend.setParameters(parameters);
 
 			recordServices.add(emailToSend);
