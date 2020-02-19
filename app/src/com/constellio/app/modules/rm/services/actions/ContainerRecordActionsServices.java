@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
@@ -35,6 +36,7 @@ public class ContainerRecordActionsServices {
 	private String collection;
 	private SearchServices searchServices;
 	private RecordServices recordServices;
+	private BorrowingServices borrowingServices;
 
 	public ContainerRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -44,6 +46,7 @@ public class ContainerRecordActionsServices {
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		this.searchServices = modelLayerFactory.newSearchServices();
+		borrowingServices = new BorrowingServices(collection, appLayerFactory.getModelLayerFactory());
 	}
 
 	public boolean isEditActionPossible(Record record, User user) {
@@ -187,5 +190,17 @@ public class ContainerRecordActionsServices {
 
 	private boolean isContainerRecyclingAllowed() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isContainerRecyclingAllowed();
+	}
+
+	public boolean isBorrowActionPossible(Record record, User user) {
+
+		ContainerRecord container = rm.wrapContainerRecord(record);
+		try {
+			borrowingServices.validateCanBorrow(user, container, null);
+		} catch (Exception e) {
+			return false;
+		}
+		return user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(container) &&
+			   !record.isLogicallyDeleted();
 	}
 }

@@ -85,6 +85,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -485,33 +486,37 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
-	public void checkOut(Document document, MenuItemActionBehaviorParams params) {
-		document = loadingFullRecordIfSummary(document);
-		if (documentRecordActionsServices.isCheckOutActionPossible(document.getWrappedRecord(), params.getUser())) {
-			updateSearchResultClicked(document.getWrappedRecord());
-			Content content = document.getContent();
-			content.checkOut(params.getUser());
-			modelLayerFactory.newLoggingServices().borrowRecord(document.getWrappedRecord(), params.getUser(), TimeProvider.getLocalDateTime());
-			try {
-				recordServices.update(document.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+	public void checkOut(List<Document> documents, MenuItemActionBehaviorParams params) {
+		int checkedOutDocuments = 0;
 
-				DocumentVO documentVO = getDocumentVO(params, document);
+		for (Document document : documents) {
+			document = loadingFullRecordIfSummary(document);
+			if (documentRecordActionsServices.isCheckOutActionPossible(document.getWrappedRecord(), params.getUser())) {
+				updateSearchResultClicked(document.getWrappedRecord());
+				Content content = document.getContent();
+				content.checkOut(params.getUser());
+				modelLayerFactory.newLoggingServices().borrowRecord(document.getWrappedRecord(), params.getUser(), TimeProvider.getLocalDateTime());
+				try {
+					recordServices.update(document.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+					params.getView().refreshActionMenu();
 
-				params.getView().refreshActionMenu();
+					checkedOutDocuments++;
 
-				String checkedOutVersion = content.getCurrentVersion().getVersion();
-				params.getView().showMessage($("DocumentActionsComponent.checkedOut", checkedOutVersion));
-				String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent(), params.getView().getSessionContext());
-				if (agentURL != null) {
-					Page.getCurrent().open(agentURL, null);
-					loggingServices.openDocument(document.getWrappedRecord(), params.getUser());
+				} catch (RecordServicesException e) {
+					params.getView().showErrorMessage(MessageUtils.toMessage(e));
 				}
-			} catch (RecordServicesException e) {
-				params.getView().showErrorMessage(MessageUtils.toMessage(e));
+			} else if (documentRecordActionsServices.isCheckOutActionNotPossibleDocumentDeleted(document.getWrappedRecord(), params.getUser())) {
+				params.getView().showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
 			}
-		} else if (documentRecordActionsServices.isCheckOutActionNotPossibleDocumentDeleted(document.getWrappedRecord(), params.getUser())) {
-			params.getView().showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
 		}
+
+		if (checkedOutDocuments != 0) {
+			params.getView().showMessage($("DocumentMenuItemActionBehaviors.checkedOutMultiple", checkedOutDocuments));
+		}
+	}
+
+	public void checkOut(Document document, MenuItemActionBehaviorParams params) {
+		checkOut(Arrays.asList(document), params);
 	}
 
 	public void addAuthorization(Document document, MenuItemActionBehaviorParams params) {

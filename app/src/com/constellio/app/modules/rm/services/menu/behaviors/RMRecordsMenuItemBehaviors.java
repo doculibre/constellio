@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMMessageUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
+import com.constellio.app.modules.rm.ui.buttons.BorrowWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
@@ -104,6 +105,7 @@ public class RMRecordsMenuItemBehaviors {
 	private String collection;
 	private AppLayerFactory appLayerFactory;
 	private RecordServices recordServices;
+	private RMSchemasRecordsServices rm;
 	private DecommissioningService decommissioningService;
 	private IOServices ioServices;
 
@@ -118,6 +120,7 @@ public class RMRecordsMenuItemBehaviors {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+
 		decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		ioServices = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newIOServices();
 		this.modelCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
@@ -125,6 +128,7 @@ public class RMRecordsMenuItemBehaviors {
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 		containerRecordActionsServices = new ContainerRecordActionsServices(collection, appLayerFactory);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	public void addToCart(List<String> recordIds, MenuItemActionBehaviorParams params) {
@@ -272,6 +276,25 @@ public class RMRecordsMenuItemBehaviors {
 			}
 		});
 		labelsButton.click();
+	}
+
+	public void batchBorrow(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		List<Record> records = getSelectedRecords(recordIds);
+
+		Button borrowButton = new BorrowWindowButton(records, params);
+		borrowButton.click();
+	}
+
+	public void documentBorrow(List<String> ids, MenuItemActionBehaviorParams params) {
+		DocumentMenuItemActionBehaviors documentMenuItemActionBehaviors =
+				new DocumentMenuItemActionBehaviors(collection, appLayerFactory);
+		if (ids.size() == 1) {
+			documentMenuItemActionBehaviors.checkOut(rm.wrapDocument(recordServices.getDocumentById(ids.get(0))), params);
+		}
+		else {
+			List<Document> documents = rm.wrapDocuments(getSelectedRecords(ids));
+			documentMenuItemActionBehaviors.checkOut(documents, params);
+		}
 	}
 
 	public void addToSelection(List<String> recordIds, MenuItemActionBehaviorParams params) {
@@ -680,5 +703,4 @@ public class RMRecordsMenuItemBehaviors {
 	private List<Record> getSelectedRecords(List<String> selectedRecordIds) {
 		return recordServices.getRecordsById(collection, selectedRecordIds);
 	}
-
 }

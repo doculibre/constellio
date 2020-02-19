@@ -6,11 +6,14 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
+import com.constellio.app.modules.rm.ui.buttons.BorrowWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -26,6 +29,7 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -39,6 +43,8 @@ import com.vaadin.ui.Component;
 import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -56,6 +62,7 @@ public class ContainerRecordMenuItemActionBehaviors {
 	private LoggingServices loggingServices;
 	private SearchServices searchServices;
 	private DecommissioningService decommissioningService;
+	private BorrowingServices borrowingServices;
 
 
 	public ContainerRecordMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
@@ -69,6 +76,7 @@ public class ContainerRecordMenuItemActionBehaviors {
 		this.loggingServices = modelLayerFactory.newLoggingServices();
 		this.extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
+		this.borrowingServices = new BorrowingServices(collection, modelLayerFactory);
 	}
 
 	public void getConsultationLink(ContainerRecord containerRecord, MenuItemActionBehaviorParams params) {
@@ -182,6 +190,44 @@ public class ContainerRecordMenuItemActionBehaviors {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
 		params.getView().navigate().to(RMViews.class).displayContainer(container.getId());
+	}
+
+	public void borrow(ContainerRecord container, MenuItemActionBehaviorParams params) {
+		borrow(Arrays.asList(container), params);
+	}
+
+	public void borrow(List<ContainerRecord> containers, MenuItemActionBehaviorParams params) {
+		List<Record> records = new ArrayList<>();
+		for (ContainerRecord container : containers) {
+			records.add(container.getWrappedRecord());
+		}
+
+		Button borrowButton = new BorrowWindowButton(records, params);
+		borrowButton.click();
+	}
+
+	private boolean returnContainer(ContainerRecord container, LocalDate returnDate, LocalDate borrowingDate,
+									MenuItemActionBehaviorParams params) {
+		String errorMessage = borrowingServices.validateReturnDate(returnDate, borrowingDate);
+		if (errorMessage != null) {
+			params.getView().showErrorMessage($(errorMessage));
+			return false;
+		}
+		try {
+			borrowingServices.returnFolder(container.getId(), params.getUser(), returnDate, true);
+			RMNavigationUtils.navigateToDisplayFolder(container.getId(), params.getFormParams(),
+					appLayerFactory, collection);
+			return true;
+		} catch (RecordServicesException e) {
+			params.getView().showErrorMessage($("DisplayFolderView.cannotReturnFolder"));
+			return false;
+		}
+	}
+
+	public boolean returnContainer(ContainerRecord containerRecord, LocalDate returnDate, MenuItemActionBehaviorParams params) {
+		LocalDate borrowDateTime = containerRecord.getBorrowDate();
+		LocalDate borrowDate = borrowDateTime != null ? borrowDateTime : null;
+		return returnContainer(containerRecord, returnDate, borrowDate, params);
 	}
 
 	private class ContainerReportPresenter implements NewReportPresenter {

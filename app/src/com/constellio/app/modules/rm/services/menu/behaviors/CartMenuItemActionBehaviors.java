@@ -20,6 +20,7 @@ import com.constellio.app.modules.rm.services.menu.behaviors.ui.CartBatchProcess
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMMessageUtil;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
+import com.constellio.app.modules.rm.ui.buttons.BorrowWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.RenameDialogButton;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
@@ -90,6 +91,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -711,6 +713,20 @@ public class CartMenuItemActionBehaviors {
 		};
 
 		reportGeneratorButton.click();
+	}
+
+	public void borrow(Cart cart, MenuItemActionBehaviorParams params) {
+		borrow(Arrays.asList(cart), params);
+	}
+
+	public void borrow(List<Cart> carts, MenuItemActionBehaviorParams params) {
+		List<Record> records = new ArrayList<>();
+		for (Cart cart : carts) {
+			records.add(cart.getWrappedRecord());
+		}
+
+		Button borrowButton = new BorrowWindowButton(records, params);
+		borrowButton.click();
 	}
 
 	private class CartNewReportPresenter implements NewReportPresenter {
