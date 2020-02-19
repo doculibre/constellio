@@ -6,10 +6,8 @@ import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserAcceptanceTest extends ConstellioTest {
@@ -22,35 +20,6 @@ public class UserAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(withZeCollection().withAllTest(users));
 		recordServices = getModelLayerFactory().newRecordServices();
-	}
-
-	@Test
-	public void whenCallingWraperMethodsForConfiguringVisibleColumnsThenOK()
-			throws Exception {
-
-		User admin = users.adminIn(zeCollection);
-		assertThat(admin.getVisibleTableColumns()).isNull();
-		assertThat(admin.isVisibleTableColumnsConfiguredFor("zeTable")).isFalse();
-		assertThat(admin.isDirty()).isFalse();
-
-		admin.setVisibleTableColumns("zeTable", asList("column1", "column2"));
-		assertThat(admin.isDirty()).isTrue();
-		recordServices.update(admin);
-		recordServices.refresh(admin);
-		assertThat(admin.getVisibleTableColumnsFor("zeTable")).containsOnly("column1", "column2");
-		assertThat(admin.isVisibleTableColumnsConfiguredFor("zeTable")).isTrue();
-		assertThat(admin.isVisibleTableColumnsConfiguredFor("otherTable")).isFalse();
-
-		admin.setVisibleTableColumns("otherTable", new ArrayList<String>());
-		recordServices.update(admin);
-		recordServices.refresh(admin);
-		assertThat(admin.isVisibleTableColumnsConfiguredFor("otherTable")).isFalse();
-
-		admin.setVisibleTableColumns("otherTable", null);
-		recordServices.update(admin);
-		recordServices.refresh(admin);
-		assertThat(admin.isVisibleTableColumnsConfiguredFor("otherTable")).isFalse();
-
 	}
 
 	@Test

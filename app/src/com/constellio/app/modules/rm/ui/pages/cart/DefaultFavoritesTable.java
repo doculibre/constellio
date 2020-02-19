@@ -157,10 +157,11 @@ public class DefaultFavoritesTable extends BaseTable {
 			@Override
 			protected List<String> getDefaultVisibleColumnIds(Table table) {
 				List<String> visibleColumnIds = new ArrayList<>();
-				List<String> userVisibleColumns = currentUser.getVisibleTableColumnsFor(table.getId());
+				// TODO::JOLA --> Update for config system
+				/*List<String> userVisibleColumns = currentUser.getVisibleTableColumnsFor(table.getId());
 				if (userVisibleColumns != null) {
 					visibleColumnIds.addAll(userVisibleColumns);
-				}
+				}*/
 				visibleColumnIds.addAll(asList(CartItem.TITLE, CartItem.MODIFIED_ON, CartItem.DISPLAY_BUTTON));
 				return visibleColumnIds;
 			}

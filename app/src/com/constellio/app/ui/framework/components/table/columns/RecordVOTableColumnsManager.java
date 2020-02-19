@@ -15,6 +15,7 @@ import com.vaadin.ui.Table;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO::JOLA --> Adjust table columns
 public class RecordVOTableColumnsManager extends TableColumnsManager {
 
 	public RecordVOTableColumnsManager() {
@@ -39,9 +40,10 @@ public class RecordVOTableColumnsManager extends TableColumnsManager {
 			visibleColumnForUser.remove(itemToRemove);
 		}
 
-		if (toRemove.size() > 0) {
+		// TODO::JOLA --> Update for config system
+		/*if (toRemove.size() > 0) {
 			currentUser.setVisibleTableColumns(tableId, visibleColumnForUser);
-		}
+		}*/
 	}
 
 	@Override

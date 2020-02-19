@@ -6,9 +6,10 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.structures.TableProperties;
+import com.constellio.model.services.configs.UserConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
@@ -17,6 +18,10 @@ import com.vaadin.ui.Table.ColumnCollapseListener;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.Table.ColumnReorderEvent;
 import com.vaadin.ui.Table.ColumnReorderListener;
+import com.vaadin.ui.Table.ColumnResizeEvent;
+import com.vaadin.ui.Table.ColumnResizeListener;
+import com.vaadin.ui.Table.HeaderClickEvent;
+import com.vaadin.ui.Table.HeaderClickListener;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
@@ -27,6 +32,7 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
+// TODO::JOLA --> Adjust table columns
 public class TableColumnsManager implements Serializable {
 
 	protected ConstellioFactories constellioFactories;
@@ -89,6 +95,7 @@ public class TableColumnsManager implements Serializable {
 
 	public void manage(final Table table, final String tableId) {
 		if (table.getColumnHeaderMode() != ColumnHeaderMode.HIDDEN) {
+			table.setImmediate(true);
 			table.setColumnCollapsingAllowed(true);
 			table.setColumnReorderingAllowed(true);
 
@@ -116,47 +123,65 @@ public class TableColumnsManager implements Serializable {
 				}
 			}
 
+			UserConfigurationsManager configManager = new UserConfigurationsManager();
 			table.addColumnCollapseListener(new ColumnCollapseListener() {
 				@Override
 				public void columnCollapseStateChange(ColumnCollapseEvent event) {
-					Object propertyId = event.getPropertyId();
-					String columnId = toColumnId(propertyId);
-					boolean collapsed = table.isColumnCollapsed(propertyId);
-					List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
-					if (collapsed) {
-						visibleColumnIdsForUser.remove(columnId);
-					} else if (!visibleColumnIdsForUser.contains(columnId)) {
-						visibleColumnIdsForUser.add(columnId);
+					List<String> visibleColumnIdsForUser = new ArrayList<>();
+
+					Object[] propertyIds = table.getVisibleColumns();
+					for (Object propertyId : propertyIds) {
+						String columnId = toColumnId(propertyId);
+						boolean collapsed = table.isColumnCollapsed(propertyId);
+						if (!collapsed) {
+							visibleColumnIdsForUser.add(columnId);
+						}
 					}
-					currentUser.setVisibleTableColumns(tableId, visibleColumnIdsForUser);
-					try {
-						recordServices.update(currentUser);
-					} catch (RecordServicesException e) {
-						notifyException(e);
-					}
+
+					TableProperties properties = configManager.getTableProperties(tableId);
+					properties.setVisibleColumnIds(visibleColumnIdsForUser);
 				}
 			});
 
 			table.addColumnReorderListener(new ColumnReorderListener() {
 				@Override
 				public void columnReorder(ColumnReorderEvent event) {
-					if (currentUser == null) {
-						return;
-					}
-					Object[] visibleColumnIds = table.getVisibleColumns();
 					List<String> visibleColumnIdsForUser = new ArrayList<>();
-					for (Object visiblePropertyId : visibleColumnIds) {
-						String columnId = toColumnId(visiblePropertyId);
-						if (!table.isColumnCollapsed(visiblePropertyId)) {
+
+					Object[] propertyIds = table.getVisibleColumns();
+					for (Object propertyId : propertyIds) {
+						String columnId = toColumnId(propertyId);
+						boolean collapsed = table.isColumnCollapsed(propertyId);
+						if (!collapsed) {
 							visibleColumnIdsForUser.add(columnId);
 						}
 					}
-					currentUser.setVisibleTableColumns(tableId, visibleColumnIdsForUser);
-					try {
-						recordServices.update(currentUser);
-					} catch (RecordServicesException e) {
-						notifyException(e);
-					}
+
+					TableProperties properties = configManager.getTableProperties(tableId);
+					properties.setVisibleColumnIds(visibleColumnIdsForUser);
+				}
+			});
+
+			table.addColumnResizeListener(new ColumnResizeListener() {
+				@Override
+				public void columnResize(ColumnResizeEvent event) {
+					Object propertyId = event.getPropertyId();
+					String columnId = toColumnId(propertyId);
+
+					TableProperties properties = configManager.getTableProperties(tableId);
+					properties.setColumnWidth(columnId, event.getCurrentWidth());
+				}
+			});
+
+			table.addHeaderClickListener(new HeaderClickListener() {
+				@Override
+				public void headerClick(HeaderClickEvent event) {
+					Object propertyId = table.getSortContainerPropertyId();
+					String columnId = toColumnId(propertyId);
+
+					TableProperties properties = configManager.getTableProperties(tableId);
+					properties.setSortedColumnId(columnId);
+					properties.setSortedAscending(table.isSortAscending());
 				}
 			});
 		}
@@ -168,7 +193,8 @@ public class TableColumnsManager implements Serializable {
 
 	private List<String> getVisibleColumnIdsForCurrentUser(Table table, String tableId) {
 		List<String> visibleColumnIds;
-		if (currentUser != null) {
+		// TODO::JOLA --> Update for config system
+		/*if (currentUser != null) {
 			visibleColumnIds = currentUser.getVisibleTableColumnsFor(tableId);
 			if (visibleColumnIds == null) {
 				visibleColumnIds = new ArrayList<>();
@@ -176,7 +202,8 @@ public class TableColumnsManager implements Serializable {
 			if (visibleColumnIds.isEmpty()) {
 				visibleColumnIds = getDefaultVisibleColumnIds(table);
 			}
-		} else {
+		} else*/
+		{
 			visibleColumnIds = getDefaultVisibleColumnIds(table);
 		}
 		return visibleColumnIds;
