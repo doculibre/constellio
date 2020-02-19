@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.Map;
 
 public class FileSystemRecordsValuesCacheDataStore {
 
@@ -22,7 +24,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	private BTreeMap<Integer, byte[]> intKeyMap;
 
-	private final LRUMap<Integer, byte[]> tempIntKeyMap = new LRUMap<>(40_000);
+	private final Map<Integer, byte[]> tempIntKeyMap = Collections.synchronizedMap(new LRUMap<>(40_000));
 	//private HTreeMap<Integer, byte[]> tempIntKeyMap;
 
 	private BTreeMap<String, byte[]> stringKeyMap;
