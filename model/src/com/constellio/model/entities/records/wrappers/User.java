@@ -60,6 +60,7 @@ public class User extends RecordWrapper {
 	public static final String USER_DOCUMENT_SIZE_SUM = "userDocumentSizeSum";
 	public static final String TAXONOMY_DISPLAY_ORDER = "taxonomyDisplayOrder";
 	public static final String DO_NOT_RECEIVE_EMAILS = "doNotReceiveEmails";
+	public static final String ENABLE_FACETS_APPLY_BUTTON = "enableFacetsApplyButton";
 	public static final String AUTOMATIC_TASK_ASSIGNATION = "automaticTaskAssignation";
 	public static final String AUTOMATIC_TASK_ASSIGNATION_WORKFLOWS = "automaticTaskAssignationWorkflows";
 	public static final String ASSIGNATION_EMAIL_RECEPTION_DISABLED = "assignationEmailReceptionDisabled";
@@ -601,6 +602,10 @@ public class User extends RecordWrapper {
 
 	public boolean isNotReceivingEmails() {
 		return Boolean.TRUE.equals(DO_NOT_RECEIVE_EMAILS);
+	}
+
+	public boolean isApplyFacetsEnabled() {
+		return Boolean.TRUE.equals(get(ENABLE_FACETS_APPLY_BUTTON));
 	}
 
 	public boolean isAutomaticTaskAssignation() {

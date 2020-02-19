@@ -164,9 +164,9 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration NO_LINKS_IN_SEARCH_RESULTS;
 	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
+
 	public static final SystemConfiguration LEGACY_IDENTIFIER_INDEXED_IN_MEMORY;
 	public static final SystemConfiguration ENABLE_FACETS_APPLY_BUTTON;
-
 
 	public static final SystemConfiguration DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES;
 

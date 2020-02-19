@@ -104,131 +104,75 @@ public class CacheRecordDTOUtils {
 			if (metadata.isMultivalue()) {
 				List<Object> values = (List<Object>) dto.getFields().get(metadata.getDataStoreCode());
 				if (values != null && !values.isEmpty()) {
-					switch (metadata.getType()) {
-						case STRING:
-						case STRUCTURE:
-						case TEXT:
-						case CONTENT:
-							try {
+					try {
+						switch (metadata.getType()) {
+							case STRING:
+							case STRUCTURE:
+							case TEXT:
+							case CONTENT:
 								builder.addMultivalueStringMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case REFERENCE:
-							try {
+								break;
+							case REFERENCE:
 								builder.addMultivalueReferenceMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case BOOLEAN:
-							try {
+								break;
+							case BOOLEAN:
 								builder.addMultivalueBooleanMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case INTEGER:
-							try {
+								break;
+							case INTEGER:
 								builder.addMultivalueIntegerMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case NUMBER:
-							try {
+								break;
+							case NUMBER:
 								builder.addMultivalueNumberMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case DATE:
-							try {
+								break;
+							case DATE:
 								builder.addMultivalueLocalDateMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case DATE_TIME:
-							try {
+								break;
+							case DATE_TIME:
 								builder.addMultivalueLocalDateTimeMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case ENUM:
-							try {
+								break;
+							case ENUM:
 								builder.addMultivalueEnumMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
+								break;
+						}
+					} catch (Exception e) {
+						SystemLogger.error("Could not write metadata " + metadata.getLocalCode() + " of record " + dto.getId(), e);
 					}
 				}
 			} else {
 				Object value = dto.getFields().get(metadata.getDataStoreCode());
 				if (value != null) {
-					switch (metadata.getType()) {
-						case REFERENCE:
-							try {
+					try {
+						switch (metadata.getType()) {
+							case REFERENCE:
 								builder.addSingleValueReferenceMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case BOOLEAN:
-							try {
+								break;
+							case BOOLEAN:
 								builder.addSingleValueBooleanMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case STRING:
-						case STRUCTURE:
-						case TEXT:
-						case CONTENT:
-							try {
+								break;
+							case STRING:
+							case STRUCTURE:
+							case TEXT:
+							case CONTENT:
 								builder.addSingleValueStringMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case INTEGER:
-							try {
+								break;
+							case INTEGER:
 								builder.addSingleValueIntegerMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case NUMBER:
-							try {
+								break;
+							case NUMBER:
 								builder.addSingleValueNumberMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case DATE:
-							try {
+								break;
+							case DATE:
 								builder.addSingleValueLocalDateMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case DATE_TIME:
-							try {
+								break;
+							case DATE_TIME:
 								builder.addSingleValueLocalDateTimeMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case ENUM:
-							try {
+								break;
+							case ENUM:
 								builder.addSingleValueEnumMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
+								break;
+						}
+					} catch (Exception e) {
+						SystemLogger.error("Could not write metadata " + metadata.getLocalCode() + " of record " + dto.getId(), e);
 					}
 				}
 			}

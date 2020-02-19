@@ -165,10 +165,10 @@ class CachedRecordDTOByteArrayBuilder {
 
 	void addMultivalueStringMetadata(Metadata metadata, List<String> metadatas) throws IOException {
 		// We don't want to write in the array if all the values we have are nulls to mimic Solr
+
 		if (metadatas.stream().allMatch(Objects::isNull)) {
 			return;
 		}
-
 		// Filters out empty strings but keep nulls to mimic Solr
 		List<String> strings = metadatas.stream()
 				.filter(s -> (s == null || s.getBytes(StandardCharsets.UTF_8).length > 0))
@@ -489,7 +489,7 @@ class CachedRecordDTOByteArrayBuilder {
 					.getDebugInfosIncrementingOffSets(CacheRecordDTOUtils.HEADER_OF_HEADER_BYTES));
 			memoryInfos.add(null);
 			memoryInfos.addAll(this.dataWriterBytesToKeepInMemory
-								.getDebugInfosIncrementingOffSets(CacheRecordDTOUtils.HEADER_OF_HEADER_BYTES + headerWriterBytesToKeepInMemory.length));
+					.getDebugInfosIncrementingOffSets(CacheRecordDTOUtils.HEADER_OF_HEADER_BYTES + headerWriterBytesToKeepInMemory.length));
 
 			List<List<Object>> persistedInfos = new ArrayList<>();
 			persistedInfos.add(DTOUtilsByteArrayDataOutputStream.toDebugInfos(null, 0, 2, "short", "" + metadatasSizeToPersist));

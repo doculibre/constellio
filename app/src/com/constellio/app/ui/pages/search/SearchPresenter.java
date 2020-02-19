@@ -308,7 +308,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		view.setLazyLoadedSearchResults(configs.isLazyLoadedSearchResults());
-		view.setApplyMultipleFacets(configs.isApplyMultipleFacetButtonEnabled());
+		view.setApplyMultipleFacets(getCurrentUser().isApplyFacetsEnabled());
 	}
 
 	public void resetFacetAndOrder() {
