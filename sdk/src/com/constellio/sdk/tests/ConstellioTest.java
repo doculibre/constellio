@@ -1,8 +1,6 @@
 package com.constellio.sdk.tests;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.data.conf.SecondTransactionLogType;
-import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.entities.records.Record;
@@ -249,11 +247,6 @@ public class ConstellioTest extends AbstractConstellioTest {
 				setFailMessage("Cache problems : \n" + StringUtils.join(messages, "\n"));
 			}
 		}
-		if (ConstellioFactories.getInstance().getDataLayerFactory().getDataLayerConfiguration().getSecondTransactionLogMode() == SecondTransactionLogType.SQL_SERVER) {
-			ConstellioFactories.getInstance().getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).deleteAll();
-			ConstellioFactories.getInstance().getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll();
-		}
-
 	}
 
 	public void restartLayers() {
