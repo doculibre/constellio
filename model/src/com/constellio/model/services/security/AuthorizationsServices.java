@@ -1,14 +1,17 @@
 package com.constellio.model.services.security;
 
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -24,16 +27,18 @@ import com.constellio.model.entities.security.global.AuthorizationModificationRe
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddAuhtorizationInNonPrincipalTaxonomy;
@@ -46,8 +51,10 @@ import com.constellio.model.services.security.AuthorizationsServicesRuntimeExcep
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -322,7 +329,7 @@ public class AuthorizationsServices {
 				.setTarget(request.getTarget()).setTargetSchemaType(record.getTypeCode());
 		details.setPrincipals(principalToRecordIds(schemas(record.getCollection()), request.getPrincipals()));
 		details.setSharedBy(request.getSharedBy());
-		return add(details, request.getExecutedBy());
+		return add(details, request.getCollection(), request.getExecutedBy());
 	}
 
 	public String add(AuthorizationAddRequest request, User userAddingTheAuth) {
@@ -336,7 +343,7 @@ public class AuthorizationsServices {
 	 * @param userAddingTheAuth
 	 * @return The new authorization's id
 	 */
-	private String add(Authorization authorization, User userAddingTheAuth) {
+	private String add(Authorization authorization, String collection, User userAddingTheAuth) {
 
 		AuthTransaction transaction = new AuthTransaction();
 
@@ -364,6 +371,10 @@ public class AuthorizationsServices {
 			loggingServices.grantPermission(authorization, userAddingTheAuth, authorization.getSharedBy() != null);
 		}
 
+		if (authorization.getSharedBy() != null && authorization.getSharedBy() != "") {
+			alertUsers(collection, authorizationDetail.getTargetSchemaType(), record, authorization.getStartDate(),
+					authorization.getEndDate(), authorization.getSharedBy(), authorization.getPrincipals());
+		}
 		return authId;
 	}
 
@@ -501,11 +512,9 @@ public class AuthorizationsServices {
 
 			List<Record> records = searchServices.search(new LogicalSearchQuery(condition));
 
-			if(records.size() > 0)
-			{
+			if (records.size() > 0) {
 				return schemas(user.getCollection()).wrapSolrAuthorizationDetails(records.get(0));
-			}
-			else{
+			} else {
 				return null;
 			}
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
@@ -1144,4 +1153,86 @@ public class AuthorizationsServices {
 		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate).setOverrideInherited(overrideInherited).setNegative(negative);
 	}
 
+	private void alertUsers(String collection, String schemaType, Record record, LocalDate sharedDate,
+							LocalDate expirationDate, String sharedBy, List<String> recipientUser) {
+
+		User sharer = schemas(collection).getUser(sharedBy);
+		List<User> sendTo = new ArrayList<>();
+		for (String recipient : recipientUser) {
+			try {
+				User user = schemas(collection).getUser(recipient);
+				sendTo.add(user);
+			} catch (RecordWrapperRuntimeException.WrappedRecordMustMeetRequirements ex) {
+				Group group = schemas(collection).getGroup(recipient);
+				sendTo.addAll(schemas(collection).getAllUsersInGroup(group, true, true));
+			}
+		}
+		alertUsers(collection, schemaType, record, sharedDate, expirationDate, sharer, sendTo);
+	}
+
+	private void alertUsers(String collection, String schemaType, Record record, LocalDate sharedDate,
+							LocalDate expirationDate, User sharedBy, List<User> recipientUser) {
+
+		try {
+			String displayURL = schemaType.equals("folder") ? "displayFolder" : "displayDocument";
+			String subject = record.getTitle();
+			List<String> parameters = new ArrayList<>();
+			Transaction transaction = new Transaction();
+			EmailToSend emailToSend = newEmailToSend(collection);
+			List<EmailAddress> toAddresses = new ArrayList<>();
+			for (User user : recipientUser) {
+				EmailAddress toAddress = new EmailAddress();
+
+				toAddress = new EmailAddress(user.getTitle(), user.getEmail());
+				parameters.add("recipientUser" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(user.getFirstName() + " " + user.getLastName() +
+																												 " (" + user.getUsername() + ")"));
+				parameters.add("sharedDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(sharedDate));
+				parameters.add("expirationDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(expirationDate));
+				toAddresses.add(toAddress);
+			}
+
+			LocalDateTime sendDate = TimeProvider.getLocalDateTime();
+			emailToSend.setTo(toAddresses);
+			emailToSend.setSendOn(sendDate);
+			emailToSend.setSubject(subject);
+			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
+			String recordTitle = record.getTitle();
+			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle) + " (" + record.getId() + ")");
+
+			parameters.add("sharedBy" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(sharedBy.getFirstName() + " " + sharedBy.getLastName() +
+																										" (" + sharedBy.getUsername() + ")"));
+			String constellioUrl = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).getConstellioUrl();
+			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record
+					.getId());
+			Map<Language, String> labels = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(schemaType)
+					.getLabels();
+			for (Map.Entry<Language, String> label : labels.entrySet()) {
+				parameters.add("recordType" + "_" + label.getKey().getCode() + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(label.getValue().toLowerCase()));
+			}
+
+			emailToSend.setParameters(parameters);
+			transaction.add(emailToSend);
+
+			recordServices.execute(transaction);
+
+		} catch (RecordServicesException e) {
+			LOGGER.error("Cannot alert user", e);
+		}
+
+	}
+
+	private String formatDateToParameter(LocalDate date) {
+		if (date == null) {
+			return "";
+		}
+		return date.toString("yyyy-MM-dd");
+	}
+
+	private EmailToSend newEmailToSend(String collection) {
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
+		MetadataSchema schema = types.getSchemaType(EmailToSend.SCHEMA_TYPE).getDefaultSchema();
+		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
+		return new EmailToSend(emailToSendRecord, types);
+	}
 }
