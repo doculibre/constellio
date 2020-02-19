@@ -393,14 +393,14 @@ public class CartActionsServices {
 		String schemaTypeCode = Folder.SCHEMA_TYPE;
 		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
 			return hasCartPermission(cart.getId(), user)
-				   && isCartEmpty(schemaTypeCode, cart.getId())
+				   && isCartNotEmpty(schemaTypeCode, cart.getId())
 				   && rmModuleExtensions.isRecordBorrowActionPossibleOnCart(cart, user);
 		} else {
 			return false;
 		}
 	}
 
-	public boolean isCartEmpty(String schemaType, String cartId) {
+	public boolean isCartNotEmpty(String schemaType, String cartId) {
 		switch (schemaType) {
 			case Folder.SCHEMA_TYPE:
 				return !cartUtil.cartFoldersIsEmpty(cartId);
