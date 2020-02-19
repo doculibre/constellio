@@ -379,24 +379,18 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 					.addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
 					.getFieldFacetValues("schema_s");
 
-			if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
-				if (schema_s != null) {
-					for (FacetValue facetValue : schema_s) {
-						if (facetValue.getQuantity() > 0) {
-							String schema = facetValue.getValue();
-							for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
-								if (!metadata.getLocalCode().equals(SCHEMA.getLocalCode())) {
-									if (showDeactivatedMetadatas || metadata.isEnabled()) {
-										metadataCodes.add(metadata.getCode());
-									}
+			if (schema_s != null) {
+				for (FacetValue facetValue : schema_s) {
+					if (facetValue.getQuantity() > 0) {
+						String schema = facetValue.getValue();
+						for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
+							if (!metadata.getLocalCode().equals(SCHEMA.getLocalCode())) {
+								if (showDeactivatedMetadatas || metadata.isEnabled()) {
+									metadataCodes.add(metadata.getCode());
 								}
 							}
 						}
 					}
-				}
-			} else {
-				for (Metadata metadata : schemaType.getAllMetadatas()) {
-					metadataCodes.add(metadata.getCode());
 				}
 			}
 		}
@@ -407,7 +401,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
 		MetadataList allMetadatas;
 		if (StringUtils.isBlank(schemaCode)) {
-			allMetadatas = schemaType.getAllMetadatas();
+			allMetadatas = schemaType.getAllMetadatasAndInherited();
 		} else {
 			allMetadatas = schemaType.getSchema(schemaCode).getMetadatas();
 		}

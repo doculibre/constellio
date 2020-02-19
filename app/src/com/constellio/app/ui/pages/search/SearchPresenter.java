@@ -46,7 +46,11 @@ import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.*;
+import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.Facet;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -89,8 +93,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
@@ -760,24 +773,18 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
 				.getFieldFacetValues("schema_s");
 		Set<String> metadataCodes = new HashSet<>();
-		if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
-			if (schema_s != null) {
-				for (FacetValue facetValue : schema_s) {
-					if (facetValue.getQuantity() > 0) {
-						String schema = facetValue.getValue();
-						for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
-							if (metadata.getInheritance() != null && metadata.isEnabled()) {
-								metadataCodes.add(metadata.getInheritance().getCode());
-							} else if (metadata.getInheritance() == null && metadata.isEnabled()) {
-								metadataCodes.add(metadata.getCode());
-							}
+		if (schema_s != null) {
+			for (FacetValue facetValue : schema_s) {
+				if (facetValue.getQuantity() > 0) {
+					String schema = facetValue.getValue();
+					for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
+						if (metadata.getInheritance() != null && metadata.isEnabled()) {
+							metadataCodes.add(metadata.getInheritance().getCode());
+						} else if (metadata.getInheritance() == null && metadata.isEnabled()) {
+							metadataCodes.add(metadata.getCode());
 						}
 					}
 				}
-			}
-		} else {
-			for (Metadata metadata : schemaType.getAllMetadatas()) {
-				metadataCodes.add(metadata.getCode());
 			}
 		}
 

@@ -237,7 +237,7 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 				.setOpenDate(LocalDate.now())
 				.setRetentionRuleEntered(rmRecords.ruleId_1));
 		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
-		assertThat(allowedMetadatas).extracting("code").contains("folder_default_myMetadata");
+		assertThat(allowedMetadatas).extracting("code").contains("folder_mySchema_myMetadata");
 	}
 
 	@Test
