@@ -20,6 +20,7 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.ShareContentListViewImpl.AddFolderShareButton;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -58,11 +59,11 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	private static final String SHARED = "AuthorizationsView.shared";
 
 	public enum AuthorizationSource {
-		INHERITED, OWN, INHERITED_FROM_METADATA
+		INHERITED, OWN, INHERITED_FROM_METADATA, SHARED
 	}
 
 	public enum DisplayMode {
-		CONTENT, PRINCIPALS
+		CONTENT, PRINCIPALS, BOTH
 	}
 
 	protected ListAuthorizationsPresenter presenter;
@@ -75,23 +76,30 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		record = presenter.forRequestParams(event.getParameters()).getRecordVO();
+
+		if (presenter.forRequestParams(event.getParameters()) != null && !"".equals(event.getParameters())) {
+			record = presenter.forRequestParams(event.getParameters()).getRecordVO();
+		}
+		record = presenter.forCurrentUser().getRecordVO();
 	}
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> result = super.buildActionMenuButtons(event);
-		result.add(buildDetachButton());
+		if (!(this instanceof ShareContentListView)) {
+			result.add(buildDetachButton());
+		}
 		result.add(buildAddButton());
-		if (this instanceof ListPrincipalAccessAuthorizationsView) {
-			result.add(buildAddAccessButton());
+		if (this instanceof ListPrincipalAccessAuthorizationsView ||
+			this instanceof ShareContentListView) {
+			result.add(buildSecondaryAddButton());
 		}
 		return result;
 	}
 
 	protected abstract Button buildAddButton();
 
-	protected Button buildAddAccessButton() {
+	protected Button buildSecondaryAddButton() {
 		return null;
 	}
 
@@ -152,11 +160,14 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		layout = new VerticalLayout();
 		layout.setSpacing(true);
 		layout.setWidth("100%");
-		buildGlobalAccess(layout);
-		buildInheritedAuthorizationsFromMetadatas(layout);
-		buildInheritedAuthorizations(layout);
-		buildOwnAuthorizations(layout);
-
+		if (!presenter.seeSharedBy()) {
+			buildGlobalAccess(layout);
+			buildInheritedAuthorizationsFromMetadatas(layout);
+			buildInheritedAuthorizations(layout);
+			buildOwnAuthorizations(layout);
+		} else {
+			buildSharedAuthorizations(layout);
+		}
 		return layout;
 	}
 
@@ -167,11 +178,15 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	@Override
 	public void refresh() {
 		layout.removeAllComponents();
-		buildGlobalAccess(layout);
-		buildInheritedAuthorizationsFromMetadatas(layout);
-		buildInheritedAuthorizations(layout);
-		buildOwnAuthorizations(layout);
-		detach.setEnabled(presenter.isAttached());
+		if (!presenter.seeSharedBy()) {
+			buildGlobalAccess(layout);
+			buildInheritedAuthorizationsFromMetadatas(layout);
+			buildInheritedAuthorizations(layout);
+			buildOwnAuthorizations(layout);
+			detach.setEnabled(presenter.isAttached());
+		} else {
+			buildSharedAuthorizations(layout);
+		}
 	}
 
 	@Override
@@ -193,10 +208,23 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			label.setValue($("ListAccessAuthorizationsView.ownAuthorizations"));
 		} else if (presenter.seeRolesField()) {
 			label.setValue($("ListRoleAuthorizationsView.ownAuthorizations"));
+		} else if (presenter.seeSharedBy()) {
+			label.setValue($("ListContentShareView.ownAuthorizations"));
 		}
 		label.addStyleName(ValoTheme.LABEL_H2);
 		authorizations = buildAuthorizationTable(presenter.getOwnAuthorizations(), AuthorizationSource.OWN);
 		layout.addComponents(label, authorizations);
+	}
+
+	private void buildSharedAuthorizations(VerticalLayout layout) {
+		if (presenter.seeSharedBy()) {
+			Label label = new Label();
+			label.setValue($("ListContentShareView.ownAuthorizations", record.getTitle()));
+
+			label.addStyleName(ValoTheme.LABEL_H2);
+			authorizations = buildAuthorizationTable(presenter.getSharedAuthorizations(), AuthorizationSource.SHARED);
+			layout.addComponents(label, authorizations);
+		}
 	}
 
 	private void buildInheritedAuthorizationsFromMetadatas(VerticalLayout layout) {
@@ -207,6 +235,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			label.setValue($("ListAccessAuthorizationsView.inheritedMetadataAuthorizations"));
 		} else if (presenter.seeRolesField()) {
 			label.setValue($("ListRoleAuthorizationsView.inheritedMetadataAuthorizations"));
+		} else if (presenter.seeSharedBy()) {
+			label.setValue($("ListContentShareView.inheritedMetadataAuthorizations"));
 		}
 		label.addStyleName(ValoTheme.LABEL_H2);
 		authorizationsReceivedFromMetadatas = buildAuthorizationTable(authorizationVOs,
@@ -221,6 +251,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 					warningLabel.setValue($("ListAccessAuthorizationsView.inheritedAuthorizationsOverriden"));
 				} else if (presenter.seeRolesField()) {
 					warningLabel.setValue($("ListRoleAuthorizationsView.inheritedAuthorizationsOverriden"));
+				} else if (presenter.seeSharedBy()) {
+					warningLabel.setValue($("ListContentShareView.inheritedAuthorizationsOverriden"));
 				}
 				warningLabel.addStyleName(ValoTheme.LABEL_COLORED);
 				layout.addComponent(warningLabel);
@@ -254,17 +286,19 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			tableCaption = $("ListAccessAuthorizationsView.authorizations", container.size());
 		} else if (presenter.seeRolesField()) {
 			tableCaption = $("ListRoleAuthorizationsView.authorizations", container.size());
+		} else if (presenter.seeSharedBy()) {
+			tableCaption = $("ListContentShareView.authorizations", container.size());
 		}
 		Table table = new BaseTable(getClass().getName(), tableCaption, container);
 		table.setPageLength(container.size());
-		table.addStyleName(source == AuthorizationSource.OWN ? AUTHORIZATIONS : INHERITED_AUTHORIZATIONS);
+		table.addStyleName((source == AuthorizationSource.OWN || source == AuthorizationSource.SHARED) ? AUTHORIZATIONS : INHERITED_AUTHORIZATIONS);
 		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeSharedBy(), presenter.seeAccessField(), getSessionContext().getCurrentLocale()).attachTo(table, presenter.isRecordNotATaxonomyConcept());
 		return table;
 	}
 
 	private Container buildAuthorizationContainer(List<AuthorizationVO> authorizationVOs, AuthorizationSource source) {
 		BeanItemContainer<AuthorizationVO> authorizations = new BeanItemContainer<>(AuthorizationVO.class, authorizationVOs);
-		return source == AuthorizationSource.OWN ?
+		return source == AuthorizationSource.OWN || source == AuthorizationSource.SHARED ?
 			   addButtons(authorizations, source == AuthorizationSource.INHERITED) :
 			   authorizations;
 	}
@@ -315,6 +349,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			tableCaption = $("ListAccessAuthorizationsView.authorizations", authorizations.size());
 		} else if (presenter.seeRolesField()) {
 			tableCaption = $("ListRoleAuthorizationsView.authorizations", authorizations.size());
+		} else if (presenter.seeSharedBy()) {
+			tableCaption = $("ListContentShareView.authorizations", authorizations.size());
 		}
 		authorizations.setCaption(tableCaption);
 		authorizations.setPageLength(authorizations.size());
@@ -334,6 +370,10 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				caption = $("ListAccessAuthorizationsView.add");
 			} else if (presenter.seeRolesField()) {
 				caption = $("ListRoleAuthorizationsView.add");
+			} else if (this instanceof AddFolderShareButton) {
+				caption = $("ListContentShareView.addFolder");
+			} else if (presenter.seeSharedBy()) {
+				caption = $("ListContentShareView.addDocument");
 			}
 			super.setCaption(caption);
 			super.setWindowCaption(caption);
@@ -439,6 +479,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	public class Authorizations implements ColumnGenerator {
 		public static final String PRINCIPALS = "principal";
 		public static final String CONTENT = "content";
+		public static final String BOTH = "both";
 		public static final String SHARED_BY = "sharedBy";
 		public static final String ACCESS = "access";
 		public static final String USER_ROLES = "userRoles";
@@ -479,10 +520,18 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				table.addGeneratedColumn(CONTENT, this);
 				table.setColumnHeader(CONTENT, $("AuthorizationsView.content"));
 				primary = CONTENT;
-			} else {
+			} else if (mode == DisplayMode.PRINCIPALS) {
 				table.addGeneratedColumn(PRINCIPALS, this);
 				table.setColumnHeader(PRINCIPALS, $("AuthorizationsView.principals"));
 				primary = PRINCIPALS;
+			}
+			else{
+				table.addGeneratedColumn(PRINCIPALS, this);
+				table.setColumnHeader(PRINCIPALS, $("AuthorizationsView.principals"));
+				primary = PRINCIPALS;
+				table.addGeneratedColumn(CONTENT, this);
+				table.setColumnHeader(CONTENT, $("AuthorizationsView.content"));
+				columnIds.add(CONTENT);
 			}
 			table.setColumnExpandRatio(primary, 1);
 			if (negativeAuthorizationConfigEnabled && seeAccessField) {
@@ -502,12 +551,6 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				table.addGeneratedColumn(USER_ROLES, this);
 				table.setColumnHeader(USER_ROLES, $("AuthorizationsView.userRoles"));
 				columnIds.add(USER_ROLES);
-			}
-
-			if (seeSharedBy) {
-				table.addGeneratedColumn(SHARED_BY, this);
-				table.setColumnHeader(SHARED_BY, $("AuthorizationsView.sharedBy"));
-				columnIds.add(SHARED_BY);
 			}
 
 			if (seeMetadataField) {
@@ -536,6 +579,10 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				columnIds.add(BUTTONS);
 			} else if (source == AuthorizationSource.INHERITED_FROM_METADATA) {
 				columnIds.add(RECEIVED_FROM_RECORD_CAPTION);
+			} else if (source == AuthorizationSource.SHARED && !isViewReadOnly()) {
+				table.setColumnHeader(BUTTONS, "");
+				table.setColumnWidth(BUTTONS, 80);
+				columnIds.add(BUTTONS);
 			}
 
 			table.setVisibleColumns(columnIds.toArray());

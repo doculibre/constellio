@@ -556,7 +556,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	public  List<Authorization> getMultipleSolrAuthorizationDetails(User user, List<String> recordIds) {
 		List<Authorization> auths = new ArrayList<>();
 		for(String recordId: recordIds) {
-			auths.add(modelLayerFactory.newAuthorizationsServices().getAuthorization(user, recordId));
+			Authorization authorization = modelLayerFactory.newAuthorizationsServices().getAuthorization(user, recordId);
+			if(authorization != null) {
+				auths.add(authorization);
+			}
 		}
 		return auths;
 	}

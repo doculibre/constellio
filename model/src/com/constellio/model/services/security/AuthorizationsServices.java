@@ -123,9 +123,7 @@ public class AuthorizationsServices {
 			throw new IllegalArgumentException("record id is null");
 		}
 		Authorization authDetails = getDetails(user, recordId);
-		if (authDetails == null) {
-			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(recordId);
-		}
+
 		return authDetails;
 	}
 
@@ -508,7 +506,7 @@ public class AuthorizationsServices {
 				return schemas(user.getCollection()).wrapSolrAuthorizationDetails(records.get(0));
 			}
 			else{
-				throw new NoSuchAuthorizationWithId(recordId);
+				return null;
 			}
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 			throw new NoSuchAuthorizationWithId(recordId);

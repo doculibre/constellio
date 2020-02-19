@@ -252,14 +252,11 @@ public class DocumentMenuItemActionBehaviors {
 
 
 	public void publish(Document document, MenuItemActionBehaviorParams params) {
+
 		document.setPublished(true);
-		try {
-			recordServices.update(document);
-			linkToDocument(document, params);
-			params.getView().refreshActionMenu();
-		} catch (RecordServicesException e) {
-			params.getView().showErrorMessage(MessageUtils.toMessage(e));
-		}
+		params.getView().navigate().to().publishDocument(document.getId());
+		updateSearchResultClicked(document.getWrappedRecord());
+
 	}
 
 	public void createPdf(Document document, MenuItemActionBehaviorParams params) {

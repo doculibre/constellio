@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
 public class AuthorizationVO implements Serializable {
@@ -45,6 +46,12 @@ public class AuthorizationVO implements Serializable {
 		return new AuthorizationVO(
 				new ArrayList<String>(), new ArrayList<String>(), asList(id), new ArrayList<String>(),
 				new ArrayList<String>(), new ArrayList<String>(), null, null, null, null, false, null, null, null);
+	}
+
+	public static AuthorizationVO forShare(String id) {
+		return new AuthorizationVO(
+				new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(),
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, id, false, null, null, $("AuthorizationsView.enable"));
 	}
 
 	public AuthorizationVO(List<String> users, List<String> groups, List<String> records, List<String> accessRoles,

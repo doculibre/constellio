@@ -45,12 +45,14 @@ public class SharedDocumentsAndFoldersProvider {
 	}
 
 	public Map<String, RecordVODataProvider> getDataProviders() {
-		MetadataSchemaVO schema = new MetadataSchemaToVOBuilder().build(
+		MetadataSchemaVO schemaFolder = new MetadataSchemaToVOBuilder().build(
+				rm.folderSchemaType().getDefaultSchema(), VIEW_MODE.TABLE, sessionContext);
+		MetadataSchemaVO schemaDocument = new MetadataSchemaToVOBuilder().build(
 				rm.documentSchemaType().getDefaultSchema(), VIEW_MODE.TABLE, sessionContext);
 		Map<String, RecordVODataProvider> providers = new LinkedHashMap<>();
 
 		providers.put($("HomeView.tab.sharedDocuments.foldersSharedByMe"),
-				new RecordVODataProvider(schema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
+				new RecordVODataProvider(schemaFolder, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 					@Override
 					public LogicalSearchQuery getQuery() {
 						MetadataSchemaType folder = rm.folderSchemaType();
@@ -62,7 +64,7 @@ public class SharedDocumentsAndFoldersProvider {
 				}
 		);
 		providers.put($("HomeView.tab.sharedDocuments.documentsSharedByMe"),
-				new RecordVODataProvider(schema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
+				new RecordVODataProvider(schemaDocument, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 					@Override
 					public LogicalSearchQuery getQuery() {
 						MetadataSchemaType document = rm.documentSchemaType();
@@ -74,7 +76,7 @@ public class SharedDocumentsAndFoldersProvider {
 				}
 		);
 		providers.put($("HomeView.tab.sharedDocuments.foldersSharedToMe"),
-				new RecordVODataProvider(schema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
+				new RecordVODataProvider(schemaFolder, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 					@Override
 					public LogicalSearchQuery getQuery() {
 						MetadataSchemaType folder = rm.folderSchemaType();
@@ -86,7 +88,7 @@ public class SharedDocumentsAndFoldersProvider {
 				}
 		);
 		providers.put($("HomeView.tab.sharedDocuments.documentsSharedToMe"),
-				new RecordVODataProvider(schema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
+				new RecordVODataProvider(schemaDocument, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 					@Override
 					public LogicalSearchQuery getQuery() {
 						MetadataSchemaType document = rm.documentSchemaType();

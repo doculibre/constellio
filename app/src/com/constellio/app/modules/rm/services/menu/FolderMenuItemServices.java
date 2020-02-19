@@ -135,7 +135,7 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_UNSHARE.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_UNSHARE.name(),
 					isMenuItemActionPossible(FOLDER_UNSHARE.name(), folder, user, params),
-					$("DisplayFolderView.shareFolder"), null, -1, 1000,
+					$("DisplayFolderView.unshareFolder"), null, -1, 1000,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).unshare(folder, params)));
 		}
 

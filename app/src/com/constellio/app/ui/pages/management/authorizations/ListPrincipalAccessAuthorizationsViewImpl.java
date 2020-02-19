@@ -45,7 +45,7 @@ public class ListPrincipalAccessAuthorizationsViewImpl extends ListAuthorization
 	}
 
 	@Override
-	protected Button buildAddAccessButton() {
+	protected Button buildSecondaryAddButton() {
 		return new AddPrincipalAccessButton();
 	}
 

@@ -39,6 +39,8 @@ import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAn
 import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ListContentRoleAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ListPrincipalAccessAuthorizationsViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.PublishDocumentViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.ShareContentListViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ShareContentViewImpl;
 import com.constellio.app.ui.pages.management.bagInfo.AddEditBagInfo.AddEditBagInfoViewImpl;
 import com.constellio.app.ui.pages.management.bagInfo.DisplayBagInfo.DisplayBagInfoViewImpl;
@@ -195,6 +197,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String PRINTABLE_REPORT_VIEW = "printableReportView";
 	public static final String PRINTABLE_REPORT_ADD = "pritnableReportAdd";
 	public static final String PRINTABLE_REPORT_MANAGE = "printableReportManage";
+	public static final String PUBLISH_DOCUMENT ="publishDocument";
 	public static final String EXCEL_REPORT_MANAGE = "excelReportManage";
 	public static final String EXCEL_REPORT_DISPLAY = "excelReportDisplay";
 
@@ -280,6 +283,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS,
 				ListContentAccessAndRoleAuthorizationsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SHARE_CONTENT, ShareContentViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(PUBLISH_DOCUMENT, PublishDocumentViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER_LIST, ListCollectionUserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER, CollectionUserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER_ROLES, CollectionUserRolesViewImpl.class));
@@ -290,7 +294,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_TAXONOMY, ListTaxonomyViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_ADD_EDIT, AddEditTaxonomyViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(PERMISSION_MANAGEMENT, PermissionsManagementViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(SHARE_MANAGEMENT, ListContentAccessAuthorizationsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SHARE_MANAGEMENT, ShareContentListViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EXPORTER, ExportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(REPORT_DISPLAY_FORM, ReportConfigurationViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EMAIL_SERVER_MANAGEMENT, EmailServerConfigViewImpl.class));

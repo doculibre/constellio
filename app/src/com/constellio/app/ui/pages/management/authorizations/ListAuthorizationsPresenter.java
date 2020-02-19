@@ -49,6 +49,11 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		return this;
 	}
 
+	public ListAuthorizationsPresenter forCurrentUser() {
+		recordId = getCurrentUser().getId();
+		return this;
+	}
+
 	public String getRoleTitle(String roleCode) {
 		return modelLayerFactory.getRolesManager().getRole(view.getCollection(), roleCode).getTitle();
 	}
@@ -102,12 +107,29 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		return results;
 	}
 
+	public List<AuthorizationVO> getSharedAuthorizations() {
+		AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
+
+		List<AuthorizationVO> results = new ArrayList<>();
+		for (Authorization authorization : getSharedAuthorizationsByCurrentUser()) {
+			results.add(builder.build(authorization));
+		}
+		return results;
+	}
+
 	public void authorizationCreationRequested(AuthorizationVO authorizationVO) {
 		AuthorizationAddRequest authorization = toNewAuthorization(authorizationVO);
 		String id = authorizationsServices().add(authorization, getCurrentUser());
 		authorizationVO.setAuthId(id);
 		view.addAuthorization(authorizationVO);
 	}
+
+	public void share(AuthorizationVO authorizationVO) {
+
+		authorizationVO.setSharedBy(getCurrentUser().getId());
+		authorizationCreationRequested(authorizationVO);
+	}
+
 
 	public void authorizationModificationRequested(AuthorizationVO authorizationVO) {
 		AuthorizationModificationRequest request = toAuthorizationModificationRequest(authorizationVO);
@@ -162,7 +184,7 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		principals.addAll(authorizationVO.getUsers());
 		principals.addAll(authorizationVO.getGroups());
 		return AuthorizationAddRequest.authorizationInCollection(collection).giving(roles)
-				.forPrincipalsIds(principals).on(authorizationVO.getRecord())
+				.forPrincipalsIds(principals).on(authorizationVO.getRecord()).sharedBy(authorizationVO.getSharedBy())
 				.startingOn(authorizationVO.getStartDate()).endingOn(authorizationVO.getEndDate())
 				.andNegative($(DISABLE).equals(authorizationVO.getNegative()));
 	}
@@ -197,6 +219,12 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		Record record = presenterService().getRecord(recordId);
 		authorizations = authorizationsServices().getRecordAuthorizations(record);
 		//}
+		return authorizations;
+	}
+
+	protected List<Authorization> getSharedAuthorizationsByCurrentUser() {
+		User user = getCurrentUser();
+		authorizations = authorizationsServices().getAllAuthorizationUserShared(user);
 		return authorizations;
 	}
 
@@ -307,5 +335,9 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 	public boolean isRMModuleActive() {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		return types.hasSchema(AdministrativeUnit.DEFAULT_SCHEMA);
+	}
+
+	public String getCurrentUserId() {
+		return getCurrentUser().getId();
 	}
 }
