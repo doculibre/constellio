@@ -17,6 +17,7 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.Item;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
@@ -87,13 +88,9 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	protected void addFieldToLayout(Field<?> field, VerticalLayout fieldLayout) {
 		Object propertyId = fieldGroup.getPropertyId(field);
 
-		if (propertyId instanceof MetadataVO) {
-			Layout wrappedField = wrapFieldWithHelpMessage(((MetadataVO) propertyId), field);
-			if (((MetadataVO) propertyId).isForceHidden()) {
-				hiddenLayout.addComponent(wrappedField);
-			} else {
-				formLayout.addComponent(wrappedField);
-			}
+		Layout wrappedField = wrapFieldWithHelpMessage(((MetadataVO) propertyId), field);
+		if (((MetadataVO) propertyId).isForceHidden()) {
+			hiddenLayout.addComponent(wrappedField);
 		} else {
 			super.addFieldToLayout(field, fieldLayout);
 		}
@@ -106,9 +103,10 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 		helpIcon.setVisible(!metadataHelp.isEmpty());
 
-		layout.setSizeFull();
+		layout.setWidth("100%");
 		layout.addComponents(field, helpIcon);
 		layout.setExpandRatio(field, 1);
+		layout.setComponentAlignment(helpIcon, Alignment.MIDDLE_CENTER);
 		return layout;
 	}
 
