@@ -24,17 +24,8 @@ public class MetadataValueTypeValidator implements Validator<Record> {
 
 	private final List<Metadata> metadatas;
 
-	private final boolean skipMaxLength;
-	private final boolean skipMeasurementUnit;
-
 	public MetadataValueTypeValidator(List<Metadata> metadatas) {
-		this(metadatas, false, false);
-	}
-
-	public MetadataValueTypeValidator(List<Metadata> metadatas, boolean skipMaxLength, boolean skipMeasurementUnit) {
 		this.metadatas = metadatas;
-		this.skipMaxLength = skipMaxLength;
-		this.skipMeasurementUnit = skipMeasurementUnit;
 	}
 
 	@Override
@@ -59,17 +50,15 @@ public class MetadataValueTypeValidator implements Validator<Record> {
 
 	@SuppressWarnings("rawtypes")
 	private void verifyTextValue(Metadata metadata, Object value, ValidationErrors validationErrors) {
-		if (!skipMaxLength) {
-			if (metadata.isMultivalue()) {
-				List values = (List) value;
-				for (Object object : values) {
-					if (object != null && !(object instanceof String)) {
-						addValidationErrors(metadata, object, validationErrors, "STRING");
-					}
+		if (metadata.isMultivalue()) {
+			List values = (List) value;
+			for (Object object : values) {
+				if (object != null && !(object instanceof String)) {
+					addValidationErrors(metadata, object, validationErrors, "STRING");
 				}
-			} else if (!(value instanceof String)) {
-				addValidationErrors(metadata, value, validationErrors, "STRING");
 			}
+		} else if (!(value instanceof String)) {
+			addValidationErrors(metadata, value, validationErrors, "STRING");
 		}
 	}
 
@@ -89,17 +78,15 @@ public class MetadataValueTypeValidator implements Validator<Record> {
 
 	@SuppressWarnings("rawtypes")
 	private void verifyNumberValue(Metadata metadata, Object value, ValidationErrors validationErrors) {
-		if (!skipMeasurementUnit) {
-			if (metadata.isMultivalue()) {
-				List values = (List) value;
-				for (Object object : values) {
-					if (object != null && !(object instanceof Number)) {
-						addValidationErrors(metadata, object, validationErrors, "NUMBER");
-					}
+		if (metadata.isMultivalue()) {
+			List values = (List) value;
+			for (Object object : values) {
+				if (object != null && !(object instanceof Number)) {
+					addValidationErrors(metadata, object, validationErrors, "NUMBER");
 				}
-			} else if (!(value instanceof Number)) {
-				addValidationErrors(metadata, value, validationErrors, "NUMBER");
 			}
+		} else if (!(value instanceof Number)) {
+			addValidationErrors(metadata, value, validationErrors, "NUMBER");
 		}
 	}
 

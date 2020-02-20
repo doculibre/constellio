@@ -467,9 +467,7 @@ public class MetadataSchemaXMLReader3 {
 		if (inheriteGlobalMetadata && measurementUnitStringValue == null) {
 			metadataBuilder.setMeasurementUnit(globalMetadataInCollectionSchema.getMeasurementUnit());
 		} else {
-			if (measurementUnitStringValue == null) {
-				metadataBuilder.setMeasurementUnit(""); //%Q Francis est-ce que ça pourrait écrire des champs qui auraient pu rester vides?
-			} else {
+			if (measurementUnitStringValue != null) {
 				metadataBuilder.setMeasurementUnit(measurementUnitStringValue);
 			}
 		}

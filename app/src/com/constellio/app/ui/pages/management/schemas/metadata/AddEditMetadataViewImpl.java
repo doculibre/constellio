@@ -142,6 +142,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		return viewLayout;
 	}
 
+	public boolean isInEditMode() {
+		return presenter.metadata != null;
+	}
+
 	private Component buildTables() {
 		formMetadataVO = presenter.getFormMetadataVO();
 
@@ -184,8 +188,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				}
 			}
 
-			maxLength.setEnabled(value == MetadataValueType.INTEGER || value == MetadataValueType.NUMBER);
-			measurementUnit.setEnabled(value == MetadataValueType.STRING || value == MetadataValueType.TEXT);
+			enableDisableMaxLength();
+			measurementUnit.setEnabled(value == MetadataValueType.INTEGER || value == MetadataValueType.NUMBER);
 
 			if (value == MetadataValueType.CONTENT) {
 				listOptionGroupRole.setVisible(false);
@@ -247,7 +251,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		availableInSummary.setEnabled(presenter.isAvailableInSummaryFlagButtonEnabled(value));
 		availableInSummary.setValue(presenter.isAvailableInSummaryFlagAlwaysTrue(value));
 
-		maxLength.setEnabled(value == MetadataValueType.STRING || value == MetadataValueType.TEXT);
+		enableDisableMaxLength();
 		measurementUnit.setEnabled(value == MetadataValueType.INTEGER || value == MetadataValueType.NUMBER);
 
 		maxLength.setVisible(maxLength.isEnabled());
@@ -602,8 +606,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		maxLength.setCaption($("AddEditMetadataView.maxLength"));
 		maxLength.setRequired(false);
 		maxLength.setId("maxLength");
-		maxLength.setEnabled(formMetadataVO.getValueType() == MetadataValueType.STRING
-							 || formMetadataVO.getValueType() == MetadataValueType.TEXT);
+
 		maxLength.setVisible(maxLength.isEnabled());
 		if (presenter.getMaxLengthFieldValue() != null && !presenter.getMaxLengthFieldValue().equals("")) {
 			formMetadataVO.setMaxLength(Integer.parseInt(presenter.getMaxLengthFieldValue()));
@@ -748,7 +751,30 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			disableFieldsForSystemReservedMetadatas();
 		}
 
+		enableDisableMaxLength();
+
 		return metadataForm;
+	}
+
+	public void inputTypeChanged(MetadataInputType metadataInputType) {
+		enableDisableMaxLength();
+	}
+
+	private void enableDisableMaxLength() {
+		boolean isInherited = isInEditMode();
+		MetadataInputType metadataInputType = null;
+
+		if (formMetadataVO != null && isInEditMode()) {
+			isInherited = presenter.isInherited(formMetadataVO.getCode());
+		}
+
+		if (metadataForm != null) {
+			metadataInputType = metadataForm.getViewObject().getInput();
+		}
+
+		MetadataValueType metadataValueType = (MetadataValueType) valueType.getValue();
+		maxLength.setEnabled(!isInherited && metadataInputType != null && metadataInputType != MetadataInputType.RICHTEXT && (metadataValueType == MetadataValueType.STRING || metadataValueType == MetadataValueType.TEXT));
+		maxLength.setVisible(isInherited && metadataInputType != MetadataInputType.RICHTEXT || maxLength.isEnabled());
 	}
 
 	@Override

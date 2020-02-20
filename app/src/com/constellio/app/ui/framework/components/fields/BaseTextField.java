@@ -10,8 +10,6 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.UUID;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 @JavaScript({"theme://jquery/jquery-2.1.4.min.js", "theme://inputmask/jquery.inputmask.bundle.js"})
 public class BaseTextField extends TextField {
 
@@ -98,32 +96,5 @@ public class BaseTextField extends TextField {
 			setInternalValue(StringUtils.trim(getValue()));
 		}
 		super.commit();
-	}
-
-	@Override
-	public void validate() throws InvalidValueException {
-		try {
-			validateIsContainingABustedMaxLength();
-		} catch (InvalidValueException e) {
-			throw e;
-		}
-		super.validate();
-	}
-
-	private void validateIsContainingABustedMaxLength() throws InvalidValueException {
-		//Determines if there is a maxLength by splitting caption, might be broken if there ever is another status
-		//adding a number between parenthesis to a caption.
-		if (this.getCaption() != null && this.getValue() != null) {
-			if (this.getCaption().contains("(") && this.getCaption().contains(")")) {
-				boolean isCaptionsPartBetweenParenthesisRepresentingMaxLength =
-						Character.isDigit(this.getCaption().split("\\(")[1].charAt(0));
-				if (isCaptionsPartBetweenParenthesisRepresentingMaxLength) {
-					Integer maxLength = Character.getNumericValue(this.getCaption().split("\\(")[1].charAt(0));
-					if (this.getValue().length() > maxLength) {
-						throw new InvalidValueException($("maxLengthBusted", maxLength));
-					}
-				}
-			}
-		}
 	}
 }

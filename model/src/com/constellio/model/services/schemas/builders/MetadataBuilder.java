@@ -835,7 +835,7 @@ public class MetadataBuilder {
 			this.dataEntry = new ManualDataEntry();
 		}
 
-		if (references != null && taxonomyRelationship && multivalue) { // = taxonomy seulement dispo pour ref? Non?
+		if (references != null && taxonomyRelationship && multivalue) {
 			TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 			validateNotReferencingTaxonomy(references.getTypeWithAllowedSchemas(), taxonomiesManager);
 		}
@@ -1048,7 +1048,7 @@ public class MetadataBuilder {
 			throw new MetadataBuilderRuntimeException.CannotHaveMaxLengthSpecifiedIfNotOfTypeStringOrText(code);
 		}
 
-		if ((measurementUnit != null && !measurementUnit.equals(""))
+		if (StringUtils.isNotBlank(measurementUnit)
 			&& !builder.getType().equals(MetadataValueType.INTEGER)
 			&& !builder.getType().equals(MetadataValueType.NUMBER)) {
 			throw new CannotHaveMeasurementUnitSpecifiedIfNotOfTypeIntegerOrNumber(code);

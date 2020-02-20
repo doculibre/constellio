@@ -306,8 +306,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			builder.setCustomAttributes(formMetadataVO.getCustomAttributes());
 			builder.setUniqueValue(formMetadataVO.isUniqueValue());
 			builder.setMultiLingual(formMetadataVO.isMultiLingual());
-			builder.setMaxLength(formMetadataVO.getMaxLength());
-			builder.setMeasurementUnit(formMetadataVO.getMeasurementUnit());
+			if (formMetadataVO.getMaxLength() != null) {
+				builder.setMaxLength(formMetadataVO.getMaxLength());
+			}
+			if (formMetadataVO.getMeasurementUnit() != null) {
+				builder.setMeasurementUnit(formMetadataVO.getMeasurementUnit());
+			}
 
 			if (formMetadataVO.getReadAccessRoles() != null) {
 				MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(formMetadataVO.getReadAccessRoles(), originalMetadataAccessRestrictionBuilder.getRequiredWriteRoles(),
@@ -418,8 +422,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 								   MetadataBuilder builder) {
 		builder.setDefaultValue(formMetadataVO.getDefaultValue());
 		builder.setInputMask(formMetadataVO.getInputMask());
-		builder.setMaxLength(formMetadataVO.getMaxLength());
-		builder.setMeasurementUnit(formMetadataVO.getMeasurementUnit());
+		if (formMetadataVO.getMaxLength() != null && !isInherited(code)) {
+			builder.setMaxLength(formMetadataVO.getMaxLength());
+		}
+		if (formMetadataVO.getMeasurementUnit() != null) {
+			builder.setMeasurementUnit(formMetadataVO.getMeasurementUnit());
+		}
 		builder.setEnabled(formMetadataVO.isEnabled());
 
 		for (Entry<String, String> entry : formMetadataVO.getLabels().entrySet()) {
@@ -669,8 +677,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	public void inputTypeValueChanged(FormMetadataVO formMetadataVO) {
+		view.inputTypeChanged(formMetadataVO.getInput());
+
 		boolean noReferenceType = formMetadataVO.getValueType() == REFERENCE && StringUtils
 				.isBlank(formMetadataVO.getReference());
+
 		if (!noReferenceType) {
 			view.reloadForm();
 		}
@@ -723,7 +734,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 					new HashMap<Locale, String>(), enumClass, new String[]{}, formMetadataVO.getReference(), inputType, displayType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),
 					formMetadataVO.getDefaultValue(), false, formMetadataVO.getCustomAttributes(),
-					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), collectionInfoVO, formMetadataVO.isSortable(), true);
+					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), collectionInfoVO, formMetadataVO.isSortable(), true, formMetadataVO.getMaxLength(), formMetadataVO.getMeasurementUnit());
 			return metadataVO;
 		} catch (Exception ex) {
 			log.error("error", ex);

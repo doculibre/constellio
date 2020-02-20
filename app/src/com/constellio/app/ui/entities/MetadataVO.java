@@ -70,32 +70,14 @@ public class MetadataVO implements Serializable {
 					  StructureFactory structureFactory,
 					  String metadataGroup, Object defaultValue, Set<String> customAttributes, boolean multiLingual,
 					  Locale locale, Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO,
-					  boolean sortable, boolean isSyntetic, boolean summaryMetadata) {
+					  boolean sortable, boolean isSyntetic, boolean summaryMetadata, Integer maxLength,
+					  String measurementUnit) {
 		this(id, code, localCode, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
 				structureFactory, metadataGroup,
-				defaultValue, null, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata);
+				defaultValue, null, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata, maxLength, measurementUnit);
 	}
 
-
-	public MetadataVO(short id, String code, String localCode, String datastoreCode, MetadataValueType type,
-					  String collection,
-					  MetadataSchemaVO schema,
-					  boolean required, boolean multivalue, boolean readOnly, boolean unmodifiable,
-					  Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
-					  String schemaTypeCode, MetadataInputType metadataInputType,
-					  MetadataDisplayType metadataDisplayType,
-					  AllowedReferences allowedReferences,
-					  boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue,
-					  String inputMask, Set<String> customAttributes, boolean multiLingual, Locale locale,
-					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
-					  boolean isSynthectic, boolean summaryMetadata) {
-		this(id, code, localCode, datastoreCode, type, collection, schema, required, multivalue,
-				readOnly, unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
-				metadataDisplayType, allowedReferences, enabled, structureFactory, metadataGroup, defaultValue, inputMask,
-				customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSynthectic,
-				summaryMetadata, null, null);
-	}
 
 	public MetadataVO(short id, String code, String localCode, String datastoreCode, MetadataValueType type,
 					  String collection,
@@ -161,11 +143,11 @@ public class MetadataVO implements Serializable {
 					  boolean isWriteNullValues,
 					  Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
-					  boolean summaryMetadata) {
+					  boolean summaryMetadata, Integer maxLength, String measurementUnit) {
 
 		this(id, code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
-				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata);
+				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata, maxLength, measurementUnit);
 	}
 
 	public MetadataVO(short id, String code, String localCode, MetadataValueType type, String collection,
@@ -179,11 +161,11 @@ public class MetadataVO implements Serializable {
 					  boolean isWriteNullValues,
 					  Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
-					  boolean isSyntetic, boolean summaryMetadata) {
+					  boolean isSyntetic, boolean summaryMetadata, Integer maxLength, String measurementUnit) {
 
 		this(id, code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
-				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata);
+				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata, maxLength, measurementUnit);
 	}
 
 	public MetadataVO() {
@@ -306,16 +288,12 @@ public class MetadataVO implements Serializable {
 		return labels;
 	}
 
-	public String getLabel(Locale locale, boolean fromAddEditView) {
-		boolean withMaxLength = false;
-		if (fromAddEditView) {
-			withMaxLength = true;
-		}
-		return getLabel(locale, withMaxLength, true);
-	}
-
 	public String getLabel(Locale locale) {
 		return getLabel(locale, false, true);
+	}
+
+	public boolean isMaxLenghtSupported() {
+		return this.getMetadataInputType().isMaxLenghtSupportedOnInputType();
 	}
 
 	public String getLabel(Locale locale, boolean withMaxLength, boolean withMeasurementUnit) {
@@ -330,7 +308,7 @@ public class MetadataVO implements Serializable {
 				label = $("labelWithMeasurementUnit", label, this.getMeasurementUnit());
 			}
 		}
-		if (withMaxLength) {
+		if (withMaxLength && isMaxLenghtSupported()) {
 			if (this.getMaxLength() != null) {
 				label = $("labelWithMaxLength", label, this.getMaxLength());
 			}

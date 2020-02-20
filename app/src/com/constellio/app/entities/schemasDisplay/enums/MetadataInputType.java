@@ -21,6 +21,10 @@ public enum MetadataInputType {
 	URL,
 	PASSWORD;
 
+	public boolean isMaxLenghtSupportedOnInputType() {
+		return this != RICHTEXT;
+	}
+
 	public static List<MetadataInputType> getAvailableMetadataInputTypesFor(MetadataValueType type,
 																			boolean multivalue) {
 		List<MetadataInputType> inputTypes = new ArrayList<>();

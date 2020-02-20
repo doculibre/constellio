@@ -56,22 +56,6 @@ public class FormMetadataVO implements Serializable {
 						  boolean autocomplete, boolean availableInSummary, boolean enabled,
 						  String metadataGroup,
 						  Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue,
-						  Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual) {
-		this(id, code, type, required, schemaVO, reference, labels, searchable, multivalue, sortable, advancedSearch,
-				facet, input, displayType, highlight, autocomplete, availableInSummary, enabled, metadataGroup,
-				defaultValue, inputMask, duplicable, uniqueValue, customAttributes, sessionContext, isMultiLingual,
-				null, null);
-	}
-
-	public FormMetadataVO(short id, String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO,
-						  String reference,
-						  Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable,
-						  boolean advancedSearch,
-						  boolean facet,
-						  MetadataInputType input, MetadataDisplayType displayType, boolean highlight,
-						  boolean autocomplete, boolean availableInSummary, boolean enabled,
-						  String metadataGroup,
-						  Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue,
 						  Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual,
 						  Integer maxLength, String measurementUnit) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];

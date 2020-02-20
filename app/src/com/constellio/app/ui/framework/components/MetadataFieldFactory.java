@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateTimeField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeOptionGroup;
+import com.constellio.app.ui.framework.components.fields.exception.ValidationException.ToManyCharacterToLongException;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveCommentField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveDoubleField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveEnumWithSmallCodeComboBox;
@@ -46,6 +47,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.vaadin.data.Validator;
 import com.vaadin.ui.AbstractTextField;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Field;
@@ -55,6 +57,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class MetadataFieldFactory implements Serializable {
@@ -92,10 +96,13 @@ public class MetadataFieldFactory implements Serializable {
 		return field;
 	}
 
-	protected void postBuild(Field<?> field, MetadataVO metadata) {
+	protected void postBuild(final Field<?> field, MetadataVO metadata) {
 		boolean readOnly = metadata.isReadOnly();
 		boolean required = metadata.isRequired();
-		String caption = metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale(), true);
+
+		String caption = metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale(), true, true);
+
+		addMaxLenghtValidator(field, metadata);
 
 		field.setId(metadata.getCode());
 		field.setCaption(caption);
@@ -103,6 +110,19 @@ public class MetadataFieldFactory implements Serializable {
 		field.setReadOnly(readOnly);
 		if (field instanceof AbstractTextField) {
 			((AbstractTextField) field).setNullRepresentation("");
+		}
+	}
+
+	private void addMaxLenghtValidator(Field<?> field, MetadataVO metadata) {
+		if (metadata.getMaxLength() != null && metadata.isMaxLenghtSupported()) {
+			field.addValidator((Validator) value -> {
+				if (value != null && value instanceof String) {
+					if (((String) value).length() > metadata.getMaxLength()) {
+						throw new ToManyCharacterToLongException($("invalidFieldValueToManyCharacter",
+								metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale(), false, false)));
+					}
+				}
+			});
 		}
 	}
 
@@ -169,6 +189,7 @@ public class MetadataFieldFactory implements Serializable {
 						}
 					} else {
 						field = new BaseTextArea();
+						break;
 					}
 					break;
 				case REFERENCE:
@@ -317,13 +338,17 @@ public class MetadataFieldFactory implements Serializable {
 					}
 					break;
 				case TEXT:
-					switch (metadataInputType) {
-						case RICHTEXT:
-							field = new ListAddRemoveRichTextArea();
-							break;
-						default:
-							field = new ListAddRemoveTextArea();
-							break;
+					if (metadataInputType != null) {
+						switch (metadataInputType) {
+							case RICHTEXT:
+								field = new ListAddRemoveRichTextArea();
+								break;
+							default:
+								field = new ListAddRemoveTextArea();
+								break;
+						}
+					} else {
+						field = new ListAddRemoveTextArea();
 					}
 					break;
 				case REFERENCE:

@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.components.fields.exception.ValidationException.ToManyCharacterToLongException;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.ComponentTreeUtils;
@@ -474,6 +475,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 			Field<?> firstFieldWithError = null;
 			StringBuilder missingRequiredFields = new StringBuilder();
 			for (Field<?> field : fieldGroup.getFields()) {
+
 				if (!field.isValid() && field.isRequired() && isEmptyValue(field.getValue())) {
 					field.setRequiredError($("requiredField"));
 					addErrorMessage(missingRequiredFields, $("requiredFieldWithName", field.getCaption()));
@@ -484,33 +486,19 @@ public abstract class BaseForm<T> extends CustomComponent {
 					try {
 						field.validate();
 					} catch (Validator.EmptyValueException e) {
-						addErrorMessage(missingRequiredFields, $("requiredFieldWithName", field.getCaption()));
+
+						addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + e.getMessage() + "\""));
+						if (firstFieldWithError == null) {
+							firstFieldWithError = field;
+						}
+					} catch (ToManyCharacterToLongException e) {
+						int lastOpenParentezice = field.getCaption().lastIndexOf("(");
+						addErrorMessage(missingRequiredFields, $("invalidFieldValueToManyCharacter", field.getCaption().substring(0, lastOpenParentezice)));
 						if (firstFieldWithError == null) {
 							firstFieldWithError = field;
 						}
 					} catch (Validator.InvalidValueException e) {
-						if (field.getCaption() != null && field.getValue() != null) {
-							if (field.getCaption().contains("(") && field.getCaption().contains(")")) {
-								boolean isCaptionsPartBetweenParenthesisRepresentingMaxLength =
-										Character.isDigit(field.getCaption().split("\\(")[1].charAt(0));
-								if (isCaptionsPartBetweenParenthesisRepresentingMaxLength) {
-									Integer maxLength = Character.getNumericValue(field.getCaption().split("\\(")[1].charAt(0));
-									if (field.getValue().toString().length() > maxLength) {
-										addErrorMessage(missingRequiredFields,
-												$("invalidFieldWithNameWithErrorMessage",
-														StringUtils.removeEnd(field.getCaption().split("\\(")[0], " "),
-														e.getMessage()));
-									}
-								} else {
-									addErrorMessage(missingRequiredFields,
-											$("invalidFieldWithNameWithErrorMessage",
-													StringUtils.removeEnd(field.getCaption().split("\\(")[0], " "),
-													e.getMessage()));
-								}
-							}
-						} else {
-							addErrorMessage(missingRequiredFields, $("invalidFieldWithName", field.getCaption()));
-						}
+						addErrorMessage(missingRequiredFields, $("invalidFieldWithName", "\"" + e.getMessage() + "\""));
 						if (firstFieldWithError == null) {
 							firstFieldWithError = field;
 						}
@@ -519,9 +507,8 @@ public abstract class BaseForm<T> extends CustomComponent {
 			}
 			if (firstFieldWithError != null) {
 				firstFieldWithError.focus();
+				showErrorMessage(missingRequiredFields.toString());
 			}
-			showErrorMessage(missingRequiredFields.toString());
-
 		}
 	}
 

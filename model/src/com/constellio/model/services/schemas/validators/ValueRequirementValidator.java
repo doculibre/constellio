@@ -3,7 +3,6 @@ package com.constellio.model.services.schemas.validators;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
@@ -28,26 +27,18 @@ public class ValueRequirementValidator implements Validator<Record> {
 
 	private boolean skipUSRMetadatas;
 
-	private boolean skipMaxLength;
-
 	private boolean afterCalculate;
 
 	private RecordAutomaticMetadataServices recordAutomaticMetadataServices;
 
-	public ValueRequirementValidator(List<Metadata> metadatas, boolean skipUSRMetadatas,
-									 RecordAutomaticMetadataServices recordAutomaticMetadataServices,
-									 boolean afterCalculate) {
-		this(metadatas, skipUSRMetadatas, recordAutomaticMetadataServices, afterCalculate, false);
-	}
 
 	public ValueRequirementValidator(List<Metadata> metadatas, boolean skipUSRMetadatas,
 									 RecordAutomaticMetadataServices recordAutomaticMetadataServices,
-									 boolean afterCalculate, boolean skipMaxLength) {
+									 boolean afterCalculate) {
 		this.metadatas = metadatas;
 		this.skipUSRMetadatas = skipUSRMetadatas;
 		this.afterCalculate = afterCalculate;
 		this.recordAutomaticMetadataServices = recordAutomaticMetadataServices;
-		this.skipMaxLength = skipMaxLength;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -61,14 +52,6 @@ public class ValueRequirementValidator implements Validator<Record> {
 				&& (value == null || (metadata.isMultivalue() && ((List) value).size() == 0))
 				&& metadata.isEnabled()) {
 				addValidationErrors(record.getId(), validationErrors, REQUIRED_VALUE_FOR_METADATA, metadata);
-			} else if (metadata.getMaxLength() != null
-					   && metadata.getMaxLength() > 0
-					   && (!skipUSRMetadatas || !metadata.getLocalCode().startsWith("USR"))
-					   && !skipMaxLength
-					   && metadata.getMaxLength() < value.toString().length()
-					   && (metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT)
-					   && metadata.isEnabled()) {
-				addValidationErrors(record.getId(), validationErrors, METADATA_VALUE_DOESNT_RESPECT_MAX_LENGTH, metadata);
 			}
 		}
 	}
@@ -91,10 +74,6 @@ public class ValueRequirementValidator implements Validator<Record> {
 				basedOnMetadatas.add(dependency.getLocalMetadataCode());
 			}
 			parameters.put(BASED_ON_METADATAS, basedOnMetadatas.toString());
-		}
-		if ((metadata.getType().equals(MetadataValueType.STRING)) || metadata.getType().equals(MetadataValueType.TEXT)
-																	 && (metadata.getMaxLength() != null)) {
-			parameters.put("maxLength", metadata.getMaxLength());
 		}
 		validationErrors.add(getClass(), errorCode, parameters);
 	}
