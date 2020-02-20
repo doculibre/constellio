@@ -292,6 +292,12 @@ public class DocumentRecordActionsServices {
 		return false;
 	}
 
+	public boolean isSendReturnReminderActionPossible(Record record, User user) {
+		Document document = rm.wrapDocument(record);
+		return document.hasContent() && document.getContent().isCheckedOut()
+			   && !user.getId().equals(document.getContentCheckedOutBy());
+	}
+
 	public boolean isGenerateReportActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record) &&
 			   !record.isLogicallyDeleted() &&

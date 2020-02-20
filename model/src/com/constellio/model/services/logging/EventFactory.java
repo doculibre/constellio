@@ -143,7 +143,7 @@ public class EventFactory {
 	private void setDefaultMetadata(Event event, User user) {
 		event.setUsername(user.getUsername());
 		List<String> roles = user.getAllRoles();
-		event.setUserRoles(StringUtils.join(roles.toArray(), "; "));
+		//event.setUserRoles(StringUtils.join(roles.toArray(), "; "));
 		event.setCreatedOn(TimeProvider.getLocalDateTime());
 		String ipAddress = user.getLastIPAddress();
 		event.setIp(ipAddress);

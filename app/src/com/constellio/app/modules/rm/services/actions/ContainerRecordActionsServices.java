@@ -5,9 +5,11 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -35,6 +37,7 @@ public class ContainerRecordActionsServices {
 	private String collection;
 	private SearchServices searchServices;
 	private RecordServices recordServices;
+	private BorrowingServices borrowingServices;
 
 	public ContainerRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -44,6 +47,7 @@ public class ContainerRecordActionsServices {
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		this.searchServices = modelLayerFactory.newSearchServices();
+		borrowingServices = new BorrowingServices(collection, appLayerFactory.getModelLayerFactory());
 	}
 
 	public boolean isEditActionPossible(Record record, User user) {
@@ -75,6 +79,36 @@ public class ContainerRecordActionsServices {
 	public boolean isDisplayActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record)
 			   && rmModuleExtensions.isConsultActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user);
+	}
+
+	public boolean isBorrowRequestActionPossible(Record record, User user) {
+		ContainerRecord container = rm.wrapContainerRecord(record);
+		if (container != null) {
+			try {
+				borrowingServices.validateCanBorrow(user, container, TimeProvider.getLocalDate());
+			} catch (Exception e) {
+				return false;
+			}
+		}
+		return container != null
+			   && user.hasAll(RMPermissionsTo.BORROW_CONTAINER, RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER).on(container);
+	}
+
+	public boolean isCheckInActionPossible(Record record, User user) {
+		return user.has(RMPermissionsTo.RETURN_OTHER_USERS_CONTAINERS).on(record)
+			   && isSendReturnReminderActionPossible(record, user);
+	}
+
+	public boolean isReturnRequestActionPossible(Record record, User user) {
+		ContainerRecord container = rm.wrapContainerRecord(record);
+		return container != null && Boolean.TRUE.equals(container.getBorrowed())
+			   && user.getId().equals(container.getBorrower());
+	}
+
+	public boolean isSendReturnReminderActionPossible(Record record, User user) {
+		ContainerRecord container = rm.wrapContainerRecord(record);
+		return Boolean.TRUE.equals(container.getBorrowed()) &&
+			   !user.getId().equals(container.getBorrower());
 	}
 
 	public boolean isAddToCartActionPossible(Record record, User user) {
@@ -187,5 +221,17 @@ public class ContainerRecordActionsServices {
 
 	private boolean isContainerRecyclingAllowed() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isContainerRecyclingAllowed();
+	}
+
+	public boolean isBorrowActionPossible(Record record, User user) {
+
+		ContainerRecord container = rm.wrapContainerRecord(record);
+		try {
+			borrowingServices.validateCanBorrow(user, container, null);
+		} catch (Exception e) {
+			return false;
+		}
+		return user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(container) &&
+			   !record.isLogicallyDeleted();
 	}
 }

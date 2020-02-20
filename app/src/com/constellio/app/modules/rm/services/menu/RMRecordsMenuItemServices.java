@@ -29,14 +29,22 @@ import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_CART;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_BORROW;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BORROW;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BORROW_REQUEST;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CANCEL_RETURN;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_COPY;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_SIP;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_DOCUMENT_BORROW;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_DOWNLOAD_ZIP;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_MOVE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_PRINT_LABEL;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_RETURN;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_RETURN_REMAINDER;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_RETURN_REQUEST;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.DISABLED;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
@@ -215,6 +223,114 @@ public class RMRecordsMenuItemServices {
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_BORROW:
+				int numberOfDocument = 0;
+				int numberOfFolder = 0;
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isCheckOutActionPossible(record, user);
+						numberOfDocument = actionPossible ? numberOfDocument + 1 : numberOfDocument;
+					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isBorrowActionPossible(record, user);
+						numberOfFolder = actionPossible ? numberOfFolder + 1 : numberOfFolder;
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				if (numberOfDocument > 0 && numberOfFolder > 0) {
+					return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.actionImpossibleOnDifferentSchema"));
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_BORROW_REQUEST:
+				numberOfFolder = 0;
+				int numberOfContainer = 0;
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isBorrowRequestActionPossible(record, user);
+						numberOfFolder = actionPossible ? numberOfFolder + 1 : numberOfFolder;
+					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+						actionPossible = containerRecordActionsServices.isBorrowRequestActionPossible(record, user);
+						numberOfContainer = actionPossible ? numberOfContainer + 1 : numberOfContainer;
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				if ((numberOfFolder > 0 && numberOfContainer > 0)) {
+					return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.actionImpossibleOnDifferentSchema"));
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_RETURN:
+			case RMRECORDS_CANCEL_RETURN:
+				numberOfDocument = 0;
+				numberOfFolder = 0;
+				numberOfContainer = 0;
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isCheckInActionPossible(record, user);
+						numberOfDocument = actionPossible ? numberOfDocument + 1 : numberOfDocument;
+					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isReturnActionPossible(record, user);
+						numberOfFolder = actionPossible ? numberOfFolder + 1 : numberOfFolder;
+					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+						actionPossible = containerRecordActionsServices.isCheckInActionPossible(record, user);
+						numberOfContainer = actionPossible ? numberOfContainer + 1 : numberOfContainer;
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				if ((numberOfDocument > 0 && numberOfFolder > 0)
+					|| (numberOfDocument > 0 && numberOfContainer > 0)
+					|| (numberOfFolder > 0 && numberOfContainer > 0)) {
+					return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.actionImpossibleOnDifferentSchema"));
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_RETURN_REQUEST:
+				numberOfFolder = 0;
+				numberOfContainer = 0;
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isReturnRequestActionPossible(record, user);
+						numberOfFolder = actionPossible ? numberOfFolder + 1 : numberOfFolder;
+					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+						actionPossible = containerRecordActionsServices.isReturnRequestActionPossible(record, user);
+						numberOfContainer = actionPossible ? numberOfContainer + 1 : numberOfContainer;
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				if ((numberOfFolder > 0 && numberOfContainer > 0)) {
+					return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.actionImpossibleOnDifferentSchema"));
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_RETURN_REMAINDER:
+				numberOfDocument = 0;
+				numberOfFolder = 0;
+				numberOfContainer = 0;
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isSendReturnReminderActionPossible(record, user);
+						numberOfDocument = actionPossible ? numberOfDocument + 1 : numberOfDocument;
+					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isSendReturnReminderActionPossible(record, user);
+						numberOfFolder = actionPossible ? numberOfFolder + 1 : numberOfFolder;
+					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+						actionPossible = containerRecordActionsServices.isSendReturnReminderActionPossible(record, user);
+						numberOfContainer = actionPossible ? numberOfContainer + 1 : numberOfContainer;
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				if ((numberOfDocument > 0 && numberOfFolder > 0)
+					|| (numberOfDocument > 0 && numberOfContainer > 0)
+					|| (numberOfFolder > 0 && numberOfContainer > 0)) {
+					return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.actionImpossibleOnDifferentSchema"));
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_ADD_SELECTION:
 				return new MenuItemActionState(VISIBLE);
 			case RMRECORDS_DOWNLOAD_ZIP:
@@ -238,6 +354,28 @@ public class RMRecordsMenuItemServices {
 						actionPossible = folderRecordActionsServices.isDeleteActionPossible(record, user);
 					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 						actionPossible = containerRecordActionsServices.isDeleteActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_BATCH_BORROW:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isBorrowActionPossible(record, user);
+					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+						actionPossible = containerRecordActionsServices.isBorrowActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_DOCUMENT_BORROW:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isCheckOutActionPossible(record, user);
 					}
 					possibleCount += actionPossible ? 1 : 0;
 				}
@@ -314,6 +452,42 @@ public class RMRecordsMenuItemServices {
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).printLabels(ids, params));
 				break;
+			case RMRECORDS_BORROW:
+				menuItemAction = buildMenuItemAction(RMRECORDS_BORROW, state,
+						$("DocumentContextMenu.checkOut"), FontAwesome.LOCK, -1, 700,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkOut(ids, params));
+				break;
+			case RMRECORDS_BORROW_REQUEST:
+				menuItemAction = buildMenuItemAction(RMRECORDS_BORROW_REQUEST, state,
+						$("RMRequestTaskButtonExtension.borrowRequest"), null, -1, 720,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkOutRequest(ids, params));
+				break;
+			case RMRECORDS_RETURN:
+				menuItemAction = buildMenuItemAction(RMRECORDS_RETURN, state,
+						$("DocumentContextMenu.checkIn"), FontAwesome.UNLOCK, -1, 740,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkIn(ids, params));
+				break;
+			case RMRECORDS_CANCEL_RETURN:
+				menuItemAction = buildMenuItemAction(RMRECORDS_CANCEL_RETURN, state,
+						$("DocumentContextMenu.cancelCheckOut"), null, -1, 750,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkIn(ids, params));
+				break;
+			case RMRECORDS_RETURN_REQUEST:
+				menuItemAction = buildMenuItemAction(RMRECORDS_RETURN_REQUEST, state,
+						$("RMRequestTaskButtonExtension.returnRequest"), null, -1, 760,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkInRequest(ids, params));
+				break;
+			case RMRECORDS_RETURN_REMAINDER:
+				menuItemAction = buildMenuItemAction(RMRECORDS_RETURN_REMAINDER, state,
+						$("SendReturnReminderEmailButton.reminderReturn"), null, -1, 780,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).sendReturnRemainder(ids, params));
+				break;
 			case RMRECORDS_ADD_SELECTION:
 				menuItemAction = buildMenuItemAction(RMRECORDS_ADD_SELECTION, state,
 						$("SearchView.addToSelection"), SELECTION_ICON_RESOURCE, -1, 800,
@@ -326,6 +500,19 @@ public class RMRecordsMenuItemServices {
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).downloadZip(ids, params));
 				break;
+			case RMRECORDS_BATCH_BORROW:
+				menuItemAction = buildMenuItemAction(RMRECORDS_BATCH_BORROW, state,
+						$("DisplayFolderView.borrow"), null, -1, 700,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchBorrow(ids, params));
+				break;
+			case RMRECORDS_DOCUMENT_BORROW:
+				menuItemAction = buildMenuItemAction(RMRECORDS_DOCUMENT_BORROW, state,
+						$("DisplayDocumentView.borrow"), null, -1, 700,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).documentBorrow(ids, params));
+				break;
+
 			case RMRECORDS_BATCH_DELETE:
 				menuItemAction = buildMenuItemAction(RMRECORDS_BATCH_DELETE, state,
 						$("deleteWithIcon"), null, -1, 1000,
@@ -379,9 +566,17 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_SEND_EMAIL(singletonList(Document.SCHEMA_TYPE), 100000),
 		RMRECORDS_CREATE_PDF(singletonList(Document.SCHEMA_TYPE), 100000),
 		RMRECORDS_PRINT_LABEL(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
+		RMRECORDS_BORROW(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000),
+		RMRECORDS_BORROW_REQUEST(asList(Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
+		RMRECORDS_RETURN(asList(Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
+		RMRECORDS_CANCEL_RETURN(asList(Document.SCHEMA_TYPE), 100000),
+		RMRECORDS_RETURN_REQUEST(asList(Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
+		RMRECORDS_RETURN_REMAINDER(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
 		RMRECORDS_ADD_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
 		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000),
 		RMRECORDS_BATCH_DELETE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
+		RMRECORDS_BATCH_BORROW(asList(Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
+		RMRECORDS_DOCUMENT_BORROW(asList(Document.SCHEMA_TYPE), 100000),
 		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 10000);
 
 		private final List<String> schemaTypes;

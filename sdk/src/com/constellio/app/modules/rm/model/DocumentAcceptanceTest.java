@@ -356,7 +356,6 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		wordDocument.setMarkedForPreviewConversion(true);
 		recordServices.add(wordDocument);
 
-		// RMDocumentExtension on modification and creation set markedPreviewConversion if content is modified
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
 	}
 

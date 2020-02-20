@@ -57,7 +57,6 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -815,16 +814,16 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 						.isIn(asList(BorrowRequest.SCHEMA_NAME, ReturnRequest.SCHEMA_NAME, ExtensionRequest.SCHEMA_NAME, ReactivationRequest.SCHEMA_NAME))) : null;
 	}
 
-	private boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator() {
+	public boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator(TaskVO taskVO) {
 		boolean isModel = false;
 		if (taskVO.get(RMTask.IS_MODEL) != null) {
 			isModel = taskVO.get(RMTask.IS_MODEL);
 		}
 		String currentUserId = getCurrentUser().getId();
-		List<Group> assigneeGroupsCandidates = tasksSchemas.getGroups(taskVO.get(Task.ASSIGNEE_GROUPS_CANDIDATES));
+		List<String> assigneeGroupsCandidatesIds = taskVO.get(Task.ASSIGNEE_GROUPS_CANDIDATES);
 		List<String> assigneeCandidates = taskVO.get(Task.ASSIGNEE_USERS_CANDIDATES);
 		List<String> userGroups = getCurrentUser().getUserGroups();
-		boolean userIsCandidate = !ListUtils.intersection(assigneeGroupsCandidates, userGroups).isEmpty() || assigneeCandidates.contains(currentUserId);
+		boolean userIsCandidate = !ListUtils.intersection(assigneeGroupsCandidatesIds, userGroups).isEmpty() || assigneeCandidates.contains(currentUserId);
 		return userIsCandidate || isModel || !isEditMode() || currentUserId.equals(taskVO.get(Task.ASSIGNEE)) || currentUserId.equals(taskVO.get(Task.ASSIGNER));
 	}
 
@@ -833,7 +832,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private void adjustFieldsForCollaborators() {
-		boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator = currentUserHasWriteAuthorizationWithoutBeingCollaborator();
+		boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator = currentUserHasWriteAuthorizationWithoutBeingCollaborator(taskVO);
 
 		TaskAssignationListRecordLookupField assigneeGroupCandidatesField = (TaskAssignationListRecordLookupField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
 		if (assigneeGroupCandidatesField != null) {
@@ -869,7 +868,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		ListAddRemoveCollaboratorsField taskCollaboratorsField = (ListAddRemoveCollaboratorsField) view.getForm().getField(Task.TASK_COLLABORATORS);
 		if (taskCollaboratorsField != null) {
 			taskCollaboratorsField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
-			taskCollaboratorsField.setCurrentUserCanModifyDelete(currentUserHasWriteAuthorizationWithoutBeingCollaborator());
+			taskCollaboratorsField.setCurrentUserCanModifyDelete(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 			TaskAssignationListCollaboratorsField addEditField = taskCollaboratorsField.getAddEditField();
 			if (addEditField != null) {
 				OptionGroup authorizationField = addEditField.getAuthorizationField();

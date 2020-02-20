@@ -88,7 +88,6 @@ public class CartActionsServices {
 		return true;
 	}
 
-
 	public boolean isDocumentBatchProcessingActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
 		String schemaTypeCode = Document.SCHEMA_TYPE;
@@ -387,5 +386,29 @@ public class CartActionsServices {
 
 	private boolean isDefaultCart(String cartId, User user) {
 		return user.getId().equals(cartId);
+	}
+
+	public boolean isBorrowActionPossible(Record record, User user) {
+		Cart cart = rm.wrapCart(record);
+		String schemaTypeCode = Folder.SCHEMA_TYPE;
+		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
+			return hasCartPermission(cart.getId(), user)
+				   && isCartNotEmpty(schemaTypeCode, cart.getId())
+				   && rmModuleExtensions.isRecordBorrowActionPossibleOnCart(cart, user);
+		} else {
+			return false;
+		}
+	}
+
+	public boolean isCartNotEmpty(String schemaType, String cartId) {
+		switch (schemaType) {
+			case Folder.SCHEMA_TYPE:
+				return !cartUtil.cartFoldersIsEmpty(cartId);
+			case ContainerRecord.SCHEMA_TYPE:
+				return !cartUtil.cartContainerIsEmpty(cartId);
+
+			default:
+				throw new RuntimeException("Cannot borrow type : " + schemaType);
+		}
 	}
 }

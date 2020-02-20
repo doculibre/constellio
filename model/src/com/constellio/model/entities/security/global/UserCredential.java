@@ -40,6 +40,7 @@ public class UserCredential extends RecordWrapper {
 	public static final String AGENT_STATUS = "agentStatus";
 	public static final String HAS_AGREED_TO_PRIVACY_POLICY = "hasAgreedToPrivacyPolicy";
 	public static final String DO_NOT_RECEIVE_EMAILS = "doNotReceiveEmails";
+	public static final String ENABLE_FACETS_APPLY_BUTTON = "enableFacetsApplyButton";
 	public static final String HAS_READ_LAST_ALERT = "hasReadLastAlert";
 
 	public UserCredential(Record record, MetadataSchemaTypes types) {
@@ -314,5 +315,9 @@ public class UserCredential extends RecordWrapper {
 
 	public boolean isNotReceivingEmails() {
 		return Boolean.TRUE.equals(get(DO_NOT_RECEIVE_EMAILS));
+	}
+
+	public boolean isApplyFacetsEnabled() {
+		return Boolean.TRUE.equals(ENABLE_FACETS_APPLY_BUTTON);
 	}
 }

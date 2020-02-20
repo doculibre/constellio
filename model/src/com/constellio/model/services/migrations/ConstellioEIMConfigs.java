@@ -164,9 +164,9 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration NO_LINKS_IN_SEARCH_RESULTS;
 	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
+
 	public static final SystemConfiguration LEGACY_IDENTIFIER_INDEXED_IN_MEMORY;
 	public static final SystemConfiguration ENABLE_FACETS_APPLY_BUTTON;
-
 
 	public static final SystemConfiguration DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES;
 
@@ -597,7 +597,7 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(ENABLE_STATISTIC_REPORT);
 	}
 
-	public boolean isAddingSecondarySortWhenSortingByScore() {
+	public boolean isAddingSecondarySortWhenSortingByScoreOrTitle() {
 		return manager.getValue(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE);
 	}
 

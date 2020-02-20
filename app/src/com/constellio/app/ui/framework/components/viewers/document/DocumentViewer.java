@@ -43,7 +43,7 @@ public class DocumentViewer extends CustomComponent {
 		conversionManager = ConstellioFactories.getInstance().getDataLayerFactory().getConversionManager();
 	}
 
-	public static String[] CONVERSION_EXTENSIONS = ArrayUtils.removeElements(conversionManager.getSupportedExtensions(), new String[]{"pdf"});
+	public static String[] CONVERSION_EXTENSIONS = ArrayUtils.removeElements(conversionManager.getPreviewSupportedExtensions(), new String[]{"pdf"});
 
 	public static String[] SUPPORTED_EXTENSIONS = ArrayUtils.add(conversionManager.getAllSupportedExtensions(), "pdf");
 

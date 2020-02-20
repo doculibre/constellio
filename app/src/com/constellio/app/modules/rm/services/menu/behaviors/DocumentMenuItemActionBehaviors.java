@@ -2,12 +2,14 @@ package com.constellio.app.modules.rm.services.menu.behaviors;
 
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
+import com.constellio.app.modules.rm.services.menu.behaviors.ui.SendReturnReminderEmailButton;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
@@ -85,6 +87,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -485,33 +488,63 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
-	public void checkOut(Document document, MenuItemActionBehaviorParams params) {
-		document = loadingFullRecordIfSummary(document);
-		if (documentRecordActionsServices.isCheckOutActionPossible(document.getWrappedRecord(), params.getUser())) {
-			updateSearchResultClicked(document.getWrappedRecord());
-			Content content = document.getContent();
-			content.checkOut(params.getUser());
-			modelLayerFactory.newLoggingServices().borrowRecord(document.getWrappedRecord(), params.getUser(), TimeProvider.getLocalDateTime());
-			try {
-				recordServices.update(document.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+	public void checkOut(List<Document> documents, MenuItemActionBehaviorParams params) {
+		int checkedOutDocuments = 0;
+		boolean openThroughAgent = (documents.size() == 1);
 
-				DocumentVO documentVO = getDocumentVO(params, document);
+		for (Document document : documents) {
+			document = loadingFullRecordIfSummary(document);
+			if (documentRecordActionsServices.isCheckOutActionPossible(document.getWrappedRecord(), params.getUser())) {
+				updateSearchResultClicked(document.getWrappedRecord());
+				Content content = document.getContent();
+				content.checkOut(params.getUser());
+				modelLayerFactory.newLoggingServices().borrowRecord(document.getWrappedRecord(), params.getUser(), TimeProvider.getLocalDateTime());
+				try {
+					recordServices.update(document.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+					params.getView().refreshActionMenu();
 
-				params.getView().refreshActionMenu();
+					checkedOutDocuments++;
+					if (openThroughAgent) {
+						DocumentVO documentVO = getDocumentVO(params, document);
+						String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent(), params.getView().getSessionContext());
+						if (agentURL != null) {
+							Page.getCurrent().open(agentURL, null);
+							loggingServices.openDocument(document.getWrappedRecord(), params.getUser());
+						}
+					}
 
-				String checkedOutVersion = content.getCurrentVersion().getVersion();
-				params.getView().showMessage($("DocumentActionsComponent.checkedOut", checkedOutVersion));
-				String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent(), params.getView().getSessionContext());
-				if (agentURL != null) {
-					Page.getCurrent().open(agentURL, null);
-					loggingServices.openDocument(document.getWrappedRecord(), params.getUser());
+				} catch (RecordServicesException e) {
+					params.getView().showErrorMessage(MessageUtils.toMessage(e));
 				}
-			} catch (RecordServicesException e) {
-				params.getView().showErrorMessage(MessageUtils.toMessage(e));
+			} else if (documentRecordActionsServices.isCheckOutActionNotPossibleDocumentDeleted(document.getWrappedRecord(), params.getUser())) {
+				params.getView().showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
 			}
-		} else if (documentRecordActionsServices.isCheckOutActionNotPossibleDocumentDeleted(document.getWrappedRecord(), params.getUser())) {
-			params.getView().showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
 		}
+
+		if (checkedOutDocuments != 0) {
+			params.getView().showMessage($("DocumentMenuItemActionBehaviors.checkedOutMultiple", checkedOutDocuments));
+		}
+	}
+
+	public void checkOut(Document document, MenuItemActionBehaviorParams params) {
+		checkOut(Arrays.asList(document), params);
+	}
+
+	public void sendReturnRemainder(Document documentSummary, MenuItemActionBehaviorParams params) {
+		Document document = loadingFullRecordIfSummary(documentSummary);
+		User borrower = null;
+		if (document.getContentCheckedOutBy() != null) {
+			borrower = rm.getUser(document.getContentCheckedOutBy());
+		}
+		String previewReturnDate = document.getContentCheckedOutDate().plusDays(getBorrowingDuration()).toString();
+
+		Button reminderReturnDocumentButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
+				params.getView(), Document.SCHEMA_TYPE, document.get(), borrower, previewReturnDate);
+		reminderReturnDocumentButton.click();
+	}
+
+	private int getBorrowingDuration() {
+		return new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()).getDocumentBorrowingDurationDays();
 	}
 
 	public void addAuthorization(Document document, MenuItemActionBehaviorParams params) {

@@ -119,6 +119,8 @@ public class Toggle {
 	public static AvailableToggle USE_MEMORY_STRING_ID_MAPPING = newToggle(false);
 	public static AvailableToggle DOCUMENT_RETENTION_RULES = newToggle(false);
 
+	public static AvailableToggle COUNT_CACHE_FILESYSTEM_METADATA_USAGE = newToggle(false);
+
 
 	// ------------------------------------------------
 

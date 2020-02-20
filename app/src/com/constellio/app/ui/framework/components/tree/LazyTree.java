@@ -106,7 +106,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 				return itemDescription;
 			}
 		});
-		adaptee.addContainerProperty(CAPTION_PROPERTY, Object.class, null);
+		adaptee.addContainerProperty(CAPTION_PROPERTY, Component.class, null);
 		adaptee.addContainerProperty(LOADER_NEXT_LOADED_INDEX_ID, Integer.class, null);
 		adaptee.addContainerProperty(LOADER_PARENT_ITEM_ID, LazyTree.this.getType(), null);
 		adaptee.setVisibleColumns(CAPTION_PROPERTY);

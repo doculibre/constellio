@@ -28,8 +28,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -45,7 +47,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	private DB onDiskRebootMemoryCacheDatabase;
 
-	private final LRUMap<Integer, byte[]> tempIntKeyMap = new LRUMap<>(40_000);
+	private final Map<Integer, byte[]> tempIntKeyMap = Collections.synchronizedMap(new LRUMap<>(40_000));
 
 	private BTreeMap<Integer, byte[]> onDiskFileSystemCacheIntKeyMap;
 	private BTreeMap<String, byte[]> onDiskFileSystemCacheStringKeyMap;

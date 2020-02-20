@@ -8,7 +8,8 @@ import com.constellio.model.services.search.query.logical.condition.TestedQueryR
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.List;
+import static com.constellio.model.entities.schemas.Schemas.COLLECTION;
+import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 
 public class IsNotNullCriterion extends LogicalSearchValueCondition {
 
@@ -52,14 +53,25 @@ public class IsNotNullCriterion extends LogicalSearchValueCondition {
 	@Override
 	public boolean testConditionOnField(Metadata metadata, TestedQueryRecord record) {
 
-		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
+		boolean containsKey = metadata.getLocalCode().equals("id")
+							  || metadata.getLocalCode().equals(SCHEMA.getLocalCode())
+							  || metadata.getLocalCode().equals(COLLECTION.getLocalCode())
+							  || record.getRecord().getRecordDTO().getFields().containsKey(metadata.getDataStoreCode());
 
-		if (recordValue instanceof List) {
-			return !((List) recordValue).isEmpty();
-		} else {
-			return recordValue != null;
-		}
+		//		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
+		//
+		//		boolean containsValue;
+		//		if (recordValue instanceof List) {
+		//			containsValue = !((List) recordValue).isEmpty();
+		//		} else {
+		//			containsValue = recordValue != null;
+		//		}
+		//
+		//		if (containsKey != containsValue) {
+		//			System.out.println("!!");
+		//		}
 
+		return containsKey;
 	}
 
 	@Override

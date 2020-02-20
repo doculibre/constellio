@@ -129,6 +129,19 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return searchID;
 	}
 
+	@Override
+	protected LogicalSearchQuery getSearchQuery() {
+		LogicalSearchQuery query = super.getSearchQuery();
+		query.clearSort();
+		query.sortAsc(Schemas.TITLE);
+		if (modelLayerFactory.getSystemConfigs().isAddingSecondarySortWhenSortingByScoreOrTitle()) {
+			query.sortAsc(Schemas.IDENTIFIER);
+		}
+
+		return query;
+	}
+
+
 	public boolean hasBatchProcessPermission() {
 		return getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).globally() || getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).onSomething();
 	}
