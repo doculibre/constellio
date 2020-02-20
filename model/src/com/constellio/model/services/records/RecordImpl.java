@@ -15,6 +15,7 @@ import com.constellio.model.entities.records.RecordRuntimeException.InvalidMetad
 import com.constellio.model.entities.records.RecordRuntimeException.RecordIsAlreadySaved;
 import com.constellio.model.entities.records.RecordRuntimeException.RecordRuntimeException_CannotModifyId;
 import com.constellio.model.entities.records.RecordRuntimeException.RequiredMetadataArgument;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -793,7 +794,15 @@ public class RecordImpl implements Record {
 		fields.remove("_version_");
 		fields.put("schema_s", schemaCode);
 		fields.put("collection_s", collection);
-		fields.put("estimatedSize_i", RecordUtils.estimateRecordSize(fields, copyfields));
+		if (id.length() == 11 || !schema.getSchemaType().getCode().equals(Event.SCHEMA_TYPE)) {
+			fields.put("estimatedSize_i", RecordUtils.estimateRecordSize(fields, copyfields));
+
+		} else {
+			//Record is an event
+			fields.remove("migrationDataVersion_d");
+			fields.remove("modifiedOn_dt");
+		}
+
 
 		return lastCreatedRecordDTO = new SolrRecordDTO(id, version, fields, copyfields, mode);
 

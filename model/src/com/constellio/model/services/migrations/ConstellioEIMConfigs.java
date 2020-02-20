@@ -597,7 +597,7 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(ENABLE_STATISTIC_REPORT);
 	}
 
-	public boolean isAddingSecondarySortWhenSortingByScore() {
+	public boolean isAddingSecondarySortWhenSortingByScoreOrTitle() {
 		return manager.getValue(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE);
 	}
 

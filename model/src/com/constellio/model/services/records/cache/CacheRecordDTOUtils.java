@@ -1,6 +1,8 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.utils.KeyLongMap;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
@@ -19,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -77,6 +80,8 @@ public class CacheRecordDTOUtils {
 	static CompiledDTOStatsBuilder compiledDTOStatsBuilder;
 	static CompiledDTOStats lastCompiledDTOStats;
 
+	static KeyLongMap<String> filesystemStoredMetadataUsageCounter = new KeyLongMap<>();
+
 	public static void startCompilingDTOsStats() {
 		compiledDTOStatsBuilder = new CompiledDTOStatsBuilder();
 	}
@@ -85,6 +90,10 @@ public class CacheRecordDTOUtils {
 		lastCompiledDTOStats = compiledDTOStatsBuilder.build();
 		compiledDTOStatsBuilder = null;
 		return lastCompiledDTOStats;
+	}
+
+	public static KeyLongMap<String> getFilesystemStoredMetadataUsageCounter() {
+		return filesystemStoredMetadataUsageCounter;
 	}
 
 	public static CompiledDTOStats getLastCompiledDTOStats() {
@@ -227,6 +236,13 @@ public class CacheRecordDTOUtils {
 			return null;
 
 		} else if (isMetatadataPersisted(metadataSearched)) {
+			if (!hasStoredMetadatas(byteArray, metadataSearched)) {
+				return metadataSearched.isMultivalue() ? (T) Collections.<Object>emptyList() : null;
+			}
+
+			if (Toggle.COUNT_CACHE_FILESYSTEM_METADATA_USAGE.isEnabled()) {
+				filesystemStoredMetadataUsageCounter.increment(metadataSearched.getNoInheritanceCode());
+			}
 			byteArrayToSearchIn = persistedByteArraySupplier.get();
 
 		} else {
@@ -236,6 +252,24 @@ public class CacheRecordDTOUtils {
 		MetadataValuePositionInByteArray metadataValuePositionInByteArray = getMetadataValuePosition(byteArrayToSearchIn, metadataSearched.getId());
 		return parseValueMetadata(recordId, byteArrayToSearchIn, metadataSearched, metadataValuePositionInByteArray);
 	}
+
+
+	public static boolean hasStoredMetadatas(byte[] byteArrayToKeepInMemory, Metadata metadata) {
+		// skipping first two byte because it's the metadatasSizeToKeepInMemory
+		// i+=2*2 because we are just looking for the metadataId not the metadataValue
+		short headerBytesSize = headerSizeOf(byteArrayToKeepInMemory);
+
+		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID)) {
+			short id = parseMetadataIdFromByteArray(byteArrayToKeepInMemory, i);
+
+			if (metadata.getId() == id) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 
 	public static Set<String> getStoredMetadatas(byte[] byteArrayToKeepInMemory, MetadataSchema schema) {
 		Set<String> storedMetadatas = new HashSet<>();
