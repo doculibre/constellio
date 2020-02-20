@@ -350,7 +350,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		LogicalSearchCondition condition = from(rm.document.schemaType())
 				.where(rm.document.folder()).is(folder)
-				.orWhere(rm.document.schema().getMetadata("linkedTo")).isContaining(Arrays.asList(folder));
+				.orWhere(rm.document.schema().getMetadata("linkedTo")).is(folder);
 
 		if (!referencedDocuments.isEmpty()) {
 			condition = condition.orWhere(Schemas.IDENTIFIER).isIn(referencedDocuments);
@@ -379,7 +379,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		LogicalSearchCondition condition = from(foldersSchemaType, documentsSchemaType)
 				.where(rm.folder.parentFolder()).is(folder)
-				.orWhere(rm.document.folder()).is(folder);
+				.orWhere(rm.document.folder()).is(folder)
+				.orWhere(rm.document.schema().getMetadata("linkedTo")).is(folder);
 
 		if (!referencedDocuments.isEmpty()) {
 			condition = condition.orWhere(Schemas.IDENTIFIER).isIn(referencedDocuments);
