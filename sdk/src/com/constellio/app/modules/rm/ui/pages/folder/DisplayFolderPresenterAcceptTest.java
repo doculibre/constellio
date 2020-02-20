@@ -645,7 +645,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), DisplayFolderPresenterAcceptTest.class);
 
 		presenter.forParams(folder1.getId());
-		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery()))
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
 				.isEmpty();
 
 		presenter.forParams(folder2.getId());
@@ -658,7 +658,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		presenter.forParams(folder4.getId());
 		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
-				.containsExactly(doc0.getId(), doc4.getId(), doc2.getId(), doc1.getId());
+				.containsExactly(doc0.getId(), doc4.getId(), doc2.getId(), doc1.getId()); // Alphabetically sorted
 
 		presenter.forParams(folder5.getId());
 		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
