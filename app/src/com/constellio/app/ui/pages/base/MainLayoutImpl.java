@@ -9,6 +9,7 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.GuideConfigButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -137,14 +138,12 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		guideButton.setVisible(false);
 		guideButton.addExtension(new NiceTitle($("guide.details")));
 
-		guideButtonConfig = new WindowButton($("config button"),
-				$("config button title"),
-				WindowConfiguration.modalDialog("800px", "450px")) {
-			@Override
-			protected Component buildWindowContent() {
-				return null;
-			}
-		};
+		guideButtonConfig = new GuideConfigButton("guideconfig",
+				"configurer les liens de doc pour la page " + UI.getCurrent().getPage().getUriFragment(),
+				WindowConfiguration.modalDialog("600px",
+						"300px"), appLayerFactory);
+
+
 
 		addComponent(header);
 		addComponent(dragAndDropWrapper);

@@ -62,4 +62,6 @@ public interface BaseView extends ViewComponent {
 		boolean exception(Exception e);
 
 	}
+
+	String getGuideUrl();
 }

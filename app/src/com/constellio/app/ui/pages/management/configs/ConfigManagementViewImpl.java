@@ -20,21 +20,9 @@ import com.vaadin.data.validator.IntegerRangeValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.AbstractComponent;
-import com.vaadin.ui.AbstractField;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.DateField;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang.StringUtils;
 
@@ -240,8 +228,8 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 		};
 	}
 
-	@Override
+	/*@Override
 	protected String getGuideUrl() {
 		return "http://documentation.constellio.com/pages/viewpage.action?pageId=2326848";
-	}
+	}*/
 }
