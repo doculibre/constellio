@@ -29,11 +29,16 @@ public class Email extends Document {
 		super(record, types);
 	}
 
+	public Email setTitle(String title) {
+		super.setTitle(title);
+		return this;
+	}
+
 	public List<String> getEmailTo() {
 		return get(EMAIL_TO);
 	}
 
-	public Document setEmailTo(List<String> emailTo) {
+	public Email setEmailTo(List<String> emailTo) {
 		set(EMAIL_TO, emailTo);
 		return this;
 	}
@@ -42,7 +47,7 @@ public class Email extends Document {
 		return get(EMAIL_FROM);
 	}
 
-	public Document setEmailFrom(String emailFrom) {
+	public Email setEmailFrom(String emailFrom) {
 		set(EMAIL_FROM, emailFrom);
 		return this;
 	}
@@ -60,7 +65,7 @@ public class Email extends Document {
 		return get(EMAIL_COMPANY);
 	}
 
-	public Document setEmailCompany(List<String> emailCompany) {
+	public Email setEmailCompany(List<String> emailCompany) {
 		set(EMAIL_COMPANY, emailCompany);
 		return this;
 	}
@@ -69,7 +74,7 @@ public class Email extends Document {
 		return get(EMAIL_IN_NAME_OF);
 	}
 
-	public Document setEmailInNameOf(String emailInNameOf) {
+	public Email setEmailInNameOf(String emailInNameOf) {
 		set(EMAIL_IN_NAME_OF, emailInNameOf);
 		return this;
 	}
@@ -78,7 +83,7 @@ public class Email extends Document {
 		return get(EMAIL_CC_TO);
 	}
 
-	public Document setEmailCCTo(List<String> emailCCTo) {
+	public Email setEmailCCTo(List<String> emailCCTo) {
 		set(EMAIL_CC_TO, emailCCTo);
 		return this;
 	}
@@ -87,7 +92,7 @@ public class Email extends Document {
 		return get(EMAIL_BCC_TO);
 	}
 
-	public Document setEmailBCCTo(List<String> emailBCCTo) {
+	public Email setEmailBCCTo(List<String> emailBCCTo) {
 		set(EMAIL_BCC_TO, emailBCCTo);
 		return this;
 	}
@@ -96,7 +101,7 @@ public class Email extends Document {
 		return get(EMAIL_ATTACHMENTS_LIST);
 	}
 
-	public Document setEmailAttachmentsList(List<String> emailAttachmentsList) {
+	public Email setEmailAttachmentsList(List<String> emailAttachmentsList) {
 		set(EMAIL_ATTACHMENTS_LIST, emailAttachmentsList);
 		return this;
 	}
@@ -105,7 +110,7 @@ public class Email extends Document {
 		return get(EMAIL_OBJECT);
 	}
 
-	public Document setEmailObject(String emailObject) {
+	public Email setEmailObject(String emailObject) {
 		set(EMAIL_OBJECT, emailObject);
 		return this;
 	}
@@ -114,7 +119,7 @@ public class Email extends Document {
 		return get(EMAIL_CONTENT);
 	}
 
-	public Document setEmailContent(String emailContent) {
+	public Email setEmailContent(String emailContent) {
 		set(EMAIL_CONTENT, emailContent);
 		return this;
 	}
@@ -123,7 +128,7 @@ public class Email extends Document {
 		return get(EMAIL_SENT_ON);
 	}
 
-	public Document setEmailSentOn(LocalDateTime emailSentOn) {
+	public Email setEmailSentOn(LocalDateTime emailSentOn) {
 		set(EMAIL_SENT_ON, emailSentOn);
 		return this;
 	}
@@ -132,7 +137,7 @@ public class Email extends Document {
 		return get(EMAIL_RECEIVED_ON);
 	}
 
-	public Document setEmailReceivedOn(LocalDateTime emailReceivedOn) {
+	public Email setEmailReceivedOn(LocalDateTime emailReceivedOn) {
 		set(EMAIL_RECEIVED_ON, emailReceivedOn);
 		return this;
 	}
@@ -141,7 +146,7 @@ public class Email extends Document {
 		return get(SUBJECT_TO_BROADCAST_RULE);
 	}
 
-	public Document setSubjectToBroadcastRule(boolean subjectToBroadcastRule) {
+	public Email setSubjectToBroadcastRule(boolean subjectToBroadcastRule) {
 		set(SUBJECT_TO_BROADCAST_RULE, subjectToBroadcastRule);
 		return this;
 	}
