@@ -34,6 +34,16 @@ public class Email extends Document {
 		return this;
 	}
 
+	public Email setFolder(Folder folder) {
+		super.setFolder(folder);
+		return this;
+	}
+
+	public Email setFolder(String folder) {
+		super.setFolder(folder);
+		return this;
+	}
+
 	public List<String> getEmailTo() {
 		return get(EMAIL_TO);
 	}
