@@ -293,7 +293,7 @@ public class MetadataVO implements Serializable {
 	}
 
 	public boolean isMaxLenghtSupported() {
-		return this.getMetadataInputType().isMaxLenghtSupportedOnInputType();
+		return this.getMetadataInputType() != null && this.getMetadataInputType().isMaxLenghtSupportedOnInputType();
 	}
 
 	public String getLabel(Locale locale, boolean withMaxLength, boolean withMeasurementUnit) {

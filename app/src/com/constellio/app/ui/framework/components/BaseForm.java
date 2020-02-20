@@ -3,7 +3,7 @@ package com.constellio.app.ui.framework.components;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.components.fields.exception.ValidationException.ToManyCharacterToLongException;
+import com.constellio.app.ui.framework.components.fields.exception.ValidationException.ToManyCharacterException;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.ComponentTreeUtils;
@@ -491,14 +491,17 @@ public abstract class BaseForm<T> extends CustomComponent {
 						if (firstFieldWithError == null) {
 							firstFieldWithError = field;
 						}
-					} catch (ToManyCharacterToLongException e) {
-						int lastOpenParentezice = field.getCaption().lastIndexOf("(");
-						addErrorMessage(missingRequiredFields, $("invalidFieldValueToManyCharacter", field.getCaption().substring(0, lastOpenParentezice)));
+					} catch (ToManyCharacterException e) {
+						addErrorMessage(missingRequiredFields, e.getMessage());
 						if (firstFieldWithError == null) {
 							firstFieldWithError = field;
 						}
 					} catch (Validator.InvalidValueException e) {
-						addErrorMessage(missingRequiredFields, $("invalidFieldWithName", "\"" + e.getMessage() + "\""));
+						if (e.getCauses() != null && e.getCauses().length > 0 && e.getCauses()[0] instanceof ToManyCharacterException) {
+							addErrorMessage(missingRequiredFields, e.getCauses()[0].getMessage());
+						} else {
+							addErrorMessage(missingRequiredFields, $("invalidFieldWithName", "\"" + e.getMessage() + "\""));
+						}
 						if (firstFieldWithError == null) {
 							firstFieldWithError = field;
 						}

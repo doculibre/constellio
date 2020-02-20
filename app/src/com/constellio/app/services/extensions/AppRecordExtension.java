@@ -33,7 +33,6 @@ public class AppRecordExtension extends RecordExtension {
 		this.appLayerFactory = appLayerFactory;
 		this.collection = collection;
 		this.schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
-		;
 	}
 
 	@Override
