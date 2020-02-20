@@ -17,7 +17,6 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.Item;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
@@ -105,7 +104,6 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 		layout.setWidth("100%");
 		layout.addComponents(field, helpIcon);
-		layout.setComponentAlignment(field, Alignment.MIDDLE_RIGHT);
 		layout.setExpandRatio(field, 1);
 		return layout;
 	}
