@@ -33,7 +33,8 @@ public class RMMigrationTo9_1_12 implements MigrationScript {
 			types().getDefaultSchema(Document.SCHEMA_TYPE).create(Document.LINKED_TO)
 					.setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(types().getDefaultSchema(Folder.SCHEMA_TYPE))
-					.setMultivalue(true);
+					.setMultivalue(true)
+					.setCacheIndex(true);
 		}
 	}
 }

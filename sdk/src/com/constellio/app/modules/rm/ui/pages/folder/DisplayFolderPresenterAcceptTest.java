@@ -600,26 +600,26 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), DisplayFolderPresenterAcceptTest.class);
 
 		presenter.forParams(folder1.getId());
-		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery()))
 				.isEmpty();
 
 		presenter.forParams(folder2.getId());
 		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
-				.containsOnly(doc1.getId());
+				.containsExactly(doc1.getId());
 
 		presenter.forParams(folder3.getId());
 		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
-				.containsOnly(doc2.getId(), doc3.getId());
+				.containsExactly(doc3.getId(), doc2.getId());
 
 		presenter.forParams(folder4.getId());
 		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
-				.containsOnly(doc0.getId(), doc1.getId(), doc2.getId(), doc4.getId());
+				.containsExactly(doc0.getId(), doc4.getId(), doc2.getId(), doc1.getId());
 
 		presenter.forParams(folder5.getId());
 		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
-				.containsOnly(doc3.getId());
+				.containsExactly(doc3.getId());
 
-		assertThat(queryCounter.newQueryCalls()).isZero(); //TODO Each of the searches perform a query (5)
+		assertThat(queryCounter.newQueryCalls()).isZero();
 	}
 
 	private MetadataSchemaTypes getSchemaTypes() {
