@@ -278,7 +278,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		String guideUrl = view.getGuideUrl();
 		boolean guideButtonVisible = StringUtils.isNotBlank(guideUrl);
 		guideButton.setVisible(guideButtonVisible);
-		guideButtonConfig.setVisible(guideButtonVisible); // && userHasCorrectRole()
+		guideButtonConfig.setVisible(true); //  userHasCorrectRole()
 	}
 
 	private void updateStaticFooterState() {

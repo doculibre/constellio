@@ -25,41 +25,45 @@ public class GuideManager implements StatefulService {
 	public GuideManager(DataLayerFactory dataLayerFactory) {
 		this.dataLayerFactory = dataLayerFactory;
 		this.configManager = dataLayerFactory.getConfigManager();
+		//this.configManager.keepInCache(GUIDE_CONFIG_PATH);
 	}
 
 	@Override
 	public void initialize() {
-		configManager.updateProperties(GUIDE_CONFIG_PATH, new PropertiesAlteration() {
+		/*configManager.updateProperties(GUIDE_CONFIG_PATH, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
 				properties.put(TOKEN_DURATION, Integer.toString(TOKEN_DURATION_VALUE));
 			}
-		});
+		});*/
 	}
 
 	public void alterProperty(final String language, final String property, final String value) {
 		String path = GuideManager.GUIDE_CONFIG_PATH + getPropertyFile(language);
-		String parsedUrl = value;
 		configManager.updateProperties(path, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
-				properties.put(property, value);
+				if (value != null) {
+					properties.put(property, formatExternalUrl(value));
+				}
 			}
 		});
 	}
 
-	/*
-	private String fixExternalUrl(String url) {
-		String repairedUrl = url;
-		String[] splitUrl = url.split(".");
-		if (splitUrl.length == 0) {
-			return url;
+	public String getPropertyValue(final String language, final String property) {
+		String path = GuideManager.GUIDE_CONFIG_PATH + getPropertyFile(language);
+		return configManager.getProperties(path).getProperties().get(property);
+	}
+
+
+	private String formatExternalUrl(String url) {
+		String PROTOCOL = "http://";
+		String urlRegex = "[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)";
+		if (url.matches(urlRegex) && !url.startsWith(PROTOCOL)) {
+			url = PROTOCOL + url;
 		}
-		if(!url.startsWith("http://")){
-			repairedUrl = "http://"+url;
-		}
-		return repairedUrl;
-	}*/
+		return url;
+	}
 
 	private String getPropertyFile(String language) {
 		if (language.equals(DEFAULT_LANGUAGE)) {

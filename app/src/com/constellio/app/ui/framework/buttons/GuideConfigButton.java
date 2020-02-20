@@ -28,15 +28,17 @@ public class GuideConfigButton extends WindowButton {
 	private static String KEY_PREFIX = "guide.";
 	private AppLayerFactory appLayerFactory;
 	private String collection;
-	private VerticalLayout mainLayout;
-
-	List<String> languages;
+	private VerticalLayout windowLayout;
+	private GuideManager guideManager;
+	private List<String> languages;
 
 	public GuideConfigButton(String caption, String windowCaption, WindowConfiguration configuration,
 							 AppLayerFactory appLayerFactory) {
 		super(caption, windowCaption, configuration);
 		this.appLayerFactory = appLayerFactory;
 		this.collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
+		this.guideManager = new GuideManager(appLayerFactory.getModelLayerFactory().getDataLayerFactory());
+
 	}
 
 	private String generateGuideKey(View view) {
@@ -48,21 +50,32 @@ public class GuideConfigButton extends WindowButton {
 
 	@Override
 	protected Component buildWindowContent() {
-		mainLayout = new VerticalLayout();
-		mainLayout.setSpacing(true);
+		windowLayout = new VerticalLayout();
+		windowLayout.setSpacing(true);
 		this.languages = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
 		for (String languageCode : languages) {
 			String labelText = "Documentation en " + $("Language." + languageCode);
-			mainLayout.addComponent(new Label(labelText));
+			windowLayout.addComponent(new Label(labelText));
 
 			TextField inputField = new TextField();
 			inputField.setId(languageCode);
 			inputField.setInputPrompt("url");
 			inputField.setWidth("500px");
-			mainLayout.addComponent(inputField);
+
+			String currentValue = getCurrentUrl(languageCode);
+			if (currentValue != null) {
+				inputField.setValue(getCurrentUrl(languageCode));
+			}
+			windowLayout.addComponent(inputField);
 		}
-		mainLayout.addComponent(buildButtonsLayout());
-		return mainLayout;
+		windowLayout.addComponent(buildButtonsLayout());
+		return windowLayout;
+	}
+
+	private String getCurrentUrl(String languageCode) {
+		String fieldKey = generateGuideKey(ConstellioUI.getCurrent().getCurrentView());
+		return guideManager.getPropertyValue(languageCode, fieldKey);
+
 	}
 
 	private HorizontalLayout buildButtonsLayout() {
@@ -81,25 +94,28 @@ public class GuideConfigButton extends WindowButton {
 			public void buttonClick(ClickEvent event) {
 				String guideKey = generateGuideKey(ConstellioUI.getCurrent().getCurrentView());
 				Map<String, String> newValues = getNewUrlValues();
-				GuideManager guideManager = new GuideManager(appLayerFactory.getModelLayerFactory().getDataLayerFactory());
 				for (String language : languages) {
 					guideManager.alterProperty(language, guideKey, newValues.get(language));
 				}
 				getWindow().close();
+				refreshPage();
 			}
 		});
+		saveButton.focus();
 		return saveButton;
+	}
+
+	private void refreshPage() {
+		getUI().getPage().reload();
 	}
 
 	private Map<String, String> getNewUrlValues() {
 		Map<String, String> newValues = new HashMap<>();
 		for (String language : languages) {
-			Component inputField = findComponentById(mainLayout.getParent(), language);
+			Component inputField = findComponentById(windowLayout.getParent(), language);
 			if (inputField instanceof TextField) {
 				String newUrl = ((TextField) inputField).getValue();
-				if (!newUrl.isEmpty()) {
-					newValues.put(language, newUrl);
-				}
+				newValues.put(language, newUrl);
 			}
 		}
 		return newValues;
