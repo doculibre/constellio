@@ -87,15 +87,11 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	protected void addFieldToLayout(Field<?> field, VerticalLayout fieldLayout) {
 		Object propertyId = fieldGroup.getPropertyId(field);
 
-		if (propertyId instanceof MetadataVO) {
-			Layout wrappedField = wrapFieldWithHelpMessage(((MetadataVO) propertyId), field);
-			if (((MetadataVO) propertyId).isForceHidden()) {
-				hiddenLayout.addComponent(wrappedField);
-			} else {
-				formLayout.addComponent(wrappedField);
-			}
+		Layout wrappedField = wrapFieldWithHelpMessage(((MetadataVO) propertyId), field);
+		if (((MetadataVO) propertyId).isForceHidden()) {
+			hiddenLayout.addComponent(wrappedField);
 		} else {
-			super.addFieldToLayout(field, fieldLayout);
+			fieldLayout.addComponent(wrappedField);
 		}
 	}
 
@@ -106,7 +102,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 		helpIcon.setVisible(!metadataHelp.isEmpty());
 
-		layout.setSizeFull();
+		layout.setWidth("100%");
 		layout.addComponents(field, helpIcon);
 		layout.setExpandRatio(field, 1);
 		return layout;
