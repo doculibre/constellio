@@ -92,7 +92,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		if (((MetadataVO) propertyId).isForceHidden()) {
 			hiddenLayout.addComponent(wrappedField);
 		} else {
-			super.addFieldToLayout(field, fieldLayout);
+			fieldLayout.addComponent(wrappedField);
 		}
 	}
 
@@ -105,8 +105,8 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 		layout.setWidth("100%");
 		layout.addComponents(field, helpIcon);
+		layout.setComponentAlignment(field, Alignment.MIDDLE_RIGHT);
 		layout.setExpandRatio(field, 1);
-		layout.setComponentAlignment(helpIcon, Alignment.MIDDLE_CENTER);
 		return layout;
 	}
 
