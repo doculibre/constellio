@@ -27,6 +27,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -536,6 +537,8 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	@Test
 	public void whenDocumentsLinkedToFolderThenAllDocumentsProvidedWithoutQuery()
 			throws Exception {
+		givenConfig(ConstellioEIMConfigs.DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES, true);
+
 		MetadataSchema schema = rmSchemasRecordsServices.schemaType("document").getDefaultSchema();
 		Metadata metadata = schema.getMetadata("linkedTo");
 		User bob = users.bobIn(zeCollection);
@@ -594,30 +597,29 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 				doc3,
 				doc4
 		));
-
 		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), DisplayFolderPresenterAcceptTest.class);
 
 		presenter.forParams(folder1.getId());
-		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
 				.isEmpty();
 
 		presenter.forParams(folder2.getId());
-		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
 				.containsOnly(doc1.getId());
 
 		presenter.forParams(folder3.getId());
-		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
 				.containsOnly(doc2.getId(), doc3.getId());
 
 		presenter.forParams(folder4.getId());
-		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
 				.containsOnly(doc0.getId(), doc1.getId(), doc2.getId(), doc4.getId());
 
 		presenter.forParams(folder5.getId());
-		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id")
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
 				.containsOnly(doc3.getId());
 
-		assertThat(queryCounter.newQueryCalls()).isZero();
+		assertThat(queryCounter.newQueryCalls()).isZero(); //TODO Each of the searches perform a query (5)
 	}
 
 	private MetadataSchemaTypes getSchemaTypes() {
