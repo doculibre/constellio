@@ -297,20 +297,42 @@ public class BorrowingServices {
 								User borrowerEntered, BorrowingType borrowingType, boolean isCreateEvent)
 			throws RecordServicesException {
 
-		Record record = recordServices.getDocumentById(containerId);
-		ContainerRecord containerRecord = rm.wrapContainerRecord(record);
-		validateCanBorrow(currentUser, containerRecord, borrowingDate);
-		setBorrowedMetadatasToContainer(containerRecord, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime(),
-				previewReturnDate,
-				borrowerEntered.getId());
+		Record containerRecord = recordServices.getDocumentById(containerId);
+		borrowContainers(Collections.singletonList(containerRecord), borrowingDate, previewReturnDate, currentUser,
+				borrowerEntered, borrowingType, isCreateEvent);
+	}
+
+	public void borrowContainers(List<Record> records, LocalDate borrowingDate, LocalDate previewReturnDate,
+								 User currentUser,
+								 User borrowerEntered, BorrowingType borrowingType, boolean isCreateEvent)
+			throws RecordServicesException {
+
+		List<ContainerRecord> containers = rm.wrapContainerRecords(records);
+		for (ContainerRecord container : containers) {
+			validateCanBorrow(currentUser, container, borrowingDate);
+		}
+
+		LocalDateTime borrowingDateTime;
+		if (TimeProvider.getLocalDate().equals(borrowingDate)) {
+			borrowingDateTime = TimeProvider.getLocalDateTime();
+		} else {
+			borrowingDateTime = borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime();
+		}
+
+		for (ContainerRecord container : containers) {
+			setBorrowedMetadatasToContainer(container, borrowingDateTime, previewReturnDate, borrowerEntered.getId());
+		}
 		recordServices
-				.update(containerRecord.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
+				.update(records, RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false), currentUser);
+
 		if (isCreateEvent) {
-			if (borrowingType == BorrowingType.BORROW) {
-				loggingServices.borrowRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
-			} else {
-				loggingServices
-						.consultingRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+			for (ContainerRecord container : containers) {
+				if (borrowingType == BorrowingType.BORROW) {
+					loggingServices.borrowRecord(container.getWrappedRecord(), borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+				} else {
+					loggingServices
+							.consultingRecord(container.getWrappedRecord(), borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+				}
 			}
 		}
 	}

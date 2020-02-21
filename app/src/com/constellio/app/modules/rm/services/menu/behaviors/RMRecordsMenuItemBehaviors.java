@@ -10,7 +10,6 @@ import com.constellio.app.modules.rm.services.actions.ContainerRecordActionsServ
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -85,7 +84,6 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
-import com.constellio.model.services.security.roles.Roles;
 import com.nimbusds.oauth2.sdk.util.CollectionUtils;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -113,7 +111,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
@@ -312,60 +309,6 @@ public class RMRecordsMenuItemBehaviors {
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
-	}
-
-	private boolean borrowFolder(List<Record> records, LocalDate borrowingDate, LocalDate previewReturnDate,
-								 String userId,
-								 BorrowingType borrowingType, LocalDate returnDate,
-								 MenuItemActionBehaviorParams params) {
-		boolean borrowed;
-		String errorMessage = borrowingServices
-				.validateBorrowingInfos(userId, borrowingDate, previewReturnDate, borrowingType, returnDate);
-		if (errorMessage != null) {
-			params.getView().showErrorMessage($(errorMessage));
-			borrowed = false;
-		} else {
-			Record record = recordServices.getDocumentById(userId);
-			User borrowerEntered = wrapUser(record);
-			try {
-				borrowingServices.borrowFolders(records, borrowingDate, previewReturnDate,
-						params.getUser(), borrowerEntered, borrowingType, true);
-				params.getView().refreshActionMenu();
-				params.getView().showMessage($("DisplayFolderView.multipleCheckOut"));
-				borrowed = true;
-			} catch (RecordServicesException e) {
-				log.error(e.getMessage(), e);
-				params.getView().showErrorMessage($("DisplayFolderView.cannotBorrowMultipleFolder"));
-				borrowed = false;
-			}
-		}
-		if (returnDate != null) {
-			return returnRecords(records, returnDate, borrowingDate, params, true);
-		}
-		return borrowed;
-	}
-
-	private User wrapUser(Record record) {
-		return new User(record, schemaTypes, getCollectionRoles());
-	}
-
-	private Roles getCollectionRoles() {
-		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
-	}
-
-	private Date getPreviewReturnDate(Date borrowDate, Object borrowingTypeValue) {
-		BorrowingType borrowingType;
-		Date previewReturnDate = TimeProvider.getLocalDate().toDate();
-		if (borrowDate != null && borrowingTypeValue != null) {
-			borrowingType = (BorrowingType) borrowingTypeValue;
-			if (borrowingType == BorrowingType.BORROW) {
-				int addDays = rmConfigs.getBorrowingDurationDays();
-				previewReturnDate = LocalDate.fromDateFields(borrowDate).plusDays(addDays).toDate();
-			} else {
-				previewReturnDate = borrowDate;
-			}
-		}
-		return previewReturnDate;
 	}
 
 	public void checkOutRequest(List<String> recordIds, MenuItemActionBehaviorParams params) {
@@ -605,8 +548,8 @@ public class RMRecordsMenuItemBehaviors {
 		returnButton.click();
 	}
 
-	private boolean returnRecords(List<Record> records, LocalDate returnDate, MenuItemActionBehaviorParams params,
-								  boolean isFolder) {
+	public boolean returnRecords(List<Record> records, LocalDate returnDate, MenuItemActionBehaviorParams params,
+								 boolean isFolder) {
 		LocalDateTime borrowDateTime = null;
 		if (isFolder) {
 			List<Folder> folders = rm.wrapFolders(records);
@@ -620,7 +563,7 @@ public class RMRecordsMenuItemBehaviors {
 			List<ContainerRecord> containers = rm.wrapContainerRecords(records);
 			for (ContainerRecord container : containers) {
 				LocalDate containerBorrowDate = container.getBorrowDate();
-				if (borrowDateTime == null || containerBorrowDate.isAfter(borrowDateTime)) {
+				if (borrowDateTime == null || containerBorrowDate.toDateTimeAtStartOfDay().toLocalDateTime().isAfter(borrowDateTime)) {
 					borrowDateTime = containerBorrowDate.toDateTimeAtStartOfDay().toLocalDateTime();
 				}
 			}
