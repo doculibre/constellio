@@ -10,7 +10,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.cacheIndexHook.IndexedCalculatedKeysHookHandler;
 import com.constellio.model.services.records.cache.cacheIndexHook.IndexedCalculatedKeysHookHandler.RecordCountHookHandler;

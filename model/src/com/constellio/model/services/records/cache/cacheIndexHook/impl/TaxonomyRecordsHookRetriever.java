@@ -8,7 +8,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.cache.cacheIndexHook.RecordCountHookDataIndexRetriever;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
-import static com.constellio.model.services.records.RecordId.toId;
+import static com.constellio.data.dao.dto.records.RecordId.toId;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.attachedRecordInPrincipalConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalAccessOnRecordInConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalConceptAuthGivingAccessToRecordInSecondaryConceptKey;

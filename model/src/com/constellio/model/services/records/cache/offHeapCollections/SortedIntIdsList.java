@@ -1,13 +1,13 @@
 package com.constellio.model.services.records.cache.offHeapCollections;
 
-import com.constellio.model.services.records.IntegerRecordId;
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.IntegerRecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.model.services.records.RecordUtils.toStringId;
+import static com.constellio.data.dao.dto.records.RecordDTOUtils.toStringId;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.SortedIntIdsList_ID;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.allocateMemory;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.copyAdding;

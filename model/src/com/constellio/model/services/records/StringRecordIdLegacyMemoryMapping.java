@@ -1,5 +1,7 @@
 package com.constellio.model.services.records;
 
+import com.constellio.data.dao.dto.records.StringRecordId;
+import com.constellio.data.dao.dto.records.StringRecordIdLegacyMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

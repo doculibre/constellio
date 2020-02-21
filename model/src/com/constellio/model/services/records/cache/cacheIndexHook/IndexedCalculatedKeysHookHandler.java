@@ -4,7 +4,7 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.cache.MetadataIndexCacheDataStoreStat;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedIdsList;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedIntIdsList;

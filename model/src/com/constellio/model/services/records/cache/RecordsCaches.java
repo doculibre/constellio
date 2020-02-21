@@ -5,7 +5,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelPostInitializationParams;
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.cache.cacheIndexConditions.SortedIdsStreamer;
 import com.constellio.model.services.records.cache.cacheIndexHook.MetadataIndexCacheDataStoreHook;
 import com.constellio.model.services.records.cache.cacheIndexHook.RecordCountHookDataIndexRetriever;

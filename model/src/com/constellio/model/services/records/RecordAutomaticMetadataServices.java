@@ -1,5 +1,6 @@
 package com.constellio.model.services.records;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.Stats.CallStatCompiler;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -17,7 +18,6 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
-import com.constellio.model.entities.calculators.dependencies.*;
 import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluatorParameters;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.*;

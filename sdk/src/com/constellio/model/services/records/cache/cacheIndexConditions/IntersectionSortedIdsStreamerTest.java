@@ -1,9 +1,9 @@
 package com.constellio.model.services.records.cache.cacheIndexConditions;
 
 import com.constellio.data.utils.LazyIterator;
-import com.constellio.model.services.records.IntegerRecordId;
-import com.constellio.model.services.records.RecordId;
-import com.constellio.model.services.records.StringRecordId;
+import com.constellio.data.dao.dto.records.IntegerRecordId;
+import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 

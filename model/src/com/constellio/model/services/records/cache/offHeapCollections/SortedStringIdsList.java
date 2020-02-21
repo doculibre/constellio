@@ -1,8 +1,8 @@
 package com.constellio.model.services.records.cache.offHeapCollections;
 
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.services.records.StringRecordId;
+import com.constellio.data.dao.dto.records.StringRecordId;
 
 import java.util.ArrayList;
 import java.util.List;
