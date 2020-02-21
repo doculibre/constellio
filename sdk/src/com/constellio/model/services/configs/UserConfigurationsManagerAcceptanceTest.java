@@ -12,7 +12,12 @@ import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.linkEventBus;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
@@ -318,16 +323,151 @@ public class UserConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenUpdatingTableVisibleColumnsThenValueUpdated() throws Exception {
-		// TODO::JOLA (P3)
+		String tableId = "tableId";
+		TableProperties value = new TableProperties(tableId);
+
+		value.setVisibleColumnIds(asList("column1", "column2", "column3"));
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		TableProperties valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getVisibleColumnIds()).containsExactly("column1", "column2", "column3");
+
+		value.setVisibleColumnIds(new ArrayList<>());
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getVisibleColumnIds()).isNull();
+
+		value.setVisibleColumnIds(asList("column1"));
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getVisibleColumnIds()).containsExactly("column1");
+
+		value.setVisibleColumnIds(asList("column2"));
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getVisibleColumnIds()).containsExactly("column2");
+
+		value.setVisibleColumnIds(null);
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getVisibleColumnIds()).isNull();
 	}
 
 	@Test
 	public void whenUpdatingTableColumnWidthsThenValueUpdated() throws Exception {
-		// TODO::JOLA (P3)
+		String tableId = "tableId";
+		TableProperties value = new TableProperties(tableId);
+
+		value.setColumnWidth("column1", 111);
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		TableProperties valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column1", 111);
+
+		value.setColumnWidth("column1", 222);
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column1", 222);
+
+		value.setColumnWidth("column1", null);
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getColumnWidths()).isNull();
+
+		value.setColumnWidth("column1", 111);
+		value.setColumnWidth("column2", 222);
+		value.setColumnWidth("column3", 333);
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column1", 111);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column2", 222);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column3", 333);
+
+		value.setColumnWidth("column4", 444);
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column1", 111);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column2", 222);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column3", 333);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column4", 444);
+
+		value.setColumnWidth("column4", null);
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column1", 111);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column2", 222);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column3", 333);
+		assertThat(valueFromManager.getColumnWidths()).doesNotContainKey("column4");
+
+		assertThat(valueFromManager.getColumnWidth("column1")).isEqualTo(111);
+		assertThat(valueFromManager.getColumnWidth("column4")).isNull();
+
+
+		value.setColumnWidths(new HashMap<>());
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getColumnWidths()).isNull();
+
+		value.setColumnWidths(asMap("column1", 111, "column2", 222, "column3", 333));
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column1", 111);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column2", 222);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column3", 333);
+
+		value.setColumnWidths(asMap("column1", 444, "column4", 444));
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column1", 444);
+		assertThat(valueFromManager.getColumnWidths()).containsEntry("column4", 444);
+		assertThat(valueFromManager.getColumnWidth("column3")).isNull();
+
+		value.setColumnWidths(null);
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getColumnWidths()).isNull();
 	}
 
 	@Test
 	public void whenUpdatingTableSortThenValueUpdated() throws Exception {
-		// TODO::JOLA (P3)
+		String tableId = "tableId";
+		TableProperties value = new TableProperties(tableId);
+
+		value.setSortedColumnId("column1");
+		value.setSortedAscending(true);
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		TableProperties valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getSortedColumnId()).isEqualTo("column1");
+		assertThat(valueFromManager.getSortedAscending()).isTrue();
+
+		value.setSortedColumnId("column8");
+		value.setSortedAscending(false);
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getSortedColumnId()).isEqualTo("column8");
+		assertThat(valueFromManager.getSortedAscending()).isFalse();
+
+		value.setSortedColumnId(null);
+		value.setSortedAscending(null);
+		userConfigManager.setTablePropertiesValue(bob, tableId, value);
+
+		valueFromManager = userConfigManager.getTablePropertiesValue(bob, tableId);
+		assertThat(valueFromManager.getSortedColumnId()).isNull();
+		assertThat(valueFromManager.getSortedAscending()).isNull();
 	}
 }

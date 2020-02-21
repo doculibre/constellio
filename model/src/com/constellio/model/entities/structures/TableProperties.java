@@ -39,7 +39,12 @@ public class TableProperties implements ModifiableStructure {
 
 	public void setVisibleColumnIds(List<String> value) {
 		dirty = true;
-		visibleColumnIds = value;
+
+		if (value == null || value.isEmpty()) {
+			visibleColumnIds = null;
+		} else {
+			visibleColumnIds = value;
+		}
 	}
 
 	public Map<String, Integer> getColumnWidths() {
@@ -48,7 +53,12 @@ public class TableProperties implements ModifiableStructure {
 
 	public void setColumnWidths(Map<String, Integer> value) {
 		dirty = true;
-		columnWidths = value;
+
+		if (value == null || value.isEmpty()) {
+			columnWidths = null;
+		} else {
+			columnWidths = value;
+		}
 	}
 
 	public Integer getColumnWidth(String columnId) {
