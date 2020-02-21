@@ -3,7 +3,6 @@ package com.constellio.app.ui.pages.base;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.services.guide.GuideManager;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
@@ -341,8 +340,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		return getClass().getSimpleName();
 	}
 
-	//todo: move tout ça dans BasePresenter
-	public String getGuideUrl() {
+	//todo: somehow aller chercher getGuideUrl de BasePresenter a partir d'ici
+
+	/*public String getGuideUrl() {
+		return null;
+		/*return presenter.getGuideUrl();
 		GuideManager manager = new GuideManager(ConstellioUI.getCurrent().
 				getConstellioFactories()
 				.getAppLayerFactory()
@@ -351,8 +353,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		String language = ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage();
 		String field = "guide." + getClass().getSimpleName();
 		return manager.getPropertyValue(language, field);
-		//return $("guide." + getClass().getSimpleName());
-	}
+	}*/
+		/*
+		//return $("guide." + getClass().getSimpleName());*/
 
 	protected String getActionMenuBarCaption() {
 		return null;

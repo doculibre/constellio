@@ -5,6 +5,7 @@ import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.guide.GuideManager;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -79,6 +80,19 @@ public class MainLayoutPresenter implements Serializable {
 		} else {
 			return "";
 		}
+	}
+
+	protected String getGuideUrl() {
+		BaseView currentView = mainLayout.getHeader().getCurrentView();
+		if (currentView == null) {
+			return null;
+		}
+
+		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
+		GuideManager manager = new GuideManager(appLayerFactory.getModelLayerFactory().getDataLayerFactory());
+		String language = ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage();
+		String field = "guide." + currentView.getClass().getSimpleName();
+		return manager.getPropertyValue(language, field);
 	}
 
 	private String toPrintableVersion(String version) {

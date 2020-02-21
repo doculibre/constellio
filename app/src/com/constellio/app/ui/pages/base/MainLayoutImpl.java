@@ -129,7 +129,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				BaseViewImpl view = (BaseViewImpl) ConstellioUI.getCurrent().getViewChangeEvent().getNewView();
-				String guideUrl = view.getGuideUrl();
+				String guideUrl = presenter.getGuideUrl();
 				Page.getCurrent().open(guideUrl, "_blank", false);
 			}
 		};
@@ -218,7 +218,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 						dragAndDropWrapper.setDropHandler(userDocumentsWindow);
 					}
 				}
-				updateHelpButtonState((BaseViewImpl) newView);
+				updateHelpButtonState();
 				updateStaticFooterState();
 			}
 		});
@@ -274,8 +274,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		return staticFooterExtraComponentsLayoutEmpty;
 	}
 
-	private void updateHelpButtonState(BaseViewImpl view) {
-		String guideUrl = view.getGuideUrl();
+	private void updateHelpButtonState() {
+		String guideUrl = presenter.getGuideUrl();
 		boolean guideButtonVisible = StringUtils.isNotBlank(guideUrl);
 		guideButton.setVisible(guideButtonVisible);
 		guideButtonConfig.setVisible(true); //  userHasCorrectRole()

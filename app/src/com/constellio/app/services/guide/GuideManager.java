@@ -30,13 +30,14 @@ public class GuideManager implements StatefulService {
 
 	@Override
 	public void initialize() {
+	}
 		/*configManager.updateProperties(GUIDE_CONFIG_PATH, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
 				properties.put(TOKEN_DURATION, Integer.toString(TOKEN_DURATION_VALUE));
 			}
 		});*/
-	}
+
 
 	public void alterProperty(final String language, final String property, final String value) {
 		String path = GuideManager.GUIDE_CONFIG_PATH + getPropertyFile(language);
@@ -58,7 +59,7 @@ public class GuideManager implements StatefulService {
 
 	private String formatExternalUrl(String url) {
 		String PROTOCOL = "http://";
-		String urlRegex = "[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)";
+		String urlRegex = "[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)";    //copiée de stackoverflow... a vérifier
 		if (url.matches(urlRegex) && !url.startsWith(PROTOCOL)) {
 			url = PROTOCOL + url;
 		}
@@ -72,16 +73,13 @@ public class GuideManager implements StatefulService {
 		return FILENAME_PREFIX + "_" + language + "." + FILENAME_EXTENSION;
 	}
 
+	public Map<String, String> getAllUrls(final String language) {
+		String path = GuideManager.GUIDE_CONFIG_PATH + getPropertyFile(language);
+		return configManager.getProperties(language).getProperties();
+	}
+
 	@Override
 	public void close() {
 
 	}
-
-	public void setUrl() {
-
-		//String guideUrl = view.getGuideUrl();
-
-	}
-
-
 }

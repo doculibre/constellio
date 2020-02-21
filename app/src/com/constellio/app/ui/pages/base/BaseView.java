@@ -49,6 +49,7 @@ public interface BaseView extends ViewComponent {
 
 	void refreshActionMenu();
 
+
 	public interface ViewEnterListener extends Serializable {
 
 		void viewEntered(String params);
@@ -63,5 +64,4 @@ public interface BaseView extends ViewComponent {
 
 	}
 
-	String getGuideUrl();
 }
