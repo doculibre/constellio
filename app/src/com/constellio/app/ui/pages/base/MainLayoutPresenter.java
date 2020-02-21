@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class MainLayoutPresenter implements Serializable {
 
 	private MainLayout mainLayout;
@@ -87,12 +89,15 @@ public class MainLayoutPresenter implements Serializable {
 		if (currentView == null) {
 			return null;
 		}
-
 		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
 		GuideManager manager = new GuideManager(appLayerFactory.getModelLayerFactory().getDataLayerFactory());
 		String language = ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage();
 		String field = "guide." + currentView.getClass().getSimpleName();
-		return manager.getPropertyValue(language, field);
+		String url = manager.getPropertyValue(language, field);
+		if (url == null || url.isEmpty()) {
+			return $(field);
+		}
+		return url;
 	}
 
 	private String toPrintableVersion(String version) {

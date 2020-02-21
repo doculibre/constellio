@@ -8,6 +8,7 @@ import com.vaadin.ui.*;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.framework.components.BaseForm.SAVE_BUTTON;
@@ -23,6 +24,16 @@ todo:
  - faire le visuel
  */
 
+
+
+/*
+test cases
+
+default exists, custom exists 				-> use custom
+default exists, custom doesn't exist 		-> use default
+default doesn't exist, custom exists		-> use custom
+default doesn't exist, custom doesn'T exist	-> empty
+ */
 
 public class GuideConfigButton extends WindowButton {
 	private static String KEY_PREFIX = "guide.";
@@ -57,25 +68,52 @@ public class GuideConfigButton extends WindowButton {
 			String labelText = "Documentation en " + $("Language." + languageCode);
 			windowLayout.addComponent(new Label(labelText));
 
+			HorizontalLayout cellLayout = new HorizontalLayout();
 			TextField inputField = new TextField();
 			inputField.setId(languageCode);
 			inputField.setInputPrompt("url");
-			inputField.setWidth("500px");
+			inputField.setWidth("400px");
+			Locale locale = new Locale(languageCode);
 
-			String currentValue = getCurrentUrl(languageCode);
+			String currentValue = getCurrentUrl(locale);
 			if (currentValue != null) {
-				inputField.setValue(getCurrentUrl(languageCode));
+				inputField.setValue(currentValue);
+				inputField.setStyleName("");
 			}
-			windowLayout.addComponent(inputField);
+			cellLayout.setSpacing(true);
+			cellLayout.addComponent(inputField);
+			cellLayout.addComponent(buildResetButton(inputField, locale));
+
+			windowLayout.addComponent(cellLayout);
 		}
 		windowLayout.addComponent(buildButtonsLayout());
 		//windowLayout.addComponent(testBuildAllConfigButton());
 		return windowLayout;
 	}
 
-	private String getCurrentUrl(String languageCode) {
+	private Component buildResetButton(TextField inputField, Locale language) {
+		Button resetButton = new BaseButton() {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				inputField.setValue(getDefaultUrl(language));
+			}
+		};
+		resetButton.setCaption("Réinitialiser");
+		return resetButton;
+	}
+
+	private String getDefaultUrl(Locale locale) {
 		String fieldKey = generateGuideKey(ConstellioUI.getCurrent().getCurrentView());
-		return guideManager.getPropertyValue(languageCode, fieldKey);
+		return $(fieldKey, locale);
+	}
+
+	private String getCurrentUrl(Locale locale) {
+		String fieldKey = generateGuideKey(ConstellioUI.getCurrent().getCurrentView());
+		String customUrl = guideManager.getPropertyValue(locale.getLanguage(), fieldKey);
+		if (customUrl == null || customUrl.isEmpty()) {
+			return $(fieldKey, locale);
+		}
+		return customUrl;
 
 	}
 
@@ -96,7 +134,8 @@ public class GuideConfigButton extends WindowButton {
 				String guideKey = generateGuideKey(ConstellioUI.getCurrent().getCurrentView());
 				Map<String, String> newValues = getNewUrlValues();
 				for (String language : languages) {
-					guideManager.alterProperty(language, guideKey, newValues.get(language));
+					String newValue = newValues.get(language);
+					guideManager.alterProperty(language, guideKey, newValue);
 				}
 				getWindow().close();
 				refreshPage();
