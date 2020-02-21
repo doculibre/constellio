@@ -19,10 +19,11 @@ public class Email extends Document {
 	public static final String EMAIL_OBJECT = "emailObject";
 	//	public static final String EMAIL_AUTHOR = "emailAuthor";
 	public static final String EMAIL_COMPANY = "emailCompany";
-	public static final String EMAIL_CONTENT = "emailContent";
 	public static final String EMAIL_SENT_ON = "emailSentOn";
 	public static final String EMAIL_RECEIVED_ON = "emailReceivedOn";
 	public static final String SUBJECT_TO_BROADCAST_RULE = "subjectToBroadcastRule";
+	@Deprecated
+	public static final String EMAIL_CONTENT = "emailContent";
 
 	public Email(Record record,
 				 MetadataSchemaTypes types) {
