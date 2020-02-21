@@ -420,16 +420,23 @@ public class BorrowingServices {
 	}
 
 	public void validateCanReturnContainer(User currentUser, ContainerRecord containerRecord) {
+		boolean hasPermissionToReturnOtherUsersContainer = currentUser.has(RMPermissionsTo.RETURN_OTHER_USERS_CONTAINERS)
+				.on(containerRecord);
+		boolean hasPermissionToReturnOwnContainerDirectly = currentUser.has(RMPermissionsTo.BORROW_CONTAINER).on(containerRecord)
+															&& currentUser.has(RMPermissionsTo.BORROWING_CONTAINER_DIRECTLY).on(containerRecord);
+
 		if (currentUser.hasReadAccess().on(containerRecord)) {
-			if (containerRecord.getBorrowed() == null || !containerRecord.getBorrowed()) {
+			if (!Boolean.TRUE.equals(containerRecord.getBorrowed())) {
 				throw new BorrowingServicesRunTimeException_ContainerIsNotBorrowed(containerRecord.getId());
-			} else if (!currentUser.getUserRoles().contains(RGD) && !currentUser.getId()
+			} else if (!hasPermissionToReturnOtherUsersContainer && !currentUser.getId()
+					.equals(containerRecord.getBorrower())) {
+				throw new BorrowingServicesRunTimeException_UserNotAllowedToReturnContainer(currentUser.getUsername());
+			} else if (!hasPermissionToReturnOwnContainerDirectly && currentUser.getId()
 					.equals(containerRecord.getBorrower())) {
 				throw new BorrowingServicesRunTimeException_UserNotAllowedToReturnContainer(currentUser.getUsername());
 			}
 		} else {
-			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToContainer(currentUser.getUsername(),
-					containerRecord.getId());
+			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToContainer(currentUser.getUsername(), containerRecord.getId());
 		}
 	}
 
