@@ -82,7 +82,7 @@ public class UserConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		String filePath = userConfigManager.getFilePath(bob);
 		assertThat(configManager.getProperties(filePath)).isNotNull();
 
-		collectionManager.deleteCollection(anotherCollection);
+		collectionManager.deleteCollection(zeCollection);
 
 		assertThat(configManager.getProperties(filePath)).isNull();
 	}
