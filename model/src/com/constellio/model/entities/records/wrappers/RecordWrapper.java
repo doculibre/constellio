@@ -4,6 +4,7 @@ import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Record.GetMetadataOption;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.MetadataSchemaTypesMustBeNotNull;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.RecordWrapperRuntimeException_CannotUseDisconnectedRecordWrapper;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.WrappedRecordMustBeNotNull;
@@ -90,11 +91,11 @@ public class RecordWrapper implements Serializable, CollectionObject, Supplier<R
 		return value == null ? 0 : value.intValue();
 	}
 
-	public <T> T get(Metadata metadata) {
-		return wrappedRecord.get(metadata);
+	public <T> T get(Metadata metadata, GetMetadataOption... options) {
+		return wrappedRecord.get(metadata, options);
 	}
 
-	public <T> T get(String localCode) {
+	public <T> T get(String localCode, GetMetadataOption... options) {
 		ensureConnected();
 
 		if (localCode.contains("_")) {
@@ -102,14 +103,14 @@ public class RecordWrapper implements Serializable, CollectionObject, Supplier<R
 		}
 
 		Metadata metadata = types.getSchemaOf(wrappedRecord).getMetadata(localCode);
-		return wrappedRecord.get(metadata);
+		return wrappedRecord.get(metadata, options);
 	}
 
-	public <T> T get(Metadata metadata, Locale locale) {
-		return wrappedRecord.get(metadata, locale);
+	public <T> T get(Metadata metadata, Locale locale, GetMetadataOption... options) {
+		return wrappedRecord.get(metadata, locale, options);
 	}
 
-	public <T> T get(String localCode, Locale locale) {
+	public <T> T get(String localCode, Locale locale, GetMetadataOption... options) {
 		ensureConnected();
 
 		if (localCode.contains("_")) {
@@ -117,14 +118,16 @@ public class RecordWrapper implements Serializable, CollectionObject, Supplier<R
 		}
 
 		Metadata metadata = types.getSchemaOf(wrappedRecord).getMetadata(localCode);
-		return wrappedRecord.get(metadata, locale);
+		return wrappedRecord.get(metadata, locale, options);
 	}
 
-	public <T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
-		return wrappedRecord.get(metadata, locale, mode);
+	public <T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode,
+					 GetMetadataOption... options) {
+		return wrappedRecord.get(metadata, locale, mode, options);
 	}
 
-	public <T> T get(String localCode, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+	public <T> T get(String localCode, Locale locale, LocalisedRecordMetadataRetrieval mode,
+					 GetMetadataOption... options) {
 		ensureConnected();
 
 		if (localCode.contains("_")) {
@@ -132,7 +135,7 @@ public class RecordWrapper implements Serializable, CollectionObject, Supplier<R
 		}
 
 		Metadata metadata = types.getSchemaOf(wrappedRecord).getMetadata(localCode);
-		return wrappedRecord.get(metadata, locale, mode);
+		return wrappedRecord.get(metadata, locale, mode, options);
 	}
 
 	public <T> T getOriginal(String localCode) {

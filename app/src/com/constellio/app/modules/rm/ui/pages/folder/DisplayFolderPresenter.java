@@ -339,28 +339,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return summaryFolderVO.getId();
 	}
 
-	LogicalSearchQuery getDocumentsQuery() {
-
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		Folder folder = rm.getFolderSummary(summaryFolderVO.getId());
-		List<String> referencedDocuments = new ArrayList<>();
-		for (Metadata folderMetadata : folder.getSchema().getMetadatas().onlyReferencesToType(Document.SCHEMA_TYPE)) {
-			referencedDocuments.addAll(folder.getWrappedRecord().<String>getValues(folderMetadata));
-		}
-
-		LogicalSearchCondition condition = from(rm.document.schemaType()).where(rm.document.folder()).is(folder);
-
-		if (!referencedDocuments.isEmpty()) {
-			condition = condition.orWhere(Schemas.IDENTIFIER).isIn(referencedDocuments);
-		}
-
-		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.filteredWithUser(getCurrentUser());
-		query.filteredByStatus(StatusFilter.ACTIVES);
-		query.sortAsc(Schemas.TITLE);
-		return query;
-	}
-
 	private LogicalSearchQuery getFolderContentQuery() {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Folder folder = rm.getFolderSummary(summaryFolderVO.getId());
@@ -433,12 +411,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private void addSortCriteriaForFolderContentQuery(LogicalSearchQuery query) {
 		if (sortCriterion == null) {
+			query.setSkipSortingOverRecordSize(50);
 			if (sortOrder == SortOrder.ASCENDING) {
 				query.sortAsc(Schemas.TITLE);
 			} else {
 				query.sortDesc(Schemas.TITLE);
 			}
 		} else {
+			query.setSkipSortingOverRecordSize(-1);
 			Metadata metadata = getMetadata(sortCriterion);
 			if (sortOrder == SortOrder.ASCENDING) {
 				query.sortAsc(metadata);

@@ -149,7 +149,7 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 	RecordDTO getRecordDTO();
 
 	enum GetMetadataOption {
-		NO_SUMMARY_METADATA_VALIDATION;
+		NO_SUMMARY_METADATA_VALIDATION, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE;
 	}
 
 }

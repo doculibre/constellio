@@ -91,6 +91,11 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 			return RecordUtils.toStringId(id);
 		}
 
+		//		@Override
+		//		public RecordId getRecordId() {
+		//			return new IntegerRecordId(id);
+		//		}
+
 		@Override
 		public long heapMemoryConsumption() {
 			return 0;
@@ -141,6 +146,12 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 			this.mainSortValue = mainSortValue;
 			this.id = id;
 		}
+
+
+		//		@Override
+		//		public RecordId getRecordId() {
+		//			return new StringRecordId(id);
+		//		}
 
 		public ByteArrayRecordDTOWithStringId setMainSortValue(int mainSortValue) {
 			this.mainSortValue = mainSortValue;
@@ -244,7 +255,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		}
 
 		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-		return CacheRecordDTOUtils.readMetadata(getId(), data, schema, (String) key, this);
+		return CacheRecordDTOUtils.readMetadata(data, schema, (String) key, this);
 	}
 
 	@Nullable
@@ -282,7 +293,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	@Override
 	public Collection<Object> values() {
 		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-		Set<Object> values = CacheRecordDTOUtils.getStoredValues(getId(), data, schema, this);
+		Set<Object> values = CacheRecordDTOUtils.getStoredValues(data, schema, this);
 		values.add(getCollection());
 		values.add(getSchemaCode());
 		return values;
@@ -293,7 +304,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	public Set<Entry<String, Object>> entrySet() {
 
 		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-		Set<Entry<String, Object>> entries = CacheRecordDTOUtils.toEntrySet(getId(), data, schema, this);
+		Set<Entry<String, Object>> entries = CacheRecordDTOUtils.toEntrySet(data, schema, this);
 
 		entries.add(new SimpleEntry("collection_s", getCollection()));
 		entries.add(new SimpleEntry("schema_s", getSchemaCode()));

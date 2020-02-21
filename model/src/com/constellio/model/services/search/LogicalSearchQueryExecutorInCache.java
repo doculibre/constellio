@@ -111,10 +111,12 @@ public class LogicalSearchQueryExecutorInCache {
 
 		if (!query.getSortFields().isEmpty()) {
 			List<Record> records = consummeAndSort(stream, query, schemaType);
-			records.sort(newQuerySortFieldsComparator(query, schemaType));
+			if (query.getSkipSortingOverRecordSize() == -1 || records.size() <= query.getSkipSortingOverRecordSize()) {
+				records.sort(newQuerySortFieldsComparator(query, schemaType));
+			}
+
 			return records.stream();
 
-			//return stream.sorted();
 		} else {
 			return stream;
 		}
@@ -158,16 +160,19 @@ public class LogicalSearchQueryExecutorInCache {
 			Record record = iterator.next();
 			records.add(record);
 
-			if (records.size() > recordsLimit) {
-				throw new LogicalSearchQueryExecutionCancelledException("Too much records to sort, max limit of " + recordsLimit);
-			}
+			if (query.getSkipSortingOverRecordSize() == -1) {
 
-			if (usingMainSort) {
-				if (record.getRecordDTO().getMainSortValue() == RecordDTO.MAIN_SORT_UNDEFINED) {
-					recordsCountWithoutSortValue++;
+				if (records.size() > recordsLimit) {
+					throw new LogicalSearchQueryExecutionCancelledException("Too much records to sort, max limit of " + recordsLimit);
+				}
 
-					if (recordsCountWithoutSortValue > NORMALIZED_SORTS_THRESHOLD) {
-						throw new LogicalSearchQueryExecutionCancelledException("Too much records without sort value to sort, max limit of " + NORMALIZED_SORTS_THRESHOLD);
+				if (usingMainSort) {
+					if (record.getRecordDTO().getMainSortValue() == RecordDTO.MAIN_SORT_UNDEFINED) {
+						recordsCountWithoutSortValue++;
+
+						if (recordsCountWithoutSortValue > NORMALIZED_SORTS_THRESHOLD) {
+							throw new LogicalSearchQueryExecutionCancelledException("Too much records without sort value to sort, max limit of " + NORMALIZED_SORTS_THRESHOLD);
+						}
 					}
 				}
 			}

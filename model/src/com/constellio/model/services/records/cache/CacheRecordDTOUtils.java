@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -227,8 +226,8 @@ public class CacheRecordDTOUtils {
 		bytes[2] = (byte) ((dateValue & ((short) 0x7f)));
 	}
 
-	public static <T> T readMetadata(String recordId, byte[] byteArray, MetadataSchema schema, String metadataLocalCode,
-									 Supplier<byte[]> persistedByteArraySupplier) {
+	public static <T> T readMetadata(byte[] byteArray, MetadataSchema schema, String metadataLocalCode,
+									 ByteArrayRecordDTO byteArrayRecordDTO) {
 		Metadata metadataSearched = schema.getMetadataByDatastoreCode(metadataLocalCode);
 
 		byte[] byteArrayToSearchIn;
@@ -243,14 +242,14 @@ public class CacheRecordDTOUtils {
 			if (Toggle.COUNT_CACHE_FILESYSTEM_METADATA_USAGE.isEnabled()) {
 				filesystemStoredMetadataUsageCounter.increment(metadataSearched.getNoInheritanceCode());
 			}
-			byteArrayToSearchIn = persistedByteArraySupplier.get();
+			byteArrayToSearchIn = byteArrayRecordDTO.get();
 
 		} else {
 			byteArrayToSearchIn = byteArray;
 		}
 
 		MetadataValuePositionInByteArray metadataValuePositionInByteArray = getMetadataValuePosition(byteArrayToSearchIn, metadataSearched.getId());
-		return parseValueMetadata(recordId, byteArrayToSearchIn, metadataSearched, metadataValuePositionInByteArray);
+		return parseValueMetadata(byteArrayRecordDTO, byteArrayToSearchIn, metadataSearched, metadataValuePositionInByteArray);
 	}
 
 
@@ -290,8 +289,8 @@ public class CacheRecordDTOUtils {
 		return storedMetadatas;
 	}
 
-	public static Set<Object> getStoredValues(String recordId, byte[] byteArray, MetadataSchema schema,
-											  Supplier<byte[]> persistedByteArraySupplier) {
+	public static Set<Object> getStoredValues(byte[] byteArray, MetadataSchema schema,
+											  ByteArrayRecordDTO byteArrayRecordDTO) {
 		Set<Object> storedValues = new HashSet<>();
 
 		// *(2+2) for the bytes taken by the id and in dex of each metadata and +2 to skip the metadatasSizeToKeepInMemory and the start of the array
@@ -306,7 +305,7 @@ public class CacheRecordDTOUtils {
 			byte[] byteArrayToUse;
 			MetadataValuePositionInByteArray metadataValuePositionInByteArray;
 			if (isMetatadataPersisted(metadataSearched)) {
-				byteArrayToUse = persistedByteArraySupplier.get();
+				byteArrayToUse = byteArrayRecordDTO.get();
 				metadataValuePositionInByteArray = getMetadataValuePosition(byteArrayToUse, id);
 			} else {
 				byteArrayToUse = byteArray;
@@ -314,15 +313,15 @@ public class CacheRecordDTOUtils {
 			}
 
 			// inclusiveStartIndex & exclusiveEndIndex are needed to know where to start and stop parsing the value
-			storedValues.add(parseValueMetadata(recordId, byteArrayToUse, metadataSearched, metadataValuePositionInByteArray));
+			storedValues.add(parseValueMetadata(byteArrayRecordDTO, byteArrayToUse, metadataSearched, metadataValuePositionInByteArray));
 			i += valueIndex.length;
 		}
 
 		return storedValues;
 	}
 
-	public static Set<Entry<String, Object>> toEntrySet(String recordId, byte[] byteArray, MetadataSchema schema,
-														Supplier<byte[]> persistedByteArraySupplier) {
+	public static Set<Entry<String, Object>> toEntrySet(byte[] byteArray, MetadataSchema schema,
+														ByteArrayRecordDTO byteArrayRecordDTO) {
 		Set<Entry<String, Object>> metadatasEntrySet = new HashSet<>();
 
 		short headerBytesSize = headerSizeOf(byteArray);
@@ -337,7 +336,7 @@ public class CacheRecordDTOUtils {
 			byte[] byteArrayToUse;
 			MetadataValuePositionInByteArray metadataValuePositionInByteArray;
 			if (isMetatadataPersisted(metadataSearched)) {
-				byteArrayToUse = persistedByteArraySupplier.get();
+				byteArrayToUse = byteArrayRecordDTO.get();
 				metadataValuePositionInByteArray = getMetadataValuePosition(byteArrayToUse, id);
 			} else {
 				byteArrayToUse = byteArray;
@@ -345,7 +344,7 @@ public class CacheRecordDTOUtils {
 			}
 
 			metadatasEntrySet.add(new SimpleEntry(metadataSearched.getDataStoreCode(),
-					parseValueMetadata(recordId, byteArrayToUse, metadataSearched, metadataValuePositionInByteArray)));
+					parseValueMetadata(byteArrayRecordDTO, byteArrayToUse, metadataSearched, metadataValuePositionInByteArray)));
 			i += valueIndex.length;
 		}
 
@@ -415,7 +414,8 @@ public class CacheRecordDTOUtils {
 	}
 
 
-	private static <T> T parseValueMetadata(String recordId, byte[] byteArray, Metadata metadataSearched,
+	private static <T> T parseValueMetadata(ByteArrayRecordDTO byteArrayRecordDTO, byte[] byteArray,
+											Metadata metadataSearched,
 											MetadataValuePositionInByteArray positionInByteArray) {
 
 		int metadataSearchedIndex = positionInByteArray.inclusiveStartIndex;
@@ -449,7 +449,7 @@ public class CacheRecordDTOUtils {
 				}
 
 			} catch (Throwable t) {
-				SystemLogger.error("Could not parse value of metadata '" + metadataSearched.getLocalCode() + "' of record '" + recordId + "'", t);
+				SystemLogger.error("Could not parse value of metadata '" + metadataSearched.getLocalCode() + "' of record '" + byteArrayRecordDTO.getId() + "'", t);
 				return (T) new ArrayList<>();
 			}
 
@@ -481,7 +481,7 @@ public class CacheRecordDTOUtils {
 					}
 				}
 			} catch (Throwable t) {
-				SystemLogger.error("Could not parse value of metadata '" + metadataSearched.getLocalCode() + "' of record '" + recordId + "'", t);
+				SystemLogger.error("Could not parse value of metadata '" + metadataSearched.getLocalCode() + "' of record '" + byteArrayRecordDTO.getId() + "'", t);
 				return null;
 			}
 			return null;
@@ -768,7 +768,7 @@ public class CacheRecordDTOUtils {
 
 	private static String formatToId(int id) {
 		// rebuild the id to have have the right length (ex: 8 -> "00000000008")
-		return RecordId.toId(id).toString();
+		return RecordId.toId(id).stringValue();
 	}
 
 	private static Boolean parseBooleanFromByteArray(byte[] byteArray, int startingIndex) {

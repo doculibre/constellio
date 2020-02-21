@@ -587,7 +587,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public Record toRecord(MetadataSchemaType schemaType, RecordDTO recordDTO, boolean allFields) {
 		String collection = (String) recordDTO.getFields().get("collection_s");
 		CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
-		Record record = new RecordImpl(recordDTO, collectionInfo, schemaType.getId());
+		Record record = new RecordImpl(recordDTO, collectionInfo, schemaType.getId(), recordDTO.getSchemaCode());
 
 		if (schemaType.hasEagerTransientMetadata()) {
 			Transaction tx = new Transaction("temp");

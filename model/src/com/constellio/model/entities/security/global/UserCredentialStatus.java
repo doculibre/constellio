@@ -11,6 +11,28 @@ public enum UserCredentialStatus implements EnumWithSmallCode {
 		this.code = code;
 	}
 
+	public static UserCredentialStatus fastConvert(String value) {
+		if (value == null) {
+			return null;
+		}
+		switch (value) {
+			case "a":
+				return UserCredentialStatus.ACTIVE;
+
+			case "p":
+				return UserCredentialStatus.PENDING;
+
+			case "s":
+				return UserCredentialStatus.SUSPENDED;
+
+			case "d":
+				return UserCredentialStatus.DELETED;
+
+			default:
+				throw new IllegalArgumentException("Unsupported value : " + value);
+		}
+	}
+
 	public String getCode() {
 		return code;
 	}

@@ -6,7 +6,6 @@ import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.SecurityModel;
-import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -22,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.model.entities.records.Record.GetMetadataOption.DIRECT_GET_FROM_DTO;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.RARELY_HAS_VALUE;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
@@ -35,6 +36,12 @@ public class UserAuthorizationsUtils {
 
 	public static boolean containsAnyUserGroupTokens(User user, Record record, String role) {
 
+		List<String> tokens = record.getList(TOKENS, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE);
+
+		if (tokens.isEmpty()) {
+			return false;
+		}
+
 		String prefix;
 
 		if (READ.equals(role)) {
@@ -46,8 +53,6 @@ public class UserAuthorizationsUtils {
 		} else {
 			prefix = role;
 		}
-
-		List<String> tokens = record.getList(TOKENS);
 
 		if (tokens.contains(prefix + user.getId())) {
 			return true;
@@ -64,6 +69,15 @@ public class UserAuthorizationsUtils {
 
 	public static boolean containsNoNegativeUserGroupTokens(User user, Record record, String role) {
 
+		if (user.getRolesDetails().getSecurityModel().hasNoNegativeAuth()) {
+			return true;
+		}
+
+		List<String> tokens = record.getList(TOKENS, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE);
+		if (tokens.isEmpty()) {
+			return true;
+		}
+
 		List<String> negativeTokensToCheck = Collections.emptyList();
 
 		if (READ.equals(role)) {
@@ -75,8 +89,6 @@ public class UserAuthorizationsUtils {
 		} else if (DELETE.equals(role)) {
 			negativeTokensToCheck = asList("nr_", "nd_");
 		}
-
-		List<String> tokens = record.getList(TOKENS);
 
 		for (String negativeTokenToCheck : negativeTokensToCheck) {
 			if (tokens.contains(negativeTokenToCheck + user.getId())) {
@@ -105,6 +117,10 @@ public class UserAuthorizationsUtils {
 	}
 
 	public static interface AuthorizationDetailsFilter {
+
+		default int getCacheKey() {
+			return -1;
+		}
 
 		boolean isIncluded(Authorization details);
 
@@ -162,6 +178,11 @@ public class UserAuthorizationsUtils {
 	public static AuthorizationDetailsFilter READ_ACCESS = new AuthorizationDetailsFilter() {
 
 		@Override
+		public int getCacheKey() {
+			return 0;
+		}
+
+		@Override
 		public boolean isIncluded(Authorization details) {
 			return details.getRoles().contains(READ) || details.getRoles().contains(WRITE) || details.getRoles().contains(DELETE);
 		}
@@ -172,6 +193,11 @@ public class UserAuthorizationsUtils {
 	}
 
 	public static AuthorizationDetailsFilter WRITE_ACCESS = new AuthorizationDetailsFilter() {
+
+		@Override
+		public int getCacheKey() {
+			return 1;
+		}
 
 		@Override
 		public boolean isIncluded(Authorization details) {
@@ -270,17 +296,10 @@ public class UserAuthorizationsUtils {
 															   boolean includeSpecifics,
 															   AuthorizationDetailsFilter filter) {
 
-		KeySetMap<String, String> tokens = new KeySetMap<>();
 
 		SecurityModel securityModel = user.getRolesDetails().getSecurityModel();
-		for (SecurityModelAuthorization auth : securityModel.getAuthorizationsToPrincipal(user.getId(), true)) {
-			if (auth.getDetails().isActiveAuthorization() && filter.isIncluded(auth.getDetails())
-				&& (!Authorization.isSecurableSchemaType(auth.getDetails().getTargetSchemaType()) || includeSpecifics)) {
-				tokens.add(auth.getDetails().getTarget(), auth.getDetails().getId());
-			}
-		}
+		return securityModel.retrieveUserTokens(user, includeSpecifics, filter);
 
-		return tokens;
 	}
 
 
@@ -321,8 +340,9 @@ public class UserAuthorizationsUtils {
 		KeySetMap<String, String> tokens = retrieveUserTokens(user, true, filter);
 
 		//if (record.getRecordDTOMode() == RecordDTOMode.SUMMARY) {
-		List<Integer> attachedAncestorsIntIDs = record.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS);
-		List<String> allRemovedAuths = record.<String>getList(Schemas.ALL_REMOVED_AUTHS);
+
+		List<Integer> attachedAncestorsIntIDs = record.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS, DIRECT_GET_FROM_DTO);
+		List<String> allRemovedAuths = record.getList(Schemas.ALL_REMOVED_AUTHS, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE);
 
 		for (Map.Entry<String, Set<String>> token : tokens.getMapEntries()) {
 			if (attachedAncestorsIntIDs.contains(RecordId.toId(token.getKey()).intValue())) {

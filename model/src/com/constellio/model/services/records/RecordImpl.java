@@ -54,7 +54,9 @@ import java.util.Set;
 
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.DIRECT_GET_FROM_DTO;
 import static com.constellio.model.entities.records.Record.GetMetadataOption.NO_SUMMARY_METADATA_VALIDATION;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.RARELY_HAS_VALUE;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
@@ -69,7 +71,7 @@ public class RecordImpl implements Record {
 	protected Map<String, Object> modifiedValues = new HashMap<String, Object>();
 	private Record unmodifiableCopyOfOriginalRecord;
 	private String schemaCode;
-	private String schemaTypeCode;
+	private String lazySchemaTypeCode;
 	private final String collection;
 	private final String id;
 	private long version;
@@ -94,7 +96,7 @@ public class RecordImpl implements Record {
 
 		this.id = id;
 		this.schemaCode = schema.getCode();
-		this.schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
+		this.lazySchemaTypeCode = schema.getSchemaType().getCode();
 		this.version = -1;
 		this.recordDTO = null;
 		this.collectionInfo = schema.getCollectionInfo();
@@ -135,7 +137,16 @@ public class RecordImpl implements Record {
 		}
 
 		this.recordDTO = recordDTO;
-		this.schemaTypeCode = schemaCode == null ? null : SchemaUtils.getSchemaTypeCode(schemaCode);
+		this.collectionInfo = collectionInfo;
+	}
+
+	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, short typeId, String schemaCode) {
+		this.id = recordDTO.getId();
+		this.typeId = typeId;
+		this.version = recordDTO.getVersion();
+		this.schemaCode = schemaCode;
+		this.collection = collectionInfo.getCode();
+		this.recordDTO = recordDTO;
 		this.collectionInfo = collectionInfo;
 	}
 
@@ -262,7 +273,7 @@ public class RecordImpl implements Record {
 		if (code.startsWith("global_default")) {
 			return;
 		}
-		if (!code.startsWith(schemaCode) && !code.startsWith(schemaTypeCode + "_default")) {
+		if (!code.startsWith(schemaCode) && !code.startsWith(getTypeCode() + "_default")) {
 			throw new InvalidMetadata(code);
 		}
 
@@ -393,6 +404,31 @@ public class RecordImpl implements Record {
 
 	private <T> T get(Metadata metadata, String language, LocalisedRecordMetadataRetrieval mode,
 					  GetMetadataOption... options) {
+
+
+		if (recordDTO != null) {
+			boolean directGetFromDTO = false;
+			boolean rarelyHasValue = false;
+			for (GetMetadataOption option : options) {
+
+				if (option == DIRECT_GET_FROM_DTO) {
+					directGetFromDTO = true;
+				}
+				if (option == RARELY_HAS_VALUE) {
+					rarelyHasValue = true;
+				}
+			}
+
+			if (directGetFromDTO) {
+				//These fields is used A LOT!
+				if (rarelyHasValue && !recordDTO.getFields().containsKey(metadata.getDataStoreCode())) {
+					return null;
+				}
+
+				return (T) recordDTO.getFields().get(metadata.getDataStoreCode());
+
+			}
+		}
 
 		if (metadata == null) {
 			throw new RecordRuntimeException.RequiredMetadataArgument();
@@ -682,7 +718,10 @@ public class RecordImpl implements Record {
 
 	@Override
 	public String getTypeCode() {
-		return schemaTypeCode;
+		if (lazySchemaTypeCode == null) {
+			this.lazySchemaTypeCode = schemaCode == null ? null : SchemaUtils.getSchemaTypeCode(schemaCode);
+		}
+		return lazySchemaTypeCode;
 	}
 
 	public RecordDTO getRecordDTO() {

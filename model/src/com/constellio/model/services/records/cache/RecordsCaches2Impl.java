@@ -497,7 +497,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	@Override
 	public Stream<Record> stream(MetadataSchemaType type) {
-		return memoryDataStore.stream(type.getCollectionInfo().getCollectionId(), type.getId()).map(this::toRecord);
+		return memoryDataStore.stream(type.getCollectionInfo().getCollectionId(), type.getId())
+				.map(dto -> toRecord(type, dto));
 	}
 
 
@@ -593,20 +594,14 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				return Stream.of(record);
 			}
 		}
-		//if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-		List<String> potentialIds = metadataIndexCacheDataStore.search(schemaType, metadata, value);
+		List<RecordId> potentialIds = metadataIndexCacheDataStore.searchIds(schemaType, metadata, value);
 
 		if (potentialIds != null && !potentialIds.isEmpty()) {
-			return potentialIds.stream().map((id) -> {
-				return toRecord(schemaType, memoryDataStore.get(id));
-			}).filter((r) -> r != null && metadata.isMultivalue() ? r.getList(metadata).contains(value) : value.equals(r.get(metadata)));
+			return potentialIds.stream().map((id) -> toRecord(schemaType, memoryDataStore.get(id))).filter((r) -> r != null && metadata.isMultivalue() ? r.getList(metadata).contains(value) : value.equals(r.get(metadata)));
 		} else {
 			return Stream.empty();
 		}
 
-		//		} else {
-		//			throw new ImpossibleRuntimeException("getByMetadata cannot be used for schema type '" + schemaType.getCode() + "' which is not fully cached. If the schema type has a summary cache, try using getSummaryByMetadata instead");
-		//		}
 	}
 
 

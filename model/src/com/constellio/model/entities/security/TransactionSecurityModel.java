@@ -1,9 +1,12 @@
 package com.constellio.model.entities.security;
 
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.AuthorizationDetailsFilter;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.security.roles.Roles;
@@ -193,6 +196,17 @@ public class TransactionSecurityModel implements SecurityModel {
 	@Override
 	public List<String> getGroupsGivingAccessToUser(String userId) {
 		return nestedSecurityModel.getGroupsGivingAccessToUser(userId);
+	}
+
+	@Override
+	public KeySetMap<String, String> retrieveUserTokens(User user, boolean includeSpecifics,
+														AuthorizationDetailsFilter filter) {
+		return nestedSecurityModel.computeRetrieveUserTokens(user, includeSpecifics, filter);
+	}
+
+	@Override
+	public boolean hasNoNegativeAuth() {
+		return false;
 	}
 
 

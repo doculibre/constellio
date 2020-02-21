@@ -11,7 +11,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_PARSING;
@@ -37,7 +36,7 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 		if (dataStoreFields == null) {
 			this.dataStoreFields = null;
 		} else {
-			this.dataStoreFields = Collections.unmodifiableList((List<DataStoreField>) dataStoreFields);
+			this.dataStoreFields = (List<DataStoreField>) dataStoreFields;
 		}
 		this.metadataLogicalOperator = metadataLogicalOperator;
 		this.valueCondition = valueCondition;
@@ -214,7 +213,8 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 		}
 
 		if (queryingTypesInSummaryCache) {
-			for (DataStoreField queriedField : dataStoreFields) {
+			for (int i = 0; i < dataStoreFields.size(); i++) {
+				DataStoreField queriedField = dataStoreFields.get(i);
 				Metadata metadata = (Metadata) queriedField;
 				if (!isSummary(metadata) && !metadata.isSameLocalCodeThanAny(MARKED_FOR_REINDEXING, MARKED_FOR_PREVIEW_CONVERSION, MARKED_FOR_PARSING) && !metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
 					if (requiringExecutionMethod) {
