@@ -11,6 +11,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.security.AuthorizationsServices;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class FolderRecordActionsServices {
 	private String collection;
 	private RecordServices recordServices;
 	private BorrowingServices borrowingServices;
+	private AuthorizationsServices authorizationsServices;
 
 	public FolderRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -32,6 +34,7 @@ public class FolderRecordActionsServices {
 		borrowingServices = new BorrowingServices(collection, appLayerFactory.getModelLayerFactory());
 		extensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		authorizationsServices = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 	}
 
 	public boolean isAddDocumentActionPossible(Record record, User user) {
@@ -190,7 +193,31 @@ public class FolderRecordActionsServices {
 			(isNotBlank(folder.getLegacyId()) && !user.has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(folder))) {
 			return false;
 		}
-		return rmModuleExtensions.isShareActionPossibleOnFolder(rm.wrapFolder(record), user);
+		return !authorizationsServices.itemIsSharedByUser(record, user) && rmModuleExtensions.isShareActionPossibleOnFolder(rm.wrapFolder(record), user);
+	}
+
+	public boolean isModifyShareActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		if (!hasUserWriteAccess(record, user) || !user.has(RMPermissionsTo.SHARE_FOLDER).on(folder) ||
+			(folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder)) ||
+			(folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder)) ||
+			(record.isLogicallyDeleted()) ||
+			(isNotBlank(folder.getLegacyId()) && !user.has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(folder))) {
+			return false;
+		}
+		return authorizationsServices.itemIsSharedByUser(record, user) && rmModuleExtensions.isShareActionPossibleOnFolder(rm.wrapFolder(record), user);
+	}
+
+	public boolean isUnshareActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		if (!hasUserWriteAccess(record, user) || !user.has(RMPermissionsTo.SHARE_FOLDER).on(folder) ||
+			(folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder)) ||
+			(folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder)) ||
+			(record.isLogicallyDeleted()) ||
+			(isNotBlank(folder.getLegacyId()) && !user.has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(folder))) {
+			return false;
+		}
+		return authorizationsServices.itemIsSharedByUser(record, user) && rmModuleExtensions.isShareActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	public boolean isAddToCartActionPossible(Record record, User user) {

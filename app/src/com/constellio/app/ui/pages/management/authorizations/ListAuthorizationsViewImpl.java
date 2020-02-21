@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -21,6 +22,7 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ShareContentListViewImpl.AddFolderShareButton;
+import com.constellio.app.ui.pages.management.publish.PublishDocumentTable;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -71,6 +73,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	protected VerticalLayout layout;
 	private Table authorizations;
 	private Table authorizationsReceivedFromMetadatas;
+	private Table globalLinks;
 	private Button detach;
 	private boolean isViewReadOnly;
 
@@ -167,6 +170,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			buildOwnAuthorizations(layout);
 		} else {
 			buildSharedAuthorizations(layout);
+			buildGlobalLinks(layout);
 		}
 		return layout;
 	}
@@ -186,6 +190,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			detach.setEnabled(presenter.isAttached());
 		} else {
 			buildSharedAuthorizations(layout);
+			buildGlobalLinks(layout);
 		}
 	}
 
@@ -224,6 +229,17 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			label.addStyleName(ValoTheme.LABEL_H2);
 			authorizations = buildAuthorizationTable(presenter.getSharedAuthorizations(), AuthorizationSource.SHARED);
 			layout.addComponents(label, authorizations);
+		}
+	}
+
+	private void buildGlobalLinks(VerticalLayout layout) {
+		if (presenter.seeSharedBy()) {
+			Label label = new Label();
+			label.setValue($("ListContentShareView.globalLinks", record.getTitle()));
+
+			label.addStyleName(ValoTheme.LABEL_H2);
+			globalLinks = buildDocumentTable(presenter.getPublishedDocuments());
+			layout.addComponents(label, globalLinks);
 		}
 	}
 
@@ -296,11 +312,27 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		return table;
 	}
 
+	private Table buildDocumentTable(List<DocumentVO> documentVOS) {
+		Container container = buildDocumentContainer(documentVOS);
+		String tableCaption = $("ListContentShareView.nombreGlobalLinks", container.size());
+
+		Table table = new BaseTable(getClass().getName(), tableCaption, container);
+		table.setPageLength(container.size());
+		table.addStyleName(AUTHORIZATIONS);
+		new PublishDocumentTable(getSessionContext().getCurrentLocale()).attachTo(table, presenter.isRecordNotATaxonomyConcept());
+		return table;
+	}
+
 	private Container buildAuthorizationContainer(List<AuthorizationVO> authorizationVOs, AuthorizationSource source) {
 		BeanItemContainer<AuthorizationVO> authorizations = new BeanItemContainer<>(AuthorizationVO.class, authorizationVOs);
 		return source == AuthorizationSource.OWN || source == AuthorizationSource.SHARED ?
 			   addButtons(authorizations, source == AuthorizationSource.INHERITED) :
 			   authorizations;
+	}
+
+	private Container buildDocumentContainer(List<DocumentVO> documentVOS) {
+		BeanItemContainer<DocumentVO> documents = new BeanItemContainer<>(DocumentVO.class, documentVOS);
+		return addButtonDocument(documents, true);
 	}
 
 	private Container addButtons(BeanItemContainer<AuthorizationVO> authorizations, final boolean inherited) {
@@ -337,6 +369,31 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 					}
 				};
 				deleteButton.setVisible(inherited || !authorization.isSynched());
+				return deleteButton;
+			}
+		});
+		return container;
+	}
+
+	private Container addButtonDocument(BeanItemContainer<DocumentVO> documents, final boolean inherited) {
+		ButtonsContainer container = new ButtonsContainer<>(documents, Authorizations.BUTTONS);
+
+		container.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				final DocumentVO document = (DocumentVO) itemId;
+				DeleteButton deleteButton = new DeleteButton() {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.unpublish(document);
+					}
+
+					@Override
+					public boolean isVisible() {
+						return super.isVisible() && !isViewReadOnly();
+					}
+				};
+				deleteButton.setVisible(inherited);
 				return deleteButton;
 			}
 		});
@@ -524,8 +581,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				table.addGeneratedColumn(PRINCIPALS, this);
 				table.setColumnHeader(PRINCIPALS, $("AuthorizationsView.principals"));
 				primary = PRINCIPALS;
-			}
-			else{
+			} else {
 				table.addGeneratedColumn(PRINCIPALS, this);
 				table.setColumnHeader(PRINCIPALS, $("AuthorizationsView.principals"));
 				primary = PRINCIPALS;

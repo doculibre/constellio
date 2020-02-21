@@ -35,6 +35,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GENERATE_REPORT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GET_PUBLIC_LINK;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_MANAGE_AUTHORIZATIONS;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_MODIFY_SHARE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_OPEN;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PRINT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PUBLISH;
@@ -253,10 +254,19 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
+		if (!filteredActionTypes.contains(DOCUMENT_MODIFY_SHARE.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_MODIFY_SHARE.name(),
+					isMenuItemActionPossible(DOCUMENT_UNSHARE.name(), document, user, params),
+					$("DocumentContextMenu.modifyShareDocument"), FontAwesome.PAPER_PLANE_O, -1, 2100,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).modifyShare(document, params));
+
+			menuItemActions.add(menuItemAction);
+		}
+
 		if (!filteredActionTypes.contains(DOCUMENT_UNSHARE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_UNSHARE.name(),
 					isMenuItemActionPossible(DOCUMENT_UNSHARE.name(), document, user, params),
-					$("DocumentContextMenu.unshareDocument"), FontAwesome.REPLY, -1, 2100,
+					$("DocumentContextMenu.unshareDocument"), FontAwesome.REPLY, -1, 2200,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).unshare(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -265,7 +275,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_MANAGE_AUTHORIZATIONS.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_MANAGE_AUTHORIZATIONS.name(),
 					isMenuItemActionPossible(DOCUMENT_MANAGE_AUTHORIZATIONS.name(), document, user, params),
-					$("DocumentContextMenu.manageAuthorizations"), FontAwesome.KEY, -1, 2200,
+					$("DocumentContextMenu.manageAuthorizations"), FontAwesome.KEY, -1, 2300,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).manageAuthorizations(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -274,7 +284,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_GENERATE_REPORT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_GENERATE_REPORT.name(),
 					isMenuItemActionPossible(DOCUMENT_GENERATE_REPORT.name(), document, user, params),
-					$("DocumentContextMenu.ReportGeneratorButton"), FontAwesome.LIST_ALT, -1, 2300,
+					$("DocumentContextMenu.ReportGeneratorButton"), FontAwesome.LIST_ALT, -1, 2400,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).reportGeneratorButton(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -336,7 +346,9 @@ public class DocumentMenuItemServices {
 			case DOCUMENT_ADD_AUTHORIZATION:
 				return documentRecordActionsServices.isAddAuthorizationActionPossible(record, user);
 			case DOCUMENT_UNSHARE:
-				return documentRecordActionsServices.isRemoveAuthorizationActionPossible(record,user);
+				return documentRecordActionsServices.isUnshareActionPossible(record, user);
+			case DOCUMENT_MODIFY_SHARE:
+				return documentRecordActionsServices.isModifyShareActionPossible(record, user);
 			case DOCUMENT_MANAGE_AUTHORIZATIONS:
 				return documentRecordActionsServices.isManageAuthorizationActionPossible(record, user);
 			case DOCUMENT_GENERATE_REPORT:
@@ -383,6 +395,7 @@ public class DocumentMenuItemServices {
 		DOCUMENT_AVAILABLE_ALERT,
 		DOCUMENT_ADD_AUTHORIZATION,
 		DOCUMENT_UNSHARE,
+		DOCUMENT_MODIFY_SHARE,
 		DOCUMENT_MANAGE_AUTHORIZATIONS,
 		DOCUMENT_GENERATE_REPORT;
 	}

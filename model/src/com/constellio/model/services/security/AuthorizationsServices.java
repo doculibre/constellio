@@ -675,6 +675,15 @@ public class AuthorizationsServices {
 		}
 	}
 
+	public List<Authorization> getRecordsAuthorizations(List<Record> records) {
+
+		List<Authorization> authorizations = new ArrayList<>();
+		for (Record record : records) {
+			authorizations.addAll(getRecordAuthorizations(record));
+		}
+		return authorizations;
+	}
+
 	/**
 	 * Return all authorizations targetting a given Record, which may be a user or securised Record.
 	 * Authorizations may be inherited or assigned directly to the record
@@ -751,6 +760,39 @@ public class AuthorizationsServices {
 		return authorizations;
 	}
 
+	public boolean itemIsSharedByUser(Record record, User user) {
+		String userId = user.getId();
+
+		SchemasRecordsServices schemas = schemas(user.getCollection());
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+				.where(sharedByMeta).isEqualTo(userId).andWhere(targetMeta).isEqualTo(record.getId());
+
+		List<Record> recordExist = searchServices.search(new LogicalSearchQuery(condition));
+
+		return recordExist != null && recordExist.size() > 0;
+	}
+
+	public Authorization getRecordShareAuthorization(Record record, User user) {
+		String userId = user.getId();
+
+		SchemasRecordsServices schemas = schemas(user.getCollection());
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+				.where(sharedByMeta).isEqualTo(userId).andWhere(targetMeta).isEqualTo(record.getId());
+
+		List<Record> records = searchServices.search(new LogicalSearchQuery(condition));
+
+		if (records.size() > 0) {
+			Authorization authorization = schemas.wrapSolrAuthorizationDetails(records.get(0));
+			return authorization;
+		} else {
+			return null;
+		}
+	}
+
 	/**
 	 * Return all records a user authorized as shared.
 	 * Authorizations may be inherited or assigned directly to the record
@@ -762,15 +804,11 @@ public class AuthorizationsServices {
 		String userId = user.getId();
 
 		SchemasRecordsServices schemas = schemas(user.getCollection());
-
 		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
 		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
 				.where(sharedByMeta).isEqualTo(userId);
 
-
 		List<Record> recordsSharedByUser = searchServices.search(new LogicalSearchQuery(condition));
-
-
 		List<Authorization> authorizations = schemas.wrapSolrAuthorizationDetailss(recordsSharedByUser);
 
 		return authorizations;

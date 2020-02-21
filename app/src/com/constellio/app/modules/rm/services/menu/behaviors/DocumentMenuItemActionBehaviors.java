@@ -288,9 +288,10 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
-
 	public void unPublish(Document document, MenuItemActionBehaviorParams params) {
 		document.setPublished(false);
+		document.setPublishingEndDate(null);
+		document.setPublishingStartDate(null);
 		try {
 			recordServices.update(document);
 			params.getView().refreshActionMenu();
@@ -386,6 +387,11 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void addAuthorization(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to().shareContent(document.getId());
+		updateSearchResultClicked(document.getWrappedRecord());
+	}
+
+	public void modifyShare(Document document, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to().shareContent(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
 	}

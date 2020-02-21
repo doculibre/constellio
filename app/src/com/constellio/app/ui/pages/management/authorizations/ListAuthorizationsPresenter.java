@@ -1,11 +1,16 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
+import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
@@ -19,6 +24,8 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
@@ -27,11 +34,7 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuthorizationsView> {
 	private static final String DISABLE = "AuthorizationsView.disable";
@@ -108,13 +111,34 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 	}
 
 	public List<AuthorizationVO> getSharedAuthorizations() {
-		AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
+		if (getCurrentUser().has(CorePermissions.MANAGE_SHARE).globally()) {
+			AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
 
-		List<AuthorizationVO> results = new ArrayList<>();
-		for (Authorization authorization : getSharedAuthorizationsByCurrentUser()) {
-			results.add(builder.build(authorization));
+			List<AuthorizationVO> results = new ArrayList<>();
+			for (Authorization authorization : getSharedAuthorizationsByCurrentUser()) {
+				results.add(builder.build(authorization));
+			}
+			return results;
 		}
-		return results;
+		return new ArrayList<>();
+	}
+
+	public List<DocumentVO> getPublishedDocuments() {
+		if (getCurrentUser().has(CorePermissions.MANAGE_GLOBAL_LINKS).globally()) {
+			DocumentToVOBuilder builder = new DocumentToVOBuilder(modelLayerFactory);
+
+			List<DocumentVO> results = new ArrayList<>();
+			MetadataSchema documentSchema = schema(Document.DEFAULT_SCHEMA);
+			Metadata publishedMetadata = documentSchema.getMetadata(Document.PUBLISHED);
+			LogicalSearchQuery logicalSearchCondition = new LogicalSearchQuery(from(documentSchema).where(publishedMetadata).isTrue());
+			List<Record> documents = modelLayerFactory.newSearchServices().search(logicalSearchCondition);
+
+			for (Record record : documents) {
+				results.add(builder.build(record, VIEW_MODE.DISPLAY, ConstellioUI.getCurrentSessionContext()));
+			}
+			return results;
+		}
+		return new ArrayList<>();
 	}
 
 	public void authorizationCreationRequested(AuthorizationVO authorizationVO) {
@@ -130,7 +154,6 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		authorizationCreationRequested(authorizationVO);
 	}
 
-
 	public void authorizationModificationRequested(AuthorizationVO authorizationVO) {
 		AuthorizationModificationRequest request = toAuthorizationModificationRequest(authorizationVO);
 		authorizationsServices().execute(request);
@@ -144,6 +167,27 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		removeAuthorization(authorization);
 		authorizations = null;
 		view.removeAuthorization(authorizationVO);
+	}
+
+	public void unpublish(DocumentVO documentVO) {
+		Metadata metadata = getPublishMetadata(documentVO.getRecord(), Document.PUBLISHED);
+		Metadata metadataEnd = getPublishMetadata(documentVO.getRecord(), Document.PUBLISHED_EXPIRATION_DATE);
+		Metadata metadataStart = getPublishMetadata(documentVO.getRecord(), Document.PUBLISHED_START_DATE);
+		Record record = documentVO.getRecord();
+		record.set(metadata, false);
+		record.set(metadataEnd, null);
+		record.set(metadataStart, null);
+		try {
+			recordServices().update(record);
+		} catch (RecordServicesException e) {
+			throw new ImpossibleRuntimeException(e);
+		}
+		view.removeAuthorization(null);
+	}
+
+	private Metadata getPublishMetadata(Record record, String metadataCode) {
+		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(
+				record.getSchemaCode()).getMetadata(metadataCode);
 	}
 
 	public abstract List<String> getAllowedAccesses();

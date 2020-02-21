@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -422,5 +423,26 @@ public class Document extends RMObject {
 		favorites.addAll(getFavorites());
 		favorites.removeAll(favoritesToDelete);
 		set(FAVORITES, favorites);
+	}
+
+	public boolean isActiveAuthorization() {
+		return isActivePublishingAtDate(TimeProvider.getLocalDate());
+	}
+
+	public boolean isActivePublishingAtDate(LocalDate date) {
+		LocalDate startDate = getPublishingStartDate();
+		LocalDate endDate = getPublishingEndDate();
+		if (startDate != null && endDate == null) {
+			return !startDate.isAfter(date);
+
+		} else if (startDate == null && endDate != null) {
+			return !endDate.isBefore(date);
+
+		} else if (startDate != null && endDate != null) {
+			return !startDate.isAfter(date) && !endDate.isBefore(date);
+
+		} else {
+			return true;
+		}
 	}
 }

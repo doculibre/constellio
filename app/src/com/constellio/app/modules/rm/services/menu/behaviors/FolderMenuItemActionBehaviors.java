@@ -488,6 +488,19 @@ public class FolderMenuItemActionBehaviors {
 		shareFolderButton.click();
 	}
 
+	public void modifyShare(Folder folder, MenuItemActionBehaviorParams params) {
+		Button shareFolderButton = new LinkButton($("DisplayFolderView.modifyShareFolder")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				if (!folderRecordActionsServices.isShareActionPossible(folder.getWrappedRecord(), params.getUser())) {
+					return;
+				}
+				params.getView().navigate().to().shareContent(folder.getId());
+			}
+		};
+		shareFolderButton.click();
+	}
+
 	public void unshare(Folder folder, MenuItemActionBehaviorParams params) {
 		Button unshareDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
 			@Override
