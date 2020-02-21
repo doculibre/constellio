@@ -138,8 +138,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		guideButton.setVisible(false);
 		guideButton.addExtension(new NiceTitle($("guide.details")));
 
-		guideButtonConfig = new GuideConfigButton("guideconfig",
-				"configurer les liens de doc pour la page " + UI.getCurrent().getPage().getUriFragment(),
+		guideButtonConfig = new GuideConfigButton($("MainLayout.guideConfigButton.caption"),
+				$("MainLayout.guideConfigButton.title", UI.getCurrent().getPage().getUriFragment()),
 				WindowConfiguration.modalDialog("600px",
 						"300px"), appLayerFactory);
 

@@ -65,13 +65,13 @@ public class GuideConfigButton extends WindowButton {
 		windowLayout.setSpacing(true);
 		this.languages = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
 		for (String languageCode : languages) {
-			String labelText = "Documentation en " + $("Language." + languageCode);
+			String labelText = $("MainLayout.guideConfigButton.languageLabel", $("Language." + languageCode));
 			windowLayout.addComponent(new Label(labelText));
 
 			HorizontalLayout cellLayout = new HorizontalLayout();
 			TextField inputField = new TextField();
 			inputField.setId(languageCode);
-			inputField.setInputPrompt("url");
+			inputField.setInputPrompt($("MainLayout.guideConfigButton.toolTip"));
 			inputField.setWidth("400px");
 			Locale locale = new Locale(languageCode);
 
@@ -98,7 +98,7 @@ public class GuideConfigButton extends WindowButton {
 				inputField.setValue(getDefaultUrl(language));
 			}
 		};
-		resetButton.setCaption("Réinitialiser");
+		resetButton.setCaption($("MainLayout.guideConfigButton.reset"));
 		return resetButton;
 	}
 
