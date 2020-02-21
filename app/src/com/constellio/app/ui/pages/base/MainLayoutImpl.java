@@ -142,7 +142,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 				$("MainLayout.guideConfigButton.title", UI.getCurrent().getPage().getUriFragment()),
 				WindowConfiguration.modalDialog("600px",
 						"300px"), appLayerFactory);
-
+		guideButtonConfig.addStyleName(ValoTheme.BUTTON_BORDERLESS_COLORED);
 
 
 		addComponent(header);

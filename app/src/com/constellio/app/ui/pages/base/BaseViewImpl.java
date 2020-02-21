@@ -340,23 +340,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		return getClass().getSimpleName();
 	}
 
-	//todo: somehow aller chercher getGuideUrl de BasePresenter a partir d'ici
-
-	/*public String getGuideUrl() {
-		return null;
-		/*return presenter.getGuideUrl();
-		GuideManager manager = new GuideManager(ConstellioUI.getCurrent().
-				getConstellioFactories()
-				.getAppLayerFactory()
-				.getModelLayerFactory()
-				.getDataLayerFactory());
-		String language = ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage();
-		String field = "guide." + getClass().getSimpleName();
-		return manager.getPropertyValue(language, field);
-	}*/
-		/*
-		//return $("guide." + getClass().getSimpleName());*/
-
 	protected String getActionMenuBarCaption() {
 		return null;
 	}
