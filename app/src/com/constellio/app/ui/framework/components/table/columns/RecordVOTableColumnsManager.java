@@ -9,13 +9,14 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.structures.TableProperties;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.ui.Table;
 
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO::JOLA --> Adjust table columns
+// TODO::JOLA --> Adjust table columns (P2)
 public class RecordVOTableColumnsManager extends TableColumnsManager {
 
 	public RecordVOTableColumnsManager() {
@@ -40,10 +41,11 @@ public class RecordVOTableColumnsManager extends TableColumnsManager {
 			visibleColumnForUser.remove(itemToRemove);
 		}
 
-		// TODO::JOLA --> Update for config system
-		/*if (toRemove.size() > 0) {
-			currentUser.setVisibleTableColumns(tableId, visibleColumnForUser);
-		}*/
+		if (toRemove.size() > 0) {
+			TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, tableId);
+			properties.setVisibleColumnIds(visibleColumnForUser);
+			userConfigManager.setTablePropertiesValue(currentUser, tableId, properties);
+		}
 	}
 
 	@Override

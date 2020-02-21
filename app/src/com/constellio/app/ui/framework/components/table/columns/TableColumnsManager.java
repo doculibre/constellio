@@ -32,7 +32,7 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
-// TODO::JOLA --> Adjust table columns
+// TODO::JOLA --> Adjust table columns (P2)
 public class TableColumnsManager implements Serializable {
 
 	protected ConstellioFactories constellioFactories;
@@ -42,6 +42,8 @@ public class TableColumnsManager implements Serializable {
 	protected transient RecordServices recordServices;
 
 	protected transient UserServices userServices;
+
+	protected UserConfigurationsManager userConfigManager;
 
 	protected transient User currentUser;
 
@@ -69,6 +71,7 @@ public class TableColumnsManager implements Serializable {
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
 		recordServices = modelLayerFactory.newRecordServices();
 		userServices = modelLayerFactory.newUserServices();
+		userConfigManager = modelLayerFactory.getUserConfigurationsManager();
 
 		String collection = null;
 		if (sessionContext.getCurrentCollection() != null) {
@@ -123,7 +126,6 @@ public class TableColumnsManager implements Serializable {
 				}
 			}
 
-			UserConfigurationsManager configManager = new UserConfigurationsManager();
 			table.addColumnCollapseListener(new ColumnCollapseListener() {
 				@Override
 				public void columnCollapseStateChange(ColumnCollapseEvent event) {
@@ -138,8 +140,9 @@ public class TableColumnsManager implements Serializable {
 						}
 					}
 
-					TableProperties properties = configManager.getTableProperties(tableId);
+					TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, tableId);
 					properties.setVisibleColumnIds(visibleColumnIdsForUser);
+					userConfigManager.setTablePropertiesValue(currentUser, tableId, properties);
 				}
 			});
 
@@ -157,8 +160,9 @@ public class TableColumnsManager implements Serializable {
 						}
 					}
 
-					TableProperties properties = configManager.getTableProperties(tableId);
+					TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, tableId);
 					properties.setVisibleColumnIds(visibleColumnIdsForUser);
+					userConfigManager.setTablePropertiesValue(currentUser, tableId, properties);
 				}
 			});
 
@@ -168,20 +172,26 @@ public class TableColumnsManager implements Serializable {
 					Object propertyId = event.getPropertyId();
 					String columnId = toColumnId(propertyId);
 
-					TableProperties properties = configManager.getTableProperties(tableId);
+					TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, tableId);
 					properties.setColumnWidth(columnId, event.getCurrentWidth());
+					userConfigManager.setTablePropertiesValue(currentUser, tableId, properties);
 				}
 			});
 
 			table.addHeaderClickListener(new HeaderClickListener() {
 				@Override
 				public void headerClick(HeaderClickEvent event) {
-					Object propertyId = table.getSortContainerPropertyId();
+					Object propertyId = event.getPropertyId();
 					String columnId = toColumnId(propertyId);
 
-					TableProperties properties = configManager.getTableProperties(tableId);
-					properties.setSortedColumnId(columnId);
-					properties.setSortedAscending(table.isSortAscending());
+					TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, tableId);
+					if (columnId.equals(properties.getSortedColumnId())) {
+						properties.setSortedAscending(!properties.getSortedAscending());
+					} else {
+						properties.setSortedColumnId(columnId);
+						properties.setSortedAscending(true);
+					}
+					userConfigManager.setTablePropertiesValue(currentUser, tableId, properties);
 				}
 			});
 		}
@@ -193,16 +203,16 @@ public class TableColumnsManager implements Serializable {
 
 	private List<String> getVisibleColumnIdsForCurrentUser(Table table, String tableId) {
 		List<String> visibleColumnIds;
-		// TODO::JOLA --> Update for config system
-		/*if (currentUser != null) {
-			visibleColumnIds = currentUser.getVisibleTableColumnsFor(tableId);
+		if (currentUser != null) {
+			TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, tableId);
+			visibleColumnIds = properties.getVisibleColumnIds();
 			if (visibleColumnIds == null) {
 				visibleColumnIds = new ArrayList<>();
 			}
 			if (visibleColumnIds.isEmpty()) {
 				visibleColumnIds = getDefaultVisibleColumnIds(table);
 			}
-		} else*/
+		} else
 		{
 			visibleColumnIds = getDefaultVisibleColumnIds(table);
 		}

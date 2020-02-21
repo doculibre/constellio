@@ -4,7 +4,6 @@ import com.constellio.model.entities.schemas.ModifiableStructure;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,12 +14,14 @@ public class TableProperties implements ModifiableStructure {
 	protected List<String> visibleColumnIds;
 	protected Map<String, Integer> columnWidths;
 	protected String sortedColumnId;
-	protected boolean isSortedAscending;
+	protected Boolean isSortedAscending;
 	protected boolean dirty;
 
 	public TableProperties() {
-		visibleColumnIds = new ArrayList<>();
-		columnWidths = new HashMap<>();
+	}
+
+	public TableProperties(String tableId) {
+		setTableId(tableId);
 	}
 
 	public String getTableId() {
@@ -51,12 +52,29 @@ public class TableProperties implements ModifiableStructure {
 	}
 
 	public Integer getColumnWidth(String columnId) {
-		return columnWidths.get(columnId);
+		if (columnWidths != null && columnWidths.containsKey(columnId)) {
+			return columnWidths.get(columnId);
+		}
+
+		return null;
 	}
 
 	public void setColumnWidth(String columnId, Integer value) {
 		dirty = true;
-		columnWidths.put(columnId, value);
+
+		if (columnWidths == null) {
+			columnWidths = new HashMap<>();
+		}
+
+		if (value == null && columnWidths.containsKey(columnId)) {
+			columnWidths.remove(columnId);
+		} else {
+			columnWidths.put(columnId, value);
+		}
+
+		if (columnWidths.isEmpty()) {
+			columnWidths = null;
+		}
 	}
 
 	public String getSortedColumnId() {
@@ -68,11 +86,11 @@ public class TableProperties implements ModifiableStructure {
 		sortedColumnId = value;
 	}
 
-	public boolean getSortedAscending() {
+	public Boolean getSortedAscending() {
 		return isSortedAscending;
 	}
 
-	public void setSortedAscending(boolean value) {
+	public void setSortedAscending(Boolean value) {
 		dirty = true;
 		isSortedAscending = value;
 	}

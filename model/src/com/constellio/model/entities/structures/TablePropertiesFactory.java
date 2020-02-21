@@ -21,6 +21,10 @@ public class TablePropertiesFactory implements StructureFactory {
 
 	@Override
 	public ModifiableStructure build(String string) {
+		if (string == null) {
+			return null;
+		}
+
 		StringTokenizer stringTokenizer = new StringTokenizer(string, DELIMITER);
 
 		TableProperties properties = new TableProperties();
@@ -35,6 +39,10 @@ public class TablePropertiesFactory implements StructureFactory {
 
 	@Override
 	public String toString(ModifiableStructure structure) {
+		if (structure == null) {
+			return null;
+		}
+
 		TableProperties properties = (TableProperties) structure;
 		StringBuilder stringBuilder = new StringBuilder();
 		writeString(stringBuilder, properties.getTableId());
@@ -105,22 +113,28 @@ public class TablePropertiesFactory implements StructureFactory {
 		}
 	}
 
-	private boolean readBoolean(StringTokenizer stringTokenizer) {
+	private Boolean readBoolean(StringTokenizer stringTokenizer) {
 		String value = readString(stringTokenizer);
+		if (value == null) {
+			return null;
+		}
 		return "1".equals(value);
 	}
 
-	private void writeBoolean(StringBuilder stringBuilder, boolean value) {
-		writeString(stringBuilder, value ? "1" : "0");
+	private void writeBoolean(StringBuilder stringBuilder, Boolean value) {
+		if (value == null) {
+			writeString(stringBuilder, null);
+		} else {
+			writeString(stringBuilder, value ? "1" : "0");
+		}
 	}
 
 	private String readString(StringTokenizer stringTokenizer) {
 		String value = stringTokenizer.nextToken();
 		if (NULL.equals(value)) {
 			return null;
-		} else {
-			return value;
 		}
+		return value;
 	}
 
 	private void writeString(StringBuilder stringBuilder, String value) {
