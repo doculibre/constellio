@@ -294,12 +294,7 @@ public class RMRecordsMenuItemBehaviors {
 
 	private void checkOutDocuments(List<Record> records, MenuItemActionBehaviorParams params) {
 		List<Document> documents = rm.wrapDocuments(records);
-		for (Document document : documents) {
-			Content content = document.getContent();
-			content.checkOut(params.getUser());
-			modelLayerFactory.newLoggingServices()
-					.borrowRecord(document.getWrappedRecord(), params.getUser(), TimeProvider.getLocalDateTime());
-		}
+		new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkOut(rm.wrapDocuments(records), params);
 
 		try {
 			recordServices.update(documents, new RecordUpdateOptions().setOverwriteModificationDateAndUser(false), params.getUser());
