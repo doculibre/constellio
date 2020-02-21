@@ -322,17 +322,8 @@ public class RMConfigs {
 
 		add(IGNORE_VALIDATIONS_IN_BATCH_PROCESSING = others.createBooleanFalseByDefault("ignoreValidationsInBatchProcessing")
 				.whichIsHidden());
-
-
-
-/*
-		SystemConfigurationGroup guide = new SystemConfigurationGroup(ID, "guide");
-		add(GUIDE_URL_FR = guide.createString("guideUrl_fr"));*/
 	}
 
-	private static void addGuideConfigurations(SystemConfiguration configuration) {
-
-	}
 
 	static void add(SystemConfiguration configuration) {
 		configurations.add(configuration);

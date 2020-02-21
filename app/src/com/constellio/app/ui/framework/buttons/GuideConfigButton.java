@@ -49,7 +49,6 @@ public class GuideConfigButton extends WindowButton {
 		this.appLayerFactory = appLayerFactory;
 		this.collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		this.guideManager = new GuideManager(appLayerFactory.getModelLayerFactory().getDataLayerFactory());
-
 	}
 
 	private String generateGuideKey(View view) {
@@ -86,8 +85,11 @@ public class GuideConfigButton extends WindowButton {
 
 			windowLayout.addComponent(cellLayout);
 		}
+
 		windowLayout.addComponent(buildButtonsLayout());
-		//windowLayout.addComponent(testBuildAllConfigButton());
+		VerticalLayout bottomMargin = new VerticalLayout();
+		bottomMargin.setHeight("20px");
+		windowLayout.addComponent(bottomMargin);
 		return windowLayout;
 	}
 
@@ -121,6 +123,7 @@ public class GuideConfigButton extends WindowButton {
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.addComponent(buildSaveButton());
 		buttonsLayout.addComponent(buildCancelButton());
+		buttonsLayout.setSpacing(true);
 		return buttonsLayout;
 	}
 

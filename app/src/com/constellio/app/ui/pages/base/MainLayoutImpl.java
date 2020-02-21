@@ -141,7 +141,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		guideButtonConfig = new GuideConfigButton($("MainLayout.guideConfigButton.caption"),
 				$("MainLayout.guideConfigButton.title", UI.getCurrent().getPage().getUriFragment()),
 				WindowConfiguration.modalDialog("600px",
-						"300px"), appLayerFactory);
+						null), appLayerFactory);
 		guideButtonConfig.addStyleName(ValoTheme.BUTTON_BORDERLESS_COLORED);
 
 
@@ -278,7 +278,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		String guideUrl = presenter.getGuideUrl();
 		boolean guideButtonVisible = StringUtils.isNotBlank(guideUrl);
 		guideButton.setVisible(guideButtonVisible);
-		guideButtonConfig.setVisible(true); //  userHasCorrectRole()
+		guideButtonConfig.setVisible(presenter.hasGuideConfigurationPermission()); //  userHasCorrectRole()
 	}
 
 	private void updateStaticFooterState() {
@@ -392,6 +392,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		button.setVisible(state.isVisible());
 		button.setEnabled(state.isEnabled());
 	}
+
 
 	@Override
 	public CoreViews navigateTo() {

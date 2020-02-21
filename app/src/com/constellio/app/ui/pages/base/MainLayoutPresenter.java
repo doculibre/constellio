@@ -10,6 +10,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import org.apache.commons.io.FileUtils;
 
@@ -113,5 +114,9 @@ public class MainLayoutPresenter implements Serializable {
 		User user = getUser();
 		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
 		return item.getBadge(user, appLayerFactory);
+	}
+
+	public boolean hasGuideConfigurationPermission() {
+		return getUser().has(CorePermissions.SYSTEM_MANAGEMENT).globally();
 	}
 }
