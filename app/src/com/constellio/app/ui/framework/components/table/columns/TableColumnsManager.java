@@ -23,7 +23,6 @@ import com.vaadin.ui.Table.ColumnResizeEvent;
 import com.vaadin.ui.Table.ColumnResizeListener;
 import com.vaadin.ui.Table.HeaderClickEvent;
 import com.vaadin.ui.Table.HeaderClickListener;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -102,23 +101,36 @@ public class TableColumnsManager implements Serializable {
 			table.setColumnCollapsingAllowed(true);
 			table.setColumnReorderingAllowed(true);
 
-			Object[] visibleColumns = table.getVisibleColumns();
-			if (isRightToLeft()) {
-				ArrayUtils.reverse(visibleColumns);
-				table.setVisibleColumns(visibleColumns);
-
-				for (Object propertyId : table.getContainerPropertyIds()) {
-					Align alignment = adjustAlignment(table.getColumnAlignment(propertyId));
-					table.setColumnAlignment(propertyId, alignment);
-				}
-			}
-
 			List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
 			Collection<?> propertyIds = table.getContainerPropertyIds();
 			decorateVisibleColumns(visibleColumnIdsForUser, tableId);
 
-			// TODO::JOLA --> Reorder column on table load
 			TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, tableId);
+
+			List<Object> orderedColumns = new ArrayList<>();
+			for (String columnId : visibleColumnIdsForUser) {
+				Object propertyId = toPropertyId(columnId, table.getVisibleColumns());
+				if (propertyId != null) {
+					orderedColumns.add(propertyId);
+				}
+			}
+
+			for (Object column : table.getVisibleColumns()) {
+				if (!orderedColumns.contains(column)) {
+					orderedColumns.add(column);
+				}
+			}
+
+			if (isRightToLeft()) {
+				orderedColumns = Lists.reverse(orderedColumns);
+			}
+			table.setVisibleColumns(orderedColumns.toArray());
+
+			for (Object propertyId : table.getContainerPropertyIds()) {
+				Align alignment = adjustAlignment(table.getColumnAlignment(propertyId));
+				table.setColumnAlignment(propertyId, alignment);
+			}
+
 			for (Object propertyId : propertyIds) {
 				String columnId = toColumnId(propertyId);
 
@@ -233,6 +245,15 @@ public class TableColumnsManager implements Serializable {
 			visibleColumnIds.add(toColumnId(visibleColumn));
 		}
 		return visibleColumnIds;
+	}
+
+	protected Object toPropertyId(String columnId, Object[] propertyIds) {
+		for (Object propertyId : propertyIds) {
+			if (columnId.equals(propertyId.toString())) {
+				return propertyId;
+			}
+		}
+		return null;
 	}
 
 	protected String toColumnId(Object propertyId) {

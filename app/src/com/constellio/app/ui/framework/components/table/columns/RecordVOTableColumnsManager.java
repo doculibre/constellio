@@ -85,6 +85,18 @@ public class RecordVOTableColumnsManager extends TableColumnsManager {
 	}
 
 	@Override
+	protected Object toPropertyId(String columnId, Object[] propertyIds) {
+		for (Object propertyId : propertyIds) {
+			if (propertyId instanceof MetadataVO) {
+				if (columnId.equals(((MetadataVO) propertyId).getCode())) {
+					return propertyId;
+				}
+			}
+		}
+		return super.toPropertyId(columnId, propertyIds);
+	}
+
+	@Override
 	protected String toColumnId(Object propertyId) {
 		String columnId;
 		if (propertyId instanceof MetadataVO) {
