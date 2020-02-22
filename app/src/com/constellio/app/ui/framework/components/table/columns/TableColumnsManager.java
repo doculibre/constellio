@@ -11,6 +11,7 @@ import com.constellio.model.services.configs.UserConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
+import com.google.common.collect.Lists;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnCollapseEvent;
@@ -32,7 +33,6 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
-// TODO::JOLA --> Adjust table columns (P2)
 public class TableColumnsManager implements Serializable {
 
 	protected ConstellioFactories constellioFactories;
@@ -117,6 +117,8 @@ public class TableColumnsManager implements Serializable {
 			Collection<?> propertyIds = table.getContainerPropertyIds();
 			decorateVisibleColumns(visibleColumnIdsForUser, tableId);
 
+			// TODO::JOLA --> Reorder column on table load
+			TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, tableId);
 			for (Object propertyId : propertyIds) {
 				String columnId = toColumnId(propertyId);
 
@@ -124,45 +126,29 @@ public class TableColumnsManager implements Serializable {
 				if (!collapsed || table.isColumnCollapsible(columnId)) {
 					table.setColumnCollapsed(propertyId, collapsed);
 				}
+
+				Integer columnWidth = properties.getColumnWidth(columnId);
+				if (columnWidth != null) {
+					table.setColumnWidth(propertyId, columnWidth);
+				}
+
+				if (columnId.equals(properties.getSortedColumnId())) {
+					table.setSortContainerPropertyId(propertyId);
+					table.setSortAscending(properties.getSortedAscending());
+				}
 			}
 
 			table.addColumnCollapseListener(new ColumnCollapseListener() {
 				@Override
 				public void columnCollapseStateChange(ColumnCollapseEvent event) {
-					List<String> visibleColumnIdsForUser = new ArrayList<>();
-
-					Object[] propertyIds = table.getVisibleColumns();
-					for (Object propertyId : propertyIds) {
-						String columnId = toColumnId(propertyId);
-						boolean collapsed = table.isColumnCollapsed(propertyId);
-						if (!collapsed) {
-							visibleColumnIdsForUser.add(columnId);
-						}
-					}
-
-					TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, tableId);
-					properties.setVisibleColumnIds(visibleColumnIdsForUser);
-					userConfigManager.setTablePropertiesValue(currentUser, tableId, properties);
+					saveVisibleColumns(table, tableId);
 				}
 			});
 
 			table.addColumnReorderListener(new ColumnReorderListener() {
 				@Override
 				public void columnReorder(ColumnReorderEvent event) {
-					List<String> visibleColumnIdsForUser = new ArrayList<>();
-
-					Object[] propertyIds = table.getVisibleColumns();
-					for (Object propertyId : propertyIds) {
-						String columnId = toColumnId(propertyId);
-						boolean collapsed = table.isColumnCollapsed(propertyId);
-						if (!collapsed) {
-							visibleColumnIdsForUser.add(columnId);
-						}
-					}
-
-					TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, tableId);
-					properties.setVisibleColumnIds(visibleColumnIdsForUser);
-					userConfigManager.setTablePropertiesValue(currentUser, tableId, properties);
+					saveVisibleColumns(table, tableId);
 				}
 			});
 
@@ -195,6 +181,27 @@ public class TableColumnsManager implements Serializable {
 				}
 			});
 		}
+	}
+
+	private void saveVisibleColumns(final Table table, final String tableId) {
+		List<String> visibleColumnIdsForUser = new ArrayList<>();
+
+		Object[] propertyIds = table.getVisibleColumns();
+		for (Object propertyId : propertyIds) {
+			String columnId = toColumnId(propertyId);
+			boolean collapsed = table.isColumnCollapsed(propertyId);
+			if (!collapsed) {
+				visibleColumnIdsForUser.add(columnId);
+			}
+		}
+
+		if (isRightToLeft()) {
+			visibleColumnIdsForUser = Lists.reverse(visibleColumnIdsForUser);
+		}
+
+		TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, tableId);
+		properties.setVisibleColumnIds(visibleColumnIdsForUser);
+		userConfigManager.setTablePropertiesValue(currentUser, tableId, properties);
 	}
 
 	protected void notifyException(Exception e) {

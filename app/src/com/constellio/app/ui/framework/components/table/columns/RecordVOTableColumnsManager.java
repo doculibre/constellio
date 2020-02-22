@@ -16,7 +16,6 @@ import com.vaadin.ui.Table;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO::JOLA --> Adjust table columns (P2)
 public class RecordVOTableColumnsManager extends TableColumnsManager {
 
 	public RecordVOTableColumnsManager() {
