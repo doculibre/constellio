@@ -24,7 +24,7 @@ public class StringRecordIdLegacyMemoryMapping implements StringRecordIdLegacyMa
 		Integer intId = siMapping.get(id);
 		if (intId == null) {
 			synchronized (StringRecordIdLegacyMemoryMapping.class) {
-				LOGGER.warn("String id '" + id + "' is mapped in memory, mapping will be lost on reboot");
+				//LOGGER.warn("String id '" + id + "' is mapped in memory, mapping will be lost on reboot");
 				intId = siMapping.get(id);
 				if (intId == null) {
 					intId = seq--;

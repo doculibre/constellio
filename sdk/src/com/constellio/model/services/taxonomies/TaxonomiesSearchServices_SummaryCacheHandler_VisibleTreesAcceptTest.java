@@ -1343,17 +1343,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 		doc4.set(metadata, doc4Refs);
 
 		recordServices.execute(new Transaction(
-				folder1,
-				folder2,
-				folder3,
-				folder4,
-				folder5,
-				folderZ,
-				doc0,
-				doc1,
-				doc2,
-				doc3,
-				doc4
+				folder1, folder2, folder3, folder4, folder5, folderZ, doc0, doc1, doc2, doc3, doc4
 		));
 
 		assertThat((Object) rm.wrapDocument(recordServices.getDocumentById(doc1.getId())).get(metadata)).isInstanceOf(List.class);
@@ -1376,23 +1366,19 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 				.has(solrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(bob, folder2.getId())
-				//.has(recordsInOrder(doc1.getId()))
-				//.has(numFoundAndListSize(1))
+				.has(recordsInOrder(doc1.getId()))
+				.has(numFoundAndListSize(1))
 				.has(solrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(bob, folder3.getId())
-				//.has(recordsInOrder(doc2.getId()))
-				//.has(numFoundAndListSize(1))
+				.has(recordsInOrder(doc2.getId()))
+				.has(numFoundAndListSize(1))
 				.has(solrQueryCounts(0, 0, 0));
 
 		// Should be sorted by title in alphabetical order
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(bob, folder4.getId())
-				.has(recordsInOrder(
-						doc0.getId(),    //Beta
-						doc4.getId()    //Delta
-						//doc2.getId(),    //Gamma
-						//doc1.getId()     //Zeta
-				)).has(numFoundAndListSize(2)) // 4 once linkedTo included in taxonomies
+				.has(recordsInOrder(doc0.getId(), doc4.getId(), doc2.getId(), doc1.getId()))
+				.has(numFoundAndListSize(2))
 				.has(solrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(bob, folder5.getId())
@@ -1407,28 +1393,23 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 				.has(solrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(charles, folder2.getId())
-				//.has(recordsInOrder(doc1.getId()))
-				//.has(numFoundAndListSize(1))
+				.has(recordsInOrder(doc1.getId()))
+				.has(numFoundAndListSize(1))
 				.has(solrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(charles, folder3.getId())
-				//.has(recordsInOrder(doc2.getId(), doc3.getId()))
-				//.has(numFoundAndListSize(2))
+				.has(recordsInOrder(doc2.getId(), doc3.getId()))
+				.has(numFoundAndListSize(2))
 				.has(solrQueryCounts(0, 0, 0));
 
 		// Should be sorted by title in alphabetical order
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(charles, folder4.getId())
-				.has(recordsInOrder(
-						doc0.getId(),    //Beta
-						doc4.getId()    //Delta
-						//doc2.getId(),	//Gamma
-						//doc1.getId()	//Zeta
-				)).has(numFoundAndListSize(2)) // 4 once linkedTo included in taxonomies
+				.has(recordsInOrder(doc0.getId(), doc4.getId(), doc2.getId(), doc1.getId())).has(numFoundAndListSize(2)) // 4 once linkedTo included in taxonomies
 				.has(solrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(charles, folder5.getId())
-				//.has(recordsInOrder(doc3.getId()))
-				//.has(numFoundAndListSize(1))
+				.has(recordsInOrder(doc3.getId()))
+				.has(numFoundAndListSize(1))
 				.has(solrQueryCounts(0, 0, 0));
 	}
 

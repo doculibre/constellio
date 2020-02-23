@@ -535,7 +535,7 @@ public class RecordAutomaticMetadataServices {
 				loadTransientLazyMetadatas(record, recordProvider, transaction);
 			}
 
-			if (new SchemaUtils().isDependentMetadata(calculatedMetadata, metadata, dependency)) {
+			if (SchemaUtils.isDependentMetadata(calculatedMetadata, metadata, dependency)) {
 				availableMetadatas.add(metadata);
 				if (metadata.isMultivalue()) {
 					List<?> metadataValues = record.getList(metadata);
