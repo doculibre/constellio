@@ -364,6 +364,22 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 	};
+	public static MetadataBuilderConfigurator whichMaxLengthIs7 = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setMaxLength(7);
+		}
+
+	};
+	public static MetadataBuilderConfigurator whichMeasurementUnitIsCm = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setMeasurementUnit("cm");
+		}
+
+	};
 	public static MetadataBuilderConfigurator whichIsProvidingSecurity = new MetadataBuilderConfigurator() {
 
 		@Override

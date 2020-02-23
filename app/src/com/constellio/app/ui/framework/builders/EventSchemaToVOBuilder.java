@@ -39,7 +39,7 @@ public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 											   boolean isMultiLingual, Locale locale,
 											   Map<String, Object> customParameters,
 											   CollectionInfoVO collectionInfoVO, boolean sortable,
-											   boolean summaryMetadata, Map<Locale, String> helpMessages) {
+											   boolean summaryMetadata, Integer maxLength, String measurementUnit, Map<Locale, String> helpMessages) {
 				MetadataVO metadataVO;
 				String modifiedOnCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(Schemas.MODIFIED_ON.getCode());
 				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
@@ -54,16 +54,14 @@ public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									metadataDisplayType, allowedReferences,
-									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
-									isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, helpMessages);
+									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, maxLength, measurementUnit, helpMessages);
 				} else {
 					metadataVO = super
 							.newMetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									metadataDisplayType, allowedReferences,
-									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
-									isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, helpMessages);
+									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, maxLength, measurementUnit, helpMessages);
 				}
 				return metadataVO;
 			}

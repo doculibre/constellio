@@ -3,7 +3,6 @@ package com.constellio.app.ui.framework.components.fields;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.vaadin.data.Property;
 import org.vaadin.openesignforms.ckeditor.CKEditorConfig;
 import org.vaadin.openesignforms.ckeditor.CKEditorTextField;
 
@@ -11,35 +10,11 @@ import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class BaseRichTextArea extends CKEditorTextField {
 
+	private String inputMask;
+
 	public BaseRichTextArea() {
 		super(newConfig());
 		init();
-	}
-
-	public BaseRichTextArea(String caption) {
-		super(newConfig());
-		init();
-		setCaption(caption);
-	}
-
-	public BaseRichTextArea(Property<?> dataSource) {
-		super(newConfig());
-		init();
-		setPropertyDataSource(dataSource);
-	}
-
-	public BaseRichTextArea(String caption, Property<?> dataSource) {
-		super(newConfig());
-		init();
-		setCaption(caption);
-		setPropertyDataSource(dataSource);
-	}
-
-	public BaseRichTextArea(String caption, String value) {
-		super(newConfig());
-		init();
-		setCaption(caption);
-		setValue(value);
 	}
 
 	private void init() {
@@ -47,6 +22,14 @@ public class BaseRichTextArea extends CKEditorTextField {
 		//		setHeight("600px");
 		setCaptionAsHtml(true);
 		addStyleName("base-rich-text");
+	}
+
+	public String getInputMask() {
+		return inputMask;
+	}
+
+	public void setInputMask(String inputMask) {
+		this.inputMask = inputMask;
 	}
 
 	@Override

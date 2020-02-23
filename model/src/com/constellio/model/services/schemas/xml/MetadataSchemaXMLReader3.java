@@ -454,6 +454,24 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setTaxonomyRelationship(readBooleanWithDefaultValue(taxonomyRelationshipStringValue, false));
 		}
 
+		String maxLengthStringValue = metadataElement.getAttributeValue("maxLength");
+		if (inheriteGlobalMetadata && maxLengthStringValue == null) {
+			metadataBuilder.setMaxLength(globalMetadataInCollectionSchema.getMaxLength());
+		} else {
+			if (maxLengthStringValue != null) {
+				metadataBuilder.setMaxLength(Integer.parseInt(maxLengthStringValue));
+			}
+		}
+
+		String measurementUnitStringValue = metadataElement.getAttributeValue("measurementUnit");
+		if (inheriteGlobalMetadata && measurementUnitStringValue == null) {
+			metadataBuilder.setMeasurementUnit(globalMetadataInCollectionSchema.getMeasurementUnit());
+		} else {
+			if (measurementUnitStringValue != null) {
+				metadataBuilder.setMeasurementUnit(measurementUnitStringValue);
+			}
+		}
+
 		String providingSecurityStringValue = metadataElement.getAttributeValue("providingSecurity");
 		if (inheriteGlobalMetadata && providingSecurityStringValue == null) {
 			metadataBuilder.setRelationshipProvidingSecurity(globalMetadataInCollectionSchema.isRelationshipProvidingSecurity());

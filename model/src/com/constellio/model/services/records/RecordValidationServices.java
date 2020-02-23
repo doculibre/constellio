@@ -147,6 +147,8 @@ public class RecordValidationServices {
 					transaction.isSkippingReferenceToLogicallyDeletedValidation())
 					.validate(record, validationErrors);
 		}
+		boolean skipMeasurementUnit = transaction.getRecordUpdateOptions().isSkippingMeasurementUnitValidation();
+
 		new MetadataValueTypeValidator(metadatas).validate(record, validationErrors);
 		if (!transaction.isSkippingRequiredValuesValidation()) {
 			boolean skipUSRMetadatas = transaction.getRecordUpdateOptions().isSkipUSRMetadatasRequirementValidations();

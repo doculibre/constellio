@@ -186,6 +186,7 @@ public class MetadataToVOBuilder implements Serializable {
 				structureFactory, metadataGroup, metadata.getDefaultValue(), metadata.getInputMask(),
 				metadata.getCustomAttributes(), isMultiLingual, locale, metadata.getCustomParameter(),
 				schemaVO != null ? schemaVO.getCollectionInfoVO() : null, sortable, metadata.isStoredInSummaryCache(),
+				metadata.getMaxLength(), metadata.getMeasurementUnit(),
 				metadataHelpMessages);
 	}
 
@@ -216,11 +217,11 @@ public class MetadataToVOBuilder implements Serializable {
 			boolean isMultiLingual, Locale locale,
 			Map<String, Object> customParameters,
 			CollectionInfoVO collectionInfoVO, boolean sortable,
-			boolean summaryMetadata, Map<Locale, String> metadataHelpMessages) {
+			boolean summaryMetadata, Integer maxLength, String measurementUnit, Map<Locale, String> metadataHelpMessages) {
 		return new MetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
 				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
 				enabled,
-				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata, metadataHelpMessages);
+				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata, maxLength, measurementUnit, metadataHelpMessages);
 	}
 
 }
