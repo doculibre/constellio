@@ -235,11 +235,11 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			throw new ImpossibleRuntimeException("Unsupported UniqueIdGenerator");
 		}
 
-		if(dataLayerConfiguration.getMicrosoftSqlServerUrl() != null){
+		if (dataLayerConfiguration.getMicrosoftSqlServerUrl() != null) {
 			try {
 				this.sqlConnector.setConnection(dataLayerConfiguration);
 				this.sqlRecordDaoFactory = new SqlRecordDaoFactory(this.sqlConnector);
-			}catch(SQLException sqlException){
+			} catch (SQLException sqlException) {
 				throw new RuntimeException(sqlException);
 			}
 		}
@@ -252,14 +252,12 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			if (dataLayerConfiguration.getSecondTransactionLogMode() == SecondTransactionLogType.KAFKA) {
 				secondTransactionLogManager = add(new KafkaTransactionLogManager(dataLayerConfiguration,
 						dataLayerExtensions.getSystemWideExtensions(), newRecordDao(), dataLayerLogger));
-			}
-			else if(dataLayerConfiguration.getSecondTransactionLogMode()==SecondTransactionLogType.SQL_SERVER){
+			} else if (dataLayerConfiguration.getSecondTransactionLogMode() == SecondTransactionLogType.SQL_SERVER) {
 
 				secondTransactionLogManager = add(new SqlServerTransactionLogManager(dataLayerConfiguration,
-						ioServicesFactory.newIOServices(), newRecordDao(), sqlRecordDaoFactory ,contentDao, backgroundThreadsManager, dataLayerLogger,
+						ioServicesFactory.newIOServices(), newRecordDao(), sqlRecordDaoFactory, contentDao, backgroundThreadsManager, dataLayerLogger,
 						dataLayerExtensions.getSystemWideExtensions(), transactionLogXmlRecoveryManager, this.leaderElectionManager));
-			}
-			else {
+			} else {
 				secondTransactionLogManager = add(new XMLSecondTransactionLogManager(dataLayerConfiguration,
 						ioServicesFactory.newIOServices(), newRecordDao(), contentDao, backgroundThreadsManager, dataLayerLogger,
 						dataLayerExtensions.getSystemWideExtensions(), transactionLogXmlRecoveryManager));
@@ -326,7 +324,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		return contentDao;
 	}
 
-	public SqlRecordDaoFactory getSqlRecordDao(){
+	public SqlRecordDaoFactory getSqlRecordDao() {
 		return sqlRecordDaoFactory;
 	}
 

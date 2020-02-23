@@ -80,7 +80,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 
 	@Mock RolesManager rolesManager;
 
-//	@Before
+	//	@Before
 	//	public void setUp() {
 	//
 	//		schemas = new TestsSchemasSetup();
@@ -126,7 +126,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 	//
 	//		StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping());
 	//	}
-//
+	//
 	//	@Test
 	//	public void whenUpdateAutomaticMetadatasThenGetSortedAutomaticMetadataAndUpdateInCorrectOrder()
 	//			throws Exception {

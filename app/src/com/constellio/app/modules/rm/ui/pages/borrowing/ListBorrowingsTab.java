@@ -169,6 +169,7 @@ public abstract class ListBorrowingsTab {
 		protected String getBorrowingDueDateTitle() {
 			return BORROWING_DUE_DATE;
 		}
+
 		protected abstract boolean isOverdue(RecordVO recordVO);
 
 		protected abstract String getBorrowingUserId(RecordVO recordVO);

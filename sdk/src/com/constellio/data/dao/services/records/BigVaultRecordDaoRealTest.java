@@ -1,6 +1,5 @@
 package com.constellio.data.dao.services.records;
 
-import com.constellio.data.conf.SecondTransactionLogType;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
@@ -11,7 +10,6 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException;
-import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils.MapBuilder;
 import com.constellio.sdk.tests.annotations.LoadTest;
@@ -21,13 +19,11 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;

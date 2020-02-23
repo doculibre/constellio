@@ -2,17 +2,16 @@ package com.constellio.data.dao.services.sql;
 
 import com.constellio.data.dao.dto.sql.RecordTransactionSqlDTO;
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.handlers.ScalarHandler;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.apache.commons.dbutils.handlers.ScalarHandler;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTransactionSqlDTO> {

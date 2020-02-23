@@ -177,7 +177,7 @@ public class SearchServices {
 
 
 	public SPEQueryResponse queryUsingsolr(LogicalSearchQuery query) {
-			return buildResponse(query);
+		return buildResponse(query);
 	}
 
 	public SPEQueryResponse query(LogicalSearchQuery query) {

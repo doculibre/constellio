@@ -53,8 +53,7 @@ public class StatsHashMap<H, V> extends HashMap<K, V> {
 		return super.remove(key, value);
 	}
 
-	protected void finalize( ) throws Throwable
-	{
+	protected void finalize() throws Throwable {
 		mapCount--;
 	}
 }

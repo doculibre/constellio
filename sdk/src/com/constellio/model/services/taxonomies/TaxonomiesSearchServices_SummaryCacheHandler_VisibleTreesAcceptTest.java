@@ -18,6 +18,8 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -1290,6 +1292,144 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 		//This is an accepted problem (f81 should not be returned)
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f8").has(recordsInOrder());
 
+	}
+
+	@Test
+	public void whenUserIsNavigatingDocumentLinkedFoldersThenOnlySeesAccessibleFolders()
+			throws Exception {
+		MetadataSchema schema = rm.schemaType("document").getDefaultSchema();
+		Metadata metadata = schema.getMetadata("linkedTo");
+		User bob = users.bobIn(zeCollection);
+		User charles = users.charlesIn(zeCollection);
+
+		AdministrativeUnit au1 = rm.getAdministrativeUnit(records.unitId_10);
+		AdministrativeUnit au2 = rm.newAdministrativeUnitWithId(records.unitId_20);
+
+		Folder folder1 = newFolderInUnit(au1, "folder1");
+		Folder folder2 = newFolderInUnit(au1, "folder2");
+		Folder folder3 = newFolderInUnit(au1, "folder3");
+		Folder folder4 = newFolderInUnit(au1, "folder4");
+		Folder folder5 = newFolderInUnit(au1, "folder5");
+		Folder folderZ = newFolderInUnit(au2, "folderZ");
+
+		Document doc0 = rm.newDocumentWithId("doc0").setFolder(folder4).setTitle("Beta");
+		Document doc1 = rm.newDocumentWithId("doc1").setFolder(folderZ).setTitle("Zeta");
+		Document doc2 = rm.newDocumentWithId("doc2").setFolder(folderZ).setTitle("Gamma");
+		Document doc3 = rm.newDocumentWithId("doc3").setFolder(folderZ).setTitle("Alpha");
+		Document doc4 = rm.newDocumentWithId("doc4").setFolder(folder4).setTitle("Delta");
+
+		// Setting document links to folders
+		List<Folder> doc0Refs = new ArrayList<>();
+		doc0Refs.add(folder4);
+		doc0.set(metadata, doc0Refs);
+
+		List<Folder> doc1Refs = new ArrayList<>();
+		doc1Refs.add(folder2);
+		doc1Refs.add(folder4);
+		doc1.set(metadata, doc1Refs);
+
+		List<Folder> doc2Refs = new ArrayList<>();
+		doc2Refs.add(folder3);
+		doc2Refs.add(folder4);
+		doc2.set(metadata, doc2Refs);
+
+		List<Folder> doc3Refs = new ArrayList<>();
+		doc3Refs.add(folder3);
+		doc3Refs.add(folder5);
+		doc3.set(metadata, doc3Refs);
+
+		List<Folder> doc4Refs = new ArrayList<>();
+		doc4Refs.add(folder4);
+		doc4.set(metadata, doc4Refs);
+
+		recordServices.execute(new Transaction(
+				folder1,
+				folder2,
+				folder3,
+				folder4,
+				folder5,
+				folderZ,
+				doc0,
+				doc1,
+				doc2,
+				doc3,
+				doc4
+		));
+
+		assertThat((Object) rm.wrapDocument(recordServices.getDocumentById(doc1.getId())).get(metadata)).isInstanceOf(List.class);
+		assertThat((List) rm.wrapDocument(recordServices.getDocumentById(doc1.getId())).getLinkedTo()).isEqualTo(doc1.getLinkedTo());
+
+		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder1.getId()).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder2.getId()).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder3.getId()).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(folder4.getId()).givingReadAccess());
+
+		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(doc1.getId()).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(doc2.getId()).givingReadAccess());
+
+		recordServices.update(charles.setCollectionReadAccess(true));
+
+		// Bob
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(bob, folder1.getId())
+				.has(recordsInOrder())
+				.has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(bob, folder2.getId())
+				//.has(recordsInOrder(doc1.getId()))
+				//.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(bob, folder3.getId())
+				//.has(recordsInOrder(doc2.getId()))
+				//.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+		// Should be sorted by title in alphabetical order
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(bob, folder4.getId())
+				.has(recordsInOrder(
+						doc0.getId(),    //Beta
+						doc4.getId()    //Delta
+						//doc2.getId(),    //Gamma
+						//doc1.getId()     //Zeta
+				)).has(numFoundAndListSize(2)) // 4 once linkedTo included in taxonomies
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(bob, folder5.getId())
+				.has(recordsInOrder())
+				.has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		// Charles
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(charles, folder1.getId())
+				.has(recordsInOrder())
+				.has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(charles, folder2.getId())
+				//.has(recordsInOrder(doc1.getId()))
+				//.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(charles, folder3.getId())
+				//.has(recordsInOrder(doc2.getId(), doc3.getId()))
+				//.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(0, 0, 0));
+
+		// Should be sorted by title in alphabetical order
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(charles, folder4.getId())
+				.has(recordsInOrder(
+						doc0.getId(),    //Beta
+						doc4.getId()    //Delta
+						//doc2.getId(),	//Gamma
+						//doc1.getId()	//Zeta
+				)).has(numFoundAndListSize(2)) // 4 once linkedTo included in taxonomies
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(charles, folder5.getId())
+				//.has(recordsInOrder(doc3.getId()))
+				//.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
 	}
 
 

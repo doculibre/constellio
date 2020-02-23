@@ -51,9 +51,9 @@ public class IsNullCriterion extends LogicalSearchValueCondition {
 	@Override
 	public boolean testConditionOnField(Metadata metadata, TestedQueryRecord record) {
 
-				return !record.getRecord().getRecordDTO().getFields().containsKey(metadata.getDataStoreCode());
+		return !record.getRecord().getRecordDTO().getFields().containsKey(metadata.getDataStoreCode());
 
-//		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
+		//		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
 		//
 		//		if (recordValue instanceof List) {
 		//			return ((List) recordValue).isEmpty();

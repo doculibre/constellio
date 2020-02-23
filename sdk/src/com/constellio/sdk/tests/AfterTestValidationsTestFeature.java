@@ -3,12 +3,9 @@ package com.constellio.sdk.tests;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
-import com.constellio.data.conf.SecondTransactionLogType;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecovery;
-import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
-import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
@@ -17,7 +14,6 @@ import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.sdk.tests.SolrSDKToolsServices.VaultSnapshot;
 
 import java.io.File;
-import java.sql.SQLException;
 import java.util.Map;
 
 public class AfterTestValidationsTestFeature {

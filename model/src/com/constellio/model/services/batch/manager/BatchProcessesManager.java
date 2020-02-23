@@ -532,7 +532,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 				while (searchServices.hasResults(query)
 					   && (modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized() ||
-					   !modelLayerFactory.getConfiguration().isSummaryCacheEnabled())) {
+						   !modelLayerFactory.getConfiguration().isSummaryCacheEnabled())) {
 					if (timeout == -1 || new Date().getTime() - start < timeout) {
 						recordsReindexingBackgroundAction.run(false);
 					} else {

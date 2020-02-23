@@ -87,7 +87,7 @@ public class SecondTransactionLogRuntimeException extends RuntimeException {
 			extends SecondTransactionLogRuntimeException {
 
 		public SecondTransactionLogRuntimeException_CannotParseJsonLogCommand(String json,
-																		  Throwable t) {
+																			  Throwable t) {
 			super("Cannot parse json log command in String : " + json, t);
 		}
 	}

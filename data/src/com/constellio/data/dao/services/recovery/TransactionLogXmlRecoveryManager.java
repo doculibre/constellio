@@ -4,8 +4,6 @@ import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
-import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerAddEditListener;
-import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerQueryListener;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.io.services.facades.IOServices;

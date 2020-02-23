@@ -15,10 +15,10 @@ public class TransactionLogContent {
 
 	private List<String> deletedQueries;
 
-	public TransactionLogContent(){
+	public TransactionLogContent() {
 		this.newDocuments = new ArrayList<>();
 		this.updatedDocuments = new ArrayList<>();
-		this.deletedRecords =new ArrayList<>();
+		this.deletedRecords = new ArrayList<>();
 		this.deletedQueries = new ArrayList<>();
 	}
 

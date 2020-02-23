@@ -4,20 +4,18 @@ public class SqlRecordDaoFactory {
 
 	private final SqlConnector sqlConnector;
 
-	public SqlRecordDaoFactory(SqlConnector sqlConnector){
+	public SqlRecordDaoFactory(SqlConnector sqlConnector) {
 
 		this.sqlConnector = sqlConnector;
 	}
 
-	public SqlRecordDao getRecordDao(SqlRecordDaoType daoType){
+	public SqlRecordDao getRecordDao(SqlRecordDaoType daoType) {
 
-		if(daoType==SqlRecordDaoType.RECORDS){
+		if (daoType == SqlRecordDaoType.RECORDS) {
 			return new MicrosoftSqlRecordTransactionDao(sqlConnector);
-		}
-		else if(daoType==SqlRecordDaoType.TRANSACTIONS){
+		} else if (daoType == SqlRecordDaoType.TRANSACTIONS) {
 			return new MicrosoftSqlTransactionDao(sqlConnector);
-		}
-		else{
+		} else {
 			return new MicrosoftSqlTransactionDao(sqlConnector);
 		}
 	}

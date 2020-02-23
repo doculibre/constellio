@@ -956,8 +956,7 @@ public class RMRecordsMenuItemBehaviors {
 				new DocumentMenuItemActionBehaviors(collection, appLayerFactory);
 		if (ids.size() == 1) {
 			documentMenuItemActionBehaviors.checkOut(rm.wrapDocument(recordServices.getDocumentById(ids.get(0))), params);
-		}
-		else {
+		} else {
 			List<Document> documents = rm.wrapDocuments(getSelectedRecords(ids));
 			documentMenuItemActionBehaviors.checkOut(documents, params);
 		}

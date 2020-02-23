@@ -2,7 +2,7 @@ package com.constellio.model.services.schemas.calculators;
 
 public class SecondaryConceptsIntIdsCalculator extends AbstractAncestorCalculator {
 
-//	@Override
+	//	@Override
 	//	public List<Integer> calculate(CalculatorParameters parameters) {
 	//
 	//		HierarchyDependencyValue dependencyValue = parameters.get(taxonomiesParam);

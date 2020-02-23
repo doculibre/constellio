@@ -3,18 +3,11 @@ package com.constellio.data.dao.services.transactionLog;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.sql.RecordTransactionSqlDTO;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
-import com.constellio.data.dao.services.transactionLog.reader1.ReaderLinesIteratorV1;
-import com.constellio.data.dao.services.transactionLog.reader1.ReaderTransactionLinesIteratorV1;
-import com.constellio.data.dao.services.transactionLog.reader1.ReaderTransactionsIteratorV1;
 import com.constellio.data.dao.services.transactionLog.reader1.TransactionJsonMapperObjectReaderV1;
-import com.constellio.data.dao.services.transactionLog.sql.TransactionLogContent;
 import com.constellio.data.dao.services.transactionLog.writer1.TransactionJsonMapperObjectWriterV1;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.util.Iterator;
-import java.util.List;
 
 public class TransactionLogSqlReadWriteServices implements LogReaderWriterServices<RecordTransactionSqlDTO> {
 

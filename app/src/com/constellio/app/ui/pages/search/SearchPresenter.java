@@ -710,7 +710,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 
 
-
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		LogicalSearchQueryFacetFilters filters = query.getFacetFilters();
 		filters.clear();
