@@ -18,6 +18,8 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 
 	private final String id;
 
+	private RecordId recordId;
+
 	private final long version;
 
 	private final Map<String, Object> fields;
@@ -76,6 +78,14 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 
 	public String getId() {
 		return id;
+	}
+
+	@Override
+	public RecordId getRecordId() {
+		if (recordId == null) {
+			recordId = RecordId.id(id);
+		}
+		return recordId;
 	}
 
 	public long getVersion() {

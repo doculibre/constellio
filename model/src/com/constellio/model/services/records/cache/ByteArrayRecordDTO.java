@@ -1,9 +1,12 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.dao.dto.records.IntegerRecordId;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDTOUtils;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemaProvider;
@@ -91,10 +94,10 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 			return RecordDTOUtils.toStringId(id);
 		}
 
-		//		@Override
-		//		public RecordId getRecordId() {
-		//			return new IntegerRecordId(id);
-		//		}
+		@Override
+		public RecordId getRecordId() {
+			return new IntegerRecordId(id);
+		}
 
 		@Override
 		public long heapMemoryConsumption() {
@@ -148,10 +151,10 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		}
 
 
-		//		@Override
-		//		public RecordId getRecordId() {
-		//			return new StringRecordId(id);
-		//		}
+		@Override
+		public RecordId getRecordId() {
+			return new StringRecordId(id);
+		}
 
 		public ByteArrayRecordDTOWithStringId setMainSortValue(int mainSortValue) {
 			this.mainSortValue = mainSortValue;

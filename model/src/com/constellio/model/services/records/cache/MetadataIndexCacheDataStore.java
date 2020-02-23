@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CollectionInfo;
@@ -10,7 +11,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.cacheIndexHook.IndexedCalculatedKeysHookHandler;
 import com.constellio.model.services.records.cache.cacheIndexHook.IndexedCalculatedKeysHookHandler.RecordCountHookHandler;
@@ -144,6 +144,53 @@ public class MetadataIndexCacheDataStore {
 		}
 
 		void remove(List<Object> values, String id) {
+			if (values != null) {
+				for (Object value : values) {
+					if (value != null) {
+						remove(value, id);
+					}
+				}
+			}
+		}
+
+
+		void add(Object value, RecordId id) {
+			int hashcode = value.hashCode();
+			SortedIdsList list = map.get(hashcode);
+			if (list == null) {
+				list = new SortedIntIdsList();
+				map.put(hashcode, list);
+			}
+
+			if (!id.isInteger()) {
+				if (list instanceof SortedIntIdsList) {
+					list = new SortedStringIdsList((SortedIntIdsList) list);
+					map.put(hashcode, list);
+				}
+				list.add(id);
+			} else {
+				list.add(id);
+			}
+		}
+
+		void add(List<Object> values, RecordId id) {
+			if (values != null) {
+				for (Object value : values) {
+					if (value != null) {
+						add(value, id);
+					}
+				}
+			}
+		}
+
+		void remove(Object value, RecordId id) {
+			SortedIdsList list = map.get(value.hashCode());
+			if (list != null) {
+				list.remove(id);
+			}
+		}
+
+		void remove(List<Object> values, RecordId id) {
 			if (values != null) {
 				for (Object value : values) {
 					if (value != null) {
@@ -353,7 +400,7 @@ public class MetadataIndexCacheDataStore {
 		if (newVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
 			throw new IllegalArgumentException("New version and schema type have different collection id");
 		}
-		if (!oldVersion.getId().equals(newVersion.getId())) {
+		if (!oldVersion.getRecordId().equals(newVersion.getRecordId())) {
 			throw new IllegalArgumentException("Records have different ids");
 		}
 
@@ -366,11 +413,11 @@ public class MetadataIndexCacheDataStore {
 
 		if (!LangUtils.isEqual(newValue, oldValue)) {
 			if (!metadataIndexMap.isEmpty()) {
-				removeRecordIdToMapByValue(oldValue, oldVersion.getId(), metadataIndexMap, currentMetadata);
+				removeRecordIdToMapByValue(oldValue, oldVersion.getRecordId(), metadataIndexMap, currentMetadata);
 			}
 
 			if (!isNewValueNull) {
-				addRecordIdToMapByValue(newValue, newVersion.getId(), metadataIndexMap, currentMetadata);
+				addRecordIdToMapByValue(newValue, newVersion.getRecordId(), metadataIndexMap, currentMetadata);
 			}
 		}
 	}
@@ -383,7 +430,7 @@ public class MetadataIndexCacheDataStore {
 		MetadataIndex metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, false);
 
 		if (!metadataIndexMap.isEmpty()) {
-			removeRecordIdToMapByValue(oldVersion.get(currentMetadata), oldVersion.getId(), metadataIndexMap, currentMetadata);
+			removeRecordIdToMapByValue(oldVersion.get(currentMetadata), oldVersion.getRecordId(), metadataIndexMap, currentMetadata);
 		}
 	}
 
@@ -396,7 +443,7 @@ public class MetadataIndexCacheDataStore {
 		if (!isObjectNullOrEmpty(newValue)) {
 			MetadataIndex metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, true);
 
-			addRecordIdToMapByValue(newValue, newVersion.getId(), metadataIndexMap, currentMetadata);
+			addRecordIdToMapByValue(newValue, newVersion.getRecordId(), metadataIndexMap, currentMetadata);
 		}
 	}
 
@@ -500,7 +547,7 @@ public class MetadataIndexCacheDataStore {
 		}
 	}
 
-	private void removeRecordIdToMapByValue(Object value, String recordId, MetadataIndex metadataIndex,
+	private void removeRecordIdToMapByValue(Object value, RecordId recordId, MetadataIndex metadataIndex,
 											Metadata metadata) {
 		if (isObjectNullOrEmpty(value)) {
 			return;
@@ -518,7 +565,7 @@ public class MetadataIndexCacheDataStore {
 	}
 
 
-	private void addRecordIdToMapByValue(Object value, String recordId, MetadataIndex metadataIndex,
+	private void addRecordIdToMapByValue(Object value, RecordId recordId, MetadataIndex metadataIndex,
 										 Metadata metadata) {
 		if (isObjectNullOrEmpty(value)) {
 			return;

@@ -11,7 +11,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerRuntimeException.BulkRecordTransactionHandlerRuntimeException_ExceptionExecutingTransaction;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerRuntimeException.BulkRecordTransactionHandlerRuntimeException_Interrupted;
 import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.schemas.SchemaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -249,12 +248,6 @@ public class BulkRecordTransactionHandler {
 						transaction.setOptions(new RecordUpdateOptions(options.transactionOptions));
 
 						RecordsFlushing flushing = RecordsFlushing.WITHIN_MINUTES(5);
-						for (Record record : task.records) {
-							String schemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
-							if (cache.isConfigured(schemaType)) {
-								flushing = RecordsFlushing.NOW();
-							}
-						}
 
 						transaction.setRecordFlushing(flushing);
 						transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);

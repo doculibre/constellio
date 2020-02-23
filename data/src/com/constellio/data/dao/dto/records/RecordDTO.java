@@ -11,7 +11,7 @@ public interface RecordDTO extends RecordsOperationDTO, Serializable {
 
 	String getId();
 
-	//RecordId getRecordId();
+	RecordId getRecordId();
 
 	default short getTenantId() {
 		return 0;

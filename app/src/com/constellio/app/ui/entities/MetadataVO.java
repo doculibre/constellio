@@ -309,11 +309,13 @@ public class MetadataVO implements Serializable {
 	}
 
 	public String getHelpMessage(Locale locale) {
-		String helpMessage;
-		if (helpMessages.containsKey(locale)) {
-			helpMessage = helpMessages.get(locale);
-		} else {
-			helpMessage = helpMessages.get(new Locale(locale.getLanguage()));
+		String helpMessage = null;
+		if (helpMessages != null) {
+			if (helpMessages.containsKey(locale)) {
+				helpMessage = helpMessages.get(locale);
+			} else {
+				helpMessage = helpMessages.get(new Locale(locale.getLanguage()));
+			}
 		}
 		return helpMessage;
 	}

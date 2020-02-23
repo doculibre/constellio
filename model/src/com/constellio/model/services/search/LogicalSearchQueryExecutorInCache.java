@@ -215,7 +215,7 @@ public class LogicalSearchQueryExecutorInCache {
 						break;
 				}
 
-				result &= !excludedDocs.contains(record.getRecord().getId());
+				result &= excludedDocs.isEmpty() || !excludedDocs.contains(record.getRecord().getId());
 
 				return result;
 			}

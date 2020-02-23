@@ -2,13 +2,13 @@ package com.constellio.model.entities.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.schemas.MetadataList;
 
 import java.io.Serializable;
@@ -24,9 +24,7 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 
 	short getTypeId();
 
-	default RecordId getRecordId() {
-		return RecordId.toId(getId());
-	}
+	RecordId getRecordId();
 
 	String getTitle();
 
