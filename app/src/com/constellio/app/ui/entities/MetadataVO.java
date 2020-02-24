@@ -91,7 +91,8 @@ public class MetadataVO implements Serializable {
 					  boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue,
 					  String inputMask, Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
-					  boolean isSynthectic, boolean summaryMetadata, Integer maxLength, String measurementUnit, Map<Locale, String> helpMessages) {
+					  boolean isSynthectic, boolean summaryMetadata, Integer maxLength, String measurementUnit,
+					  Map<Locale, String> helpMessages) {
 		super();
 		this.id = id;
 		this.code = code;
@@ -145,11 +146,12 @@ public class MetadataVO implements Serializable {
 					  boolean isWriteNullValues,
 					  Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
-					  boolean summaryMetadata, Integer maxLength, String measurementUnit, Map<Locale, String> helpMessages) {
+					  boolean summaryMetadata, Integer maxLength, String measurementUnit,
+					  Map<Locale, String> helpMessages) {
 
 		this(id, code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
-				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata, maxLength, measurementUnit, summaryMetadata, helpMessages);
+				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata, maxLength, measurementUnit, helpMessages);
 	}
 
 	public MetadataVO(short id, String code, String localCode, MetadataValueType type, String collection,
@@ -163,7 +165,8 @@ public class MetadataVO implements Serializable {
 					  boolean isWriteNullValues,
 					  Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
-					  boolean isSyntetic, boolean summaryMetadata, Integer maxLength, String measurementUnit, Map<Locale, String> helpMessages) {
+					  boolean isSyntetic, boolean summaryMetadata, Integer maxLength, String measurementUnit,
+					  Map<Locale, String> helpMessages) {
 
 		this(id, code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,

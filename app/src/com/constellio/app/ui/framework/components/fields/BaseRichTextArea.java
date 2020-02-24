@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components.fields;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.vaadin.data.Property;
 import org.vaadin.openesignforms.ckeditor.CKEditorConfig;
 import org.vaadin.openesignforms.ckeditor.CKEditorTextField;
 
@@ -15,6 +16,32 @@ public class BaseRichTextArea extends CKEditorTextField {
 	public BaseRichTextArea() {
 		super(newConfig());
 		init();
+	}
+
+	public BaseRichTextArea(String caption) {
+		super(newConfig());
+		init();
+		setCaption(caption);
+	}
+
+	public BaseRichTextArea(Property<?> dataSource) {
+		super(newConfig());
+		init();
+		setPropertyDataSource(dataSource);
+	}
+
+	public BaseRichTextArea(String caption, Property<?> dataSource) {
+		super(newConfig());
+		init();
+		setCaption(caption);
+		setPropertyDataSource(dataSource);
+	}
+
+	public BaseRichTextArea(String caption, String value) {
+		super(newConfig());
+		init();
+		setCaption(caption);
+		setValue(value);
 	}
 
 	private void init() {
