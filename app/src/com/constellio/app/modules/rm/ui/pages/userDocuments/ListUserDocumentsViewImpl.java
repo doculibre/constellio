@@ -80,9 +80,6 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	private ListUserDocumentsPresenter presenter;
 	private Component quotaSpaceInfo;
 
-	public ListUserDocumentsViewImpl() {
-		this(false);
-	}
 
 	public ListUserDocumentsViewImpl(boolean inWindow) {
 		this.inWindow = inWindow;
