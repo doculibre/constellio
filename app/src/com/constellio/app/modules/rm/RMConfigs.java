@@ -262,7 +262,7 @@ public class RMConfigs {
 
 		add(BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
 
-		add(DOCUMENT_BORROWING_DURATION_IN_DAYS = others.createInteger("documentBorrowingDurationDays").withDefaultValue(7));
+		add(DOCUMENT_BORROWING_DURATION_IN_DAYS = others.createInteger("documentBorrowingDurationDays").withDefaultValue(-1));
 
 		add(OPEN_HOLDER = others.createBooleanFalseByDefault("openHolder"));
 
