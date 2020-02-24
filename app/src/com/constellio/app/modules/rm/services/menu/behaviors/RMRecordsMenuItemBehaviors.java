@@ -96,6 +96,7 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -187,6 +188,7 @@ public class RMRecordsMenuItemBehaviors {
 				VerticalLayout verticalLayout = new VerticalLayout();
 				verticalLayout.addStyleName("no-scroll");
 				verticalLayout.setSpacing(true);
+				verticalLayout.setMargin(new MarginInfo(true, true, false, true));
 				final LookupFolderField field = new LookupFolderField(true);
 				field.focus();
 				field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
@@ -225,6 +227,7 @@ public class RMRecordsMenuItemBehaviors {
 				VerticalLayout verticalLayout = new VerticalLayout();
 				verticalLayout.setSizeFull();
 				verticalLayout.setSpacing(true);
+				verticalLayout.setMargin(new MarginInfo(true, true, false, true));
 				final LookupFolderField field = new LookupFolderField(true);
 				field.focus();
 				field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);

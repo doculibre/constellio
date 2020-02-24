@@ -68,6 +68,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.Layout;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -579,6 +581,16 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		} else {
 			field.setRequired(false);
 		}
+		Layout fieldLayout = view.getForm().getFieldLayout((Field<?>) field);
+		if (fieldLayout != null) {
+			fieldLayout.setVisible(visible);
+		}
+
+		field.setVisible(visible);
+	}
+
+	public void setFieldVisible(CustomFolderField<?> field, boolean visible) {
+		view.getForm().getFieldLayout((Field<?>) field).setVisible(visible);
 		field.setVisible(visible);
 	}
 
@@ -633,8 +645,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	protected FolderParentFolderField adjustParentFolderField() {
-		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
-		parentFolderField.setVisible(alwaysShowParentField || folderHadAParent);
+		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getField(Folder.PARENT_FOLDER);
+		setFieldVisible(parentFolderField, alwaysShowParentField || folderHadAParent);
 
 		return parentFolderField;
 	}
@@ -707,9 +719,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				uniformSubdivisionField.setFieldValue(null);
 			}
 			if (new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areUniformSubdivisionEnabled()) {
-				uniformSubdivisionField.setVisible(true);
+				setFieldVisible(uniformSubdivisionField, true);
 			} else {
-				uniformSubdivisionField.setVisible(false);
+				setFieldVisible(uniformSubdivisionField, false);
 			}
 
 			String parentFolderId = parentFolderField.getFieldValue();
@@ -780,10 +792,11 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		} else {
 			if (categoryField == null) {
 				if (retentionRuleField != null) {
-					retentionRuleField.setVisible(false);
+					setFieldVisible(retentionRuleField, false);
 				}
 
 				if (uniformSubdivisionField != null) {
+					setFieldVisible(uniformSubdivisionField, false);
 					uniformSubdivisionField.setRequired(false);
 				}
 			}
@@ -882,7 +895,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		} else {
 			fieldVisible = false;
 		}
-		field.setVisible(fieldVisible);
+		setFieldVisible(field, fieldVisible);
 	}
 
 	boolean isTransferDateInputPossibleForUser() {
@@ -893,7 +906,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustLinearSizeField() {
 		FolderLinearSizeField linearSizeField = (FolderLinearSizeField) view.getForm().getCustomField(Folder.LINEAR_SIZE);
 		if (linearSizeField != null) {
-			linearSizeField.setVisible(true);//folderVO.getContainer() != null);
+			setFieldVisible(linearSizeField, true);//folderVO.getContainer() != null);
 		}
 	}
 

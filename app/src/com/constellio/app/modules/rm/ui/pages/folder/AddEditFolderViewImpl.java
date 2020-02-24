@@ -125,7 +125,12 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 				if (field != null) {
 					boolean wasVisible = field.isVisible();
 					if (wasVisible != visible) {
-						field.setVisible(visible);
+						Layout layout = recordForm.getFieldLayout(field);
+
+						if (layout != null) {
+							field.setVisible(visible);
+							layout.setVisible(visible);
+						}
 					}
 				}
 			}

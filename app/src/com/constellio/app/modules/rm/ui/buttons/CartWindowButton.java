@@ -36,6 +36,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -113,10 +114,12 @@ public class CartWindowButton extends WindowButton {
 	@Override
 	protected Component buildWindowContent() {
 		VerticalLayout layout = new VerticalLayout();
+		layout.setMargin(new MarginInfo(true, true, false, true));
 		layout.setSizeFull();
 
 		HorizontalLayout newCartLayout = new HorizontalLayout();
 		newCartLayout.setSpacing(true);
+
 		newCartLayout.addComponent(new Label($("CartView.newCart")));
 		final BaseTextField newCartTitleField;
 		newCartLayout.addComponent(newCartTitleField = new BaseTextField());

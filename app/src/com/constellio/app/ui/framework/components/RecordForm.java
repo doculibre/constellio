@@ -17,11 +17,13 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.Item;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -36,6 +38,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	public static final String STYLE_FIELD = "metadata-field";
 
 	private RecordFieldFactory formFieldFactory;
+	private Map<Field<?>, Layout> fieldLayoutMap;
 
 	public RecordForm(RecordVO record) {
 		this(record, new MetadataFieldFactory());
@@ -54,6 +57,10 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	public RecordForm(final RecordVO recordVO, RecordFieldFactory formFieldFactory) {
 		super(recordVO, buildFields(recordVO, formFieldFactory));
 		this.formFieldFactory = formFieldFactory;
+	}
+
+	public Layout getFieldLayout(Field<?> field) {
+		return fieldLayoutMap.get(field);
 	}
 
 	private static List<FieldAndPropertyId> buildFields(RecordVO recordVO, RecordFieldFactory formFieldFactory) {
@@ -88,11 +95,21 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		Object propertyId = fieldGroup.getPropertyId(field);
 
 		Layout wrappedField = wrapFieldWithHelpMessage(((MetadataVO) propertyId), field);
+		addFieldLayoutToMap(field, wrappedField);
+
 		if (((MetadataVO) propertyId).isForceHidden()) {
 			hiddenLayout.addComponent(wrappedField);
 		} else {
 			fieldLayout.addComponent(wrappedField);
 		}
+	}
+
+	private void addFieldLayoutToMap(Field<?> field, Layout wrappedField) {
+		if (fieldLayoutMap == null) {
+			fieldLayoutMap = new HashMap<>();
+		}
+
+		fieldLayoutMap.put(field, wrappedField);
 	}
 
 	private Layout wrapFieldWithHelpMessage(MetadataVO metadataVO, Field<?> field) {
@@ -102,9 +119,15 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 		helpIcon.setVisible(!metadataHelp.isEmpty());
 
+		layout.setSpacing(false);
 		layout.setWidth("100%");
+		layout.setHeight("100%");
 		layout.addComponents(field, helpIcon);
+		layout.setComponentAlignment(field, Alignment.MIDDLE_LEFT);
 		layout.setExpandRatio(field, 1);
+
+		layout.setVisible(field.isVisible());
+
 		return layout;
 	}
 
