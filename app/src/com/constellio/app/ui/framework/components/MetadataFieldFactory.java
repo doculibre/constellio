@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateTimeField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeOptionGroup;
+import com.constellio.app.ui.framework.components.fields.exception.ValidationException.ToManyCharacterException;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveCommentField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveDoubleField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveEnumWithSmallCodeComboBox;
@@ -46,15 +47,19 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.vaadin.data.Validator;
 import com.vaadin.ui.AbstractTextField;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Field;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class MetadataFieldFactory implements Serializable {
@@ -92,10 +97,13 @@ public class MetadataFieldFactory implements Serializable {
 		return field;
 	}
 
-	protected void postBuild(Field<?> field, MetadataVO metadata) {
+	protected void postBuild(final Field<?> field, MetadataVO metadata) {
 		boolean readOnly = metadata.isReadOnly();
 		boolean required = metadata.isRequired();
-		String caption = metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+
+		String caption = metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale(), true, true);
+
+		addMaxLenghtValidator(field, metadata);
 
 		field.setId(metadata.getCode());
 		field.setCaption(caption);
@@ -103,6 +111,55 @@ public class MetadataFieldFactory implements Serializable {
 		field.setReadOnly(readOnly);
 		if (field instanceof AbstractTextField) {
 			((AbstractTextField) field).setNullRepresentation("");
+		}
+	}
+
+	private void addMaxLenghtValidator(Field<?> field, MetadataVO metadata) {
+		if (metadata.getMaxLength() != null && metadata.isMaxLenghtSupported()) {
+			if (!isToManyCharactersValidatorPresent(field)) {
+				field.addValidator(new ToManyCharactersValidator(metadata));
+			}
+		}
+	}
+
+	private boolean isToManyCharactersValidatorPresent(Field<?> field) {
+		for (Validator validator : field.getValidators()) {
+			if (validator instanceof ToManyCharactersValidator) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public class ToManyCharactersValidator implements Validator {
+		private MetadataVO metadataVO;
+
+		public ToManyCharactersValidator(MetadataVO metadataVO) {
+			this.metadataVO = metadataVO;
+		}
+
+		@Override
+		public void validate(Object value) throws InvalidValueException {
+			if (value == null) {
+				return;
+			}
+
+			if (!metadataVO.isMultivalue()) {
+				addToManyCharacterExceptionWhenApplicable(metadataVO, (String) value);
+			} else {
+				for (String currentValue : (Collection<String>) value) {
+					addToManyCharacterExceptionWhenApplicable(metadataVO, currentValue);
+				}
+			}
+		}
+	}
+
+	private void addToManyCharacterExceptionWhenApplicable(MetadataVO metadata, String currentValue) {
+		if (currentValue.length() > metadata.getMaxLength()) {
+			String message = $("invalidFieldValueToManyCharacter",
+					metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale(), false, false));
+			throw new ToManyCharacterException(message);
 		}
 	}
 
@@ -152,13 +209,24 @@ public class MetadataFieldFactory implements Serializable {
 					}
 					break;
 				case TEXT:
-					switch (metadataInputType) {
-						case RICHTEXT:
-							field = new BaseRichTextArea();
-							break;
-						default:
-							field = new BaseTextArea();
-							break;
+					if (metadataInputType != null) {
+						switch (metadataInputType) {
+							case RICHTEXT:
+								String richInputMask = metadata.getInputMask();
+								BaseRichTextArea richTextArea = new BaseRichTextArea();
+								richTextArea.setInputMask(richInputMask);
+								field = richTextArea;
+								break;
+							default:
+								String inputMask = metadata.getInputMask();
+								BaseTextArea textArea = new BaseTextArea();
+								textArea.setInputMask(inputMask);
+								field = textArea;
+								break;
+						}
+					} else {
+						field = new BaseTextArea();
+						break;
 					}
 					break;
 				case REFERENCE:
@@ -307,13 +375,17 @@ public class MetadataFieldFactory implements Serializable {
 					}
 					break;
 				case TEXT:
-					switch (metadataInputType) {
-						case RICHTEXT:
-							field = new ListAddRemoveRichTextArea();
-							break;
-						default:
-							field = new ListAddRemoveTextArea();
-							break;
+					if (metadataInputType != null) {
+						switch (metadataInputType) {
+							case RICHTEXT:
+								field = new ListAddRemoveRichTextArea();
+								break;
+							default:
+								field = new ListAddRemoveTextArea();
+								break;
+						}
+					} else {
+						field = new ListAddRemoveTextArea();
 					}
 					break;
 				case REFERENCE:

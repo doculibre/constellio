@@ -4,8 +4,6 @@ import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
-import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerAddEditListener;
-import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerQueryListener;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.utils.BatchBuilderIterator;
@@ -33,7 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-public class TransactionLogSqlRecoveryManager implements TransactionLogRecovery{
+public class TransactionLogSqlRecoveryManager implements TransactionLogRecovery {
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(TransactionLogXmlRecoveryManager.class);
 	//private static final String RECOVERY_WORK_DIR = TransactionLogXmlRecoveryManager.class.getName() + "recoveryWorkDir";

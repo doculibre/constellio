@@ -4,7 +4,7 @@ import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -28,8 +28,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -45,7 +47,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	private DB onDiskRebootMemoryCacheDatabase;
 
-	private final LRUMap<Integer, byte[]> tempIntKeyMap = new LRUMap<>(40_000);
+	private final Map<Integer, byte[]> tempIntKeyMap = Collections.synchronizedMap(new LRUMap<>(40_000));
 
 	private BTreeMap<Integer, byte[]> onDiskFileSystemCacheIntKeyMap;
 	private BTreeMap<String, byte[]> onDiskFileSystemCacheStringKeyMap;

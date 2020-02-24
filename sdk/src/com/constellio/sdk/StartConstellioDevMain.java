@@ -34,7 +34,6 @@ public class StartConstellioDevMain {
 	public static void main(String argv[]) {
 
 
-
 		int port = 7070;
 
 		if (argv.length == 1) {

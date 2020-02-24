@@ -2,7 +2,7 @@ package com.constellio.model.services.records.cache.cacheIndexConditions;
 
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.cache.MetadataIndexCacheDataStore;
 
 import java.util.Iterator;

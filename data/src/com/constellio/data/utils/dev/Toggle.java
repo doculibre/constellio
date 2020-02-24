@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Toggle {
+	public static AvailableToggle PUBLIC_TOKENS = newToggle(false);
 
 	public static AvailableToggle TEMP_FRANCIS = newToggle(true);
 
@@ -118,6 +119,8 @@ public class Toggle {
 
 	public static AvailableToggle USE_MEMORY_STRING_ID_MAPPING = newToggle(false);
 	public static AvailableToggle DOCUMENT_RETENTION_RULES = newToggle(false);
+
+	public static AvailableToggle COUNT_CACHE_FILESYSTEM_METADATA_USAGE = newToggle(false);
 
 
 	// ------------------------------------------------

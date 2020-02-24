@@ -44,15 +44,16 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 	@Override
 	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
 		ArrayList<AdditionnalRecordField> additionnalFields = new ArrayList<>();
-		if(params.getMainComponent() instanceof ModifyProfileView) {
+		if (params.getMainComponent() instanceof ModifyProfileView) {
 			AdditionnalRecordField defaultPageLengthField = buildDefaultPageLengthField(params);
 			AdditionnalRecordField startTabField = buildStartTabField(params);
 			AdditionnalRecordField defaultTaxonomyField = buildDefaultTaxonomyField(params);
 			AdditionnalRecordField taxonomyOrderField = buildTaxonomyDisplayOrderField(params);
+			AdditionnalRecordField enabledFacetsField = buildDoApplyFacetsButton(params);
 			//			AdditionnalRecordField doNotReceiveEmailsField = buildDoNotReceiveEmailsField(params);
 
 			additionnalFields.addAll(asList(defaultPageLengthField, startTabField, defaultTaxonomyField,
-					taxonomyOrderField/*, doNotReceiveEmailsField*/));
+					taxonomyOrderField, enabledFacetsField/*, doNotReceiveEmailsField*/));
 		}
 		return additionnalFields;
 	}
@@ -117,6 +118,19 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		doNotReceiveEmailsField.setValue(isNotReceivingEmails);
 
 		return doNotReceiveEmailsField;
+
+	}
+
+	private AdditionnalRecordField buildDoApplyFacetsButton(RecordFieldsExtensionParams params) {
+		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
+
+		boolean isApplyFacetsEnabled = user.isApplyFacetsEnabled();
+		EnableFacetsApplyButton enableFacetsApplyButton = new EnableFacetsApplyButton();
+		enableFacetsApplyButton.setImmediate(true);
+
+		enableFacetsApplyButton.setValue(isApplyFacetsEnabled);
+
+		return enableFacetsApplyButton;
 	}
 
 	private class DefaultSearchPageLengthFieldImpl extends EnumWithSmallCodeComboBox<SearchPageLength> implements AdditionnalRecordField<Object> {
@@ -130,9 +144,9 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 
 		@Override
-        public String getMetadataLocalCode() {
-            return User.DEFAULT_PAGE_LENGTH;
-        }
+		public String getMetadataLocalCode() {
+			return User.DEFAULT_PAGE_LENGTH;
+		}
 
 		@Override
 		public SearchPageLength getCommittableValue() {
@@ -283,6 +297,23 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		@Override
 		public String getMetadataLocalCode() {
 			return User.DO_NOT_RECEIVE_EMAILS;
+		}
+
+		@Override
+		public Boolean getCommittableValue() {
+			return getValue();
+		}
+	}
+
+	private class EnableFacetsApplyButton extends CheckBox implements AdditionnalRecordField<Boolean> {
+
+		public EnableFacetsApplyButton() {
+			super($("ModifyProfileView.enableFacetsApplyButton"));
+		}
+
+		@Override
+		public String getMetadataLocalCode() {
+			return User.ENABLE_FACETS_APPLY_BUTTON;
 		}
 
 		@Override

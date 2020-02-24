@@ -64,11 +64,17 @@ public abstract class BaseRecordServices implements RecordServices {
 
 	public final <T extends Supplier<Record>> void update(List<T> records, User user)
 			throws RecordServicesException {
+		update(records, new RecordUpdateOptions(), user);
+	}
+
+	public final <T extends Supplier<Record>> void update(List<T> records, RecordUpdateOptions options, User user)
+			throws RecordServicesException {
 		Transaction transaction = new Transaction();
 		for (Supplier<Record> record : records) {
 			transaction.add(record.get());
 		}
 		transaction.setUser(user);
+		transaction.setOptions(options);
 		execute(transaction);
 	}
 

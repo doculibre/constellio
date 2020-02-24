@@ -40,7 +40,7 @@ import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.pdftron.AnnotationLockManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
-import com.constellio.model.services.records.StringRecordId;
+import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.model.services.records.StringRecordIdLegacyMemoryMapping;
 import com.constellio.model.services.records.StringRecordIdLegacyPersistedMapping;
 import com.constellio.model.services.records.cache.CachedRecordServices;
@@ -147,6 +147,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	private final Runnable markForReindexingRunnable;
 
+	private SearchServices searchServices;
+	private RecordServices recordServices;
+	private RecordServicesImpl cachelessRecordServices;
+
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 								 ModelLayerConfiguration modelLayerConfiguration,
 								 StatefullServiceDecorator statefullServiceDecorator,
@@ -162,26 +166,17 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.modelLayerCachesManager = new ModelLayerCachesManager();
 		this.dataLayerFactory = dataLayerFactory;
+		this.modelLayerConfiguration = modelLayerConfiguration;
 
 		add(new StatefulService() {
 			@Override
 			public void initialize() {
-				if (!modelLayerConfiguration.isPersistingStringRecordIdLegacyMapping()) {
-					//Faster for tests
-					StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping(
-							markForReindexingRunnable));
-
-				} else {
-					//Keeping mapping between runtimes
-					StringRecordId.setMapping(new StringRecordIdLegacyPersistedMapping(
-							dataLayerFactory.getConfigManager(), markForReindexingRunnable));
-
-				}
+				beforeInitialize();
 			}
 
 			@Override
 			public void close() {
-				StringRecordId.setMapping(null);
+				afterClose();
 			}
 		});
 
@@ -189,7 +184,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
-		this.modelLayerConfiguration = modelLayerConfiguration;
+
 		this.collectionsListManager = add(new CollectionsListManager(this));
 
 		this.annotationLockManager = new AnnotationLockManager(dataLayerFactory.getConfigManager());
@@ -267,7 +262,49 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 				dataLayerFactory.getEventBusManager());
 
 		this.synonymsConfigurationsManager = add(new SynonymsConfigurationsManager(configManager, collectionsListManager, cacheManager));
+
+		add(new StatefulService() {
+			@Override
+			public void initialize() {
+				afterInitialize();
+			}
+
+			@Override
+			public void close() {
+				beforeClose();
+			}
+
+		});
 	}
+
+	private void afterInitialize() {
+		searchServices = newSearchServices();
+		recordServices = newRecordServices();
+		cachelessRecordServices = newCachelessRecordServices();
+	}
+
+
+	private void beforeClose() {
+	}
+
+	private void afterClose() {
+		StringRecordId.setMapping(null);
+	}
+
+	private void beforeInitialize() {
+		if (!modelLayerConfiguration.isPersistingStringRecordIdLegacyMapping()) {
+			//Faster for tests
+			StringRecordId.setMapping(new StringRecordIdLegacyMemoryMapping(
+					markForReindexingRunnable));
+
+		} else {
+			//Keeping mapping between runtimes
+			StringRecordId.setMapping(new StringRecordIdLegacyPersistedMapping(
+					dataLayerFactory.getConfigManager(), markForReindexingRunnable));
+
+		}
+	}
+
 
 	public void onCollectionInitialized(String collection) {
 		taxonomyRecordsHookRetrieverMap.put(collection, new TaxonomyRecordsHookRetriever(
@@ -297,6 +334,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public RecordServices newRecordServices() {
+		if (recordServices != null) {
+			return recordServices;
+		}
+
 		return new CachedRecordServices(this, newCachelessRecordServices(), recordsCaches);
 	}
 
@@ -343,10 +384,16 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public RecordServicesImpl newCachelessRecordServices() {
+		if (cachelessRecordServices != null) {
+			return cachelessRecordServices;
+		}
 		return newCachelessRecordServices(recordsCaches);
 	}
 
 	public SearchServices newSearchServices() {
+		if (searchServices != null) {
+			return searchServices;
+		}
 		return new SearchServices(dataLayerFactory.newRecordDao(), this);
 	}
 

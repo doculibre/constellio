@@ -449,4 +449,9 @@ public class RMViews extends CoreViews {
 		taxonomyManagement(RMTaxonomies.CLASSIFICATION_PLAN, id);
 	}
 
+	// BORROWINGS
+
+	public void listBorrowings() {
+		navigator.navigateTo(RMNavigationConfiguration.LIST_BORROWINGS);
+	}
 }

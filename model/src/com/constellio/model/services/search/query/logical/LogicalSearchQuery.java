@@ -59,6 +59,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	private int startRow;
 
 	private ReturnedMetadatasFilter returnedMetadatasFilter;
+	private int skipSortingOverRecordSize = -1;
 	private List<LogicalSearchQuerySort> sortFields = new ArrayList<>();
 	private ResultsProjection resultsProjection;
 
@@ -115,6 +116,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		startRow = query.startRow;
 
 		returnedMetadatasFilter = query.returnedMetadatasFilter;
+		skipSortingOverRecordSize = this.skipSortingOverRecordSize;
 		sortFields = new ArrayList<>(query.sortFields);
 		resultsProjection = query.resultsProjection;
 
@@ -141,6 +143,15 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	// The following methods are attribute accessors
 
+
+	public int getSkipSortingOverRecordSize() {
+		return skipSortingOverRecordSize;
+	}
+
+	public LogicalSearchQuery setSkipSortingOverRecordSize(int skipSortingOverRecordSize) {
+		this.skipSortingOverRecordSize = skipSortingOverRecordSize;
+		return this;
+	}
 
 	public boolean isLoadTransientValues() {
 		return loadTransientValues;

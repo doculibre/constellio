@@ -1,13 +1,13 @@
 package com.constellio.model.services.records.cache.cacheIndexConditions;
 
-import com.constellio.model.services.records.IntegerRecordId;
-import com.constellio.model.services.records.StringRecordId;
+import com.constellio.data.dao.dto.records.IntegerRecordId;
+import com.constellio.data.dao.dto.records.StringRecordId;
 import org.junit.Test;
 
 import java.util.stream.Collectors;
 
+import static com.constellio.data.dao.dto.records.RecordDTOUtils.toStringId;
 import static com.constellio.data.utils.LangUtils.stream;
-import static com.constellio.model.services.records.RecordUtils.toStringId;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 

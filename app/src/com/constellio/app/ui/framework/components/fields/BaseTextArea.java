@@ -5,6 +5,8 @@ import com.vaadin.ui.TextArea;
 
 public class BaseTextArea extends TextArea {
 
+	private String inputMask;
+
 	public BaseTextArea() {
 		super();
 		init();
@@ -34,4 +36,11 @@ public class BaseTextArea extends TextArea {
 		setNullRepresentation("");
 	}
 
+	public String getInputMask() {
+		return inputMask;
+	}
+
+	public void setInputMask(String inputMask) {
+		this.inputMask = inputMask;
+	}
 }

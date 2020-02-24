@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.RecordVO;
@@ -23,8 +24,10 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -35,6 +38,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -48,12 +52,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
@@ -319,6 +325,49 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenBorrowedFolderWhenRemindingReturnThenOk()
+			throws Exception {
+
+		givenTimeIs(shishOClock);
+		presenter.forParams("C30");
+		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
+		Folder folderC30 = rmRecords.getFolder_C30();
+
+		presenter.forParams("C30");
+		presenter.reminderReturnFolder();
+
+		Metadata subjectMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)
+				.getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SUBJECT);
+		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE))
+				.where(subjectMetadata).isContainingText($("DisplayFolderView.returnFolderReminder") + folderC30.getTitle());
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(condition);
+		List<Record> emailToSendRecords = searchServices.search(query);
+
+		assertThat(emailToSendRecords).hasSize(1);
+		EmailToSend emailToSend = new EmailToSend(emailToSendRecords.get(0), getSchemaTypes());
+		assertThat(emailToSend.getSendOn()).isEqualTo(shishOClock);
+		assertThat(emailToSend.getSubject()).isEqualTo($("DisplayFolderView.returnFolderReminder") + folderC30.getTitle());
+		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
+		assertThat(emailToSend.getTo().get(0).getEmail())
+				.isEqualTo(rmSchemasRecordsServices.getUser(folderC30.getBorrowUser()).getEmail());
+		assertThat(emailToSend.getTo().get(0).getName())
+				.isEqualTo(rmSchemasRecordsServices.getUser(folderC30.getBorrowUser()).getTitle());
+		assertThat(emailToSend.getError()).isNull();
+		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
+		assertThat(emailToSend.getParameters()).containsOnly(
+				"previewReturnDate:" + folderC30.getBorrowPreviewReturnDate(),
+				"borrower:chuck",
+				"borrowedRecordTitle:Haricot",
+				"borrowedRecordType:" + $("SendReturnReminderEmailButton.folder"),
+				"title:Rappel pour retourner le dossier \"Haricot\"",
+				"constellioURL:http://localhost:8080/constellio/",
+				"recordURL:http://localhost:8080/constellio/#!displayFolder/C30"
+		);
+		assertThat(emailToSend.getFrom()).isEqualTo(null);
+		verify(displayFolderView).showMessage($("SendReturnReminderEmailButton.reminderEmailSent"));
+	}
 
 	@Test
 	public void whenAlertWhenAvailableThenOk()
@@ -530,6 +579,93 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void whenDocumentsLinkedToFolderThenAllDocumentsProvidedWithoutQuery()
+			throws Exception {
+		givenConfig(ConstellioEIMConfigs.DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES, true);
+
+		MetadataSchema schema = rmSchemasRecordsServices.schemaType("document").getDefaultSchema();
+		Metadata metadata = schema.getMetadata("linkedTo");
+		User bob = users.bobIn(zeCollection);
+		User charles = users.charlesIn(zeCollection);
+
+		AdministrativeUnit au1 = rmSchemasRecordsServices.getAdministrativeUnit(rmRecords.unitId_10);
+		AdministrativeUnit au2 = rmSchemasRecordsServices.newAdministrativeUnitWithId(rmRecords.unitId_20);
+
+		Folder folder1 = newFolderInUnit(au1, "folder1");
+		Folder folder2 = newFolderInUnit(au1, "folder2");
+		Folder folder3 = newFolderInUnit(au1, "folder3");
+		Folder folder4 = newFolderInUnit(au1, "folder4");
+		Folder folder5 = newFolderInUnit(au1, "folder5");
+		Folder folderZ = newFolderInUnit(au2, "folderZ");
+
+		Document doc0 = rmSchemasRecordsServices.newDocumentWithId("doc0").setFolder(folder4).setTitle("Beta");
+		Document doc1 = rmSchemasRecordsServices.newDocumentWithId("doc1").setFolder(folderZ).setTitle("Zeta");
+		Document doc2 = rmSchemasRecordsServices.newDocumentWithId("doc2").setFolder(folderZ).setTitle("Gamma");
+		Document doc3 = rmSchemasRecordsServices.newDocumentWithId("doc3").setFolder(folderZ).setTitle("Alpha");
+		Document doc4 = rmSchemasRecordsServices.newDocumentWithId("doc4").setFolder(folder4).setTitle("Delta");
+
+		// Setting document links to folders
+		List<Folder> doc0Refs = new ArrayList<>();
+		doc0Refs.add(folder4);
+		doc0.set(metadata, doc0Refs);
+
+		List<Folder> doc1Refs = new ArrayList<>();
+		doc1Refs.add(folder2);
+		doc1Refs.add(folder4);
+		doc1.set(metadata, doc1Refs);
+
+		List<Folder> doc2Refs = new ArrayList<>();
+		doc2Refs.add(folder3);
+		doc2Refs.add(folder4);
+		doc2.set(metadata, doc2Refs);
+
+		List<Folder> doc3Refs = new ArrayList<>();
+		doc3Refs.add(folder3);
+		doc3Refs.add(folder5);
+		doc3.set(metadata, doc3Refs);
+
+		List<Folder> doc4Refs = new ArrayList<>();
+		doc4Refs.add(folder4);
+		doc4.set(metadata, doc4Refs);
+
+		recordServices.execute(new Transaction(
+				folder1,
+				folder2,
+				folder3,
+				folder4,
+				folder5,
+				folderZ,
+				doc0,
+				doc1,
+				doc2,
+				doc3,
+				doc4
+		));
+		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), DisplayFolderPresenterAcceptTest.class);
+
+		presenter.forParams(folder1.getId());
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
+				.isEmpty();
+
+		presenter.forParams(folder2.getId());
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
+				.containsExactly(doc1.getId());
+
+		presenter.forParams(folder3.getId());
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
+				.containsExactly(doc3.getId(), doc2.getId());
+
+		presenter.forParams(folder4.getId());
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
+				.containsExactly(doc0.getId(), doc4.getId(), doc2.getId(), doc1.getId()); // Alphabetically sorted
+
+		presenter.forParams(folder5.getId());
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
+				.containsExactly(doc3.getId());
+
+		assertThat(queryCounter.newQueryCalls()).isZero();
+	}
 
 	private MetadataSchemaTypes getSchemaTypes() {
 		return getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
@@ -573,4 +709,11 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		displayFolderView.selectFolderContentTab();
 
 	}
+
+
+	private Folder newFolderInUnit(AdministrativeUnit unit, String title) {
+		return rmSchemasRecordsServices.newFolder().setCategoryEntered(rmRecords.categoryId_X100).setTitle(title).setOpenDate(new LocalDate())
+				.setRetentionRuleEntered(rmRecords.ruleId_1).setAdministrativeUnitEntered(unit);
+	}
+
 }

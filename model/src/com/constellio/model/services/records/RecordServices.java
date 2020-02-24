@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
@@ -76,6 +77,9 @@ public interface RecordServices {
 			throws RecordServicesException;
 
 	<T extends Supplier<Record>> void update(List<T> records, User user)
+			throws RecordServicesException;
+
+	<T extends Supplier<Record>> void update(List<T> records, RecordUpdateOptions options, User user)
 			throws RecordServicesException;
 
 	Record getRecordByMetadata(Metadata metadata, String value);

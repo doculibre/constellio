@@ -1,11 +1,13 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.utils.KeyLongMap;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.cache.CompiledDTOStats.CompiledDTOStatsBuilder;
 import lombok.AllArgsConstructor;
 import org.joda.time.LocalDate;
@@ -19,13 +21,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -77,6 +79,8 @@ public class CacheRecordDTOUtils {
 	static CompiledDTOStatsBuilder compiledDTOStatsBuilder;
 	static CompiledDTOStats lastCompiledDTOStats;
 
+	static KeyLongMap<String> filesystemStoredMetadataUsageCounter = new KeyLongMap<>();
+
 	public static void startCompilingDTOsStats() {
 		compiledDTOStatsBuilder = new CompiledDTOStatsBuilder();
 	}
@@ -85,6 +89,10 @@ public class CacheRecordDTOUtils {
 		lastCompiledDTOStats = compiledDTOStatsBuilder.build();
 		compiledDTOStatsBuilder = null;
 		return lastCompiledDTOStats;
+	}
+
+	public static KeyLongMap<String> getFilesystemStoredMetadataUsageCounter() {
+		return filesystemStoredMetadataUsageCounter;
 	}
 
 	public static CompiledDTOStats getLastCompiledDTOStats() {
@@ -104,131 +112,75 @@ public class CacheRecordDTOUtils {
 			if (metadata.isMultivalue()) {
 				List<Object> values = (List<Object>) dto.getFields().get(metadata.getDataStoreCode());
 				if (values != null && !values.isEmpty()) {
-					switch (metadata.getType()) {
-						case STRING:
-						case STRUCTURE:
-						case TEXT:
-						case CONTENT:
-							try {
+					try {
+						switch (metadata.getType()) {
+							case STRING:
+							case STRUCTURE:
+							case TEXT:
+							case CONTENT:
 								builder.addMultivalueStringMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case REFERENCE:
-							try {
+								break;
+							case REFERENCE:
 								builder.addMultivalueReferenceMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case BOOLEAN:
-							try {
+								break;
+							case BOOLEAN:
 								builder.addMultivalueBooleanMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case INTEGER:
-							try {
+								break;
+							case INTEGER:
 								builder.addMultivalueIntegerMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case NUMBER:
-							try {
+								break;
+							case NUMBER:
 								builder.addMultivalueNumberMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case DATE:
-							try {
+								break;
+							case DATE:
 								builder.addMultivalueLocalDateMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case DATE_TIME:
-							try {
+								break;
+							case DATE_TIME:
 								builder.addMultivalueLocalDateTimeMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case ENUM:
-							try {
+								break;
+							case ENUM:
 								builder.addMultivalueEnumMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
+								break;
+						}
+					} catch (Exception e) {
+						SystemLogger.error("Could not write metadata " + metadata.getLocalCode() + " of record " + dto.getId(), e);
 					}
 				}
 			} else {
 				Object value = dto.getFields().get(metadata.getDataStoreCode());
 				if (value != null) {
-					switch (metadata.getType()) {
-						case REFERENCE:
-							try {
+					try {
+						switch (metadata.getType()) {
+							case REFERENCE:
 								builder.addSingleValueReferenceMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case BOOLEAN:
-							try {
+								break;
+							case BOOLEAN:
 								builder.addSingleValueBooleanMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case STRING:
-						case STRUCTURE:
-						case TEXT:
-						case CONTENT:
-							try {
+								break;
+							case STRING:
+							case STRUCTURE:
+							case TEXT:
+							case CONTENT:
 								builder.addSingleValueStringMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case INTEGER:
-							try {
+								break;
+							case INTEGER:
 								builder.addSingleValueIntegerMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case NUMBER:
-							try {
+								break;
+							case NUMBER:
 								builder.addSingleValueNumberMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case DATE:
-							try {
+								break;
+							case DATE:
 								builder.addSingleValueLocalDateMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case DATE_TIME:
-							try {
+								break;
+							case DATE_TIME:
 								builder.addSingleValueLocalDateTimeMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
-						case ENUM:
-							try {
+								break;
+							case ENUM:
 								builder.addSingleValueEnumMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							break;
+								break;
+						}
+					} catch (Exception e) {
+						SystemLogger.error("Could not write metadata " + metadata.getLocalCode() + " of record " + dto.getId(), e);
 					}
 				}
 			}
@@ -274,8 +226,8 @@ public class CacheRecordDTOUtils {
 		bytes[2] = (byte) ((dateValue & ((short) 0x7f)));
 	}
 
-	public static <T> T readMetadata(String recordId, byte[] byteArray, MetadataSchema schema, String metadataLocalCode,
-									 Supplier<byte[]> persistedByteArraySupplier) {
+	public static <T> T readMetadata(byte[] byteArray, MetadataSchema schema, String metadataLocalCode,
+									 ByteArrayRecordDTO byteArrayRecordDTO) {
 		Metadata metadataSearched = schema.getMetadataByDatastoreCode(metadataLocalCode);
 
 		byte[] byteArrayToSearchIn;
@@ -283,15 +235,40 @@ public class CacheRecordDTOUtils {
 			return null;
 
 		} else if (isMetatadataPersisted(metadataSearched)) {
-			byteArrayToSearchIn = persistedByteArraySupplier.get();
+			if (!hasStoredMetadatas(byteArray, metadataSearched)) {
+				return metadataSearched.isMultivalue() ? (T) Collections.<Object>emptyList() : null;
+			}
+
+			if (Toggle.COUNT_CACHE_FILESYSTEM_METADATA_USAGE.isEnabled()) {
+				filesystemStoredMetadataUsageCounter.increment(metadataSearched.getNoInheritanceCode());
+			}
+			byteArrayToSearchIn = byteArrayRecordDTO.get();
 
 		} else {
 			byteArrayToSearchIn = byteArray;
 		}
 
 		MetadataValuePositionInByteArray metadataValuePositionInByteArray = getMetadataValuePosition(byteArrayToSearchIn, metadataSearched.getId());
-		return parseValueMetadata(recordId, byteArrayToSearchIn, metadataSearched, metadataValuePositionInByteArray);
+		return parseValueMetadata(byteArrayRecordDTO, byteArrayToSearchIn, metadataSearched, metadataValuePositionInByteArray);
 	}
+
+
+	public static boolean hasStoredMetadatas(byte[] byteArrayToKeepInMemory, Metadata metadata) {
+		// skipping first two byte because it's the metadatasSizeToKeepInMemory
+		// i+=2*2 because we are just looking for the metadataId not the metadataValue
+		short headerBytesSize = headerSizeOf(byteArrayToKeepInMemory);
+
+		for (int i = HEADER_OF_HEADER_BYTES; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID)) {
+			short id = parseMetadataIdFromByteArray(byteArrayToKeepInMemory, i);
+
+			if (metadata.getId() == id) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 
 	public static Set<String> getStoredMetadatas(byte[] byteArrayToKeepInMemory, MetadataSchema schema) {
 		Set<String> storedMetadatas = new HashSet<>();
@@ -312,8 +289,8 @@ public class CacheRecordDTOUtils {
 		return storedMetadatas;
 	}
 
-	public static Set<Object> getStoredValues(String recordId, byte[] byteArray, MetadataSchema schema,
-											  Supplier<byte[]> persistedByteArraySupplier) {
+	public static Set<Object> getStoredValues(byte[] byteArray, MetadataSchema schema,
+											  ByteArrayRecordDTO byteArrayRecordDTO) {
 		Set<Object> storedValues = new HashSet<>();
 
 		// *(2+2) for the bytes taken by the id and in dex of each metadata and +2 to skip the metadatasSizeToKeepInMemory and the start of the array
@@ -328,7 +305,7 @@ public class CacheRecordDTOUtils {
 			byte[] byteArrayToUse;
 			MetadataValuePositionInByteArray metadataValuePositionInByteArray;
 			if (isMetatadataPersisted(metadataSearched)) {
-				byteArrayToUse = persistedByteArraySupplier.get();
+				byteArrayToUse = byteArrayRecordDTO.get();
 				metadataValuePositionInByteArray = getMetadataValuePosition(byteArrayToUse, id);
 			} else {
 				byteArrayToUse = byteArray;
@@ -336,15 +313,15 @@ public class CacheRecordDTOUtils {
 			}
 
 			// inclusiveStartIndex & exclusiveEndIndex are needed to know where to start and stop parsing the value
-			storedValues.add(parseValueMetadata(recordId, byteArrayToUse, metadataSearched, metadataValuePositionInByteArray));
+			storedValues.add(parseValueMetadata(byteArrayRecordDTO, byteArrayToUse, metadataSearched, metadataValuePositionInByteArray));
 			i += valueIndex.length;
 		}
 
 		return storedValues;
 	}
 
-	public static Set<Entry<String, Object>> toEntrySet(String recordId, byte[] byteArray, MetadataSchema schema,
-														Supplier<byte[]> persistedByteArraySupplier) {
+	public static Set<Entry<String, Object>> toEntrySet(byte[] byteArray, MetadataSchema schema,
+														ByteArrayRecordDTO byteArrayRecordDTO) {
 		Set<Entry<String, Object>> metadatasEntrySet = new HashSet<>();
 
 		short headerBytesSize = headerSizeOf(byteArray);
@@ -359,7 +336,7 @@ public class CacheRecordDTOUtils {
 			byte[] byteArrayToUse;
 			MetadataValuePositionInByteArray metadataValuePositionInByteArray;
 			if (isMetatadataPersisted(metadataSearched)) {
-				byteArrayToUse = persistedByteArraySupplier.get();
+				byteArrayToUse = byteArrayRecordDTO.get();
 				metadataValuePositionInByteArray = getMetadataValuePosition(byteArrayToUse, id);
 			} else {
 				byteArrayToUse = byteArray;
@@ -367,7 +344,7 @@ public class CacheRecordDTOUtils {
 			}
 
 			metadatasEntrySet.add(new SimpleEntry(metadataSearched.getDataStoreCode(),
-					parseValueMetadata(recordId, byteArrayToUse, metadataSearched, metadataValuePositionInByteArray)));
+					parseValueMetadata(byteArrayRecordDTO, byteArrayToUse, metadataSearched, metadataValuePositionInByteArray)));
 			i += valueIndex.length;
 		}
 
@@ -437,7 +414,8 @@ public class CacheRecordDTOUtils {
 	}
 
 
-	private static <T> T parseValueMetadata(String recordId, byte[] byteArray, Metadata metadataSearched,
+	private static <T> T parseValueMetadata(ByteArrayRecordDTO byteArrayRecordDTO, byte[] byteArray,
+											Metadata metadataSearched,
 											MetadataValuePositionInByteArray positionInByteArray) {
 
 		int metadataSearchedIndex = positionInByteArray.inclusiveStartIndex;
@@ -471,7 +449,7 @@ public class CacheRecordDTOUtils {
 				}
 
 			} catch (Throwable t) {
-				SystemLogger.error("Could not parse value of metadata '" + metadataSearched.getLocalCode() + "' of record '" + recordId + "'", t);
+				SystemLogger.error("Could not parse value of metadata '" + metadataSearched.getLocalCode() + "' of record '" + byteArrayRecordDTO.getId() + "'", t);
 				return (T) new ArrayList<>();
 			}
 
@@ -503,7 +481,7 @@ public class CacheRecordDTOUtils {
 					}
 				}
 			} catch (Throwable t) {
-				SystemLogger.error("Could not parse value of metadata '" + metadataSearched.getLocalCode() + "' of record '" + recordId + "'", t);
+				SystemLogger.error("Could not parse value of metadata '" + metadataSearched.getLocalCode() + "' of record '" + byteArrayRecordDTO.getId() + "'", t);
 				return null;
 			}
 			return null;
@@ -790,7 +768,7 @@ public class CacheRecordDTOUtils {
 
 	private static String formatToId(int id) {
 		// rebuild the id to have have the right length (ex: 8 -> "00000000008")
-		return RecordId.toId(id).toString();
+		return RecordId.toId(id).stringValue();
 	}
 
 	private static Boolean parseBooleanFromByteArray(byte[] byteArray, int startingIndex) {

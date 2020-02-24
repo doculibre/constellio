@@ -408,8 +408,8 @@ public class SchemaUtils {
 		return typeCode1.equals(typeCode2) && localCode1.equals(localCode2);
 	}
 
-	public boolean isDependentMetadata(Metadata calculatedMetadata, Metadata otherMetadata,
-									   DynamicLocalDependency dependency) {
+	public static boolean isDependentMetadata(Metadata calculatedMetadata, Metadata otherMetadata,
+											  DynamicLocalDependency dependency) {
 		return !calculatedMetadata.isSame(otherMetadata)
 			   && (dependency.isIncludingGlobalMetadatas() || !otherMetadata.isGlobal())
 			   && dependency.isDependentOf(otherMetadata, calculatedMetadata);

@@ -2,6 +2,7 @@ package com.constellio.app.services.migrations;
 
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
+import com.constellio.app.services.extensions.AppRecordExtension;
 import com.constellio.app.services.extensions.core.CoreSearchFieldExtension;
 import com.constellio.app.services.extensions.core.CoreUserProfileFieldsExtension;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -80,6 +81,7 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_3;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_40;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_417;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_89;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
@@ -174,6 +176,8 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_9_0_1_2());
 		scripts.add(new CoreMigrationTo_9_0_1_3());
 		scripts.add(new CoreMigrationTo_9_0_1_40());
+		scripts.add(new CoreMigrationTo_9_0_1_417());
+
 		scripts.add(new CoreMigrationTo_9_0_42_1());
 		scripts.add(new CoreMigrationTo_9_0_1_89());
 		scripts.add(new CoreMigrationTo_9_0_42_2());
@@ -207,6 +211,8 @@ public class ConstellioEIM {
 		ModelLayerFactory modelFactory = appLayerFactory.getModelLayerFactory();
 		modelFactory.getExtensions().forCollection(collection)
 				.schemaExtensions.add(new CoreSearchFieldExtension(collection, appLayerFactory));
+
+		modelFactory.getExtensions().forCollection(collection).recordExtensions.add(new AppRecordExtension(appLayerFactory, collection));
 	}
 
 	private static void configureBaseDataLayerExtensions(AppLayerFactory appLayerFactory) {

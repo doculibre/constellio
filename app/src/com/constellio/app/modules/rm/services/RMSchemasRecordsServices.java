@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.services;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
@@ -123,6 +124,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	//
 
 	//Container record type
+
+	public MetadataSchemaType containerRecordSchemaType() {
+		return getTypes().getSchemaType(ContainerRecord.SCHEMA_TYPE);
+	}
 
 	public MetadataSchema containerRecordTypeSchema() {
 		return getTypes().getSchema(ContainerRecordType.DEFAULT_SCHEMA);

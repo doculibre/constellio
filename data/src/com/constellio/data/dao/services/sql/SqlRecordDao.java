@@ -17,18 +17,19 @@ public interface SqlRecordDao<Object> {
 
 	Object get(int id)
 			throws SQLException;
+
 	Object get(String transactionId) throws SQLException;
 
 	ResultSetHandler<Object> realGet(int id)
 			throws SQLException;
 
-	List<Object> getAll() throws SQLException ;
+	List<Object> getAll() throws SQLException;
 
-	List<Object> getAll(int top) throws SQLException ;
+	List<Object> getAll(int top) throws SQLException;
 
-	void delete(String id)throws SQLException;
+	void delete(String id) throws SQLException;
 
-	void deleteAll()throws SQLException;
+	void deleteAll() throws SQLException;
 
 	void deleteAll(String[] ids) throws SQLException;
 

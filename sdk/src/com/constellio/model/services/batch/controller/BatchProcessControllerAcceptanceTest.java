@@ -73,7 +73,6 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 		recordsCaches = getModelLayerFactory().getRecordsCaches();
 		eventsDao = spy(getDataLayerFactory().newEventsDao());
 		recordDao = spy(getDataLayerFactory().newRecordDao());
-		searchDao = spy(getDataLayerFactory().newSearchDao());
 		notificationsDao = spy(getDataLayerFactory().newNotificationsDao());
 		DataStoreTypesFactory typesFactory = getDataLayerFactory().newTypesFactory();
 		UniqueIdGenerator uniqueIdGenerator = getDataLayerFactory().getUniqueIdGenerator();

@@ -1,5 +1,6 @@
 package com.constellio.model.entities.records.wrappers;
 
+import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.Record;
@@ -17,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.model.entities.records.Record.GetMetadataOption.DIRECT_GET_FROM_DTO;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.RARELY_HAS_VALUE;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
@@ -60,6 +63,7 @@ public class User extends RecordWrapper {
 	public static final String USER_DOCUMENT_SIZE_SUM = "userDocumentSizeSum";
 	public static final String TAXONOMY_DISPLAY_ORDER = "taxonomyDisplayOrder";
 	public static final String DO_NOT_RECEIVE_EMAILS = "doNotReceiveEmails";
+	public static final String ENABLE_FACETS_APPLY_BUTTON = "enableFacetsApplyButton";
 	public static final String AUTOMATIC_TASK_ASSIGNATION = "automaticTaskAssignation";
 	public static final String AUTOMATIC_TASK_ASSIGNATION_WORKFLOWS = "automaticTaskAssignationWorkflows";
 	public static final String ASSIGNATION_EMAIL_RECEPTION_DISABLED = "assignationEmailReceptionDisabled";
@@ -238,7 +242,8 @@ public class User extends RecordWrapper {
 	}
 
 	public boolean hasCollectionReadAccess() {
-		return getBooleanWithDefaultValue(COLLECTION_READ_ACCESS, false);
+		Boolean value = get(COLLECTION_READ_ACCESS, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE);
+		return value == null ? false : value;
 	}
 
 	public User setCollectionReadAccess(boolean access) {
@@ -247,7 +252,8 @@ public class User extends RecordWrapper {
 	}
 
 	public boolean hasCollectionWriteAccess() {
-		return getBooleanWithDefaultValue(COLLECTION_WRITE_ACCESS, false);
+		Boolean value = get(COLLECTION_WRITE_ACCESS, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE);
+		return value == null ? false : value;
 	}
 
 	public User setCollectionWriteAccess(boolean access) {
@@ -256,7 +262,8 @@ public class User extends RecordWrapper {
 	}
 
 	public boolean hasCollectionDeleteAccess() {
-		return getBooleanWithDefaultValue(COLLECTION_DELETE_ACCESS, false);
+		Boolean value = get(COLLECTION_DELETE_ACCESS, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE);
+		return value == null ? false : value;
 	}
 
 	public User setCollectionDeleteAccess(boolean access) {
@@ -357,6 +364,12 @@ public class User extends RecordWrapper {
 	}
 
 	public UserCredentialStatus getStatus() {
+		RecordDTO recordDTO = wrappedRecord.getRecordDTO();
+		if (recordDTO != null) {
+			return UserCredentialStatus.fastConvert((String) recordDTO.getFields().get("status_s"));
+
+		}
+
 		return get(STATUS);
 	}
 
@@ -601,6 +614,10 @@ public class User extends RecordWrapper {
 
 	public boolean isNotReceivingEmails() {
 		return Boolean.TRUE.equals(DO_NOT_RECEIVE_EMAILS);
+	}
+
+	public boolean isApplyFacetsEnabled() {
+		return Boolean.TRUE.equals(get(ENABLE_FACETS_APPLY_BUTTON));
 	}
 
 	public boolean isAutomaticTaskAssignation() {

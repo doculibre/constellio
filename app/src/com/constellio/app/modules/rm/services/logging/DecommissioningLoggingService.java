@@ -13,7 +13,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 
@@ -69,7 +68,7 @@ public class DecommissioningLoggingService {
 	private void setDefaultMetadata(Event event, User user) {
 		event.setUsername(user.getUsername());
 		List<String> roles = user.getAllRoles();
-		event.setUserRoles(StringUtils.join(roles.toArray(), "; "));
+		//event.setUserRoles(StringUtils.join(roles.toArray(), "; "));
 		event.setCreatedOn(TimeProvider.getLocalDateTime());
 	}
 

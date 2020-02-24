@@ -327,7 +327,7 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 							getWindow().close();
 						} else {
 							if(field.getValue() == null || (field.getValue() instanceof List && ((List)field.getValue()).size() <= 0)) {
-								showErrorMessage($("requiredFieldWithName", "\"" + field.getCaption() + "\""));
+								showErrorMessage($("requiredFieldWithName", field.getCaption()));
 							} else {
 								ReportButton reportButton = new ReportButton(report, presenter);
 								presenter.setUserReportParameters(field.getValue());

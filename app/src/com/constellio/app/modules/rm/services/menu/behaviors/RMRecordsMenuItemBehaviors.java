@@ -2,15 +2,19 @@ package com.constellio.app.modules.rm.services.menu.behaviors;
 
 import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.RMSelectionPanelExtension;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.ContainerRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.menu.behaviors.ui.SendReturnReminderEmailButton;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMMessageUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
@@ -23,6 +27,12 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
+import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.menu.behaviors.util.TaskUrlUtil;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -38,8 +48,13 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -48,6 +63,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -55,18 +71,27 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.EmailServices;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
+import com.constellio.model.services.security.roles.Roles;
+import com.nimbusds.oauth2.sdk.util.CollectionUtils;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
@@ -74,12 +99,16 @@ import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -91,11 +120,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
@@ -104,10 +135,15 @@ public class RMRecordsMenuItemBehaviors {
 
 	private String collection;
 	private AppLayerFactory appLayerFactory;
+	private ModelLayerFactory modelLayerFactory;
 	private RecordServices recordServices;
 	private RMSchemasRecordsServices rm;
 	private DecommissioningService decommissioningService;
 	private IOServices ioServices;
+	private RMConfigs rmConfigs;
+	private BorrowingServices borrowingServices;
+	private MetadataSchemaTypes schemaTypes;
+	private TasksSchemasRecordsServices taskServices;
 
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
@@ -119,11 +155,16 @@ public class RMRecordsMenuItemBehaviors {
 	public RMRecordsMenuItemBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
-		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-
+		modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		recordServices = modelLayerFactory.newRecordServices();
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		decommissioningService = new DecommissioningService(collection, appLayerFactory);
-		ioServices = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newIOServices();
-		this.modelCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
+		ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
+		modelCollectionExtensions = modelLayerFactory.getExtensions().forCollection(collection);
+		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
+		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		taskServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
@@ -249,6 +290,631 @@ public class RMRecordsMenuItemBehaviors {
 		pdfButton.click();
 	}
 
+	public void checkOut(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		List<Record> records = recordServices.getRecordsById(collection, recordIds);
+		Record record = records.get(0);
+
+		if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+			checkOutDocuments(records, params);
+		} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+			checkOutFolders(records, params);
+		}
+	}
+
+	private void checkOutDocuments(List<Record> records, MenuItemActionBehaviorParams params) {
+		List<Document> documents = rm.wrapDocuments(records);
+		for (Document document : documents) {
+			Content content = document.getContent();
+			content.checkOut(params.getUser());
+			modelLayerFactory.newLoggingServices()
+					.borrowRecord(document.getWrappedRecord(), params.getUser(), TimeProvider.getLocalDateTime());
+		}
+
+		try {
+			recordServices.update(documents, new RecordUpdateOptions().setOverwriteModificationDateAndUser(false), params.getUser());
+
+			params.getView().refreshActionMenu();
+			params.getView().showMessage($("DocumentActionsComponent.multipleCheckOut"));
+		} catch (RecordServicesException e) {
+			params.getView().showErrorMessage(MessageUtils.toMessage(e));
+		}
+	}
+
+	private void checkOutFolders(List<Record> records, MenuItemActionBehaviorParams params) {
+		Button borrowButton = new WindowButton($("DisplayFolderView.borrow"),
+				$("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "500px")) {
+			@Override
+			protected Component buildWindowContent() {
+				final JodaDateField borrowDatefield = new JodaDateField();
+				borrowDatefield.setCaption($("DisplayFolderView.borrowDate"));
+				borrowDatefield.setRequired(true);
+				borrowDatefield.setId("borrowDate");
+				borrowDatefield.addStyleName("borrowDate");
+				borrowDatefield.setValue(TimeProvider.getLocalDate().toDate());
+
+				final Field<?> lookupUser = new LookupRecordField(User.SCHEMA_TYPE);
+				lookupUser.setCaption($("DisplayFolderView.borrower"));
+				lookupUser.setId("borrower");
+				lookupUser.addStyleName("user-lookup");
+				lookupUser.setRequired(true);
+
+				final ComboBox borrowingTypeField = new BaseComboBox();
+				borrowingTypeField.setCaption($("DisplayFolderView.borrowingType"));
+				for (BorrowingType borrowingType : BorrowingType.values()) {
+					borrowingTypeField.addItem(borrowingType);
+					borrowingTypeField
+							.setItemCaption(borrowingType, $("DisplayFolderView.borrowingType." + borrowingType.getCode()));
+				}
+				borrowingTypeField.setRequired(true);
+				borrowingTypeField.setNullSelectionAllowed(false);
+
+				final JodaDateField previewReturnDatefield = new JodaDateField();
+				previewReturnDatefield.setCaption($("DisplayFolderView.previewReturnDate"));
+				previewReturnDatefield.setRequired(true);
+				previewReturnDatefield.setId("previewReturnDate");
+				previewReturnDatefield.addStyleName("previewReturnDate");
+
+				final JodaDateField returnDatefield = new JodaDateField();
+				returnDatefield.setCaption($("DisplayFolderView.returnDate"));
+				returnDatefield.setRequired(false);
+				returnDatefield.setId("returnDate");
+				returnDatefield.addStyleName("returnDate");
+
+				borrowDatefield.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						previewReturnDatefield.setValue(
+								getPreviewReturnDate(borrowDatefield.getValue(), borrowingTypeField.getValue()));
+					}
+				});
+				borrowingTypeField.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						previewReturnDatefield.setValue(
+								getPreviewReturnDate(borrowDatefield.getValue(), borrowingTypeField.getValue()));
+					}
+				});
+
+				BaseButton borrowButton = new BaseButton($("DisplayFolderView.borrow")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						String userId = null;
+						BorrowingType borrowingType = null;
+						if (lookupUser.getValue() != null) {
+							userId = (String) lookupUser.getValue();
+						}
+						if (borrowingTypeField.getValue() != null) {
+							borrowingType = BorrowingType.valueOf(borrowingTypeField.getValue().toString());
+						}
+						LocalDate borrowLocalDate = null;
+						LocalDate previewReturnLocalDate = null;
+						LocalDate returnLocalDate = null;
+						if (borrowDatefield.getValue() != null) {
+							borrowLocalDate = LocalDate.fromDateFields(borrowDatefield.getValue());
+						}
+						if (previewReturnDatefield.getValue() != null) {
+							previewReturnLocalDate = LocalDate.fromDateFields(previewReturnDatefield.getValue());
+						}
+						if (returnDatefield.getValue() != null) {
+							returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
+						}
+						if (borrowFolder(records, borrowLocalDate, previewReturnLocalDate, userId,
+								borrowingType, returnLocalDate, params)) {
+							getWindow().close();
+						}
+					}
+				};
+				borrowButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				BaseButton cancelButton = new BaseButton($("cancel")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				};
+				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				HorizontalLayout horizontalLayout = new HorizontalLayout();
+				horizontalLayout.setSpacing(true);
+				horizontalLayout.addComponents(borrowButton, cancelButton);
+
+				VerticalLayout verticalLayout = new VerticalLayout();
+				verticalLayout
+						.addComponents(borrowDatefield, borrowingTypeField, lookupUser, previewReturnDatefield, returnDatefield,
+								horizontalLayout);
+				verticalLayout.setSpacing(true);
+				verticalLayout.addStyleName("no-scroll");
+
+				return verticalLayout;
+			}
+		};
+		borrowButton.click();
+	}
+
+	private boolean borrowFolder(List<Record> records, LocalDate borrowingDate, LocalDate previewReturnDate,
+								 String userId,
+								 BorrowingType borrowingType, LocalDate returnDate,
+								 MenuItemActionBehaviorParams params) {
+		boolean borrowed;
+		String errorMessage = borrowingServices
+				.validateBorrowingInfos(userId, borrowingDate, previewReturnDate, borrowingType, returnDate);
+		if (errorMessage != null) {
+			params.getView().showErrorMessage($(errorMessage));
+			borrowed = false;
+		} else {
+			Record record = recordServices.getDocumentById(userId);
+			User borrowerEntered = wrapUser(record);
+			try {
+				borrowingServices.borrowFolders(records, borrowingDate, previewReturnDate,
+						params.getUser(), borrowerEntered, borrowingType, true);
+				params.getView().refreshActionMenu();
+				params.getView().showMessage($("DisplayFolderView.multipleCheckOut"));
+				borrowed = true;
+			} catch (RecordServicesException e) {
+				log.error(e.getMessage(), e);
+				params.getView().showErrorMessage($("DisplayFolderView.cannotBorrowMultipleFolder"));
+				borrowed = false;
+			}
+		}
+		if (returnDate != null) {
+			return returnRecords(records, returnDate, borrowingDate, params, true);
+		}
+		return borrowed;
+	}
+
+	private User wrapUser(Record record) {
+		return new User(record, schemaTypes, getCollectionRoles());
+	}
+
+	private Roles getCollectionRoles() {
+		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
+	}
+
+	private Date getPreviewReturnDate(Date borrowDate, Object borrowingTypeValue) {
+		BorrowingType borrowingType;
+		Date previewReturnDate = TimeProvider.getLocalDate().toDate();
+		if (borrowDate != null && borrowingTypeValue != null) {
+			borrowingType = (BorrowingType) borrowingTypeValue;
+			if (borrowingType == BorrowingType.BORROW) {
+				int addDays = rmConfigs.getBorrowingDurationDays();
+				previewReturnDate = LocalDate.fromDateFields(borrowDate).plusDays(addDays).toDate();
+			} else {
+				previewReturnDate = borrowDate;
+			}
+		}
+		return previewReturnDate;
+	}
+
+	public void checkOutRequest(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		List<Record> records = recordServices.getRecordsById(collection, recordIds);
+		Record record = records.get(0);
+
+		if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+			checkOutRecordsRequest(records, params, true);
+		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+			checkOutRecordsRequest(records, params, false);
+		}
+	}
+
+	private void checkOutRecordsRequest(List<Record> records, MenuItemActionBehaviorParams params, boolean isFolder) {
+		WindowButton borrowRequestButton = new WindowButton($("RMRequestTaskButtonExtension.borrowRequest"),
+				$("RMRequestTaskButtonExtension.requestBorrowButtonTitle")) {
+			@Override
+			protected Component buildWindowContent() {
+				getWindow().setHeight("250px");
+				User currentUser = params.getUser();
+				VerticalLayout mainLayout = new VerticalLayout();
+				final BaseIntegerField borrowDurationField = new BaseIntegerField(
+						$("RMRequestTaskButtonExtension.borrowDuration"));
+
+				borrowDurationField.setValue(String.valueOf(rmConfigs.getBorrowingDurationDays()));
+				HorizontalLayout buttonLayout = new HorizontalLayout();
+
+				BaseButton borrowButton = new BaseButton("") {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						borrowRecordsRequest(records, borrowDurationField.getValue(), params, isFolder);
+						getWindow().close();
+					}
+				};
+				borrowButton.setStyleName(ValoTheme.BUTTON_PRIMARY);
+				borrowButton.setCaption($(isFolder ? "RMRequestTaskButtonExtension.confirmBorrowMultipleFolder"
+												   : "RMRequestTaskButtonExtension.confirmBorrowMultipleContainer"));
+				BaseButton cancelButton = new BaseButton($("cancel")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				};
+
+				TextArea messageField = new TextArea();
+				messageField.setHeight("50%");
+				messageField.setWidth("100%");
+				messageField.addStyleName(ValoTheme.TEXTAREA_BORDERLESS);
+				messageField.setValue($(isFolder ? "RMRequestTaskButtonExtension.requestBorrowMultipleFolderMessage"
+												 : "RMRequestTaskButtonExtension.requestBorrowMultipleContainerMessage"));
+				messageField.setReadOnly(true);
+
+				buttonLayout.setSpacing(true);
+				buttonLayout.addComponents(borrowButton, cancelButton);
+
+				mainLayout.setHeight("100%");
+				mainLayout.setWidth("100%");
+				mainLayout.setSpacing(true);
+				mainLayout.addComponents(messageField, borrowDurationField, buttonLayout);
+
+				return mainLayout;
+			}
+		};
+
+		borrowRequestButton.click();
+	}
+
+	private void borrowRecordsRequest(List<Record> records, String inputForNumberOfDays,
+									  MenuItemActionBehaviorParams params, boolean isFolder) {
+		int numberOfDays = 1;
+		if (inputForNumberOfDays != null && inputForNumberOfDays.matches("^-?\\d+$")) {
+			numberOfDays = Integer.parseInt(inputForNumberOfDays);
+
+			if (numberOfDays <= 0) {
+				params.getView().showErrorMessage($("RMRequestTaskButtonExtension.invalidBorrowDuration"));
+				return;
+			}
+		} else {
+			params.getView().showErrorMessage($("RMRequestTaskButtonExtension.invalidBorrowDuration"));
+			return;
+		}
+		try {
+			List<String> linkedRecordIds = new ArrayList<>();
+			Metadata metadataLinkedRecord = taskServices.taskSchemaType().getAllMetadatas()
+					.getMetadataWithLocalCode(isFolder ? Task.LINKED_FOLDERS : Task.LINKED_CONTAINERS);
+			List<String> pendingRequestIds = getRequestFromUser(BorrowRequest.FULL_SCHEMA_NAME, params.getUser(),
+					records, metadataLinkedRecord);
+			if (pendingRequestIds.size() > 0) {
+				List<Record> pendingRequests = rm.get(pendingRequestIds);
+				for (Record pendingRequest : pendingRequests) {
+					linkedRecordIds.addAll(pendingRequest.getList(metadataLinkedRecord));
+				}
+			}
+
+			List<Task> tasks = new ArrayList<>();
+			for (Record record : records) {
+				if (!linkedRecordIds.contains(record.getId())) {
+					Task request;
+					if (isFolder) {
+						request = taskServices.newBorrowFolderRequestTask(params.getUser().getId(),
+								getAssigneesForFolder(record.getId()), record.getId(), numberOfDays, record.getTitle());
+					} else {
+						request = taskServices.newBorrowContainerRequestTask(params.getUser().getId(),
+								getAssigneesForContainer(record.getId()), record.getId(), numberOfDays, record.getTitle());
+					}
+					tasks.add(request);
+				}
+			}
+
+			if (tasks.size() > 0) {
+				addTasksWithUserSafeOption(tasks);
+				params.getView().showMessage($("RMRequestTaskButtonExtension.borrowSuccess"));
+			} else {
+				params.getView().showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
+			}
+
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+			params.getView().showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
+		}
+	}
+
+	private List<String> getRequestFromUser(String schemaName, User currentUser, List<Record> linkedRecords,
+											Metadata metadataLinkedRecord) {
+		MetadataSchemaType taskSchemaType = taskServices.taskSchemaType();
+		Metadata metadataStatus = taskSchemaType.getAllMetadatas().getMetadataWithLocalCode(Task.STATUS_TYPE);
+		Metadata metadataApplicant = taskSchemaType.getAllMetadatas().getMetadataWithLocalCode(RequestTask.APPLICANT);
+		LogicalSearchCondition logicalSearchCondition = from(taskSchemaType)
+				.where(Schemas.SCHEMA).isEqualTo(schemaName)
+				.andWhere(metadataLinkedRecord).isIn(linkedRecords)
+				.andWhere(metadataStatus).isEqualTo(TaskStatusType.STANDBY)
+				.andWhere(metadataApplicant).isEqualTo(currentUser.getId());
+
+		return modelLayerFactory.newSearchServices().searchRecordIds(logicalSearchCondition);
+	}
+
+	private List<String> getAssigneesForFolder(String recordId) {
+		return modelLayerFactory.newAuthorizationsServices()
+				.getUserIdsWithPermissionOnRecord(RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
+						recordServices.getDocumentById(recordId));
+	}
+
+	private List<String> getAssigneesForContainer(String recordId) {
+		return modelLayerFactory.newAuthorizationsServices()
+				.getUserIdsWithPermissionOnRecord(RMPermissionsTo.MANAGE_REQUEST_ON_CONTAINER,
+						recordServices.getDocumentById(recordId));
+	}
+
+	private void addTasksWithUserSafeOption(List<Task> tasks) throws RecordServicesException {
+		Transaction transaction = new Transaction();
+		transaction.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
+		transaction.addAll(tasks);
+		recordServices.execute(transaction);
+	}
+
+	public void checkIn(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		List<Record> records = recordServices.getRecordsById(collection, recordIds);
+		Record record = records.get(0);
+
+		if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+			checkInDocuments(records, params);
+		} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+			checkInRecords(records, params, true);
+		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+			checkInRecords(records, params, false);
+		}
+	}
+
+	private void checkInDocuments(List<Record> records, MenuItemActionBehaviorParams params) {
+		List<Document> documents = rm.wrapDocuments(records);
+
+		for (Document document : documents) {
+			Content content = document.getContent();
+			content.checkIn();
+
+			modelLayerFactory.newLoggingServices().returnRecord(document.getWrappedRecord(), params.getUser());
+		}
+
+		try {
+			recordServices.update(documents, new RecordUpdateOptions().setOverwriteModificationDateAndUser(false), params.getUser());
+
+			params.getView().updateUI();
+			params.getView().refreshActionMenu();
+			params.getView().showMessage($("DocumentActionsComponent.canceledCheckOut"));
+		} catch (RecordServicesException e) {
+			params.getView().showErrorMessage(MessageUtils.toMessage(e));
+		}
+	}
+
+	private void checkInRecords(List<Record> records, MenuItemActionBehaviorParams params, boolean isFolder) {
+		String windowCaption = $(isFolder ? "DisplayFolderView.returnFolder" : "DisplayContainerView.checkIn");
+		Button returnButton = new WindowButton(windowCaption, windowCaption) {
+			@Override
+			protected Component buildWindowContent() {
+
+				final JodaDateField returnDatefield = new JodaDateField();
+				returnDatefield.setCaption($("DisplayFolderView.returnDate"));
+				returnDatefield.setRequired(false);
+				returnDatefield.setId("returnDate");
+				returnDatefield.addStyleName("returnDate");
+				returnDatefield.setValue(TimeProvider.getLocalDate().toDate());
+
+				BaseButton returnFolderButton = new BaseButton(windowCaption) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						LocalDate returnLocalDate = null;
+						if (returnDatefield.getValue() != null) {
+							returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
+						}
+						if (returnRecords(records, returnLocalDate, params, isFolder)) {
+							getWindow().close();
+						}
+					}
+				};
+				returnFolderButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				BaseButton cancelButton = new BaseButton($("cancel")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				};
+				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				HorizontalLayout horizontalLayout = new HorizontalLayout();
+				horizontalLayout.setSpacing(true);
+				horizontalLayout.addComponents(returnFolderButton, cancelButton);
+
+				VerticalLayout verticalLayout = new VerticalLayout();
+				verticalLayout
+						.addComponents(returnDatefield, horizontalLayout);
+				verticalLayout.setSpacing(true);
+
+				return verticalLayout;
+			}
+		};
+		returnButton.click();
+	}
+
+	private boolean returnRecords(List<Record> records, LocalDate returnDate, MenuItemActionBehaviorParams params,
+								  boolean isFolder) {
+		LocalDateTime borrowDateTime = null;
+		if (isFolder) {
+			List<Folder> folders = rm.wrapFolders(records);
+			for (Folder folder : folders) {
+				LocalDateTime folderBorrowDate = folder.getBorrowDate();
+				if (borrowDateTime == null || folderBorrowDate.isAfter(borrowDateTime)) {
+					borrowDateTime = folderBorrowDate;
+				}
+			}
+		} else {
+			List<ContainerRecord> containers = rm.wrapContainerRecords(records);
+			for (ContainerRecord container : containers) {
+				LocalDate containerBorrowDate = container.getBorrowDate();
+				if (borrowDateTime == null || containerBorrowDate.isAfter(borrowDateTime)) {
+					borrowDateTime = containerBorrowDate.toDateTimeAtStartOfDay().toLocalDateTime();
+				}
+			}
+		}
+		LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
+		return returnRecords(records, returnDate, borrowDate, params, isFolder);
+	}
+
+	private boolean returnRecords(List<Record> records, LocalDate returnDate, LocalDate borrowingDate,
+								  MenuItemActionBehaviorParams params, boolean isFolder) {
+		String errorMessage = borrowingServices.validateReturnDate(returnDate, borrowingDate);
+		if (errorMessage != null) {
+			params.getView().showErrorMessage($(errorMessage));
+			return false;
+		}
+		try {
+			if (isFolder) {
+				borrowingServices.returnFolders(records, params.getUser(), returnDate, true);
+				deletePendingReturnRequestForRecords(records, params.getUser(),
+						taskServices.taskSchemaType().getAllMetadatas().getMetadataWithLocalCode(Task.LINKED_FOLDERS));
+			} else {
+				borrowingServices.returnContainers(records, params.getUser(), returnDate, true);
+				deletePendingReturnRequestForRecords(records, params.getUser(),
+						taskServices.taskSchemaType().getAllMetadatas().getMetadataWithLocalCode(Task.LINKED_CONTAINERS));
+			}
+			params.getView().updateUI();
+			params.getView().refreshActionMenu();
+			params.getView().showMessage($(isFolder ? "DisplayFolderView.multipleCheckIn"
+													: "DisplayContainerView.multipleCheckIn"));
+			return true;
+		} catch (RecordServicesException e) {
+			params.getView().showErrorMessage($(isFolder ? "DisplayFolderView.cannotReturnFolder"
+														 : "DisplayContainerView.cannotReturnContainer"));
+			return false;
+		}
+	}
+
+	private void deletePendingReturnRequestForRecords(List<Record> records, User user, Metadata metadataLinkedRecord) {
+		List<String> pendingRequests = getPendingReturnRequestForRecords(records, metadataLinkedRecord);
+
+		if (CollectionUtils.isNotEmpty(pendingRequests)) {
+			for (String recordId : pendingRequests) {
+				Record record = recordServices.getDocumentById(recordId);
+				recordServices.logicallyDelete(record, user);
+				modelLayerFactory.newLoggingServices().logDeleteRecordWithJustification(record, user, "");
+			}
+		}
+	}
+
+	private List<String> getPendingReturnRequestForRecords(List<Record> records, Metadata metadataLinkedRecord) {
+		MetadataSchemaType taskSchemaType = taskServices.taskSchemaType();
+		Metadata metadataStatus = taskSchemaType.getAllMetadatas().getMetadataWithLocalCode(Task.STATUS_TYPE);
+		LogicalSearchCondition logicalSearchCondition = from(taskSchemaType)
+				.where(Schemas.SCHEMA).isEqualTo(ReturnRequest.FULL_SCHEMA_NAME)
+				.andWhere(metadataLinkedRecord).isIn(records)
+				.andWhere(metadataStatus).isEqualTo(TaskStatusType.STANDBY);
+
+		return modelLayerFactory.newSearchServices().searchRecordIds(logicalSearchCondition);
+	}
+
+	public void checkInRequest(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		List<Record> records = recordServices.getRecordsById(collection, recordIds);
+		Record record = records.get(0);
+
+		if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+			returnRecordsRequest(records, params, true);
+		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+			returnRecordsRequest(records, params, false);
+		}
+	}
+
+	private void returnRecordsRequest(List<Record> records, MenuItemActionBehaviorParams params, boolean isFolder) {
+		try {
+			List<String> linkedRecordIds = new ArrayList<>();
+			Metadata metadataLinkedRecord = taskServices.taskSchemaType().getAllMetadatas()
+					.getMetadataWithLocalCode(isFolder ? Task.LINKED_FOLDERS : Task.LINKED_CONTAINERS);
+			List<String> pendingRequestIds = getRequestFromUser(ReturnRequest.FULL_SCHEMA_NAME, params.getUser(),
+					records, metadataLinkedRecord);
+			if (pendingRequestIds.size() > 0) {
+				List<Record> pendingRequests = rm.get(pendingRequestIds);
+				for (Record pendingRequest : pendingRequests) {
+					linkedRecordIds.addAll(pendingRequest.getList(metadataLinkedRecord));
+				}
+			}
+
+			List<Task> tasks = new ArrayList<>();
+			for (Record record : records) {
+				if (!linkedRecordIds.contains(record.getId())) {
+					Task request;
+					if (isFolder) {
+						request = taskServices.newReturnFolderRequestTask(params.getUser().getId(),
+								getAssigneesForFolder(record.getId()), record.getId(), record.getTitle());
+					} else {
+						request = taskServices.newReturnContainerRequestTask(params.getUser().getId(),
+								getAssigneesForContainer(record.getId()), record.getId(), record.getTitle());
+					}
+					tasks.add(request);
+				}
+			}
+
+			if (tasks.size() > 0) {
+				addTasksWithUserSafeOption(tasks);
+				params.getView().showMessage($("RMRequestTaskButtonExtension.returnSuccess"));
+			} else {
+				params.getView().showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
+			}
+
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+			params.getView().showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
+		}
+	}
+
+	public void sendReturnRemainder(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		List<Record> records = recordServices.getRecordsById(collection, recordIds);
+		Record record = records.get(0);
+
+		if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+			sendDocumentsReturnRemainder(records, params);
+		} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+			sendFoldersReturnRemainder(records, params);
+		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+			sendContainersReturnRemainder(records, params);
+		}
+	}
+
+	private void sendDocumentsReturnRemainder(List<Record> records, MenuItemActionBehaviorParams params) {
+		List<Document> documents = rm.wrapDocuments(records);
+		for (Document document : documents) {
+			User borrower = null;
+			if (document.getContentCheckedOutBy() != null) {
+				borrower = rm.getUser(document.getContentCheckedOutBy());
+			}
+			String previewReturnDate = document.getContentCheckedOutDate().plusDays(getBorrowingDuration()).toString();
+
+			Button reminderReturnDocumentButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
+					params.getView(), Document.SCHEMA_TYPE, document.get(), borrower, previewReturnDate);
+			reminderReturnDocumentButton.click();
+		}
+	}
+
+	private void sendFoldersReturnRemainder(List<Record> records, MenuItemActionBehaviorParams params) {
+		List<Folder> folders = rm.wrapFolders(records);
+		for (Folder folder : folders) {
+			User borrower = null;
+			if (folder.getBorrowUserEntered() != null) {
+				borrower = rm.getUser(folder.getBorrowUserEntered());
+			} else {
+				borrower = rm.getUser(folder.getBorrowUser());
+			}
+			String previewReturnDate = folder.getBorrowPreviewReturnDate().toString();
+
+			Button reminderReturnFolderButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
+					params.getView(), Folder.SCHEMA_TYPE, folder.get(), borrower, previewReturnDate);
+			reminderReturnFolderButton.click();
+		}
+	}
+
+	private void sendContainersReturnRemainder(List<Record> records, MenuItemActionBehaviorParams params) {
+		List<ContainerRecord> containers = rm.wrapContainerRecords(records);
+		for (ContainerRecord container : containers) {
+			User borrower = null;
+			if (container.getBorrower() != null) {
+				borrower = rm.getUser(container.getBorrower());
+			}
+			String previewReturnDate = container.getPlanifiedReturnDate().toString();
+
+			Button reminderReturnContainerButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
+					params.getView(), ContainerRecord.SCHEMA_TYPE, container.get(), borrower, previewReturnDate);
+			reminderReturnContainerButton.click();
+		}
+	}
+
+	private int getBorrowingDuration() {
+		return new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()).getDocumentBorrowingDurationDays();
+	}
+
 	public void printLabels(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		if (recordIds.isEmpty()) {
 			return;
@@ -290,8 +956,7 @@ public class RMRecordsMenuItemBehaviors {
 				new DocumentMenuItemActionBehaviors(collection, appLayerFactory);
 		if (ids.size() == 1) {
 			documentMenuItemActionBehaviors.checkOut(rm.wrapDocument(recordServices.getDocumentById(ids.get(0))), params);
-		}
-		else {
+		} else {
 			List<Document> documents = rm.wrapDocuments(getSelectedRecords(ids));
 			documentMenuItemActionBehaviors.checkOut(documents, params);
 		}
@@ -324,7 +989,7 @@ public class RMRecordsMenuItemBehaviors {
 			File folder = ioServices.newTemporaryFolder(ZIP_CONTENT_RESOURCE);
 			File file = new File(folder, $("SearchView.contentZip"));
 			try {
-				new ZipContentsService(appLayerFactory.getModelLayerFactory(), collection)
+				new ZipContentsService(modelLayerFactory, collection)
 						.zipContentsOfRecords(recordIds, file);
 				return new FileInputStream(file);
 			} catch (NoContentToZipRuntimeException e) {
@@ -344,7 +1009,7 @@ public class RMRecordsMenuItemBehaviors {
 	}
 
 	public boolean isNeedingAReasonToDeleteRecords() {
-		return new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
+		return rmConfigs.isNeedingAReasonBeforeDeletingFolders();
 	}
 
 	private int countPerShemaType(String schemaType, List<String> recordIds) {
@@ -364,7 +1029,7 @@ public class RMRecordsMenuItemBehaviors {
 	}
 
 	public void showConsultLink(List<String> recordIds, MenuItemActionBehaviorParams params) {
-		String constellioURL = getConstellioUrl(appLayerFactory.getModelLayerFactory());
+		String constellioURL = getConstellioUrl(modelLayerFactory);
 
 		List<ConsultLinkParams> linkList = new ArrayList<>();
 
@@ -482,13 +1147,12 @@ public class RMRecordsMenuItemBehaviors {
 			throws RecordServicesException {
 		List<String> couldNotMove = new ArrayList<>();
 		if (isNotBlank(parentId)) {
-			RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 			List<Record> recordsToMove = new ArrayList<>();
 			for (Record record : records) {
 				try {
 					switch (record.getTypeCode()) {
 						case Folder.SCHEMA_TYPE:
-							Folder folder = rmSchemas.wrapFolder(record);
+							Folder folder = rm.wrapFolder(record);
 							if (!folderRecordActionsServices.isMoveActionPossible(record, user)) {
 								couldNotMove.add(record.getTitle());
 								break;
@@ -504,7 +1168,7 @@ public class RMRecordsMenuItemBehaviors {
 								couldNotMove.add(record.getTitle());
 								break;
 							}
-							Transaction txValidateDocument = new Transaction(rmSchemas.wrapDocument(record).setFolder(parentId));
+							Transaction txValidateDocument = new Transaction(rm.wrapDocument(record).setFolder(parentId));
 							txValidateDocument.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
 							recordServices.validateTransaction(txValidateDocument);
 							recordsToMove.add(record);
@@ -536,7 +1200,6 @@ public class RMRecordsMenuItemBehaviors {
 	private void duplicateButtonClicked(String parentId, List<Record> records, User user, BaseView view) {
 		List<String> couldNotDuplicate = new ArrayList<>();
 		if (isNotBlank(parentId)) {
-			RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 			for (Record record : records) {
 				try {
 					switch (record.getTypeCode()) {
@@ -545,7 +1208,7 @@ public class RMRecordsMenuItemBehaviors {
 								couldNotDuplicate.add(record.getTitle());
 								break;
 							}
-							Folder oldFolder = rmSchemas.wrapFolder(record);
+							Folder oldFolder = rm.wrapFolder(record);
 							Folder newFolder = decommissioningService.duplicateStructureAndDocuments(oldFolder, user, false);
 							newFolder.setParentFolder(parentId);
 							recordServices.add(newFolder);
@@ -555,8 +1218,8 @@ public class RMRecordsMenuItemBehaviors {
 								couldNotDuplicate.add(record.getTitle());
 								break;
 							}
-							Document oldDocument = rmSchemas.wrapDocument(record);
-							Document newDocument = rmSchemas.newDocumentWithType(oldDocument.getType());
+							Document oldDocument = rm.wrapDocument(record);
+							Document newDocument = rm.newDocumentWithType(oldDocument.getType());
 							for (Metadata metadata : oldDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
 								newDocument.set(metadata, record.get(metadata));
 							}
@@ -569,7 +1232,7 @@ public class RMRecordsMenuItemBehaviors {
 								Content content = newDocument.getContent();
 								ContentVersion contentVersion = content.getCurrentVersion();
 								String filename = contentVersion.getFilename();
-								ContentManager contentManager = rmSchemas.getModelLayerFactory().getContentManager();
+								ContentManager contentManager = modelLayerFactory.getContentManager();
 								ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(contentVersion.getHash()).getContentVersionDataSummary();
 								Content newContent = contentManager.createMajor(user, filename, contentVersionDataSummary);
 								newDocument.setContent(newContent);
@@ -630,7 +1293,7 @@ public class RMRecordsMenuItemBehaviors {
 			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage(params);
 			if (emailMessage == null) {
 				EmailServices emailServices = new EmailServices();
-				ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
+				ConstellioEIMConfigs configs = new ConstellioEIMConfigs(modelLayerFactory);
 				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments, configs);
 				message.writeTo(outputStream);
 				String filename = "cart.eml";
@@ -652,13 +1315,11 @@ public class RMRecordsMenuItemBehaviors {
 
 	private List<EmailServices.MessageAttachment> getDocumentsAttachments(List<String> recordIds) {
 		List<EmailServices.MessageAttachment> returnList = new ArrayList<>();
-		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
 		for (String currentDocumentId : recordIds) {
 			Record record = recordServices.getDocumentById(currentDocumentId);
 			if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
 				try {
-					Document document = rmSchemasRecordsServices.wrapDocument(record);
+					Document document = rm.wrapDocument(record);
 					if (document.getContent() != null) {
 						EmailServices.MessageAttachment contentFile = createAttachment(document);
 						returnList.add(contentFile);
@@ -674,7 +1335,7 @@ public class RMRecordsMenuItemBehaviors {
 	private EmailServices.MessageAttachment createAttachment(Document document) {
 		Content content = document.getContent();
 		String hash = content.getCurrentVersion().getHash();
-		ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
+		ContentManager contentManager = modelLayerFactory.getContentManager();
 		InputStream inputStream = contentManager.getContentInputStream(hash, content.getCurrentVersion().getFilename());
 		String mimeType = content.getCurrentVersion().getMimetype();
 		String attachmentName = content.getCurrentVersion().getFilename();

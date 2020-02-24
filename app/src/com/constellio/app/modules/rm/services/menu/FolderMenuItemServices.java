@@ -155,7 +155,7 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_RETURN_REMAINDER.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_RETURN_REMAINDER.name(),
 					isMenuItemActionPossible(FOLDER_RETURN_REMAINDER.name(), folder, user, params),
-					$("DisplayFolderView.reminderReturnFolder"), null, -1, 1300,
+					$("SendReturnReminderEmailButton.reminderReturn"), null, -1, 1300,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(folder, params)));
 		}
 
@@ -229,8 +229,7 @@ public class FolderMenuItemServices {
 			case FOLDER_RETURN:
 				return folderRecordActionsServices.isReturnActionPossible(record, user);
 			case FOLDER_RETURN_REMAINDER:
-				return Boolean.TRUE.equals(folder.getBorrowed()) &&
-					   !user.getId().equals(folder.getBorrowUserEntered());
+				return folderRecordActionsServices.isSendReturnReminderActionPossible(record, user);
 			case FOLDER_AVAILABLE_ALERT:
 				return Boolean.TRUE.equals(folder.getBorrowed()) &&
 					   !user.getId().equals(folder.getBorrowUserEntered());

@@ -21,6 +21,8 @@ public class ValueRequirementValidator implements Validator<Record> {
 
 	public static final String REQUIRED_VALUE_FOR_METADATA = "requiredValueForMetadata";
 
+	public static final String METADATA_VALUE_DOESNT_RESPECT_MAX_LENGTH = "metadataValueDoesntRespectMaxLength";
+
 	private final List<Metadata> metadatas;
 
 	private boolean skipUSRMetadatas;
@@ -28,6 +30,7 @@ public class ValueRequirementValidator implements Validator<Record> {
 	private boolean afterCalculate;
 
 	private RecordAutomaticMetadataServices recordAutomaticMetadataServices;
+
 
 	public ValueRequirementValidator(List<Metadata> metadatas, boolean skipUSRMetadatas,
 									 RecordAutomaticMetadataServices recordAutomaticMetadataServices,

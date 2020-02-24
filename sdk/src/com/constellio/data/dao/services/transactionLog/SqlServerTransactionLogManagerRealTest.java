@@ -77,7 +77,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	String shishOclock = SolrUtils.convertLocalDateTimeToSolrDate(shishOclockLocalDateTime);
 	String tockOClock = SolrUtils.convertLocalDateTimeToSolrDate(tockOClockLocalDateTime);
 
-	SolrInputDocument record1, record2, record5, record3, record6,record1Mod, record4 = new SolrInputDocument();
+	SolrInputDocument record1, record2, record5, record3, record6, record1Mod, record4 = new SolrInputDocument();
 	String deletedRecord6 = "deletedRecord6";
 	String deletedRecord7 = "deletedRecord7";
 	@Mock QueryResponseDTO queryResponseDTO;
@@ -131,7 +131,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 		givenDisabledAfterTestValidations();
 		withSpiedServices(ContentDao.class);
-		electionManager=new ObservableLeaderElectionManager(new LeaderElectionManager() {
+		electionManager = new ObservableLeaderElectionManager(new LeaderElectionManager() {
 			@Override
 			public boolean isCurrentNodeLeader() {
 				return true;
@@ -159,7 +159,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		when(bigVaultServer.countDocuments()).thenReturn(42L);
 		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
 				backgroundThreadsManager, dataLayerLogger, systemExtensions,
-				getDataLayerFactory().getTransactionLogXmlRecoveryManager(),electionManager));
+				getDataLayerFactory().getTransactionLogXmlRecoveryManager(), electionManager));
 		transactionLog.initialize();
 
 		record1 = newSolrInputDocument("record1", -1L);
@@ -338,7 +338,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
 				backgroundThreadsManager, dataLayerLogger, systemExtensions,
-				getDataLayerFactory().getTransactionLogXmlRecoveryManager(),electionManager));
+				getDataLayerFactory().getTransactionLogXmlRecoveryManager(), electionManager));
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 
 	}
@@ -369,7 +369,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		String transactionLogs1Content = transactionLogs1.getContent();
 		String transactionLogs2Content = transactionLogs2.getContent();
 
-		assertThat(transactionLogs1Content+transactionLogs2Content).isEqualTo(buildRecord1And5ExampleString());
+		assertThat(transactionLogs1Content + transactionLogs2Content).isEqualTo(buildRecord1And5ExampleString());
 
 	}
 
@@ -451,7 +451,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		sb.append("    \"id\" : \"record1\",\r\n");
 		sb.append("    \"version\" : -1,\r\n");
 		sb.append("    \"fields\" : {\r\n");
-		sb.append("      \"date_dt\" : \""+shishOclock+"\",\r\n");
+		sb.append("      \"date_dt\" : \"" + shishOclock + "\",\r\n");
 		sb.append("      \"text_s\" : \"aValue\"\r\n");
 		sb.append("    }\r\n");
 		sb.append("  }, {\r\n");
@@ -496,7 +496,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		sb.append("    \"id\" : \"record5\",\r\n");
 		sb.append("    \"version\" : 56,\r\n");
 		sb.append("    \"fields\" : {\r\n");
-		sb.append("      \"date_dt\" : \""+tockOClock+"\",\r\n");
+		sb.append("      \"date_dt\" : \"" + tockOClock + "\",\r\n");
 		sb.append("      \"text_s\" : \"aValue\"\r\n");
 		sb.append("    }\r\n");
 		sb.append("  } ],\r\n");
@@ -514,7 +514,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		return sb.toString();
 	}
 
-	private String buildRecord1And5ExampleString(){
+	private String buildRecord1And5ExampleString() {
 
 		StringBuilder sb = new StringBuilder();
 
@@ -522,21 +522,21 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		sb.append("  \"id\" : \"record1\",\r\n");
 		sb.append("  \"version\" : \"-1\",\r\n");
 		sb.append("  \"fields\" : {\r\n");
-		sb.append("    \"date_dt\" : \""+shishOclock+"\",\r\n");
+		sb.append("    \"date_dt\" : \"" + shishOclock + "\",\r\n");
 		sb.append("    \"text_s\" : \"aValue\"\r\n");
 		sb.append("  }\r\n");
 		sb.append("},{\r\n");
 		sb.append("  \"id\" : \"record1\",\r\n");
 		sb.append("  \"version\" : \"56\",\r\n");
 		sb.append("  \"fields\" : {\r\n");
-		sb.append("    \"date_dt\" : \""+tockOClock+"\",\r\n");
+		sb.append("    \"date_dt\" : \"" + tockOClock + "\",\r\n");
 		sb.append("    \"text_s\" : \"bValue\"\r\n");
 		sb.append("  }\r\n");
 		sb.append("}][{\r\n");
 		sb.append("  \"id\" : \"record5\",\r\n");
 		sb.append("  \"version\" : \"56\",\r\n");
 		sb.append("  \"fields\" : {\r\n");
-		sb.append("    \"date_dt\" : \""+tockOClock+"\",\r\n");
+		sb.append("    \"date_dt\" : \"" + tockOClock + "\",\r\n");
 		sb.append("    \"text_s\" : \"aValue\"\r\n");
 		sb.append("  }\r\n");
 		sb.append("}]");
@@ -552,7 +552,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		sb.append("--transaction--\n");
 		sb.append("addUpdate record1 -1\n");
 		sb.append("text_s=aValue\n");
-		sb.append("date_dt="+shishOclock+"\n");
+		sb.append("date_dt=" + shishOclock + "\n");
 		sb.append("addUpdate record2 -1\n");
 		sb.append("text_s=anotherValue\n");
 		sb.append("otherfield_ss=true\n");

@@ -3,6 +3,7 @@ package com.constellio.model.services.records;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
@@ -15,6 +16,7 @@ import com.constellio.model.entities.records.RecordRuntimeException.InvalidMetad
 import com.constellio.model.entities.records.RecordRuntimeException.RecordIsAlreadySaved;
 import com.constellio.model.entities.records.RecordRuntimeException.RecordRuntimeException_CannotModifyId;
 import com.constellio.model.entities.records.RecordRuntimeException.RequiredMetadataArgument;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -53,7 +55,9 @@ import java.util.Set;
 
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.DIRECT_GET_FROM_DTO;
 import static com.constellio.model.entities.records.Record.GetMetadataOption.NO_SUMMARY_METADATA_VALIDATION;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.RARELY_HAS_VALUE;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
@@ -68,9 +72,11 @@ public class RecordImpl implements Record {
 	protected Map<String, Object> modifiedValues = new HashMap<String, Object>();
 	private Record unmodifiableCopyOfOriginalRecord;
 	private String schemaCode;
-	private String schemaTypeCode;
+	private String lazySchemaTypeCode;
 	private final String collection;
-	private final String id;
+
+	private String cachedStringId;
+	private final RecordId id;
 	private long version;
 	private boolean disconnected = false;
 	private RecordDTO recordDTO;
@@ -91,9 +97,9 @@ public class RecordImpl implements Record {
 		this.typeId = schema.getSchemaType().getId();
 		this.collection = schema.getCollection();
 
-		this.id = id;
+		this.id = RecordId.id(id);
 		this.schemaCode = schema.getCode();
-		this.schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
+		this.lazySchemaTypeCode = schema.getSchemaType().getCode();
 		this.version = -1;
 		this.recordDTO = null;
 		this.collectionInfo = schema.getCollectionInfo();
@@ -124,7 +130,7 @@ public class RecordImpl implements Record {
 	}
 
 	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, short typeId) {
-		this.id = recordDTO.getId();
+		this.id = recordDTO.getRecordId();
 		this.typeId = typeId;
 		this.version = recordDTO.getVersion();
 		this.schemaCode = (String) recordDTO.getFields().get("schema_s");
@@ -134,7 +140,16 @@ public class RecordImpl implements Record {
 		}
 
 		this.recordDTO = recordDTO;
-		this.schemaTypeCode = schemaCode == null ? null : SchemaUtils.getSchemaTypeCode(schemaCode);
+		this.collectionInfo = collectionInfo;
+	}
+
+	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, short typeId, String schemaCode) {
+		this.id = recordDTO.getRecordId();
+		this.typeId = typeId;
+		this.version = recordDTO.getVersion();
+		this.schemaCode = schemaCode;
+		this.collection = collectionInfo.getCode();
+		this.recordDTO = recordDTO;
 		this.collectionInfo = collectionInfo;
 	}
 
@@ -144,6 +159,11 @@ public class RecordImpl implements Record {
 
 	public short getTypeId() {
 		return typeId;
+	}
+
+	@Override
+	public RecordId getRecordId() {
+		return id;
 	}
 
 	@Override
@@ -261,7 +281,7 @@ public class RecordImpl implements Record {
 		if (code.startsWith("global_default")) {
 			return;
 		}
-		if (!code.startsWith(schemaCode) && !code.startsWith(schemaTypeCode + "_default")) {
+		if (!code.startsWith(schemaCode) && !code.startsWith(getTypeCode() + "_default")) {
 			throw new InvalidMetadata(code);
 		}
 
@@ -354,7 +374,7 @@ public class RecordImpl implements Record {
 
 	private void validateSetArguments(Metadata metadata, Object value) {
 		if (disconnected) {
-			throw new RecordRuntimeException.CannotModifyADisconnectedRecord(id);
+			throw new RecordRuntimeException.CannotModifyADisconnectedRecord(id.stringValue());
 		}
 		if (metadata == null) {
 			throw new RecordRuntimeException.RequiredMetadataArgument();
@@ -393,11 +413,36 @@ public class RecordImpl implements Record {
 	private <T> T get(Metadata metadata, String language, LocalisedRecordMetadataRetrieval mode,
 					  GetMetadataOption... options) {
 
+
+		if (recordDTO != null) {
+			boolean directGetFromDTO = false;
+			boolean rarelyHasValue = false;
+			for (GetMetadataOption option : options) {
+
+				if (option == DIRECT_GET_FROM_DTO) {
+					directGetFromDTO = true;
+				}
+				if (option == RARELY_HAS_VALUE) {
+					rarelyHasValue = true;
+				}
+			}
+
+			if (directGetFromDTO) {
+				//These fields is used A LOT!
+				if (rarelyHasValue && !recordDTO.getFields().containsKey(metadata.getDataStoreCode())) {
+					return null;
+				}
+
+				return (T) recordDTO.getFields().get(metadata.getDataStoreCode());
+
+			}
+		}
+
 		if (metadata == null) {
 			throw new RecordRuntimeException.RequiredMetadataArgument();
 		}
 		if (Schemas.IDENTIFIER.getLocalCode().equals(metadata.getLocalCode())) {
-			return (T) id;
+			return (T) id.stringValue();
 		}
 
 		String codeAndType;
@@ -533,7 +578,7 @@ public class RecordImpl implements Record {
 			try {
 				return metadata.getStructureFactory().build((String) rawValue);
 			} catch (RuntimeException e) {
-				throw new RecordImplException_CannotBuildStructureValue(id, (String) rawValue, e);
+				throw new RecordImplException_CannotBuildStructureValue(id.stringValue(), (String) rawValue, e);
 			}
 		}
 	}
@@ -564,7 +609,7 @@ public class RecordImpl implements Record {
 				if (nonNullValue == null) {
 					nonNullValue = (T) value;
 				} else {
-					throw new RecordImplException_RecordCannotHaveTwoParents(id);
+					throw new RecordImplException_RecordCannotHaveTwoParents(id.stringValue());
 				}
 			}
 		}
@@ -660,7 +705,10 @@ public class RecordImpl implements Record {
 
 	@Override
 	public String getId() {
-		return id;
+		if (cachedStringId == null) {
+			cachedStringId = id.stringValue();
+		}
+		return cachedStringId;
 	}
 
 	@Override
@@ -681,7 +729,10 @@ public class RecordImpl implements Record {
 
 	@Override
 	public String getTypeCode() {
-		return schemaTypeCode;
+		if (lazySchemaTypeCode == null) {
+			this.lazySchemaTypeCode = schemaCode == null ? null : SchemaUtils.getSchemaTypeCode(schemaCode);
+		}
+		return lazySchemaTypeCode;
 	}
 
 	public RecordDTO getRecordDTO() {
@@ -741,7 +792,7 @@ public class RecordImpl implements Record {
 	public RecordDTO toNewDocumentDTO(MetadataSchema schema, List<FieldsPopulator> copyfieldsPopulators) {
 
 		if (version != -1) {
-			throw new RecordIsAlreadySaved(id);
+			throw new RecordIsAlreadySaved(id.stringValue());
 		}
 		return toDocumentDTO(schema, copyfieldsPopulators);
 	}
@@ -793,9 +844,17 @@ public class RecordImpl implements Record {
 		fields.remove("_version_");
 		fields.put("schema_s", schemaCode);
 		fields.put("collection_s", collection);
-		fields.put("estimatedSize_i", RecordUtils.estimateRecordSize(fields, copyfields));
+		if (id.isInteger() || !schema.getSchemaType().getCode().equals(Event.SCHEMA_TYPE)) {
+			fields.put("estimatedSize_i", RecordUtils.estimateRecordSize(fields, copyfields));
 
-		return lastCreatedRecordDTO = new SolrRecordDTO(id, version, fields, copyfields, mode);
+		} else {
+			//Record is an event
+			fields.remove("migrationDataVersion_d");
+			fields.remove("modifiedOn_dt");
+		}
+
+
+		return lastCreatedRecordDTO = new SolrRecordDTO(id.stringValue(), version, fields, copyfields, mode);
 
 	}
 
@@ -927,12 +986,12 @@ public class RecordImpl implements Record {
 				convertedValues, recordDTO.getFields(), copyfields, recordDTO.getCopyFields());
 		convertedValues.put("estimatedSize_i", currentSize + estimatedSizeDelta);
 
-		return lastCreatedDeltaDTO = new RecordDeltaDTO(id, version, convertedValues, recordDTO.getFields(), copyfields);
+		return lastCreatedDeltaDTO = new RecordDeltaDTO(id.stringValue(), version, convertedValues, recordDTO.getFields(), copyfields);
 	}
 
 	@Override
 	public String toString() {
-		return id;
+		return id.stringValue();
 	}
 
 	@Override
@@ -1047,7 +1106,7 @@ public class RecordImpl implements Record {
 						if (!(LangUtils.areNullableEqual(currentValue, initialValue)
 							  || (currentValue == null && isEmptyList(initialValue))
 							  || (initialValue == null && isEmptyList(currentValue)))) {
-							throw new RecordRuntimeException.CannotMerge(schema.getCode(), id, key, currentValue, initialValue);
+							throw new RecordRuntimeException.CannotMerge(schema.getCode(), id.stringValue(), key, currentValue, initialValue);
 						}
 					}
 				}
@@ -1152,7 +1211,7 @@ public class RecordImpl implements Record {
 	@Override
 	public Record getCopyOfOriginalRecord() {
 		if (recordDTO == null) {
-			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
+			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id.stringValue());
 		}
 		return new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, typeId);
 	}
@@ -1160,7 +1219,7 @@ public class RecordImpl implements Record {
 	@Override
 	public Record getUnmodifiableCopyOfOriginalRecord() {
 		if (recordDTO == null) {
-			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
+			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id.stringValue());
 		}
 
 		if (unmodifiableCopyOfOriginalRecord == null) {
@@ -1173,7 +1232,7 @@ public class RecordImpl implements Record {
 	@Deprecated
 	public Record getCopyOfOriginalRecordKeepingOnly(List<Metadata> metadatas) {
 		if (recordDTO == null) {
-			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
+			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id.stringValue());
 		}
 
 		Set<String> metadatasDataStoreCodes = new HashSet<>();

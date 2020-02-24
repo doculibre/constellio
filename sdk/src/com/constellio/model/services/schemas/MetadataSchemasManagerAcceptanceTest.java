@@ -125,6 +125,8 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsProvidin
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsTaxonomyRelationship;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUndeletable;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichMaxLengthIs7;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichMeasurementUnitIsCm;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
@@ -940,6 +942,42 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 				defaultSchema.withAReferenceMetadata(whichAllowsThirdSchemaType, whichIsTaxonomyRelationship));
 
 		assertThat(zeSchema.referenceMetadata().isTaxonomyRelationship()).isTrue();
+	}
+
+	@Test
+	public void whenSavingStringMetadataThenMaxLengthConserved() throws Exception {
+		defineSchemasManager().using(
+				defaultSchema.withAStringMetadata(whichMaxLengthIs7)
+		);
+
+		assertThat(zeSchema.stringMetadata().getMaxLength()).isEqualTo(7);
+	}
+
+	@Test
+	public void whenSavingLargeTextMetadataThenMaxLengthConserved() throws Exception {
+		defineSchemasManager().using(
+				defaultSchema.withALargeTextMetadata(whichMaxLengthIs7)
+		);
+
+		assertThat(zeSchema.largeTextMetadata().getMaxLength()).isEqualTo(7);
+	}
+
+	@Test
+	public void whenSavingIntegerMetadataThenMeasurementUnitConserved() throws Exception {
+		defineSchemasManager().using(
+				defaultSchema.withAnIntegerMetadata(whichMeasurementUnitIsCm)
+		);
+
+		assertThat(zeSchema.integerMetadata().getMeasurementUnit()).isEqualTo("cm");
+	}
+
+	@Test
+	public void whenSavingNumberMetadataThenMeasurementUnitConserved() throws Exception {
+		defineSchemasManager().using(
+				defaultSchema.withANumberMetadata(whichMeasurementUnitIsCm)
+		);
+
+		assertThat(zeSchema.numberMetadata().getMeasurementUnit()).isEqualTo("cm");
 	}
 
 	@Test

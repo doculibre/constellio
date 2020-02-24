@@ -3,7 +3,7 @@ package com.constellio.model.services.records.cache.offHeapCollections;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 
-import static com.constellio.model.services.records.RecordUtils.toStringId;
+import static com.constellio.data.dao.dto.records.RecordDTOUtils.toStringId;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 

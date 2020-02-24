@@ -236,7 +236,8 @@ public class BatchProcessingPresenterService {
 													   Set<String> customAttributes, boolean isMultiLingual,
 													   Locale locale, Map<String, Object> customParameters,
 													   CollectionInfoVO collectionInfoVO, boolean sortable,
-													   boolean summaryMetadata, Map<Locale, String> helpMessages) {
+													   boolean summaryMetadata, Integer maxLength,
+													   String measurementUnit, Map<Locale, String> helpMessages) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -254,8 +255,7 @@ public class BatchProcessingPresenterService {
 									   unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									   metadataDisplayType,
 									   allowedReferences,
-									   enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
-									   isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, helpMessages) :
+									   enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, maxLength, measurementUnit, helpMessages) :
 							   null;
 					}
 				};
@@ -368,7 +368,8 @@ public class BatchProcessingPresenterService {
 													   Set<String> customAttributes, boolean isMultiLingual,
 													   Locale locale, Map<String, Object> customParameters,
 													   CollectionInfoVO collectionInfoVO, boolean sortable,
-													   boolean summaryMetadata, Map<Locale, String> helpMessages) {
+													   boolean summaryMetadata, Integer maxLength,
+													   String measurementUnit, Map<Locale, String> helpMessages) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -400,8 +401,7 @@ public class BatchProcessingPresenterService {
 								unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 								metadataDisplayType,
 								allowedReferences,
-								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
-								isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, helpMessages);
+								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, maxLength, measurementUnit, helpMessages);
 					}
 				};
 			}

@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.Stats;
@@ -27,7 +28,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelPostInitializationParams;
-import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
@@ -240,7 +240,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			return new CacheInsertionResponse(problemo, null, DEFAULT_INSERT);
 		}
 
-		RecordDTO current = insertionReason == LOADING_CACHE ? null : memoryDataStore.get(record.getId());
+		RecordDTO current = insertionReason == LOADING_CACHE ? null : memoryDataStore.get(record.getRecordId());
 		if (current != null && current.getVersion() > record.getVersion()) {
 			return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_OLD_VERSION, null, DEFAULT_INSERT);
 		}
@@ -497,7 +497,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	@Override
 	public Stream<Record> stream(MetadataSchemaType type) {
-		return memoryDataStore.stream(type.getCollectionInfo().getCollectionId(), type.getId()).map(this::toRecord);
+		return memoryDataStore.stream(type.getCollectionInfo().getCollectionId(), type.getId())
+				.map(dto -> toRecord(type, dto));
 	}
 
 
@@ -593,20 +594,14 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				return Stream.of(record);
 			}
 		}
-		//if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-		List<String> potentialIds = metadataIndexCacheDataStore.search(schemaType, metadata, value);
+		List<RecordId> potentialIds = metadataIndexCacheDataStore.searchIds(schemaType, metadata, value);
 
 		if (potentialIds != null && !potentialIds.isEmpty()) {
-			return potentialIds.stream().map((id) -> {
-				return toRecord(schemaType, memoryDataStore.get(id));
-			}).filter((r) -> r != null && metadata.isMultivalue() ? r.getList(metadata).contains(value) : value.equals(r.get(metadata)));
+			return potentialIds.stream().map((id) -> toRecord(schemaType, memoryDataStore.get(id))).filter((r) -> r != null && metadata.isMultivalue() ? r.getList(metadata).contains(value) : value.equals(r.get(metadata)));
 		} else {
 			return Stream.empty();
 		}
 
-		//		} else {
-		//			throw new ImpossibleRuntimeException("getByMetadata cannot be used for schema type '" + schemaType.getCode() + "' which is not fully cached. If the schema type has a summary cache, try using getSummaryByMetadata instead");
-		//		}
 	}
 
 

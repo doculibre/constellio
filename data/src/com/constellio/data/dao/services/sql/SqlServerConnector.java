@@ -6,9 +6,8 @@ import com.microsoft.sqlserver.jdbc.SQLServerDriver;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.SQLTimeoutException;
 
-public class SqlServerConnector implements SqlConnector{
+public class SqlServerConnector implements SqlConnector {
 
 	private Connection connection;
 
@@ -19,35 +18,34 @@ public class SqlServerConnector implements SqlConnector{
 
 		String conUrl = dataLayerConfiguration.getMicrosoftSqlServerUrl()
 						+ "; databaseName=" + dataLayerConfiguration.getMicrosoftSqlServerDatabase()
-						+"; user=" + dataLayerConfiguration.getMicrosoftSqlServeruser()
-						+"; password=" + dataLayerConfiguration.getMicrosoftSqlServerpassword()
-						+"; encrypt=" + dataLayerConfiguration.getMicrosoftSqlServerencrypt()
-						+"; loginTimeout=" + dataLayerConfiguration.getMicrosoftSqlServerloginTimeout()
-						+"; trustServerCertificate=" + dataLayerConfiguration.getMicrosoftSqlServertrustServerCertificate()
-						+";";
+						+ "; user=" + dataLayerConfiguration.getMicrosoftSqlServeruser()
+						+ "; password=" + dataLayerConfiguration.getMicrosoftSqlServerpassword()
+						+ "; encrypt=" + dataLayerConfiguration.getMicrosoftSqlServerencrypt()
+						+ "; loginTimeout=" + dataLayerConfiguration.getMicrosoftSqlServerloginTimeout()
+						+ "; trustServerCertificate=" + dataLayerConfiguration.getMicrosoftSqlServertrustServerCertificate()
+						+ ";";
 
-			this.connection = DriverManager.getConnection(conUrl);
+		this.connection = DriverManager.getConnection(conUrl);
 
 	}
 
 	@Override
-	public Connection getConnection(){
+	public Connection getConnection() {
 		return this.connection;
 	}
 
 	@Override
-	public void closeConnection() throws SQLException{
-		if(this.connection!=null && !this.connection.isClosed()) {
+	public void closeConnection() throws SQLException {
+		if (this.connection != null && !this.connection.isClosed()) {
 			this.connection.close();
 		}
 	}
 
 	@Override
 	public boolean hasConnection() {
-		if(this.connection == null) {
+		if (this.connection == null) {
 			return false;
-		}
-		else{
+		} else {
 			try {
 				return this.connection.isValid(30);
 			} catch (SQLException e) {

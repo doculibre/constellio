@@ -11,7 +11,6 @@ import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.Holder;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration;
@@ -48,7 +47,7 @@ public class ConstellioFactories {
 
 	private AppLayerFactory appLayerFactory;
 
-	private ThreadLocal<AppLayerFactory> requestCachedFactories = new ThreadLocal<>();
+	//private ThreadLocal<AppLayerFactory> requestCachedFactories = new ThreadLocal<>();
 
 	private ConstellioFactories() {
 
@@ -162,26 +161,26 @@ public class ConstellioFactories {
 
 		long factoryId = factoryIdSeq.incrementAndGet();
 
-		AppLayerFactoryImpl appLayerFactory = (AppLayerFactoryImpl) getAppLayerFactory();
-		AppLayerFactoryWithRequestCacheImpl requestCachedAppLayerFactory = new AppLayerFactoryWithRequestCacheImpl(
-				appLayerFactory, "" + factoryId);
+		//		AppLayerFactoryImpl appLayerFactory = (AppLayerFactoryImpl) getAppLayerFactory();
+		//		AppLayerFactoryWithRequestCacheImpl requestCachedAppLayerFactory = new AppLayerFactoryWithRequestCacheImpl(
+		//				appLayerFactory, "" + factoryId);
 
-		requestCachedFactories.set(requestCachedAppLayerFactory);
-		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
-			LOGGER.info("onRequestStarted() - " + requestCachedAppLayerFactory.toString());
-		}
+		//		requestCachedFactories.set(requestCachedAppLayerFactory);
+		//		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
+		//			LOGGER.info("onRequestStarted() - " + requestCachedAppLayerFactory.toString());
+		//		}
 	}
 
 	public void onRequestEnded() {
 
-		AppLayerFactory appLayerFactory = requestCachedFactories.get();
-		if (appLayerFactory != null && appLayerFactory instanceof AppLayerFactoryWithRequestCacheImpl) {
-			((AppLayerFactoryWithRequestCacheImpl) appLayerFactory).disconnect();
-			if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
-				LOGGER.info("onRequestEnded() - " + appLayerFactory.toString());
-			}
-		}
-		requestCachedFactories.set(null);
+		//		AppLayerFactory appLayerFactory = requestCachedFactories.get();
+		//		if (appLayerFactory != null && appLayerFactory instanceof AppLayerFactoryWithRequestCacheImpl) {
+		//			((AppLayerFactoryWithRequestCacheImpl) appLayerFactory).disconnect();
+		//			if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
+		//				LOGGER.info("onRequestEnded() - " + appLayerFactory.toString());
+		//			}
+		//		}
+		//		requestCachedFactories.set(null);
 	}
 
 	public IOServicesFactory getIoServicesFactory() {
@@ -213,8 +212,9 @@ public class ConstellioFactories {
 	}
 
 	public AppLayerFactory getAppLayerFactory() {
-		AppLayerFactory requestCachedAppLayerFactory = requestCachedFactories.get();
-		return requestCachedAppLayerFactory == null ? appLayerFactory : requestCachedAppLayerFactory;
+		//		AppLayerFactory requestCachedAppLayerFactory = requestCachedFactories.get();
+		//		return requestCachedAppLayerFactory == null ? appLayerFactory : requestCachedAppLayerFactory;
+		return appLayerFactory;
 	}
 
 	public AppLayerFactory getUncachedAppLayerFactory() {

@@ -10,6 +10,7 @@ import static com.constellio.app.modules.rm.wrappers.Document.CONTENT;
 import static com.constellio.app.modules.rm.wrappers.Document.DESCRIPTION;
 import static com.constellio.app.modules.rm.wrappers.Document.FOLDER;
 import static com.constellio.app.modules.rm.wrappers.Document.KEYWORDS;
+import static com.constellio.app.modules.rm.wrappers.Document.LINKED_TO;
 import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 
 public class DocumentVO extends RecordVO {
@@ -68,6 +69,14 @@ public class DocumentVO extends RecordVO {
 
 	public void setType(String type) {
 		set(TYPE, type);
+	}
+
+	public String getLinkedTo() {
+		return get(LINKED_TO);
+	}
+
+	public void setLinkedTo(String folder) {
+		set(LINKED_TO, folder);
 	}
 
 }

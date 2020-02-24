@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingService
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -78,6 +79,36 @@ public class ContainerRecordActionsServices {
 	public boolean isDisplayActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record)
 			   && rmModuleExtensions.isConsultActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user);
+	}
+
+	public boolean isBorrowRequestActionPossible(Record record, User user) {
+		ContainerRecord container = rm.wrapContainerRecord(record);
+		if (container != null) {
+			try {
+				borrowingServices.validateCanBorrow(user, container, TimeProvider.getLocalDate());
+			} catch (Exception e) {
+				return false;
+			}
+		}
+		return container != null
+			   && user.hasAll(RMPermissionsTo.BORROW_CONTAINER, RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER).on(container);
+	}
+
+	public boolean isCheckInActionPossible(Record record, User user) {
+		return user.has(RMPermissionsTo.RETURN_OTHER_USERS_CONTAINERS).on(record)
+			   && isSendReturnReminderActionPossible(record, user);
+	}
+
+	public boolean isReturnRequestActionPossible(Record record, User user) {
+		ContainerRecord container = rm.wrapContainerRecord(record);
+		return container != null && Boolean.TRUE.equals(container.getBorrowed())
+			   && user.getId().equals(container.getBorrower());
+	}
+
+	public boolean isSendReturnReminderActionPossible(Record record, User user) {
+		ContainerRecord container = rm.wrapContainerRecord(record);
+		return Boolean.TRUE.equals(container.getBorrowed()) &&
+			   !user.getId().equals(container.getBorrower());
 	}
 
 	public boolean isAddToCartActionPossible(Record record, User user) {

@@ -588,7 +588,7 @@ public class CommonMetadataBuilder {
 
 
 	private boolean isTypeWithCalculators(MetadataSchemaBuilder schema) {
-		//TODO Add flag to remove this dependency!
+		//TODO Replace with public static lists of schema types codes, feeded before the creation of schema types !
 		return !Event.SCHEMA_TYPE.equals(schema.getTypeCode())
 			   && !schema.getTypeCode().equals("savedSearch")
 			   && !schema.getTypeCode().equals(SearchEvent.SCHEMA_TYPE);

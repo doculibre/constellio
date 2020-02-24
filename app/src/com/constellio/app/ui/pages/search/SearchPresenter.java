@@ -308,7 +308,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		view.setLazyLoadedSearchResults(configs.isLazyLoadedSearchResults());
-		view.setApplyMultipleFacets(configs.isApplyMultipleFacetButtonEnabled());
+		view.setApplyMultipleFacets(getCurrentUser().isApplyFacetsEnabled());
 	}
 
 	public void resetFacetAndOrder() {
@@ -710,7 +710,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 
 
-
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		LogicalSearchQueryFacetFilters filters = query.getFacetFilters();
 		filters.clear();
@@ -734,17 +733,17 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				query.setFieldBoosts(searchBoostManager().getAllSearchBoostsByMetadataType(view.getCollection()));
 				query.setQueryBoosts(searchBoostManager().getAllSearchBoostsByQueryType(view.getCollection()));
 			}
-			if (new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isAddingSecondarySortWhenSortingByScore()) {
+			if (new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isAddingSecondarySortWhenSortingByScoreOrTitle()) {
 				return sortOrder == SortOrder.ASCENDING ?
 					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(true)).sortAsc(Schemas.IDENTIFIER) :
 					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(false)).sortDesc(Schemas.IDENTIFIER);
 			} else {
 				return query;
 			}
+		} else {
+			Metadata metadata = getMetadata(sortCriterion);
+			return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 		}
-
-		Metadata metadata = getMetadata(sortCriterion);
-		return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 	}
 
 	protected String filterSolrOperators() {
