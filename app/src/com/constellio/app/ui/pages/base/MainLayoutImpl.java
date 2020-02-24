@@ -218,7 +218,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 						dragAndDropWrapper.setDropHandler(userDocumentsWindow);
 					}
 				}
-				updateHelpButtonState();
+				updateHelpButtonState(newView);
 				updateStaticFooterState();
 			}
 		});
@@ -274,8 +274,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		return staticFooterExtraComponentsLayoutEmpty;
 	}
 
-	private void updateHelpButtonState() {
-		String guideUrl = presenter.getGuideUrl();
+	private void updateHelpButtonState(View newView) {
+		String guideUrl = presenter.getGuideUrl((BaseView) newView);
 		boolean guideButtonVisible = StringUtils.isNotBlank(guideUrl);
 		guideButton.setVisible(guideButtonVisible);
 		guideButtonConfig.setVisible(presenter.hasGuideConfigurationPermission()); //  userHasCorrectRole()

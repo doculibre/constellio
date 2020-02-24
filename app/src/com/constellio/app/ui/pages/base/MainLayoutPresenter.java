@@ -87,6 +87,12 @@ public class MainLayoutPresenter implements Serializable {
 
 	protected String getGuideUrl() {
 		BaseView currentView = mainLayout.getHeader().getCurrentView();
+		return getGuideUrl(currentView);
+	}
+
+
+	protected String getGuideUrl(BaseView currentView) {
+		//BaseView currentView = mainLayout.getHeader().getCurrentView();
 		if (currentView == null) {
 			return null;
 		}
