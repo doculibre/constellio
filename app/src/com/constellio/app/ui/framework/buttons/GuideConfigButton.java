@@ -15,26 +15,6 @@ import static com.constellio.app.ui.framework.components.BaseForm.SAVE_BUTTON;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.vaadin.ui.themes.ValoTheme.BUTTON_PRIMARY;
 
-
-/*
-todo:
- - refactor getGuideUrl() de BaseView en Map<Langue, URL> au lieu de string (son propre objet idéallement)
- - passer ça au bouton ici
- - setter les nouvelles infos dans save
- - faire le visuel
- */
-
-
-
-/*
-test cases
-
-default exists, custom exists 				-> use custom
-default exists, custom doesn't exist 		-> use default
-default doesn't exist, custom exists		-> use custom
-default doesn't exist, custom doesn'T exist	-> empty
- */
-
 public class GuideConfigButton extends WindowButton {
 	private static String KEY_PREFIX = "guide.";
 	private static String BOTTOM_MARGIN_HEIGHT = "5px";
@@ -132,18 +112,15 @@ public class GuideConfigButton extends WindowButton {
 		Button saveButton = new Button($("save"));
 		saveButton.addStyleName(SAVE_BUTTON);
 		saveButton.addStyleName(BUTTON_PRIMARY);
-		saveButton.addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				String guideKey = generateGuideKey(ConstellioUI.getCurrent().getCurrentView());
-				Map<String, String> newValues = getNewUrlValues();
-				for (String language : languages) {
-					String newValue = newValues.get(language);
-					guideManager.alterProperty(language, guideKey, newValue);
-				}
-				getWindow().close();
-				refreshPage();
+		saveButton.addClickListener((ClickListener) event -> {
+			String guideKey = generateGuideKey(ConstellioUI.getCurrent().getCurrentView());
+			Map<String, String> newValues = getNewUrlValues();
+			for (String language : languages) {
+				String newValue = newValues.get(language);
+				guideManager.alterProperty(language, guideKey, newValue);
 			}
+			getWindow().close();
+			refreshPage();
 		});
 		saveButton.focus();
 		return saveButton;
@@ -168,12 +145,7 @@ public class GuideConfigButton extends WindowButton {
 
 	private Button buildCancelButton() {
 		Button cancelButton = new Button($("cancel"));
-		cancelButton.addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				getWindow().close();
-			}
-		});
+		cancelButton.addClickListener((ClickListener) event -> getWindow().close());
 		return cancelButton;
 	}
 

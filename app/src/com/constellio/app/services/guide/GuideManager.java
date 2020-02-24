@@ -2,7 +2,6 @@ package com.constellio.app.services.guide;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 
 import java.util.Locale;
@@ -11,11 +10,8 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class GuideManager implements StatefulService {
-	final static String DEFAULT_LANGUAGE = "fr";
 
 	public final static String GUIDE_CONFIG_PATH = "/guideConfig.properties";
-	private static String FILENAME_PREFIX = "guide";
-	private static String FILENAME_EXTENSION = "properties";
 	private final ConfigManager configManager;
 
 	public GuideManager(DataLayerFactory dataLayerFactory) {
@@ -28,7 +24,6 @@ public class GuideManager implements StatefulService {
 		configManager.createPropertiesDocumentIfInexistent(GUIDE_CONFIG_PATH, ConfigManager.EMPTY_PROPERTY_ALTERATION);
 	}
 
-
 	public void alterProperty(final String language, final String property, final String newValue) {
 		String formattedProperty = getPropertyNameForLanguage(property, language);
 		if (newValue.equals(getDefaultValue(property, language)) || newValue.isEmpty()) {
@@ -39,21 +34,13 @@ public class GuideManager implements StatefulService {
 	}
 
 	private void removeProperty(String property) {
-		configManager.updateProperties(GUIDE_CONFIG_PATH, new PropertiesAlteration() {
-			@Override
-			public void alter(Map<String, String> properties) {
-				properties.remove(property);
-			}
-		});
+		configManager.updateProperties(GUIDE_CONFIG_PATH, properties -> properties.remove(property));
 	}
 
 	private void addOrUpdateProperty(String property, String newValue) {
-		configManager.updateProperties(GUIDE_CONFIG_PATH, new PropertiesAlteration() {
-			@Override
-			public void alter(Map<String, String> properties) {
-				if (newValue != null) {
-					properties.put(property, newValue);
-				}
+		configManager.updateProperties(GUIDE_CONFIG_PATH, properties -> {
+			if (newValue != null) {
+				properties.put(property, newValue);
 			}
 		});
 	}
@@ -81,16 +68,9 @@ public class GuideManager implements StatefulService {
 		return url;
 	}
 
-	private String getPropertyFile(String language) {
-		if (language.equals(DEFAULT_LANGUAGE)) {
-			return FILENAME_PREFIX + "." + FILENAME_EXTENSION;
-		}
-		return FILENAME_PREFIX + "_" + language + "." + FILENAME_EXTENSION;
-	}
 
 	public Map<String, String> getAllUrls(final String language) {
-		String path = GuideManager.GUIDE_CONFIG_PATH + getPropertyFile(language);
-		return configManager.getProperties(language).getProperties();
+		return configManager.getProperties(GUIDE_CONFIG_PATH).getProperties();
 	}
 
 	@Override
