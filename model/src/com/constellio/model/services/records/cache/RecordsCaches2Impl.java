@@ -41,6 +41,7 @@ import com.constellio.model.services.records.cache.cacheIndexHook.RecordIdsHookD
 import com.constellio.model.services.records.cache.dataStore.CollectionSchemaTypeObjectHolder;
 import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
 import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
+import com.constellio.model.services.records.cache.dataStore.StreamCacheOption;
 import com.constellio.model.services.records.cache.hooks.DeterminedHookCacheInsertion;
 import com.constellio.model.services.records.cache.hooks.HookCacheInsertionResponse;
 import com.constellio.model.services.records.cache.hooks.RecordsCachesHook;
@@ -496,11 +497,23 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 	@Override
-	public Stream<Record> stream(MetadataSchemaType type) {
-		return memoryDataStore.stream(type.getCollectionInfo().getCollectionId(), type.getId())
-				.map(dto -> toRecord(type, dto));
-	}
+	public Stream<Record> stream(MetadataSchemaType type, StreamCacheOption... options) {
 
+		boolean streamFully = false;
+		for (int i = 0; i < options.length; i++) {
+			streamFully = options[i] == StreamCacheOption.STREAM_FULLY;
+		}
+
+		if (streamFully) {
+			return memoryDataStore.list(type.getCollectionInfo().getCollectionId(), type.getId())
+					.stream()
+					.map(dto -> toRecord(type, dto));
+
+		} else {
+			return memoryDataStore.stream(type.getCollectionInfo().getCollectionId(), type.getId())
+					.map(dto -> toRecord(type, dto));
+		}
+	}
 
 	@Override
 	public Stream<Record> stream(SortedIdsStreamer streamer) {

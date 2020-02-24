@@ -209,6 +209,11 @@ public class TransactionSecurityModel implements SecurityModel {
 		return false;
 	}
 
+	@Override
+	public long getVersion() {
+		return -1L;
+	}
+
 
 	public static boolean hasActiveOverridingAuth(List<SecurityModelAuthorization> authorizations) {
 		for (SecurityModelAuthorization auth : authorizations) {

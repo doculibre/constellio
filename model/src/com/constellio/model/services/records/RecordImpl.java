@@ -76,7 +76,7 @@ public class RecordImpl implements Record {
 	private final String collection;
 
 	private String cachedStringId;
-	private final RecordId id;
+	private RecordId nullableId;
 	private long version;
 	private boolean disconnected = false;
 	private RecordDTO recordDTO;
@@ -97,7 +97,7 @@ public class RecordImpl implements Record {
 		this.typeId = schema.getSchemaType().getId();
 		this.collection = schema.getCollection();
 
-		this.id = RecordId.id(id);
+		this.nullableId = RecordId.id(id);
 		this.schemaCode = schema.getCode();
 		this.lazySchemaTypeCode = schema.getSchemaType().getCode();
 		this.version = -1;
@@ -130,13 +130,12 @@ public class RecordImpl implements Record {
 	}
 
 	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, short typeId) {
-		this.id = recordDTO.getRecordId();
 		this.typeId = typeId;
 		this.version = recordDTO.getVersion();
 		this.schemaCode = (String) recordDTO.getFields().get("schema_s");
 		this.collection = (String) recordDTO.getFields().get("collection_s");
 		if (collection == null) {
-			throw new IllegalArgumentException("Require collection code for record '" + id + "'");
+			throw new IllegalArgumentException("Require collection code for record '" + getId() + "'");
 		}
 
 		this.recordDTO = recordDTO;
@@ -144,7 +143,6 @@ public class RecordImpl implements Record {
 	}
 
 	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, short typeId, String schemaCode) {
-		this.id = recordDTO.getRecordId();
 		this.typeId = typeId;
 		this.version = recordDTO.getVersion();
 		this.schemaCode = schemaCode;
@@ -163,7 +161,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public RecordId getRecordId() {
-		return id;
+		return nullableId != null ? nullableId : recordDTO.getRecordId();
 	}
 
 	@Override
@@ -374,7 +372,7 @@ public class RecordImpl implements Record {
 
 	private void validateSetArguments(Metadata metadata, Object value) {
 		if (disconnected) {
-			throw new RecordRuntimeException.CannotModifyADisconnectedRecord(id.stringValue());
+			throw new RecordRuntimeException.CannotModifyADisconnectedRecord(getId());
 		}
 		if (metadata == null) {
 			throw new RecordRuntimeException.RequiredMetadataArgument();
@@ -442,7 +440,7 @@ public class RecordImpl implements Record {
 			throw new RecordRuntimeException.RequiredMetadataArgument();
 		}
 		if (Schemas.IDENTIFIER.getLocalCode().equals(metadata.getLocalCode())) {
-			return (T) id.stringValue();
+			return (T) getId();
 		}
 
 		String codeAndType;
@@ -578,7 +576,7 @@ public class RecordImpl implements Record {
 			try {
 				return metadata.getStructureFactory().build((String) rawValue);
 			} catch (RuntimeException e) {
-				throw new RecordImplException_CannotBuildStructureValue(id.stringValue(), (String) rawValue, e);
+				throw new RecordImplException_CannotBuildStructureValue(getId(), (String) rawValue, e);
 			}
 		}
 	}
@@ -609,7 +607,7 @@ public class RecordImpl implements Record {
 				if (nonNullValue == null) {
 					nonNullValue = (T) value;
 				} else {
-					throw new RecordImplException_RecordCannotHaveTwoParents(id.stringValue());
+					throw new RecordImplException_RecordCannotHaveTwoParents(getId());
 				}
 			}
 		}
@@ -706,7 +704,7 @@ public class RecordImpl implements Record {
 	@Override
 	public String getId() {
 		if (cachedStringId == null) {
-			cachedStringId = id.stringValue();
+			cachedStringId = getRecordId().stringValue();
 		}
 		return cachedStringId;
 	}
@@ -792,7 +790,7 @@ public class RecordImpl implements Record {
 	public RecordDTO toNewDocumentDTO(MetadataSchema schema, List<FieldsPopulator> copyfieldsPopulators) {
 
 		if (version != -1) {
-			throw new RecordIsAlreadySaved(id.stringValue());
+			throw new RecordIsAlreadySaved(getId());
 		}
 		return toDocumentDTO(schema, copyfieldsPopulators);
 	}
@@ -844,7 +842,7 @@ public class RecordImpl implements Record {
 		fields.remove("_version_");
 		fields.put("schema_s", schemaCode);
 		fields.put("collection_s", collection);
-		if (id.isInteger() || !schema.getSchemaType().getCode().equals(Event.SCHEMA_TYPE)) {
+		if (getRecordId().isInteger() || !schema.getSchemaType().getCode().equals(Event.SCHEMA_TYPE)) {
 			fields.put("estimatedSize_i", RecordUtils.estimateRecordSize(fields, copyfields));
 
 		} else {
@@ -854,7 +852,7 @@ public class RecordImpl implements Record {
 		}
 
 
-		return lastCreatedRecordDTO = new SolrRecordDTO(id.stringValue(), version, fields, copyfields, mode);
+		return lastCreatedRecordDTO = new SolrRecordDTO(getId(), version, fields, copyfields, mode);
 
 	}
 
@@ -986,12 +984,12 @@ public class RecordImpl implements Record {
 				convertedValues, recordDTO.getFields(), copyfields, recordDTO.getCopyFields());
 		convertedValues.put("estimatedSize_i", currentSize + estimatedSizeDelta);
 
-		return lastCreatedDeltaDTO = new RecordDeltaDTO(id.stringValue(), version, convertedValues, recordDTO.getFields(), copyfields);
+		return lastCreatedDeltaDTO = new RecordDeltaDTO(getId(), version, convertedValues, recordDTO.getFields(), copyfields);
 	}
 
 	@Override
 	public String toString() {
-		return id.stringValue();
+		return getId();
 	}
 
 	@Override
@@ -1020,7 +1018,7 @@ public class RecordImpl implements Record {
 		if (collection != null ? !collection.equals(record.collection) : record.collection != null) {
 			return false;
 		}
-		if (!id.equals(record.id)) {
+		if (!getId().equals(record.getId())) {
 			return false;
 		}
 
@@ -1062,7 +1060,7 @@ public class RecordImpl implements Record {
 		int result = modifiedValues != null ? modifiedValues.hashCode() : 0;
 		result = 31 * result + (schemaCode != null ? schemaCode.hashCode() : 0);
 		result = 31 * result + (collection != null ? collection.hashCode() : 0);
-		result = 31 * result + id.hashCode();
+		result = 31 * result + getRecordId().hashCode();
 		result = 31 * result + (int) (version ^ (version >>> 32));
 		result = 31 * result + (disconnected ? 1 : 0);
 		result = 31 * result + (structuredValues != null ? structuredValues.hashCode() : 0);
@@ -1106,7 +1104,7 @@ public class RecordImpl implements Record {
 						if (!(LangUtils.areNullableEqual(currentValue, initialValue)
 							  || (currentValue == null && isEmptyList(initialValue))
 							  || (initialValue == null && isEmptyList(currentValue)))) {
-							throw new RecordRuntimeException.CannotMerge(schema.getCode(), id.stringValue(), key, currentValue, initialValue);
+							throw new RecordRuntimeException.CannotMerge(schema.getCode(), getId(), key, currentValue, initialValue);
 						}
 					}
 				}
@@ -1211,7 +1209,7 @@ public class RecordImpl implements Record {
 	@Override
 	public Record getCopyOfOriginalRecord() {
 		if (recordDTO == null) {
-			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id.stringValue());
+			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", getId());
 		}
 		return new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, typeId);
 	}
@@ -1219,7 +1217,7 @@ public class RecordImpl implements Record {
 	@Override
 	public Record getUnmodifiableCopyOfOriginalRecord() {
 		if (recordDTO == null) {
-			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id.stringValue());
+			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", getId());
 		}
 
 		if (unmodifiableCopyOfOriginalRecord == null) {
@@ -1232,7 +1230,7 @@ public class RecordImpl implements Record {
 	@Deprecated
 	public Record getCopyOfOriginalRecordKeepingOnly(List<Metadata> metadatas) {
 		if (recordDTO == null) {
-			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id.stringValue());
+			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", getId());
 		}
 
 		Set<String> metadatasDataStoreCodes = new HashSet<>();
@@ -1257,7 +1255,7 @@ public class RecordImpl implements Record {
 	@Override
 	public String getIdTitle() {
 		String title = getTitle();
-		return id + (title == null ? "" : (":" + title));
+		return getId() + (title == null ? "" : (":" + title));
 	}
 
 	@Override

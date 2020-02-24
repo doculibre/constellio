@@ -28,4 +28,6 @@ public interface SecurityModel {
 												 AuthorizationDetailsFilter filter);
 
 	boolean hasNoNegativeAuth();
+
+	long getVersion();
 }

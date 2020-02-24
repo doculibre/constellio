@@ -1,12 +1,12 @@
 package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.CacheStat;
 import com.constellio.data.utils.LazyMergingIterator;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator;
@@ -187,6 +187,12 @@ public class RecordsCachesDataStore {
 
 	public Stream<RecordDTO> stream(byte collection, short schemaType) {
 		return stream(true, collection, schemaType);
+	}
+
+	public List<RecordDTO> list(byte collectionId, short typeId) {
+		List<RecordDTO> values = intIdsDataStore.list(collectionId, typeId);
+		values.addAll(stringIdsDataStore.list(collectionId, typeId));
+		return values;
 	}
 
 	public Stream<RecordDTO> stream(byte collection, short schemaType, short metadataId, Object value) {

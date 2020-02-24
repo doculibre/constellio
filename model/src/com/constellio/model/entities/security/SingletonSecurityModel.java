@@ -11,6 +11,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -64,6 +65,8 @@ public class SingletonSecurityModel implements SecurityModel {
 
 	private boolean noNegativeAuth;
 
+	private long version;
+
 	public static SingletonSecurityModel empty(String collection) {
 		return new SingletonSecurityModel(collection);
 	}
@@ -95,7 +98,9 @@ public class SingletonSecurityModel implements SecurityModel {
 		this.principalsGivingAccessToPrincipal = principalsGivingAccessToPrincipal;
 		this.groupsGivingAccessToGroup = groupsGivingAccessToGroup;
 		this.groupsGivingAccessToUser = groupsGivingAccessToUser;
+		this.version = new Date().getTime();
 		initAuthsMaps(authorizationDetails);
+
 	}
 
 	protected void initAuthsMaps(List<Authorization> authorizationDetails) {
@@ -197,6 +202,11 @@ public class SingletonSecurityModel implements SecurityModel {
 		return noNegativeAuth;
 	}
 
+	@Override
+	public long getVersion() {
+		return 0;
+	}
+
 	KeySetMap<String, String> computeRetrieveUserTokens(User user, boolean includeSpecifics,
 														AuthorizationDetailsFilter filter) {
 		KeySetMap<String, String> tokens = new KeySetMap<>();
@@ -279,6 +289,7 @@ public class SingletonSecurityModel implements SecurityModel {
 		}
 
 		removeAuthWithId(authId, authorizationsByTargets.get(auth.getDetails().getTarget()));
+		this.version = new Date().getTime();
 	}
 
 	public synchronized void updateCache(List<Authorization> newAuths, List<Authorization> modifiedAuths) {
@@ -295,5 +306,6 @@ public class SingletonSecurityModel implements SecurityModel {
 		for (Authorization auth : modifiedAuths) {
 			insertAuthorizationInMemoryMaps(auth);
 		}
+		this.version = new Date().getTime();
 	}
 }
