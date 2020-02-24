@@ -2,7 +2,6 @@ package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.components.BaseWindow;
-import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronViewer;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
@@ -42,11 +41,8 @@ public class PdfTronContentVersionWindow extends BaseWindow {
 	protected Component buildWindowContent() {
 		VerticalLayout vlayoutMain = new VerticalLayout();
 
-		DownloadLink downloadLink = new DownloadLink(new ContentVersionVOResource(this.contentVersion), $("contentVersionWindowButton.downloadWithoutAnnotation"));
-
 		PdfTronViewer pdfTronViewer = new PdfTronViewer(this.recordId, this.contentVersion, this.metadataCode, isReadonly, pdfTronKey);
 
-		pdfTronViewer.setTopRightButton(downloadLink);
 
 		pdfTronViewer.setHeight("100%");
 
