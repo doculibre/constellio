@@ -37,6 +37,7 @@ default doesn't exist, custom doesn'T exist	-> empty
 
 public class GuideConfigButton extends WindowButton {
 	private static String KEY_PREFIX = "guide.";
+	private static String BOTTOM_MARGIN_HEIGHT = "5px";
 	private AppLayerFactory appLayerFactory;
 	private String collection;
 	private VerticalLayout windowLayout;
@@ -88,7 +89,7 @@ public class GuideConfigButton extends WindowButton {
 
 		windowLayout.addComponent(buildButtonsLayout());
 		VerticalLayout bottomMargin = new VerticalLayout();
-		bottomMargin.setHeight("20px");
+		bottomMargin.setHeight(BOTTOM_MARGIN_HEIGHT);
 		windowLayout.addComponent(bottomMargin);
 		return windowLayout;
 	}
@@ -189,27 +190,4 @@ public class GuideConfigButton extends WindowButton {
 		}
 		return null;
 	}
-	/*
-	private WindowButton testBuildAllConfigButton(){
-		String language = UI.getCurrent().getLocale().getLanguage();
-		Map<String,String> urls = guideManager.getAllUrls(language);
-
-		WindowButton allConfigsButton = new WindowButton("","") {
-			@Override
-			protected Component buildWindowContent() {
-				windowLayout = new VerticalLayout();
-				windowLayout.setSpacing(true);
-				for(Entry entry : urls.entrySet()){
-					windowLayout.addComponent(new Label((String) entry.getKey()));
-					TextField input = new TextField();
-					input.setValue((String) entry.getKey());
-					input.setId((String) entry.getKey());
-				}
-				return windowLayout;
-			}
-		};
-		return allConfigsButton;
-	}
-*/
-
 }
