@@ -31,7 +31,7 @@ public class GuideManager implements StatefulService {
 
 	public void alterProperty(final String language, final String property, final String newValue) {
 		String formattedProperty = getPropertyNameForLanguage(property, language);
-		if (newValue.equals(getDefaultValue(property, language))) {
+		if (newValue.equals(getDefaultValue(property, language)) || newValue.isEmpty()) {
 			removeProperty(formattedProperty);
 		} else {
 			addOrUpdateProperty(formattedProperty, formatExternalUrl(newValue));
