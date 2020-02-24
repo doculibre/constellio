@@ -50,6 +50,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	private String pageRandomId;
 	private boolean doesCurrentPageHaveLock;
 	private AnnotationLockManager annotationLockManager;
+	private User currentUser;
 
 	public PdfTronPresenter(PdfTronViewer pdfTronViewer, String recordId, String metadataCode,
 							ContentVersionVO contentVersion) {
@@ -68,7 +69,9 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.pageRandomId = UUID.randomUUID().toString();
 		this.annotationLockManager = appLayerFactory.getModelLayerFactory().getAnnotationLockManager();
-
+		this.currentUser = appLayerFactory.getModelLayerFactory().newUserServices()
+				.getUserInCollection(getUserVO().getUsername(),
+						pdfTronViewer.getCurrentSessionContext().getCurrentCollection());
 		initialize();
 	}
 
@@ -100,9 +103,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	public User getCurrentUser() {
-		return appLayerFactory.getModelLayerFactory().newUserServices()
-				.getUserInCollection(getUserVO().getUsername(),
-						pdfTronViewer.getCurrentSessionContext().getCurrentCollection());
+		return currentUser;
 	}
 
 	public String getHash() {
@@ -162,13 +163,14 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		return doesCurrentPageHaveLock;
 	}
 
-	public void releaseAnnotationLockIfUserhasIt() {
-		if (!doesCurrentUserHaveAnnotationLock) {
+	public void releaseAnnotationLockIfPagehasIt() {
+		if (!doesCurrentPageHaveLock) {
 			return;
 		}
 
 		annotationLockManager.releaseLock(contentVersionVO.getHash(), recordId, contentVersionVO.getVersion(), getCurrentUser().getId(), this.pageRandomId);
 		doesCurrentUserHaveAnnotationLock = false;
+		doesCurrentPageHaveLock = false;
 	}
 
 

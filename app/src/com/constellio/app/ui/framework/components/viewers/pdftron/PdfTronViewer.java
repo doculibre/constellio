@@ -12,6 +12,7 @@ import com.constellio.app.ui.framework.components.resource.ConstellioResourceHan
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.JavascriptUtils;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
@@ -36,6 +37,8 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.json.simple.JSONObject;
 
@@ -47,9 +50,13 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 @JavaScript({"theme://jquery/jquery-2.1.4.min.js"})
 @Slf4j
+/**
+ * Faire attention avec les utilisations de cette classe, Vaadin parfois fait redémarrer le iframe lorsqu'un composante est enlevé ou
+ * mis non visible. Lorsque c'est cas occure il faut resetter des propriété sur le viewer pdftron. Voir pdftron-constellio.js
+ */
 public class PdfTronViewer extends VerticalLayout implements ViewChangeListener {
 
-	public static final String[] SUPPORTED_EXTENTION = {"pdf", "pdf/a", "xfdf", "fdf", "docx", "xlsx", "pptx", "jpg", "png"};
+	public static final String[] SUPPORTED_EXTENTION = {"pdf", "pdf/a", "xfdf", "fdf", "docx", "xlsx", "pptx", "jpg", "png", "mp4"};
 	private static final String CONTENT_RESOURCE_KEY_PREFIX = "document.file.";
 	private static final String ANNOTATION_RESOURCE_KEY = "document.annotation";
 	public static final String PDFTRON_CANVAS_ID = "pdftron-canvas";
@@ -74,8 +81,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private GetAnnotationsOfOtherVersionWindowButton getAnnotationOfOtherVersionWindowButton;
 	private HorizontalLayout getAnnotationOfOtherVersionLayout;
 	private Button editAnnotationBtn;
-	private Label anOtherUserIdEditing;
-	private Label anOtherPageIsEdtting;
+	private Label errorMsgLabel;
 
 	private VerticalLayout mainLayout;
 
@@ -87,28 +93,39 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private String recordId;
 	private String pdfTronLicense;
 	private ThreadState threadState = null;
-	private Button topRightButton = null;
 
 	private String searchTerm = null;
+	private ContentVersionVO contentVersion;
 
 
 	public PdfTronViewer(String recordId, ContentVersionVO contentVersion, String metadataCode, boolean readOnlyMode,
 						 String license) {
 
 		this.recordId = recordId;
+		this.contentVersion = contentVersion;
 		String filename = contentVersion.getFileName();
 		ConstellioUI current = ConstellioUI.getCurrent();
 
-		this.pdfTronLicense = license;
+		if (ArrayUtils.contains(PdfTronViewer.SUPPORTED_EXTENTION, FilenameUtils.getExtension(filename))) {
+			this.documentContentResource = ConstellioResourceHandler.createResource(recordId, metadataCode, contentVersion.getVersion(), filename, ResourceType.NORMAL, false, contentVersion.getContentId());
+		} else {
+			ContentManager contentManager = getAppLayerFactory().getModelLayerFactory().getContentManager();
+			if (contentManager.hasContentPreview(contentVersion.getHash())) {
+				this.documentContentResource = ConstellioResourceHandler.createPreviewResource(recordId, metadataCode, contentVersion.getVersion(), filename);
+			} else {
+				this.setVisible(false);
+				return;
+			}
+		}
 
-		this.documentContentResource = ConstellioResourceHandler.createResource(recordId, metadataCode, contentVersion.getVersion(), filename, ResourceType.NORMAL, false, contentVersion.getContentId());
 		this.documentContentResourceKey = CONTENT_RESOURCE_KEY_PREFIX + UUID.randomUUID().toString();
+		ResourceReference documentContentResourceReference = ResourceReference.create(documentContentResource, current, documentContentResourceKey);
+		documentContentUrl = documentContentResourceReference.getURL();
+
+		this.pdfTronLicense = license;
 
 		this.documentAnnotationResource = ConstellioResourceHandler.createAnnotationResource(recordId, metadataCode, contentVersion.getVersion(), filename, contentVersion.getContentId());
 		this.documentAnnotationResourceKey = ANNOTATION_RESOURCE_KEY + UUID.randomUUID().toString();
-
-		ResourceReference documentContentResourceReference = ResourceReference.create(documentContentResource, current, documentContentResourceKey);
-		documentContentUrl = documentContentResourceReference.getURL();
 
 		ResourceReference documentAnnotationResourceReference = ResourceReference.create(documentAnnotationResource, current, documentAnnotationResourceKey);
 		documentAnnotationUrl = documentAnnotationResourceReference.getURL();
@@ -135,6 +152,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		this.getAnnotationOfOtherVersionLayout = new HorizontalLayout();
 		this.getAnnotationOfOtherVersionLayout.setWidth("100%");
 		this.getAnnotationOfOtherVersionLayout.addComponent(getAnnotationOfOtherVersionWindowButton);
+		this.getAnnotationOfOtherVersionLayout.setComponentAlignment(getAnnotationOfOtherVersionWindowButton, Alignment.MIDDLE_RIGHT);
 		this.getAnnotationOfOtherVersionLayout.setVisible(false);
 
 		editAnnotationBtn = new BaseButton(isViewerInReadOnly ? $("pdfTronViewer.editAnnotation") : $("pdfTronViewer.finalizeEditionAnnotation")) {
@@ -145,18 +163,13 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 						startAliveCallBack();
 						setWebViewerReadEditable();
 						this.setCaption($("pdfTronViewer.finalizeEditionAnnotation"));
-						hideGetAnnotationFromPreviousVersion(userHasRightToEditOtherUserAnnotation && pdfTronPresenter.getAvailableVersion().size() > 0);
+						disableGetAnnotationFromPreviousVersion(userHasRightToEditOtherUserAnnotation && pdfTronPresenter.getAvailableVersion().size() > 0);
 						isViewerInReadOnly = false;
 					} else {
-						addMessageIfAnOtherUserOrAnOtherPageIsEditing(true);
+						setMessageIfAnOtherUserOrAnOtherPageIsEditing(true);
 					}
 				} else {
-					stopThreadAndDontReleaseLock();
-					pdfTronPresenter.releaseAnnotationLockIfUserhasIt();
-					setWebViewerReadOnly();
-					this.setCaption($("pdfTronViewer.editAnnotation"));
-					isViewerInReadOnly = true;
-					hideGetAnnotationFromPreviousVersion(false);
+					releaseLockAndSetReadOnly();
 				}
 			}
 		};
@@ -173,13 +186,15 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					editAnnotationBtn.setEnabled(false);
 					editAnnotationBtn.setImmediate(true);
 					annotationEnabled = false;
-
+					releaseLockAndSetReadOnly();
 				} else {
+					editAnnotationBtn.setEnabled(pdfTronPresenter.getUserIdThatHaveAnnotationLock() == null
+												 || pdfTronPresenter.doesCurrentPageHaveLock());
+					setMessageIfAnOtherUserOrAnOtherPageIsEditing(false);
 					com.vaadin.ui.JavaScript.eval("setEnableAnnotations(true)");
 					editAnnotationBtn.setImmediate(true);
 					editAnnotationBtn.removeStyleName("disabled-link");
 					this.setCaption($("pdfTronViewer.hideAnnotation"));
-					editAnnotationBtn.setEnabled(true);
 					annotationEnabled = true;
 				}
 			}
@@ -187,7 +202,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		boolean userHasWriteAccess = pdfTronPresenter.hasWriteAccessToDocument() && !readOnlyMode;
 
-		hideGetAnnotationFromPreviousVersion(false);
+		disableGetAnnotationFromPreviousVersion(false);
 
 		enableDisableAnnotation.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		enableDisableAnnotation.addStyleName(ValoTheme.BUTTON_LINK);
@@ -199,7 +214,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		if (userHasWriteAccess) {
 			buttonLayout2.addComponent(editAnnotationBtn);
 		}
-		addMessageIfAnOtherUserOrAnOtherPageIsEditing(false);
+		setMessageIfAnOtherUserOrAnOtherPageIsEditing(false);
 
 		buttonLayout2.addComponent(enableDisableAnnotation);
 
@@ -216,9 +231,22 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		mainLayout.addComponent(buttonLayout2);
 		mainLayout.addComponents(canvas);
 		mainLayout.setExpandRatio(canvas, 1);
+
+//		DownloadLink downloadLink = new DownloadLink(new ContentVersionVOResource(this.contentVersion), $("contentVersionWindowButton.downloadWithoutAnnotation"));
+//		setTopRightButton(downloadLink);
+
 		addComponent(mainLayout);
 	}
 
+
+	private void releaseLockAndSetReadOnly() {
+		stopThreadAndDontReleaseLock();
+		pdfTronPresenter.releaseAnnotationLockIfPagehasIt();
+		setWebViewerReadOnly();
+		this.editAnnotationBtn.setCaption($("pdfTronViewer.editAnnotation"));
+		isViewerInReadOnly = true;
+		disableGetAnnotationFromPreviousVersion(false);
+	}
 
 	public void setSearchTerm(String searchTerm) {
 		this.searchTerm = searchTerm;
@@ -228,25 +256,21 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		com.vaadin.ui.JavaScript.eval("rePullAnnotations()");
 	}
 
-	private void hideGetAnnotationFromPreviousVersion(boolean visible) {
-		if (topRightButton != null) {
-			getAnnotationOfOtherVersionWindowButton.setVisible(visible);
-			getAnnotationOfOtherVersionLayout.setVisible(true);
+	private void disableGetAnnotationFromPreviousVersion(boolean visibleOrDisabled) {
+
+		boolean isButtonVisible = getAnnotationOfOtherVersionWindowButton.isVisible();
+
+		if (isButtonVisible && !visibleOrDisabled) {
+			getAnnotationOfOtherVersionWindowButton.setEnabled(false);
 		} else {
-			getAnnotationOfOtherVersionLayout.setVisible(visible);
-			getAnnotationOfOtherVersionWindowButton.setVisible(visible);
+			getAnnotationOfOtherVersionWindowButton.setEnabled(visibleOrDisabled);
+			getAnnotationOfOtherVersionLayout.setVisible(visibleOrDisabled);
+			getAnnotationOfOtherVersionWindowButton.setVisible(visibleOrDisabled);
 		}
 	}
 
-	public void setTopRightButton(Button button) {
-		this.getAnnotationOfOtherVersionLayout.addComponent(button);
-		this.getAnnotationOfOtherVersionLayout.setComponentAlignment(button, Alignment.MIDDLE_RIGHT);
-		this.getAnnotationOfOtherVersionLayout.setVisible(true);
-		this.topRightButton = button;
-	}
-
 	public void releaseRessource() {
-		pdfTronPresenter.releaseAnnotationLockIfUserhasIt();
+		pdfTronPresenter.releaseAnnotationLockIfPagehasIt();
 		stopThreadAndDontReleaseLock();
 	}
 
@@ -334,7 +358,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					}
 				}
 				if (!threadState.isDontReleaseLock()) {
-					pdfTronPresenter.releaseAnnotationLockIfUserhasIt();
+					pdfTronPresenter.releaseAnnotationLockIfPagehasIt();
 				}
 			}
 		}, 10, this);
@@ -357,18 +381,28 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		com.vaadin.ui.JavaScript.eval("setWebViewerReadOnly(false)");
 	}
 
-	private void addMessageIfAnOtherUserOrAnOtherPageIsEditing(boolean showNotification) {
+	private void setMessageIfAnOtherUserOrAnOtherPageIsEditing(boolean showNotification) {
+		// We reuse the same label to not trigger a Pdftron view reset (generally cause by a remove component in a layout).
+		if (errorMsgLabel != null) {
+			errorMsgLabel.setValue(" ");
+		}
+
 		if (!pdfTronPresenter.hasWriteAccessToDocument()) {
 			return;
 		}
 
 		String currentAnnotationLockUser = pdfTronPresenter.getUserIdThatHaveAnnotationLock();
-		boolean someOneElseIsEditingAnnotations = currentAnnotationLockUser != null && !currentAnnotationLockUser.equals(getCurrentSessionContext().getCurrentUser().getId());
+		boolean someOneElseIsEditingAnnotations = currentAnnotationLockUser != null && !currentAnnotationLockUser.equals(pdfTronPresenter.getCurrentUser().getId());
 
 		if (someOneElseIsEditingAnnotations) {
-			anOtherUserIdEditing = new BaseLabel($("pdfTronViewer.someOneElseIdEditingAnnotation",
-					pdfTronPresenter.getUserName(currentAnnotationLockUser)));
-			mainLayout.addComponent(anOtherUserIdEditing, 0);
+			if (errorMsgLabel == null) {
+				errorMsgLabel = new BaseLabel($("pdfTronViewer.someOneElseIdEditingAnnotation",
+						pdfTronPresenter.getUserName(currentAnnotationLockUser)));
+				mainLayout.addComponent(errorMsgLabel, 0);
+			} else {
+				errorMsgLabel.setValue($("pdfTronViewer.someOneElseIdEditingAnnotation",
+						pdfTronPresenter.getUserName(currentAnnotationLockUser)));
+			}
 
 			if (showNotification) {
 				Notification.show($("pdfTronViewer.errorAnOtherUserHasAnnotationLock"), Type.WARNING_MESSAGE);
@@ -376,15 +410,18 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 			editAnnotationBtn.setEnabled(false);
 		} else if (pdfTronPresenter.doesUserHaveLock() && !pdfTronPresenter.doesCurrentPageHaveLock()) {
-			anOtherPageIsEdtting = new BaseLabel($("pdfTronViewer.anOtherPageIsEditting"));
-			mainLayout.addComponent(anOtherPageIsEdtting, 0);
+			if (errorMsgLabel == null) {
+				errorMsgLabel = new BaseLabel($("pdfTronViewer.anOtherPageIsEditting"));
+				mainLayout.addComponent(errorMsgLabel, 0);
+			} else {
+				errorMsgLabel.setValue($("pdfTronViewer.anOtherPageIsEditting"));
+			}
 			editAnnotationBtn.setEnabled(false);
 
 			if (showNotification) {
 				Notification.show($("pdfTronViewer.errorAnOtherPageHaveAnnotationLock"), Type.WARNING_MESSAGE);
 			}
 		}
-
 	}
 
 	protected SessionContext getCurrentSessionContext() {
@@ -402,7 +439,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	}
 
 	public void showWebViewer() {
-		pdfTronPresenter.releaseAnnotationLockIfUserhasIt();
+		pdfTronPresenter.releaseAnnotationLockIfPagehasIt();
 		stopThreadAndDontReleaseLock();
 
 		ConstellioUI current = ConstellioUI.getCurrent();
@@ -455,7 +492,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	@Override
 	public void detach() {
 		super.detach();
-		pdfTronPresenter.releaseAnnotationLockIfUserhasIt();
+		pdfTronPresenter.releaseAnnotationLockIfPagehasIt();
 		stopThreadAndDontReleaseLock();
 	}
 
