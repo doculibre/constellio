@@ -52,26 +52,27 @@ public class AlertDocumentBorrowingPeriodBackgroundAction implements Runnable {
 
 	@Override
 	public void run() {
-		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(rmSchemasRecordsServices.document.schemaType())
-				.where(rmSchemasRecordsServices.document.borrowed()).isTrue()
-				.andWhere(Schemas.COLLECTION).isEqualTo(collection));
+		int documentBorrowingDurationDays = rmConfigs.getDocumentBorrowingDurationDays();
+		if(documentBorrowingDurationDays != -1) {
+			LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(rmSchemasRecordsServices.document.schemaType())
+					.where(rmSchemasRecordsServices.document.borrowed()).isTrue()
+					.andWhere(Schemas.COLLECTION).isEqualTo(collection));
 
-		SearchResponseIterator<Record> borrowedDocumentsIterator = searchServices.recordsIterator(query, 1000);
-		while (borrowedDocumentsIterator.hasNext()) {
-			Document document = rmSchemasRecordsServices.wrapDocument(borrowedDocumentsIterator.next());
-			if (!document.isCheckoutAlertSent()) {
-				LocalDateTime contentCheckedOutDate = document.getContentCheckedOutDate();
-				int documentBorrowingDurationDays = rmConfigs.getDocumentBorrowingDurationDays();
-				if (isCheckoutPeriodOver(contentCheckedOutDate, documentBorrowingDurationDays)) {
-					sendEmail(document);
-					try {
-						recordServices.update(document.setCheckoutAlertSent(true));
-					} catch (RecordServicesException e) {
-						e.printStackTrace();
+			SearchResponseIterator<Record> borrowedDocumentsIterator = searchServices.recordsIterator(query, 1000);
+			while (borrowedDocumentsIterator.hasNext()) {
+				Document document = rmSchemasRecordsServices.wrapDocument(borrowedDocumentsIterator.next());
+				if (!document.isCheckoutAlertSent()) {
+					LocalDateTime contentCheckedOutDate = document.getContentCheckedOutDate();
+					if (isCheckoutPeriodOver(contentCheckedOutDate, documentBorrowingDurationDays)) {
+						sendEmail(document);
+						try {
+							recordServices.update(document.setCheckoutAlertSent(true));
+						} catch (RecordServicesException e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}
-
 		}
 	}
 
