@@ -129,7 +129,7 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_SHARE.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_SHARE.name(),
 					isMenuItemActionPossible(FOLDER_SHARE.name(), folder, user, params),
-					$("DisplayFolderView.shareFolder"), FontAwesome.PAPER_PLANE_O, -1, 900,
+					$("DisplayFolderView.shareFolder"), null, -1, 900,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).share(folder, params)));
 		}
 
@@ -143,7 +143,7 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_UNSHARE.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_UNSHARE.name(),
 					isMenuItemActionPossible(FOLDER_UNSHARE.name(), folder, user, params),
-					$("DisplayFolderView.unshareFolder"), FontAwesome.REPLY, -1, 1100,
+					$("DisplayFolderView.unshareFolder"), null, -1, 1100,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).unshare(folder, params)));
 		}
 

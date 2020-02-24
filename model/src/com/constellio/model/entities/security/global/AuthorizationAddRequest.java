@@ -174,6 +174,10 @@ public class AuthorizationAddRequest {
 		return withRoles(asList(Role.READ, Role.WRITE)).setNegative(true);
 	}
 
+	public AuthorizationAddRequest givingUserWhoShared(User user) {
+		return withRoles(asList(Role.READ, Role.WRITE)).setSharedBy(user.getId());
+	}
+
 	public AuthorizationAddRequest givingNegativeReadWriteDeleteAccess() {
 		return withRoles(asList(Role.READ, Role.WRITE, Role.DELETE)).setNegative(true);
 	}
@@ -212,6 +216,10 @@ public class AuthorizationAddRequest {
 
 	public static AuthorizationAddRequest authorizationInCollection(String collection) {
 		return new AuthorizationAddRequest(collection);
+	}
+
+	public static AuthorizationAddRequest authorizationInCollectionSharedBy(String collection, User user) {
+		return new AuthorizationAddRequest(collection).setSharedBy(user.getId());
 	}
 
 	public static AuthorizationAddRequest authorizationInCollectionWithId(String collection, String id) {
@@ -258,8 +266,9 @@ public class AuthorizationAddRequest {
 		return sharedBy;
 	}
 
-	public void setSharedBy(String sharedBy) {
+	public AuthorizationAddRequest setSharedBy(String sharedBy) {
 		this.sharedBy = sharedBy;
+		return this;
 	}
 
 	public AuthorizationAddRequest setExecutedBy(User executedBy) {
