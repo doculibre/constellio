@@ -119,7 +119,12 @@ public class MetadataVO implements Serializable {
 		this.sortable = sortable;
 		this.isSynthetic = isSynthectic;
 		this.summaryMetadata = summaryMetadata;
-		this.helpMessages = helpMessages;
+
+		if (helpMessages == null) {
+			this.helpMessages = new HashMap<>();
+		} else {
+			this.helpMessages = helpMessages;
+		}
 
 		if (schema != null && !schema.getMetadatas().stream().anyMatch(
 				(m) -> (m.getId() == id && m.getId() != 0 && id != 0 && (m.getLocale() == null || m.getLocale().toLanguageTag().equals(locale.toLanguageTag()))) || ((m.getId() == 0 || id == 0) && m.getLocalCode().equals(localCode)))) {

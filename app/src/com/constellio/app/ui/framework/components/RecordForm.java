@@ -117,7 +117,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		String metadataHelp = metadataVO.getHelpMessage(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
 		IconButton helpIcon = new MouseOverHelpIcon(metadataHelp);
 
-		helpIcon.setVisible(!metadataHelp.isEmpty());
+		helpIcon.setVisible(metadataHelp != null ? !metadataHelp.isEmpty() : false);
 
 		layout.setSpacing(false);
 		layout.setWidth("100%");
