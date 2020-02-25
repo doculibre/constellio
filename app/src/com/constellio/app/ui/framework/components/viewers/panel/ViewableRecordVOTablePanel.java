@@ -818,6 +818,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return resultsTable;
 	}
 
+
 	protected int getSelectedSize() {
 		return table.getSelectionManager().getAllSelectedItemIds().size();
 	}

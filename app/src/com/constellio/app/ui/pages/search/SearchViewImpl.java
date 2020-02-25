@@ -53,6 +53,10 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.event.dd.DragAndDropEvent;
+import com.vaadin.event.dd.DropHandler;
+import com.vaadin.event.dd.acceptcriteria.AcceptAll;
+import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.lazyloadwrapper.LazyLoadWrapper;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
@@ -100,7 +104,7 @@ import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
-public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView, BrowserWindowResizeListener {
+public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView, DropHandler, BrowserWindowResizeListener {
 
 	public static final String FACET_BOX_STYLE = "facet-box";
 	public static final String FACET_TITLE_STYLE = "facet-title";
@@ -125,6 +129,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private VerticalLayout capsuleArea;
 
 	private SearchResultTable resultsTable;
+	private DropHandler dropHandler;
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
 	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
@@ -167,6 +172,16 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		presenter.resetFacetSelection();
 		presenter.forRequestParameters(event.getParameters());
+	}
+
+	@Override
+	public void drop(DragAndDropEvent event) {
+		dropHandler.drop(event);
+	}
+
+	@Override
+	public AcceptCriterion getAcceptCriterion() {
+		return AcceptAll.get();
 	}
 
 	@Override
@@ -720,6 +735,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				//					}
 			}
 		});
+
+		dropHandler = viewerPanel;
 
 		return viewerPanel;
 	}
