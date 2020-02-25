@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.user;
 
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -58,10 +59,10 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 	private TextArea personalEmailsField;
 
 	@PropertyId("password")
-	private PasswordField passwordField;
+	private EditablePasswordField passwordField;
 
 	@PropertyId("confirmPassword")
-	private PasswordField confirmPasswordField;
+	private EditablePasswordField confirmPasswordField;
 
 	@PropertyId("collections")
 	private OptionGroup collectionsField;
@@ -184,10 +185,9 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 			}
 		});
 
-		passwordField = new PasswordField();
+		passwordField = new EditablePasswordField();
 		passwordField.setCaption($("UserCredentialView.password"));
 		passwordField.setRequired(addActionMode);
-		passwordField.setNullRepresentation("");
 		passwordField.setId("password");
 		passwordField.addStyleName("password");
 		if (addActionMode) {
@@ -199,10 +199,9 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 			passwordField.setVisible(presenter.canModifyPassword(userCredentialVO.getUsername()));
 		}
 
-		confirmPasswordField = new PasswordField();
+		confirmPasswordField = new EditablePasswordField();
 		confirmPasswordField.setCaption($("UserCredentialView.confirmPassword"));
 		confirmPasswordField.setRequired(addActionMode);
-		confirmPasswordField.setNullRepresentation("");
 		confirmPasswordField.setId("confirmPassword");
 		confirmPasswordField.addStyleName("confirmPassword");
 		Validator passwordFieldsValidator = new Validator() {
