@@ -11,6 +11,8 @@ import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class BaseRichTextArea extends CKEditorTextField {
 
+	private String inputMask;
+
 	public BaseRichTextArea() {
 		super(newConfig());
 		init();
@@ -47,6 +49,14 @@ public class BaseRichTextArea extends CKEditorTextField {
 		//		setHeight("600px");
 		setCaptionAsHtml(true);
 		addStyleName("base-rich-text");
+	}
+
+	public String getInputMask() {
+		return inputMask;
+	}
+
+	public void setInputMask(String inputMask) {
+		this.inputMask = inputMask;
 	}
 
 	@Override

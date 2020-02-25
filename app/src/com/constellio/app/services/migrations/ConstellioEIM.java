@@ -2,6 +2,7 @@ package com.constellio.app.services.migrations;
 
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
+import com.constellio.app.services.extensions.AppRecordExtension;
 import com.constellio.app.services.extensions.core.CoreSearchFieldExtension;
 import com.constellio.app.services.extensions.core.CoreUserProfileFieldsExtension;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -210,6 +211,8 @@ public class ConstellioEIM {
 		ModelLayerFactory modelFactory = appLayerFactory.getModelLayerFactory();
 		modelFactory.getExtensions().forCollection(collection)
 				.schemaExtensions.add(new CoreSearchFieldExtension(collection, appLayerFactory));
+
+		modelFactory.getExtensions().forCollection(collection).recordExtensions.add(new AppRecordExtension(appLayerFactory, collection));
 	}
 
 	private static void configureBaseDataLayerExtensions(AppLayerFactory appLayerFactory) {

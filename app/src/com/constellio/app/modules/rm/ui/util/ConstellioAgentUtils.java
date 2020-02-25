@@ -229,7 +229,7 @@ public class ConstellioAgentUtils {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
 		Record record = recordVO.getRecord();
-//		if (record == null || record.getRecordDTOMode() != RecordDTOMode.FULLY_LOADED) {
+		//		if (record == null || record.getRecordDTOMode() != RecordDTOMode.FULLY_LOADED) {
 		//			record = recordServices.getDocumentById(recordVO.getId());
 		//		}
 		String schemaCode = record.getSchemaCode();

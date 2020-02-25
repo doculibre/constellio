@@ -1,4 +1,4 @@
-package com.constellio.model.services.records;
+package com.constellio.data.dao.dto.records;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -17,7 +17,7 @@ public class IntegerRecordId implements RecordId {
 
 	@Override
 	public String stringValue() {
-		return RecordUtils.toStringId(id);
+		return RecordDTOUtils.toStringId(id);
 	}
 
 	@Override

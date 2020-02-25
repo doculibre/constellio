@@ -68,6 +68,7 @@ public class Document extends RMObject {
 	public static final String HAS_CONTENT = "hasContent";
 	public static final String IS_MODEL = "isModel";
 	public static final String CONTENT_HASHES = "contentHashes";
+	public static final String LINKED_TO = "linkedTo";
 
 	public Document(Record record,
 					MetadataSchemaTypes types) {
@@ -412,5 +413,14 @@ public class Document extends RMObject {
 
 	public boolean isSummary() {
 		return getWrappedRecord().getLoadedFieldsMode() != RecordDTOMode.FULLY_LOADED;
+	}
+
+	public List<Folder> getLinkedTo() {
+		return get(LINKED_TO);
+	}
+
+	public Document setLinkedTo(String folder) {
+		set(LINKED_TO, folder);
+		return this;
 	}
 }

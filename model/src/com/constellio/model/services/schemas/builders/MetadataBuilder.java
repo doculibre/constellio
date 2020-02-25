@@ -23,6 +23,7 @@ import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotCreateMultivalueReferenceToPrincipalTaxonomy;
+import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotHaveMeasurementUnitSpecifiedIfNotOfTypeIntegerOrNumber;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.InvalidAttribute;
@@ -93,6 +94,8 @@ public class MetadataBuilder {
 	private boolean dependencyOfAutomaticMetadata;
 	private Map<String, Object> customParameter;
 	private boolean fillEmptyLabelWithCode = true;
+	private Integer maxLength = null;
+	private String measurementUnit = null;
 	short id;
 
 	MetadataBuilder(MetadataSchemaBuilder schemaBuilder) {
@@ -153,6 +156,8 @@ public class MetadataBuilder {
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(defaultMetadata.getPopulateConfigsBuilder());
 		builder.multiLingual = defaultMetadata.multiLingual;
 		builder.customAttributes = defaultMetadata.customAttributes;
+		builder.maxLength = defaultMetadata.maxLength;
+		builder.measurementUnit = defaultMetadata.measurementUnit;
 
 		return builder;
 	}
@@ -257,6 +262,8 @@ public class MetadataBuilder {
 		builder.customAttributes = new HashSet<>(metadata.getCustomAttributes());
 		builder.customParameter = new HashMap<>(metadata.getCustomParameter());
 		builder.cacheIndex = metadata.isCacheIndex();
+		builder.maxLength = metadata.getMaxLength();
+		builder.measurementUnit = metadata.getMeasurementUnit();
 		builder.id = metadata.getId();
 	}
 
@@ -287,6 +294,8 @@ public class MetadataBuilder {
 		builder.availableInSummary = metadata.isAvailableInSummary();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
+		builder.maxLength = metadata.getMaxLength();
+		builder.measurementUnit = metadata.getMeasurementUnit();
 		builder.relationshipProvidingSecurity = metadata.isRelationshipProvidingSecurity();
 		builder.markedForDeletion = metadata.isMarkedForDeletion();
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(
@@ -840,7 +849,7 @@ public class MetadataBuilder {
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
 				essential, encrypted, essentialInSummary, availableInSummary, multiLingual, markedForDeletion, customAttributes,
-				increasedDependencyLevel, relationshipProvidingSecurity, transiency, dependencyOfAutomaticMetadata, cacheIndex);
+				increasedDependencyLevel, relationshipProvidingSecurity, transiency, dependencyOfAutomaticMetadata, cacheIndex, maxLength, measurementUnit);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 
@@ -1032,6 +1041,18 @@ public class MetadataBuilder {
 		if ((transiency != null && transiency != PERSISTED) && builder.getType() == MetadataValueType.REFERENCE) {
 			throw new MetadataBuilderRuntimeException.ReferenceCannotBeTransient(code);
 		}
+
+		if (maxLength != null
+			&& !builder.getType().equals(MetadataValueType.TEXT)
+			&& !builder.getType().equals(MetadataValueType.STRING)) {
+			throw new MetadataBuilderRuntimeException.CannotHaveMaxLengthSpecifiedIfNotOfTypeStringOrText(code);
+		}
+
+		if (StringUtils.isNotBlank(measurementUnit)
+			&& !builder.getType().equals(MetadataValueType.INTEGER)
+			&& !builder.getType().equals(MetadataValueType.NUMBER)) {
+			throw new CannotHaveMeasurementUnitSpecifiedIfNotOfTypeIntegerOrNumber(code);
+		}
 	}
 
 	private boolean isReferenceMetadataValid(MetadataBuilder builder) {
@@ -1059,6 +1080,30 @@ public class MetadataBuilder {
 
 	public boolean isTaxonomyRelationship() {
 		return inheritance == null ? taxonomyRelationship : inheritance.taxonomyRelationship;
+	}
+
+	public Integer getMaxLength() {
+		return inheritance == null ? maxLength : inheritance.maxLength;
+	}
+
+	public MetadataBuilder setMaxLength(Integer maxLength) {
+		ensureCanModify("maxLength");
+		this.maxLength = maxLength;
+		return this;
+	}
+
+	public String getMeasurementUnit() {
+		return inheritance == null ? measurementUnit : inheritance.measurementUnit;
+	}
+
+	public MetadataBuilder setMeasurementUnit(String measurementUnit) {
+		ensureCanModify("measurementUnit");
+		if (measurementUnit != null) {
+			this.measurementUnit = !measurementUnit.equals("") ? measurementUnit : null;
+		} else {
+			this.measurementUnit = null;
+		}
+		return this;
 	}
 
 	public MetadataBuilder setChildOfRelationship(boolean childOfRelationship) {

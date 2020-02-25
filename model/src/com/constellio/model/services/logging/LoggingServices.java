@@ -65,16 +65,16 @@ public class LoggingServices {
 			return;
 		}
 		RecordUpdateOptions recordUpdateOptions = transaction.getRecordUpdateOptions();
-		if(recordUpdateOptions != null && !recordUpdateOptions.isOverwriteModificationDateAndUser()) {
+		if (recordUpdateOptions != null && !recordUpdateOptions.isOverwriteModificationDateAndUser()) {
 			return;
 		}
 
 		Transaction eventsTransaction = new Transaction().setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(30));
 		for (Record record : transaction.getRecords()) {
-				Event event = eventFactory.logAddUpdateRecord(record, transaction.getUser());
-				if (event != null) {
-					eventsTransaction.addUpdate(event.getWrappedRecord());
-				}
+			Event event = eventFactory.logAddUpdateRecord(record, transaction.getUser());
+			if (event != null) {
+				eventsTransaction.addUpdate(event.getWrappedRecord());
+			}
 		}
 
 		try {
@@ -261,6 +261,8 @@ public class LoggingServices {
 		if (Toggle.AUDIT_EVENTS.isEnabled()) {
 			Transaction transaction = new Transaction();
 			transaction.setRecordFlushing(RecordsFlushing.ADD_LATER());
+			transaction.getRecordUpdateOptions().setSkipFindingRecordsToReindex(true);
+			transaction.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
 			transaction.addUpdate(record);
 			try {
 				modelLayerFactory.newRecordServices().execute(transaction);

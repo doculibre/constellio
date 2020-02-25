@@ -28,7 +28,7 @@ public class ReindexingSchemaTypeRecordsProviderAcceptanceTest extends Constelli
 			throws Exception {
 
 
-		ReindexingSchemaTypeRecordsProvider typeProvider = provider.newSchemaTypeProvider(schema.zeDefaultSchemaType(), 0,1 );
+		ReindexingSchemaTypeRecordsProvider typeProvider = provider.newSchemaTypeProvider(schema.zeDefaultSchemaType(), 0, 1);
 		typeProvider.selfParentReference = true;
 		List<String> ids = iterateOverSkipping(typeProvider, "z3", "z4", "z7");
 		assertThat(ids).isEqualTo(asList("z0", "z1", "z2", "z3", "z4", "z5", "z6", "z7", "z8", "z9"));
@@ -145,10 +145,10 @@ public class ReindexingSchemaTypeRecordsProviderAcceptanceTest extends Constelli
 		assertThat(typeProvider.isRequiringAnotherIteration()).isTrue();
 		assertThat(typeProvider.getSkippedRecordsCount()).isEqualTo(1);
 
-//		ids = iterateOver(typeProvider);
-//		assertThat(ids).isEqualTo(asList("z8"));
-//		assertThat(typeProvider.isRequiringAnotherIteration()).isFalse();
-//		assertThat(typeProvider.getSkippedRecordsCount()).isEqualTo(0);
+		//		ids = iterateOver(typeProvider);
+		//		assertThat(ids).isEqualTo(asList("z8"));
+		//		assertThat(typeProvider.isRequiringAnotherIteration()).isFalse();
+		//		assertThat(typeProvider.getSkippedRecordsCount()).isEqualTo(0);
 	}
 
 	@Test
@@ -160,7 +160,7 @@ public class ReindexingSchemaTypeRecordsProviderAcceptanceTest extends Constelli
 		List<String> ids = iterateOver(typeProvider);
 		assertThat(ids).isEqualTo(asList("z0", "z1", "z2", "z3", "z4", "z5", "z6", "z7", "z8", "z9"));
 
-		typeProvider = provider.newSchemaTypeProvider(schema.zeDefaultSchemaType(), 1,1 );
+		typeProvider = provider.newSchemaTypeProvider(schema.zeDefaultSchemaType(), 1, 1);
 		typeProvider.selfParentReference = true;
 		ids = iterateOverSkipping(typeProvider, skipping("z8").after("z2"), skipping("z8", "z2").after("z1"));
 		assertThat(ids).isEqualTo(asList("z9", "z8", "z7", "z6", "z5", "z4", "z3", "z2", "z1", "z0"));

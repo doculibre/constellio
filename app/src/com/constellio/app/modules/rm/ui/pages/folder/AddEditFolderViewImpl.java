@@ -104,6 +104,9 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 				} else {
 					for (Field field : fieldGroup.getFields()) {
 						field.setRequired(false);
+						if (!field.isValid()) {
+							return true;
+						}
 					}
 					return false;
 				}

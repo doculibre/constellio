@@ -107,7 +107,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 				inputMask,
 				duplicable, uniqueValue,
 				metadata.getCustomAttributes(),
-				sessionContext, isMultiLingual, newHelpMessages);
+				sessionContext, isMultiLingual, metadata.getMaxLength(), metadata.getMeasurementUnit(), newHelpMessages);
 
 		if (metadata.getInheritance() != null) {
 			formMetadataVO.setInheritance(

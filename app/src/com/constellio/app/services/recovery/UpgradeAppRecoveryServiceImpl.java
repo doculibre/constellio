@@ -6,7 +6,6 @@ import com.constellio.app.services.systemProperties.SystemPropertiesServices;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.recovery.TransactionLogRecovery;
-import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;

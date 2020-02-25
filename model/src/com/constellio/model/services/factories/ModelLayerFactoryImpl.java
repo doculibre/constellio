@@ -40,7 +40,7 @@ import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.pdftron.AnnotationLockManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
-import com.constellio.model.services.records.StringRecordId;
+import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.model.services.records.StringRecordIdLegacyMemoryMapping;
 import com.constellio.model.services.records.StringRecordIdLegacyPersistedMapping;
 import com.constellio.model.services.records.cache.CachedRecordServices;

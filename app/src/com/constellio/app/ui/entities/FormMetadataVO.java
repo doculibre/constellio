@@ -37,6 +37,8 @@ public class FormMetadataVO implements Serializable {
 	MetadataDisplayType displayType;
 	Object defaultValue;
 	String inputMask;
+	Integer maxLength;
+	String measurementUnit;
 	String currentLanguageCode;
 	boolean duplicable;
 	Set<String> customAttributes;
@@ -56,6 +58,7 @@ public class FormMetadataVO implements Serializable {
 						  String metadataGroup,
 						  Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue,
 						  Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual,
+						  Integer maxLength, String measurementUnit,
 						  Map<String, String> helpMessages) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
 		if (localCodeParsed.contains("USR")) {
@@ -89,6 +92,8 @@ public class FormMetadataVO implements Serializable {
 		this.inheritance = null;
 		this.uniqueValue = uniqueValue;
 		this.isMultiLingual = isMultiLingual;
+		this.maxLength = maxLength;
+		this.measurementUnit = measurementUnit;
 		this.helpMessages = helpMessages;
 	}
 
@@ -115,6 +120,8 @@ public class FormMetadataVO implements Serializable {
 		this.enabled = true;
 		this.metadataGroup = "";
 		this.inputMask = "";
+		this.maxLength = null;
+		this.measurementUnit = null;
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 		this.duplicable = false;
 		this.customAttributes = new HashSet<>();
@@ -331,6 +338,22 @@ public class FormMetadataVO implements Serializable {
 
 	public void setInputMask(String inputMask) {
 		this.inputMask = inputMask;
+	}
+
+	public Integer getMaxLength() {
+		return maxLength;
+	}
+
+	public void setMaxLength(Integer maxLength) {
+		this.maxLength = maxLength;
+	}
+
+	public String getMeasurementUnit() {
+		return measurementUnit;
+	}
+
+	public void setMeasurementUnit(String measurementUnit) {
+		this.measurementUnit = measurementUnit;
 	}
 
 	public boolean isDuplicable() {

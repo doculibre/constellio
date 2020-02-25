@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.CacheStat;
 import com.constellio.data.utils.Holder;
@@ -9,7 +10,6 @@ import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithStringId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -460,5 +460,28 @@ public class StringIdsRecordsCachesDataStore {
 				}
 			}
 		}
+	}
+
+	public List<RecordDTO> list(byte collectionId, short typeId) {
+		List<RecordDTO> list = null;
+
+		List<Holder<RecordDTO>> collectionHoldersOfRecordsWithStringKey
+				= getStringKeyListForType(collectionId, typeId, false, false);
+
+		for (int index = 0; index < collectionHoldersOfRecordsWithStringKey.size(); index++) {
+			Holder<RecordDTO> recordDTOHolder = collectionHoldersOfRecordsWithStringKey.get(index++);
+			if (recordDTOHolder != null) {
+				RecordDTO recordDTO = recordDTOHolder.get();
+				if (recordDTO != null) {
+					if (list == null) {
+						list = new ArrayList<>();
+					}
+					list.add(transform(recordDTO));
+				}
+			}
+		}
+
+
+		return list == null ? Collections.emptyList() : list;
 	}
 }

@@ -105,7 +105,7 @@ public class SchemaDisplayConfig implements Serializable {
 	public SchemaDisplayConfig withNewDisplayMetadataQueued(String... metadataCodes) {
 		List<String> displayMetadataCodes = new ArrayList<>();
 		displayMetadataCodes.addAll(this.displayMetadataCodes);
-		for(String metadataCode : metadataCodes) {
+		for (String metadataCode : metadataCodes) {
 			displayMetadataCodes.add(metadataCode);
 		}
 		return withDisplayMetadataCodes(displayMetadataCodes);
@@ -114,7 +114,7 @@ public class SchemaDisplayConfig implements Serializable {
 	public SchemaDisplayConfig withNewFormMetadataQueued(String... metadataCodes) {
 		List<String> formMetadataCodes = new ArrayList<>();
 		formMetadataCodes.addAll(this.formMetadataCodes);
-		for(String metadataCode : metadataCodes) {
+		for (String metadataCode : metadataCodes) {
 			formMetadataCodes.add(metadataCode);
 		}
 		return withFormMetadataCodes(formMetadataCodes);
@@ -123,7 +123,7 @@ public class SchemaDisplayConfig implements Serializable {
 	public SchemaDisplayConfig withNewSearchMetadataQueued(String... metadataCodes) {
 		List<String> searchResultsMetadataCodes = new ArrayList<>();
 		searchResultsMetadataCodes.addAll(this.searchResultsMetadataCodes);
-		for(String metadataCode : metadataCodes) {
+		for (String metadataCode : metadataCodes) {
 			searchResultsMetadataCodes.add(metadataCode);
 		}
 		return withSearchResultsMetadataCodes(searchResultsMetadataCodes);
@@ -133,7 +133,7 @@ public class SchemaDisplayConfig implements Serializable {
 	public SchemaDisplayConfig withNewTableMetadataQueued(String... metadataCodes) {
 		List<String> tableMetadataCodes = new ArrayList<>();
 		tableMetadataCodes.addAll(this.tableMetadataCodes);
-		for(String metadataCode : metadataCodes) {
+		for (String metadataCode : metadataCodes) {
 			tableMetadataCodes.add(metadataCode);
 		}
 		return withTableMetadataCodes(tableMetadataCodes);

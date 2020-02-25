@@ -4,6 +4,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
+import com.constellio.app.ui.framework.components.fields.exception.ValidationException.ToManyCharacterException;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.ComponentTreeUtils;
@@ -492,9 +493,10 @@ public abstract class BaseForm<T> extends CustomComponent {
 			Field<?> firstFieldWithError = null;
 			StringBuilder missingRequiredFields = new StringBuilder();
 			for (Field<?> field : fieldGroup.getFields()) {
+
 				if (!field.isValid() && field.isRequired() && isEmptyValue(field.getValue())) {
 					field.setRequiredError($("requiredField"));
-					addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + field.getCaption() + "\""));
+					addErrorMessage(missingRequiredFields, $("requiredFieldWithName", field.getCaption()));
 					if (firstFieldWithError == null) {
 						firstFieldWithError = field;
 					}
@@ -502,12 +504,22 @@ public abstract class BaseForm<T> extends CustomComponent {
 					try {
 						field.validate();
 					} catch (Validator.EmptyValueException e) {
+
 						addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + e.getMessage() + "\""));
 						if (firstFieldWithError == null) {
 							firstFieldWithError = field;
 						}
+					} catch (ToManyCharacterException e) {
+						addErrorMessage(missingRequiredFields, e.getMessage());
+						if (firstFieldWithError == null) {
+							firstFieldWithError = field;
+						}
 					} catch (Validator.InvalidValueException e) {
-						addErrorMessage(missingRequiredFields, $("invalidFieldWithName", "\"" + e.getMessage() + "\""));
+						if (e.getCauses() != null && e.getCauses().length > 0 && e.getCauses()[0] instanceof ToManyCharacterException) {
+							addErrorMessage(missingRequiredFields, e.getCauses()[0].getMessage());
+						} else {
+							addErrorMessage(missingRequiredFields, $("invalidFieldWithName", "\"" + e.getMessage() + "\""));
+						}
 						if (firstFieldWithError == null) {
 							firstFieldWithError = field;
 						}

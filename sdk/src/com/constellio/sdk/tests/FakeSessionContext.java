@@ -173,7 +173,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		return new MetadataVO((short) 0, User.EMAIL, User.EMAIL, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
 				null, null, null, null, null,
 				null, null, false, new HashSet<String>(), false,
-				null, new HashMap<String, Object>(), getCollectionInfoVO(collection), false, false, null);
+				null, new HashMap<String, Object>(), getCollectionInfoVO(collection), false, false, null, null, null);
 	}
 
 	private static MetadataVO lastNameMetadata(MetadataSchemaVO userSchema) {
@@ -185,7 +185,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		return new MetadataVO((short) 0, User.LASTNAME, User.LASTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
 				null, null, null, null, null,
 				null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>(), getCollectionInfoVO(collection), false, true, null);
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), getCollectionInfoVO(collection), false, true, null, null, null);
 	}
 
 	private static MetadataVO firstNameMetadata(MetadataSchemaVO userSchema) {
@@ -197,7 +197,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		return new MetadataVO((short) 0, User.FIRSTNAME, User.FIRSTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
 				null, null, null, null, null,
 				null, null, false, new HashSet<String>(), false, null,
-				new HashMap<String, Object>(), getCollectionInfoVO(collection), false, true, null);
+				new HashMap<String, Object>(), getCollectionInfoVO(collection), false, true, null, null, null);
 	}
 
 	private static MetadataVO userNameMetadata(MetadataSchemaVO userSchema) {
@@ -208,7 +208,7 @@ public class FakeSessionContext extends BaseSessionContext {
 
 		return new MetadataVO((short) 0, User.USERNAME, User.USERNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
 				null, null, null, null, null, null,
-				null, false, new HashSet<String>(), false, null, new HashMap<String, Object>(), getCollectionInfoVO(collection), false, true, null);
+				null, false, new HashSet<String>(), false, null, new HashMap<String, Object>(), getCollectionInfoVO(collection), false, true, null, null, null);
 	}
 
 	private static CollectionInfoVO getCollectionInfoVO(String collection) {

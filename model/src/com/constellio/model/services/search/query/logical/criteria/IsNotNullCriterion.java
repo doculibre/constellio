@@ -58,7 +58,7 @@ public class IsNotNullCriterion extends LogicalSearchValueCondition {
 							  || metadata.getLocalCode().equals(COLLECTION.getLocalCode())
 							  || record.getRecord().getRecordDTO().getFields().containsKey(metadata.getDataStoreCode());
 
-//		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
+		//		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
 		//
 		//		boolean containsValue;
 		//		if (recordValue instanceof List) {

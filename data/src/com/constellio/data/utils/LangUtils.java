@@ -985,7 +985,6 @@ public class LangUtils {
 	}
 
 
-
 	public static IntStream forEachInRandomOrder(int nbValues) {
 		List<Integer> integers = getIntValuesInRandomOrder(nbValues);
 

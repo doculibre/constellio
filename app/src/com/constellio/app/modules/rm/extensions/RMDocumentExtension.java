@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class RMDocumentExtension extends RecordExtension {
 	private final ModelLayerFactory modelLayerFactory;

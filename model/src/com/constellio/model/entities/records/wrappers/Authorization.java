@@ -3,7 +3,7 @@ package com.constellio.model.entities.records.wrappers;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import org.joda.time.LocalDate;
 
 import java.util.List;

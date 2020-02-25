@@ -1,5 +1,6 @@
 package com.constellio.model.services.records;
 
+import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;

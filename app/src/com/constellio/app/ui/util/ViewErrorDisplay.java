@@ -26,7 +26,7 @@ public class ViewErrorDisplay {
 				if (missingRequiredFields.length() != 0) {
 					missingRequiredFields.append("<br/>");
 				}
-				missingRequiredFields.append($("requiredFieldWithName", "\"" + baseTextField.getCaption() + "\""));
+				missingRequiredFields.append($("requiredFieldWithName", baseTextField.getCaption()));
 				if (firstFieldWithError == null) {
 					firstFieldWithError = baseTextField;
 				}

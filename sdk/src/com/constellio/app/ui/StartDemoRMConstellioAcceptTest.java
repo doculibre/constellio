@@ -10,6 +10,7 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataNetwork;
@@ -102,11 +103,11 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		//getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
 		//getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 		setup();
-
+		Toggle.ENABLE_PDFTRON_TRIAL.enable();
 		MetadataNetwork network = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
 				.getMetadataNetwork();
 
-		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		driver = newWebDriver();
 		waitUntilICloseTheBrowsers();
 
 		// facebook.com

@@ -151,7 +151,7 @@ public class BorrowWindowButton extends WindowButton {
 					closeWindow = borrowRecord(record, borrowLocalDate, previewReturnLocalDate, userId,
 							borrowingType, returnLocalDate, params) || closeWindow;
 				}
-				if(closeWindow) {
+				if (closeWindow) {
 					getWindow().close();
 				}
 			}
@@ -245,6 +245,7 @@ public class BorrowWindowButton extends WindowButton {
 	private User wrapUser(Record record) {
 		return new User(record, schemaTypes, getCollectionRoles());
 	}
+
 	private Roles getCollectionRoles() {
 		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
 	}

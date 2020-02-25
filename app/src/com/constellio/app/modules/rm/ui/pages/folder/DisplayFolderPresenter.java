@@ -133,7 +133,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private static final long NUMBER_OF_FOLDERS_IN_CART_LIMIT = 1000;
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderPresenter.class);
 
-	private RecordVODataProvider folderContentDataProvider;
+	RecordVODataProvider folderContentDataProvider;
 	//	private RecordVODataProvider subFoldersDataProvider;
 	//	private RecordVODataProvider documentsDataProvider;
 	private RecordVODataProvider tasksDataProvider;
@@ -348,7 +348,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			referencedDocuments.addAll(folder.getWrappedRecord().<String>getValues(folderMetadata));
 		}
 
-		LogicalSearchCondition condition = from(rm.document.schemaType()).where(rm.document.folder()).is(folder);
+		LogicalSearchCondition condition = from(rm.document.schemaType())
+				.where(rm.document.folder()).is(folder)
+				.orWhere(rm.document.schema().getMetadata("linkedTo")).is(folder);
 
 		if (!referencedDocuments.isEmpty()) {
 			condition = condition.orWhere(Schemas.IDENTIFIER).isIn(referencedDocuments);
@@ -375,7 +377,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 
-		LogicalSearchCondition condition = from(foldersSchemaType, documentsSchemaType).where(rm.folder.parentFolder()).is(folder).orWhere(rm.document.folder()).is(folder);
+		LogicalSearchCondition condition = from(foldersSchemaType, documentsSchemaType)
+				.where(rm.folder.parentFolder()).is(folder)
+				.orWhere(rm.document.folder()).is(folder)
+				.orWhere(rm.document.schema().getMetadata("linkedTo")).is(folder);
 
 		if (!referencedDocuments.isEmpty()) {
 			condition = condition.orWhere(Schemas.IDENTIFIER).isIn(referencedDocuments);
@@ -421,11 +426,17 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					.filteredWithUser(getCurrentUser())
 					.filteredByStatus(StatusFilter.ACTIVES)
 					.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
+			LogicalSearchQuery linkedDocumentsCacheableQuery = new LogicalSearchQuery(from(documentsSchemaType)
+					.where(rm.document.schema().getMetadata("linkedTo")).is(folder))
+					.filteredWithUser(getCurrentUser())
+					.filteredByStatus(StatusFilter.ACTIVES)
+					.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
 
 			addSortCriteriaForFolderContentQuery(folderCacheableQuery);
 			addSortCriteriaForFolderContentQuery(documentCacheableQuery);
+			addSortCriteriaForFolderContentQuery(linkedDocumentsCacheableQuery);
 
-			query.setCacheableQueries(asList(folderCacheableQuery, documentCacheableQuery));
+			query.setCacheableQueries(asList(folderCacheableQuery, documentCacheableQuery, linkedDocumentsCacheableQuery));
 		}
 
 		return query;
@@ -433,12 +444,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private void addSortCriteriaForFolderContentQuery(LogicalSearchQuery query) {
 		if (sortCriterion == null) {
+			query.setSkipSortingOverRecordSize(50);
 			if (sortOrder == SortOrder.ASCENDING) {
 				query.sortAsc(Schemas.TITLE);
 			} else {
 				query.sortDesc(Schemas.TITLE);
 			}
 		} else {
+			query.setSkipSortingOverRecordSize(-1);
 			Metadata metadata = getMetadata(sortCriterion);
 			if (sortOrder == SortOrder.ASCENDING) {
 				query.sortAsc(metadata);

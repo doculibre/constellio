@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.CacheStat;
@@ -11,7 +12,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 import com.constellio.model.services.records.cache.locks.SimpleReadLockMechanism;
@@ -648,6 +648,42 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		};
 	}
 
+	List<RecordDTO> list(byte collectionId, short typeId) {
+
+		int collectionIndex = collectionId - Byte.MIN_VALUE;
+
+		if (typesIndexes[collectionIndex] == null) {
+			return Collections.emptyList();
+		}
+
+		IntArrayList typeIndexes = typesIndexes[collectionIndex][typeId];
+
+		if (typeIndexes == null) {
+			return Collections.emptyList();
+		}
+
+		mechanism.obtainSchemaTypeReadingPermit(collectionId, typeId);
+
+		try {
+			List<RecordDTO> values = new ArrayList<>(typeIndexes.size());
+			for (int i = 0; i < typeIndexes.size(); i++) {
+
+				int index = typeIndexes.get(i);
+				if (index != -1) {
+					RecordDTO dto = getUnknownIdAtIndex(collectionId, typeId, index);
+					if (dto != null) {
+						values.add(dto);
+					}
+				}
+
+			}
+			return values;
+
+		} finally {
+			mechanism.releaseSchemaTypeReadingPermit(collectionId, typeId);
+		}
+	}
+
 
 	Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId, short typeId) {
 
@@ -883,4 +919,6 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			mechanism.releaseSystemWideReadingPermit();
 		}
 	}
+
+
 }

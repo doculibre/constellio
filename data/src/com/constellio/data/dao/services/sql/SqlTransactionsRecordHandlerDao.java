@@ -14,7 +14,7 @@ public class SqlTransactionsRecordHandlerDao extends BeanListHandler<Transaction
 
 	private Connection connection;
 
-	public SqlTransactionsRecordHandlerDao(Connection connection){
+	public SqlTransactionsRecordHandlerDao(Connection connection) {
 		super(TransactionSqlDTO.class);
 		this.connection = connection;
 

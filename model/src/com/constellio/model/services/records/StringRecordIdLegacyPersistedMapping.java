@@ -1,5 +1,7 @@
 package com.constellio.model.services.records;
 
+import com.constellio.data.dao.dto.records.StringRecordId;
+import com.constellio.data.dao.dto.records.StringRecordIdLegacyMapping;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;

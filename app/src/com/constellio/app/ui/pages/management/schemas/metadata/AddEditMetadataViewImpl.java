@@ -90,6 +90,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	@PropertyId("readAccessRoles")
 	private ListOptionGroup listOptionGroupRole;
 
+	@PropertyId("maxLength")
+	private BaseTextField maxLength;
+	@PropertyId("measurementUnit")
+	private BaseTextField measurementUnit;
 
 	@PropertyId("uniqueValue")
 	private CheckBox uniqueField;
@@ -141,6 +145,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		return viewLayout;
 	}
 
+	public boolean isInEditMode() {
+		return presenter.metadata != null;
+	}
+
 	private Component buildTables() {
 		formMetadataVO = presenter.getFormMetadataVO();
 
@@ -182,6 +190,9 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 					advancedSearchField.setValue(false);
 				}
 			}
+
+			enableDisableMaxLength();
+			measurementUnit.setEnabled(value == MetadataValueType.INTEGER || value == MetadataValueType.NUMBER);
 
 			if (value == MetadataValueType.CONTENT) {
 				listOptionGroupRole.setVisible(false);
@@ -242,6 +253,12 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		sortableField.setEnabled(true);
 		availableInSummary.setEnabled(presenter.isAvailableInSummaryFlagButtonEnabled(value));
 		availableInSummary.setValue(presenter.isAvailableInSummaryFlagAlwaysTrue(value));
+
+		enableDisableMaxLength();
+		measurementUnit.setEnabled(value == MetadataValueType.INTEGER || value == MetadataValueType.NUMBER);
+
+		maxLength.setVisible(maxLength.isEnabled());
+		measurementUnit.setVisible(measurementUnit.isEnabled());
 
 		switch (value) {
 			case BOOLEAN:
@@ -583,6 +600,29 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		listOptionGroupRole = new ListOptionGroup();
 		listOptionGroupRole.setCaption($("AddEditMetadataView.RoleAccess"));
 
+		maxLength = new BaseTextField();
+		maxLength.setCaption($("AddEditMetadataView.maxLength"));
+		maxLength.setRequired(false);
+		maxLength.setId("maxLength");
+
+		maxLength.setVisible(maxLength.isEnabled());
+		if (presenter.getMaxLengthFieldValue() != null && !presenter.getMaxLengthFieldValue().equals("")) {
+			formMetadataVO.setMaxLength(Integer.parseInt(presenter.getMaxLengthFieldValue()));
+			maxLength.setValue(presenter.getMaxLengthFieldValue());
+		}
+
+		measurementUnit = new BaseTextField();
+		measurementUnit.setCaption($("AddEditMetadataView.measurementUnit"));
+		measurementUnit.setRequired(false);
+		measurementUnit.setId("measurementUnit");
+		measurementUnit.setEnabled(formMetadataVO.getValueType() == MetadataValueType.INTEGER
+								   || formMetadataVO.getValueType() == MetadataValueType.NUMBER);
+		measurementUnit.setVisible(measurementUnit.isEnabled());
+		if (presenter.getMeasurementUnitFieldValue() != null && !presenter.getMeasurementUnitFieldValue().equals("")) {
+			measurementUnit.setValue(presenter.getMeasurementUnitFieldValue());
+			formMetadataVO.setMeasurementUnit(presenter.getMeasurementUnitFieldValue());
+		}
+
 		List<RoleVO> roleList = presenter.getAllCollectionRole();
 		listOptionGroupRole.setMultiSelect(true);
 		listOptionGroupRole.setImmediate(true);
@@ -601,7 +641,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		formMetadataVO.setReadAccessRoles(initialSelectedRoles);
 
 		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, valueType, multivalueType,
-				inputType, inputMask, metadataGroup, listOptionGroupRole, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
+				inputType, inputMask, maxLength, measurementUnit, metadataGroup, listOptionGroupRole, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
 				advancedSearchField, highlight, autocomplete, availableInSummary, helpMessagesField, uniqueField, multiLingualField));
 
 		for (CheckBox customAttributeField : customAttributesField) {
@@ -712,7 +752,30 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			disableFieldsForSystemReservedMetadatas();
 		}
 
+		enableDisableMaxLength();
+
 		return metadataForm;
+	}
+
+	public void inputTypeChanged(MetadataInputType metadataInputType) {
+		enableDisableMaxLength();
+	}
+
+	private void enableDisableMaxLength() {
+		boolean isInherited = isInEditMode();
+		MetadataInputType metadataInputType = null;
+
+		if (formMetadataVO != null && isInEditMode()) {
+			isInherited = presenter.isInherited(formMetadataVO.getCode());
+		}
+
+		if (metadataForm != null) {
+			metadataInputType = metadataForm.getViewObject().getInput();
+		}
+
+		MetadataValueType metadataValueType = (MetadataValueType) valueType.getValue();
+		maxLength.setEnabled(!isInherited && metadataInputType != null && metadataInputType != MetadataInputType.RICHTEXT && (metadataValueType == MetadataValueType.STRING || metadataValueType == MetadataValueType.TEXT));
+		maxLength.setVisible(isInherited && metadataInputType != MetadataInputType.RICHTEXT || maxLength.isEnabled());
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package com.constellio.model.services.records;
+package com.constellio.data.dao.dto.records;
 
 public interface StringRecordIdLegacyMapping {
 

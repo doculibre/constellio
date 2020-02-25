@@ -1,6 +1,6 @@
 package com.constellio.model.services.records.cache.cacheIndexHook;
 
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 
 public class MetadataIndexCacheDataStoreHookUtils {
 

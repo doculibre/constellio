@@ -17,6 +17,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
+import com.constellio.sdk.tests.annotations.PerformanceTest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.After;
@@ -35,6 +36,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+@PerformanceTest
 public class RecordsCachesDataStoreStartupAcceptanceTest extends ConstellioTest {
 
 	RecordsCachesDataStore dataStore;

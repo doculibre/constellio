@@ -65,7 +65,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 
 	TransactionExecutionContext context = new TransactionExecutionContext(null);
 	TransactionExecutionRecordContext recordContext = new TransactionExecutionRecordContext(record, context);
-//
+	//
 	//	@SuppressWarnings("unchecked")
 	//	@Before
 	//	public void setUp()
@@ -95,7 +95,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	//		reindexedMetadata = new TransactionRecordsReindexation(new MetadataList(firstReindexedMetadata, secondReindexedMetadata));
 	//
 	//	}
-//
+	//
 	//	@Test
 	//	public void givenIdentifierSpecialDependencyWhenAddValuesThenAddId() {
 	//		Map<Dependency, Object> valuesMap = new HashMap<>();

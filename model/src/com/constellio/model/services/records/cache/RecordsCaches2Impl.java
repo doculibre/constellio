@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.Stats;
@@ -27,7 +28,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelPostInitializationParams;
-import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
@@ -41,6 +41,7 @@ import com.constellio.model.services.records.cache.cacheIndexHook.RecordIdsHookD
 import com.constellio.model.services.records.cache.dataStore.CollectionSchemaTypeObjectHolder;
 import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
 import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
+import com.constellio.model.services.records.cache.dataStore.StreamCacheOption;
 import com.constellio.model.services.records.cache.hooks.DeterminedHookCacheInsertion;
 import com.constellio.model.services.records.cache.hooks.HookCacheInsertionResponse;
 import com.constellio.model.services.records.cache.hooks.RecordsCachesHook;
@@ -240,7 +241,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			return new CacheInsertionResponse(problemo, null, DEFAULT_INSERT);
 		}
 
-		RecordDTO current = insertionReason == LOADING_CACHE ? null : memoryDataStore.get(record.getId());
+		RecordDTO current = insertionReason == LOADING_CACHE ? null : memoryDataStore.get(record.getRecordId());
 		if (current != null && current.getVersion() > record.getVersion()) {
 			return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_OLD_VERSION, null, DEFAULT_INSERT);
 		}
@@ -496,10 +497,23 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 	@Override
-	public Stream<Record> stream(MetadataSchemaType type) {
-		return memoryDataStore.stream(type.getCollectionInfo().getCollectionId(), type.getId()).map(this::toRecord);
-	}
+	public Stream<Record> stream(MetadataSchemaType type, StreamCacheOption... options) {
 
+		boolean streamFully = false;
+		for (int i = 0; i < options.length; i++) {
+			streamFully = options[i] == StreamCacheOption.STREAM_FULLY;
+		}
+
+		if (streamFully) {
+			return memoryDataStore.list(type.getCollectionInfo().getCollectionId(), type.getId())
+					.stream()
+					.map(dto -> toRecord(type, dto));
+
+		} else {
+			return memoryDataStore.stream(type.getCollectionInfo().getCollectionId(), type.getId())
+					.map(dto -> toRecord(type, dto));
+		}
+	}
 
 	@Override
 	public Stream<Record> stream(SortedIdsStreamer streamer) {
@@ -593,20 +607,14 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				return Stream.of(record);
 			}
 		}
-		//if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-		List<String> potentialIds = metadataIndexCacheDataStore.search(schemaType, metadata, value);
+		List<RecordId> potentialIds = metadataIndexCacheDataStore.searchIds(schemaType, metadata, value);
 
 		if (potentialIds != null && !potentialIds.isEmpty()) {
-			return potentialIds.stream().map((id) -> {
-				return toRecord(schemaType, memoryDataStore.get(id));
-			}).filter((r) -> r != null && metadata.isMultivalue() ? r.getList(metadata).contains(value) : value.equals(r.get(metadata)));
+			return potentialIds.stream().map((id) -> toRecord(schemaType, memoryDataStore.get(id))).filter((r) -> r != null && metadata.isMultivalue() ? r.getList(metadata).contains(value) : value.equals(r.get(metadata)));
 		} else {
 			return Stream.empty();
 		}
 
-		//		} else {
-		//			throw new ImpossibleRuntimeException("getByMetadata cannot be used for schema type '" + schemaType.getCode() + "' which is not fully cached. If the schema type has a summary cache, try using getSummaryByMetadata instead");
-		//		}
 	}
 
 

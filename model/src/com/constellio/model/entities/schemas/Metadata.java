@@ -114,7 +114,7 @@ public class Metadata implements DataStoreField {
 				multivalue, false, false, false, false, false,
 				false, false, false, false, false, false,
 				false, multiLingual, false, new HashSet<String>(), false,
-				false, PERSISTED, false, false);
+				false, PERSISTED, false, false, null, null);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -420,6 +420,14 @@ public class Metadata implements DataStoreField {
 
 	public boolean isTaxonomyRelationship() {
 		return getInheritedMetadataBehaviors().isTaxonomyRelationship();
+	}
+
+	public Integer getMaxLength() {
+		return getInheritedMetadataBehaviors().getMaxLength();
+	}
+
+	public String getMeasurementUnit() {
+		return getInheritedMetadataBehaviors().getMeasurementUnit();
 	}
 
 	public boolean isSearchable() {

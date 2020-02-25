@@ -133,7 +133,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		recordServices.execute(new Transaction(rootFolderWithTaxonomy, subFolderWithTaxonomy, document));
 
 	}
-//
+	//
 	//	@Test
 	//	public void whenCalculatingValueForTaxonomyDependencyThenValueCalculated()
 	//			throws Exception {

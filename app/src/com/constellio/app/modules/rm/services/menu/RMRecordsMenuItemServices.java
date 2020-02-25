@@ -364,8 +364,7 @@ public class RMRecordsMenuItemServices {
 					boolean actionPossible = false;
 					if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
 						actionPossible = folderRecordActionsServices.isBorrowActionPossible(record, user);
-					}
-					else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 						actionPossible = containerRecordActionsServices.isBorrowActionPossible(record, user);
 					}
 					possibleCount += actionPossible ? 1 : 0;
@@ -507,7 +506,7 @@ public class RMRecordsMenuItemServices {
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchBorrow(ids, params));
 				break;
-				case RMRECORDS_DOCUMENT_BORROW:
+			case RMRECORDS_DOCUMENT_BORROW:
 				menuItemAction = buildMenuItemAction(RMRECORDS_DOCUMENT_BORROW, state,
 						$("DisplayDocumentView.borrow"), null, -1, 700,
 						getRecordsLimit(actionType),

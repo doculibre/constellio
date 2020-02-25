@@ -1,16 +1,17 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelPostInitializationParams;
-import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.cache.cacheIndexConditions.SortedIdsStreamer;
 import com.constellio.model.services.records.cache.cacheIndexHook.MetadataIndexCacheDataStoreHook;
 import com.constellio.model.services.records.cache.cacheIndexHook.RecordCountHookDataIndexRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.RecordIdsHookDataIndexRetriever;
 import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
+import com.constellio.model.services.records.cache.dataStore.StreamCacheOption;
 import com.constellio.model.services.records.cache.hooks.RecordsCachesHook;
 
 import java.util.ArrayList;
@@ -86,7 +87,7 @@ public interface RecordsCaches {
 
 	Stream<Record> stream(SortedIdsStreamer streamer);
 
-	Stream<Record> stream(MetadataSchemaType type);
+	Stream<Record> stream(MetadataSchemaType type, StreamCacheOption... option);
 
 	Stream<Record> stream(String collection);
 

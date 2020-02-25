@@ -2,7 +2,7 @@ package com.constellio.model.services.background;
 
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;

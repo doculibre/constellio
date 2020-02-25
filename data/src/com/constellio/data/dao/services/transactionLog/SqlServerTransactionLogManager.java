@@ -14,8 +14,6 @@ import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecovery;
-import com.constellio.data.dao.services.recovery.TransactionLogSqlRecoveryManager;
-import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
 import com.constellio.data.dao.services.sql.SqlRecordDaoFactory;
 import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;

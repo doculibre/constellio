@@ -20,6 +20,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 @SuppressWarnings("serial")
 public class MetadataVO implements Serializable {
 	final String code;
@@ -55,6 +57,8 @@ public class MetadataVO implements Serializable {
 	final boolean summaryMetadata;
 	final Map<Locale, String> helpMessages;
 	private boolean forceHidden = false;
+	final Integer maxLength;
+	final String measurementUnit;
 
 
 	public MetadataVO(short id, String code, String localCode, MetadataValueType type, String collection,
@@ -67,11 +71,12 @@ public class MetadataVO implements Serializable {
 					  StructureFactory structureFactory,
 					  String metadataGroup, Object defaultValue, Set<String> customAttributes, boolean multiLingual,
 					  Locale locale, Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO,
-					  boolean sortable, boolean isSyntetic, boolean summaryMetadata, Map<Locale, String> helpMessages) {
+					  boolean sortable, boolean isSyntetic, boolean summaryMetadata, Integer maxLength,
+					  String measurementUnit, Map<Locale, String> helpMessages) {
 		this(id, code, localCode, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
 				structureFactory, metadataGroup,
-				defaultValue, null, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata, helpMessages);
+				defaultValue, null, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata, maxLength, measurementUnit, helpMessages);
 	}
 
 
@@ -86,7 +91,8 @@ public class MetadataVO implements Serializable {
 					  boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue,
 					  String inputMask, Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
-					  boolean isSynthectic, boolean summaryMetadata, Map<Locale, String> helpMessages) {
+					  boolean isSynthectic, boolean summaryMetadata, Integer maxLength, String measurementUnit,
+					  Map<Locale, String> helpMessages) {
 		super();
 		this.id = id;
 		this.code = code;
@@ -119,6 +125,8 @@ public class MetadataVO implements Serializable {
 		this.sortable = sortable;
 		this.isSynthetic = isSynthectic;
 		this.summaryMetadata = summaryMetadata;
+		this.maxLength = maxLength;
+		this.measurementUnit = measurementUnit;
 
 		if (helpMessages == null) {
 			this.helpMessages = new HashMap<>();
@@ -143,11 +151,12 @@ public class MetadataVO implements Serializable {
 					  boolean isWriteNullValues,
 					  Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
-					  boolean summaryMetadata, Map<Locale, String> helpMessages) {
+					  boolean summaryMetadata, Integer maxLength, String measurementUnit,
+					  Map<Locale, String> helpMessages) {
 
 		this(id, code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
-				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata, helpMessages);
+				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata, maxLength, measurementUnit, helpMessages);
 	}
 
 	public MetadataVO(short id, String code, String localCode, MetadataValueType type, String collection,
@@ -161,11 +170,12 @@ public class MetadataVO implements Serializable {
 					  boolean isWriteNullValues,
 					  Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable,
-					  boolean isSyntetic, boolean summaryMetadata, Map<Locale, String> helpMessages) {
+					  boolean isSyntetic, boolean summaryMetadata, Integer maxLength, String measurementUnit,
+					  Map<Locale, String> helpMessages) {
 
 		this(id, code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
-				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata, helpMessages);
+				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata, maxLength, measurementUnit, helpMessages);
 	}
 
 	public MetadataVO() {
@@ -201,6 +211,8 @@ public class MetadataVO implements Serializable {
 		this.sortable = false;
 		this.isSynthetic = false;
 		this.summaryMetadata = false;
+		this.maxLength = null;
+		this.measurementUnit = null;
 		this.helpMessages = new HashMap<>();
 	}
 
@@ -288,11 +300,29 @@ public class MetadataVO implements Serializable {
 	}
 
 	public String getLabel(Locale locale) {
+		return getLabel(locale, false, true);
+	}
+
+	public boolean isMaxLenghtSupported() {
+		return this.getMetadataInputType() != null && this.getMetadataInputType().isMaxLenghtSupportedOnInputType();
+	}
+
+	public String getLabel(Locale locale, boolean withMaxLength, boolean withMeasurementUnit) {
 		String label;
 		if (labels.containsKey(locale)) {
 			label = labels.get(locale);
 		} else {
 			label = labels.get(new Locale(locale.getLanguage()));
+		}
+		if (withMeasurementUnit) {
+			if (this.getMeasurementUnit() != null) {
+				label = $("labelWithMeasurementUnit", label, this.getMeasurementUnit());
+			}
+		}
+		if (withMaxLength && isMaxLenghtSupported()) {
+			if (this.getMaxLength() != null) {
+				label = $("labelWithMaxLength", label, this.getMaxLength());
+			}
 		}
 		return label;
 	}
@@ -314,11 +344,13 @@ public class MetadataVO implements Serializable {
 	}
 
 	public String getHelpMessage(Locale locale) {
-		String helpMessage;
-		if (helpMessages.containsKey(locale)) {
-			helpMessage = helpMessages.get(locale);
-		} else {
-			helpMessage = helpMessages.get(new Locale(locale.getLanguage()));
+		String helpMessage = null;
+		if (helpMessages != null) {
+			if (helpMessages.containsKey(locale)) {
+				helpMessage = helpMessages.get(locale);
+			} else {
+				helpMessage = helpMessages.get(new Locale(locale.getLanguage()));
+			}
 		}
 		return helpMessage;
 	}
@@ -390,6 +422,14 @@ public class MetadataVO implements Serializable {
 
 	public String getInputMask() {
 		return inputMask;
+	}
+
+	public Integer getMaxLength() {
+		return maxLength;
+	}
+
+	public String getMeasurementUnit() {
+		return measurementUnit;
 	}
 
 	@Override

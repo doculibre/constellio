@@ -5,6 +5,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,7 +30,13 @@ public class SecurityTokenManager implements StatefulService {
 
 	}
 
+	UserTokens EMPTY_USER_TOKENS = new UserTokens(Collections.emptyList(),Collections.emptyList(),Collections.emptyList(),Collections.emptyList());
+
 	public UserTokens getTokens(final User user) {
+
+		if (providers.isEmpty()) {
+			return EMPTY_USER_TOKENS;
+		}
 
 		UserTokens tokens = new UserTokens();
 		for (TokenProvider provider : providers) {
