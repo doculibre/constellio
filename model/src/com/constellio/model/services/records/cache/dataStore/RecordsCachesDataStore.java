@@ -191,7 +191,11 @@ public class RecordsCachesDataStore {
 
 	public List<RecordDTO> list(byte collectionId, short typeId) {
 		List<RecordDTO> values = intIdsDataStore.list(collectionId, typeId);
-		values.addAll(stringIdsDataStore.list(collectionId, typeId));
+		List<RecordDTO> values2 = stringIdsDataStore.list(collectionId, typeId);
+		if (values2 != null && !values2.isEmpty()) {
+			values = new ArrayList<>(values);
+			values.addAll(values2);
+		}
 		return values;
 	}
 
