@@ -7,6 +7,7 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.converters.TempFileUploadToContentVersionVOConverter;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -69,11 +70,11 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	@PropertyId("jobTitle")
 	private TextField jobTitleField;
 	@PropertyId("password")
-	private PasswordField passwordField;
+	private EditablePasswordField passwordField;
 	@PropertyId("confirmPassword")
-	private PasswordField confirmPasswordField;
+	private EditablePasswordField confirmPasswordField;
 	@PropertyId("oldPassword")
-	private PasswordField oldPasswordField;
+	private EditablePasswordField oldPasswordField;
 	@PropertyId("loginLanguageCode")
 	private ComboBox loginLanguageCodeField;
 
@@ -235,9 +236,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		addressField.addStyleName("phone");
 		addressField.setEnabled(presenter.canModify());
 
-		passwordField = new PasswordField();
+		passwordField = new EditablePasswordField();
 		passwordField.setCaption($("ModifyProfileView.password"));
-		passwordField.setNullRepresentation("");
 		passwordField.setId("password");
 		passwordField.addStyleName("password");
 		passwordField.addValueChangeListener(new ValueChangeListener() {
@@ -256,9 +256,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		passwordField.setEnabled(presenter.canModifyPassword());
 		passwordField.setReadOnly(!presenter.isPasswordChangeEnabled());
 
-		confirmPasswordField = new PasswordField();
+		confirmPasswordField = new EditablePasswordField();
 		confirmPasswordField.setCaption($("ModifyProfileView.confirmPassword"));
-		confirmPasswordField.setNullRepresentation("");
 		confirmPasswordField.setId("confirmPassword");
 		confirmPasswordField.addStyleName("confirmPassword");
 		Validator passwordFieldsValidator = new Validator() {
@@ -275,9 +274,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		confirmPasswordField.setEnabled(presenter.canModifyPassword());
 		confirmPasswordField.setReadOnly(!presenter.isPasswordChangeEnabled());
 
-		oldPasswordField = new PasswordField();
+		oldPasswordField = new EditablePasswordField();
 		oldPasswordField.setCaption($("ModifyProfileView.oldPassword"));
-		oldPasswordField.setNullRepresentation("");
 		oldPasswordField.setId("oldPassword");
 		oldPasswordField.addStyleName("oldPassword");
 		oldPasswordField.setEnabled(presenter.canModifyPassword());
