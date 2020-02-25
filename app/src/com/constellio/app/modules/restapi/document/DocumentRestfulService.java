@@ -25,6 +25,7 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -37,6 +38,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -51,6 +53,9 @@ public class DocumentRestfulService extends ResourceRestfulService {
 
 	@Inject
 	private DocumentService documentService;
+
+	@Context
+	private HttpServletRequest httpRequest;
 
 	@GET
 	@Path("content")
@@ -177,9 +182,9 @@ public class DocumentRestfulService extends ResourceRestfulService {
 
 		DocumentDto createdDocument = CollectionUtils.isEmpty(documentIdsToMerge) ?
 									  documentService.create(host, folderId, serviceKey, method, date, expiration,
-											  signature, document, fileStream, flush, filters) :
+											  signature, document, fileStream, flush, filters, isUrlValidated()) :
 									  documentService.merge(host, folderId, serviceKey, method, date, expiration,
-											  signature, document, documentIdsToMerge, flush, filters);
+											  signature, document, documentIdsToMerge, flush, filters, isUrlValidated());
 
 		return Response.status(Response.Status.CREATED).entity(createdDocument).tag(createdDocument.getETag()).build();
 	}
@@ -243,7 +248,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		document.setETag(unquoteETag(eTag));
 
 		DocumentDto updatedDocument = documentService.update(host, id, serviceKey, method, date, expiration, signature,
-				document, fileStream, false, flush, filters);
+				document, fileStream, false, flush, filters, isUrlValidated());
 
 		return Response.ok(updatedDocument).tag(updatedDocument.getETag()).build();
 	}
@@ -300,7 +305,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		document.setETag(unquoteETag(eTag));
 
 		DocumentDto updatedDocument = documentService.update(host, id, serviceKey, method, date, expiration, signature,
-				document, fileStream, true, flush, filters);
+				document, fileStream, true, flush, filters, isUrlValidated());
 
 		return Response.ok(updatedDocument).tag(updatedDocument.getETag()).build();
 	}
@@ -367,6 +372,10 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		}
 
 		validateAces(document.getDirectAces());
+	}
+
+	private boolean isUrlValidated() {
+		return httpRequest.getAttribute("urlValidated") != null;
 	}
 
 }
