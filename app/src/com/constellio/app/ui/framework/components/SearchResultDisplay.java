@@ -128,10 +128,20 @@ public class SearchResultDisplay extends VerticalLayout {
 	}
 
 	private void init() {
+		RecordVO recordVO = searchResultVO.getRecordVO();
+
+		if (recordVO == null) {
+			Label elementDeleted = new Label("<strong>" + $("SearchResultDisplay.elementDeletedDuringSearch") + "</strong>");
+			elementDeleted.setContentMode(ContentMode.HTML);
+			addComponent(elementDeleted);
+			return;
+		}
+
 		setWidth("50px");
 
 		addStyleName(RECORD_STYLE);
-		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(searchResultVO.getRecordVO().getSchema().getCode());
+
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(recordVO.getSchema().getCode());
 		String schemaStyleName = RECORD_STYLE + "-" + schemaTypeCode;
 		addStyleName(schemaStyleName);
 
@@ -303,6 +313,10 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	@Override
 	public void addLayoutClickListener(final LayoutClickListener layoutListener) {
+		if (searchResultVO.isDeleted()) {
+			return;
+		}
+
 		super.addLayoutClickListener(layoutListener);
 
 		Button nestedButton = ComponentTreeUtils.getFirstChild(titleLink, Button.class);

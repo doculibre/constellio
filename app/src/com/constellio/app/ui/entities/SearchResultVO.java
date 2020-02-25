@@ -10,11 +10,27 @@ public class SearchResultVO implements Serializable {
 	private int index;
 	private final RecordVO recordVO;
 	private final Map<String, List<String>> highlights;
+	private boolean isDeleted;
+
+	public SearchResultVO(int index, boolean isDeleted) {
+		this.isDeleted = isDeleted;
+		this.highlights = null;
+		this.recordVO = null;
+		this.index = index;
+	}
 
 	public SearchResultVO(int index, RecordVO recordVO, Map<String, List<String>> highlights) {
 		this.index = index;
 		this.recordVO = recordVO;
 		this.highlights = highlights;
+	}
+
+	/***
+	 * 	 Cas où entre la recherche dans solr et l'obtention du record dans la cache le
+	 * 	 record a été supprimé de la cache.
+	 */
+	public boolean isDeleted() {
+		return isDeleted;
 	}
 
 	public int getIndex() {

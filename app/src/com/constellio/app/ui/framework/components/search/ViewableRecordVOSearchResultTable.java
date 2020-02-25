@@ -147,6 +147,9 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 			@Override
 			public boolean isSelected(Object itemId) {
 				RecordVO recordVO = getRecordVO(itemId);
+				if (recordVO == null) {
+					return false;
+				}
 				String recordId = recordVO.getId();
 				return ViewableRecordVOSearchResultTable.this.isSelectAll() || selectedItemRecordId.contains(recordId);
 			}

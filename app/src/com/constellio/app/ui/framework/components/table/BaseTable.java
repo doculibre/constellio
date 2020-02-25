@@ -16,12 +16,14 @@ import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCe
 import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.PreLoader;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.Container;
+import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.ObjectProperty;
@@ -288,6 +290,17 @@ public class BaseTable extends Table implements SelectionComponent {
 			@Override
 			public Object generateCell(Table source, Object itemId, Object columnId) {
 				Property<?> containerProperty;
+				Item item = getItem(itemId);
+
+				if (item instanceof RecordVOItem) {
+					RecordVOItem recordVOItem = (RecordVOItem) item;
+					if (recordVOItem.getSearchResult() != null && recordVOItem.getSearchResult().isDeleted()) {
+						CheckBox checkBox = newSelectionCheckBox(itemId);
+						checkBox.setEnabled(false);
+						return checkBox;
+					}
+				}
+
 				CellKey cellKey = getCellKey(itemId, SELECT_PROPERTY_ID);
 				if (cellKey != null) {
 					containerProperty = cellProperties.get(cellKey);
