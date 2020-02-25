@@ -56,9 +56,9 @@ public class DocumentService extends ResourceService {
 
 	public DocumentDto merge(String host, String folderId, String serviceKey, String method, String date,
 							 int expiration, String signature, DocumentDto document, List<String> mergeSourceIds,
-							 String flushMode, Set<String> filters) throws Exception {
+							 String flushMode, Set<String> filters, boolean urlValidated) throws Exception {
 
-		validateParameters(host, folderId, serviceKey, method, date, expiration, null, null, null, signature);
+		validateParameters(host, folderId, serviceKey, method, date, expiration, null, null, null, signature, urlValidated);
 
 		Record folder = getRecord(folderId, true);
 		String collection = folder.getCollection();
