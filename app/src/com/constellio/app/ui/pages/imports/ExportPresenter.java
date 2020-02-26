@@ -426,7 +426,10 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	public void exportLogs() {
 		ZipService zipService = modelLayerFactory.getIOServicesFactory().newZipService();
 
-		String filename = "logs-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+		//		String filename = "logs-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+		String filename = "logs-" + new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date()) + ".zip";//D%todo left here
+		//D%todo ajout timestamp
+		//D%todo inclusion log system
 		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
 				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File zipFile = new File(folder, filename);

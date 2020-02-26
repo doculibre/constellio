@@ -10,7 +10,9 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
 import java.util.HashMap;
 
 public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView> {
@@ -40,6 +42,16 @@ public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView>
 			params.put(EventViewParameters.EVENT_CATEGORY, EventCategory.CURRENTLY_BORROWED_DOCUMENTS);
 			view.navigate().to(RMViews.class).showEvent(params);
 		} else {
+			if (eventCategory == EventCategory.REINDEX_AND_RESTART) {
+				File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
+						.newTemporaryFolder("exportLogs");
+				if (folder != null) {
+					File logFile = new File(folder, "constellio.log");//D%V bon fichier de log?
+					if (logFile != null) {
+						FileUtils.deleteQuietly(logFile);
+					}
+				}
+			}
 			view.navigate().to().showEventCategory(eventCategory);
 		}
 	}

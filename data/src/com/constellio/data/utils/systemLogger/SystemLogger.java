@@ -165,7 +165,7 @@ public class SystemLogger {
 
 	public static void warn(String msg) {
 		LOGGER.warn(msg);
-	}
+	}//D%info mécanique qui va ajouter les erreurs
 
 	public static void warn(String format, Object arg) {
 		LOGGER.warn(format, arg);
