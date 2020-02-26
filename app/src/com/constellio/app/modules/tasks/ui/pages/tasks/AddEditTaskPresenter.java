@@ -2,6 +2,8 @@ package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
@@ -15,7 +17,11 @@ import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
-import com.constellio.app.modules.tasks.model.wrappers.request.*;
+import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -24,7 +30,15 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
-import com.constellio.app.modules.tasks.ui.components.fields.*;
+import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationEnumField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListRecordLookupField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskFormImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskProgressPercentageField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskQuestionFieldImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskRelativeDueDateField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsGroupsField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
@@ -71,9 +85,16 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
 import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.READ;
 import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.WRITE;
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
@@ -311,10 +332,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void saveAndNavigate(Task task) {
 		saveRecord(task, task.getWrappedRecord(), true);
-
 		if (previousPage != null) {
 			navigateToPreviousPage();
-			//view.showMessage("tache créée avec succes pour les documents x blabla");
 		} else if (StringUtils.isNotBlank(workflowId)) {
 			view.navigateToWorkflow(workflowId);
 		} else if (StringUtils.isNotBlank(parentId)) {
@@ -377,87 +396,72 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
 
-			String folderId = paramsMap.get("folderId");
-			if (folderId != null) {
-				new RMTask(task).setLinkedFolders(asList(folderId));
-			}
-			String documentId = paramsMap.get("documentId");
-			if (documentId != null) {
-				new RMTask(task).setLinkedDocuments(asList(documentId));
-			}
-
-			previousPage = paramsMap.get("previousPage");
-
-
 			String tempParamKey = paramsMap.get("tempParams");
 			if (tempParamKey != null) {
-				setLinkedRecordsFromUserCache(task, tempParamKey);
+				TimedCache timedCache = getCachedAttributes(tempParamKey);
+				if (timedCache != null) {
+					setLinkedRecords(timedCache.get("linkedRecords"), task);
+					setPreviousPage(timedCache.get("previousPage"));
+				}
 			}
-
 		}
 
-		completeMode = "true".
-
-				equals(paramsMap.get("completeTask"));
+		completeMode = "true".equals(paramsMap.get("completeTask"));
 		if (completeMode) {
-			TaskStatus finishedStatus = tasksSearchServices
-					.getFirstFinishedStatus();
+			TaskStatus finishedStatus = tasksSearchServices.getFirstFinishedStatus();
 			if (finishedStatus != null) {
 				task.setStatus(finishedStatus.getId());
 			}
 		}
 
 		workflowId = paramsMap.get("workflowId");
-
-		taskVO = new
-
-				TaskVO(new TaskToVOBuilder().
-
-				build(task.getWrappedRecord(), FORM, view.
-
-						getSessionContext()));
-		isCompletedOrClosedOnInitialization =
-
-				isCompletedOrClosedStatus(taskVO);
+		taskVO = new TaskVO(new TaskToVOBuilder()
+				.build(task.getWrappedRecord(), FORM, view.getSessionContext()));
+		isCompletedOrClosedOnInitialization = isCompletedOrClosedStatus(taskVO);
 		view.setRecord(taskVO);
-		if (taskVO.getMetadataCodes().
-
-				contains(taskVO.getSchema().
-
-						getCode() + "_" + ASSIGNEE)) {
+		if (taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + ASSIGNEE)) {
 			originalAssignedTo = taskVO.getAssignee();
 		}
-		if (taskVO.getMetadataCodes().
-
-				contains(taskVO.getSchema().
-
-						getCode() + "_" + Task.ASSIGNER)) {
+		if (taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNER)) {
 			originalAssigner = taskVO.get(Task.ASSIGNER);
 		}
 
 	}
 
-	private void setLinkedRecordsFromUserCache(Task task, String key) {
+	private void setPreviousPage(Object previousPage) {
+		if (previousPage instanceof String) {
+			this.previousPage = (String) previousPage;
+		}
+	}
+
+	private TimedCache getCachedAttributes(String key) {
 		Object cachedParam = this.getView().getSessionContext().getAttribute(key);
 		if (cachedParam instanceof TimedCache) {
-			TimedCache timedCache = (TimedCache) cachedParam;
-			Map params = (Map) timedCache.get(key);
-			if (params != null) {
-				Object folders = params.get("folderId");
-				Object documents = params.get("documentId");
+			return (TimedCache) cachedParam;
+		}
+		return null;
+	}
 
-				if (folders != null && folders instanceof List) {
-					new RMTask(task).setLinkedFolders((List<String>) folders);
-				}
+	private void setLinkedRecords(Object linkedRecordIds, Task task) {
+		if (linkedRecordIds instanceof List) {
+			List<String> folderIds = filterSchemaType((List<String>) linkedRecordIds, Folder.SCHEMA_TYPE);
+			List<String> documentIds = filterSchemaType((List<String>) linkedRecordIds, Document.SCHEMA_TYPE);
 
-				if (documents != null && documents instanceof List) {
-					new RMTask(task).setLinkedDocuments((List<String>) documents);
-				}
-			} else {
-				this.getView().showMessage($("AddEditTaskPresenter.error.expiredCache"));
+			new RMTask(task).setLinkedFolders(folderIds);
+			new RMTask(task).setLinkedDocuments(documentIds);
 
+		}
+	}
+
+	private List<String> filterSchemaType(List<String> recordIds, String wantedSchemaType) {
+		List<String> idsOfWantedSchemaType = new ArrayList<>();
+		List<Record> records = recordServices().getRecordsById(collection, recordIds);
+		for (Record record : records) {
+			if (record.isOfSchemaType(wantedSchemaType)) {
+				idsOfWantedSchemaType.add(record.getId());
 			}
 		}
+		return idsOfWantedSchemaType;
 	}
 
 	public String getViewTitle() {

@@ -23,6 +23,7 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.User;
@@ -30,6 +31,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class TasksNavigationConfiguration implements Serializable {
 	public static final String TASK_MANAGEMENT = "taskManagement";
@@ -71,12 +73,14 @@ public class TasksNavigationConfiguration implements Serializable {
 				View currentView = ConstellioUI.getCurrent().getCurrentView();
 				if (currentView instanceof DisplayFolderView) {
 					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
+					SessionContext sessionContext = ((DisplayFolderView) currentView).getSessionContext();
 					String folderId = displayFolderView.getRecord().getId();
-					navigate.to(TaskViews.class).addTaskToFolder(folderId);
+					navigate.to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(folderId), sessionContext);
 				} else if (currentView instanceof DisplayDocumentView) {
 					DisplayDocumentView displayFolderView = (DisplayDocumentView) currentView;
+					SessionContext sessionContext = ((DisplayDocumentView) currentView).getSessionContext();
 					String documentId = displayFolderView.getRecordVO().getId();
-					navigate.to(TaskViews.class).addTaskToDocument(documentId);
+					navigate.to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(documentId), sessionContext);
 				} else {
 					navigate.to(TaskViews.class).addTask();
 				}

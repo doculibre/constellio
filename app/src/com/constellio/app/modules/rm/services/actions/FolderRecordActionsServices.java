@@ -260,7 +260,6 @@ public class FolderRecordActionsServices {
 			linkToFolderButton.setVisible(false);
 	 */
 
-	//todo: check permissions
 	public boolean isCreateTaskActionPossible(Record record, User user) {
 		return user.hasWriteAccess().on(record);
 	}

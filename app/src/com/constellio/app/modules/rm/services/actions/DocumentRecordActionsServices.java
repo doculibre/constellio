@@ -394,5 +394,7 @@ public class DocumentRecordActionsServices {
 		return user.hasReadAccess().on(record);
 	}
 
-
+	public boolean isCreateTaskActionPossible(Record record, User user) {
+		return user.hasWriteAccess().on(record);
+	}
 }

@@ -75,6 +75,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -427,7 +428,7 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void createTask(Document document, MenuItemActionBehaviorParams params) {
-		params.getView().navigate().to(TaskViews.class).addTaskToDocument(document.getId());
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(document.getId()), params.getView().getSessionContext());
 	}
 
 	public void alertAvailable(Document document, MenuItemActionBehaviorParams params) {
