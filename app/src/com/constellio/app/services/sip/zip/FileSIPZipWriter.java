@@ -318,7 +318,7 @@ public class FileSIPZipWriter implements SIPZipWriter {
 
 	@Override
 	public long length() {
-		return zipFile.length() + contentFileReferences.size() * 75L + eadMetadataReferences.size() * 25L;
+		return sipFileHasher.length(zipFile, contentFileReferences, eadMetadataReferences);
 	}
 
 	@Override

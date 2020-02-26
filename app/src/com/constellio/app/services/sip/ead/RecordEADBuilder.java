@@ -81,29 +81,29 @@ public class RecordEADBuilder {
 
 	private Locale locale;
 
-	private Predicate<Metadata> metadataFilter;
+	private Predicate<Metadata> metadataIgnore;
 
 	public RecordEADBuilder(AppLayerFactory appLayerFactory, Locale locale, ValidationErrors errors) {
 		this(appLayerFactory, locale, errors, null);
 	}
 
 	public RecordEADBuilder(AppLayerFactory appLayerFactory, Locale locale, ValidationErrors errors,
-							Predicate<Metadata> metadataFilter) {
+							Predicate<Metadata> metadataIgnore) {
 		this.errors = errors;
 		this.locale = locale;
 		this.appLayerFactory = appLayerFactory;
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.collectionsManager = appLayerFactory.getCollectionsManager();
-		this.metadataFilter = metadataFilter == null ? metadata -> true : metadataFilter;
+		this.metadataIgnore = metadataIgnore == null ? metadata -> true : metadataIgnore.negate();
 	}
 
-	public void setMetadataFilter(Predicate<Metadata> metadataFilter) {
-		this.metadataFilter = metadataFilter;
+	public void setMetadataIgnore(Predicate<Metadata> metadataIgnore) {
+		this.metadataIgnore = metadataIgnore;
 	}
 
-	public Predicate<Metadata> getMetadataFilter() {
-		return metadataFilter;
+	public Predicate<Metadata> getMetadataIgnore() {
+		return metadataIgnore;
 	}
 
 	public boolean isIncludeRelatedMaterials() {
@@ -365,7 +365,7 @@ public class RecordEADBuilder {
 
 	private boolean isMetadataIncludedInEAD(Metadata metadata) {
 		return (includeArchiveDescriptionMetadatasFromODDs
-				|| !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode())) && metadataFilter.test(metadata);
+				|| !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode())) && metadataIgnore.test(metadata);
 	}
 
 	public void build(RecordInsertionContext recordCtx, File file) throws IOException {

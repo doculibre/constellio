@@ -12,7 +12,9 @@ import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
 import com.constellio.app.services.sip.bagInfo.SIPZipBagInfoFactory;
+import com.constellio.app.services.sip.mets.MetsContentFileReference;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
+import com.constellio.app.services.sip.mets.MetsEADMetadataReference;
 import com.constellio.app.services.sip.record.UnclassifiedDataSIPWriter;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
 import com.constellio.app.services.sip.zip.DefaultSIPFileNameProvider;
@@ -80,7 +82,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	private IOServices ioServices;
 	private RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP;
 	private RMSchemasRecordsServices rmSchemasRecordsServices;
-	private Predicate<Metadata> metadataFilter;
+	private Predicate<Metadata> metadataIgnore;
 
 	@Before
 	public void setUp() throws Exception {
@@ -106,7 +108,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
 		constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		metadataFilter = metadata -> true;
+		metadataIgnore = null;
 	}
 
 	@Test
@@ -855,7 +857,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 
 		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<String>(), asList(documentsIds), null,
-				metadataFilter
+				metadataIgnore
 		);
 
 		if (!errors.isEmpty()) {
@@ -870,6 +872,12 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 			@Override
 			public String computeHash(File input, String sipPath) throws IOException {
 				return "CHECKSUM{{" + sipPath.replace("\\", "/ d") + "}}";
+			}
+
+			@Override
+			public long length(File zipFile, List<MetsContentFileReference> contentFileReferences,
+							   List<MetsEADMetadataReference> eadMetadataReferences) {
+				return 42;
 			}
 		};
 	}
@@ -893,7 +901,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
 		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<String>(), documentsIds, null,
-				metadataFilter
+				metadataIgnore
 		);
 
 		if (!errors.isEmpty()) {

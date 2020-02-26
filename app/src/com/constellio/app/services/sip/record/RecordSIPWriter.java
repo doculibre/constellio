@@ -77,12 +77,12 @@ public class RecordSIPWriter {
 
 	private KeySetMap<String, String> savedRecords = new KeySetMap<>();
 
-	private Predicate<Metadata> metadataFilter;
+	private Predicate<Metadata> metadataIgnore;
 
 	public RecordSIPWriter(AppLayerFactory appLayerFactory,
 						   SIPZipWriter sipZipWriter,
 						   RecordPathProvider recordPathProvider,
-						   Locale locale, Predicate<Metadata> metadataFilter) {
+						   Locale locale, Predicate<Metadata> metadataIgnore) {
 
 		this.appLayerFactory = appLayerFactory;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
@@ -93,7 +93,7 @@ public class RecordSIPWriter {
 		this.sipZipWriter = sipZipWriter;
 		this.authorizationsServices = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 		this.locale = locale;
-		this.metadataFilter = metadataFilter;
+		this.metadataIgnore = metadataIgnore;
 	}
 
 	public RecordSIPWriter(AppLayerFactory appLayerFactory,
@@ -194,7 +194,7 @@ public class RecordSIPWriter {
 
 	private void buildRecordEADFile(SIPZipWriterTransaction transaction, RecordInsertionContext ctx)
 			throws IOException {
-		RecordEADBuilder recordEadBuilder = new RecordEADBuilder(appLayerFactory, locale, ctx.errors, metadataFilter);
+		RecordEADBuilder recordEadBuilder = new RecordEADBuilder(appLayerFactory, locale, ctx.errors, metadataIgnore);
 		recordEadBuilder.setIncludeRelatedMaterials(includeRelatedMaterials);
 		recordEadBuilder.setIncludeArchiveDescriptionMetadatasFromODDs(includeArchiveDescriptionMetadatasFromODDs);
 		File tempXMLFile = ioServices.newTemporaryFile(TEMP_EAD_FILE_STREAM_NAME);
