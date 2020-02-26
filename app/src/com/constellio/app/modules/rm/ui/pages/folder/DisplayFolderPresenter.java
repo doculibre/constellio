@@ -3,7 +3,6 @@ package com.constellio.app.modules.rm.ui.pages.folder;
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
@@ -13,7 +12,6 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.EmailParsingServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
@@ -30,13 +28,11 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -61,23 +57,18 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.KeySetMap;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -112,7 +103,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -915,226 +905,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
-	public boolean borrowFolder(LocalDate borrowingDate, LocalDate previewReturnDate, String userId,
-								BorrowingType borrowingType,
-								LocalDate returnDate) {
-		boolean borrowed;
-		String errorMessage = borrowingServices
-				.validateBorrowingInfos(userId, borrowingDate, previewReturnDate, borrowingType, returnDate);
-		if (errorMessage != null) {
-			view.showErrorMessage($(errorMessage));
-			borrowed = false;
-		} else {
-			Record record = recordServices().getDocumentById(userId);
-			User borrowerEntered = wrapUser(record);
-			try {
-				borrowingServices
-						.borrowFolder(summaryFolderVO.getId(), borrowingDate, previewReturnDate, getCurrentUser(), borrowerEntered,
-								borrowingType, true);
-				navigateToFolder(summaryFolderVO.getId());
-				borrowed = true;
-			} catch (RecordServicesException e) {
-				LOGGER.error(e.getMessage(), e);
-				view.showErrorMessage($("DisplayFolderView.cannotBorrowFolder"));
-				borrowed = false;
-			}
-		}
-		if (returnDate != null) {
-			return returnFolder(returnDate, borrowingDate);
-		}
-		return borrowed;
-	}
-
-	public boolean returnFolder(LocalDate returnDate) {
-		LocalDateTime borrowDateTime = summaryFolderVO.getBorrowDate();
-		LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
-		return returnFolder(returnDate, borrowDate);
-	}
-
-	protected boolean returnFolder(LocalDate returnDate, LocalDate borrowingDate) {
-		String errorMessage = borrowingServices.validateReturnDate(returnDate, borrowingDate);
-		if (errorMessage != null) {
-			view.showErrorMessage($(errorMessage));
-			return false;
-		}
-		try {
-			borrowingServices.returnFolder(summaryFolderVO.getId(), getCurrentUser(), returnDate, true);
-			navigateToFolder(summaryFolderVO.getId());
-			return true;
-		} catch (RecordServicesException e) {
-			view.showErrorMessage($("DisplayFolderView.cannotReturnFolder"));
-			return false;
-		}
-	}
-
-	private EmailToSend newEmailToSend() {
-		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(getCurrentUser().getCollection());
-		MetadataSchema schema = types.getSchemaType(EmailToSend.SCHEMA_TYPE).getDefaultSchema();
-		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
-		return new EmailToSend(emailToSendRecord, types);
-	}
-
-	public void reminderReturnFolder() {
-
-		try {
-			EmailToSend emailToSend = newEmailToSend();
-			String constellioUrl = eimConfigs.getConstellioUrl();
-			User borrower = null;
-			if (summaryFolderVO.getBorrowUserEnteredId() != null) {
-				borrower = rmSchemasRecordsServices.getUser(summaryFolderVO.getBorrowUserEnteredId());
-			} else {
-				borrower = rmSchemasRecordsServices.getUser(summaryFolderVO.getBorrowUserId());
-			}
-
-			EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
-			emailToSend.setTo(Arrays.asList(borrowerAddress));
-			emailToSend.setSendOn(TimeProvider.getLocalDateTime());
-			emailToSend.setSubject($("DisplayFolderView.returnFolderReminder") + summaryFolderVO.getTitle());
-			emailToSend.setTemplate(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
-			List<String> parameters = new ArrayList<>();
-			String previewReturnDate = summaryFolderVO.getPreviewReturnDate().toString();
-			parameters.add("previewReturnDate" + EmailToSend.PARAMETER_SEPARATOR + previewReturnDate);
-			parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + borrower.getUsername());
-			String borrowedFolderTitle = summaryFolderVO.getTitle();
-			parameters.add("borrowedRecordTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
-			parameters.add("borrowedRecordType" + EmailToSend.PARAMETER_SEPARATOR + $("SendReturnReminderEmailButton.folder"));
-			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
-			if (isAddingRecordIdInEmails) {
-				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-							   + summaryFolderVO.getTitle() + "\" (" + summaryFolderVO.getId() + ")");
-			} else {
-				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-							   + summaryFolderVO.getTitle() + "\"");
-			}
-
-			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
-			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!"
-						   + RMNavigationConfiguration.DISPLAY_FOLDER + "/" + summaryFolderVO.getId());
-			emailToSend.setParameters(parameters);
-
-			recordServices.add(emailToSend);
-			view.showMessage($("SendReturnReminderEmailButton.reminderEmailSent"));
-		} catch (RecordServicesException e) {
-			LOGGER.error("SendReturnReminderEmailButton.cannotSendEmail", e);
-			view.showMessage($("SendReturnReminderEmailButton.cannotSendEmail"));
-		}
-	}
-
-	public void alertWhenAvailable() {
-		try {
-			RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory);
-			Folder folder = schemas.getFolder(summaryFolderVO.getId());
-			List<String> usersToAlert = folder.getAlertUsersWhenAvailable();
-			String currentUserId = getCurrentUser().getId();
-			if (!currentUserId.equals(folder.getBorrowUser()) && !currentUserId.equals(folder.getBorrowUserEntered())) {
-				List<String> newUsersToAlert = new ArrayList<>();
-				newUsersToAlert.addAll(usersToAlert);
-				if (!newUsersToAlert.contains(currentUserId)) {
-					newUsersToAlert.add(currentUserId);
-					folder.setAlertUsersWhenAvailable(newUsersToAlert);
-					addOrUpdate(folder.getWrappedRecord());
-				}
-			}
-			view.showMessage($("RMObject.createAlert"));
-		} catch (Exception e) {
-			LOGGER.error("RMObject.cannotCreateAlert", e);
-			view.showErrorMessage($("RMObject.cannotCreateAlert"));
-		}
-	}
-
-	public List<LabelTemplate> getCustomTemplates() {
-		return appLayerFactory.getLabelTemplateManager().listExtensionTemplates(Folder.SCHEMA_TYPE);
-	}
-
 	public List<LabelTemplate> getDefaultTemplates() {
 		return appLayerFactory.getLabelTemplateManager().listTemplates(Folder.SCHEMA_TYPE);
-	}
-
-	public Date getPreviewReturnDate(Date borrowDate, Object borrowingTypeValue) {
-		BorrowingType borrowingType;
-		Date previewReturnDate = TimeProvider.getLocalDate().toDate();
-		if (borrowDate != null && borrowingTypeValue != null) {
-			borrowingType = (BorrowingType) borrowingTypeValue;
-			if (borrowingType == BorrowingType.BORROW) {
-				int addDays = rmConfigs.getBorrowingDurationDays();
-				previewReturnDate = LocalDate.fromDateFields(borrowDate).plusDays(addDays).toDate();
-			} else {
-				previewReturnDate = borrowDate;
-			}
-		}
-		return previewReturnDate;
-	}
-
-	boolean isDocument(RecordVO record) {
-		return record.getSchema().getCode().startsWith("document");
-	}
-
-	public boolean canModifyDocument(RecordVO record) {
-		boolean hasContent = record.get(Document.CONTENT) != null;
-		boolean hasAccess = getCurrentUser().hasWriteAccess().on(getRecord(record.getId()));
-		return hasContent && hasAccess;
-	}
-
-	public void addToCartRequested(RecordVO recordVO) {
-		Cart cart = rmSchemasRecordsServices.getCart(recordVO.getId());
-		addToCartRequested(cart);
-	}
-
-	public void addToCartRequested(Cart cart) {
-		if (rmSchemasRecordsServices.numberOfFoldersInFavoritesReachesLimit(cart.getId(), 1)) {
-			view.showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
-		} else {
-			Folder folder = rmSchemasRecordsServices.wrapFolder(getLazyFullFolderVO().getRecord());
-			folder.addFavorite(cart.getId());
-			try {
-				recordServices().update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-				view.showMessage($("DisplayFolderView.addedToCart"));
-			} catch (RecordServicesException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		}
-	}
-
-	public RecordVODataProvider getOwnedCartsDataProvider() {
-		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder
-				.build(rmSchemasRecordsServices.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-			@Override
-			public LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(
-						from(rmSchemasRecordsServices.cartSchema()).where(rmSchemasRecordsServices.cartOwner())
-								.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
-			}
-		};
-	}
-
-	public RecordVODataProvider getSharedCartsDataProvider() {
-		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder
-				.build(rmSchemasRecordsServices.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-			@Override
-			public LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(
-						from(rmSchemasRecordsServices.cartSchema()).where(rmSchemasRecordsServices.cartSharedWithUsers())
-								.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
-			}
-		};
-	}
-
-	public void parentFolderButtonClicked(String parentId)
-			throws RecordServicesException {
-		RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
-
-		String currentFolderId = summaryFolderVO.getId();
-		if (isNotBlank(parentId)) {
-			try {
-				recordServices.update(rmSchemas.getFolder(currentFolderId).setParentFolder(parentId));
-				navigate().to(RMViews.class).displayFolder(currentFolderId);
-			} catch (RecordServicesException.ValidationException e) {
-				view.showErrorMessage($(e.getErrors()));
-			}
-		}
 	}
 
 	public RecordVODataProvider getEventsDataProvider() {
@@ -1199,15 +971,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return getCurrentUser().has(RMPermissionsTo.USE_GROUP_CART).globally();
 	}
 
-
-	public boolean hasCurrentUserPermissionToUseMyCart() {
-		return getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally();
-	}
-
-	public boolean hasPermissionToStartWorkflow() {
-		return getCurrentUser().has(TasksPermissionsTo.START_WORKFLOWS).globally();
-	}
-
 	public boolean isSelected(RecordVO recordVO) {
 		return allItemsSelected || selectedRecordIds.contains(recordVO.getId());
 	}
@@ -1265,22 +1028,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		query.sortFirstOn(sortField);
 	}
 
-	public void addToDefaultFavorite() {
-		if (rmSchemasRecordsServices.numberOfFoldersInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
-			view.showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
-		} else {
-			Folder folder = rmSchemasRecordsServices.wrapFolder(getLazyFullFolderVO().getRecord());
-			folder.addFavorite(getCurrentUser().getId());
-			try {
-				recordServices().update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-				view.showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
-			} catch (RecordServicesException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		}
-	}
-
 	public RMSelectionPanelReportPresenter buildReportPresenter() {
 		return new RMSelectionPanelReportPresenter(appLayerFactory, collection, getCurrentUser()) {
 			@Override
@@ -1293,14 +1040,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				return asList(summaryFolderVO.getId());
 			}
 		};
-	}
-
-	public AppLayerFactory getApplayerFactory() {
-		return appLayerFactory;
-	}
-
-	public boolean isNeedingAReasonToDeleteFolder() {
-		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
 	}
 
 	public void refreshDocuments() {
