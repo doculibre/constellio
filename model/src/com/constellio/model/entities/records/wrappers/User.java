@@ -234,6 +234,11 @@ public class User extends RecordWrapper {
 		return this;
 	}
 
+	public User addUserRoles(String... roles) {
+		add(ROLES, roles);
+		return this;
+	}
+
 	public boolean hasCollectionReadWriteOrDeleteAccess() {
 		return hasCollectionReadAccess() || hasCollectionWriteAccess() || hasCollectionDeleteAccess();
 	}
