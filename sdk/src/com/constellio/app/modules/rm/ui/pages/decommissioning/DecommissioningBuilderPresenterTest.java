@@ -50,6 +50,7 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 	public void setUp() {
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
+		view.setApplyMultipleFacets(false);
 
 		when(view.navigate()).thenReturn(navigator);
 		when(view.getCollection()).thenReturn(zeCollection);
@@ -95,5 +96,4 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 		presenter.addCriterionRequested();
 		verify(view, times(1)).addEmptyCriterion();
 	}
-
 }
