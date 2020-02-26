@@ -17,7 +17,7 @@ public class GetCustomResultDisplayParam {
 	}
 
 	public String getSchemaType() {
-		return searchResultVO.getRecordVO().getSchema().getTypeCode();
+		return searchResultVO.getRecordVO() != null ? searchResultVO.getRecordVO().getSchema().getTypeCode() : "";
 	}
 
 	public SearchResultVO getSearchResultVO() {

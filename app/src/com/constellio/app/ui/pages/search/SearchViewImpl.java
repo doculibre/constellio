@@ -667,9 +667,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				Integer index = (Integer) itemId;
 				String query = presenter.getSearchQuery().getFreeTextQuery();
 				SearchResultVO searchResultVO = container.getSearchResultVO(index);
+
+				if (searchResultVO.isDeleted()) {
+					SearchResultVO newDeletedsearchResultVO = new SearchResultVO(index, true);
+					SearchResultDisplay searchResultDisplay1 = displayFactory.build(newDeletedsearchResultVO, query, null, null, null);
+					return searchResultDisplay1;
+				}
+
 				ClickListener elevationClickListener = getElevationClickListener(searchResultVO, index);
 				ClickListener exclusionClickListener = getExclusionClickListener(searchResultVO, index);
 				SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, query, null, elevationClickListener, exclusionClickListener);
+
 				return searchResultDisplay;
 			}
 
@@ -698,6 +706,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				Object itemId = event.getItemId();
 				Integer index = (Integer) itemId;
 				SearchResultVO searchResultVO = container.getSearchResultVO(index);
+				if (searchResultVO.isDeleted()) {
+					return;
+				}
+
 				presenter.searchResultClicked(searchResultVO.getRecordVO(), index);
 			}
 		});

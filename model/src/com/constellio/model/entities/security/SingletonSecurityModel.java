@@ -8,6 +8,7 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.AuthorizationDetailsFilter;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Slf4j
 public class SingletonSecurityModel implements SecurityModel {
 
 	GroupAuthorizationsInheritance groupAuthorizationsInheritance;
@@ -108,7 +110,11 @@ public class SingletonSecurityModel implements SecurityModel {
 		directAndInheritedAuthorizationsByPrincipalId = new HashMap<>();
 		for (Authorization authorizationDetail : authorizationDetails) {
 			insertAuthorizationInMemoryMaps(authorizationDetail);
-			noNegativeAuth &= !authorizationDetail.isNegative();
+			try {
+				noNegativeAuth &= !authorizationDetail.isNegative();
+			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+				log.warn("negative metadata does not exist", e);
+			}
 		}
 	}
 

@@ -3,7 +3,7 @@ package com.constellio.app.ui.pages.setup;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseForm;
-import com.constellio.app.ui.framework.components.fields.BasePasswordField;
+import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
@@ -85,11 +85,11 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 	private TextField collectionCodeField;
 
 	@PropertyId("adminPassword")
-	private PasswordField adminPasswordField;
+	private EditablePasswordField adminPasswordField;
 
 
 	@PropertyId("adminPasswordConfirmation")
-	private PasswordField adminPasswordConfirmationField;
+	private EditablePasswordField adminPasswordConfirmationField;
 
 	@PropertyId("demoData")
 	private CheckBox demoDataField;
@@ -255,9 +255,9 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 			collectionCodeField = new BaseTextField($("ConstellioSetupView.collectionCode"));
 			collectionCodeField.setRequired(true);
 
-			adminPasswordField = new BasePasswordField($("ConstellioSetupView.adminPassword"));
+			adminPasswordField = new EditablePasswordField($("ConstellioSetupView.adminPassword"));
 
-			adminPasswordConfirmationField = new BasePasswordField($("ConstellioSetupView.adminPasswordConfirmation"));
+			adminPasswordConfirmationField = new EditablePasswordField($("ConstellioSetupView.adminPasswordConfirmation"));
 
 			demoDataField = new CheckBox($("ConstellioSetupView.demoData"));
 

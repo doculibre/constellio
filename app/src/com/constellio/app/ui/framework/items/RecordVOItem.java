@@ -8,6 +8,7 @@ import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("serial")
@@ -34,6 +35,14 @@ public class RecordVOItem implements Item {
 
 	public SearchResultVO getSearchResult() {
 		return searchResultVO;
+	}
+
+	public boolean isDeleted() {
+		if (searchResultVO != null) {
+			return searchResultVO.isDeleted();
+		} else {
+			return false;
+		}
 	}
 
 	@Override
@@ -72,7 +81,11 @@ public class RecordVOItem implements Item {
 
 	@Override
 	public Collection<?> getItemPropertyIds() {
-		return getRecord().getMetadatas();
+		if (!isDeleted()) {
+			return getRecord().getMetadatas();
+		} else {
+			return Collections.emptyList();
+		}
 	}
 
 	@SuppressWarnings("rawtypes")

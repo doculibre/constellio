@@ -684,7 +684,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.setEvents(eventsDataProvider);
 
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
-		Folder folder = schemas.getFolderSummary(summaryFolderVO.getId());
+		Folder folder = schemas.getFolder(summaryFolderVO.getId());
 		disableMenuItems(folder);
 		modelLayerFactory.newLoggingServices().logRecordView(folder.getWrappedRecord(), getCurrentUser());
 	}

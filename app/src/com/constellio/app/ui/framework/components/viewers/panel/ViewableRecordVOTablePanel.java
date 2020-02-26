@@ -1008,6 +1008,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				recordVOContainer.forceRefresh();
 			}
 			selectedRecordVO = getRecordVO(selectedItemId);
+
+			if (selectedRecordVO == null) {
+				return;
+			}
+
 			previousItemId = recordVOContainer.prevItemId(itemId);
 			nextItemId = recordVOContainer.nextItemId(itemId);
 

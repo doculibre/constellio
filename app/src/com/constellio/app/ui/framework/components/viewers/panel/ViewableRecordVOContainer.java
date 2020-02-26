@@ -134,7 +134,7 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 
 	public static Image getThumbnail(RecordVO recordVO) {
 		Image image = new Image(null);
-		String schemaTypeCode = recordVO.getSchema().getTypeCode();
+		String schemaTypeCode = recordVO != null ? recordVO.getSchema().getTypeCode() : "";
 		if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			final ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
 			if (contentVersionVO != null) {

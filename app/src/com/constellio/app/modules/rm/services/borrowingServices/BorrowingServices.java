@@ -46,8 +46,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -350,8 +352,10 @@ public class BorrowingServices {
 			throws RecordServicesException {
 
 		List<Folder> folders = rm.wrapFolders(records);
+		Map<Folder, BorrowingType> borrowingTypeMap = new HashMap<>();
 		for (Folder folder : folders) {
 			validateCanReturnFolder(currentUser, folder);
+			borrowingTypeMap.put(folder, folder.getBorrowType());
 			setReturnedMetadatasToFolder(folder);
 		}
 
@@ -365,10 +369,9 @@ public class BorrowingServices {
 		}
 
 		if (isCreateEvent) {
-			for (Folder folder : folders) {
-				BorrowingType borrowingType = folder.getBorrowType();
-				if (borrowingType == BorrowingType.BORROW || borrowingType == BorrowingType.CONSULTATION) {
-					loggingServices.returnRecord(folder.getWrappedRecord(), currentUser, returnDateTime);
+			for (Entry<Folder, BorrowingType> entry : borrowingTypeMap.entrySet()) {
+				if (entry.getValue() == BorrowingType.BORROW || entry.getValue() == BorrowingType.CONSULTATION) {
+					loggingServices.returnRecord(entry.getKey().getWrappedRecord(), currentUser, returnDateTime);
 				}
 			}
 		}

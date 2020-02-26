@@ -383,7 +383,9 @@ public class RecordVOTable extends BaseTable {
 		for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
 			Item item = getItem(itemId);
 			RecordVO recordVO = getRecordVOForTitleColumn(item);
-			menuBar = recordMenuBarHandler.get(recordVO);
+			if (recordVO != null) {
+				menuBar = recordMenuBarHandler.get(recordVO);
+			}
 			if (menuBar != null) {
 				break;
 			}

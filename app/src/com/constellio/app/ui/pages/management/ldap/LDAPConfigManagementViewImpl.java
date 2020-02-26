@@ -1,6 +1,8 @@
 package com.constellio.app.ui.pages.management.ldap;
 
 import com.constellio.app.ui.framework.components.StringListComponent;
+import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
+import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
@@ -139,7 +141,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 	private class AzurAuthenticationTab extends VerticalLayout {
 		private Field clientId, authorityTenantId;
 		private Field userField;
-		private Field passwordField;
+		private EditablePasswordField passwordField;
 
 		private AzurAuthenticationTab() {
 			LDAPServerConfiguration ldapServerConfiguration = presenter.getLDAPServerConfiguration();
@@ -158,7 +160,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			userField = new TextField($("LDAPConfigManagementView.testAuthenticationUser"));
 			addComponent(userField);
 
-			passwordField = new PasswordField($("LDAPConfigManagementView.testAuthenticationPassword"));
+			passwordField = new EditablePasswordField($("LDAPConfigManagementView.testAuthenticationPassword"));
 			addComponent(passwordField);
 		}
 
@@ -284,7 +286,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		private CheckBox membershipAutomaticDerivationActivatedCheckbox;
 		private StringListComponent userFilterGroupsField;
 		private Field userField;
-		private Field passwordField;
+		private EditablePasswordField passwordField;
 
 		private DefaultSynchTab() {
 			setSizeFull();
@@ -308,7 +310,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			userField.setCaption($("ldap.syncConfiguration.user.login"));
 			layout.addComponent(userField);
 			String password = ldapUserSyncConfiguration.getPassword();
-			passwordField = new PasswordField(
+			passwordField = new EditablePasswordField(
 					$("ldap.syncConfiguration.user.password"));//PasswordField($("ldap.syncConfiguration.user.password"));
 			passwordField.setValue(password);
 			passwordField.setRequired(true);
