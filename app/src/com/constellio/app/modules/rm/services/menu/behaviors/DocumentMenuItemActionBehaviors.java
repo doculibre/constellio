@@ -191,8 +191,8 @@ public class DocumentMenuItemActionBehaviors {
 				boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
 				boolean isNotAddOnly = !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
 						.getPopulateConfigs().isAddOnly();
-
-				String filename = document.getContent().getCurrentVersion().getFilename();
+				Document documentWithAllMetadata = rm.getDocument(document.getId());
+				String filename = documentWithAllMetadata.getContent().getCurrentVersion().getFilename();
 				String extension = FilenameUtils.getExtension(filename);
 
 				if (!(FilenameUtils.getExtension(newValue).equals(extension))) {
@@ -203,26 +203,26 @@ public class DocumentMenuItemActionBehaviors {
 					}
 				}
 
-				if (filename.equals(document.getTitle())) {
+				if (filename.equals(documentWithAllMetadata.getTitle())) {
 					if (isManualEntry && isNotAddOnly) {
-						document.setTitle(newValue);
+						documentWithAllMetadata.setTitle(newValue);
 					}
 
-				} else if (FilenameUtils.removeExtension(filename).equals(document.getTitle())) {
+				} else if (FilenameUtils.removeExtension(filename).equals(documentWithAllMetadata.getTitle())) {
 					if (isManualEntry && isNotAddOnly) {
-						document.setTitle(FilenameUtils.removeExtension(newValue));
+						documentWithAllMetadata.setTitle(FilenameUtils.removeExtension(newValue));
 					}
 				}
 
-				document.getContent().renameCurrentVersion(newValue);
+				documentWithAllMetadata.getContent().renameCurrentVersion(newValue);
 				try {
-					recordServices.update(document.getWrappedRecord(), params.getUser());
+					recordServices.update(documentWithAllMetadata.getWrappedRecord(), params.getUser());
 					getWindow().close();
 					if (params.getView() instanceof HomeViewImpl) {
 						HomeViewImpl homeView = (HomeViewImpl) params.getView();
-						homeView.recordChanged(document.getId());
+						homeView.recordChanged(documentWithAllMetadata.getId());
 					} else {
-						navigateToDisplayDocument(document.getId(), params.getFormParams());
+						navigateToDisplayDocument(documentWithAllMetadata.getId(), params.getFormParams());
 					}
 				} catch (RecordServicesException e) {
 					params.getView().showErrorMessage(MessageUtils.toMessage(e));
