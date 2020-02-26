@@ -10,6 +10,7 @@ import com.constellio.model.entities.configs.UserConfigurationType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.structures.TableProperties;
 import com.constellio.model.entities.structures.TablePropertiesFactory;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
@@ -89,9 +90,9 @@ public class UserConfigurationsManager implements StatefulService {
 	}
 
 	public String getFilePath(User user) {
-		return CONFIG_FILE_PATH
-				.replace(COLLECTION_TOKEN, user.getCollection())
-				.replace(USERNAME_TOKEN, user.getUsername());
+		String path = StringUtils.replace(CONFIG_FILE_PATH, COLLECTION_TOKEN, user.getCollection());
+		path = StringUtils.replace(path, USERNAME_TOKEN, user.getUsername());
+		return path;
 	}
 
 	private String toString(UserConfigurationType type, Object value) {

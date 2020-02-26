@@ -20,12 +20,12 @@ public class TablePropertiesFactory implements StructureFactory {
 	private static final String VALUE_DELIMITER = "=";
 
 	@Override
-	public ModifiableStructure build(String string) {
-		if (string == null) {
+	public ModifiableStructure build(String value) {
+		if (value == null) {
 			return null;
 		}
 
-		StringTokenizer stringTokenizer = new StringTokenizer(string, DELIMITER);
+		StringTokenizer stringTokenizer = new StringTokenizer(value, DELIMITER);
 
 		TableProperties properties = new TableProperties();
 		properties.tableId = readString(stringTokenizer);

@@ -231,8 +231,7 @@ public class TableColumnsManager implements Serializable {
 			if (visibleColumnIds.isEmpty()) {
 				visibleColumnIds = getDefaultVisibleColumnIds(table);
 			}
-		} else
-		{
+		} else {
 			visibleColumnIds = getDefaultVisibleColumnIds(table);
 		}
 		return visibleColumnIds;
