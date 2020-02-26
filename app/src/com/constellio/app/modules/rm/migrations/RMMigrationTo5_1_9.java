@@ -180,7 +180,7 @@ public class RMMigrationTo5_1_9 implements MigrationScript {
 
 			schema.createUndeletable(DecommissioningList.DOCUMENTS_REPORT_CONTENT).setType(CONTENT);
 			schema.createUndeletable(DecommissioningList.FOLDERS_REPORT_CONTENT).setType(CONTENT);
-			schema.createUndeletable(DecommissioningList.DOCUMENTS).defineReferencesTo(document).setMultivalue(true);
+			schema.createUndeletable("documents").defineReferencesTo(document).setMultivalue(true);
 
 			schema.get(DecommissioningList.UNIFORM_CATEGORY).defineDataEntry().asCalculated(
 					DecomListUniformCategoryCalculator2.class);

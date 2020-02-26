@@ -83,8 +83,8 @@ public class RMMigrationTo9_0_0_42 implements MigrationScript {
 			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Document.FOLDER_CATEGORY).setCacheIndex(true);
 			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Schemas.PATH_PARTS).setCacheIndex(true);
 
-			typesBuilder.getDefaultSchema(DecommissioningList.SCHEMA_TYPE).get(DecommissioningList.FOLDERS).setCacheIndex(true);
-			typesBuilder.getDefaultSchema(DecommissioningList.SCHEMA_TYPE).get(DecommissioningList.DOCUMENTS).setCacheIndex(true);
+			typesBuilder.getDefaultSchema(DecommissioningList.SCHEMA_TYPE).get("folders").setCacheIndex(true);
+			typesBuilder.getDefaultSchema(DecommissioningList.SCHEMA_TYPE).get("documents").setCacheIndex(true);
 
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).get(RMTask.LINKED_FOLDERS).setCacheIndex(true);
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).get(RMTask.LINKED_DOCUMENTS).setCacheIndex(true);

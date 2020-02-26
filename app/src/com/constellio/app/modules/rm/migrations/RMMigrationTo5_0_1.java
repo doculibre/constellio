@@ -1111,7 +1111,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(DecommissioningList.FOLDER_DETAILS).setMultivalue(true)
 				.setType(STRUCTURE).defineStructureFactory(DecomListFolderDetailFactory.class);
 
-		defaultSchema.createUndeletable(DecommissioningList.FOLDERS).setMultivalue(true)
+		defaultSchema.createUndeletable("folders").setMultivalue(true)
 				.defineReferencesTo(folderSchemaType)
 				.defineDataEntry().asCalculated(DecomListFoldersCalculator.class);
 
@@ -1122,7 +1122,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 				.defineReferencesTo(containerSchemaType).setMultivalue(true)
 				.defineDataEntry().asCalculated(DecomListContainersCalculator.class);
 
-		copy(folderSchemaType, schemaType, DecommissioningList.FOLDERS, Folder.MEDIA_TYPE,
+		copy(folderSchemaType, schemaType, "folders", Folder.MEDIA_TYPE,
 				DecommissioningList.FOLDERS_MEDIA_TYPES);
 
 		defaultSchema.createUndeletable(DecommissioningList.ANALOGICAL_MEDIUM).setType(BOOLEAN)
