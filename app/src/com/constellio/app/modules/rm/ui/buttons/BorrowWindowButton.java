@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.ui.buttons;
 
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.menu.behaviors.RMRecordsMenuItemBehaviors;
@@ -41,7 +40,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class BorrowWindowButton extends WindowButton {
 
 	private final RMConfigs rmConfigs;
-	private RMSchemasRecordsServices rm;
 	private MenuItemActionBehaviorParams params;
 	private AppLayerFactory appLayerFactory;
 	private ModelLayerFactory modelLayerFactory;
@@ -52,14 +50,13 @@ public class BorrowWindowButton extends WindowButton {
 	private MetadataSchemaTypes schemaTypes;
 
 	public BorrowWindowButton(List<Record> records, MenuItemActionBehaviorParams params) {
-		super($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart"));
+		super($("$(DisplayFolderView.borrow"), $("DisplayFolderView.borrow"));
 
 		this.params = params;
 		this.appLayerFactory = params.getView().getConstellioFactories().getAppLayerFactory();
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.collection = params.getView().getSessionContext().getCurrentCollection();
-		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		this.borrowingServices = new BorrowingServices(collection, modelLayerFactory);
 		this.schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
@@ -217,7 +214,7 @@ public class BorrowWindowButton extends WindowButton {
 		if (borrowDate != null && borrowingTypeValue != null) {
 			borrowingType = (BorrowingType) borrowingTypeValue;
 			if (borrowingType == BorrowingType.BORROW) {
-				int addDays = rmConfigs.getBorrowingDurationDays();
+				int addDays = rmConfigs.getFolderBorrowingDurationDays();
 				previewReturnDate = LocalDate.fromDateFields(borrowDate).plusDays(addDays).toDate();
 			} else {
 				previewReturnDate = borrowDate;

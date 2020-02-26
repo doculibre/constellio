@@ -1043,7 +1043,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (borrowDate != null && borrowingTypeValue != null) {
 			borrowingType = (BorrowingType) borrowingTypeValue;
 			if (borrowingType == BorrowingType.BORROW) {
-				int addDays = rmConfigs.getBorrowingDurationDays();
+				int addDays = rmConfigs.getFolderBorrowingDurationDays();
 				previewReturnDate = LocalDate.fromDateFields(borrowDate).plusDays(addDays).toDate();
 			} else {
 				previewReturnDate = borrowDate;

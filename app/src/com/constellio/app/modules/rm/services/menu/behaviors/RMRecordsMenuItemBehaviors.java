@@ -17,9 +17,11 @@ import com.constellio.app.modules.rm.services.menu.behaviors.ui.SendReturnRemind
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMMessageUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
+import com.constellio.app.modules.rm.ui.buttons.BorrowRequestWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.BorrowWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
+import com.constellio.app.modules.rm.ui.buttons.ReturnWindowButton;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -28,7 +30,6 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
-import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
 import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
@@ -49,8 +50,6 @@ import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
-import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
-import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -59,7 +58,6 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Factory;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -68,7 +66,6 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -94,7 +91,6 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
@@ -131,9 +127,8 @@ public class RMRecordsMenuItemBehaviors {
 	private DecommissioningService decommissioningService;
 	private IOServices ioServices;
 	private RMConfigs rmConfigs;
-	private BorrowingServices borrowingServices;
-	private MetadataSchemaTypes schemaTypes;
 	private TasksSchemasRecordsServices taskServices;
+	private BorrowingServices borrowingServices;
 
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
@@ -152,9 +147,8 @@ public class RMRecordsMenuItemBehaviors {
 		ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		modelCollectionExtensions = modelLayerFactory.getExtensions().forCollection(collection);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
-		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		taskServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
 
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
@@ -309,125 +303,15 @@ public class RMRecordsMenuItemBehaviors {
 	public void checkOutRequest(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		List<Record> records = recordServices.getRecordsById(collection, recordIds);
 		Record record = records.get(0);
+		boolean isFolder = record.isOfSchemaType(Folder.SCHEMA_TYPE);
 
-		if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
-			checkOutRecordsRequest(records, params, true);
-		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
-			checkOutRecordsRequest(records, params, false);
-		}
-	}
-
-	private void checkOutRecordsRequest(List<Record> records, MenuItemActionBehaviorParams params, boolean isFolder) {
-		WindowButton borrowRequestButton = new WindowButton($("RMRequestTaskButtonExtension.borrowRequest"),
-				$("RMRequestTaskButtonExtension.requestBorrowButtonTitle")) {
-			@Override
-			protected Component buildWindowContent() {
-				getWindow().setHeight("250px");
-				User currentUser = params.getUser();
-				VerticalLayout mainLayout = new VerticalLayout();
-				final BaseIntegerField borrowDurationField = new BaseIntegerField(
-						$("RMRequestTaskButtonExtension.borrowDuration"));
-
-				borrowDurationField.setValue(String.valueOf(rmConfigs.getBorrowingDurationDays()));
-				HorizontalLayout buttonLayout = new HorizontalLayout();
-
-				BaseButton borrowButton = new BaseButton("") {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						borrowRecordsRequest(records, borrowDurationField.getValue(), params, isFolder);
-						getWindow().close();
-					}
-				};
-				borrowButton.setStyleName(ValoTheme.BUTTON_PRIMARY);
-				borrowButton.setCaption($(isFolder ? "RMRequestTaskButtonExtension.confirmBorrowMultipleFolder"
-												   : "RMRequestTaskButtonExtension.confirmBorrowMultipleContainer"));
-				BaseButton cancelButton = new BaseButton($("cancel")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getWindow().close();
-					}
-				};
-
-				TextArea messageField = new TextArea();
-				messageField.setHeight("50%");
-				messageField.setWidth("100%");
-				messageField.addStyleName(ValoTheme.TEXTAREA_BORDERLESS);
-				messageField.setValue($(isFolder ? "RMRequestTaskButtonExtension.requestBorrowMultipleFolderMessage"
-												 : "RMRequestTaskButtonExtension.requestBorrowMultipleContainerMessage"));
-				messageField.setReadOnly(true);
-
-				buttonLayout.setSpacing(true);
-				buttonLayout.addComponents(borrowButton, cancelButton);
-
-				mainLayout.setHeight("100%");
-				mainLayout.setWidth("100%");
-				mainLayout.setSpacing(true);
-				mainLayout.addComponents(messageField, borrowDurationField, buttonLayout);
-
-				return mainLayout;
-			}
-		};
-
+		WindowButton borrowRequestButton =
+				new BorrowRequestWindowButton(appLayerFactory, collection, records, params, isFolder);
 		borrowRequestButton.click();
 	}
 
-	private void borrowRecordsRequest(List<Record> records, String inputForNumberOfDays,
-									  MenuItemActionBehaviorParams params, boolean isFolder) {
-		int numberOfDays = 1;
-		if (inputForNumberOfDays != null && inputForNumberOfDays.matches("^-?\\d+$")) {
-			numberOfDays = Integer.parseInt(inputForNumberOfDays);
-
-			if (numberOfDays <= 0) {
-				params.getView().showErrorMessage($("RMRequestTaskButtonExtension.invalidBorrowDuration"));
-				return;
-			}
-		} else {
-			params.getView().showErrorMessage($("RMRequestTaskButtonExtension.invalidBorrowDuration"));
-			return;
-		}
-		try {
-			List<String> linkedRecordIds = new ArrayList<>();
-			Metadata metadataLinkedRecord = taskServices.taskSchemaType().getAllMetadatas()
-					.getMetadataWithLocalCode(isFolder ? Task.LINKED_FOLDERS : Task.LINKED_CONTAINERS);
-			List<String> pendingRequestIds = getRequestFromUser(BorrowRequest.FULL_SCHEMA_NAME, params.getUser(),
-					records, metadataLinkedRecord);
-			if (pendingRequestIds.size() > 0) {
-				List<Record> pendingRequests = rm.get(pendingRequestIds);
-				for (Record pendingRequest : pendingRequests) {
-					linkedRecordIds.addAll(pendingRequest.getList(metadataLinkedRecord));
-				}
-			}
-
-			List<Task> tasks = new ArrayList<>();
-			for (Record record : records) {
-				if (!linkedRecordIds.contains(record.getId())) {
-					Task request;
-					if (isFolder) {
-						request = taskServices.newBorrowFolderRequestTask(params.getUser().getId(),
-								getAssigneesForFolder(record.getId()), record.getId(), numberOfDays, record.getTitle());
-					} else {
-						request = taskServices.newBorrowContainerRequestTask(params.getUser().getId(),
-								getAssigneesForContainer(record.getId()), record.getId(), numberOfDays, record.getTitle());
-					}
-					tasks.add(request);
-				}
-			}
-
-			if (tasks.size() > 0) {
-				addTasksWithUserSafeOption(tasks);
-				params.getView().showMessage($("RMRequestTaskButtonExtension.borrowSuccess"));
-			} else {
-				params.getView().showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
-			}
-
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			params.getView().showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
-		}
-	}
-
-	private List<String> getRequestFromUser(String schemaName, User currentUser, List<Record> linkedRecords,
-											Metadata metadataLinkedRecord) {
+	public List<String> getRequestFromUser(String schemaName, User currentUser, List<Record> linkedRecords,
+										   Metadata metadataLinkedRecord) {
 		MetadataSchemaType taskSchemaType = taskServices.taskSchemaType();
 		Metadata metadataStatus = taskSchemaType.getAllMetadatas().getMetadataWithLocalCode(Task.STATUS_TYPE);
 		Metadata metadataApplicant = taskSchemaType.getAllMetadatas().getMetadataWithLocalCode(RequestTask.APPLICANT);
@@ -440,19 +324,19 @@ public class RMRecordsMenuItemBehaviors {
 		return modelLayerFactory.newSearchServices().searchRecordIds(logicalSearchCondition);
 	}
 
-	private List<String> getAssigneesForFolder(String recordId) {
+	public List<String> getAssigneesForFolder(String recordId) {
 		return modelLayerFactory.newAuthorizationsServices()
 				.getUserIdsWithPermissionOnRecord(RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
 						recordServices.getDocumentById(recordId));
 	}
 
-	private List<String> getAssigneesForContainer(String recordId) {
+	public List<String> getAssigneesForContainer(String recordId) {
 		return modelLayerFactory.newAuthorizationsServices()
 				.getUserIdsWithPermissionOnRecord(RMPermissionsTo.MANAGE_REQUEST_ON_CONTAINER,
 						recordServices.getDocumentById(recordId));
 	}
 
-	private void addTasksWithUserSafeOption(List<Task> tasks) throws RecordServicesException {
+	public void addTasksWithUserSafeOption(List<Task> tasks) throws RecordServicesException {
 		Transaction transaction = new Transaction();
 		transaction.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
 		transaction.addAll(tasks);
@@ -466,9 +350,11 @@ public class RMRecordsMenuItemBehaviors {
 		if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
 			checkInDocuments(records, params);
 		} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
-			checkInRecords(records, params, true);
+			Button returnButton = new ReturnWindowButton(appLayerFactory, collection, records, params, true);
+			returnButton.click();
 		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
-			checkInRecords(records, params, false);
+			Button returnButton = new ReturnWindowButton(appLayerFactory, collection, records, params, false);
+			returnButton.click();
 		}
 	}
 
@@ -491,56 +377,6 @@ public class RMRecordsMenuItemBehaviors {
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
-	}
-
-	private void checkInRecords(List<Record> records, MenuItemActionBehaviorParams params, boolean isFolder) {
-		String windowCaption = $(isFolder ? "DisplayFolderView.returnFolder" : "DisplayContainerView.checkIn");
-		Button returnButton = new WindowButton(windowCaption, windowCaption) {
-			@Override
-			protected Component buildWindowContent() {
-
-				final JodaDateField returnDatefield = new JodaDateField();
-				returnDatefield.setCaption($("DisplayFolderView.returnDate"));
-				returnDatefield.setRequired(false);
-				returnDatefield.setId("returnDate");
-				returnDatefield.addStyleName("returnDate");
-				returnDatefield.setValue(TimeProvider.getLocalDate().toDate());
-
-				BaseButton returnFolderButton = new BaseButton(windowCaption) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						LocalDate returnLocalDate = null;
-						if (returnDatefield.getValue() != null) {
-							returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
-						}
-						if (returnRecords(records, returnLocalDate, params, isFolder)) {
-							getWindow().close();
-						}
-					}
-				};
-				returnFolderButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				BaseButton cancelButton = new BaseButton($("cancel")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getWindow().close();
-					}
-				};
-				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				HorizontalLayout horizontalLayout = new HorizontalLayout();
-				horizontalLayout.setSpacing(true);
-				horizontalLayout.addComponents(returnFolderButton, cancelButton);
-
-				VerticalLayout verticalLayout = new VerticalLayout();
-				verticalLayout
-						.addComponents(returnDatefield, horizontalLayout);
-				verticalLayout.setSpacing(true);
-
-				return verticalLayout;
-			}
-		};
-		returnButton.click();
 	}
 
 	public boolean returnRecords(List<Record> records, LocalDate returnDate, MenuItemActionBehaviorParams params,
@@ -567,8 +403,8 @@ public class RMRecordsMenuItemBehaviors {
 		return returnRecords(records, returnDate, borrowDate, params, isFolder);
 	}
 
-	private boolean returnRecords(List<Record> records, LocalDate returnDate, LocalDate borrowingDate,
-								  MenuItemActionBehaviorParams params, boolean isFolder) {
+	public boolean returnRecords(List<Record> records, LocalDate returnDate, LocalDate borrowingDate,
+								 MenuItemActionBehaviorParams params, boolean isFolder) {
 		String errorMessage = borrowingServices.validateReturnDate(returnDate, borrowingDate);
 		if (errorMessage != null) {
 			params.getView().showErrorMessage($(errorMessage));
