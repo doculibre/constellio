@@ -26,6 +26,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 public class BigVaultSearchDaoRealTest extends ConstellioTest {
 
@@ -48,6 +49,7 @@ public class BigVaultSearchDaoRealTest extends ConstellioTest {
 
 	@Before
 	public void setup() {
+		assumeSolrSearch();
 		recordDao = getDataLayerFactory().newSearchDao();
 
 		Map<String, Object> fields = new HashMap<>();
@@ -86,7 +88,7 @@ public class BigVaultSearchDaoRealTest extends ConstellioTest {
 			throws Exception {
 
 		for (int i = 0; i < 100; i++) {
-			recordDao = getDataLayerFactory().newRecordDao();
+			recordDao = getDataLayerFactory().newSearchDao();
 
 			add(newRecordWithTitle("record #" + i));
 
@@ -151,7 +153,7 @@ public class BigVaultSearchDaoRealTest extends ConstellioTest {
 
 		add(record);
 
-		assertEquals(record.getFields().get("title_s"), recordDao.get(record.getId()).getFields().get("title_s"));
+		assertEquals(record.getFields().get("tokens_ss"), recordDao.get(record.getId()).getFields().get("tokens_ss"));
 
 	}
 
@@ -172,8 +174,8 @@ public class BigVaultSearchDaoRealTest extends ConstellioTest {
 				recordDao.get(child2.getId()).getFields().get("attachedPrincipalAncestorsIntIds_is"));
 		assertEquals(newArrayList(child2.getFields().get("attachedAncestors_ss")), recordDao.get(child2.getId()).getFields().get("attachedAncestors_ss"));
 		assertEquals(child2.getFields().get("schema_s"), recordDao.get(child2.getId()).getFields().get("schema_s"));
-		assertEquals(child2.getFields().get("hidden_s"), recordDao.get(child2.getId()).getFields().get("hidden_s"));
-		assertEquals(child3.getFields().get("deleted_s"), recordDao.get(child3.getId()).getFields().get("deleted_s"));
+		assertTrue((Boolean) recordDao.get(child2.getId()).getFields().get("hidden_s"));
+		assertTrue((Boolean) recordDao.get(child3.getId()).getFields().get("deleted_s"));
 		assertThat(recordDao.searchQuery(new ModifiableSolrParams().set("q", "title_t_fr:enfant2"))).hasSize(1);
 
 		assertNotEquals(child1.getFields().get("title_s"), recordDao.get(child1.getId()).getFields().get("title_s"));
@@ -206,6 +208,7 @@ public class BigVaultSearchDaoRealTest extends ConstellioTest {
 	@Test
 	public void whenUpdatingRecordWithRemovedFieldsThenFieldsRemovedCorrectly()
 			throws Exception {
+
 		RecordDTO recordDTO = givenSavedRecordWithInitialValueInSavedMetadataFieldName();
 		assertThat(recordDTO.getFields()).containsEntry(savedMetadataFieldName, initialValue);
 

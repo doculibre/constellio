@@ -235,7 +235,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			throw new ImpossibleRuntimeException("Unsupported UniqueIdGenerator");
 		}
 
-		if (dataLayerConfiguration.getMicrosoftSqlServerUrl() != null) {
+		if (dataLayerConfiguration.getMicrosoftSqlServerUrl() != null &&
+			dataLayerConfiguration.getSecondTransactionLogMode() == SecondTransactionLogType.SQL_SERVER) {
 			try {
 				this.sqlConnector.setConnection(dataLayerConfiguration);
 				this.sqlRecordDaoFactory = new SqlRecordDaoFactory(this.sqlConnector);
