@@ -61,6 +61,9 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 
 				User currentUser = getCurrentUser();
 
+				LogicalSearchCondition isSharedWithAll =
+						where(schema.get(SavedSearch.SHARED_USERS)).isNull()
+								.andWhere(schema.get(SavedSearch.SHARED_GROUPS)).isNull();
 				LogicalSearchCondition isCreator = where(schema.get(SavedSearch.USER)).isEqualTo(currentUser);
 				LogicalSearchCondition isSharedUser =
 						where(schema.get(SavedSearch.SHARED_USERS)).isContaining(singletonList(currentUser.getId()));
@@ -68,13 +71,13 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 						where(schema.get(SavedSearch.SHARED_GROUPS)).isIn(currentUser.getUserGroupsOrEmpty());
 				LogicalSearchCondition isNotRestrictedAndNotCreator =
 						where(schema.get(SavedSearch.RESTRICTED)).isFalseOrNull()
-								.andWhere(schema.get(SavedSearch.USER)).isNotEqual(currentUser);
+								.andWhere(schema.get(SavedSearch.USER)).isNull();
 
 				return new LogicalSearchQuery(from(schema)
 						.whereAllConditions(
 								where(schema.getMetadata(SavedSearch.PUBLIC)).isTrue(),
 								where(schema.getMetadata(SavedSearch.TEMPORARY)).isFalseOrNull(),
-								anyConditions(isCreator, isSharedUser, isSharedGroup, isNotRestrictedAndNotCreator)))
+								anyConditions(isCreator, isSharedWithAll, isSharedUser, isSharedGroup, isNotRestrictedAndNotCreator)))
 						.sortAsc(Schemas.TITLE);
 			}
 		};
