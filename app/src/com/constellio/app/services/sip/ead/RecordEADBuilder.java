@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Predicate;
 
 import static com.constellio.data.utils.LangUtils.isNotEmptyValue;
 import static com.constellio.model.entities.schemas.Schemas.CREATED_ON_CODE;
@@ -80,13 +81,29 @@ public class RecordEADBuilder {
 
 	private Locale locale;
 
+	private Predicate<Metadata> metadataFilter;
+
 	public RecordEADBuilder(AppLayerFactory appLayerFactory, Locale locale, ValidationErrors errors) {
+		this(appLayerFactory, locale, errors, null);
+	}
+
+	public RecordEADBuilder(AppLayerFactory appLayerFactory, Locale locale, ValidationErrors errors,
+							Predicate<Metadata> metadataFilter) {
 		this.errors = errors;
 		this.locale = locale;
 		this.appLayerFactory = appLayerFactory;
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.collectionsManager = appLayerFactory.getCollectionsManager();
+		this.metadataFilter = metadataFilter == null ? metadata -> true : metadataFilter;
+	}
+
+	public void setMetadataFilter(Predicate<Metadata> metadataFilter) {
+		this.metadataFilter = metadataFilter;
+	}
+
+	public Predicate<Metadata> getMetadataFilter() {
+		return metadataFilter;
 	}
 
 	public boolean isIncludeRelatedMaterials() {
@@ -129,7 +146,6 @@ public class RecordEADBuilder {
 				eadXmlWriter.addMetadataWithSimpleValue(metadata, recordCtx.getRecord().get(metadata));
 			}
 		}
-
 	}
 
 	private void writeContentMetadata(RecordInsertionContext recordCtx, Metadata metadata) {
@@ -348,8 +364,8 @@ public class RecordEADBuilder {
 	}
 
 	private boolean isMetadataIncludedInEAD(Metadata metadata) {
-		return includeArchiveDescriptionMetadatasFromODDs
-			   || !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode());
+		return (includeArchiveDescriptionMetadatasFromODDs
+				|| !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode())) && metadataFilter.test(metadata);
 	}
 
 	public void build(RecordInsertionContext recordCtx, File file) throws IOException {
