@@ -332,12 +332,13 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void saveAndNavigate(Task task) {
 		saveRecord(task, task.getWrappedRecord(), true);
-		if (previousPage != null) {
-			navigateToPreviousPage();
-		} else if (StringUtils.isNotBlank(workflowId)) {
+
+		if (StringUtils.isNotBlank(workflowId)) {
 			view.navigateToWorkflow(workflowId);
 		} else if (StringUtils.isNotBlank(parentId)) {
 			view.navigate().to(TaskViews.class).displayTask(parentId);
+		} else if (previousPage != null) {
+			navigateToPreviousPage();
 		} else {
 			view.navigate().to(TaskViews.class).taskManagement();
 		}

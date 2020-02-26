@@ -14,7 +14,7 @@ import java.util.Map;
 import static com.constellio.app.ui.params.ParamUtils.addParams;
 
 public class TaskViews extends CoreViews {
-	public static String TASK_PARAM_KEY = "createTaskTempParam";
+	public static String TASK_PARAM_KEY = "createTask";
 
 	public TaskViews(Navigator navigator) {
 		super(navigator);
