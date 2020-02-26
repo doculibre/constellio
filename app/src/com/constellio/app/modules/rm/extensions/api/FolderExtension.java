@@ -12,19 +12,25 @@ public abstract class FolderExtension {
 	}
 
 	public ExtensionBooleanResult isMoveActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isShareActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isDecommissioningActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isBorrowingActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
+	}
+
+	protected boolean hasWriteAccess(FolderExtensionActionPossibleParams params) {
+		Folder folder = params.getFolder();
+		User user = params.getUser();
+		return user.hasWriteAccess().on(folder);
 	}
 
 	public static class FolderExtensionActionPossibleParams {

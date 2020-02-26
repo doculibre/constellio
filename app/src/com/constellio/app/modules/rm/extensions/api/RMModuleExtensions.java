@@ -115,13 +115,17 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isMoveActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<FolderExtension>() {
-			@Override
-			public ExtensionBooleanResult call(FolderExtension behavior) {
-				return behavior.isMoveActionPossible(
-						new FolderExtension.FolderExtensionActionPossibleParams(folder, user));
-			}
-		});
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<FolderExtension>() {
+				@Override
+				public ExtensionBooleanResult call(FolderExtension behavior) {
+					return behavior.isMoveActionPossible(
+							new FolderExtension.FolderExtensionActionPossibleParams(folder, user));
+				}
+			});
+		}
 	}
 
 	public boolean isShareActionPossibleOnFolder(final Folder folder, final User user) {
@@ -187,13 +191,17 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isMoveActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
-			@Override
-			public ExtensionBooleanResult call(DocumentExtension behavior) {
-				return behavior.isMoveActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
-			}
-		});
+		if (!documentExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(document);
+		} else {
+			return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+				@Override
+				public ExtensionBooleanResult call(DocumentExtension behavior) {
+					return behavior.isMoveActionPossible(
+							new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
+				}
+			});
+		}
 	}
 
 	public boolean isPublishActionPossibleOnDocument(final Document document, final User user) {
