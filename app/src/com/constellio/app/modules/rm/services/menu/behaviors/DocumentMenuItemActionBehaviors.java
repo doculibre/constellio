@@ -43,6 +43,7 @@ import com.constellio.app.ui.framework.components.content.UpdateContentVersionWi
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.management.authorizations.PublishDocumentViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
@@ -254,7 +255,14 @@ public class DocumentMenuItemActionBehaviors {
 	public void publish(Document document, MenuItemActionBehaviorParams params) {
 
 		document.setPublished(true);
-		params.getView().navigate().to().publishDocument(document.getId());
+		Button borrowButton = new WindowButton($("DisplayFolderView.publish"),
+				$("DisplayFolderView.publish"), new WindowConfiguration(true, true, "50%", "500px")) {
+			@Override
+			protected Component buildWindowContent() {
+				return new PublishDocumentViewImpl();
+			}
+		};
+		borrowButton.click();
 		updateSearchResultClicked(document.getWrappedRecord());
 
 	}

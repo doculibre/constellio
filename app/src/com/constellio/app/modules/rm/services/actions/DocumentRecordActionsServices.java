@@ -104,6 +104,7 @@ public class DocumentRecordActionsServices {
 		return user.has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
 					   .on(record) && rmModuleExtensions.isPublishActionPossibleOnDocument(document, user) &&
 			   !record.isLogicallyDeleted() &&
+			   document.hasContent() &&
 			   !document.isPublished();
 	}
 
