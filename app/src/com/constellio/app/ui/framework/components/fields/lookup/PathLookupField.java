@@ -1,6 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
@@ -34,7 +33,6 @@ import java.util.List;
 
 import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatchingInMetadatas;
 import static java.util.Arrays.asList;
 
@@ -170,8 +168,7 @@ public class PathLookupField extends LookupField<String> {
 			List<String> taxonomyCodesForUser = getTaxonomyCodesForUser();
 
 			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection());
-			List<String> schemaTypesToSearch = SchemaUtils.getSchemaTypesInHierarchyOf(schemaType, types,
-					schemaType.equals(Document.SCHEMA_TYPE));
+			List<String> schemaTypesToSearch = SchemaUtils.getSchemaTypesInHierarchyOf(schemaType, types);
 
 			MetadataList autocompleteMetadatas = types.getSchemaType(schemaType).getDefaultSchema()
 					.getMetadatas().onlySearchable().onlySchemaAutocomplete();

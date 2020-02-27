@@ -52,16 +52,16 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 		MetadataSchemasManager schemaManager = getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaTypes schemaTypes = schemaManager.getSchemaTypes(zeCollection);
 
-		assertThat(SchemaUtils.getSchemaTypesInHierarchyOf(Folder.SCHEMA_TYPE, schemaTypes, false)).containsOnly(
+		assertThat(SchemaUtils.getSchemaTypesInHierarchyOf(Folder.SCHEMA_TYPE, schemaTypes)).containsOnly(
 				Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE
 		);
-		assertThat(SchemaUtils.getSchemaTypesInHierarchyOf(Document.SCHEMA_TYPE, schemaTypes, true)).containsOnly(
+		assertThat(SchemaUtils.getSchemaTypesInHierarchyOf(Document.SCHEMA_TYPE, schemaTypes)).containsOnly(
 				Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE
 		);
-		assertThat(SchemaUtils.getSchemaTypesInHierarchyOf(ContainerRecord.SCHEMA_TYPE, schemaTypes, false)).containsOnly(
+		assertThat(SchemaUtils.getSchemaTypesInHierarchyOf(ContainerRecord.SCHEMA_TYPE, schemaTypes)).containsOnly(
 				ContainerRecord.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE
 		);
-		assertThat(SchemaUtils.getSchemaTypesInHierarchyOf(AdministrativeUnit.SCHEMA_TYPE, schemaTypes, false)).containsOnly(
+		assertThat(SchemaUtils.getSchemaTypesInHierarchyOf(AdministrativeUnit.SCHEMA_TYPE, schemaTypes)).containsOnly(
 				AdministrativeUnit.SCHEMA_TYPE
 		);
 
@@ -73,7 +73,7 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 			}
 		});
 		MetadataSchemaTypes newSchemaTypes = schemaManager.getSchemaTypes(zeCollection);
-		assertThat(SchemaUtils.getSchemaTypesInHierarchyOf(Folder.SCHEMA_TYPE, newSchemaTypes, false)).containsOnly(
+		assertThat(SchemaUtils.getSchemaTypesInHierarchyOf(Folder.SCHEMA_TYPE, newSchemaTypes)).containsOnly(
 				Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
 				StorageSpace.SCHEMA_TYPE
 		);

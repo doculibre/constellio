@@ -512,13 +512,8 @@ public class SchemaUtils {
 		return parts[2];
 	}
 
-	public static List<String> getSchemaTypesInHierarchyOf(String schemaTypeCode, MetadataSchemaTypes allSchemaTypes,
-														   boolean isDocumentSchemaType) {
+	public static List<String> getSchemaTypesInHierarchyOf(String schemaTypeCode, MetadataSchemaTypes allSchemaTypes) {
 		Set<String> schemaTypesInHierarchy = new HashSet<>();
-
-		if (!isDocumentSchemaType) {
-			schemaTypesInHierarchy.add(schemaTypeCode);
-		}
 
 		schemaTypesInHierarchy.addAll(getSchemaTypesInHierarchyOf(schemaTypeCode, allSchemaTypes, schemaTypesInHierarchy));
 
