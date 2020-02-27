@@ -95,15 +95,15 @@ public class RecordEADBuilder {
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.collectionsManager = appLayerFactory.getCollectionsManager();
-		this.metadataIgnore = metadataIgnore == null ? metadata -> true : metadataIgnore.negate();
+		setMetadataIgnore(metadataIgnore);
 	}
 
 	public void setMetadataIgnore(Predicate<Metadata> metadataIgnore) {
-		this.metadataIgnore = metadataIgnore;
+		this.metadataIgnore = metadataIgnore == null ? metadata -> true : metadataIgnore.negate();
 	}
 
 	public Predicate<Metadata> getMetadataIgnore() {
-		return metadataIgnore;
+		return metadataIgnore.negate();
 	}
 
 	public boolean isIncludeRelatedMaterials() {
