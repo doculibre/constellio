@@ -23,14 +23,9 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.Arrays;
@@ -71,6 +66,11 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 			@Override
 			public boolean isEnabled() {
 				return presenter.isAddMode();
+			}
+
+			@Override
+			protected boolean isClearButtonVisible() {
+				return false;
 			}
 		};
 
