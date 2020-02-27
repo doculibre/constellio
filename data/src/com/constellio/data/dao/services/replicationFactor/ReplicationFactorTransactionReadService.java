@@ -228,7 +228,7 @@ public class ReplicationFactorTransactionReadService implements LeaderElectionMa
 		Map<String, SolrInputField> convertedFields = new HashMap<>();
 		for (Map.Entry<String, ReplicationFactorSolrInputField> entry : fields.entrySet()) {
 			SolrInputField convertedField = new SolrInputField(entry.getValue().getName());
-			convertedField.setValue(entry.getValue().getValue(), 1.0f);
+			convertedField.setValue(entry.getValue().getValue());
 			convertedFields.put(entry.getKey(), convertedField);
 		}
 		return convertedFields;

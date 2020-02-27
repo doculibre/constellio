@@ -1305,67 +1305,6 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 				.isEqualTo(i18n.$(new InvalidParameterCombinationException("CustomHttpHeaders.MERGE_SOURCE", "file").getValidationError()));
 	}
 
-	@Test
-	public void testCreateDocumentAndGetDocument() throws Exception {
-		addUsrMetadata(MetadataValueType.STRING, null, null);
-
-		minDocumentToAdd.setContent(ContentDto.builder().versionType(MAJOR).filename("content.txt").build());
-		Response postResponse = buildPostQuery().request().header("host", host)
-				.header(CustomHttpHeaders.FLUSH_MODE, "LATER")
-				.post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
-
-		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-		assertThat(commitCounter.newCommitsCall()).isEmpty();
-
-		DocumentDto postDocument = postResponse.readEntity(DocumentDto.class);
-
-		Response getResponse = doGetQuery(postDocument.getId());
-
-		DocumentDto getDocument = getResponse.readEntity(DocumentDto.class);
-
-		assertThat(getDocument.getContent()).isNotNull();
-		assertThat(getDocument.getContent().getHash()).isNotNull();
-	}
-
-	@Test
-	public void testCreateDocumentAndPatchDocumentAndGetDocument() throws Exception {
-		addUsrMetadata(MetadataValueType.STRING, null, null);
-
-		Response postResponse = buildPostQuery().request().header("host", host)
-				.header(CustomHttpHeaders.FLUSH_MODE, "LATER")
-				.post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
-
-		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-		assertThat(commitCounter.newCommitsCall()).isEmpty();
-
-		DocumentDto postDocument = postResponse.readEntity(DocumentDto.class);
-
-		DocumentDto documentToPatch = DocumentDto.builder().id(postDocument.getId())
-				.content(ContentDto.builder().versionType(MAJOR).filename("content.txt").build())
-				.build();
-		Response patchResponse = doPatchQuery("LATER", documentToPatch, fileToAdd);
-
-		assertThat(patchResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-		assertThat(commitCounter.newCommitsCall()).isEmpty();
-
-		Response getResponse = doGetQuery(postDocument.getId());
-
-		DocumentDto getDocument = getResponse.readEntity(DocumentDto.class);
-
-		assertThat(getDocument.getContent()).isNotNull();
-		assertThat(getDocument.getContent().getHash()).isNotNull();
-	}
-
-	@Test
-	public void testCreateDocumentWithCalculatedUsr() throws Exception {
-		addUserCalculatedMetadata(Document.DEFAULT_SCHEMA);
-
-		Response postResponse = buildPostQuery().request().header("host", host)
-				.post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
-
-		assertThat(postResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-	}
-
 	//
 	// PRIVATE FUNCTIONS
 	//

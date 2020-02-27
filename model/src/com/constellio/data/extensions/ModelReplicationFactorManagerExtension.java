@@ -1,5 +1,6 @@
 package com.constellio.data.extensions;
 
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -21,11 +22,13 @@ public class ModelReplicationFactorManagerExtension extends ReplicationFactorMan
 			if (transaction.getVersion() == null) {
 				Record record = recordsCaches.getRecord(transaction.getRecordDtoId());
 				if (record != null) {
-					recordsCaches.getCache(record.getCollection()).invalidate(record.getId());
+					recordsCaches.getCache(record.getCollection()).removeFromAllCaches(record.getId());
 				}
 			} else {
 				if (recordServices.getRecordsCaches().isCached(transaction.getRecordDtoId())) {
-					recordServices.realtimeGetRecordById(transaction.getRecordDtoId(), transaction.getVersion());
+					Record record = recordServices.realtimeGetRecordById(transaction.getRecordDtoId(), transaction.getVersion());
+					// FIXME change insertion reason
+					recordsCaches.getCache(record.getCollection()).insert(record, InsertionReason.WAS_MODIFIED);
 				}
 			}
 		}
