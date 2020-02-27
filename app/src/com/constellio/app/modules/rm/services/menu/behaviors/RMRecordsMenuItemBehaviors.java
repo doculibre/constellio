@@ -47,6 +47,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -66,6 +67,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
@@ -243,6 +245,43 @@ public class RMRecordsMenuItemBehaviors {
 			}
 		};
 		pdfButton.click();
+	}
+
+	public void checkoutDocuments(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		Button button = new Button($("DocumentContextMenu.checkOut"), FontAwesome.LOCK);
+		button.addClickListener((event) -> {
+			List<Record> records = recordServices.getRecordsById(collection, recordIds);
+			for (Record record : records) {
+				if (!documentRecordActionsServices.isCheckOutActionPossible(record, params.getUser())) {
+					params.getView().showMessage($("DocumentActionsComponent.checkoutOfDocumentsImpossible", record.getId()));
+					return;
+				}
+			}
+			checkOut(recordIds, params);
+		});
+		button.click();
+	}
+
+	private void checkOut(List<String> documentIds, MenuItemActionBehaviorParams params) {
+		RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+		List<Record> checkedOutDocuments = new ArrayList<>();
+		for (String documentId : documentIds) {
+			Document document = rmSchemas.getDocument(documentId);
+			Content content = document.getContent();
+			content.checkOut(params.getUser());
+			appLayerFactory.getModelLayerFactory().newLoggingServices().borrowRecord(document.getWrappedRecord(), params.getUser(), TimeProvider.getLocalDateTime());
+			checkedOutDocuments.add(document.getWrappedRecord());
+		}
+		try {
+			Transaction transaction = new Transaction();
+			transaction.setOptions(new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+			transaction.update(checkedOutDocuments);
+			recordServices.execute(transaction);
+			params.getView().refreshActionMenu();
+			params.getView().showMessage($("DocumentActionsComponent.checkedOutDocuments", checkedOutDocuments.size()));
+		} catch (RecordServicesException e) {
+			params.getView().showErrorMessage(MessageUtils.toMessage(e));
+		}
 	}
 
 	public void printLabels(List<String> recordIds, MenuItemActionBehaviorParams params) {

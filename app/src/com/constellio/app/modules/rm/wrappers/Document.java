@@ -24,6 +24,8 @@ public class Document extends RMObject {
 	public static final String DESCRIPTION = "description";
 	public static final String CONTENT = "content";
 	public static final String CONTENT_CHECKED_OUT_BY = "contentCheckedOutBy";
+	public static final String CONTENT_CHECKED_OUT_DATE = "contentCheckedOutDate";
+	public static final String IS_CHECKOUT_ALERT_SENT = "isCheckoutAlertSent";
 	public static final String TYPE = "type";
 	public static final String DOCUMENT_TYPE = "documentType";
 	public static final String COMMENTS = "comments";
@@ -366,6 +368,19 @@ public class Document extends RMObject {
 
 	public String getContentCheckedOutBy() {
 		return get(CONTENT_CHECKED_OUT_BY);
+	}
+
+	public LocalDateTime getContentCheckedOutDate() {
+		return get(CONTENT_CHECKED_OUT_DATE);
+	}
+
+	public boolean isCheckoutAlertSent() {
+		return getBooleanWithDefaultValue(IS_CHECKOUT_ALERT_SENT, false);
+	}
+
+	public Document setCheckoutAlertSent(boolean checkoutAlertSent) {
+		set(IS_CHECKOUT_ALERT_SENT, checkoutAlertSent);
+		return this;
 	}
 
 	public boolean hasContent() {
