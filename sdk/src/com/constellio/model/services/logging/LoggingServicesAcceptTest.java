@@ -8,9 +8,9 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -323,28 +323,6 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 			throws Exception {
 
 	}
-
-	@Test
-	public void whenDeleteFolderThenReturnValidEvents()
-			throws Exception {
-		Folder folder_A01 = records.getFolder_A01();
-		User adminUser = users.adminIn(zeCollection);
-		loggingServices.logDeleteRecordWithJustification(folder_A01.getWrappedRecord(), adminUser, "");
-
-		recordServices.flush();
-
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(
-				LogicalSearchQueryOperators.from(rm.eventSchema()).where(
-						rm.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.DELETE_FOLDER));
-		SearchServices searchServices = getModelLayerFactory().newSearchServices();
-		List<Record> folders = searchServices.search(query);
-		assertThat(folders.size()).isEqualTo(1);
-		Event event = rm.wrapEvent(folders.get(0));
-		assertThat(event.getType()).isEqualTo(EventType.DELETE_FOLDER);
-		//assertThat(event.getEventPrincipalPath()).isEqualTo(folder.getWrappedRecord().get(Schemas.PRINCIPAL_PATH));
-	}
-
 
 	@Test
 	public void whenCreateFolderThenCreateValidEvent()
