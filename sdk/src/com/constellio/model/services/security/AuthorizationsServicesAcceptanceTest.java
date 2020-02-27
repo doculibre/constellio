@@ -28,6 +28,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
+import com.constellio.model.services.security.SecurityAcceptanceTestSetup.*;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
@@ -46,50 +47,15 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.model.entities.enums.GroupAuthorizationsInheritance.FROM_CHILD_TO_PARENT;
-import static com.constellio.model.entities.records.wrappers.Event.PERMISSION_USERS;
-import static com.constellio.model.entities.records.wrappers.Event.RECORD_ID;
-import static com.constellio.model.entities.records.wrappers.Event.TYPE;
-import static com.constellio.model.entities.records.wrappers.Event.USERNAME;
-import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
-import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_PATH;
-import static com.constellio.model.entities.schemas.Schemas.TOKENS;
-import static com.constellio.model.entities.security.Role.DELETE;
-import static com.constellio.model.entities.security.Role.READ;
-import static com.constellio.model.entities.security.Role.WRITE;
+import static com.constellio.model.entities.records.wrappers.Event.*;
+import static com.constellio.model.entities.schemas.Schemas.*;
+import static com.constellio.model.entities.security.Role.*;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1_DOC1;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER2;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER2_1;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER2_2;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER2_2_DOC1;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER2_2_DOC2;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER3;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER3_DOC1;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_1;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_1_DOC1;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_2;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_2_DOC1;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER_TYPE1;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER_TYPE2;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER_TYPE3;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY1;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY2;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY2_1;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_FOND1;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_FOND1_1;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2;
-import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2_1;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.*;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static java.util.Arrays.asList;
@@ -2104,6 +2070,51 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 						tuple("taxo1_category2", "Alice Wonderland", "delete_permission_category", "chuck"),
 						tuple("folder4", "Charles-François Xavier", "delete_permission_folder", "chuck")
 				);
+	}
+
+	@Test
+	public void whenDeleteMoreThan1000AuthorizationsThenDeletedFromEveryRecords()
+			throws Exception {
+
+		reset(FOLDER4);
+		detach(FOLDER4);
+		FolderSchema schema = setup.folderSchema;
+
+		List<Record> folder4SubFolders = new ArrayList<>();
+		for (int i = 0; i < 1000; i++) {
+			Record record = new TestRecord(schema);
+			record.set(schema.title(), aString());
+			record.set(schema.parent(), FOLDER4);
+
+			try {
+				getModelLayerFactory().newRecordServices().add(record);
+				folder4SubFolders.add(record);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		auth1 = addWithoutUser(authorizationForUser(bob).on(FOLDER4).givingReadWriteDeleteAccess());
+		auth2 = addWithoutUser(authorizationForUser(charles).on(FOLDER4).givingReadAccess());
+
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(bob, charles, chuck);
+		verifyRecord(FOLDER4).usersWithWriteAccess().containsOnly(bob, chuck);
+		verifyRecord(FOLDER4).usersWithDeleteAccess().containsOnly(bob, chuck);
+
+		services.execute(authorizationDeleteRequest(auth1, zeCollection)
+				.setReattachIfLastAuthDeleted(false)
+				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
+
+		assertThatAllAuthorizations().containsOnly(authOnRecord(FOLDER4).givingRead().forPrincipals(charles));
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
+		verifyRecord(FOLDER4).usersWithReadAccess().doesNotContain(bob);
+
+		recordServices.flush();
+
+		assertThatRecords(schemas.searchEvents(ALL)).extractingMetadatas(RECORD_ID, PERMISSION_USERS, TYPE, USERNAME)
+				.containsOnly(tuple("folder4", "Bob 'Elvis' Gratton", "delete_permission_folder", "chuck"));
+
+		checkIfChuckNorrisHasAccessToEverythingInZeCollection = false;
 	}
 
 	@Test
