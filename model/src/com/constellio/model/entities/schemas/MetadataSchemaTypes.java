@@ -11,15 +11,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
@@ -393,7 +385,7 @@ public class MetadataSchemaTypes implements Serializable {
 	}
 
 	public boolean isRecordTypeMetadata(Metadata metadata) {
-		if ("type".equals(metadata.getCode()) || metadata.getType() == REFERENCE) {
+		if ("type".equals(metadata.getCode()) || (metadata.getType() == REFERENCE && !metadata.isMultivalue())) {
 			MetadataSchema referencedSchema = getDefaultSchema(metadata.getReferencedSchemaTypeCode());
 			return referencedSchema.hasMetadataWithCode("linkedSchema");
 		}
