@@ -62,7 +62,7 @@ public class CoreMigrationTo_6_5 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			//add delete metadata
 
-			typesBuilder.getSchema(User.DEFAULT_SCHEMA).create(User.VISIBLE_TABLE_COLUMNS)
+			typesBuilder.getSchema(User.DEFAULT_SCHEMA).create("visibleTableColumns")
 					.defineStructureFactory(MapStringListStringStructureFactory.class);
 		}
 	}
