@@ -278,10 +278,10 @@ public class RMRecordsMenuItemBehaviors {
 			transaction.update(checkedOutDocuments);
 			recordServices.execute(transaction);
 			params.getView().refreshActionMenu();
+			params.getView().showMessage($("DocumentActionsComponent.checkedOutDocuments", checkedOutDocuments.size()));
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
-		params.getView().showMessage($("DocumentActionsComponent.checkedOutDocuments", checkedOutDocuments.size()));
 	}
 
 	public void printLabels(List<String> recordIds, MenuItemActionBehaviorParams params) {

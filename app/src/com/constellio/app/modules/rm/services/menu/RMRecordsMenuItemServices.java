@@ -399,7 +399,7 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000),
 		RMRECORDS_BATCH_DELETE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
 		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 10000),
-		RMRECORDS_CHECKOUT(asList(Document.SCHEMA_TYPE), 10000);
+		RMRECORDS_CHECKOUT(asList(Document.SCHEMA_TYPE), 25);
 
 		private final List<String> schemaTypes;
 		private final int recordsLimit;
