@@ -4,6 +4,7 @@ import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParam
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -13,12 +14,8 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
+import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -156,7 +153,7 @@ public class DynamicParametersField extends CustomField<String> {
 
 		private LocalRecordForm(RecordVO pRecordVO, RecordFieldFactory pFormFieldFactory,
 								SaveActionListener actionListener) {
-			super(pRecordVO, pFormFieldFactory);
+			super(pRecordVO, pFormFieldFactory, ConstellioFactories.getInstance());
 
 			this.actionListener = actionListener;
 

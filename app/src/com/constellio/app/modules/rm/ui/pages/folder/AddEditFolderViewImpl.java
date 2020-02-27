@@ -91,7 +91,7 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 	}
 
 	protected FolderFormImpl newForm() {
-		recordForm = new FolderFormImpl(recordVO) {
+		recordForm = new FolderFormImpl(recordVO, getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject) {
 				presenter.saveButtonClicked();

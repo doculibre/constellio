@@ -144,4 +144,8 @@ public abstract class ConfirmDialogButton extends IconButton {
 
 	protected abstract void confirmButtonClick(ConfirmDialog dialog);
 
+	public void skipConfirmation() {
+		confirmButtonClick(null);
+	}
+
 }

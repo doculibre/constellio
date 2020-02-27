@@ -22,36 +22,19 @@ import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractValidator;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.AbstractField;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.DateField;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -172,7 +155,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 			OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
 				@Override
 				public void onEnterKeyPressed() {
-					trySave();
+					saveForm();
 				}
 			};
 			if (field instanceof TextField) {
@@ -191,17 +174,14 @@ public abstract class BaseForm<T> extends CustomComponent {
 		buttonsLayout.setSpacing(true);
 
 		if (isActivatedByConfigAndNeedConfirmation()) {
-			saveButton = new ConfirmDialogButton(null, getSaveButtonCaption(), false, false) {
+			saveButton = new Button(getSaveButtonCaption());
+			saveButton.addClickListener(new ClickListener() {
 				@Override
-				protected String getConfirmDialogMessage() {
-					return $("ConfirmDialog.confirmEdit");
+				public void buttonClick(ClickEvent event) {
+					saveForm();
 				}
+			});
 
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					trySave();
-				}
-			};
 			saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 		} else {
 			saveButton = new Button(getSaveButtonCaption());
@@ -272,6 +252,45 @@ public abstract class BaseForm<T> extends CustomComponent {
 				tabSheet.setSelectedTab(0);
 			}
 		}
+	}
+
+	private void saveForm() {
+		if (isActivatedByConfigAndNeedConfirmation()) {
+			if (showConfirmationMessage() == SaveAction.save) {
+				createSaveConfirmButton().click();
+			} else if (showConfirmationMessage() == SaveAction.cancelSave) {
+				cancelButton.click();
+			} else {
+				createSaveConfirmButton().skipConfirmation();
+			}
+		} else {
+			trySave();
+		}
+	}
+
+	public enum SaveAction {
+		cancelSave,
+		undefined,
+		save
+	}
+
+	public SaveAction showConfirmationMessage() {
+		return SaveAction.undefined;
+	}
+
+	@NotNull
+	private ConfirmDialogButton createSaveConfirmButton() {
+		return new ConfirmDialogButton(null, getSaveButtonCaption(), false, false) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ConfirmDialog.confirmEdit");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				trySave();
+			}
+		};
 	}
 
 	@Override

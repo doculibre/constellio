@@ -10,25 +10,22 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.SchemaVOUtils;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.Item;
+import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -37,26 +34,42 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 	public static final String STYLE_FIELD = "metadata-field";
 
+	private RecordVO recordVO;
 	private RecordFieldFactory formFieldFactory;
 	private Map<Field<?>, Layout> fieldLayoutMap;
+	private Map<Field<?>, Object> fieldValue;
+	private SchemaPresenterUtils schemaPresenterUtils;
 
-	public RecordForm(RecordVO record) {
-		this(record, new MetadataFieldFactory());
+	public RecordForm(RecordVO record, ConstellioFactories constellioFactories) {
+		this(record, new MetadataFieldFactory(), constellioFactories);
 	}
 
-	public RecordForm(final RecordVO recordVO, MetadataFieldFactory metadataFieldFactory) {
-		this(recordVO, new RecordFieldFactory(metadataFieldFactory));
+	public RecordForm(final RecordVO recordVO, MetadataFieldFactory metadataFieldFactory, ConstellioFactories constellioFactories) {
+		this(recordVO, new RecordFieldFactory(metadataFieldFactory), constellioFactories);
 	}
 
 	public RecordForm(final RecordVO recordVO, List<FieldAndPropertyId> fieldsAndPropertyIds,
-					  RecordFieldFactory formFieldFactory) {
+					  RecordFieldFactory formFieldFactory, ConstellioFactories constellioFactories) {
 		super(recordVO, fieldsAndPropertyIds);
 		this.formFieldFactory = formFieldFactory;
+
+		for (FieldAndPropertyId fieldAndPropertyId : fieldsAndPropertyIds) {
+			addFieldValueToMap(fieldAndPropertyId.field, fieldAndPropertyId.field.getValue());
+		}
+		this.recordVO = recordVO;
+		this.schemaPresenterUtils = new SchemaPresenterUtils(recordVO.getSchemaCode(), constellioFactories, ConstellioUI.getCurrentSessionContext());
 	}
 
-	public RecordForm(final RecordVO recordVO, RecordFieldFactory formFieldFactory) {
+	public RecordForm(final RecordVO recordVO, RecordFieldFactory formFieldFactory, ConstellioFactories constellioFactories) {
 		super(recordVO, buildFields(recordVO, formFieldFactory));
 		this.formFieldFactory = formFieldFactory;
+
+		for (Field field : getFields()) {
+			addFieldValueToMap(field, field.getValue());
+		}
+
+		this.recordVO = recordVO;
+		this.schemaPresenterUtils = new SchemaPresenterUtils(recordVO.getSchemaCode(), constellioFactories, ConstellioUI.getCurrentSessionContext());
 	}
 
 	public Layout getFieldLayout(Field<?> field) {
@@ -66,6 +79,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	private static List<FieldAndPropertyId> buildFields(RecordVO recordVO, RecordFieldFactory formFieldFactory) {
 		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<>();
 		List<MetadataVO> hiddenFields = recordVO.getFormHiddenMetadatas();
+
 		for (MetadataVO metadataVO : recordVO.getFormMetadatas()) {
 			if (recordVO.getMetadataCodes().contains(metadataVO.getCode())) {
 				Field<?> field = formFieldFactory.build(recordVO, metadataVO);
@@ -104,6 +118,40 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		}
 	}
 
+	public SaveAction showConfirmationMessage() {
+		try {
+			fieldGroup.commit();
+		} catch (FieldGroup.CommitException e) {
+			return SaveAction.undefined;
+		}
+		if (recordVO.isSaved()) {
+			extraActionBeforeComparingOldAndNewRecord(recordVO);
+
+			Record record = recordVO.getRecord().getCopyOfOriginalRecord();
+			schemaPresenterUtils.fillRecordUsingRecordVO(record, recordVO, true);
+
+			if (record.isDirty()) {
+				return SaveAction.save;
+			} else {
+				return SaveAction.cancelSave;
+			}
+		}
+
+		return SaveAction.undefined;
+	}
+
+	public void extraActionBeforeComparingOldAndNewRecord(RecordVO recordVO) {
+
+	}
+
+	private void addFieldValueToMap(Field<?> field, Object value) {
+		if (fieldValue == null) {
+			fieldValue = new HashMap<>();
+		}
+
+		fieldValue.put(field, value);
+	}
+
 	private void addFieldLayoutToMap(Field<?> field, Layout wrappedField) {
 		if (fieldLayoutMap == null) {
 			fieldLayoutMap = new HashMap<>();
@@ -111,6 +159,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 		fieldLayoutMap.put(field, wrappedField);
 	}
+
 
 	private Layout wrapFieldWithHelpMessage(MetadataVO metadataVO, Field<?> field) {
 		I18NHorizontalLayout layout = new I18NHorizontalLayout();

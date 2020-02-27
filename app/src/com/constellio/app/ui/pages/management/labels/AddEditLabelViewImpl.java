@@ -1,11 +1,8 @@
 package com.constellio.app.ui.pages.management.labels;
 
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.Printable;
-import com.constellio.app.modules.rm.wrappers.PrintableLabel;
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.LabelVO;
@@ -104,7 +101,7 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
 			RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 			this.recordVO = voBuilder.build(r, RecordVO.VIEW_MODE.FORM, getSessionContext());
 		}
-		recordForm = new LabelFormImpl(recordVO, new LabelRecordFieldFactory()) {
+		recordForm = new LabelFormImpl(recordVO, new LabelRecordFieldFactory(), getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {
@@ -168,8 +165,8 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
 	}
 
 	class LabelForm extends RecordForm {
-		public LabelForm(RecordVO record) {
-			super(record);
+		public LabelForm(RecordVO record, ConstellioFactories constellioFactories) {
+			super(record, constellioFactories);
 		}
 
 		@SuppressWarnings("unchecked")

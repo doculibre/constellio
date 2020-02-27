@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.SIP;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.BagInfoVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -12,12 +13,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.ArrayList;
@@ -65,7 +61,7 @@ public class BagInfoSIPForm extends BaseViewImpl {
 	}
 
 	private BagInfoRecordForm newForm(BagInfoVO bagInfoVO) {
-		return new BagInfoRecordForm(bagInfoVO, factory) {
+		return new BagInfoRecordForm(bagInfoVO, factory, BagInfoSIPForm.this.getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject) throws ValidationException {
 				BagInfoSIPForm.this.saveButtonClick((BagInfoVO) viewObject);
@@ -162,9 +158,9 @@ public class BagInfoSIPForm extends BaseViewImpl {
 	}
 
 	static class BagInfoRecordForm extends RecordForm {
-		public BagInfoRecordForm(BagInfoVO viewObject, MetadataFieldFactory metadataFactory,
+		public BagInfoRecordForm(BagInfoVO viewObject, MetadataFieldFactory metadataFactory, ConstellioFactories constellioFactories,
 								 FieldAndPropertyId... fields) {
-			super(viewObject, metadataFactory);
+			super(viewObject, metadataFactory, constellioFactories);
 		}
 
 		@Override

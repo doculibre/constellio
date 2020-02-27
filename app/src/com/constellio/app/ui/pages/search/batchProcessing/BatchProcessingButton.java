@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -17,15 +18,7 @@ import com.vaadin.data.Property;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -187,7 +180,7 @@ public class BatchProcessingButton extends WindowButton {
 		String originSchema = presenter.getOriginSchema(view.getSchemaType(), selectedType);
 		RecordFieldFactory fieldFactory = newFieldFactory();
 		return new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSchemaType(), view.getSessionContext()),
-				fieldFactory);
+				fieldFactory, ConstellioFactories.getInstance());
 	}
 
 	private RecordFieldFactory newFieldFactory() {
@@ -196,8 +189,8 @@ public class BatchProcessingButton extends WindowButton {
 	}
 
 	public class BatchProcessingForm extends RecordForm {
-		public BatchProcessingForm(RecordVO record, RecordFieldFactory recordFieldFactory) {
-			super(record, recordFieldFactory);
+		public BatchProcessingForm(RecordVO record, RecordFieldFactory recordFieldFactory, ConstellioFactories constellioFactories) {
+			super(record, recordFieldFactory, constellioFactories);
 
 			buttonsLayout.removeComponent(cancelButton);
 			buttonsLayout.removeComponent(saveButton);

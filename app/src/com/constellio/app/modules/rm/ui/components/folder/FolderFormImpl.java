@@ -17,12 +17,12 @@ public abstract class FolderFormImpl extends RecordForm implements FolderForm {
 
 	private Map<String, Field> extraField;
 
-	public FolderFormImpl(RecordVO record) {
+	public FolderFormImpl(RecordVO record, ConstellioFactories constellioFactories) {
 		super(record, new FolderFieldFactory(
 				record.getSchema().getCollection(),
 				record.<CopyRetentionRule>getList(Folder.APPLICABLE_COPY_RULES),
 				record.getMetadataValue(record.getMetadata(Folder.RETENTION_RULE_ENTERED)).<String>getValue(),
-				record.getMetadataValue(record.getMetadata(Folder.PARENT_FOLDER)).<String>getValue()));
+				record.getMetadataValue(record.getMetadata(Folder.PARENT_FOLDER)).<String>getValue()), constellioFactories);
 
 		extraField = new HashMap<>();
 	}
@@ -49,5 +49,12 @@ public abstract class FolderFormImpl extends RecordForm implements FolderForm {
 
 	public Field getExtraField(String key) {
 		return extraField.get(key);
+	}
+
+	@Override
+	public void extraActionBeforeComparingOldAndNewRecord(RecordVO recordVO) {
+		if (recordVO.get(Folder.PARENT_FOLDER) != null) {
+			recordVO.set(Folder.CATEGORY_ENTERED, null);
+		}
 	}
 }

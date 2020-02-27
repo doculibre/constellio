@@ -2,11 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
-import com.constellio.app.modules.rm.ui.components.retentionRule.DocumentCopyRetentionRuleTable;
-import com.constellio.app.modules.rm.ui.components.retentionRule.DocumentDefaultCopyRetentionRuleTable;
-import com.constellio.app.modules.rm.ui.components.retentionRule.FolderCopyRetentionRuleTable;
-import com.constellio.app.modules.rm.ui.components.retentionRule.ListAddRemoveRetentionRuleDocumentTypeField;
-import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleListAddRemoveAdministrativeUnitLookupField;
+import com.constellio.app.modules.rm.ui.components.retentionRule.*;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -99,7 +95,7 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 
 	private class RetentionRuleForm extends RecordForm {
 		public RetentionRuleForm(RecordVO record) {
-			super(record, new RetentionRuleFieldFactory());
+			super(record, new RetentionRuleFieldFactory(), AddEditRetentionRuleViewImpl.this.getConstellioFactories());
 		}
 
 		@Override

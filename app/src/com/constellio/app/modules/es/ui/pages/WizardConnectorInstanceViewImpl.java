@@ -98,7 +98,7 @@ public class WizardConnectorInstanceViewImpl extends BaseViewImpl implements Wiz
 	}
 
 	private RecordForm newForm() {
-		RecordForm recordForm = new RecordForm(recordVO, new ConnectorInstanceFieldFactory()) {
+		RecordForm recordForm = new RecordForm(recordVO, new ConnectorInstanceFieldFactory(), getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {
