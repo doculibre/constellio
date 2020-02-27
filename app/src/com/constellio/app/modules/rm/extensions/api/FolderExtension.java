@@ -8,11 +8,11 @@ import com.constellio.model.entities.records.wrappers.User;
 public abstract class FolderExtension {
 
 	public ExtensionBooleanResult isAddDocumentActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isCopyActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isDownloadActionPossible(FolderExtensionActionPossibleParams params) {
@@ -24,7 +24,7 @@ public abstract class FolderExtension {
 	}
 
 	public ExtensionBooleanResult isMoveActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isShareActionPossible(FolderExtensionActionPossibleParams params) {
@@ -32,15 +32,15 @@ public abstract class FolderExtension {
 	}
 
 	public ExtensionBooleanResult isDecommissioningActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isBorrowingActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isReturnActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isPrintLabelActionPossible(FolderExtensionActionPossibleParams params) {
@@ -52,7 +52,7 @@ public abstract class FolderExtension {
 	}
 
 	public ExtensionBooleanResult isAddSubFolderActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isDisplayActionPossible(FolderExtensionActionPossibleParams params) {
@@ -60,15 +60,15 @@ public abstract class FolderExtension {
 	}
 
 	public ExtensionBooleanResult isEditActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isDeleteActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasDeleteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isAddAuthorizationActionPossible(FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isAddToCartActionPossible(FolderExtensionActionPossibleParams params) {
@@ -77,11 +77,23 @@ public abstract class FolderExtension {
 
 	public ExtensionBooleanResult isCreateDecommissioningListActionPossible(
 			FolderExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isConsultLinkActionPossible(FolderExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	protected boolean hasWriteAccess(FolderExtensionActionPossibleParams params) {
+		Folder folder = params.getFolder();
+		User user = params.getUser();
+		return user.hasWriteAccess().on(folder);
+	}
+
+	protected boolean hasDeleteAccess(FolderExtensionActionPossibleParams params) {
+		Folder folder = params.getFolder();
+		User user = params.getUser();
+		return user.hasDeleteAccess().on(folder);
 	}
 
 	public static class FolderExtensionActionPossibleParams {

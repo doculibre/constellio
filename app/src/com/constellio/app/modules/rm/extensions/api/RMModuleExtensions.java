@@ -226,18 +226,30 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isAddDocumentActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isAddDocumentActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isAddDocumentActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		}
 	}
 
 	public boolean isMoveActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isMoveActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isMoveActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		}
 	}
 
 	public boolean isAddSubFolderActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isAddSubFolderActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isAddSubFolderActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		}
 	}
 
 	public boolean isDisplayActionPossibleOnFolder(final Folder folder, final User user) {
@@ -246,25 +258,41 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isEditActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isEditActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isEditActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		}
 	}
 
 	public boolean isDeleteActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isDeleteActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasDeleteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isDeleteActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		}
 	}
 
 	public boolean isAddAuthorizationActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isAddAuthorizationActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isAddAuthorizationActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		}
 	}
 
 	// TODO adapt to use lambda
 
 	public boolean isShareActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isShareActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isShareActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		}
 	}
 
 	public boolean isAddToCartActionPossibleOnFolder(final Folder folder, final User user) {
@@ -273,29 +301,45 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isDecommissioningActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<FolderExtension>() {
-			@Override
-			public ExtensionBooleanResult call(FolderExtension behavior) {
-				return behavior.isDecommissioningActionPossible(
-						new FolderExtensionActionPossibleParams(folder, user));
-			}
-		});
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<FolderExtension>() {
+				@Override
+				public ExtensionBooleanResult call(FolderExtension behavior) {
+					return behavior.isDecommissioningActionPossible(
+							new FolderExtensionActionPossibleParams(folder, user));
+				}
+			});
+		}
 	}
 
 	public boolean isCreateDecommissioningListActionPossibleOnFolder(Folder folder, User user) {
-		return folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isCreateDecommissioningListActionPossible(
-						new FolderExtensionActionPossibleParams(folder, user)));
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isCreateDecommissioningListActionPossible(
+							new FolderExtensionActionPossibleParams(folder, user)));
+		}
 	}
 
 	public boolean isBorrowingActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isBorrowingActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isBorrowingActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		}
 	}
 
 	public boolean isReturnActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isReturnActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isReturnActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		}
 	}
 
 	public boolean isPrintLabelActionPossibleOnFolder(final Folder folder, final User user) {
@@ -319,13 +363,21 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isAddAuthorizationActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isAddAuthorizationActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
+		if (!documentExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(document);
+		} else {
+			return documentExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isAddAuthorizationActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
+		}
 	}
 
 	public boolean isManageAuthorizationActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isManageAuthorizationActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
+		if (!documentExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(document);
+		} else {
+			return documentExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isManageAuthorizationActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
+		}
 	}
 
 	public boolean isGenerateReportActionPossibleOnDocument(final Document document, final User user) {
@@ -340,9 +392,13 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isEditActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isEditActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+		if (!documentExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(document);
+		} else {
+			return documentExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isEditActionPossible(
+							new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+		}
 	}
 
 	public boolean isDownloadActionPossibleOnDocument(final Document document, final User user) {
@@ -352,9 +408,13 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isCopyActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isCopyActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+		if (!documentExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(document);
+		} else {
+			return documentExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isCopyActionPossible(
+							new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+		}
 	}
 
 	public boolean isCreateSipActionPossibleOnDocument(final Document document, final User user) {
@@ -372,13 +432,17 @@ public class RMModuleExtensions implements ModuleExtensions {
 	// TODO adapt methods below to use a lambda
 
 	public boolean isCreatePDFAActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
-			@Override
-			public ExtensionBooleanResult call(DocumentExtension behavior) {
-				return behavior.isCreatePDFAActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
-			}
-		});
+		if (!documentExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(document);
+		} else {
+			return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+				@Override
+				public ExtensionBooleanResult call(DocumentExtension behavior) {
+					return behavior.isCreatePDFAActionPossible(
+							new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
+				}
+			});
+		}
 	}
 
 	public boolean isAddToCartActionPossibleOnDocument(final Document document, final User user) {
@@ -400,42 +464,58 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isUploadActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new BooleanCaller<DocumentExtension>() {
-			@Override
-			public ExtensionBooleanResult call(DocumentExtension behavior) {
-				return behavior.isUploadActionPossible(new DocumentExtensionActionPossibleParams(document, user));
-			}
-		});
+		if (!documentExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(document);
+		} else {
+			return documentExtensions.getBooleanValue(true, new BooleanCaller<DocumentExtension>() {
+				@Override
+				public ExtensionBooleanResult call(DocumentExtension behavior) {
+					return behavior.isUploadActionPossible(new DocumentExtensionActionPossibleParams(document, user));
+				}
+			});
+		}
 	}
 
 	public boolean isFinalizeActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
-			@Override
-			public ExtensionBooleanResult call(DocumentExtension behavior) {
-				return behavior.isFinalizeActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
-			}
-		});
+		if (!documentExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(document);
+		} else {
+			return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+				@Override
+				public ExtensionBooleanResult call(DocumentExtension behavior) {
+					return behavior.isFinalizeActionPossible(
+							new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
+				}
+			});
+		}
 	}
 
 	public boolean isMoveActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
-			@Override
-			public ExtensionBooleanResult call(DocumentExtension behavior) {
-				return behavior.isMoveActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
-			}
-		});
+		if (!documentExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(document);
+		} else {
+			return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+				@Override
+				public ExtensionBooleanResult call(DocumentExtension behavior) {
+					return behavior.isMoveActionPossible(
+							new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
+				}
+			});
+		}
 	}
 
 	public boolean isUnPublishActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
-			@Override
-			public ExtensionBooleanResult call(DocumentExtension behavior) {
-				return behavior.isUnPublishActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
-			}
-		});
+		if (!documentExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(document);
+		} else {
+			return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+				@Override
+				public ExtensionBooleanResult call(DocumentExtension behavior) {
+					return behavior.isUnPublishActionPossible(
+							new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
+				}
+			});
+		}
 	}
 
 	public boolean isPrintLabelActionPossibleOnDocument(final Document document, final User user) {
@@ -449,18 +529,21 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isPublishActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
-			@Override
-			public ExtensionBooleanResult call(DocumentExtension behavior) {
-				return behavior.isPublishActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
-			}
-		});
+		if (!documentExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(document);
+		} else {
+			return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+				@Override
+				public ExtensionBooleanResult call(DocumentExtension behavior) {
+					return behavior.isPublishActionPossible(
+							new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
+				}
+			});
+		}
 	}
 
 	public boolean isGetPublicLinkActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
-
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isGetPublicLinkActionPossible(
@@ -470,23 +553,31 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isDeleteActionPossbileOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
-			@Override
-			public ExtensionBooleanResult call(DocumentExtension behavior) {
-				return behavior.isDeleteActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
-			}
-		});
+		if (!documentExtensions.iterator().hasNext()) {
+			return user.hasDeleteAccess().on(document);
+		} else {
+			return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+				@Override
+				public ExtensionBooleanResult call(DocumentExtension behavior) {
+					return behavior.isDeleteActionPossible(
+							new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
+				}
+			});
+		}
 	}
 
 	public boolean isShareActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
-			@Override
-			public ExtensionBooleanResult call(DocumentExtension behavior) {
-				return behavior.isShareActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
-			}
-		});
+		if (!documentExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(document);
+		} else {
+			return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+				@Override
+				public ExtensionBooleanResult call(DocumentExtension behavior) {
+					return behavior.isShareActionPossible(
+							new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
+				}
+			});
+		}
 	}
 
 	public boolean isConsultLinkActionPossibleOnDocument(Document document, User user) {
