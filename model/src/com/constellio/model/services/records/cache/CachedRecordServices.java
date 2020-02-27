@@ -92,6 +92,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public Record realtimeGetRecordById(String id, Long version) {
+		return realtimeGetById(RECORDS, id, version);
+	}
+
+	@Override
 	public Record realtimeGetById(String dataStore, String id, Long version, boolean callExtensions) {
 		Record record = getRecordsCache().getRecord(id);
 		if (record == null || (version != null && record.getVersion() < version)) {

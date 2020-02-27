@@ -135,6 +135,7 @@ public class ApplicationStarter {
 
 	private static Server getSslServer(ApplicationStarterParams params) {
 		Server sslServer = new Server();
+		sslServer.setSendServerVersion(false);
 
 		String keystorePath = new FoldersLocator().getKeystoreFile().getAbsolutePath();
 		SslContextFactory sslContextFactory = new SslContextFactory(keystorePath);

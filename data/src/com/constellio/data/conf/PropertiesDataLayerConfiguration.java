@@ -146,6 +146,10 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setEnum(RECORD_TYPE, solrServerType);
 		}
 
+		public void setSolrMinimalReplicationFactor(int replicationFactor) {
+			setInt("replicationFactorLog.minimalReplicationFactor", replicationFactor);
+		}
+
 	}
 
 	public SolrServerType getRecordsDaoSolrServerType() {
@@ -380,6 +384,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	@Override
 	public boolean areTiffFilesConvertedForPreview() {
 		return getBoolean("conversion.tiffConversion.enabled", true);
+	}
+
+	@Override
+	public int getSolrMinimalReplicationFactor() {
+		return getInt("replicationFactorLog.minimalReplicationFactor", 2);
 	}
 
 	@Override
