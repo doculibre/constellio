@@ -158,8 +158,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 	@Override
 	public TransactionResponseDTO executeSimple(TransactionSearchDTO transactionSearchDTO) {
-
-		throw new RuntimeException();
+		return null;
 	}
 
 	private void prepareDocumentsForSolrTransaction(TransactionDTO transaction, List<SolrInputDocument> newDocuments,

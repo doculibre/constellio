@@ -1325,7 +1325,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 			}
 			if (mode.isEnabled()) {
-				while(!getModelLayerFactory().getRecordsCaches().areSummaryCachesInitialized()) {
+				while (!getModelLayerFactory().getRecordsCaches().areSummaryCachesInitialized()) {
 					try {
 						Thread.sleep(1);
 					} catch (InterruptedException e) {
@@ -1597,6 +1597,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected void assumeNotSolrCloud() {
 		assumeTrue("http".equals(sdkProperties.get("dao.records.type")));
+	}
+
+	protected void assumeSolrSearch() {
+		assumeNotSolrCloud();
+		assumeTrue(getServerConfigurations("search") != null);
 	}
 
 	protected void assumeLocalSolr() {

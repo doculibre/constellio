@@ -11,7 +11,6 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.menu.behaviors.ui.SendReturnReminderEmailButton;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
@@ -61,7 +60,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -93,7 +91,6 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import static com.constellio.app.ui.framework.components.ErrorDisplayUtil.showErrorMessage;
@@ -116,14 +113,10 @@ public class FolderMenuItemActionBehaviors {
 	private SearchServices searchServices;
 	private MetadataSchemaToVOBuilder schemaVOBuilder;
 	private BorrowingServices borrowingServices;
-	private RMConfigs rmConfigs;
-	private MetadataSchemaTypes schemaTypes;
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 	private RecordHierarchyServices recordHierarchyServices;
 	private LoggingServices loggingServices;
-
-	public static final String USER_LOOKUP = "user-lookup";
 
 	public FolderMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -136,8 +129,6 @@ public class FolderMenuItemActionBehaviors {
 		searchServices = modelLayerFactory.newSearchServices();
 		schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
-		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 		recordHierarchyServices = new RecordHierarchyServices(modelLayerFactory);
@@ -712,55 +703,6 @@ public class FolderMenuItemActionBehaviors {
 						.isContaining(asList(params.getUser().getId()))).sortAsc(Schemas.TITLE);
 			}
 		};
-	}
-
-	private Date getPreviewReturnDate(Date borrowDate, Object borrowingTypeValue) {
-		BorrowingType borrowingType;
-		Date previewReturnDate = TimeProvider.getLocalDate().toDate();
-		if (borrowDate != null && borrowingTypeValue != null) {
-			borrowingType = (BorrowingType) borrowingTypeValue;
-			if (borrowingType == BorrowingType.BORROW) {
-				int addDays = rmConfigs.getBorrowingDurationDays();
-				previewReturnDate = LocalDate.fromDateFields(borrowDate).plusDays(addDays).toDate();
-			} else {
-				previewReturnDate = borrowDate;
-			}
-		}
-		return previewReturnDate;
-	}
-
-	private boolean borrowFolder(Folder folder, LocalDate borrowingDate, LocalDate previewReturnDate, String userId,
-								 BorrowingType borrowingType, LocalDate returnDate,
-								 MenuItemActionBehaviorParams params) {
-		boolean borrowed;
-		String errorMessage = borrowingServices
-				.validateBorrowingInfos(userId, borrowingDate, previewReturnDate, borrowingType, returnDate);
-		if (errorMessage != null) {
-			params.getView().showErrorMessage($(errorMessage));
-			borrowed = false;
-		} else {
-			Record record = recordServices.getDocumentById(userId);
-			User borrowerEntered = wrapUser(record);
-			try {
-				borrowingServices.borrowFolder(folder.getId(), borrowingDate, previewReturnDate,
-						params.getUser(), borrowerEntered, borrowingType, true);
-				RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
-						appLayerFactory, collection);
-				borrowed = true;
-			} catch (RecordServicesException e) {
-				log.error(e.getMessage(), e);
-				params.getView().showErrorMessage($("DisplayFolderView.cannotBorrowFolder"));
-				borrowed = false;
-			}
-		}
-		if (returnDate != null) {
-			return returnFolder(folder, returnDate, borrowingDate, params);
-		}
-		return borrowed;
-	}
-
-	private User wrapUser(Record record) {
-		return new User(record, schemaTypes, getCollectionRoles());
 	}
 
 	public boolean returnFolder(Folder folder, LocalDate returnDate, MenuItemActionBehaviorParams params) {
