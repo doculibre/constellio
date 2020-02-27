@@ -383,7 +383,7 @@ public class RecordEADBuilder {
 		eadXmlWriter.addHeader(collectionInfo, collectionName, record.getSchemaCode(), schemaTypeLabel, schemaLabel);
 		eadXmlWriter.addArchdesc(archdesc, record.getId(), record.getTitle());
 
-		types.getSchemaOf(record).getMetadatas().stream().filter(metadataIgnore).forEach(
+		types.getSchemaOf(record).getMetadatas().stream().filter(metadataIgnore).forEachOrdered(
 				metadata -> {
 					if (isMetadataIncludedInEAD(metadata)
 						&& isNotEmptyValue(record.getValues(metadata))) {
