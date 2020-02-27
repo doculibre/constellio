@@ -15,6 +15,7 @@ import com.constellio.model.services.batch.state.StoredBatchProcessProgressionSe
 import com.constellio.model.services.caches.ModelLayerCachesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.configs.UserConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.emails.EmailQueueManager;
 import com.constellio.model.services.emails.EmailTemplatesManager;
@@ -110,6 +111,8 @@ public interface ModelLayerFactory extends LayerFactory {
 	SystemConfigurationsManager getSystemConfigurationsManager();
 
 	ConstellioEIMConfigs getSystemConfigs();
+
+	UserConfigurationsManager getUserConfigurationsManager();
 
 	LoggingServices newLoggingServices();
 

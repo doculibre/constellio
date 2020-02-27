@@ -9,6 +9,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.structures.TableProperties;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.ui.Table;
 
@@ -40,7 +41,9 @@ public class RecordVOTableColumnsManager extends TableColumnsManager {
 		}
 
 		if (toRemove.size() > 0) {
-			currentUser.setVisibleTableColumns(tableId, visibleColumnForUser);
+			TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, tableId);
+			properties.setVisibleColumnIds(visibleColumnForUser);
+			userConfigManager.setTablePropertiesValue(currentUser, tableId, properties);
 		}
 	}
 
@@ -79,6 +82,18 @@ public class RecordVOTableColumnsManager extends TableColumnsManager {
 			defaultVisibleColumnIds = super.getDefaultVisibleColumnIds(table);
 		}
 		return defaultVisibleColumnIds;
+	}
+
+	@Override
+	protected Object toPropertyId(String columnId, Object[] propertyIds) {
+		for (Object propertyId : propertyIds) {
+			if (propertyId instanceof MetadataVO) {
+				if (columnId.equals(((MetadataVO) propertyId).getCode())) {
+					return propertyId;
+				}
+			}
+		}
+		return super.toPropertyId(columnId, propertyIds);
 	}
 
 	@Override

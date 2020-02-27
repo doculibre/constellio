@@ -60,6 +60,7 @@ public class RMConfigs {
 			MIXED_CONTAINERS_ALLOWED,
 			ACTIVES_IN_CONTAINER_ALLOWED,
 			BORROWING_DURATION_IN_DAYS,
+			DOCUMENT_BORROWING_DURATION_IN_DAYS,
 			DOCUMENTS_TYPES_CHOICE,
 			ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER,
 			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
@@ -84,6 +85,7 @@ public class RMConfigs {
 			ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING,
 			CREATE_MISSING_AUTHORIZATIONS_FOR_TASK,
 			SUB_FOLDER_DECOMMISSIONING,
+			DOCUMENT_SUMMARY_CACHE_ENABLED,
 			IGNORE_VALIDATIONS_IN_BATCH_PROCESSING,
 			ENABLE_TYPE_RESTRICTION_IN_FOLDER;
 
@@ -261,6 +263,8 @@ public class RMConfigs {
 
 		add(BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
 
+		add(DOCUMENT_BORROWING_DURATION_IN_DAYS = others.createInteger("documentBorrowingDurationDays").withDefaultValue(-1));
+
 		add(OPEN_HOLDER = others.createBooleanFalseByDefault("openHolder"));
 
 		add(MAJOR_VERSION_FOR_NEW_FILE = others.createBooleanFalseByDefault("majorVersionForNewFile"));
@@ -327,6 +331,10 @@ public class RMConfigs {
 
 		add(IGNORE_VALIDATIONS_IN_BATCH_PROCESSING = others.createBooleanFalseByDefault("ignoreValidationsInBatchProcessing")
 				.whichIsHidden());
+
+		add(DOCUMENT_SUMMARY_CACHE_ENABLED = others.createBooleanTrueByDefault("documentSummaryCacheEnabled")
+				.whichIsHidden().whichRequiresReboot().scriptedBy(RMDocumentSummaryCacheEnabledScript.class));
+
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -509,6 +517,10 @@ public class RMConfigs {
 
 	public int getBorrowingDurationDays() {
 		return manager.getValue(BORROWING_DURATION_IN_DAYS);
+	}
+
+	public int getDocumentBorrowingDurationDays() {
+		return manager.getValue(DOCUMENT_BORROWING_DURATION_IN_DAYS);
 	}
 
 	public boolean isOpenHolder() {

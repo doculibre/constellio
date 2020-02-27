@@ -20,6 +20,7 @@ import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -74,6 +75,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -332,27 +334,35 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void checkIn(Document document, MenuItemActionBehaviorParams params) {
+		DocumentVO documentVO = getDocumentVO(params, document);
 		if (documentRecordActionsServices.isCheckInActionPossible(document.getWrappedRecord(), params.getUser())) {
 			UpdateContentVersionWindowImpl uploadWindow =
-					createUpdateContentVersionWindow(getDocumentVO(params, document), params.getView());
-			uploadWindow.open(false);
+					createUpdateContentVersionWindow(documentVO, params.getView());
+			if (!isSameVersion(document)) {
+				uploadWindow.open(false);
+			} else {
+				uploadWindow.saveWithSameVersion();
+			}
 		} else if (documentRecordActionsServices.isCancelCheckOutPossible(document)) {
 			Content content = document.getContent();
 			content.checkIn();
 			modelLayerFactory.newLoggingServices().returnRecord(document.getWrappedRecord(), params.getUser());
 			try {
 				recordServices.update(document, new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
-				DocumentVO documentVO = getDocumentVO(params, document);
 				ContentVersionVO currentVersionVO = new ContentVersionToVOBuilder(modelLayerFactory)
 						.build(content, params.getView().getSessionContext());
 				documentVO.setContent(currentVersionVO);
-
 				params.getView().updateUI();
 				params.getView().showMessage($("DocumentActionsComponent.canceledCheckOut"));
 			} catch (RecordServicesException e) {
 				params.getView().showErrorMessage(MessageUtils.toMessage(e));
 			}
 		}
+	}
+
+	private boolean isSameVersion(Document document) {
+		Content content = document.getContent();
+		return content != null && content.getCurrentVersion().getHash().equals(content.getCurrentCheckedOutVersion().getHash());
 	}
 
 	public void checkOut(Document document, MenuItemActionBehaviorParams params) {
@@ -423,6 +433,10 @@ public class DocumentMenuItemActionBehaviors {
 		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(documentVO, params.getView());
 
 		uploadWindow.open(false);
+	}
+
+	public void createTask(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(document.getId()));
 	}
 
 	public void alertAvailable(Document document, MenuItemActionBehaviorParams params) {

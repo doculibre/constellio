@@ -7,7 +7,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.structures.MapStringListStringStructure;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.Roles;
 import org.joda.time.LocalDateTime;
@@ -52,7 +51,6 @@ public class User extends RecordWrapper {
 	public static final String STATUS = "status";
 	public static final String SIGNATURE = "signature";
 	public static final String LOGIN_LANGUAGE_CODE = "loginLanguageCode";
-	public static final String VISIBLE_TABLE_COLUMNS = "visibleTableColumns";
 	public static final String FAX = "fax";
 	public static final String ADDRESS = "address";
 	public static final String AGENT_ENABLED = "agentEnabled";
@@ -372,39 +370,6 @@ public class User extends RecordWrapper {
 
 	public User setSignature(String signature) {
 		set(SIGNATURE, signature);
-		return this;
-	}
-
-	public boolean isVisibleTableColumnsConfiguredFor(String tableId) {
-		MapStringListStringStructure structure = get(VISIBLE_TABLE_COLUMNS);
-		return structure != null && structure.get(tableId) != null && !structure.get(tableId).isEmpty();
-	}
-
-	public List<String> getVisibleTableColumnsFor(String tableId) {
-		MapStringListStringStructure structure = get(VISIBLE_TABLE_COLUMNS);
-		if (structure == null) {
-			return new ArrayList<>();
-		} else {
-			return structure.get(tableId);
-		}
-	}
-
-	public MapStringListStringStructure getVisibleTableColumns() {
-		return get(VISIBLE_TABLE_COLUMNS);
-	}
-
-	public User setVisibleTableColumns(String tableId, List<String> columns) {
-		MapStringListStringStructure value = get(VISIBLE_TABLE_COLUMNS);
-		if (value == null) {
-			value = new MapStringListStringStructure();
-			setVisibleTableColumns(value);
-		}
-		value.put(tableId, columns);
-		return this;
-	}
-
-	public User setVisibleTableColumns(MapStringListStringStructure value) {
-		set(VISIBLE_TABLE_COLUMNS, value);
 		return this;
 	}
 
