@@ -11,12 +11,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataListFilter;
@@ -28,15 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
@@ -820,6 +807,26 @@ public class RecordUtils {
 			}
 		}
 
+	}
+
+	public static List<Record> compareRecords(List<Record> records, List<Metadata> comparedMetadatas) {
+		Record baseRecord = records.get(0);
+
+		Iterator currentTestedRecordIterator = records.iterator();
+		currentTestedRecordIterator.next();
+
+		while (currentTestedRecordIterator.hasNext()) {
+			Record currentRecord = (Record) currentTestedRecordIterator.next();
+			for (Metadata metadata : comparedMetadatas) {
+				if (!metadata.isSystemReserved()) {
+					if (!Objects.equals(baseRecord.get(metadata), currentRecord.get(metadata))) {
+						return records;
+					}
+				}
+			}
+		}
+
+		return Collections.emptyList();
 	}
 
 }
