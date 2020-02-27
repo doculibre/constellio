@@ -1,5 +1,6 @@
 package com.constellio.model.services.security;
 
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -10,23 +11,15 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
-import com.constellio.model.entities.security.global.AuthorizationAddRequest;
-import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
-import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
-import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -34,14 +27,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddAuhtorizationInNonPrincipalTaxonomy;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddUpdateWithoutPrincipalsAndOrTargetRecords;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotDetachConcept;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.*;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -50,25 +36,14 @@ import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.getAuthsReceivedBy;
-import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
-import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
-import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
-import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
+import static com.constellio.model.entities.schemas.Schemas.*;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.records.RecordUtils.unwrap;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 
@@ -352,30 +327,50 @@ public class AuthorizationsServices {
 	}
 
 	public void execute(AuthorizationDeleteRequest request) {
-		AuthTransaction transaction = new AuthTransaction();
-		Authorization removedAuthorization = execute(request, transaction);
-		String grantedOnRecord = removedAuthorization.getTarget();
-		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
-		if (!transaction.getRecordIds().contains(grantedOnRecord)) {
+		execute(request, 0);
+	}
+
+	private void execute(AuthorizationDeleteRequest request, int attempt) {
+		if (attempt < 3) {
 			try {
-				transaction.add(recordServices.getDocumentById(grantedOnRecord));
-			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-				LOGGER.info("Failed to removeFromAllCaches hasChildrenCache after deletion of authorization", e);
+				AuthTransaction transaction = new AuthTransaction();
+				Authorization removedAuthorization = execute(request, transaction);
+				String grantedOnRecord = removedAuthorization.getTarget();
+				transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+				if (!transaction.getRecordIds().contains(grantedOnRecord)) {
+					try {
+						transaction.add(recordServices.getDocumentById(grantedOnRecord));
+					} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+						LOGGER.info("Failed to removeFromAllCaches hasChildrenCache after deletion of authorization", e);
+					}
+				}
+
+				executeTransaction(transaction, true);
+				if (grantedOnRecord != null) {
+					//			try {
+					////				refreshCaches(recordServices.getDocumentById(grantedOnRecord),
+					////						new ArrayList<String>(), request.get);
+					//			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					//				LOGGER.info("Failed to removeFromAllCaches hasChildrenCache after deletion of authorization", e);
+					//			}
+
+				}
+
+				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
+			} catch (AuthServices_RecordServicesException e) {
+				if (e.getCause() instanceof RecordServicesException.OptimisticLocking) {
+					LOGGER.info(String.format("Failed to exectute AuthorizationDeleteRequest for user %s retrying...",
+							request.getExecutedBy(), attempt), e);
+
+					recordServices.flush();
+					recordServices.refresh(request.getExecutedBy());
+					execute(request, ++attempt);
+				}
 			}
+		} else {
+			LOGGER.error(String.format("Stopping AuthorizationDeleteRequest attempts for user %s after %d tries",
+					request.getExecutedBy(), attempt));
 		}
-
-		executeTransaction(transaction);
-		if (grantedOnRecord != null) {
-			//			try {
-			////				refreshCaches(recordServices.getDocumentById(grantedOnRecord),
-			////						new ArrayList<String>(), request.get);
-			//			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-			//				LOGGER.info("Failed to removeFromAllCaches hasChildrenCache after deletion of authorization", e);
-			//			}
-
-		}
-
-		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
 	}
 
 	private static class AuthTransaction extends Transaction {
@@ -712,8 +707,16 @@ public class AuthorizationsServices {
 	}
 
 	private void executeTransaction(AuthTransaction transaction) {
+		executeTransaction(transaction, false);
+	}
+
+	private void executeTransaction(AuthTransaction transaction, boolean with1000Limit) {
 		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions()
 				.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL()));
+		if (with1000Limit) {
+			transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+		}
+
 		try {
 			recordServices.execute(transaction);
 		} catch (Exception e) {
