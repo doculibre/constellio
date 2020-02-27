@@ -84,6 +84,7 @@ public class RMConfigs {
 			ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING,
 			CREATE_MISSING_AUTHORIZATIONS_FOR_TASK,
 			SUB_FOLDER_DECOMMISSIONING,
+			DOCUMENT_SUMMARY_CACHE_ENABLED,
 			IGNORE_VALIDATIONS_IN_BATCH_PROCESSING,
 			ENABLE_TYPE_RESTRICTION_IN_FOLDER;
 
@@ -327,6 +328,10 @@ public class RMConfigs {
 
 		add(IGNORE_VALIDATIONS_IN_BATCH_PROCESSING = others.createBooleanFalseByDefault("ignoreValidationsInBatchProcessing")
 				.whichIsHidden());
+
+		add(DOCUMENT_SUMMARY_CACHE_ENABLED = others.createBooleanTrueByDefault("documentSummaryCacheEnabled")
+				.whichIsHidden().whichRequiresReboot().scriptedBy(RMDocumentSummaryCacheEnabledScript.class));
+
 	}
 
 	static void add(SystemConfiguration configuration) {
