@@ -15,11 +15,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -144,11 +140,10 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 	private class CollaboratorValuesContainer extends ValuesContainer {
 
 		public CollaboratorValuesContainer(List<TaskCollaboratorsGroupItem> values) {
-			super(values);
+			super(values, null);
 			addContainerProperty(AUTHORIZATIONS_PROPERTY_ID, getCaptionComponentClass(), null);
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public Property<?> getContainerProperty(final Object itemId, Object propertyId) {
 			if (itemId != null) {

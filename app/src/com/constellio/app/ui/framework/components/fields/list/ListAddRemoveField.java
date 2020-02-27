@@ -8,36 +8,32 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
+import com.constellio.data.utils.LangUtils;
+import com.vaadin.data.Container;
+import com.vaadin.data.Container.Sortable;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.data.util.ItemSorter;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.data.util.converter.Converter;
 import com.vaadin.data.util.converter.Converter.ConversionException;
+import com.vaadin.event.Transferable;
+import com.vaadin.event.dd.DragAndDropEvent;
+import com.vaadin.event.dd.DropHandler;
+import com.vaadin.event.dd.acceptcriteria.AcceptAll;
+import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.server.ErrorMessage;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.AbstractField;
+import com.vaadin.ui.*;
+import com.vaadin.ui.AbstractSelect.AbstractSelectTargetDetails;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.DateField;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Table.TableDragMode;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -51,6 +47,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 	public static final String REMOVE_BUTTON_STYLE_NAME = STYLE_NAME + "-remove-button";
 	public static final String TABLE_STYLE_NAME = STYLE_NAME + "-table";
 	public static final String VALUES_STYLE_NAME = STYLE_NAME + "-values";
+	public static final String SORTABLE_TABLE_STYLE_NAME = TABLE_STYLE_NAME + "-sortable";
 	protected static final String CAPTION_PROPERTY_ID = "caption";
 	private VerticalLayout mainLayout;
 	private HorizontalLayout addEditFieldLayout;
@@ -344,6 +341,45 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		valuesTable.setItemCaptionMode(ItemCaptionMode.PROPERTY);
 		valuesTable.setColumnExpandRatio(CAPTION_PROPERTY_ID, 1);
 
+		ItemSorter itemSorter = getItemSorter();
+		if (itemSorter == null) {
+			valuesTable.addStyleName(SORTABLE_TABLE_STYLE_NAME);
+			valuesTable.setDragMode(TableDragMode.ROW);
+			valuesTable.setDropHandler(new DropHandler() {
+				@Override
+				public AcceptCriterion getAcceptCriterion() {
+					return AcceptAll.get();
+				}
+
+				@Override
+				public void drop(DragAndDropEvent event) {
+					Transferable t = event.getTransferable();
+					if (t.getSourceComponent() != valuesTable || valuesTable.size() <= 1) {
+						return;
+					}
+
+					AbstractSelectTargetDetails target = (AbstractSelectTargetDetails) event.getTargetDetails();
+					Object sourceItemId = t.getData("itemId");
+					Object targetItemId = target.getItemIdOver();
+
+					Boolean above;
+					int sourceItemIndex = valuesAndButtonsContainer.indexOfId(sourceItemId);
+					int targetItemIndex = valuesAndButtonsContainer.indexOfId(targetItemId);
+					if (targetItemIndex < sourceItemIndex) {
+						above = true;
+					} else {
+						above = false;
+					}
+
+					if (Boolean.TRUE.equals(above)) {
+						moveBefore(targetItemId, sourceItemId);
+					} else {
+						moveAfter(targetItemId, sourceItemId);
+					}
+				}
+			});
+		}
+
 		Collection<?> extraColumnPropertyIds = getExtraColumnPropertyIds();
 		if (extraColumnPropertyIds != null) {
 			for (Object extraPropertyIds : extraColumnPropertyIds) {
@@ -383,8 +419,50 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		return mainLayout;
 	}
 
+	/**
+	 * @param targetItemId
+	 * @param sourceItemId
+	 */
+	private void moveBefore(Object targetItemId, Object sourceItemId) {
+		if (sourceItemId == null) {
+			return;
+		}
+
+		int sourceItemIndex = valuesAndButtonsContainer.indexOfId(sourceItemId);
+		int targetItemIndex = valuesAndButtonsContainer.indexOfId(targetItemId);
+
+		List<T> listValue = new ArrayList<>(getValue());
+		T sourceObject = listValue.remove(sourceItemIndex);
+		if (sourceItemIndex < targetItemIndex) {
+			targetItemIndex--;
+		}
+		listValue.add(targetItemIndex, sourceObject);
+		setInternalValue(listValue);
+	}
+
+	/**
+	 * @param targetItemId
+	 * @param sourceItemId
+	 */
+	private void moveAfter(Object targetItemId, Object sourceItemId) {
+		if (sourceItemId == null) {
+			return;
+		}
+
+		int sourceItemIndex = valuesAndButtonsContainer.indexOfId(sourceItemId);
+		int targetItemIndex = valuesAndButtonsContainer.indexOfId(targetItemId);
+
+		List<T> listValue = new ArrayList<>(getValue());
+		T sourceObject = listValue.remove(sourceItemIndex);
+		if (sourceItemIndex < targetItemIndex) {
+			targetItemIndex--;
+		}
+		listValue.add(targetItemIndex + 1, sourceObject);
+		setInternalValue(listValue);
+	}
+
 	protected void setValuesContainer() {
-		valuesContainer = new ValuesContainer(new ArrayList<T>());
+		valuesContainer = new ValuesContainer(new ArrayList<T>(), getItemSorter());
 	}
 
 	protected boolean isAddEditFieldVisible() {
@@ -545,7 +623,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 
 	protected class ValuesContainer extends IndexedContainer {
 
-		public ValuesContainer(List<T> values) {
+		public ValuesContainer(List<T> values, ItemSorter customItemSorter) {
 			super(values);
 			addContainerProperty(CAPTION_PROPERTY_ID, getCaptionComponentClass(), null);
 			List<?> extraPropertyIds = getExtraColumnPropertyIds();
@@ -554,6 +632,16 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 					Class<?> extraPropertyType = getExtraColumnType(extraPropertyId);
 					addContainerProperty(extraPropertyId, extraPropertyType, null);
 				}
+			}
+
+			if (customItemSorter != null) {
+				addItemSetChangeListener(new ItemSetChangeListener() {
+					@Override
+					public void containerItemSetChange(Container.ItemSetChangeEvent event) {
+						doSort();
+					}
+				});
+				setItemSorter(customItemSorter);
 			}
 		}
 
@@ -577,6 +665,26 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 
 	protected T getConvertedValueFor(Object value) {
 		return (T) value;
+	}
+
+	protected ItemSorter getItemSorter() {
+		return null;
+	}
+
+	final protected ItemSorter buildDefaultItemSorter() {
+		return new ItemSorter() {
+			@Override
+			public void setSortProperties(Sortable container, Object[] propertyId, boolean[] ascending) {
+
+			}
+
+			@Override
+			public int compare(Object itemId1, Object itemId2) {
+				String caption1 = getItemCaption(itemId1);
+				String caption2 = getItemCaption(itemId2);
+				return LangUtils.compareStrings(caption1, caption2);
+			}
+		};
 	}
 
 }

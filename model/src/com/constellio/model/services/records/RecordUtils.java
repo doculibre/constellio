@@ -651,26 +651,34 @@ public class RecordUtils {
 
 	private static List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types,
 												  RecordProvider recordProvider) {
+		List<String> collectedIds = new ArrayList<>();
+		return getHierarchyIdsTo(newReference, types, recordProvider, collectedIds);
+	}
+
+	private static List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types,
+												  RecordProvider recordProvider, List<String> collectedIds) {
 		List<String> ids = new ArrayList<>();
 
 		Record record = recordProvider.getRecordSummary(newReference);
 		if (record.isSaved()) {
-			ids.add(record.getId());
-			List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
-				@Override
-				public boolean isReturned(Metadata metadata) {
-					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
-				}
-			});
+			if (!collectedIds.contains(record.getId())) {
+				ids.add(record.getId());
+				collectedIds.add(record.getId());
+				List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
+					@Override
+					public boolean isReturned(Metadata metadata) {
+						return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
+					}
+				});
 
-			for (Metadata metadata : metadatas) {
-				for (String aReference : record.<String>getValues(metadata)) {
-					if (!ids.contains(aReference)) {
-						ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
+				for (Metadata metadata : metadatas) {
+					for (String aReference : record.<String>getValues(metadata)) {
+						if (!ids.contains(aReference)) {
+							ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider, collectedIds));
+						}
 					}
 				}
 			}
-
 		}
 		return ids;
 	}

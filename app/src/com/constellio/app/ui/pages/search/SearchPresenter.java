@@ -46,11 +46,7 @@ import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.model.entities.records.wrappers.Facet;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -93,17 +89,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
@@ -117,6 +104,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	public static final String CURRENT_SEARCH_EVENT = "CURRENT_SEARCH_EVENT";
 
 	public static final String DEFAULT_VIEW_MODE = Toggle.SEARCH_RESULTS_VIEWER.isEnabled() ? SearchResultsViewMode.TABLE : SearchResultsViewMode.DETAILED;
+
+	private Locale currentLocale;
 
 	public int getDefaultPageLength() {
 		SearchPageLength defaultPageLength = getCurrentUser().getDefaultPageLength();
@@ -291,6 +280,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	void init(ConstellioFactories constellioFactories, SessionContext sessionContext) {
 		collection = sessionContext.getCurrentCollection();
+		currentLocale = sessionContext.getCurrentLocale();
 
 		User user = view.getConstellioFactories().getAppLayerFactory()
 				.getModelLayerFactory().newUserServices().getUserInCollection(
@@ -359,7 +349,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public Capsule getCapsuleForCurrentSearch() {
-		Locale currentLocale = view.getSessionContext().getCurrentLocale();
 
 		Capsule match = null;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
@@ -449,7 +438,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private void logSearchEvent(final SearchResultVODataProvider dataProvider, final SPEQueryResponse response) {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			new Thread() {
+			view.runAsync(new Runnable() {
 				@Override
 				public void run() {
 					LogicalSearchQuery query = dataProvider.getQuery();
@@ -514,7 +503,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 						checkAndUpdateDwellTime(oldSearchEvent);
 					}
 				}
-			}.start();
+			});
 		}
 	}
 

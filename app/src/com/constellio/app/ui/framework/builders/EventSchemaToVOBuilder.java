@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.builders;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -33,6 +34,7 @@ public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 											   String schemaTypeCode,
 											   MetadataInputType metadataInputType,
 											   MetadataDisplayType metadataDisplayType,
+											   MetadataSortingType metadataSortingType,
 											   AllowedReferences allowedReferences, boolean enabled,
 											   StructureFactory structureFactory, String metadataGroup,
 											   Object defaultValue, String inputMask, Set<String> customAttributes,
@@ -52,14 +54,14 @@ public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 							.newMetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
-									metadataDisplayType, allowedReferences,
+									metadataDisplayType, metadataSortingType, allowedReferences,
 									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable);
 				} else {
 					metadataVO = super
 							.newMetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
-									metadataDisplayType, allowedReferences,
+									metadataDisplayType, metadataSortingType, allowedReferences,
 									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable);
 				}
 				return metadataVO;

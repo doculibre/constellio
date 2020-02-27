@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.schemas.metadata;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RoleVO;
@@ -24,13 +25,7 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -55,6 +50,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private ComboBox inputType;
 	@PropertyId("displayType")
 	private ComboBox displayType;
+	@PropertyId("sortingType")
+	private ComboBox sortingType;
 	@PropertyId("reference")
 	private ComboBox refType;
 	@PropertyId("required")
@@ -219,6 +216,24 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			} else {
 				displayType.setEnabled(true);
 				displayType.setVisible(true);
+			}
+
+			sortingType.setEnabled(false);
+			sortingType.removeAllItems();
+			sortingType.setEnabled(true);
+			List<MetadataSortingType> sortingTypes = MetadataSortingType
+					.getAvailableMetadataSortingTypesFor(value, Boolean.TRUE.equals(multivalue));
+			for (MetadataSortingType type : sortingTypes) {
+				sortingType.addItem(type);
+				sortingType.setItemCaption(type, $(MetadataSortingType.getCaptionFor(type)));
+			}
+			if (sortingTypes.size() < 2) {
+				sortingType.setEnabled(false);
+				sortingType.setVisible(false);
+				sortingType.setValue(sortingType.getItemIds().iterator().next());
+			} else {
+				sortingType.setEnabled(true);
+				sortingType.setVisible(true);
 			}
 
 			if (!inherited) {
@@ -414,6 +429,14 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		displayType.setEnabled(false);
 		displayType.setNullSelectionAllowed(false);
 
+		sortingType = new ComboBox();
+		sortingType.setCaption($("AddEditMetadataView.sortingType"));
+		sortingType.setRequired(true);
+		sortingType.setId("sortingType");
+		sortingType.addStyleName("sortingType");
+		sortingType.setEnabled(false);
+		sortingType.setNullSelectionAllowed(false);
+
 		metadataGroup = new OptionGroup($("AddEditMetadataView.metadataGroup"), presenter.getMetadataGroupList());
 		metadataGroup.setRequired(true);
 		metadataGroup.setId("metadataGroup");
@@ -593,6 +616,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		fields.add(defaultValueField);
 		fields.add(displayType);
+		fields.add(sortingType);
 
 		if (parentMetadataLabel != null) {
 			fields.add(2, parentMetadataLabel);

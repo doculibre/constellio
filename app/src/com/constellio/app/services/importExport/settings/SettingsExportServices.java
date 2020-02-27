@@ -2,20 +2,12 @@ package com.constellio.app.services.importExport.settings;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.es.constants.ESTaxonomies;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTab;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.model.entities.Language;
@@ -25,11 +17,7 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -303,6 +291,9 @@ public class SettingsExportServices {
 
 			if (MetadataValueType.REFERENCE.equals(metadata.getType())) {
 				importedMetadata.setReferencedType(metadata.getReferencedSchemaTypeCode());
+				if (metadata.isMultivalue() && displayConfig.getSortingType() == MetadataSortingType.ALPHANUMERICAL_ORDER) {
+					importedMetadata.setSortingType(MetadataSortingType.ALPHANUMERICAL_ORDER.getCode());
+				}
 			}
 
 			importedMetadata.setUnique(metadata.isUniqueValue());

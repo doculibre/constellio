@@ -20,16 +20,10 @@ import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.dd.VerticalDropLocation;
 import com.vaadin.ui.AbstractSelect.AbstractSelectTargetDetails;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.TableDragMode;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.LinkedHashMap;
@@ -39,8 +33,8 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements ListMetadataGroupSchemaTypeView {
-	
-	public static final String GROUP_TABLE = "groups";
+
+	public static final String GROUP_TABLE = "metadata-groups";
 	public static final String GROUP_NAME = "label";
 	public static final String GROUP_BUTTON = "button";
 	public static final String GROUP_EDIT_BUTTON = "edit_button";

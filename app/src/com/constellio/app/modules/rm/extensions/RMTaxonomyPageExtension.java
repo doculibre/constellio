@@ -3,11 +3,7 @@ package com.constellio.app.modules.rm.extensions;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.params.CanConsultTaxonomyParams;
 import com.constellio.app.api.extensions.params.CanManageTaxonomyParams;
-import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
-import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
-import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
-import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
-import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
+import com.constellio.app.api.extensions.taxonomies.*;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -20,8 +16,6 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
-import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
@@ -33,7 +27,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.vaadin.ui.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -142,24 +135,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	public List<String> getRetentionRules(String conceptId, SessionContextProvider sessionContextProvider) {
 		AppLayerFactory appLayerFactory = sessionContextProvider.getConstellioFactories().getAppLayerFactory();
 		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
-		return new RecordUtils().toWrappedRecordIdsList(decommissioningService.getRetentionRulesForAdministrativeUnit(conceptId));
-	}
-
-	private Component buildDisplayList(List<String> list) {
-		Component retentionRulesDisplayComponent;
-		MetadataDisplayFactory metadataDisplayFactory = new MetadataDisplayFactory();
-		List<Component> elementDisplayComponents = new ArrayList<Component>();
-		for (String elementDisplayValue : list) {
-			Component elementDisplayComponent = new ReferenceDisplay(elementDisplayValue);
-			elementDisplayComponent.setSizeFull();
-			elementDisplayComponents.add(elementDisplayComponent);
-		}
-		if (!elementDisplayComponents.isEmpty()) {
-			retentionRulesDisplayComponent = metadataDisplayFactory.newCollectionValueDisplayComponent(elementDisplayComponents);
-		} else {
-			retentionRulesDisplayComponent = null;
-		}
-		return retentionRulesDisplayComponent;
+		return RecordUtils.toWrappedRecordIdsList(decommissioningService.getRetentionRulesForAdministrativeUnit(conceptId));
 	}
 
 	private TaxonomyManagementClassifiedType getClassifiedFolderInAdministrativeUnits(final String conceptId,

@@ -1,8 +1,25 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.entities.FormMetadataVO;
@@ -11,27 +28,13 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 
 public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
@@ -42,6 +45,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 	@Mock AddEditMetadataViewImpl view;
 	MockedNavigation navigator;
 	Map<String, String> newLabels = new HashMap<>();
+	UserServices userServices;
 
 	@Before
 	public void setUp()
@@ -59,6 +63,8 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.navigate()).thenReturn(navigator);
+		userServices = getModelLayerFactory().newUserServices();
+		userServices.addUserToCollection(userServices.getUserCredential(admin), zeCollection);
 
 		presenter = new AddEditMetadataPresenter(view);
 		Map<String, String> parameters = new HashMap<>();
@@ -177,7 +183,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		newLabels.put("fr", "zeTitle");
 		FormMetadataVO newMetadataForm = new FormMetadataVO((short) 0, zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
-				null, "", newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL,
+				null, "", newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL, MetadataSortingType.ENTRY_ORDER,
 				false, false, true, "default",
 				null, null, false, true, new HashSet<String>(), view.getSessionContext(), false);
 
@@ -206,7 +212,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		newLabels.put("fr", "zeTitle");
 		FormMetadataVO newMetadataForm = new FormMetadataVO((short) 0, zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
-				null, "", newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL,
+				null, "", newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL, MetadataSortingType.ENTRY_ORDER,
 				false, false, true, "default",
 				null, null, false, false, new HashSet<String>(), view.getSessionContext(), false);
 
@@ -235,7 +241,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		newLabels.put("fr", "zeTitleChanged");
 		FormMetadataVO newMetadataForm = new FormMetadataVO((short) 0, stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
-				newLabels, false, false, true, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL, false, false,
+				newLabels, false, false, true, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL, MetadataSortingType.ENTRY_ORDER, false, false,
 				true, "default",
 				null, null, false, false, new HashSet<String>(), view.getSessionContext(), false);
 
@@ -265,7 +271,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		newLabels.put("fr", "zeTitleChanged");
 		FormMetadataVO newMetadataForm = new FormMetadataVO((short) 0, stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
-				newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.HORIZONTAL, false,
+				newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.HORIZONTAL, MetadataSortingType.ENTRY_ORDER, false,
 				false, true, "default",
 				null, null, false, true, new HashSet<String>(), view.getSessionContext(), false);
 
@@ -311,7 +317,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO((short) 0, "zeSchemaType_zeNewSchema_zeMask", MetadataValueType.STRING, false,
 				null, "",
-				newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL, false, false,
+				newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL, MetadataSortingType.ENTRY_ORDER, false, false,
 				true, "default",
 				null, "AAAA-AAAA", false, true, new HashSet<String>(), view.getSessionContext(), false);
 
@@ -332,7 +338,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		newLabels.put("fr", "zeTitleChanged");
 		FormMetadataVO newMetadataForm = new FormMetadataVO((short) 0, stringMeta.getCode(), MetadataValueType.REFERENCE, false, null, "",
-				newLabels, false, false, false, false, false, MetadataInputType.RADIO_BUTTONS, MetadataDisplayType.HORIZONTAL,
+				newLabels, false, false, false, false, false, MetadataInputType.RADIO_BUTTONS, MetadataDisplayType.HORIZONTAL, MetadataSortingType.ENTRY_ORDER,
 				false, false, true, "default",
 				null, null, false, true, new HashSet<String>(), view.getSessionContext(), false);
 
@@ -347,7 +353,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDisplayConfig.getDisplayType()).isEqualTo(MetadataDisplayType.HORIZONTAL);
 
 		newMetadataForm = new FormMetadataVO((short) 0, stringMeta.getCode(), MetadataValueType.REFERENCE, false, null, "",
-				newLabels, false, false, false, false, false, MetadataInputType.RADIO_BUTTONS, MetadataDisplayType.VERTICAL,
+				newLabels, false, false, false, false, false, MetadataInputType.RADIO_BUTTONS, MetadataDisplayType.VERTICAL, MetadataSortingType.ENTRY_ORDER,
 				false, false, true, "default",
 				null, null, false, true, new HashSet<String>(), view.getSessionContext(), false);
 

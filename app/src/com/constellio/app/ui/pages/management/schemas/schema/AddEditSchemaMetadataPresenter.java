@@ -2,14 +2,7 @@ package com.constellio.app.ui.pages.management.schemas.schema;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.metadata.MetadataDeletionException;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CalculatedMetadataSource;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CopiedMetadataReference;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CopiedMetadataSource;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_ExtractedMetadataSource;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_FacetMetadata;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_InheritedMetadata;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_PopulatedMetadata;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_SystemMetadata;
+import com.constellio.app.services.metadata.MetadataDeletionException.*;
 import com.constellio.app.services.metadata.MetadataDeletionService;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
@@ -33,13 +26,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.CREATED_BY;
-import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static com.constellio.model.entities.schemas.Schemas.MODIFIED_BY;
-import static com.constellio.model.entities.schemas.Schemas.MODIFIED_ON;
-import static com.constellio.model.entities.schemas.Schemas.PATH;
+import static com.constellio.model.entities.schemas.Schemas.*;
 
 public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<AddEditSchemaMetadataView> implements MetadataValueForProperty {
 	private transient MetadataDeletionService metadataDeletionService;
@@ -186,7 +173,14 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 
 	public void deleteButtonClicked(MetadataVO entity) {
 		try {
+			MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+			MetadataSchema schema = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode());
+			Metadata metadata = schema.getMetadata(entity.getCode());
+			User user = getCurrentUser();
+
+			appCollectionExtentions.metadataDeletedFromView(metadata, user);
 			metadataDeletionService().deleteMetadata(entity.getCode());
+			
 			String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
 			view.navigate().to().listSchemaMetadata(params);
 
