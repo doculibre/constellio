@@ -23,7 +23,6 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.User;
@@ -73,14 +72,12 @@ public class TasksNavigationConfiguration implements Serializable {
 				View currentView = ConstellioUI.getCurrent().getCurrentView();
 				if (currentView instanceof DisplayFolderView) {
 					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
-					SessionContext sessionContext = ((DisplayFolderView) currentView).getSessionContext();
 					String folderId = displayFolderView.getRecord().getId();
-					navigate.to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(folderId), sessionContext);
+					navigate.to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(folderId));
 				} else if (currentView instanceof DisplayDocumentView) {
 					DisplayDocumentView displayFolderView = (DisplayDocumentView) currentView;
-					SessionContext sessionContext = ((DisplayDocumentView) currentView).getSessionContext();
 					String documentId = displayFolderView.getRecordVO().getId();
-					navigate.to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(documentId), sessionContext);
+					navigate.to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(documentId));
 				} else {
 					navigate.to(TaskViews.class).addTask();
 				}

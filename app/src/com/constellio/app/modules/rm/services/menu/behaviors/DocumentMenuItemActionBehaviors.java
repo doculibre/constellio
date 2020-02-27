@@ -428,7 +428,7 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void createTask(Document document, MenuItemActionBehaviorParams params) {
-		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(document.getId()), params.getView().getSessionContext());
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(document.getId()));
 	}
 
 	public void alertAvailable(Document document, MenuItemActionBehaviorParams params) {

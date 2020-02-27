@@ -104,9 +104,6 @@ public class DocumentRecordActionsServices {
 			   !document.isPublished();
 	}
 
-	public boolean isAddDTaskActionPossible(Record record, User user) {
-		return user.hasWriteAccess().on(record);
-	}
 
 	public boolean isPrintLabelActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);

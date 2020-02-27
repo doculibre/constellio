@@ -255,7 +255,7 @@ public class FolderMenuItemServices {
 					   (params.getView().getSessionContext().getSelectedRecordIds() != null &&
 						params.getView().getSessionContext().getSelectedRecordIds().contains(record.getId()));
 			case FOLDER_CREATE_TASK:
-				return user.hasWriteAccess().on(record);
+				return folderRecordActionsServices.isCreateTaskActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}

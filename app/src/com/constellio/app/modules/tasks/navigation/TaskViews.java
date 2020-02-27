@@ -48,8 +48,8 @@ public class TaskViews extends CoreViews {
 		return ConstellioUI.getCurrent().getPage().getLocation().getFragment().substring(1);
 	}
 
-	public void addLinkedRecordsToTask(List<String> recordIds,
-									   SessionContext sessionContext) {
+	public void addLinkedRecordsToTask(List<String> recordIds) {
+		SessionContext sessionContext = ConstellioUI.getCurrent().getSessionContext();
 		TimedCache timedCache = new TimedCache(Duration.standardHours(1));
 		if (recordIds != null) {
 			timedCache.insert("linkedRecords", recordIds);

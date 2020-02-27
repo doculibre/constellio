@@ -414,7 +414,7 @@ public class RMRecordsMenuItemBehaviors {
 	}
 
 	public void createTask(List<String> ids, MenuItemActionBehaviorParams params) {
-		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(ids, params.getView().getSessionContext());
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(ids);
 	}
 
 	private boolean isBatchDeletePossible(List<String> recordIds, MenuItemActionBehaviorParams params) {

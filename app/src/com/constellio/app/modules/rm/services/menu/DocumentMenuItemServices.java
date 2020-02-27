@@ -340,7 +340,7 @@ public class DocumentMenuItemServices {
 			case DOCUMENT_GENERATE_REPORT:
 				return documentRecordActionsServices.isGenerateReportActionPossible(record, user);
 			case DOCUMENT_ADD_TASK:
-				return documentRecordActionsServices.isAddDTaskActionPossible(record, user);
+				return documentRecordActionsServices.isCreateTaskActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}

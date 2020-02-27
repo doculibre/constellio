@@ -87,9 +87,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
@@ -445,24 +447,29 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void setLinkedRecords(Object linkedRecordIds, Task task) {
 		if (linkedRecordIds instanceof List) {
-			List<String> folderIds = filterSchemaType((List<String>) linkedRecordIds, Folder.SCHEMA_TYPE);
-			List<String> documentIds = filterSchemaType((List<String>) linkedRecordIds, Document.SCHEMA_TYPE);
-
-			new RMTask(task).setLinkedFolders(folderIds);
-			new RMTask(task).setLinkedDocuments(documentIds);
-
+			HashMap<String, List<String>> schemasMap = filterSchemaType((List<String>) linkedRecordIds);
+			new RMTask(task).setLinkedFolders(schemasMap.get(Folder.SCHEMA_TYPE));
+			new RMTask(task).setLinkedDocuments(schemasMap.get(Document.SCHEMA_TYPE));
 		}
 	}
 
-	private List<String> filterSchemaType(List<String> recordIds, String wantedSchemaType) {
-		List<String> idsOfWantedSchemaType = new ArrayList<>();
-		List<Record> records = recordServices().getRecordsById(collection, recordIds);
+	private HashMap<String, List<String>> filterSchemaType(List<String> recordIds) {
+		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		HashMap<String, List<String>> recordsMap = new HashMap<>();
+		List<Record> records = recordIds
+				.stream()
+				.map(i -> recordServices().realtimeGetRecordSummaryById(i))
+				.collect(Collectors.toList());
 		for (Record record : records) {
-			if (record.isOfSchemaType(wantedSchemaType)) {
-				idsOfWantedSchemaType.add(record.getId());
+			String schemaType = schemasManager.getSchemaTypeOf(record).getCode();
+			List<String> schemaTypeList = recordsMap.get(schemaType);
+			if (schemaTypeList == null) {
+				schemaTypeList = new ArrayList<>();
 			}
+			schemaTypeList.add(record.getId());
+			recordsMap.put(schemaType, schemaTypeList);
 		}
-		return idsOfWantedSchemaType;
+		return recordsMap;
 	}
 
 	public String getViewTitle() {

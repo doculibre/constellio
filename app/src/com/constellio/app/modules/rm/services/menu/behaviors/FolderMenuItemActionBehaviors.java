@@ -918,7 +918,7 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	public void createTask(Folder folder, MenuItemActionBehaviorParams params) {
-		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(folder.getId()), params.getView().getSessionContext());
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(folder.getId()));
 	}
 
 	private User wrapUser(Record record) {

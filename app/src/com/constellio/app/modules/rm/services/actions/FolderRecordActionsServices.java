@@ -261,7 +261,7 @@ public class FolderRecordActionsServices {
 	 */
 
 	public boolean isCreateTaskActionPossible(Record record, User user) {
-		return user.hasWriteAccess().on(record);
+		return hasUserWriteAccess(record, user);
 	}
 
 	private boolean hasUserWriteAccess(Record record, User user) {
