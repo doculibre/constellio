@@ -20,6 +20,7 @@ import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -74,6 +75,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -431,6 +433,10 @@ public class DocumentMenuItemActionBehaviors {
 		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(documentVO, params.getView());
 
 		uploadWindow.open(false);
+	}
+
+	public void createTask(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(document.getId()));
 	}
 
 	public void alertAvailable(Document document, MenuItemActionBehaviorParams params) {

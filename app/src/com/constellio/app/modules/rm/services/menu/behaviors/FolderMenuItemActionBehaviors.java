@@ -24,6 +24,7 @@ import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -916,6 +917,10 @@ public class FolderMenuItemActionBehaviors {
 		return returnFolder(folder, returnDate, borrowDate, params);
 	}
 
+	public void createTask(Folder folder, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(folder.getId()));
+	}
+
 	private User wrapUser(Record record) {
 		return new User(record, schemaTypes, getCollectionRoles());
 	}
@@ -929,4 +934,6 @@ public class FolderMenuItemActionBehaviors {
 		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
 		return new EmailToSend(emailToSendRecord, schemaTypes);
 	}
+
+
 }

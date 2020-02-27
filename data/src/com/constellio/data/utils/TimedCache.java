@@ -3,12 +3,13 @@ package com.constellio.data.utils;
 import org.joda.time.LocalDateTime;
 import org.joda.time.ReadableDuration;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.constellio.data.utils.TimeProvider.getLocalDateTime;
 
-public class TimedCache<K, V> {
+public class TimedCache<K, V> implements Serializable {
 
 	Map<K, TimedCacheEntry<V>> cache = new HashMap<>();
 
@@ -35,7 +36,7 @@ public class TimedCache<K, V> {
 		}
 	}
 
-	public static class TimedCacheEntry<V> {
+	public static class TimedCacheEntry<V> implements Serializable {
 		V value;
 		LocalDateTime endingTime;
 

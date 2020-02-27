@@ -9,11 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ParamUtils {
 
@@ -31,7 +27,7 @@ public class ParamUtils {
 	}
 
 	public static String getParams(String path) {
-		if(path == null) {
+		if (path == null) {
 			return null;
 		} else if (path.startsWith("!")) {
 			path = path.substring(1);
@@ -59,6 +55,7 @@ public class ParamUtils {
 		String paramsAsString = addParams("", params);
 		setParams(paramsAsString);
 	}
+
 
 	public static String addParams(String viewName, Map<String, ?> params) {
 		String pathWithParams;
@@ -126,7 +123,7 @@ public class ParamUtils {
 	public static Map<String, String> getCurrentParams() {
 		Map<String, String> params = null;
 
-		if(ConstellioUI.getCurrent() != null && ConstellioUI.getCurrent().getViewChangeEvent() != null) {
+		if (ConstellioUI.getCurrent() != null && ConstellioUI.getCurrent().getViewChangeEvent() != null) {
 			params = ParamUtils.getParamsMap(ConstellioUI.getCurrent().getViewChangeEvent().getParameters());
 		}
 		return params;

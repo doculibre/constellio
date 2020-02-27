@@ -22,6 +22,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.menu.behaviors.util.TaskUrlUtil;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -451,6 +452,9 @@ public class RMRecordsMenuItemBehaviors {
 		button.click();
 	}
 
+	public void createTask(List<String> ids, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(ids);
+	}
 
 	private boolean isBatchDeletePossible(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		return documentRecordActionsServices.canDeleteDocuments(recordIds, params.getUser())

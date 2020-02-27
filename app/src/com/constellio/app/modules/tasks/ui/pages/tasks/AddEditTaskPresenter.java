@@ -2,6 +2,8 @@ package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
@@ -44,6 +46,8 @@ import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveC
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -54,6 +58,7 @@ import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordFiel
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.TimedCache;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -82,10 +87,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
@@ -113,6 +122,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private static Logger LOGGER = LoggerFactory.getLogger(AddEditTaskPresenter.class);
 	List<String> finishedOrClosedStatuses;
 	private RMModuleExtensions rmModuleExtensions;
+	private String previousPage;
 
 	boolean inclusideDecision = false;
 	boolean exclusiveDecision = false;
@@ -196,7 +206,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	public void cancelButtonClicked() {
-		if (StringUtils.isNotBlank(workflowId)) {
+		if (previousPage != null) {
+			navigateToPreviousPage();
+		} else if (StringUtils.isNotBlank(workflowId)) {
 			view.navigateToWorkflow(workflowId);
 		} else {
 			view.navigate().to(TaskViews.class).taskManagement();
@@ -327,11 +339,12 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private void saveAndNavigate(Task task, RecordUpdateOptions taskUpdateOptions) {
 		saveRecord(task.getWrappedRecord(), taskUpdateOptions);
 
-
 		if (StringUtils.isNotBlank(workflowId)) {
 			view.navigateToWorkflow(workflowId);
 		} else if (StringUtils.isNotBlank(parentId)) {
 			view.navigate().to(TaskViews.class).displayTask(parentId);
+		} else if (previousPage != null) {
+			navigateToPreviousPage();
 		} else {
 			view.navigate().to(TaskViews.class).taskManagement();
 		}
@@ -382,7 +395,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			task = tasksSchemas.newTask();
 			TaskUser taskUser = new TaskUser(getCurrentUser().getWrappedRecord(), types(),
 					modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory));
-			if(!Boolean.FALSE.equals(taskUser.getAssignTaskAutomatically())) {
+			if (!Boolean.FALSE.equals(taskUser.getAssignTaskAutomatically())) {
 				task.setAssignee(getCurrentUser().getId());
 			}
 
@@ -390,34 +403,77 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
 
-			String folderId = paramsMap.get("folderId");
-			if (folderId != null) {
-				new RMTask(task).setLinkedFolders(asList(folderId));
-			}
-			String documentId = paramsMap.get("documentId");
-			if (documentId != null) {
-				new RMTask(task).setLinkedDocuments(asList(documentId));
+			String tempParamKey = paramsMap.get("tempParams");
+			if (tempParamKey != null) {
+				TimedCache timedCache = getCachedAttributes(tempParamKey);
+				if (timedCache != null) {
+					setLinkedRecords(timedCache.get("linkedRecords"), task);
+					setPreviousPage(timedCache.get("previousPage"));
+				}
 			}
 		}
+
 		completeMode = "true".equals(paramsMap.get("completeTask"));
 		if (completeMode) {
-			TaskStatus finishedStatus = tasksSearchServices
-					.getFirstFinishedStatus();
+			TaskStatus finishedStatus = tasksSearchServices.getFirstFinishedStatus();
 			if (finishedStatus != null) {
 				task.setStatus(finishedStatus.getId());
 			}
 		}
-		workflowId = paramsMap.get("workflowId");
 
-		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
+		workflowId = paramsMap.get("workflowId");
+		taskVO = new TaskVO(new TaskToVOBuilder()
+				.build(task.getWrappedRecord(), FORM, view.getSessionContext()));
 		isCompletedOrClosedOnInitialization = isCompletedOrClosedStatus(taskVO);
 		view.setRecord(taskVO);
-		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + ASSIGNEE)) {
+		if (taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + ASSIGNEE)) {
 			originalAssignedTo = taskVO.getAssignee();
 		}
-		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNER)) {
+		if (taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNER)) {
 			originalAssigner = taskVO.get(Task.ASSIGNER);
 		}
+
+	}
+
+	private void setPreviousPage(Object previousPage) {
+		if (previousPage instanceof String) {
+			this.previousPage = (String) previousPage;
+		}
+	}
+
+	private TimedCache getCachedAttributes(String key) {
+		Object cachedParam = this.getView().getSessionContext().getAttribute(key);
+		if (cachedParam instanceof TimedCache) {
+			return (TimedCache) cachedParam;
+		}
+		return null;
+	}
+
+	private void setLinkedRecords(Object linkedRecordIds, Task task) {
+		if (linkedRecordIds instanceof List) {
+			HashMap<String, List<String>> schemasMap = filterSchemaType((List<String>) linkedRecordIds);
+			new RMTask(task).setLinkedFolders(schemasMap.get(Folder.SCHEMA_TYPE));
+			new RMTask(task).setLinkedDocuments(schemasMap.get(Document.SCHEMA_TYPE));
+		}
+	}
+
+	private HashMap<String, List<String>> filterSchemaType(List<String> recordIds) {
+		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		HashMap<String, List<String>> recordsMap = new HashMap<>();
+		List<Record> records = recordIds
+				.stream()
+				.map(i -> recordServices().realtimeGetRecordSummaryById(i))
+				.collect(Collectors.toList());
+		for (Record record : records) {
+			String schemaType = schemasManager.getSchemaTypeOf(record).getCode();
+			List<String> schemaTypeList = recordsMap.get(schemaType);
+			if (schemaTypeList == null) {
+				schemaTypeList = new ArrayList<>();
+			}
+			schemaTypeList.add(record.getId());
+			recordsMap.put(schemaType, schemaTypeList);
+		}
+		return recordsMap;
 	}
 
 	public String getViewTitle() {
@@ -507,8 +563,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustAssignerField() {
 		Field assignerField = getAssignerField();
-		if (assignerField != null && taskVO != null &&  taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNEE)
-				&& !Objects.equals(originalAssignedTo, taskVO.getAssignee())) {
+		if (assignerField != null && taskVO != null && taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNEE)
+			&& !Objects.equals(originalAssignedTo, taskVO.getAssignee())) {
 			assignerField.setValue(getCurrentUser().getId());
 		}
 	}
@@ -647,7 +703,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		TaskUser taskUser = new TaskUser(getCurrentUser().getWrappedRecord(), types(),
 				modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory));
 		TaskFollower defaultFollower = taskUser.getDefaultFollowerWhenCreatingTask();
-		if(!editMode && field != null && defaultFollower != null) {
+		if (!editMode && field != null && defaultFollower != null) {
 			field.addTaskFollower(defaultFollower);
 		}
 	}
@@ -892,5 +948,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				}
 			}
 		}
+	}
+
+	private void navigateToPreviousPage() {
+		URI location = ConstellioUI.getCurrent().getPage().getLocation();
+		view.navigate().to(CoreViews.class).navigateTo(location.getPath(), previousPage, false);
 	}
 }
