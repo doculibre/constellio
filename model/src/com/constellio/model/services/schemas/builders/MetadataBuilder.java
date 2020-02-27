@@ -6,15 +6,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.schemas.AllowedReferences;
-import com.constellio.model.entities.schemas.InheritedMetadataBehaviors;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataAccessRestriction;
-import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
@@ -22,25 +14,14 @@ import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotCreateMultivalueReferenceToPrincipalTaxonomy;
-import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
-import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled;
-import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.InvalidAttribute;
-import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.MetadataCannotBeUniqueAndMultivalue;
+import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.*;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
@@ -1006,7 +987,7 @@ public class MetadataBuilder {
 		if (Boolean.FALSE == builder.getEnabled() && builder.isEssential()) {
 			throw new EssentialMetadataCannotBeDisabled(code);
 		}
-		if (Boolean.FALSE == builder.getEnabled() && builder.isEssentialInSummary()) {
+		if (Boolean.FALSE == builder.getEnabled() && builder.isEssentialInSummary() && !builder.localCode.startsWith("USR")) {
 			throw new EssentialMetadataInSummaryCannotBeDisabled(code);
 		}
 
