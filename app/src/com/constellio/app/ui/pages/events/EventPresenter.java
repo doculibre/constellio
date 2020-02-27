@@ -43,13 +43,7 @@ import org.apache.commons.lang.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -489,10 +483,10 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				Metadata borrowedMetadata = folderSchema.getMetadata(Folder.BORROWED);
 				LocalDateTime borrowDateValue = record.get(borrowDateMetadata);
 
-				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().folder.schema())
+				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().folder.schemaType())
 						.where(borrowedMetadata).isTrue()
-						.andWhere(borrowDateMetadata).isEqualTo(
-								borrowDateValue).andWhere(recordIdMetadata).isEqualTo(recordId);
+						.andWhere(borrowDateMetadata).isEqualTo(borrowDateValue)
+						.andWhere(recordIdMetadata).isEqualTo(recordId);
 
 				SearchServices searchServices = modelLayerFactory.newSearchServices();
 				Record eventRecord = searchServices.searchSingleResult(logicalSearchCondition);
