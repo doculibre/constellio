@@ -1,8 +1,10 @@
 package com.constellio.app.modules.rm.ui.buttons;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.menu.behaviors.RMRecordsMenuItemBehaviors;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
@@ -57,6 +59,13 @@ public class ReturnWindowButton extends WindowButton {
 					returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
 				}
 				if (recordsMenuItemBehaviors.returnRecords(records, returnLocalDate, params, isFolder)) {
+					if (records.size() == 1) {
+						if (isFolder) {
+							new Navigation().to(RMViews.class).displayFolder(records.get(0).getId());
+						} else {
+							new Navigation().to(RMViews.class).displayContainer(records.get(0).getId());
+						}
+					}
 					getWindow().close();
 				}
 			}
