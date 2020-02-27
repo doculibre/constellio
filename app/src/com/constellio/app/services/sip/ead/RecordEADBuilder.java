@@ -383,12 +383,14 @@ public class RecordEADBuilder {
 		eadXmlWriter.addHeader(collectionInfo, collectionName, record.getSchemaCode(), schemaTypeLabel, schemaLabel);
 		eadXmlWriter.addArchdesc(archdesc, record.getId(), record.getTitle());
 
-		for (Metadata metadata : types.getSchemaOf(record).getMetadatas()) {
-			if (isMetadataIncludedInEAD(metadata)
-				&& isNotEmptyValue(record.getValues(metadata))) {
-				addMetadata(recordCtx, metadata);
-			}
-		}
+		types.getSchemaOf(record).getMetadatas().stream().filter(metadataIgnore).forEach(
+				metadata -> {
+					if (isMetadataIncludedInEAD(metadata)
+						&& isNotEmptyValue(record.getValues(metadata))) {
+						addMetadata(recordCtx, metadata);
+					}
+				}
+		);
 
 		eadXmlWriter.build(recordCtx.getSipXMLPath(), errors, file);
 	}

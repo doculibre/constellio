@@ -57,6 +57,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -108,6 +109,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
 		constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		ignoreMetadatasWithLocalCode(Collections.singletonList("isCheckoutAlertSent"));
 	}
 
 	@Test
