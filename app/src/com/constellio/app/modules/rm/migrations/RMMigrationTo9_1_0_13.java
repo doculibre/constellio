@@ -13,7 +13,7 @@ import org.apache.commons.io.IOUtils;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class RMMigrationTo9_0_0_65 extends MigrationHelper implements MigrationScript {
+public class RMMigrationTo9_1_0_13 extends MigrationHelper implements MigrationScript {
 	private String collection;
 
 	private MigrationResourcesProvider migrationResourcesProvider;
@@ -22,7 +22,7 @@ public class RMMigrationTo9_0_0_65 extends MigrationHelper implements MigrationS
 
 	@Override
 	public String getVersion() {
-		return "9.0.0.65";
+		return "9.1.0.13";
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class RMMigrationTo9_0_0_65 extends MigrationHelper implements MigrationS
 		this.migrationResourcesProvider = migrationResourcesProvider;
 		this.appLayerFactory = appLayerFactory;
 
-		new SchemaAlterationFor9_0_0_65(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor9_1_0_13(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		reloadEmailTemplates();
 	}
 
@@ -61,9 +61,9 @@ public class RMMigrationTo9_0_0_65 extends MigrationHelper implements MigrationS
 		}
 	}
 
-	class SchemaAlterationFor9_0_0_65 extends MetadataSchemasAlterationHelper {
+	class SchemaAlterationFor9_1_0_13 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor9_0_0_65(String collection, MigrationResourcesProvider migrationResourcesProvider,
+		protected SchemaAlterationFor9_1_0_13(String collection, MigrationResourcesProvider migrationResourcesProvider,
 											  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}

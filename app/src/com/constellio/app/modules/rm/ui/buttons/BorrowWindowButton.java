@@ -1,13 +1,9 @@
 package com.constellio.app.modules.rm.ui.buttons;
 
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
-import com.constellio.app.modules.rm.services.menu.behaviors.ContainerRecordMenuItemActionBehaviors;
-import com.constellio.app.modules.rm.services.menu.behaviors.FolderMenuItemActionBehaviors;
-import com.constellio.app.modules.rm.util.RMNavigationUtils;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.services.menu.behaviors.RMRecordsMenuItemBehaviors;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -44,7 +40,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class BorrowWindowButton extends WindowButton {
 
 	private final RMConfigs rmConfigs;
-	private RMSchemasRecordsServices rm;
 	private MenuItemActionBehaviorParams params;
 	private AppLayerFactory appLayerFactory;
 	private ModelLayerFactory modelLayerFactory;
@@ -55,14 +50,13 @@ public class BorrowWindowButton extends WindowButton {
 	private MetadataSchemaTypes schemaTypes;
 
 	public BorrowWindowButton(List<Record> records, MenuItemActionBehaviorParams params) {
-		super($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart"));
+		super($("$(DisplayFolderView.borrow"), $("DisplayFolderView.borrow"));
 
 		this.params = params;
 		this.appLayerFactory = params.getView().getConstellioFactories().getAppLayerFactory();
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.collection = params.getView().getSessionContext().getCurrentCollection();
-		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		this.borrowingServices = new BorrowingServices(collection, modelLayerFactory);
 		this.schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
@@ -145,13 +139,7 @@ public class BorrowWindowButton extends WindowButton {
 				if (returnDatefield.getValue() != null) {
 					returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
 				}
-
-				boolean closeWindow = false;
-				for (Record record : records) {
-					closeWindow = borrowRecord(record, borrowLocalDate, previewReturnLocalDate, userId,
-							borrowingType, returnLocalDate, params) || closeWindow;
-				}
-				if (closeWindow) {
+				if (borrowRecords(borrowLocalDate, previewReturnLocalDate, userId, borrowingType, returnLocalDate)) {
 					getWindow().close();
 				}
 			}
@@ -180,48 +168,41 @@ public class BorrowWindowButton extends WindowButton {
 		return verticalLayout;
 	}
 
-	private boolean borrowRecord(Record record, LocalDate borrowingDate, LocalDate previewReturnDate, String userId,
-								 BorrowingType borrowingType, LocalDate returnDate,
-								 MenuItemActionBehaviorParams params) {
-		boolean borrowed = false;
+	private boolean borrowRecords(LocalDate borrowingDate, LocalDate previewReturnDate, String userId,
+								  BorrowingType borrowingType, LocalDate returnDate) {
+		boolean areRecordsFolders = records.get(0).isOfSchemaType(Folder.SCHEMA_TYPE);
+		boolean borrowed;
 		String errorMessage = borrowingServices
 				.validateBorrowingInfos(userId, borrowingDate, previewReturnDate, borrowingType, returnDate);
 		if (errorMessage != null) {
 			params.getView().showErrorMessage($(errorMessage));
+			borrowed = false;
 		} else {
 			User borrowerEntered = wrapUser(recordServices.getDocumentById(userId));
 
 			try {
-				if (record.isOfSchemaType(rm.folder.schemaType().getCode())) {
-					Folder folder = rm.wrapFolder(record);
-
-					borrowingServices.borrowFolder(folder.getId(), borrowingDate, previewReturnDate,
+				if (areRecordsFolders) {
+					borrowingServices.borrowFolders(records, borrowingDate, previewReturnDate,
 							params.getUser(), borrowerEntered, borrowingType, true);
-					borrowed = true;
-
-					if (returnDate != null) {
-						return new FolderMenuItemActionBehaviors(collection, appLayerFactory)
-								.returnFolder(folder, returnDate, params);
-					}
-					RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
-							appLayerFactory, collection);
-
-				} else if (record.isOfSchemaType(rm.containerRecord.schemaType().getCode())) {
-					ContainerRecord container = rm.wrapContainerRecord(record);
-
-					borrowingServices.borrowContainer(container.getId(), borrowingDate, previewReturnDate,
+				} else {
+					borrowingServices.borrowContainers(records, borrowingDate, previewReturnDate,
 							params.getUser(), borrowerEntered, borrowingType, true);
-					borrowed = true;
-
-					if (returnDate != null) {
-						return new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory)
-								.returnContainer(container, returnDate, params);
-					}
 				}
+
+				params.getView().refreshActionMenu();
+				params.getView().showMessage($(areRecordsFolders ? "DisplayFolderView.multipleCheckOut"
+																 : "DisplayContainerView.multipleCheckOut"));
+				borrowed = true;
 			} catch (RecordServicesException e) {
 				log.error(e.getMessage(), e);
-				params.getView().showErrorMessage($("DisplayFolderView.cannotBorrowFolder"));
+				params.getView().showErrorMessage($(areRecordsFolders ? "DisplayFolderView.cannotBorrowMultipleFolder"
+																	  : "DisplayContainerView.cannotBorrowMultipleContainer"));
+				borrowed = false;
 			}
+		}
+
+		if (returnDate != null) {
+			return new RMRecordsMenuItemBehaviors(collection, appLayerFactory).returnRecords(records, returnDate, params, areRecordsFolders);
 		}
 
 		return borrowed;
@@ -233,7 +214,7 @@ public class BorrowWindowButton extends WindowButton {
 		if (borrowDate != null && borrowingTypeValue != null) {
 			borrowingType = (BorrowingType) borrowingTypeValue;
 			if (borrowingType == BorrowingType.BORROW) {
-				int addDays = rmConfigs.getBorrowingDurationDays();
+				int addDays = rmConfigs.getFolderBorrowingDurationDays();
 				previewReturnDate = LocalDate.fromDateFields(borrowDate).plusDays(addDays).toDate();
 			} else {
 				previewReturnDate = borrowDate;
