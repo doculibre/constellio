@@ -173,27 +173,15 @@ public abstract class BaseForm<T> extends CustomComponent {
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
 		buttonsLayout.setSpacing(true);
 
-		if (isActivatedByConfigAndNeedConfirmation()) {
-			saveButton = new Button(getSaveButtonCaption());
-			saveButton.addClickListener(new ClickListener() {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					saveForm();
-				}
-			});
+		saveButton = new Button(getSaveButtonCaption());
+		saveButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				saveForm();
+			}
+		});
 
-			saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-		} else {
-			saveButton = new Button(getSaveButtonCaption());
-			//		saveButton.addStyleName(SAVE_BUTTON);
-			saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-			saveButton.addClickListener(new ClickListener() {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					trySave();
-				}
-			});
-		}
+		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 
 		cancelButton = new Button(getCancelButtonCaption());
@@ -255,16 +243,16 @@ public abstract class BaseForm<T> extends CustomComponent {
 	}
 
 	private void saveForm() {
-		if (isActivatedByConfigAndNeedConfirmation()) {
-			if (showConfirmationMessage() == SaveAction.save) {
+		if (showConfirmationMessage() == SaveAction.save) {
+			if (isActivatedByConfigAndNeedConfirmation()) {
 				createSaveConfirmButton().click();
-			} else if (showConfirmationMessage() == SaveAction.cancelSave) {
-				cancelButton.click();
 			} else {
 				createSaveConfirmButton().skipConfirmation();
 			}
+		} else if (showConfirmationMessage() == SaveAction.cancelSave) {
+			cancelButton.click();
 		} else {
-			trySave();
+			createSaveConfirmButton().skipConfirmation();
 		}
 	}
 
