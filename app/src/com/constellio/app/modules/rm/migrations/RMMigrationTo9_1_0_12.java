@@ -36,9 +36,12 @@ public class RMMigrationTo9_1_0_12 extends MigrationHelper implements MigrationS
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 
 			MetadataSchemaBuilder document = typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE);
-			document.createUndeletable(Document.CONTENT_CHECKED_OUT_DATE)
-					.setType(MetadataValueType.DATE_TIME)
-					.defineDataEntry().asCalculated(DocumentCheckedOutDateCalculator.class);
+
+			if (!document.hasMetadata(Document.CONTENT_CHECKED_OUT_DATE)) {
+				document.createUndeletable(Document.CONTENT_CHECKED_OUT_DATE)
+						.setType(MetadataValueType.DATE_TIME)
+						.defineDataEntry().asCalculated(DocumentCheckedOutDateCalculator.class);
+			}
 		}
 	}
 }
