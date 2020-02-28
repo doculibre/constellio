@@ -6,6 +6,7 @@ import com.constellio.app.services.appManagement.AppManagementService.LicenseInf
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.systemInformations.SystemInformationsService;
+import com.constellio.app.ui.framework.components.ErrorDisplayUtil;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
@@ -15,7 +16,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +44,8 @@ public class SystemInfo {
 	private static final String CONSTELLIO_MEMORY_CONSUMPTION_HIGH = "constellioMemoryConsumptionHigh";
 	private static final String CONSTELLIO_MEMORY_CONSUMPTION_LOW = "constellioMemoryConsumptionLow";
 	private static final String PRIVATE_REPOSITORY_IS_NOT_INSTALLED = "privateRepositoryIsNotInstalled";
+	private static final String SYSTEM_ERROR_WARNING = "systemErrorWarning";
+	private static final String SYSTEM_ERROR_ERROR = "systemErrorError";
 
 	private static SystemInfo instance;
 
@@ -212,10 +218,54 @@ public class SystemInfo {
 		}
 
 		validateDiskUsage(configs);
+		validateSystemErrors();
 
 
 		//		validateMemoryConsumption();
 		//		validateRepository();
+	}
+
+	private void validateSystemErrors() {
+
+		if (isLogContainingSystemErrorOrWarning("ERROR")) {
+			validationErrors.addWarning(SystemInfo.class, SYSTEM_ERROR_ERROR);
+		}
+		if (isLogContainingSystemErrorOrWarning("WARN")) {
+			validationErrors.addWarning(SystemInfo.class, SYSTEM_ERROR_WARNING);
+		}
+	}
+
+	private boolean isLogContainingSystemErrorOrWarning(String errorType) {
+		boolean isLogContainingSystemErrorOrWarning = false;
+
+		File systemLogFile = getSystemLogFile();
+		if (systemLogFile.exists()) {
+			try {
+				BufferedReader br = new BufferedReader(new FileReader(systemLogFile));
+
+				isLogContainingSystemErrorOrWarning = br.lines().anyMatch(line -> line.split(" ")[2].equals(errorType));
+			} catch (FileNotFoundException e) {
+				ErrorDisplayUtil.showErrorMessage("Buffered Reader for systemLog failed");
+				e.printStackTrace();
+			}
+		} else {
+			ErrorDisplayUtil.showErrorMessage("System Log File not found");
+		}
+
+		return isLogContainingSystemErrorOrWarning;
+	}
+
+	private File getSystemLogFile() {
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		File systemLogFile = null;
+		File logsFolder = new File(appLayerFactory.getModelLayerFactory().getFoldersLocator().getWrapperInstallationFolder(), "logs");
+		if (logsFolder.exists()) {
+			systemLogFile = new File(logsFolder, "system.log");
+		} else {
+			ErrorDisplayUtil.showErrorMessage("logsFolder not found");
+		}
+
+		return systemLogFile;
 	}
 
 	private void validateMemoryAllocation() {

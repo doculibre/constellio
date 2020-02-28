@@ -423,13 +423,12 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		return new PartialSystemStateExporter(appLayerFactory);
 	}
 
+	//todo: Could be rewritten so it would be reusable for both SDKPAnel and ExportPresenter, modelLayerFactory and view
+	//	are the two differences that are obstructing this modification
 	public void exportLogs() {
 		ZipService zipService = modelLayerFactory.getIOServicesFactory().newZipService();
 
-		//		String filename = "logs-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
-		String filename = "logs-" + new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date()) + ".zip";//D%todo left here
-		//D%todo ajout timestamp
-		//D%todo inclusion log system
+		String filename = "logs-" + new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date()) + ".zip";
 		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
 				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File zipFile = new File(folder, filename);
