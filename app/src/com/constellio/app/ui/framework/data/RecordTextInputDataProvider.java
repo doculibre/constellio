@@ -39,6 +39,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	private transient int lastStartIndex;
 	private transient String lastQuery;
 	private transient SPEQueryResponse response;
+	private transient int lastCount;
 
 	private transient AppLayerFactory appLayerFactory;
 	private transient ModelLayerFactory modelLayerFactory;
@@ -132,8 +133,9 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	@Override
 	public List<String> getData(String text, int startIndex, int count) {
 		User user = getCurrentUser();
-		if (lastQuery == null || !lastQuery.equals(text) || lastStartIndex != startIndex) {
+		if (lastQuery == null || !lastQuery.equals(text) || lastStartIndex != startIndex || lastCount != count) {
 			lastQuery = text;
+			lastCount = count;
 			lastStartIndex = startIndex;
 			response = searchAutocompleteField(user, text, startIndex, count);
 		}
