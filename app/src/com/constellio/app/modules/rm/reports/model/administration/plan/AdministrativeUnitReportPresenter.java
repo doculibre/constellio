@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.reports.model.administration.plan.Administr
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
@@ -48,6 +49,7 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 	protected transient AppLayerCollectionExtensions appCollectionExtentions;
 	protected transient AppLayerSystemExtensions appSystemExtentions;
 	private Locale locale;
+	private User currentUser = null;
 
 	public AdministrativeUnitReportPresenter(String collection, AppLayerFactory appLayerFactory, Locale locale) {
 		this(collection, appLayerFactory, true, locale);
@@ -74,7 +76,9 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 			model.setDetailed(false);
 		}
 
-		List<TaxonomySearchRecord> taxonomySearchRecords = searchService.getLinkableRootConcept(User.GOD, collection,
+		User user = getCurrentUser();
+
+		List<TaxonomySearchRecord> taxonomySearchRecords = searchService.getLinkableRootConcept(user, collection,
 				RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
 
 		List<AdministrativeUnitReportModel_AdministrativeUnit> modelAdministrativeUnits = getUnits(taxonomySearchRecords);
@@ -82,6 +86,14 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 		model.setAdministrativeUnits(modelAdministrativeUnits);
 
 		return model;
+	}
+
+	private User getCurrentUser() {
+		if (currentUser == null) {
+			currentUser = modelLayerFactory.newUserServices().getUserInCollection(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername(), collection);
+		}
+
+		return currentUser;
 	}
 
 	private List<AdministrativeUnitReportModel_AdministrativeUnit> getUnits(
@@ -125,7 +137,7 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 
 		if (parentRecord != null) {
 
-			List<TaxonomySearchRecord> childTaxonomySearchRecords = searchService.getLinkableChildConcept(User.GOD,
+			List<TaxonomySearchRecord> childTaxonomySearchRecords = searchService.getLinkableChildConcept(getCurrentUser(),
 					parentRecord, RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
 
 			if (childTaxonomySearchRecords != null) {
