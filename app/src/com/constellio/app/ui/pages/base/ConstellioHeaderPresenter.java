@@ -386,7 +386,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 						for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
 							if (!metadata.getLocalCode().equals(SCHEMA.getLocalCode())) {
 								if (showDeactivatedMetadatas || metadata.isEnabled()) {
-									metadataCodes.add(metadata.getCode());
+									metadataCodes.add(metadata.getLocalCode());
 								}
 							}
 						}
@@ -401,12 +401,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
 		MetadataList allMetadatas;
 		if (StringUtils.isBlank(schemaCode)) {
-			allMetadatas = schemaType.getAllMetadatasAndInherited();
+			allMetadatas = schemaType.getAllMetadatas();
 		} else {
 			allMetadatas = schemaType.getSchema(schemaCode).getMetadatas();
 		}
 		for (Metadata metadata : allMetadatas) {
-			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
+			if (!schemaType.hasSecurity() || metadataCodes.contains(metadata.getLocalCode())) {
 
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;

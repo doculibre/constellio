@@ -519,18 +519,6 @@ public class MetadataSchemaType implements Serializable {
 		return allMetadatas;
 	}
 
-	public MetadataList getAllMetadatasAndInherited() {
-		MetadataList metadatas = new MetadataList();
-
-		metadatas.addAll(defaultSchema.getMetadatas());
-
-		for (MetadataSchema customSchema : customSchemas) {
-			metadatas.addAll(customSchema.getMetadatas());
-		}
-
-		return metadatas.unModifiable();
-	}
-
 	public MetadataList getAllMetadatasIncludingThoseWithInheritance() {
 		MetadataList metadatas = new MetadataList();
 
