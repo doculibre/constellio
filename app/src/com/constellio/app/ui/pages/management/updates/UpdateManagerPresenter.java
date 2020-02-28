@@ -11,8 +11,10 @@ import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
+import com.constellio.app.ui.framework.components.ErrorDisplayUtil;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.CorePermissions;
@@ -21,6 +23,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexationParams;
@@ -172,6 +175,8 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public void restartAndReindex(boolean repopulate) {
+		doDeleteLogIfExists(modelLayerFactory);
+
 		FoldersLocator foldersLocator = new FoldersLocator();
 		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
 			//Application is started from a test, it cannot be restarted
@@ -241,6 +246,30 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		ConstellioMonitoringServlet.systemRestarting = true;
 		view.navigate().to().serviceMonitoring();
 	}
+
+	private void doDeleteLogIfExists(ModelLayerFactory modelLayerFactory) {
+		File logsFolder = new File(modelLayerFactory.getFoldersLocator().getWrapperInstallationFolder(), "logs");
+		if (logsFolder.exists()) {
+			File systemLogFile = new File(logsFolder, "system.log");
+			if (systemLogFile.exists()) {
+				SystemLogger.info("|D| Reached deleteQuietly");
+				if (!FileUtils.deleteQuietly(systemLogFile)) {
+					SystemLogger.error("|D| deleteQuietly returned false, didn't succeed");
+				}
+				SystemLogger.info("|D| deleteQuietly passed");
+				if (systemLogFile.exists()) {
+					SystemLogger.error("|D| systemLogFile still exists after deleteQuietly");
+				}
+			} else {
+				SystemLogger.error("|D| systemLogFile not found");
+				ErrorDisplayUtil.showErrorMessage("systemLogFile not found");
+			}
+		} else {
+			SystemLogger.error("|D| logsFolder not found");
+			ErrorDisplayUtil.showErrorMessage("logsFolder not found");
+		}
+	}
+
 
 	public void licenseUpdateRequested() {
 		view.showLicenseUploadPanel();
