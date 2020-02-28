@@ -13,7 +13,11 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.entities.CollectionInfoVO;
+import com.constellio.app.ui.entities.FormMetadataSchemaVO;
+import com.constellio.app.ui.entities.FormMetadataVO;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToFormVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -27,14 +31,30 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.AllowedReferences;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataAccessRestriction;
+import com.constellio.model.entities.schemas.MetadataAttribute;
+import com.constellio.model.entities.schemas.MetadataFilter;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.*;
+import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -44,12 +64,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 
 @Slf4j
@@ -407,6 +436,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			builder.setUniqueValue(formMetadataVO.isUniqueValue());
 		}
 
+		validateUniqueCode(builder.getLocalCode());
+
 		try {
 			schemasManager.saveUpdateSchemaTypes(types);
 		} catch (OptimisticLocking optimistickLocking) {
@@ -431,6 +462,17 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
 		view.navigate().to().listSchemaMetadata(params);
+	}
+
+	private void validateUniqueCode(String localCode) {
+		MetadataSchemaType type = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes(collection).getSchemaType(getSchemaTypeCode());
+
+		MetadataList allMetadatas = type.getAllMetadatas();
+		Set<String> existingCodes = allMetadatas.stream().map(Metadata::getLocalCode).collect(Collectors.toSet());
+		if (existingCodes.contains(localCode)) {
+			throw new MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists(localCode);
+		}
 	}
 
 	private void saveDisplayConfig(FormMetadataVO formMetadataVO, String code, MetadataSchemasManager schemasManager,
