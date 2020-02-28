@@ -2,19 +2,18 @@ package com.constellio.app.modules.rm.extensions.app;
 
 import com.constellio.app.extensions.menu.MenuItemActionsExtension;
 import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.ui.buttons.BorrowRequestWindowButton;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
-import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
 import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
 import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
@@ -23,10 +22,8 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
-import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
-import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -43,12 +40,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.InlineDateField;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.TextArea;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
 import org.joda.time.LocalDate;
 
 import java.util.Collections;
@@ -434,128 +427,10 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 	}
 
 	public void borrowRequest(MenuItemActionExtensionAddMenuItemActionsForRecordParams params) {
-		WindowButton borrowRequestButton = new WindowButton($("RMRequestTaskButtonExtension.borrowRequest"),
-				$("RMRequestTaskButtonExtension.requestBorrowButtonTitle")) {
-			@Override
-			protected Component buildWindowContent() {
-				getWindow().setHeight("250px");
-				Folder folder = getFolderOrNull(params.getRecord());
-				ContainerRecord container = getContainerRecordOrNull(params.getRecord(), folder);
-				User currentUser = params.getBehaviorParams().getUser();
-				VerticalLayout mainLayout = new VerticalLayout();
-				final BaseIntegerField borrowDurationField = new BaseIntegerField(
-						$("RMRequestTaskButtonExtension.borrowDuration"));
-
-				borrowDurationField.setValue(String.valueOf(
-						new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).getBorrowingDurationDays()));
-				HorizontalLayout buttonLayout = new HorizontalLayout();
-
-				BaseButton borrowFolderButton = new BaseButton($("RMRequestTaskButtonExtension.confirmBorrowFolder")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						borrowRequest(params, false, borrowDurationField.getValue());
-						getWindow().close();
-					}
-
-					@Override
-					public boolean isVisible() {
-						return isFolderBorrowable(folder, container, currentUser, collection);
-					}
-				};
-				borrowFolderButton.setStyleName(ValoTheme.BUTTON_PRIMARY);
-				BaseButton borrowContainerButton = new BaseButton($("RMRequestTaskButtonExtension.confirmBorrowContainer")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						borrowRequest(params, true, borrowDurationField.getValue());
-						getWindow().close();
-					}
-
-					@Override
-					public boolean isVisible() {
-						return isContainerBorrowable(container, currentUser);
-					}
-				};
-				borrowContainerButton.setStyleName(ValoTheme.BUTTON_PRIMARY);
-				BaseButton cancelButton = new BaseButton($("cancel")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getWindow().close();
-					}
-				};
-
-				TextArea messageField = new TextArea();
-				messageField.setHeight("50%");
-				messageField.setWidth("100%");
-				messageField.addStyleName(ValoTheme.TEXTAREA_BORDERLESS);
-				if (borrowFolderButton.isVisible() && borrowContainerButton.isVisible()) {
-					messageField.setValue($("RMRequestTaskButtonExtension.requestBorrowFolderOrContainerMessage"));
-				} else if (borrowFolderButton.isVisible()) {
-					messageField.setValue($("RMRequestTaskButtonExtension.requestBorrowFolderMessage"));
-				} else {
-					messageField.setValue($("RMRequestTaskButtonExtension.requestBorrowContainerMessage"));
-				}
-				messageField.setReadOnly(true);
-
-				buttonLayout.setSpacing(true);
-				buttonLayout.addComponents(borrowContainerButton, borrowFolderButton, cancelButton);
-
-				mainLayout.setHeight("100%");
-				mainLayout.setWidth("100%");
-				mainLayout.setSpacing(true);
-				mainLayout.addComponents(messageField, borrowDurationField, buttonLayout);
-
-				return mainLayout;
-			}
-		};
-
+		WindowButton borrowRequestButton = new BorrowRequestWindowButton(appLayerFactory, collection,
+				Collections.singletonList(params.getRecord()), params.getBehaviorParams(),
+				params.getRecord().isOfSchemaType(Folder.SCHEMA_TYPE));
 		borrowRequestButton.click();
-	}
-
-	public void borrowRequest(MenuItemActionExtensionAddMenuItemActionsForRecordParams params, boolean isContainer,
-							  String inputForNumberOfDays) {
-		Folder folder = getFolderOrNull(params.getRecord());
-		ContainerRecord container = getContainerRecordOrNull(params.getRecord(), folder);
-		User currentUser = params.getBehaviorParams().getUser();
-		BaseView view = params.getBehaviorParams().getView();
-
-		int numberOfDays = 1;
-		if (inputForNumberOfDays != null && inputForNumberOfDays.matches("^-?\\d+$")) {
-			numberOfDays = Integer.parseInt(inputForNumberOfDays);
-
-			if (numberOfDays <= 0) {
-				params.getBehaviorParams().getView().showErrorMessage($("RMRequestTaskButtonExtension.invalidBorrowDuration"));
-				return;
-			}
-		} else {
-			view.showErrorMessage($("RMRequestTaskButtonExtension.invalidBorrowDuration"));
-			return;
-		}
-		try {
-			long recordResult = getNumberOfRequestFromUser(BorrowRequest.FULL_SCHEMA_NAME, currentUser, folder, container);
-
-			if (recordResult > 0) {
-				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
-			} else {
-				Task borrowRequest;
-				if (isContainer) {
-					String recordId = container.getId();
-					borrowRequest = task
-							.newBorrowContainerRequestTask(currentUser.getId(), getAssigneesForContainer(recordId), recordId, numberOfDays,
-									container.getTitle());
-				} else {
-					String recordId = folder.getId();
-					borrowRequest = task
-							.newBorrowFolderRequestTask(currentUser.getId(), getAssigneesForFolder(recordId), recordId, numberOfDays,
-									folder.getTitle());
-				}
-				addRecordWithUserSafeOption(borrowRequest);
-				view.showMessage($("RMRequestTaskButtonExtension.borrowSuccess"));
-			}
-
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
-		}
 	}
 
 	private void addRecordWithUserSafeOption(Task task) throws RecordServicesException {

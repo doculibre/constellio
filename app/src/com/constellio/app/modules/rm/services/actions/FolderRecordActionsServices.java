@@ -224,7 +224,9 @@ public class FolderRecordActionsServices {
 			containerRecord = rm.getContainerRecord(folder.getContainer());
 		}
 
-		return isFolderBorrowable(folder, containerRecord, user, collection);
+		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		return isFolderBorrowable(folder, containerRecord, user, collection)
+			   && rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, user);
 	}
 
 	private boolean isFolderBorrowable(Folder folder, ContainerRecord container, User currentUser, String collection) {
@@ -235,11 +237,10 @@ public class FolderRecordActionsServices {
 				return false;
 			}
 		}
-		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 
 		return folder != null && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER)
 				.on(folder)
-			   && !(container != null && Boolean.TRUE.equals(container.getBorrowed())) && rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, currentUser);
+			   && !(container != null && Boolean.TRUE.equals(container.getBorrowed()));
 	}
 
 	public boolean isReturnActionPossible(Record record, User user) {
