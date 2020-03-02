@@ -337,7 +337,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return new ObjectProperty<>(value);
 			} else if (Schemas.TITLE_CODE.equals(propertyId) || (propertyId instanceof MetadataVO && ((MetadataVO) propertyId).codeMatches(Schemas.TITLE_CODE))) {
 				RecentItem recentItem = (RecentItem) itemId;
-				String value = recentItem.getCaption();
+				String value = recentItem.getTitle();
 				return new ObjectProperty<>(value);
 			}
 			return super.getContainerProperty(itemId, propertyId);
