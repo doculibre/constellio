@@ -5,7 +5,9 @@ import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.Duration;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -459,6 +461,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	@Override
 	public int getMicrosoftSqlServerloginTimeout() {
 		return getInt("sql.server.loginTimeout", 0);
+	}
+
+	@Override
+	public List<String> getTenantNames() {
+		return Arrays.asList(getString("multitenancy.tenantNames", "default").split(","));
 	}
 
 	@Override

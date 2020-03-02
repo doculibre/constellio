@@ -4,6 +4,7 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRepla
 import org.joda.time.Duration;
 
 import java.io.File;
+import java.util.List;
 
 public interface DataLayerConfiguration {
 
@@ -124,5 +125,11 @@ public interface DataLayerConfiguration {
 	boolean getMicrosoftSqlServertrustServerCertificate();
 
 	int getMicrosoftSqlServerloginTimeout();
+
+	List<String> getTenantNames();
+
+	default boolean isMultitenancy() {
+		return getTenantNames().size() > 1;
+	}
 
 }

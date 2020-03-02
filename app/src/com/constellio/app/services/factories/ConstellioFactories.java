@@ -5,6 +5,7 @@ import com.constellio.app.conf.PropertiesAppLayerConfiguration;
 import com.constellio.app.services.appManagement.GetWarVersionUtils;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
+import com.constellio.data.dao.services.CurrentTenantSingleton;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
@@ -153,6 +154,10 @@ public class ConstellioFactories {
 		this.appLayerConfiguration = decorator
 				.decorateAppLayerConfiguration(
 						new PropertiesAppLayerConfiguration(configs, modelLayerConfiguration, foldersLocator, propertyFile));
+
+		if (!CurrentTenantSingleton.isInitialized()) {
+			CurrentTenantSingleton.initializeTenants(dataLayerConfiguration.getTenantNames());
+		}
 	}
 
 	private static AtomicInteger factoryIdSeq = new AtomicInteger();
