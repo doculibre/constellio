@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersionWindowImpl;
@@ -43,6 +45,7 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ItemClickEvent;
@@ -73,7 +76,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -102,6 +104,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Component tasksComponent;
 	private Component eventsComponent;
 	private DisplayFolderPresenter presenter;
+	private RMModuleExtensions rmModuleExtensions;
 	private boolean dragNDropAllowed;
 	private Button displayFolderButton, editFolderButton, addDocumentButton;
 	private Label borrowedLabel;
@@ -130,6 +133,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		this.nestedView = nestedView;
 		this.inWindow = inWindow;
 		presenter = new DisplayFolderPresenter(this, recordVO, nestedView, inWindow);
+		rmModuleExtensions = getConstellioFactories().getAppLayerFactory()
+				.getExtensions().forCollection(getCollection()).forModule(ConstellioRMModule.ID);
 	}
 
 	@Override
@@ -206,7 +211,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		});
 
-		recordDisplay = new RecordDisplay(recordVO, new RMMetadataDisplayFactory());
+		recordDisplay = new RecordDisplay(recordVO, new RMMetadataDisplayFactory(), Toggle.SEARCH_RESULTS_VIEWER.isEnabled());
 		folderContentComponent = new CustomComponent();
 		tasksComponent = new CustomComponent();
 
@@ -336,10 +341,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			editFolderButton = newEditFolderButton();
 		}
 
-		List<String> excludedActionTypes = Arrays.asList(
-				FolderMenuItemActionType.FOLDER_DISPLAY.name(),
-				FolderMenuItemActionType.FOLDER_EDIT.name(),
-				FolderMenuItemActionType.FOLDER_ADD_DOCUMENT.name());
+		List<String> excludedActionTypes = new ArrayList<String>() {{
+			add(FolderMenuItemActionType.FOLDER_DISPLAY.name());
+			add(FolderMenuItemActionType.FOLDER_EDIT.name());
+			add(FolderMenuItemActionType.FOLDER_ADD_DOCUMENT.name());
+		}};
+
+		excludedActionTypes.addAll(rmModuleExtensions.getFilteredActionsForFolders());
 		return new RecordVOActionButtonFactory(recordVO, excludedActionTypes).build();
 	}
 

@@ -25,6 +25,7 @@ import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_BORROW;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_COPY;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_CREATE_TASK;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_DELETE;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_DISPLAY;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_EDIT;
@@ -194,6 +195,13 @@ public class FolderMenuItemServices {
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).removeFromSelection(folder, params)));
 		}
 
+		if (!filteredActionTypes.contains(FOLDER_CREATE_TASK.name())) {
+			menuItemActions.add(buildMenuItemAction(FOLDER_CREATE_TASK.name(),
+					isMenuItemActionPossible(FOLDER_CREATE_TASK.name(), folder, user, params),
+					$("DisplayFolderView.createTask"), FontAwesome.TASKS, -1, 1900,
+					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).createTask(folder, params)));
+		}
+
 		return menuItemActions;
 	}
 
@@ -246,6 +254,8 @@ public class FolderMenuItemServices {
 				return params.getView() != null &&
 					   (params.getView().getSessionContext().getSelectedRecordIds() != null &&
 						params.getView().getSessionContext().getSelectedRecordIds().contains(record.getId()));
+			case FOLDER_CREATE_TASK:
+				return folderRecordActionsServices.isCreateTaskActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -284,7 +294,8 @@ public class FolderMenuItemServices {
 		FOLDER_PRINT_LABEL,
 		FOLDER_GENERATE_REPORT,
 		FOLDER_ADD_TO_SELECTION,
-		FOLDER_REMOVE_FROM_SELECTION;
+		FOLDER_REMOVE_FROM_SELECTION,
+		FOLDER_CREATE_TASK;
 	}
 
 }

@@ -14,13 +14,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.CursorMarkParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;

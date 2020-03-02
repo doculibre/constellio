@@ -2,6 +2,8 @@ package com.constellio.app.modules.restapi.validation.dao;
 
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
 import com.constellio.app.modules.restapi.core.util.MapUtils;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import org.joda.time.LocalDateTime;
 
@@ -50,4 +52,9 @@ public class ValidationDao extends BaseDao {
 		return getUserTokens(serviceKey, true, false).contains(token);
 	}
 
+	public boolean userHasDeleteAccessOnHierarchy(User user, Record record) {
+		List<Record> recordsHierarchy = recordDeleteServices.loadRecordsHierarchyOf(record);
+		recordsHierarchy.remove(record);
+		return authorizationServices.hasDeletePermissionOnHierarchy(user, record, recordsHierarchy);
+	}
 }

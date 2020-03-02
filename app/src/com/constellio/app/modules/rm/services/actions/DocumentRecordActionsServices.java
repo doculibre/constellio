@@ -104,6 +104,7 @@ public class DocumentRecordActionsServices {
 			   !document.isPublished();
 	}
 
+
 	public boolean isPrintLabelActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
 		return user.hasReadAccess().on(record) &&
@@ -371,6 +372,7 @@ public class DocumentRecordActionsServices {
 		return !email && (document.getContent() != null && isContentCheckedOut(document));
 	}
 
+
 	private boolean isEmail(Document document) {
 		boolean email;
 		if (document.getContent() != null && document.getContent().getCurrentVersion() != null) {
@@ -387,5 +389,9 @@ public class DocumentRecordActionsServices {
 
 	private boolean hasUserReadAccess(Record record, User user) {
 		return user.hasReadAccess().on(record);
+	}
+
+	public boolean isCreateTaskActionPossible(Record record, User user) {
+		return user.hasWriteAccess().on(record);
 	}
 }

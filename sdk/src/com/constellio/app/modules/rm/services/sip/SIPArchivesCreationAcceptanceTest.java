@@ -57,6 +57,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -108,7 +109,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
 		constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		metadataIgnore = null;
+		ignoreMetadatasWithLocalCode(Collections.singletonList("isCheckoutAlertSent"));
 	}
 
 	@Test
@@ -900,7 +901,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		writer.setSipFileHasher(SIPFileHasher());
 
 		RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
-		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<String>(), documentsIds, null,
+		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<>(), documentsIds, null,
 				metadataIgnore
 		);
 
@@ -921,5 +922,33 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		ContentVersionDataSummary dataSummary =
 				getModelLayerFactory().getContentManager().upload(getTestResourceFile(filename));
 		return ContentImpl.create("zeContent", users.adminIn(zeCollection), filename, dataSummary, false, false);
+	}
+
+	private void ignoreMetadatas(List<Metadata> ignoredMetadatas) {
+		Predicate<Metadata> predicate = null;
+		for (Metadata ignoredMetadata : ignoredMetadatas) {
+			if (predicate != null) {
+				predicate = predicate.or(metadata -> metadata.equals(ignoredMetadata));
+			} else {
+				predicate = metadata -> metadata.equals(ignoredMetadata);
+			}
+		}
+		metadataIgnore = predicate;
+	}
+
+	private void ignoreMetadatasWithLocalCode(List<String> ignoredLocalCodes) {
+		Predicate<Metadata> predicate = null;
+		for (String ignoredLocalCode : ignoredLocalCodes) {
+			if (predicate != null) {
+				predicate = predicate.or(metadata -> metadata.isLocalCode(ignoredLocalCode));
+			} else {
+				predicate = metadata -> metadata.isLocalCode(ignoredLocalCode);
+			}
+		}
+		metadataIgnore = predicate;
+	}
+
+	private void ignoreAllMetadatas() {
+		metadataIgnore = metadata -> true;
 	}
 }

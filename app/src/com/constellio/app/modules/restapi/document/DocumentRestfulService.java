@@ -19,10 +19,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -35,10 +38,13 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 @Path("documents")
@@ -47,6 +53,9 @@ public class DocumentRestfulService extends ResourceRestfulService {
 
 	@Inject
 	private DocumentService documentService;
+
+	@Context
+	private HttpServletRequest httpRequest;
 
 	@GET
 	@Path("content")
@@ -134,6 +143,10 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			@Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileHeader,
 			@Parameter(description = "Fields to filter from the JSON response.", example = "[\"directAces\", \"inheritedAces\"]")
 			@QueryParam("filter") Set<String> filters,
+			@Parameter(description = "A document id list can be specified to activate the merge mode.<br>" +
+									 "The id list must be provided as a string without space and each id separated by a comma.<br>" +
+									 "The new document will be created by merging all documents provided in the list.")
+			@HeaderParam(CustomHttpHeaders.MERGE_SOURCE) String mergeSourceIds,
 			@Parameter(description = "The flushing mode indicates how the commits are executed in solr",
 					schema = @Schema(allowableValues = {"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
 			@HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
@@ -155,14 +168,23 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			throw new RequiredParameterException("document.title");
 		}
 
-		validateDocument(document, fileStream);
+		List<String> documentIdsToMerge = null;
+		if (StringUtils.isNotBlank(mergeSourceIds)) {
+			documentIdsToMerge = Arrays.asList(mergeSourceIds.split(","));
+		}
+
+		validateContent(document, fileStream, documentIdsToMerge);
+		validateDocument(document);
 
 		if (document.getContent() != null && document.getContent().getFilename() == null) {
 			throw new RequiredParameterException("content.filename");
 		}
 
-		DocumentDto createdDocument = documentService.create(host, folderId, serviceKey, method, date, expiration,
-				signature, document, fileStream, flush, filters);
+		DocumentDto createdDocument = CollectionUtils.isEmpty(documentIdsToMerge) ?
+									  documentService.create(host, folderId, serviceKey, method, date, expiration,
+											  signature, document, fileStream, flush, filters, isUrlValidated()) :
+									  documentService.merge(host, folderId, serviceKey, method, date, expiration,
+											  signature, document, documentIdsToMerge, flush, filters, isUrlValidated());
 
 		return Response.status(Response.Status.CREATED).entity(createdDocument).tag(createdDocument.getETag()).build();
 	}
@@ -219,13 +241,14 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			throw new RequiredParameterException("document.folderId");
 		}
 
-		validateDocument(document, fileStream);
+		validateContent(document, fileStream);
+		validateDocument(document);
 
 		validateETag(eTag);
 		document.setETag(unquoteETag(eTag));
 
 		DocumentDto updatedDocument = documentService.update(host, id, serviceKey, method, date, expiration, signature,
-				document, fileStream, false, flush, filters);
+				document, fileStream, false, flush, filters, isUrlValidated());
 
 		return Response.ok(updatedDocument).tag(updatedDocument.getETag()).build();
 	}
@@ -275,13 +298,14 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			throw new ParametersMustMatchException("id", "document.id");
 		}
 
-		validateDocument(document, fileStream);
+		validateContent(document, fileStream);
+		validateDocument(document);
 
 		validateETag(eTag);
 		document.setETag(unquoteETag(eTag));
 
 		DocumentDto updatedDocument = documentService.update(host, id, serviceKey, method, date, expiration, signature,
-				document, fileStream, true, flush, filters);
+				document, fileStream, true, flush, filters, isUrlValidated());
 
 		return Response.ok(updatedDocument).tag(updatedDocument.getETag()).build();
 	}
@@ -315,14 +339,29 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		return Response.noContent().build();
 	}
 
-	private void validateDocument(DocumentDto document, InputStream fileStream) {
-		if (document.getContent() == null && fileStream != null) {
-			throw new RequiredParameterException("document.content");
-		}
-		if (document.getContent() != null && fileStream == null) {
-			throw new RequiredParameterException("file");
-		}
+	private void validateContent(DocumentDto document, InputStream fileStream) {
+		validateContent(document, fileStream, null);
+	}
 
+	private void validateContent(DocumentDto document, InputStream fileStream, List<String> mergeSourceIds) {
+		if (mergeSourceIds == null || mergeSourceIds.isEmpty()) {
+			if (document.getContent() == null && fileStream != null) {
+				throw new RequiredParameterException("document.content");
+			}
+			if (document.getContent() != null && fileStream == null) {
+				throw new RequiredParameterException("file");
+			}
+		} else {
+			if (document.getContent() != null) {
+				throw new InvalidParameterCombinationException("CustomHttpHeaders.MERGE_SOURCE", "document.content");
+			}
+			if (fileStream != null) {
+				throw new InvalidParameterCombinationException("CustomHttpHeaders.MERGE_SOURCE", "file");
+			}
+		}
+	}
+
+	private void validateDocument(DocumentDto document) {
 		if (document.getType() != null) {
 			if (Strings.isNullOrEmpty(document.getType().getId()) && Strings.isNullOrEmpty(document.getType().getCode())) {
 				throw new AtLeastOneParameterRequiredException("type.id", "type.code");
@@ -333,6 +372,10 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		}
 
 		validateAces(document.getDirectAces());
+	}
+
+	private boolean isUrlValidated() {
+		return httpRequest.getAttribute("urlValidated") != null;
 	}
 
 }

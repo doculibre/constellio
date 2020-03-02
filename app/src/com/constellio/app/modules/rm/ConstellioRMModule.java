@@ -69,6 +69,7 @@ import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtens
 import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.extensions.ui.RMConstellioUIExtention;
+import com.constellio.app.modules.rm.extensions.ui.RMDocumentPathCriterionExtension;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
@@ -401,6 +402,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.xmlGeneratorExtensions.add(new RMXmlGeneratorExtension(collection, appLayerFactory));
 		extensions.pagesComponentsExtensions.add(new RMManageAuthorizationsPageExtension(collection, appLayerFactory));
 		extensions.sipExtensions.add(new RMSIPExtension(collection, appLayerFactory));
+		extensions.searchCriterionExtensions.add(new RMDocumentPathCriterionExtension(appLayerFactory, collection));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);

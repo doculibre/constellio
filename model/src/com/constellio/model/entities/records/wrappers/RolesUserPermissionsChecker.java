@@ -131,6 +131,8 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 	public boolean onSomething() {
 		if (user.getStatus() != UserCredentialStatus.ACTIVE) {
 			return false;
+		} else if (user.isSystemAdmin()) {
+			return true;
 		}
 
 		SecurityModel securityModel = user.getRolesDetails().getSecurityModel();
