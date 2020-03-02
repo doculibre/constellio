@@ -297,14 +297,12 @@ public class DocumentRecordActionsServices {
 
 	public boolean isAddAuthorizationActionPossible(Record record, User user) {
 		return user.has(RMPermissionsTo.SHARE_DOCUMENT).on(record) &&
-			   !record.isLogicallyDeleted() && !authorizationService.itemIsSharedByUser(record, user) &&
+			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isModifyShareActionPossible(Record record, User user) {
-		return user.has(RMPermissionsTo.SHARE_DOCUMENT).on(record) &&
-			   !record.isLogicallyDeleted() && authorizationService.itemIsSharedByUser(record, user) &&
-			   rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
+		return false;
 	}
 
 	public boolean isUnshareActionPossible(Record record, User user) {

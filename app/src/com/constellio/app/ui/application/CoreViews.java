@@ -345,7 +345,11 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.SHARE_CONTENT + "/" + entityId);
 	}
 
-	public void publishDocument(String entityId){
+	public void modifyShare(String entityId) {
+		navigator.navigateTo(NavigatorConfigurationService.MODIFY_SHARE + "/" + entityId);
+	}
+
+	public void publishDocument(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.PUBLISH_DOCUMENT + "/" + entityId);
 	}
 

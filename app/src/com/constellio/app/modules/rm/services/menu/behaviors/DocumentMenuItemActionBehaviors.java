@@ -251,15 +251,14 @@ public class DocumentMenuItemActionBehaviors {
 		publicLinkButton.click();
 	}
 
-
 	public void publish(Document document, MenuItemActionBehaviorParams params) {
 
 		document.setPublished(true);
-		Button borrowButton = new WindowButton($("DisplayFolderView.publish"),
-				$("DisplayFolderView.publish"), new WindowConfiguration(true, true, "50%", "500px")) {
+		Button borrowButton = new WindowButton($("DisplayDocumentView.publish"),
+				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "50%", "500px")) {
 			@Override
 			protected Component buildWindowContent() {
-				return new PublishDocumentViewImpl();
+				return new PublishDocumentViewImpl(params.getRecordVO());
 			}
 		};
 		borrowButton.click();

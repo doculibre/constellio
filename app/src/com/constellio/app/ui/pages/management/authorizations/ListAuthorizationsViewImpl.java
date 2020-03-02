@@ -74,7 +74,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	private Table authorizations;
 	private Table authorizationsReceivedFromMetadatas;
 	private Table globalLinks;
-	private Button detach;
+	protected Button detach;
+	protected Button addSecondButton, addButton;
 	private boolean isViewReadOnly;
 
 	@Override
@@ -98,6 +99,27 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			result.add(buildSecondaryAddButton());
 		}
 		return result;
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
+	}
+
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> quickActionMenuButtons = new ArrayList<>();
+		if (addButton != null) {
+			quickActionMenuButtons.add(addButton);
+		}
+		if (addSecondButton != null) {
+			quickActionMenuButtons.add(addSecondButton);
+		}
+		if (detach != null) {
+			quickActionMenuButtons.add(detach);
+		}
+
+		return quickActionMenuButtons;
 	}
 
 	protected abstract Button buildAddButton();

@@ -33,6 +33,7 @@ import com.constellio.app.ui.framework.components.selection.SelectionComponent.S
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.SharesVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TaskVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
@@ -101,6 +102,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private ViewableRecordVOTablePanel viewerPanel;
 	private Component tasksComponent;
 	private Component eventsComponent;
+	private Component sharesComponent;
 	private DisplayFolderPresenter presenter;
 	private boolean dragNDropAllowed;
 	private Button displayFolderButton, editFolderButton, addDocumentButton;
@@ -108,11 +110,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private Window documentVersionWindow;
 
-	private I18NHorizontalLayout contentAndFacetsLayout; 
+	private I18NHorizontalLayout contentAndFacetsLayout;
 
 	private RecordVODataProvider folderContentDataProvider;
 	private RecordVODataProvider tasksDataProvider;
 	private RecordVODataProvider eventsDataProvider;
+	private RecordVODataProvider sharesDataProvider;
 
 	private FacetsPanel facetsPanel;
 
@@ -209,6 +212,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		recordDisplay = new RecordDisplay(recordVO, new RMMetadataDisplayFactory());
 		folderContentComponent = new CustomComponent();
 		tasksComponent = new CustomComponent();
+		sharesComponent = new CustomComponent();
 
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName(STYLE_NAME);
@@ -216,6 +220,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				$("DisplayFolderView.tabs.folderContent", presenter.getFolderContentCount()));
 		tabSheet.addTab(recordDisplay, $("DisplayFolderView.tabs.metadata"));
 		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks", presenter.getTaskCount()));
+		tabSheet.addTab(sharesComponent, $("DisplayFolderView.tabs.shares"));
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayFolderView.tabs.logs"));
@@ -237,6 +242,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					setFacetsPanelVisible(facetsSliderPanel != null);
 				} else if (selectedTab == tasksComponent) {
 					presenter.tasksTabSelected();
+					setFacetsPanelVisible(false);
+				} else if (selectedTab == sharesComponent) {
+					presenter.sharesTabSelected();
 					setFacetsPanelVisible(false);
 				} else if (selectedTab == eventsComponent) {
 					presenter.eventsTabSelected();
@@ -634,6 +642,39 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 		}
 		tabSheet.setSelectedTab(eventsComponent);
+	}
+
+	@Override
+	public void setShares(RecordVODataProvider dataProvider) {
+		this.sharesDataProvider = dataProvider;
+	}
+
+	@Override
+	public void selectSharesTab() {
+		if (!(sharesComponent instanceof Table)) {
+			RecordVOTable table = new RecordVOTable($("DisplayFolderView.tabs.logs"),
+					new RecordVOLazyContainer(sharesDataProvider, false)) {
+				@Override
+				protected TableColumnsManager newColumnsManager() {
+					return new SharesVOTableColumnsManager();
+				}
+			};
+			table.setSizeFull();
+			tabSheet.replaceComponent(sharesComponent, table);
+			table.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+
+					RecordVOItem recordVOItem = (RecordVOItem) event.getItem();
+
+					if (recordVOItem != null) {
+						presenter.modifyShare(recordVOItem.getRecord().getId());
+					}
+				}
+			});
+			sharesComponent = table;
+		}
+		tabSheet.setSelectedTab(sharesComponent);
 	}
 
 	@Override

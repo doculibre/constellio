@@ -3,6 +3,7 @@ package com.constellio.model.services.security;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.modules.EmailTemplateConstants;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -132,6 +133,14 @@ public class AuthorizationsServices {
 		Authorization authDetails = getDetails(user, recordId);
 
 		return authDetails;
+	}
+
+	public MetadataSchema getAuthorizationSchema(String collection) {
+		return getTypes(collection).getSchema(Authorization.DEFAULT_SCHEMA);
+	}
+
+	public MetadataSchemaTypes getTypes(String collection) {
+		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 	}
 
 	public List<User> getUsersWithGlobalPermissionInCollection(String permission, String collection) {
@@ -372,7 +381,7 @@ public class AuthorizationsServices {
 		}
 
 		if (authorization.getSharedBy() != null && authorization.getSharedBy() != "") {
-			alertUsers(collection, authorizationDetail.getTargetSchemaType(), record, authorization.getStartDate(),
+			alertUsers(collection, authorizationDetail.getTargetSchemaType(), record, LocalDate.now(), authorization.getStartDate(),
 					authorization.getEndDate(), authorization.getSharedBy(), authorization.getPrincipals());
 		}
 		return authId;
@@ -682,6 +691,17 @@ public class AuthorizationsServices {
 			authorizations.addAll(getRecordAuthorizations(record));
 		}
 		return authorizations;
+	}
+
+	public LogicalSearchQuery getRecordSharedAuthorizationsQuery(String collection, String recordId) {
+
+		SchemasRecordsServices schemas = schemas(collection);
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+				.where(sharedByMeta).isNotNull().andWhere(targetMeta).isEqualTo(recordId);
+
+		return new LogicalSearchQuery(condition);
 	}
 
 	/**
@@ -1192,6 +1212,7 @@ public class AuthorizationsServices {
 	}
 
 	private void alertUsers(String collection, String schemaType, Record record, LocalDate sharedDate,
+							LocalDate startDate,
 							LocalDate expirationDate, String sharedBy, List<String> recipientUser) {
 
 		User sharer = schemas(collection).getUser(sharedBy);
@@ -1205,10 +1226,11 @@ public class AuthorizationsServices {
 				sendTo.addAll(schemas(collection).getAllUsersInGroup(group, true, true));
 			}
 		}
-		alertUsers(collection, schemaType, record, sharedDate, expirationDate, sharer, sendTo);
+		alertUsers(collection, schemaType, record, sharedDate, startDate, expirationDate, sharer, sendTo);
 	}
 
 	private void alertUsers(String collection, String schemaType, Record record, LocalDate sharedDate,
+							LocalDate startDate,
 							LocalDate expirationDate, User sharedBy, List<User> recipientUser) {
 
 		try {
@@ -1225,11 +1247,13 @@ public class AuthorizationsServices {
 				parameters.add("recipientUser" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(user.getFirstName() + " " + user.getLastName() +
 																												 " (" + user.getUsername() + ")"));
 				parameters.add("sharedDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(sharedDate));
-				parameters.add("expirationDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(expirationDate));
+				parameters.add("startDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(startDate));
+				parameters.add("endDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(expirationDate));
 				toAddresses.add(toAddress);
 			}
 
 			LocalDateTime sendDate = TimeProvider.getLocalDateTime();
+			emailToSend.setTemplate(EmailTemplateConstants.ALERT_SHARE);
 			emailToSend.setTo(toAddresses);
 			emailToSend.setSendOn(sendDate);
 			emailToSend.setSubject(subject);
@@ -1237,8 +1261,8 @@ public class AuthorizationsServices {
 			String recordTitle = record.getTitle();
 			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle) + " (" + record.getId() + ")");
 
-			parameters.add("sharedBy" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(sharedBy.getFirstName() + " " + sharedBy.getLastName() +
-																										" (" + sharedBy.getUsername() + ")"));
+			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(sharedBy.getFirstName() + " " + sharedBy.getLastName() +
+																										   " (" + sharedBy.getUsername() + ")"));
 			String constellioUrl = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).getConstellioUrl();
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record

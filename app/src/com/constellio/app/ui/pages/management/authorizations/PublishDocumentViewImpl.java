@@ -8,7 +8,6 @@ import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -16,9 +15,12 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -26,6 +28,7 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 
 	private final PublishDocumentPresenter presenter;
 	private RecordVO record;
+	private boolean deleteButtonVisible;
 
 	@PropertyId("publishStartDate") private JodaDateField publishStartDate;
 	@PropertyId("publishEndDate") private JodaDateField publishEndDate;
@@ -34,9 +37,16 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 		presenter = new PublishDocumentPresenter(this);
 	}
 
+	public PublishDocumentViewImpl(RecordVO record) {
+		this.record = record;
+		presenter = new PublishDocumentPresenter(this);
+	}
+
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		record = presenter.forRequestParams(event.getParameters()).getRecordVO();
+		if (event != null) {
+			record = presenter.forRequestParams(event.getParameters()).getRecordVO();
+		}
 	}
 
 	@Override
@@ -49,7 +59,7 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 		return new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				returnFromPage();
+				closeWindow();
 			}
 		};
 	}
@@ -69,16 +79,16 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 			protected void saveButtonClick(DocumentVO documentVO){
 				try {
 					Document document = presenter.publishDocument(record.getId(), publishStartDate.getValue(), publishEndDate.getValue());
-					returnFromPage();
+					closeWindow();
 					linkToDocument(document);
 				} catch (RecordServicesException e) {
-					returnFromPage();
+					closeWindow();
 				}
 			}
 
 			@Override
 			protected void cancelButtonClick(DocumentVO documentVO) {
-				returnFromPage();
+				closeWindow();
 			}
 		};
 	}
@@ -86,6 +96,18 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 	@Override
 	public void returnFromPage() {
 		presenter.backButtonClicked();
+	}
+
+	@Override
+	public void closeWindow() {
+		for (Window window : new ArrayList<>(UI.getCurrent().getWindows())) {
+			window.close();
+		}
+	}
+
+	@Override
+	public void setDeleteButtonVisible(boolean visible) {
+		this.deleteButtonVisible = visible;
 	}
 
 	private void buildDateFields() {

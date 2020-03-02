@@ -193,19 +193,11 @@ public class FolderRecordActionsServices {
 			(isNotBlank(folder.getLegacyId()) && !user.has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(folder))) {
 			return false;
 		}
-		return !authorizationsServices.itemIsSharedByUser(record, user) && rmModuleExtensions.isShareActionPossibleOnFolder(rm.wrapFolder(record), user);
+		return rmModuleExtensions.isShareActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	public boolean isModifyShareActionPossible(Record record, User user) {
-		Folder folder = rm.wrapFolder(record);
-		if (!hasUserWriteAccess(record, user) || !user.has(RMPermissionsTo.SHARE_FOLDER).on(folder) ||
-			(folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder)) ||
-			(folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder)) ||
-			(record.isLogicallyDeleted()) ||
-			(isNotBlank(folder.getLegacyId()) && !user.has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(folder))) {
-			return false;
-		}
-		return authorizationsServices.itemIsSharedByUser(record, user) && rmModuleExtensions.isShareActionPossibleOnFolder(rm.wrapFolder(record), user);
+		return false;
 	}
 
 	public boolean isUnshareActionPossible(Record record, User user) {

@@ -148,6 +148,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_OBJECT_ROLE_AUTHORIZATIONS = "objectRoleAuthorizations";
 	public static final String LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS = "objectAccessAndRoleAuthorizations";
 	public static final String SHARE_CONTENT = "shareContent";
+	public static final String MODIFY_SHARE = "modifyShare";
 	public static final String UNSHARE_CONTENT = "unshareContent";
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String TRASH = "trash";
@@ -283,6 +284,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS,
 				ListContentAccessAndRoleAuthorizationsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SHARE_CONTENT, ShareContentViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(MODIFY_SHARE, ShareContentViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(PUBLISH_DOCUMENT, PublishDocumentViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER_LIST, ListCollectionUserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER, CollectionUserViewImpl.class));

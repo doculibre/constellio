@@ -33,12 +33,14 @@ public class ShareContentListViewImpl extends ListAuthorizationsViewImpl impleme
 
 	@Override
 	protected Button buildAddButton() {
-		return new ShareContentListViewImpl.AddDocumentShareButton();
+		addButton = new ShareContentListViewImpl.AddDocumentShareButton();
+		return addButton;
 	}
 
 	@Override
 	protected Button buildSecondaryAddButton() {
-		return new ShareContentListViewImpl.AddFolderShareButton();
+		addSecondButton = new ShareContentListViewImpl.AddFolderShareButton();
+		return addSecondButton;
 	}
 
 	@Override
