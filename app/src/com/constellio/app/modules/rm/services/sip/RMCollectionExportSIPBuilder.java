@@ -18,8 +18,10 @@ import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.Provider;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.event.AutoSplitByDayEventsExecutor;
@@ -98,7 +100,7 @@ public class RMCollectionExportSIPBuilder {
 		return this;
 	}
 
-	public void exportAllEvents(final ProgressInfo progressInfo) throws IOException {
+	public void exportAllEvents(final ProgressInfo progressInfo, Provider<String, Boolean> filter) throws IOException {
 
 		final SIPZipWriter sipZipWriter = newFileSIPZipWriter("events", new HashMap<String, MetsDivisionInfo>(), progressInfo);
 
@@ -123,7 +125,7 @@ public class RMCollectionExportSIPBuilder {
 				}
 			});
 
-			autoSplitByDayEventsExecutor.wrtieAllEvents(collection);
+			autoSplitByDayEventsExecutor.writeAllEvents(collection, filter, rm.schemaType(Event.SCHEMA_TYPE).getMetadata(Event.DEFAULT_SCHEMA + "_" + Event.RECORD_ID));
 
 			exportedRecords.addAll(autoSplitByDayEventsExecutor.getSavedRecords());
 		} finally {
@@ -222,7 +224,8 @@ public class RMCollectionExportSIPBuilder {
 		}
 	}
 
-	public void exportAllFoldersAndDocuments(ProgressInfo progressInfo) throws IOException {
+	public void exportAllFoldersAndDocuments(ProgressInfo progressInfo, Provider<String, Boolean> includedRecordsFilter)
+			throws IOException {
 
 		progressInfo.setTask("Exporting folders and documents of collection '" + collection + "'");
 		RecordSIPWriter writer = newRecordSIPWriter("foldersAndDocuments", buildCategoryDivisionInfos(rm), progressInfo, true);
@@ -241,12 +244,17 @@ public class RMCollectionExportSIPBuilder {
 			while (folderIterator.hasNext()) {
 				Record folder = folderIterator.next();
 				List<Record> records = new ArrayList<>();
-				records.add(folder);
+				if (includedRecordsFilter.get(folder.getId())) {
+					records.add(folder);
+				}
 				try {
 					SearchResponseIterator<Record> subFoldersIterator = newChildrenIterator(folder);
 
 					while (subFoldersIterator.hasNext()) {
-						records.add(subFoldersIterator.next());
+						Record childRecord = subFoldersIterator.next();
+						if (includedRecordsFilter.get(childRecord.getId())) {
+							records.add(childRecord);
+						}
 					}
 
 					writer.add(records);

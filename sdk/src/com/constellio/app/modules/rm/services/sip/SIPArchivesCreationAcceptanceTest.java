@@ -26,6 +26,7 @@ import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.Provider;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Content;
@@ -192,8 +193,12 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		File tempFolder = newTempFolder();
 		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
 
-
-		builder.exportAllFoldersAndDocuments(new ProgressInfo());
+		builder.exportAllFoldersAndDocuments(new ProgressInfo(), new Provider<String, Boolean>() {
+			@Override
+			public Boolean get(String input) {
+				return true;
+			}
+		});
 
 		assertThat(tempFolder.list()).containsOnly("info", "foldersAndDocuments-001.zip");
 
@@ -357,7 +362,12 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 			;
 		};
-		builder.exportAllEvents(new ProgressInfo());
+		builder.exportAllEvents(new ProgressInfo(), new Provider<String, Boolean>() {
+			@Override
+			public Boolean get(String input) {
+				return true;
+			}
+		});
 
 		File tempFolder1 = new File(tempFolder, "events.zip");
 

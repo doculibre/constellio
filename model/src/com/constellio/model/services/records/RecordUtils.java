@@ -205,6 +205,15 @@ public class RecordUtils {
 		return idList;
 	}
 
+	public static Set<String> toRecordIdsSet(List<Record> records) {
+		Set<String> idList = new HashSet<>();
+
+		for (Record record : records) {
+			idList.add(record.getId());
+		}
+		return idList;
+	}
+
 	public Map<String, List<Record>> splitRecordsBySchemaTypes(List<Record> records) {
 		KeyListMap<String, Record> recordsSplittedByTypes = new KeyListMap<>();
 
