@@ -31,8 +31,6 @@ public class Toggle {
 	public static AvailableToggle LOG_REQUEST_CACHE = newToggle(false);
 	public static AvailableToggle TEST_REQUEST_CACHE = newToggle(false);
 
-	public static AvailableToggle RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS = newToggle(true);
-
 	public static AvailableToggle FASTER_REINDEXING = newToggle(false);
 
 	public static AvailableToggle RETENTION_RULE_DATE_TYPES = newToggle(false);
