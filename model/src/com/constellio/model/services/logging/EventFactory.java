@@ -270,6 +270,7 @@ public class EventFactory {
 		event.setPermissionUsers(authorizationPrincipalsString);
 		event.setPermissionDateRange(dateRangeString);
 		event.setPermissionRoles(authorizationRolesString);
+		event.setSharedBy(authorization.getSharedBy());
 		event.setDelta(deltaString);
 		event.setNegative(negative);
 		Record currentRecord = recordServices.getDocumentById(recordId);

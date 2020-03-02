@@ -30,12 +30,14 @@ import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_DISPLAY;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_EDIT;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_GENERATE_REPORT;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_MODIFY_SHARE;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_MOVE;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_PRINT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_REMOVE_FROM_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_RETURN;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_RETURN_REMAINDER;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_SHARE;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_UNSHARE;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -132,66 +134,80 @@ public class FolderMenuItemServices {
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).share(folder, params)));
 		}
 
+		if (!filteredActionTypes.contains(FOLDER_MODIFY_SHARE.name())) {
+			menuItemActions.add(buildMenuItemAction(FOLDER_MODIFY_SHARE.name(),
+					isMenuItemActionPossible(FOLDER_MODIFY_SHARE.name(), folder, user, params),
+					$("DisplayFolderView.modifyShareFolder"), FontAwesome.PAPER_PLANE_O, -1, 1000,
+					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).modifyShare(folder, params)));
+		}
+
+		if (!filteredActionTypes.contains(FOLDER_UNSHARE.name())) {
+			menuItemActions.add(buildMenuItemAction(FOLDER_UNSHARE.name(),
+					isMenuItemActionPossible(FOLDER_UNSHARE.name(), folder, user, params),
+					$("DisplayFolderView.unshareFolder"), null, -1, 1100,
+					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).unshare(folder, params)));
+		}
+
 		if (!filteredActionTypes.contains(FOLDER_ADD_TO_CART.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_TO_CART.name(),
 					isMenuItemActionPossible(FOLDER_ADD_TO_CART.name(), folder, user, params),
-					$("DisplayFolderView.addToCart"), FontAwesome.STAR, -1, 1000,
+					$("DisplayFolderView.addToCart"), FontAwesome.STAR, -1, 1200,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToCart(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_BORROW.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_BORROW.name(),
 					isMenuItemActionPossible(FOLDER_BORROW.name(), folder, user, params),
-					$("DisplayFolderView.borrow"), null, -1, 1100,
+					$("DisplayFolderView.borrow"), null, -1, 1300,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).borrow(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_RETURN.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_RETURN.name(),
 					isMenuItemActionPossible(FOLDER_RETURN.name(), folder, user, params),
-					$("DisplayFolderView.returnFolder"), null, -1, 1200,
+					$("DisplayFolderView.returnFolder"), null, -1, 1400,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).returnFolder(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_RETURN_REMAINDER.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_RETURN_REMAINDER.name(),
 					isMenuItemActionPossible(FOLDER_RETURN_REMAINDER.name(), folder, user, params),
-					$("DisplayFolderView.reminderReturnFolder"), null, -1, 1300,
+					$("DisplayFolderView.reminderReturnFolder"), null, -1, 1500,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_AVAILABLE_ALERT.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_AVAILABLE_ALERT.name(),
 					isMenuItemActionPossible(FOLDER_AVAILABLE_ALERT.name(), folder, user, params),
-					$("RMObject.alertWhenAvailable"), null, -1, 1400,
+					$("RMObject.alertWhenAvailable"), null, -1, 1600,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendAvailableAlert(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_PRINT_LABEL.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_PRINT_LABEL.name(),
 					isMenuItemActionPossible(FOLDER_PRINT_LABEL.name(), folder, user, params),
-					$("DisplayFolderView.printLabel"), FontAwesome.PRINT, -1, 1500,
+					$("DisplayFolderView.printLabel"), FontAwesome.PRINT, -1, 1700,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).printLabel(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_GENERATE_REPORT.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_GENERATE_REPORT.name(),
 					isMenuItemActionPossible(FOLDER_GENERATE_REPORT.name(), folder, user, params),
-					$("SearchView.metadataReportTitle"), null, -1, 1600,
+					$("SearchView.metadataReportTitle"), null, -1, 1800,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).generateReport(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_ADD_TO_SELECTION.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_TO_SELECTION.name(),
 					isMenuItemActionPossible(FOLDER_ADD_TO_SELECTION.name(), folder, user, params),
-					$("addToOrRemoveFromSelection.add"), SELECTION_ICON_RESOURCE, -1, 1700,
+					$("addToOrRemoveFromSelection.add"), SELECTION_ICON_RESOURCE, -1, 1900,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_REMOVE_FROM_SELECTION.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_REMOVE_FROM_SELECTION.name(),
 					isMenuItemActionPossible(FOLDER_REMOVE_FROM_SELECTION.name(), folder, user, params),
-					$("addToOrRemoveFromSelection.remove"), SELECTION_ICON_RESOURCE, -1, 1800,
+					$("addToOrRemoveFromSelection.remove"), SELECTION_ICON_RESOURCE, -1, 2000,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).removeFromSelection(folder, params)));
 		}
 
@@ -230,6 +246,10 @@ public class FolderMenuItemServices {
 				return folderRecordActionsServices.isAddAuthorizationActionPossible(record, user);
 			case FOLDER_SHARE:
 				return folderRecordActionsServices.isShareActionPossible(record, user);
+			case FOLDER_MODIFY_SHARE:
+				return folderRecordActionsServices.isModifyShareActionPossible(record, user);
+			case FOLDER_UNSHARE:
+				return folderRecordActionsServices.isUnshareActionPossible(record, user);
 			case FOLDER_ADD_TO_CART:
 				return folderRecordActionsServices.isAddToCartActionPossible(record, user);
 			case FOLDER_BORROW:
@@ -286,6 +306,8 @@ public class FolderMenuItemServices {
 		FOLDER_COPY,
 		FOLDER_ADD_AUTHORIZATION,
 		FOLDER_SHARE,
+		FOLDER_MODIFY_SHARE,
+		FOLDER_UNSHARE,
 		FOLDER_ADD_TO_CART,
 		FOLDER_BORROW,
 		FOLDER_RETURN,

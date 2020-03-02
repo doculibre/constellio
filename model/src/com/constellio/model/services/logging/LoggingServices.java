@@ -64,16 +64,16 @@ public class LoggingServices {
 			return;
 		}
 		RecordUpdateOptions recordUpdateOptions = transaction.getRecordUpdateOptions();
-		if(recordUpdateOptions != null && !recordUpdateOptions.isOverwriteModificationDateAndUser()) {
+		if (recordUpdateOptions != null && !recordUpdateOptions.isOverwriteModificationDateAndUser()) {
 			return;
 		}
 
 		Transaction eventsTransaction = new Transaction().setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(30));
 		for (Record record : transaction.getRecords()) {
-				Event event = eventFactory.logAddUpdateRecord(record, transaction.getUser());
-				if (event != null) {
-					eventsTransaction.addUpdate(event.getWrappedRecord());
-				}
+			Event event = eventFactory.logAddUpdateRecord(record, transaction.getUser());
+			if (event != null) {
+				eventsTransaction.addUpdate(event.getWrappedRecord());
+			}
 		}
 
 		try {
@@ -83,16 +83,18 @@ public class LoggingServices {
 		}
 	}
 
-	public void grantPermission(Authorization authorization, User user) {
+	public void grantPermission(Authorization authorization, User user, boolean isShared) {
 		Event event = eventFactory
-				.eventPermission(authorization, null, user, authorization.getTarget(), EventType.GRANT_PERMISSION);
+				.eventPermission(authorization, null, user, authorization.getTarget(),
+						isShared ? EventType.CREATE_SHARE : EventType.GRANT_PERMISSION);
 		executeTransaction(event);
 	}
 
 	public void modifyPermission(Authorization authorization, Authorization authorizationBefore, Record record,
-								 User user) {
+								 User user, boolean isShared) {
 		String recordId = record == null ? null : record.getId();
-		Event event = eventFactory.eventPermission(authorization, authorizationBefore, user, recordId, MODIFY_PERMISSION);
+		Event event = eventFactory.eventPermission(authorization, authorizationBefore, user, recordId,
+				isShared ? EventType.MODIFY_SHARE : MODIFY_PERMISSION);
 		executeTransaction(event);
 	}
 

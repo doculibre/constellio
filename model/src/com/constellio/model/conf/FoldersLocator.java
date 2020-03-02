@@ -32,7 +32,7 @@ public class FoldersLocator {
 		if (fullPath.contains("file:") && fullPath.contains("!")) {
 			String path = fullPath.split("!")[0];
 
-			if (path.contains("constellio-plugins/sdk")) {
+			if (path.contains("constellio-plugins" + File.separator + "sdk")) {
 				// is the plugin sdk test
 				path = path.split("file:")[0];
 

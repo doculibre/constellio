@@ -45,6 +45,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
 import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
@@ -102,6 +103,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -138,6 +140,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	//	private RecordVODataProvider documentsDataProvider;
 	private RecordVODataProvider tasksDataProvider;
 	private RecordVODataProvider eventsDataProvider;
+	private RecordVODataProvider sharesDataProvider;
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
 	private DocumentToVOBuilder documentVOBuilder;
@@ -184,6 +187,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private RecordVO returnRecordVO;
 	private Integer returnIndex;
 
+	private AuthorizationsServices authorizationsServices;
+
 	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		super(view, Folder.DEFAULT_SCHEMA);
 		this.nestedView = nestedView;
@@ -194,6 +199,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			this.taxonomyCode = recordVO.getId();
 			forParams(recordVO.getId());
 		}
+		this.authorizationsServices = new AuthorizationsServices(appLayerFactory.getModelLayerFactory());
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -267,12 +273,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				return getFolderContentQuery();
 			}
 		};
-		//		folderContentDataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory, view.getSessionContext()) {
-		//			@Override
-		//			public LogicalSearchQuery getQuery() {
-		//				return getFolderContentQuery();
-		//			}
-		//		};
+
+		sharesDataProvider = getSharedAuthDataProvider();
 
 		tasksSchemaVO = schemaVOBuilder
 				.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
@@ -295,6 +297,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		view.setFolderContent(folderContentDataProvider);
 		view.setTasks(tasksDataProvider);
+		view.setShares(sharesDataProvider);
 
 		if (hasCurrentUserPermissionToViewEvents()) {
 			eventsDataProvider = getEventsDataProvider();
@@ -415,6 +418,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		query.filteredByStatus(StatusFilter.ACTIVES);
 		query.filteredWithUser(getCurrentUser());
 		return query;
+	}
+
+	private LogicalSearchQuery getSharedAuthorizations() {
+
+		return authorizationsServices.getRecordSharedAuthorizationsQuery(collection, folderVO.getId());
 	}
 
 	public void selectInitialTabForUser() {
@@ -1106,6 +1114,23 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		};
 	}
 
+	public RecordVODataProvider getSharedAuthDataProvider() {
+		final MetadataSchemaVO authorizationVo = schemaVOBuilder
+				.build(authorizationsServices.getAuthorizationSchema(collection), VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(authorizationVo, new AuthorizationToVOBuilder(modelLayerFactory),
+				modelLayerFactory, view.getSessionContext()) {
+			@Override
+			public LogicalSearchQuery getQuery() {
+
+				return authorizationsServices.getRecordSharedAuthorizationsQuery(collection, folderVO.getId());
+			}
+		};
+	}
+
+	void sharesTabSelected() {
+		view.selectSharesTab();
+	}
+
 	protected boolean hasCurrentUserPermissionToViewEvents() {
 		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(toRecord(folderVO));
 	}
@@ -1405,6 +1430,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public RecordVO getReturnRecordVO() {
 		return returnRecordVO;
+	}
+
+	public void modifyShare(String id) {
+		navigate().to().modifyShare(id);
 	}
 
 }

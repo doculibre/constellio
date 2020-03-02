@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.base;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -25,6 +26,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -51,6 +53,7 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 
 public class SchemaPresenterUtils extends BasePresenterUtils {
 

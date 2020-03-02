@@ -17,6 +17,7 @@ public class Event extends RecordWrapper {
 	public static final String PERMISSION_DATE_RANGE = "permissionDateRange";
 	public static final String PERMISSION_ROLES = "permissionRoles";
 	public static final String PERMISSION_USERS = "permissionUsers";
+	public static final String SHARED_BY = "sharedBy";
 	public static final String REASON = "reason";
 	public static final String RECORD_VERSION = "recordVersion";
 	public static final String RECEIVER_NAME = "receiverName";
@@ -58,6 +59,15 @@ public class Event extends RecordWrapper {
 
 	public Event setPermissionRoles(String permissionRoles) {
 		set(PERMISSION_ROLES, permissionRoles);
+		return this;
+	}
+
+	public String getSharedBy() {
+		return get(SHARED_BY);
+	}
+
+	public Event setSharedBy(String sharedBy) {
+		set(SHARED_BY, sharedBy);
 		return this;
 	}
 

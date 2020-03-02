@@ -1,15 +1,10 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
@@ -18,10 +13,17 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 	private transient AuthorizationsServices authorizationsServices;
@@ -41,10 +43,20 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 	}
 
 	public void authorizationCreationRequested(AuthorizationVO authorizationVO) {
+		authorizationVO.setSharedBy(getCurrentUser().getId());
 		AuthorizationAddRequest authorization = toAuthorization(authorizationVO);
 		authorizationsServices().add(authorization, getCurrentUser());
 		modelLayerFactory.newLoggingServices().shareDocument(presenterService().getRecord(recordId), getCurrentUser());
 		view.showMessage($("ShareContentView.shared"));
+		view.returnFromPage();
+	}
+
+	public void authorizationModifyRequested(AuthorizationVO authorizationVO) {
+		authorizationVO.setSharedBy(getCurrentUser().getId());
+		AuthorizationModificationRequest authorization = toAuthorizationModify(authorizationVO);
+		authorizationsServices().execute(authorization);
+		modelLayerFactory.newLoggingServices().shareDocument(presenterService().getRecord(recordId), getCurrentUser());
+		view.showMessage($("ShareContentView.modifiedShare"));
 		view.returnFromPage();
 	}
 
@@ -93,8 +105,37 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 		principals.addAll(authorizationVO.getGroups());
 
 		return AuthorizationAddRequest.authorizationInCollection(collection).giving(roles)
-				.forPrincipalsIds(principals).on(authorizationVO.getRecord())
+				.forPrincipalsIds(principals).on(authorizationVO.getRecord()).sharedBy(authorizationVO.getSharedBy())
 				.startingOn(authorizationVO.getStartDate()).endingOn(authorizationVO.getEndDate());
+	}
+
+	private AuthorizationModificationRequest toAuthorizationModify(AuthorizationVO authorizationVO) {
+		Authorization details;
+
+		ArrayList<String> roles = new ArrayList<>();
+		roles.addAll(authorizationVO.getAccessRoles());
+
+		for (String roleCode : authorizationVO.getUserRoles()) {
+			roles.add(roleCode);
+		}
+
+		List<String> principals = new ArrayList<>();
+		principals.addAll(authorizationVO.getUsers());
+		principals.addAll(authorizationVO.getGroups());
+
+		return AuthorizationModificationRequest.modifyAuthorizationOnRecord(authorizationVO.getAuthId(), collection, authorizationVO.getRecord())
+				.withNewAccessAndRoles(roles)
+				.withNewPrincipalIds(principals)
+				.withNewStartDate(authorizationVO.getStartDate()).withNewEndDate(authorizationVO.getEndDate());
+	}
+
+	public AuthorizationVO getShareAuthorization(Record record) {
+		AuthorizationToVOBuilder builder = new AuthorizationToVOBuilder(this.modelLayerFactory);
+		Authorization auth = authorizationsServices().getRecordShareAuthorization(record, getCurrentUser());
+		if (auth != null) {
+			return builder.build(auth);
+		}
+		return null;
 	}
 
 	private AuthorizationsServices authorizationsServices() {

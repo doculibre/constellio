@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -59,6 +60,8 @@ public class Document extends RMObject {
 	public static final String SAME_SEMI_ACTIVE_FATE_AS_FOLDER = "sameSemiActiveFateAsFolder";
 	public static final String SAME_INACTIVE_FATE_AS_FOLDER = "sameInactiveFateAsFolder";
 	public static final String PUBLISHED = "published";
+	public static final String PUBLISHED_START_DATE = "publishingStartDate";
+	public static final String PUBLISHED_EXPIRATION_DATE = "publishingExpirationDate";
 	public static final String CREATED_BY_ROBOT = "createdByRobot";
 	public static final String VERSION = "version";
 	public static final String ESSENTIAL = "essential";
@@ -344,6 +347,24 @@ public class Document extends RMObject {
 		return BooleanUtils.isTrue((Boolean) get(PUBLISHED));
 	}
 
+	public LocalDate getPublishingStartDate() {
+		return get(PUBLISHED_START_DATE);
+	}
+
+	public Document setPublishingStartDate(LocalDate publishingStartDate) {
+		set(PUBLISHED_START_DATE, publishingStartDate);
+		return this;
+	}
+
+	public LocalDate getPublishingEndDate() {
+		return get(PUBLISHED_EXPIRATION_DATE);
+	}
+
+	public Document setPublishingEndDate(LocalDate publishingEndDate) {
+		set(PUBLISHED_EXPIRATION_DATE, publishingEndDate);
+		return this;
+	}
+
 	public Document setModel(boolean model) {
 		set(IS_MODEL, model ? true : null);
 		return this;
@@ -417,5 +438,26 @@ public class Document extends RMObject {
 		favorites.addAll(getFavorites());
 		favorites.removeAll(favoritesToDelete);
 		set(FAVORITES, favorites);
+	}
+
+	public boolean isActiveAuthorization() {
+		return isActivePublishingAtDate(TimeProvider.getLocalDate());
+	}
+
+	public boolean isActivePublishingAtDate(LocalDate date) {
+		LocalDate startDate = getPublishingStartDate();
+		LocalDate endDate = getPublishingEndDate();
+		if (startDate != null && endDate == null) {
+			return !startDate.isAfter(date);
+
+		} else if (startDate == null && endDate != null) {
+			return !endDate.isBefore(date);
+
+		} else if (startDate != null && endDate != null) {
+			return !startDate.isAfter(date) && !endDate.isBefore(date);
+
+		} else {
+			return true;
+		}
 	}
 }

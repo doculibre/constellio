@@ -20,6 +20,10 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void setTasks(RecordVODataProvider dataProvider);
 
+	void setShares(RecordVODataProvider dataProvider);
+
+	void selectSharesTab();
+
 	void selectMetadataTab();
 
 	void selectFolderContentTab();

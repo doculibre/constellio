@@ -65,6 +65,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	private boolean editDocumentButtonVisible;
 	private boolean deleteDocumentButtonVisible;
 	private boolean addAuthorizationButtonVisible;
+	private boolean unshareDocumentButtonVisible;
 	private boolean shareDocumentButtonVisible;
 	private boolean createPDFAButtonVisible;
 	private boolean uploadButtonVisible;
@@ -224,11 +225,26 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 
 		if (shareDocumentButtonVisible) {
 			MenuItem shareDocumentItem = rootItem
-					.addItem($("DocumentContextMenu.shareDocument"), FontAwesome.PAPER_PLANE_O, null);
+					.addItem($("DocumentContextMenu.shareDocument"), FontAwesome.SHARE, null);
 			shareDocumentItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
 					presenter.shareDocumentButtonClicked();
+				}
+			});
+		}
+
+		if (unshareDocumentButtonVisible) {
+			MenuItem deleteDocumentItem = rootItem.addItem($("DocumentContextMenu.deleteDocument"), FontAwesome.REPLY, null);
+			deleteDocumentItem.setCommand(new ConfirmDialogMenuBarItemCommand(DialogMode.WARNING) {
+				@Override
+				protected String getConfirmDialogMessage() {
+					return $("ConfirmDialog.confirmUnshare");
+				}
+
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					presenter.unshareDocumentButtonClicked(ParamUtils.getCurrentParams());
 				}
 			});
 		}
@@ -423,6 +439,11 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	@Override
 	public void setViewAuthorizationButtonState(ComponentState state) {
 		addAuthorizationButtonVisible = state.isEnabled();
+	}
+
+	@Override
+	public void setUnshareDocumentButtonState(ComponentState state){
+		unshareDocumentButtonVisible =state.isEnabled();
 	}
 
 	@Override

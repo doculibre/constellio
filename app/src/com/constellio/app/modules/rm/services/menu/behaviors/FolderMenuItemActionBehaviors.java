@@ -53,15 +53,19 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -69,6 +73,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
@@ -98,10 +103,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.framework.components.ErrorDisplayUtil.showErrorMessage;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -480,6 +487,74 @@ public class FolderMenuItemActionBehaviors {
 			}
 		};
 		shareFolderButton.click();
+	}
+
+	public void modifyShare(Folder folder, MenuItemActionBehaviorParams params) {
+		Button shareFolderButton = new LinkButton($("DisplayFolderView.modifyShareFolder")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				if (!folderRecordActionsServices.isShareActionPossible(folder.getWrappedRecord(), params.getUser())) {
+					return;
+				}
+				params.getView().navigate().to().shareContent(folder.getId());
+			}
+		};
+		shareFolderButton.click();
+	}
+
+	public void unshare(Folder folder, MenuItemActionBehaviorParams params) {
+		Button unshareDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ConfirmDialog.confirmUnshare");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				unshareFolderButtonClicked(ParamUtils.getCurrentParams(),folder, params.getUser());
+			}
+		};
+
+		unshareDocumentButton.click();
+	}
+
+	public void unshareFolderButtonClicked(Map<String, String> params, Folder folder, User user) {
+
+		Authorization authorization = rm.getSolrAuthorizationDetails(user, folder.getId());
+		try {
+			rm.getModelLayerFactory()
+					.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+
+			return;
+		}
+	}
+
+	private AuthorizationDeleteRequest toAuthorizationDeleteRequest(Authorization authorization, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationDeleteRequest request = AuthorizationDeleteRequest.authorizationDeleteRequest(authId, user.getCollection());
+
+		return request;
+
+	}
+
+	private AuthorizationModificationRequest toAuthorizationModificationRequest(Authorization authorization,
+																				String recordId, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationModificationRequest request = modifyAuthorizationOnRecord(authId, user.getCollection(), recordId);
+		request = request.withNewAccessAndRoles(authorization.getRoles());
+		request = request.withNewStartDate(authorization.getStartDate());
+		request = request.withNewEndDate(authorization.getEndDate());
+
+		List<String> principals = new ArrayList<>();
+		principals.addAll(authorization.getPrincipals());
+		request = request.withNewPrincipalIds(principals);
+		request = request.setExecutedBy(user);
+
+		return request;
+
 	}
 
 	public void addToCart(Folder folder, MenuItemActionBehaviorParams params) {

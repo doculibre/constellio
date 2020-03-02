@@ -180,6 +180,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.PERMISSION_MANAGEMENT);
 	}
 
+	public void shareManagement(){
+		navigator.navigateTo(NavigatorConfigurationService.SHARE_MANAGEMENT);
+	}
+
 	public void listValueDomains() {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_VALUE_DOMAINS);
 	}
@@ -339,6 +343,18 @@ public class CoreViews {
 
 	public void shareContent(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.SHARE_CONTENT + "/" + entityId);
+	}
+
+	public void modifyShare(String entityId) {
+		navigator.navigateTo(NavigatorConfigurationService.MODIFY_SHARE + "/" + entityId);
+	}
+
+	public void publishDocument(String entityId) {
+		navigator.navigateTo(NavigatorConfigurationService.PUBLISH_DOCUMENT + "/" + entityId);
+	}
+
+	public void unshareContent(String entityId) {
+		navigator.navigateTo(NavigatorConfigurationService.UNSHARE_CONTENT + "/" + entityId);
 	}
 
 	public void editElevation() {

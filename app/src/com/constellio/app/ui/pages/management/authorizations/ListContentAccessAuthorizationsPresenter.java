@@ -117,4 +117,9 @@ public class ListContentAccessAuthorizationsPresenter extends ListAuthorizations
 	public boolean seeAccessField() {
 		return true;
 	}
+
+	@Override
+	public boolean seeSharedBy(){
+		return false;
+	}
 }

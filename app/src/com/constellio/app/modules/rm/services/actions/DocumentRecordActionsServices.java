@@ -14,6 +14,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.security.AuthorizationsServices;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class DocumentRecordActionsServices {
 
 	private RMSchemasRecordsServices rm;
 	private RMModuleExtensions rmModuleExtensions;
+	private AuthorizationsServices authorizationService;
 	private String collection;
 	private RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions modelLayerCollectionExtensions;
@@ -29,6 +31,7 @@ public class DocumentRecordActionsServices {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		this.authorizationService = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 		this.modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
@@ -101,6 +104,7 @@ public class DocumentRecordActionsServices {
 		return user.has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
 					   .on(record) && rmModuleExtensions.isPublishActionPossibleOnDocument(document, user) &&
 			   !record.isLogicallyDeleted() &&
+			   document.hasContent() &&
 			   !document.isPublished();
 	}
 
@@ -298,6 +302,15 @@ public class DocumentRecordActionsServices {
 			   rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
+	public boolean isModifyShareActionPossible(Record record, User user) {
+		return false;
+	}
+
+	public boolean isUnshareActionPossible(Record record, User user) {
+		return user.has(RMPermissionsTo.SHARE_DOCUMENT).on(record) &&
+			   !record.isLogicallyDeleted() && authorizationService.itemIsSharedByUser(record, user) &&
+			   rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
 
 	public boolean isManageAuthorizationActionPossible(Record record, User user) {
 		return user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) &&

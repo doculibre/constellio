@@ -2,22 +2,34 @@ package com.constellio.model.services.security;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.modules.EmailTemplateConstants;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
+import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.entities.security.global.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -31,8 +43,10 @@ import com.constellio.model.services.security.AuthorizationsServicesRuntimeExcep
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +58,10 @@ import static com.constellio.model.entities.schemas.Schemas.*;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.records.RecordUtils.unwrap;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 
@@ -86,6 +104,26 @@ public class AuthorizationsServices {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(id);
 		}
 		return authDetails;
+	}
+
+	public Authorization getAuthorization(User user, String recordId) {
+		if (user == null) {
+			throw new IllegalArgumentException("user is null");
+		}
+		if (recordId == null) {
+			throw new IllegalArgumentException("record id is null");
+		}
+		Authorization authDetails = getDetails(user, recordId);
+
+		return authDetails;
+	}
+
+	public MetadataSchema getAuthorizationSchema(String collection) {
+		return getTypes(collection).getSchema(Authorization.DEFAULT_SCHEMA);
+	}
+
+	public MetadataSchemaTypes getTypes(String collection) {
+		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 	}
 
 	public List<User> getUsersWithGlobalPermissionInCollection(String permission, String collection) {
@@ -211,6 +249,7 @@ public class AuthorizationsServices {
 
 	}
 
+
 	public List<User> getUsersWithRoleForRecord(String role, Record record) {
 		List<User> users = new ArrayList<>();
 		List<Authorization> recordAuths = getRecordAuthorizations(record);
@@ -281,7 +320,8 @@ public class AuthorizationsServices {
 				request.getStart(), request.getEnd(), request.isOverridingInheritedAuths(), request.isNegative())
 				.setTarget(request.getTarget()).setTargetSchemaType(record.getTypeCode());
 		details.setPrincipals(principalToRecordIds(schemas(record.getCollection()), request.getPrincipals()));
-		return add(details, request.getExecutedBy());
+		details.setSharedBy(request.getSharedBy());
+		return add(details, request.getCollection(), request.getExecutedBy());
 	}
 
 	public String add(AuthorizationAddRequest request, User userAddingTheAuth) {
@@ -295,7 +335,7 @@ public class AuthorizationsServices {
 	 * @param userAddingTheAuth
 	 * @return The new authorization's id
 	 */
-	private String add(Authorization authorization, User userAddingTheAuth) {
+	private String add(Authorization authorization, String collection, User userAddingTheAuth) {
 
 		AuthTransaction transaction = new AuthTransaction();
 
@@ -320,9 +360,13 @@ public class AuthorizationsServices {
 		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
 
 		if (userAddingTheAuth != null) {
-			loggingServices.grantPermission(authorization, userAddingTheAuth);
+			loggingServices.grantPermission(authorization, userAddingTheAuth, authorization.getSharedBy() != null);
 		}
 
+		if (authorization.getSharedBy() != null && authorization.getSharedBy() != "") {
+			alertUsers(collection, authorizationDetail.getTargetSchemaType(), record, LocalDate.now(), authorization.getStartDate(),
+					authorization.getEndDate(), authorization.getSharedBy(), authorization.getPrincipals());
+		}
 		return authId;
 	}
 
@@ -463,6 +507,33 @@ public class AuthorizationsServices {
 		}
 	}
 
+	private Authorization getDetails(User user, String recordId) {
+		try {
+			String userId = user.getId();
+
+			SchemasRecordsServices schemas = schemas(user.getCollection());
+
+			Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+			Metadata principalMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.PRINCIPALS);
+			Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+
+			LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+					.whereAllConditions(anyConditions(where(sharedByMeta).isEqualTo(user.getId()),
+							where(principalMeta).isContainingText(user.getId())), where(targetMeta).isEqualTo(recordId));
+
+
+			List<Record> records = searchServices.search(new LogicalSearchQuery(condition));
+
+			if (records.size() > 0) {
+				return schemas(user.getCollection()).wrapSolrAuthorizationDetails(records.get(0));
+			} else {
+				return null;
+			}
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			throw new NoSuchAuthorizationWithId(recordId);
+		}
+	}
+
 	private void remove(Authorization details) {
 		Record record = ((Authorization) details).getWrappedRecord();
 		recordServices.logicallyDelete(record, User.GOD);
@@ -494,7 +565,8 @@ public class AuthorizationsServices {
 			}
 
 			try {
-				loggingServices.modifyPermission(authorizationBefore, authorizationAfter, record, request.getExecutedBy());
+				loggingServices.modifyPermission(authorizationBefore, authorizationAfter, record, request.getExecutedBy(),
+						authorization.getSharedBy() != null);
 			} catch (NoSuchAuthorizationWithId e) {
 				//No problemo
 			}
@@ -615,6 +687,26 @@ public class AuthorizationsServices {
 		}
 	}
 
+	public List<Authorization> getRecordsAuthorizations(List<Record> records) {
+
+		List<Authorization> authorizations = new ArrayList<>();
+		for (Record record : records) {
+			authorizations.addAll(getRecordAuthorizations(record));
+		}
+		return authorizations;
+	}
+
+	public LogicalSearchQuery getRecordSharedAuthorizationsQuery(String collection, String recordId) {
+
+		SchemasRecordsServices schemas = schemas(collection);
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+				.where(sharedByMeta).isNotNull().andWhere(targetMeta).isEqualTo(recordId);
+
+		return new LogicalSearchQuery(condition);
+	}
+
 	/**
 	 * Return all authorizations targetting a given Record, which may be a user or securised Record.
 	 * Authorizations may be inherited or assigned directly to the record
@@ -649,7 +741,6 @@ public class AuthorizationsServices {
 					ids.add(authorization.getDetails().getId());
 				}
 			}
-
 
 		} else if (Group.DEFAULT_SCHEMA.equals(record.getSchemaCode())) {
 			List<String> authIds = new ArrayList<>(getAuthsReceivedBy(schemas.wrapGroup(record), schemas));
@@ -688,6 +779,86 @@ public class AuthorizationsServices {
 
 		}
 
+
+		return authorizations;
+	}
+
+	public boolean itemIsSharedByUser(Record record, User user) {
+		String userId = user.getId();
+
+		SchemasRecordsServices schemas = schemas(user.getCollection());
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+				.where(sharedByMeta).isEqualTo(userId).andWhere(targetMeta).isEqualTo(record.getId());
+
+		List<Record> recordExist = searchServices.search(new LogicalSearchQuery(condition));
+
+		return recordExist != null && recordExist.size() > 0;
+	}
+
+	public Authorization getRecordShareAuthorization(Record record, User user) {
+		String userId = user.getId();
+
+		SchemasRecordsServices schemas = schemas(user.getCollection());
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+				.where(sharedByMeta).isEqualTo(userId).andWhere(targetMeta).isEqualTo(record.getId());
+
+		List<Record> records = searchServices.search(new LogicalSearchQuery(condition));
+
+		if (records.size() > 0) {
+			Authorization authorization = schemas.wrapSolrAuthorizationDetails(records.get(0));
+			return authorization;
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Return all records a user authorized as shared.
+	 * Authorizations may be inherited or assigned directly to the record
+	 *
+	 * @param user User sharing
+	 * @return Records
+	 */
+	public List<Authorization> getAllAuthorizationUserShared(User user) {
+		String userId = user.getId();
+
+		SchemasRecordsServices schemas = schemas(user.getCollection());
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+				.where(sharedByMeta).isEqualTo(userId);
+
+		List<Record> recordsSharedByUser = searchServices.search(new LogicalSearchQuery(condition));
+		List<Authorization> authorizations = schemas.wrapSolrAuthorizationDetailss(recordsSharedByUser);
+
+		return authorizations;
+	}
+
+	/**
+	 * Return all records a user authorized was shared to him.
+	 * Authorizations may be inherited or assigned directly to the record
+	 *
+	 * @param user User sharing
+	 * @return Records
+	 */
+	public List<Authorization> getAllUserSharedRecords(User user) {
+		String userId = user.getId();
+
+		SchemasRecordsServices schemas = schemas(user.getCollection());
+
+		Metadata principalsMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.PRINCIPALS);
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+				.where(principalsMeta).isContainingText(userId).andWhere(sharedByMeta).isNotNull();
+
+
+		List<Record> recordsSharedToUser = searchServices.search(new LogicalSearchQuery(condition));
+
+
+		List<Authorization> authorizations = schemas.wrapSolrAuthorizationDetailss(recordsSharedToUser);
 
 		return authorizations;
 	}
@@ -1051,4 +1222,90 @@ public class AuthorizationsServices {
 		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate).setOverrideInherited(overrideInherited).setNegative(negative);
 	}
 
+	private void alertUsers(String collection, String schemaType, Record record, LocalDate sharedDate,
+							LocalDate startDate,
+							LocalDate expirationDate, String sharedBy, List<String> recipientUser) {
+
+		User sharer = schemas(collection).getUser(sharedBy);
+		List<User> sendTo = new ArrayList<>();
+		for (String recipient : recipientUser) {
+			try {
+				User user = schemas(collection).getUser(recipient);
+				sendTo.add(user);
+			} catch (RecordWrapperRuntimeException.WrappedRecordMustMeetRequirements ex) {
+				Group group = schemas(collection).getGroup(recipient);
+				sendTo.addAll(schemas(collection).getAllUsersInGroup(group, true, true));
+			}
+		}
+		alertUsers(collection, schemaType, record, sharedDate, startDate, expirationDate, sharer, sendTo);
+	}
+
+	private void alertUsers(String collection, String schemaType, Record record, LocalDate sharedDate,
+							LocalDate startDate,
+							LocalDate expirationDate, User sharedBy, List<User> recipientUser) {
+
+		try {
+			String displayURL = schemaType.equals("folder") ? "displayFolder" : "displayDocument";
+			String subject = record.getTitle();
+			List<String> parameters = new ArrayList<>();
+			Transaction transaction = new Transaction();
+			EmailToSend emailToSend = newEmailToSend(collection);
+			List<EmailAddress> toAddresses = new ArrayList<>();
+			for (User user : recipientUser) {
+				EmailAddress toAddress = new EmailAddress();
+
+				toAddress = new EmailAddress(user.getTitle(), user.getEmail());
+				parameters.add("recipientUser" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(user.getFirstName() + " " + user.getLastName() +
+																												 " (" + user.getUsername() + ")"));
+				parameters.add("sharedDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(sharedDate));
+				parameters.add("startDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(startDate));
+				parameters.add("endDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(expirationDate));
+				toAddresses.add(toAddress);
+			}
+
+			LocalDateTime sendDate = TimeProvider.getLocalDateTime();
+			emailToSend.setTemplate(EmailTemplateConstants.ALERT_SHARE);
+			emailToSend.setTo(toAddresses);
+			emailToSend.setSendOn(sendDate);
+			emailToSend.setSubject(subject);
+			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
+			String recordTitle = record.getTitle();
+			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle) + " (" + record.getId() + ")");
+
+			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(sharedBy.getFirstName() + " " + sharedBy.getLastName() +
+																										   " (" + sharedBy.getUsername() + ")"));
+			String constellioUrl = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).getConstellioUrl();
+			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record
+					.getId());
+			Map<Language, String> labels = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(schemaType)
+					.getLabels();
+			for (Map.Entry<Language, String> label : labels.entrySet()) {
+				parameters.add("recordType" + "_" + label.getKey().getCode() + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(label.getValue().toLowerCase()));
+			}
+
+			emailToSend.setParameters(parameters);
+			transaction.add(emailToSend);
+
+			recordServices.execute(transaction);
+
+		} catch (RecordServicesException e) {
+			LOGGER.error("Cannot alert user", e);
+		}
+
+	}
+
+	private String formatDateToParameter(LocalDate date) {
+		if (date == null) {
+			return "";
+		}
+		return date.toString("yyyy-MM-dd");
+	}
+
+	private EmailToSend newEmailToSend(String collection) {
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
+		MetadataSchema schema = types.getSchemaType(EmailToSend.SCHEMA_TYPE).getDefaultSchema();
+		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
+		return new EmailToSend(emailToSendRecord, types);
+	}
 }
