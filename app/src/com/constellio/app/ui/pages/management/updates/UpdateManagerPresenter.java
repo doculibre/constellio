@@ -11,10 +11,8 @@ import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
-import com.constellio.app.ui.framework.components.ErrorDisplayUtil;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.CorePermissions;
@@ -23,7 +21,6 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexationParams;
@@ -38,6 +35,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
 
 import static com.constellio.app.services.migrations.VersionsComparator.isFirstVersionBeforeSecond;
 import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_SPACE;
@@ -50,6 +48,9 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	private SystemInformationsService systemInformationsService = new SystemInformationsService();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateManagerPresenter.class);
+
+	private static final String SYSTEM_LOG_FILE_NAME = "system.log";
+	private static final String FILE_NAME_PARAMETER_KEY = "fileName";
 
 
 	public UpdateManagerPresenter(UpdateManagerView view) {
@@ -175,7 +176,16 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public void restartAndReindex(boolean repopulate) {
-		doDeleteLogIfExists(modelLayerFactory);
+		File systemLogFile = getSystemLogFile();
+
+		if (systemLogFile.exists()) {
+			if (!FileUtils.deleteQuietly(systemLogFile)) {
+				view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotDeleted"));
+			}
+		} else {
+			HashMap<String, Object> fileNameParameters = buildSingleValueParameters(FILE_NAME_PARAMETER_KEY, SYSTEM_LOG_FILE_NAME);
+			view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotFound", fileNameParameters));
+		}
 
 		FoldersLocator foldersLocator = new FoldersLocator();
 		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
@@ -247,27 +257,27 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		view.navigate().to().serviceMonitoring();
 	}
 
-	private void doDeleteLogIfExists(ModelLayerFactory modelLayerFactory) {
+	private File getSystemLogFile() {
+		File systemLogFile = null;
+
 		File logsFolder = new File(modelLayerFactory.getFoldersLocator().getWrapperInstallationFolder(), "logs");
 		if (logsFolder.exists()) {
-			File systemLogFile = new File(logsFolder, "system.log");
-			if (systemLogFile.exists()) {
-				SystemLogger.info("|D| Reached deleteQuietly");
-				if (!FileUtils.deleteQuietly(systemLogFile)) {
-					SystemLogger.error("|D| deleteQuietly returned false, didn't succeed");
-				}
-				SystemLogger.info("|D| deleteQuietly passed");
-				if (systemLogFile.exists()) {
-					SystemLogger.error("|D| systemLogFile still exists after deleteQuietly");
-				}
+			File tempFile = new File(logsFolder, SYSTEM_LOG_FILE_NAME);
+			if (tempFile.exists()) {
+				systemLogFile = tempFile;
 			} else {
-				SystemLogger.error("|D| systemLogFile not found");
-				ErrorDisplayUtil.showErrorMessage("systemLogFile not found");
+				HashMap<String, Object> i18nParameters = buildSingleValueParameters(FILE_NAME_PARAMETER_KEY, SYSTEM_LOG_FILE_NAME);
+				view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotFound", i18nParameters));
 			}
-		} else {
-			SystemLogger.error("|D| logsFolder not found");
-			ErrorDisplayUtil.showErrorMessage("logsFolder not found");
 		}
+
+		return systemLogFile;
+	}
+
+	private HashMap<String, Object> buildSingleValueParameters(String key, Object value) {
+		HashMap<String, Object> parameters = new HashMap<>();
+		parameters.put(key, value);
+		return parameters;
 	}
 
 

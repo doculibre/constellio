@@ -6,7 +6,6 @@ import com.constellio.app.services.appManagement.AppManagementService.LicenseInf
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.systemInformations.SystemInformationsService;
-import com.constellio.app.ui.framework.components.ErrorDisplayUtil;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
@@ -16,11 +15,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,7 +45,10 @@ public class SystemInfo {
 	private static final String PRIVATE_REPOSITORY_IS_NOT_INSTALLED = "privateRepositoryIsNotInstalled";
 	private static final String SYSTEM_ERROR_WARNING = "systemErrorWarning";
 	private static final String SYSTEM_ERROR_ERROR = "systemErrorError";
-
+	private static final String FILE_READING_FAILED = "fileReadingFailed";
+	private static final String FILE_NOT_FOUND = "fileNotFound";
+	private static final String SYSTEM_LOG_FILE_NAME = "system.log";
+	private static final String fileNameParameterKey = "fileName";
 	private static SystemInfo instance;
 
 	LocalDateTime lastTimeUpdated;
@@ -227,42 +229,48 @@ public class SystemInfo {
 
 	private void validateSystemErrors() {
 
-		if (isLogContainingSystemErrorOrWarning("ERROR")) {
-			validationErrors.addWarning(SystemInfo.class, SYSTEM_ERROR_ERROR);
+		if (isLogContainingSystemError("ERROR")) {
+			validationErrors.add(SystemInfo.class, SYSTEM_ERROR_ERROR);
 		}
-		if (isLogContainingSystemErrorOrWarning("WARN")) {
-			validationErrors.addWarning(SystemInfo.class, SYSTEM_ERROR_WARNING);
+		if (isLogContainingSystemError("WARN")) {
+			validationErrors.add(SystemInfo.class, SYSTEM_ERROR_WARNING);
 		}
 	}
 
-	private boolean isLogContainingSystemErrorOrWarning(String errorType) {
-		boolean isLogContainingSystemErrorOrWarning = false;
+	private boolean isLogContainingSystemError(String errorType) {
+
+		boolean isLogContainingSystemError = false;
 
 		File systemLogFile = getSystemLogFile();
 		if (systemLogFile.exists()) {
+			Path path = Paths.get(systemLogFile.getPath());
 			try {
-				BufferedReader br = new BufferedReader(new FileReader(systemLogFile));
-
-				isLogContainingSystemErrorOrWarning = br.lines().anyMatch(line -> line.split(" ")[2].equals(errorType));
-			} catch (FileNotFoundException e) {
-				ErrorDisplayUtil.showErrorMessage("Buffered Reader for systemLog failed");
+				isLogContainingSystemError = Files.lines(path).anyMatch(line -> line.contains(errorType));
+			} catch (IOException e) {
+				HashMap<String, Object> i18nParameters = buildSingleValueParameters(fileNameParameterKey, SYSTEM_LOG_FILE_NAME);
+				validationErrors.addWarning(SystemInfo.class, FILE_READING_FAILED, i18nParameters);
 				e.printStackTrace();
 			}
 		} else {
-			ErrorDisplayUtil.showErrorMessage("System Log File not found");
+			HashMap<String, Object> i18nParameters = buildSingleValueParameters(fileNameParameterKey, SYSTEM_LOG_FILE_NAME);
+			validationErrors.addWarning(SystemInfo.class, FILE_NOT_FOUND, i18nParameters);
 		}
 
-		return isLogContainingSystemErrorOrWarning;
+		return isLogContainingSystemError;
 	}
 
 	private File getSystemLogFile() {
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		File systemLogFile = null;
-		File logsFolder = new File(appLayerFactory.getModelLayerFactory().getFoldersLocator().getWrapperInstallationFolder(), "logs");
+
+		File logsFolder = new File(appLayerFactory.getModelLayerFactory().getFoldersLocator().getWrapperInstallationFolder(),
+				"logs");
+
 		if (logsFolder.exists()) {
-			systemLogFile = new File(logsFolder, "system.log");
+			systemLogFile = new File(logsFolder, SYSTEM_LOG_FILE_NAME);
 		} else {
-			ErrorDisplayUtil.showErrorMessage("logsFolder not found");
+			HashMap<String, Object> i18nParameters = buildSingleValueParameters(fileNameParameterKey, "logsFolder");
+			validationErrors.addWarning(SystemInfo.class, FILE_NOT_FOUND, i18nParameters);
 		}
 
 		return systemLogFile;
