@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.contentOf;
 
@@ -148,8 +148,8 @@ public class RecordIdListBasedOnIncludeExcludeMetadatasBuilderAcceptanceTest ext
 		createSIPExportMetadatas();
 
 		Transaction tx = new Transaction();
-		tx.add(records.getFolder_A01().set(INCLUDED_IN_SIP_EXPORT_METADATA, true));
-		tx.add(records.getFolder_A04().set(INCLUDED_IN_SIP_EXPORT_METADATA, true));
+		tx.add((Folder) records.getFolder_A01().set(INCLUDED_IN_SIP_EXPORT_METADATA, true));
+		tx.add((Folder) records.getFolder_A04().set(INCLUDED_IN_SIP_EXPORT_METADATA, true));
 		rm.executeTransaction(tx);
 
 		SearchServices searchServices = getAppLayerFactory().getModelLayerFactory().newSearchServices();
