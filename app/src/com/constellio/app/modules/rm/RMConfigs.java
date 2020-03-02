@@ -4,11 +4,7 @@ import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsMan
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableTypeRestrictionInFolderScript;
-import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
-import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
 import com.constellio.app.modules.rm.wrappers.RMDecommissioningTypeRequiredScript;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -91,7 +87,6 @@ public class RMConfigs {
 			DOCUMENT_SUMMARY_CACHE_ENABLED,
 			IGNORE_VALIDATIONS_IN_BATCH_PROCESSING,
 			ENABLE_TYPE_RESTRICTION_IN_FOLDER;
-
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
 
@@ -342,6 +337,7 @@ public class RMConfigs {
 				.whichIsHidden().scriptedBy(RMDocumentSummaryCacheEnabledScript.class));
 
 	}
+
 
 	static void add(SystemConfiguration configuration) {
 		configurations.add(configuration);
