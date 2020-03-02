@@ -59,7 +59,7 @@ import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class HomeViewImpl extends BaseViewImpl implements HomeView {
+public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefresh {
 
 	private final HomePresenter presenter;
 	private List<PageItem> tabs;
@@ -132,6 +132,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			return;
 		}
 
+
 		int position = tabSheet.getTabPosition(tab);
 		PageItem item = tabs.get(position);
 
@@ -139,6 +140,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		tabSheet.setSelectedTab(position);
 
 		PlaceHolder tabComponent = (PlaceHolder) tab.getComponent();
+
+		if (presenter.isRefreshable(item.getCode())) {
+			tabComponent.setCompositionRoot(null);
+		}
+
 		if (tabComponent.getComponentCount() == 0) {
 			tabComponent.setCompositionRoot(buildComponentFor(tab));
 		}
@@ -175,6 +181,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		return buildTable(dataProvider);
 	}
+
 
 	private Component buildTable(RecordVODataProvider dataProvider) {
 		final ViewableRecordVOTablePanel table = new ViewableRecordItemTablePanel(dataProvider);
@@ -287,6 +294,31 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	public void removeContextMenuDecorator(ContextMenuDecorator decorator) {
 		this.contextMenuDecorators.remove(decorator);
+	}
+
+	@Override
+	public void doPartialRefresh() {
+		if (presenter.isRefreshable(getSelectedTabCode())) {
+			Component component = tabSheet.getSelectedTab();
+
+			tabSheet.getTab(tabSheet.getSelectedTab());
+
+			if (component instanceof PlaceHolder) {
+				PlaceHolder placeHolder = (PlaceHolder) component;
+				placeHolder.setHeightUndefined();
+
+				Component compositionRoot = placeHolder.getCompositionRoot();
+				compositionRoot.setHeightUndefined();
+				if (compositionRoot instanceof ViewableRecordItemTablePanel) {
+					ViewableRecordItemTablePanel tablePanel = (ViewableRecordItemTablePanel) compositionRoot;
+
+					tablePanel.setHeightUndefined();
+
+					RecordVOLazyContainer recordVOLazyContainer = (RecordVOLazyContainer) tablePanel.getRecordVOContainer();
+					recordVOLazyContainer.forceRefresh();
+				}
+			}
+		}
 	}
 
 	private static class PlaceHolder extends CustomComponent {

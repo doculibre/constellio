@@ -58,7 +58,7 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 	public MenuBar get(RecordVO recordVO) {
 		String schemaTypeCode = recordVO.getSchema().getTypeCode();
 		if (Document.SCHEMA_TYPE.equals(schemaTypeCode) || Folder.SCHEMA_TYPE.equals(schemaTypeCode) || ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			return new RecordVOMenuBar(recordVO, Collections.emptyList());
+			return new RecordVOMenuBar(recordVO, Collections.emptyList(), appLayerFactory);
 		} else {
 			return null;
 		}
