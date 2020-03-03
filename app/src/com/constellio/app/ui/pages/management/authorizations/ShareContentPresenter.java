@@ -6,6 +6,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.util.AuthorisationAppException;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -17,6 +18,7 @@ import com.constellio.model.entities.security.global.AuthorizationModificationRe
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 import java.util.ArrayList;
@@ -45,7 +47,17 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 	public void authorizationCreationRequested(AuthorizationVO authorizationVO) {
 		authorizationVO.setSharedBy(getCurrentUser().getId());
 		AuthorizationAddRequest authorization = toAuthorization(authorizationVO);
-		authorizationsServices().add(authorization, getCurrentUser());
+		try {
+			authorizationsServices().add(authorization, getCurrentUser());
+		} catch (AuthorizationsServicesRuntimeException e) {
+			if (e instanceof AuthorizationsServicesRuntimeException.StartDateGreaterThanEndDate) {
+				throw new AuthorisationAppException.StartDateGreaterThanEndDate(authorizationVO.getStartDate(), authorizationVO.getEndDate());
+			} else if (e instanceof AuthorizationsServicesRuntimeException.EndDateLessThanCurrentDate) {
+				throw new AuthorisationAppException.EndDateLessThanCurrentDate(authorizationVO.getEndDate().toString());
+			} else {
+				throw e;
+			}
+		}
 		modelLayerFactory.newLoggingServices().shareDocument(presenterService().getRecord(recordId), getCurrentUser());
 		view.showMessage($("ShareContentView.shared"));
 		view.returnFromPage();
