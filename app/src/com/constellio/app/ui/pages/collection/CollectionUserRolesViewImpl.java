@@ -122,7 +122,9 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 			availableRolesField.setItemCaption(role.getCode(), role.getTitle());
 		}
 
-		layout = new VerticalLayout(inheritedRolesTable, specificRolesTable);
+		//TODO Vincent fix me with CSS
+		Label emptyRow = new Label("");
+		layout = new VerticalLayout(emptyRow, inheritedRolesTable, specificRolesTable);
 		layout.setSpacing(true);
 
 		return layout;
