@@ -4,6 +4,8 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.exports.RetentionRuleXMLExporterRuntimeException.RetentionRuleXMLExporterRuntimeException_InvalidFile;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -41,7 +43,13 @@ public class RetentionRuleXMLExporterAcceptanceTest extends ConstellioTest {
 		rule1.setConfidentialDocuments(true);
 
 		transaction.add(rule1);
-		getModelLayerFactory().newRecordServices().execute(transaction);
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		recordServices.execute(transaction);
+
+		Collection collection = getAppLayerFactory().getCollectionsManager()
+				.getCollection(zeCollection).setOrganizationNumber("00101010");
+
+		recordServices.update(collection);
 	}
 
 	@Test
