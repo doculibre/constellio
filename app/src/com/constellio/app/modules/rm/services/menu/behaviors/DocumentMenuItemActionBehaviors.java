@@ -256,14 +256,14 @@ public class DocumentMenuItemActionBehaviors {
 	public void publish(Document document, MenuItemActionBehaviorParams params) {
 
 		document.setPublished(true);
-		Button borrowButton = new WindowButton($("DisplayDocumentView.publish"),
-				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "50%", "500px")) {
+		Button publishButton = new WindowButton($("DisplayDocumentView.publish"),
+				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "40%", "300px")) {
 			@Override
 			protected Component buildWindowContent() {
 				return new PublishDocumentViewImpl(params.getRecordVO());
 			}
 		};
-		borrowButton.click();
+		publishButton.click();
 		updateSearchResultClicked(document.getWrappedRecord());
 
 	}

@@ -106,6 +106,11 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 	}
 
 	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return false;
+	}
+
+	@Override
 	public void setDeleteButtonVisible(boolean visible) {
 		this.deleteButtonVisible = visible;
 	}
