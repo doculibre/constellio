@@ -356,6 +356,13 @@ public class DocumentRecordActionsServices {
 			   !isDocumentLogicallyDeleted(document);
 	}
 
+	public boolean isCurrentBorrower(Record record, User user) {
+		Document document = rm.wrapDocument(record);
+		Content content = document.getContent();
+		return isContentCheckedOut(document.getContent()) &&
+			   content.getCheckoutUserId() != null && user.getId().equals(content.getCheckoutUserId());
+	}
+
 	private boolean isCheckOutNotPossibleDocumentDeleted(Document document) {
 		boolean email = isEmail(document);
 		return document.getContent() != null &&

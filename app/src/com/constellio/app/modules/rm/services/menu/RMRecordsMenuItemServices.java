@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_CART;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CHECKIN;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CHECKOUT;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK;
@@ -269,6 +270,19 @@ public class RMRecordsMenuItemServices {
 					boolean actionPossible = false;
 					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
 						actionPossible = documentRecordActionsServices.isCheckOutActionPossible(record, user);
+						if (!actionPossible) {
+							actionPossible = documentRecordActionsServices.isCurrentBorrower(record, user);
+						}
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_CHECKIN:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isCheckInActionPossible(record, user);
 					}
 					possibleCount += actionPossible ? 1 : 0;
 				}
@@ -377,6 +391,11 @@ public class RMRecordsMenuItemServices {
 						$("unshare"), FontAwesome.SHARE_SQUARE_O, -1, 1100,
 						getRecordsLimit(actionType), (ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchUnshare(ids, params));
 				break;
+			case RMRECORDS_CHECKIN:
+				menuItemAction = buildMenuItemAction(RMRECORDS_CHECKIN, state,
+						$("DocumentContextMenu.checkIn"), FontAwesome.UNLOCK, -1, 1200,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkInDocuments(ids, params));
 		}
 
 		if (menuItemAction != null) {
@@ -442,6 +461,7 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_CHECKOUT(asList(Document.SCHEMA_TYPE), 25),
 		RMRECORDS_CREATE_TASK(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000),
 		RMRECORDS_BATCH_UNSHARE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000);
+		RMRECORDS_CHECKIN(asList(Document.SCHEMA_TYPE), 25);
 
 		private final List<String> schemaTypes;
 		private final int recordsLimit;

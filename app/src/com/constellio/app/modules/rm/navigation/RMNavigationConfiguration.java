@@ -345,7 +345,7 @@ public class RMNavigationConfiguration implements Serializable {
 						.getItems();
 			}
 		});
-		config.add(HomeView.TABS, new RecordTable(CHECKED_OUT_DOCUMENTS) {
+		config.addRefreshablePageItem(HomeView.TABS, new RecordTable(CHECKED_OUT_DOCUMENTS) {
 			@Override
 			public RecordVODataProvider getDataProvider(AppLayerFactory appLayerFactory,
 														SessionContext sessionContext) {

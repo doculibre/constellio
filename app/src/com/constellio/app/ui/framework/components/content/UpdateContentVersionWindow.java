@@ -25,4 +25,5 @@ public interface UpdateContentVersionWindow extends Serializable {
 
 	void setUploadFieldVisible(boolean visible);
 
+	void showMessage(String message);
 }
