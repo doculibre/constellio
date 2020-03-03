@@ -251,9 +251,6 @@ public class SystemInfo {
 				validationErrors.addWarning(SystemInfo.class, FILE_READING_FAILED, i18nParameters);
 				e.printStackTrace();
 			}
-		} else {
-			HashMap<String, Object> i18nParameters = buildSingleValueParameters(fileNameParameterKey, SYSTEM_LOG_FILE_NAME);
-			validationErrors.addWarning(SystemInfo.class, FILE_NOT_FOUND, i18nParameters);
 		}
 
 		return isLogContainingSystemError;

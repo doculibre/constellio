@@ -182,9 +182,6 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			if (!FileUtils.deleteQuietly(systemLogFile)) {
 				view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotDeleted"));
 			}
-		} else {
-			HashMap<String, Object> fileNameParameters = buildSingleValueParameters(FILE_NAME_PARAMETER_KEY, SYSTEM_LOG_FILE_NAME);
-			view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotFound", fileNameParameters));
 		}
 
 		FoldersLocator foldersLocator = new FoldersLocator();
