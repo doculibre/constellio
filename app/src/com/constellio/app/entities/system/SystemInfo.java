@@ -17,6 +17,9 @@ import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +43,12 @@ public class SystemInfo {
 	private static final String CONSTELLIO_MEMORY_CONSUMPTION_HIGH = "constellioMemoryConsumptionHigh";
 	private static final String CONSTELLIO_MEMORY_CONSUMPTION_LOW = "constellioMemoryConsumptionLow";
 	private static final String PRIVATE_REPOSITORY_IS_NOT_INSTALLED = "privateRepositoryIsNotInstalled";
-
+	private static final String SYSTEM_ERROR_WARNING = "systemErrorWarning";
+	private static final String SYSTEM_ERROR_ERROR = "systemErrorError";
+	private static final String FILE_READING_FAILED = "fileReadingFailed";
+	private static final String FILE_NOT_FOUND = "fileNotFound";
+	private static final String SYSTEM_LOG_FILE_NAME = "system.log";
+	private static final String fileNameParameterKey = "fileName";
 	private static SystemInfo instance;
 
 	LocalDateTime lastTimeUpdated;
@@ -212,10 +220,60 @@ public class SystemInfo {
 		}
 
 		validateDiskUsage(configs);
+		validateSystemErrors();
 
 
 		//		validateMemoryConsumption();
 		//		validateRepository();
+	}
+
+	private void validateSystemErrors() {
+
+		if (isLogContainingSystemError("ERROR")) {
+			validationErrors.add(SystemInfo.class, SYSTEM_ERROR_ERROR);
+		}
+		if (isLogContainingSystemError("WARN")) {
+			validationErrors.add(SystemInfo.class, SYSTEM_ERROR_WARNING);
+		}
+	}
+
+	private boolean isLogContainingSystemError(String errorType) {
+
+		boolean isLogContainingSystemError = false;
+
+		File systemLogFile = getSystemLogFile();
+		if (systemLogFile.exists()) {
+			Path path = Paths.get(systemLogFile.getPath());
+			try {
+				isLogContainingSystemError = Files.lines(path).anyMatch(line -> line.contains(errorType));
+			} catch (IOException e) {
+				HashMap<String, Object> i18nParameters = buildSingleValueParameters(fileNameParameterKey, SYSTEM_LOG_FILE_NAME);
+				validationErrors.addWarning(SystemInfo.class, FILE_READING_FAILED, i18nParameters);
+				e.printStackTrace();
+			}
+		} else {
+			HashMap<String, Object> i18nParameters = buildSingleValueParameters(fileNameParameterKey, SYSTEM_LOG_FILE_NAME);
+			validationErrors.addWarning(SystemInfo.class, FILE_NOT_FOUND, i18nParameters);
+		}
+
+		return isLogContainingSystemError;
+	}
+
+	private File getSystemLogFile() {
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		File systemLogFile = null;
+
+		File logsFolder = new File(appLayerFactory.getModelLayerFactory().getFoldersLocator().getWrapperInstallationFolder(),
+				"logs");
+
+		if (logsFolder.exists()) {
+			systemLogFile = new File(logsFolder, SYSTEM_LOG_FILE_NAME);
+		} else {
+			HashMap<String, Object> i18nParameters = buildSingleValueParameters(fileNameParameterKey, "logsFolder");
+			validationErrors.addWarning(SystemInfo.class, FILE_NOT_FOUND, i18nParameters);
+		}
+
+		return systemLogFile;
 	}
 
 	private void validateMemoryAllocation() {
