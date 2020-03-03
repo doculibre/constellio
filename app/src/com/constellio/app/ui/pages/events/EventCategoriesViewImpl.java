@@ -108,10 +108,6 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		decommissioningEventsLink.addStyleName(DECOMMISSIONING_EVENTS_LINK_BUTTON);
 		layout.addComponent(decommissioningEventsLink);
 
-		//		Button importExportEventsLink = newImportExportLink();
-		//		importExportEventsLink.addStyleName(CURRENTLY_BORROWED_DOCUMENTS_LINK_BUTTON);
-		//		layout.addComponent(importExportEventsLink);
-
 		Button reindexAndRestartEventLink = newReIndexAndRestartLink();
 		reindexAndRestartEventLink.addStyleName(REINDEX_AND_RESTART_BUTTON);
 		layout.addComponents(reindexAndRestartEventLink);
