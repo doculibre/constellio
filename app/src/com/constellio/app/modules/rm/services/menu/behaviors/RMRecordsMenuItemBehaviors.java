@@ -13,10 +13,12 @@ import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeExcept
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMMessageUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
+import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -28,6 +30,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
@@ -40,6 +43,7 @@ import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -93,7 +97,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -107,6 +113,7 @@ public class RMRecordsMenuItemBehaviors {
 	private String collection;
 	private AppLayerFactory appLayerFactory;
 	private RecordServices recordServices;
+	private RMSchemasRecordsServices rm;
 	private DecommissioningService decommissioningService;
 	private IOServices ioServices;
 
@@ -121,6 +128,7 @@ public class RMRecordsMenuItemBehaviors {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		ioServices = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newIOServices();
 		this.modelCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
@@ -254,8 +262,12 @@ public class RMRecordsMenuItemBehaviors {
 			List<Record> records = recordServices.getRecordsById(collection, recordIds);
 			for (Record record : records) {
 				if (!documentRecordActionsServices.isCheckOutActionPossible(record, params.getUser())) {
-					params.getView().showMessage($("DocumentActionsComponent.checkoutOfDocumentsImpossible", record.getId()));
-					return;
+					if (documentRecordActionsServices.isCurrentBorrower(record, params.getUser())) {
+						recordIds.remove(record.getId());
+					} else {
+						params.getView().showMessage($("DocumentActionsComponent.checkoutOfDocumentsImpossible", record.getId()));
+						return;
+					}
 				}
 			}
 			checkOut(recordIds, params);
@@ -283,6 +295,59 @@ public class RMRecordsMenuItemBehaviors {
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
+	}
+
+	public void checkInDocuments(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		List<Document> documents = rm.getDocuments(recordIds);
+		UpdateContentVersionWindowImpl uploadWindow =
+				createUpdateContentVersionWindow(documents, params);
+
+		boolean hasUpdate = false;
+		for (Document document : documents) {
+			if (!isSameVersion(document)) {
+				hasUpdate = true;
+				break;
+			}
+		}
+
+		if (hasUpdate) {
+			uploadWindow.open(false);
+		} else {
+			uploadWindow.saveWithSameVersion();
+			params.getView().updateUI();
+		}
+	}
+
+	private boolean isSameVersion(Document document) {
+		Content content = document.getContent();
+		return content != null && content.getCurrentVersion().getHash().equals(content.getCurrentCheckedOutVersion().getHash());
+	}
+
+	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(List<Document> documents,
+																			MenuItemActionBehaviorParams params) {
+		final Map<RecordVO, MetadataVO> recordMap = new HashMap<>();
+		for (Document document : documents) {
+			RecordVO recordVO = getDocumentVO(params, document);
+			recordMap.put(recordVO, recordVO.getMetadata(Document.CONTENT));
+		}
+
+		return new UpdateContentVersionWindowImpl(recordMap) {
+			@Override
+			public void close() {
+				super.close();
+				params.getView().updateUI();
+			}
+
+			@Override
+			public void showMessage(String message) {
+				params.getView().showMessage(message);
+			}
+		};
+	}
+
+	private DocumentVO getDocumentVO(MenuItemActionBehaviorParams params, Document document) {
+		return new DocumentToVOBuilder(appLayerFactory.getModelLayerFactory()).build(document.getWrappedRecord(),
+				VIEW_MODE.DISPLAY, params.getView().getSessionContext());
 	}
 
 	public void printLabels(List<String> recordIds, MenuItemActionBehaviorParams params) {

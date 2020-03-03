@@ -10,6 +10,8 @@ public interface BaseView extends ViewComponent {
 
 	String getCollection();
 
+	void partialRefresh();
+
 	@Override
 	void showMessage(String message);
 
