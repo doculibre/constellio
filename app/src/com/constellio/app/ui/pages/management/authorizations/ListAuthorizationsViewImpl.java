@@ -21,7 +21,6 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.authorizations.ShareContentListViewImpl.AddFolderShareButton;
 import com.constellio.app.ui.pages.management.publish.PublishDocumentTable;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -456,8 +455,6 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				caption = $("ListAccessAuthorizationsView.add");
 			} else if (presenter.seeRolesField()) {
 				caption = $("ListRoleAuthorizationsView.add");
-			} else if (this instanceof AddFolderShareButton) {
-				caption = $("ListContentShareView.addFolder");
 			} else if (presenter.seeSharedBy()) {
 				caption = $("ListContentShareView.addDocument");
 			}
