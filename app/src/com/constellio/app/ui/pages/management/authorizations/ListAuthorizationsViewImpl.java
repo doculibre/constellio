@@ -109,14 +109,18 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	@Override
 	protected List<Button> getQuickActionMenuButtons() {
 		List<Button> quickActionMenuButtons = new ArrayList<>();
-		if (addButton != null) {
-			quickActionMenuButtons.add(addButton);
-		}
-		if (addSecondButton != null) {
-			quickActionMenuButtons.add(addSecondButton);
-		}
-		if (detach != null) {
-			quickActionMenuButtons.add(detach);
+		//		if (addButton != null) {
+		//			quickActionMenuButtons.add(addButton);
+		//		}
+		//		if (addSecondButton != null) {
+		//			quickActionMenuButtons.add(addSecondButton);
+		//		}
+		//		if (detach != null) {
+		//			quickActionMenuButtons.add(detach);
+		//		}
+		List<Button> actionMenuButtons = getActionMenuButtons();
+		if (actionMenuButtons != null && actionMenuButtons.size() <= 2) {
+			actionMenuButtons.stream().forEach(quickActionMenuButtons::add);
 		}
 
 		return quickActionMenuButtons;
@@ -330,7 +334,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		Table table = new BaseTable(getClass().getName(), tableCaption, container);
 		table.setPageLength(container.size());
 		table.addStyleName((source == AuthorizationSource.OWN || source == AuthorizationSource.SHARED) ? AUTHORIZATIONS : INHERITED_AUTHORIZATIONS);
-		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeSharedBy(), presenter.seeAccessField(), getSessionContext().getCurrentLocale()).attachTo(table, presenter.isRecordNotATaxonomyConcept());
+		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeSharedBy(), presenter.seeAccessField(), isViewReadOnly(), getSessionContext().getCurrentLocale()).attachTo(table, presenter.isRecordNotATaxonomyConcept());
 		return table;
 	}
 
@@ -365,6 +369,11 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 					final AuthorizationVO authorization = (AuthorizationVO) itemId;
 					EditAuthorizationButton button = new EditAuthorizationButton(authorization) {
+						@Override
+						protected void onSaveButtonClicked(AuthorizationVO authorizationVO) {
+							presenter.authorizationModificationRequested(authorization);
+						}
+
 						@Override
 						public boolean isVisible() {
 							return super.isVisible() && !isViewReadOnly();
@@ -508,7 +517,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		}
 	}
 
-	public class EditAuthorizationButton extends WindowButton {
+	public static abstract class EditAuthorizationButton extends WindowButton {
 		private final AuthorizationVO authorization;
 
 		@PropertyId("users") private ListAddRemoveRecordLookupField users;
@@ -518,6 +527,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			super(EditButton.ICON_RESOURCE, $("ListAuthorizationsView.edit"), true,
 					WindowConfiguration.modalDialog("50%", "50%"));
 			this.authorization = authorization;
+			addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		}
 
 		@Override
@@ -528,7 +538,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				protected void saveButtonClick(AuthorizationVO viewObject)
 						throws ValidationException {
 					getWindow().close();
-					presenter.authorizationModificationRequested(authorization);
+					onSaveButtonClicked(viewObject);
 				}
 
 				@Override
@@ -537,6 +547,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				}
 			};
 		}
+
+		abstract protected void onSaveButtonClicked(AuthorizationVO authorizationVO);
 
 		private void buildUsersAndGroupsField() {
 			users = new ListAddRemoveRecordLookupField(User.SCHEMA_TYPE);
@@ -555,7 +567,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		}
 	}
 
-	public class Authorizations implements ColumnGenerator {
+	public static class Authorizations implements ColumnGenerator {
 		public static final String PRINCIPALS = "principal";
 		public static final String CONTENT = "content";
 		public static final String BOTH = "both";
@@ -578,9 +590,10 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		private boolean seeSharedBy;
 		private Locale currentLocale;
 		private final JodaDateToStringConverter converter;
+		private boolean isViewOnly;
 
 		public Authorizations(AuthorizationSource source, DisplayMode mode, boolean seeRolesField, boolean seeSharedBy,
-							  boolean seeAccessField, Locale currentLocale) {
+							  boolean seeAccessField, boolean isViewOnly, Locale currentLocale) {
 			this.source = source;
 			this.mode = mode;
 			this.seeRolesField = seeRolesField;
@@ -588,6 +601,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			this.seeSharedBy = seeSharedBy;
 			this.seeMetadataField = source == AuthorizationSource.INHERITED_FROM_METADATA;
 			this.currentLocale = currentLocale;
+			this.isViewOnly = isViewOnly;
 			converter = new JodaDateToStringConverter();
 		}
 
@@ -651,13 +665,13 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			table.addGeneratedColumn(END_DATE, this);
 			table.setColumnHeader(END_DATE, $("AuthorizationsView.endDate"));
 
-			if (source == AuthorizationSource.OWN && !isViewReadOnly()) {
+			if (source == AuthorizationSource.OWN && !isViewOnly) {
 				table.setColumnHeader(BUTTONS, "");
 				table.setColumnWidth(BUTTONS, 80);
 				columnIds.add(BUTTONS);
 			} else if (source == AuthorizationSource.INHERITED_FROM_METADATA) {
 				columnIds.add(RECEIVED_FROM_RECORD_CAPTION);
-			} else if (source == AuthorizationSource.SHARED && !isViewReadOnly()) {
+			} else if (source == AuthorizationSource.SHARED && !isViewOnly) {
 				table.setColumnHeader(BUTTONS, "");
 				table.setColumnWidth(BUTTONS, 80);
 				columnIds.add(BUTTONS);

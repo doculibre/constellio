@@ -38,6 +38,7 @@ import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
 import com.constellio.app.ui.entities.FacetVO;
@@ -69,6 +70,7 @@ import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
@@ -78,6 +80,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -122,8 +125,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.contents.ContentFactory.isFilename;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -140,7 +147,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	//	private RecordVODataProvider documentsDataProvider;
 	private RecordVODataProvider tasksDataProvider;
 	private RecordVODataProvider eventsDataProvider;
-	private RecordVODataProvider sharesDataProvider;
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
 	private DocumentToVOBuilder documentVOBuilder;
@@ -194,12 +200,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		this.nestedView = nestedView;
 		this.inWindow = inWindow;
 		presenterUtilsForDocument = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
+		authorizationsServices = new AuthorizationsServices(appLayerFactory.getModelLayerFactory());
 		initTransientObjects();
 		if (recordVO != null) {
 			this.taxonomyCode = recordVO.getId();
 			forParams(recordVO.getId());
 		}
-		this.authorizationsServices = new AuthorizationsServices(appLayerFactory.getModelLayerFactory());
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -274,8 +280,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 		};
 
-		sharesDataProvider = getSharedAuthDataProvider();
-
 		tasksSchemaVO = schemaVOBuilder
 				.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
 		tasksDataProvider = new RecordVODataProvider(
@@ -297,7 +301,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		view.setFolderContent(folderContentDataProvider);
 		view.setTasks(tasksDataProvider);
-		view.setShares(sharesDataProvider);
 
 		if (hasCurrentUserPermissionToViewEvents()) {
 			eventsDataProvider = getEventsDataProvider();
@@ -418,11 +421,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		query.filteredByStatus(StatusFilter.ACTIVES);
 		query.filteredWithUser(getCurrentUser());
 		return query;
-	}
-
-	private LogicalSearchQuery getSharedAuthorizations() {
-
-		return authorizationsServices.getRecordSharedAuthorizationsQuery(collection, folderVO.getId());
 	}
 
 	public void selectInitialTabForUser() {
@@ -1114,19 +1112,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		};
 	}
 
-	public RecordVODataProvider getSharedAuthDataProvider() {
-		final MetadataSchemaVO authorizationVo = schemaVOBuilder
-				.build(authorizationsServices.getAuthorizationSchema(collection), VIEW_MODE.TABLE, view.getSessionContext());
-		return new RecordVODataProvider(authorizationVo, new AuthorizationToVOBuilder(modelLayerFactory),
-				modelLayerFactory, view.getSessionContext()) {
-			@Override
-			public LogicalSearchQuery getQuery() {
-
-				return authorizationsServices.getRecordSharedAuthorizationsQuery(collection, folderVO.getId());
-			}
-		};
-	}
-
 	void sharesTabSelected() {
 		view.selectSharesTab();
 	}
@@ -1432,8 +1417,64 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return returnRecordVO;
 	}
 
-	public void modifyShare(String id) {
-		navigate().to().modifyShare(id);
+	public List<AuthorizationVO> getSharedAuthorizations() {
+		AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
+
+		List<AuthorizationVO> results = new ArrayList<>();
+		for (Authorization authorization : getAllAuthorizations()) {
+			if (isOwnAuthorization(authorization) && authorization.getSharedBy() != null &&
+				(isSharedByCurrentUser(authorization) || user.hasAny(CorePermissions.MANAGE_SHARE, VIEW_FOLDER_AUTHORIZATIONS, MANAGE_FOLDER_AUTHORIZATIONS).on(folderVO.getRecord()))) {
+				results.add(builder.build(authorization));
+			}
+		}
+		return results;
 	}
 
+	protected boolean isOwnAuthorization(Authorization authorization) {
+		return authorization.getTarget().equals(getFolderId());
+	}
+
+	private boolean isSharedByCurrentUser(Authorization authorization) {
+		return getCurrentUser().getId().equals(authorization.getSharedBy());
+	}
+
+	private List<Authorization> getAllAuthorizations() {
+		Record record = presenterService().getRecord(getFolderId());
+		return authorizationsServices.getRecordAuthorizations(record);
+	}
+
+	private AuthorizationToVOBuilder newAuthorizationToVOBuilder() {
+		return new AuthorizationToVOBuilder(modelLayerFactory);
+	}
+
+	public void onAutorizationModified(AuthorizationVO authorizationVO) {
+		AuthorizationModificationRequest request = toAuthorizationModificationRequest(authorizationVO);
+		authorizationsServices.execute(request);
+		sharesTabSelected();
+	}
+
+	private AuthorizationModificationRequest toAuthorizationModificationRequest(AuthorizationVO authorizationVO) {
+		String authId = authorizationVO.getAuthId();
+
+		AuthorizationModificationRequest request = modifyAuthorizationOnRecord(authId, collection, getFolderId());
+		request = request.withNewAccessAndRoles(authorizationVO.getAccessRoles());
+		request = request.withNewStartDate(authorizationVO.getStartDate());
+		request = request.withNewEndDate(authorizationVO.getEndDate());
+
+		List<String> principals = new ArrayList<>();
+		principals.addAll(authorizationVO.getUsers());
+		principals.addAll(authorizationVO.getGroups());
+		request = request.withNewPrincipalIds(principals);
+		request = request.setExecutedBy(getCurrentUser());
+
+		return request;
+
+	}
+
+	public void deleteAutorizationButtonClicked(AuthorizationVO authorizationVO) {
+		Authorization authorization = authorizationsServices.getAuthorization(
+				view.getCollection(), authorizationVO.getAuthId());
+		authorizationsServices.execute(authorizationDeleteRequest(authorization).setExecutedBy(getCurrentUser()));
+		view.removeAuthorization(authorizationVO);
+	}
 }

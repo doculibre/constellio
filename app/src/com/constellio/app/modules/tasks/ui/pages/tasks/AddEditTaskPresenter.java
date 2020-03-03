@@ -89,7 +89,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,6 +122,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	List<String> finishedOrClosedStatuses;
 	private RMModuleExtensions rmModuleExtensions;
 	private String previousPage;
+
+	public static final String LINKED_RECORDS_PARAM = "linkedRecords";
+	public static final String PREVIOUS_PAGE_PARAM = "previousPage";
+	public static final String TEMP_PARAMS_ID = "tempParams";
 
 	boolean inclusideDecision = false;
 	boolean exclusiveDecision = false;
@@ -403,12 +406,12 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
 
-			String tempParamKey = paramsMap.get("tempParams");
+			String tempParamKey = paramsMap.get(TEMP_PARAMS_ID);
 			if (tempParamKey != null) {
 				TimedCache timedCache = getCachedAttributes(tempParamKey);
 				if (timedCache != null) {
-					setLinkedRecords(timedCache.get("linkedRecords"), task);
-					setPreviousPage(timedCache.get("previousPage"));
+					setLinkedRecords(timedCache.get(LINKED_RECORDS_PARAM), task);
+					setPreviousPage(timedCache.get(PREVIOUS_PAGE_PARAM));
 				}
 			}
 		}
