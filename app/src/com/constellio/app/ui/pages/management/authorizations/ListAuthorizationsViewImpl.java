@@ -49,6 +49,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -80,11 +81,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-
-		if (presenter.forRequestParams(event.getParameters()) != null && !"".equals(event.getParameters())) {
-			record = presenter.forRequestParams(event.getParameters()).getRecordVO();
-		}
-		record = presenter.forCurrentUser().getRecordVO();
+		record = presenter.forRequestParams(event.getParameters()).getRecordVO();
 	}
 
 	@Override
@@ -109,17 +106,18 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	@Override
 	protected List<Button> getQuickActionMenuButtons() {
 		List<Button> quickActionMenuButtons = new ArrayList<>();
-		//		if (addButton != null) {
-		//			quickActionMenuButtons.add(addButton);
-		//		}
-		//		if (addSecondButton != null) {
-		//			quickActionMenuButtons.add(addSecondButton);
-		//		}
-		//		if (detach != null) {
-		//			quickActionMenuButtons.add(detach);
-		//		}
 		List<Button> actionMenuButtons = getActionMenuButtons();
-		if (actionMenuButtons != null && actionMenuButtons.size() <= 2) {
+		if (actionMenuButtons != null) {
+			List<Button> visibleButtons = actionMenuButtons.stream().filter(button -> button.isVisible() && button.isEnabled()).collect(Collectors.toList());
+			int remainingSpaceForQuickActions = 2;
+			for (Button button : visibleButtons) {
+				if (remainingSpaceForQuickActions > 0) {
+					remainingSpaceForQuickActions--;
+					quickActionMenuButtons.add(button);
+				} else {
+					break;
+				}
+			}
 			actionMenuButtons.stream().forEach(quickActionMenuButtons::add);
 		}
 
