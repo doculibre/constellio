@@ -64,12 +64,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.model.services.records.reindexing.ReindexationParams.recalculateAndRewriteSchemaTypesInBackground;
 
@@ -365,7 +360,9 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		if (modelLayerFactory.newReindexingServices().isLockFileExisting()) {
 			//Last reindexing was interrupted...
 			systemGlobalConfigsManager.setLastReindexingFailed(true);
-			dataLayerFactory.getSecondTransactionLogManager().moveLastBackupAsCurrentLog();
+			if (dataLayerFactory.getSecondTransactionLogManager() != null) {
+				dataLayerFactory.getSecondTransactionLogManager().moveLastBackupAsCurrentLog();
+			}
 			modelLayerFactory.newReindexingServices().removeLockFile();
 		}
 
