@@ -70,9 +70,7 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String SECURITY = "security";
 	public static final String SECURITY_ICON = "images/icons/config/collection-security.png";
 	public static final String ROLES = "roles";
-	public static final String SHARES= "shares";
 	public static final String ROLES_ICON = "images/icons/config/crown.png";
-	public static final String SHARES_ICON = "images/icons/config/paper_jet2.png";
 	public static final String DATA_EXTRACTOR = "dataExtractor";
 	public static final String DATA_EXTRACTOR_ICON = "images/icons/config/metadata-extract.png";
 	public static final String IMPORT_RECORDS = "importRecords";
@@ -378,17 +376,7 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
 			}
 		});
-		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(SHARES, SHARES_ICON) {
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to().shareManagement();
-			}
 
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
-			}
-		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(EMAIL_SERVER, EMAIL_SERVER_ICON) {
 			@Override
 			public void activate(Navigation navigate) {

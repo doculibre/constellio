@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.shareManagement.ShareContentListView;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;

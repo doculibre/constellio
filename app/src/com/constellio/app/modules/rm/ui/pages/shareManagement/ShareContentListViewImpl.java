@@ -1,4 +1,4 @@
-package com.constellio.app.ui.pages.management.authorizations;
+package com.constellio.app.modules.rm.ui.pages.shareManagement;
 
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;

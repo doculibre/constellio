@@ -40,7 +40,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	transient Map<Integer, Record> cache;
 	transient MetadataSchemaVO defaultSchema;
 	protected transient ModelLayerFactory modelLayerFactory;
-	SessionContext sessionContext;
+	protected SessionContext sessionContext;
 	protected int batchSize = 20;
 
 	private Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();

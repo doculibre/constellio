@@ -1,6 +1,7 @@
-package com.constellio.app.ui.pages.management.authorizations;
+package com.constellio.app.modules.rm.ui.pages.shareManagement;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.ui.data.ShareContentDataProvider;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -9,7 +10,6 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.data.ShareContentDataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;

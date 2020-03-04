@@ -45,6 +45,7 @@ import com.constellio.app.modules.rm.ui.pages.retentionRule.AddEditRetentionRule
 import com.constellio.app.modules.rm.ui.pages.retentionRule.DisplayRetentionRuleViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.ListRetentionRulesViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.SearchRetentionRulesViewImpl;
+import com.constellio.app.modules.rm.ui.pages.shareManagement.ShareContentListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.AgentViewGroup;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
@@ -156,6 +157,9 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String RETENTION_RULES_SEARCH = "retentionRuleSearch";
 	public static final String LIST_USER_DOCUMENTS = "listUserDocuments";
 	public static final String LIST_USER_DOCUMENTS_ICON = "images/icons/config/briefcase.png";
+	public static final String SHARE_MANAGEMENT = "shareManagement";
+	public static final String SHARES = "shares";
+	public static final String SHARES_ICON = "images/icons/config/paper_jet2.png";
 
 
 	public static void configureNavigation(NavigationConfig config) {
@@ -202,6 +206,7 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(LIST_RETENTION_RULES, ListRetentionRulesViewImpl.class);
 		service.register(RETENTION_RULES_SEARCH, SearchRetentionRulesViewImpl.class);
 		service.register(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class);
+		service.register(SHARE_MANAGEMENT, ShareContentListViewImpl.class);
 
 	}
 
@@ -449,6 +454,17 @@ public class RMNavigationConfiguration implements Serializable {
 					}
 				}
 		);
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(SHARES, SHARES_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).shareManagement();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
+			}
+		});
 	}
 
 	private static void configureMainLayoutNavigation(NavigationConfig config) {

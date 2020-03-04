@@ -44,8 +44,12 @@ public class RMViews extends CoreViews {
 		navigateTo(homePageUrl, RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id, isToOpenInNewTab);
 	}
 
+	public void shareManagement() {
+		navigator.navigateTo(RMNavigationConfiguration.SHARE_MANAGEMENT);
+	}
+
 	public void displayFolderFromDecommission(String id, String homePageUrl, boolean isToOpenInNewTab,
-			String decommissioningSearchId, String decommissioningType) {
+											  String decommissioningSearchId, String decommissioningType) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
 		params.put("decommissioningSearchId", decommissioningSearchId);
