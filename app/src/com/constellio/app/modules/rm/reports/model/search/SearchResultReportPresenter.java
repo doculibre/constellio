@@ -22,13 +22,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 
@@ -66,7 +60,18 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 			resultReportModel.addTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
 		}
 		Iterator<Record> recordsIterator;
-		if (searchQuery != null) {
+		if (selectedRecords != null && !selectedRecords.isEmpty()) {
+			List<Record> selectedRecordObjects = new ArrayList<>(modelLayerFactory.newRecordServices().getRecordsById(collection, selectedRecords));
+			Collections.sort(selectedRecordObjects, new Comparator<Record>() {
+				@Override
+				public int compare(Record o1, Record o2) {
+					Integer indexOfO1 = new Integer(selectedRecords.indexOf(o1.getId()));
+					Integer indexOfO2 = new Integer(selectedRecords.indexOf(o2.getId()));
+					return indexOfO1.compareTo(indexOfO2);
+				}
+			});
+			recordsIterator = selectedRecordObjects.iterator();
+		} else if (searchQuery != null) {
 			recordsIterator = modelLayerFactory.newSearchServices().recordsIteratorKeepingOrder(searchQuery, 200);
 		}
 		//TODO DO Not use searchQuery
