@@ -217,7 +217,7 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getRecentlyClosedTasks(bob));
-		assertThat(results.size()).isEqualTo(2);
+		assertThat(results.size()).isEqualTo(1);
 		assertThat(results).extracting("title")
 				.containsAll(asList("taskAssignedByBobToChuckClosed"));
 	}
