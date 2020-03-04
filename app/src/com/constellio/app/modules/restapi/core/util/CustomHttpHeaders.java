@@ -6,4 +6,5 @@ import lombok.experimental.UtilityClass;
 public final class CustomHttpHeaders {
 	public static final String FLUSH_MODE = "Constellio-Flushing-Mode";
 	public static final String COPY_SOURCE = "Constellio-Copy-Source";
+	public static final String MERGE_SOURCE = "Constellio-Merge-Source";
 }
