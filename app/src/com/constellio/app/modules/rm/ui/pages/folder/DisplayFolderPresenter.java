@@ -1423,7 +1423,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		List<AuthorizationVO> results = new ArrayList<>();
 		for (Authorization authorization : getAllAuthorizations()) {
 			if (isOwnAuthorization(authorization) && authorization.getSharedBy() != null &&
-				(isSharedByCurrentUser(authorization) || user.hasAny(CorePermissions.MANAGE_SHARE, VIEW_FOLDER_AUTHORIZATIONS, MANAGE_FOLDER_AUTHORIZATIONS).on(folderVO.getRecord()))) {
+				(isSharedByCurrentUser(authorization) || user.hasAny(RMPermissionsTo.MANAGE_SHARE, VIEW_FOLDER_AUTHORIZATIONS, MANAGE_FOLDER_AUTHORIZATIONS).on(folderVO.getRecord()))) {
 				results.add(builder.build(authorization));
 			}
 		}

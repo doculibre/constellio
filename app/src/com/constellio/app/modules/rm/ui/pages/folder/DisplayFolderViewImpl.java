@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
@@ -54,7 +55,6 @@ import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsV
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.entities.CorePermissions;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -914,7 +914,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					public boolean isVisible() {
 						return super.isVisible() &&
 							   (presenter.getUser().getId().equals(authorization.getSharedBy()) ||
-								presenter.getUser().hasAny(CorePermissions.MANAGE_SHARE, MANAGE_FOLDER_AUTHORIZATIONS).on(getRecord().getRecord()));
+								presenter.getUser().hasAny(RMPermissionsTo.MANAGE_SHARE, MANAGE_FOLDER_AUTHORIZATIONS).on(getRecord().getRecord()));
 					}
 				};
 				deleteButton.setVisible(inherited || !authorization.isSynched());

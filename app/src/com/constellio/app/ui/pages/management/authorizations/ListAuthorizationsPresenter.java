@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -112,7 +113,7 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 	}
 
 	public List<AuthorizationVO> getSharedAuthorizations() {
-		if (getCurrentUser().has(CorePermissions.MANAGE_SHARE).globally()) {
+		if (getCurrentUser().has(RMPermissionsTo.MANAGE_SHARE).globally()) {
 			AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
 
 			List<AuthorizationVO> results = new ArrayList<>();
