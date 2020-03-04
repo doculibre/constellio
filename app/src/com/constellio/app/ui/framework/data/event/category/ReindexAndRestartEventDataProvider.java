@@ -75,7 +75,6 @@ public class ReindexAndRestartEventDataProvider extends AbstractDataProvider imp
 		reindex.setLabel($("ListEventsView.reindexing"));
 		query = rmSchemasRecordsServices.newFindEventByDateRangeQuery(currentUser, EventType.REINDEXING, this.startDate, this.endDate);
 		reindex.setValue((float) searchServices.getResultsCount(query));
-
 		events.addAll(asList(restart, reindex));
 	}
 

@@ -58,7 +58,6 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -110,7 +109,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
 		constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		ignoreMetadatasWithLocalCode(Collections.singletonList("isCheckoutAlertSent"));
+		ignoreMetadatasWithLocalCode(asList("isCheckoutAlertSent", "markedForPreviewConversion"));
 	}
 
 	@Test
@@ -804,7 +803,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		List<String> tempFilesBeforeSIPCreation = LangUtils.listFilenames(tempFolder);
 
-		File sipFilesFolder = buildSIPWithDocumentsWith10MegabytesLimit(ids);
+		File sipFilesFolder = buildSIPWithDocumentsWith1MegabytesLimit(ids);
 
 		List<String> tempFilesAfterSIPCreation = new ArrayList<>(LangUtils.listFilenames(tempFolder));
 		tempFilesAfterSIPCreation.removeAll(tempFilesBeforeSIPCreation);
@@ -893,7 +892,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		};
 	}
 
-	private File buildSIPWithDocumentsWith10MegabytesLimit(List<String> documentsIds) throws Exception {
+	private File buildSIPWithDocumentsWith1MegabytesLimit(List<String> documentsIds) throws Exception {
 
 		List<String> bagInfoLines = new ArrayList<>();
 		bagInfoLines.add("This is the first bagInfo line");
@@ -908,7 +907,12 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(getAppLayerFactory(),
 				fileNameProvider, 1000 * 1000, bagInfoFactory);
 
-		writer.setSipFileHasher(SIPFileHasher());
+		writer.setSipFileHasher(new SIPFileHasher() {
+			@Override
+			public String computeHash(File input, String sipPath) throws IOException {
+				return "CHECKSUM{{" + sipPath.replace("\\", "/ d") + "}}";
+			}
+		});
 
 		RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
 		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<>(), documentsIds, null,

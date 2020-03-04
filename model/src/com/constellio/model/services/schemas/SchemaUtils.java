@@ -515,6 +515,7 @@ public class SchemaUtils {
 
 	public static List<String> getSchemaTypesInHierarchyOf(String schemaTypeCode, MetadataSchemaTypes allSchemaTypes) {
 		Set<String> schemaTypesInHierarchy = new HashSet<>();
+		schemaTypesInHierarchy.add(schemaTypeCode);
 
 		schemaTypesInHierarchy.addAll(getSchemaTypesInHierarchyOf(schemaTypeCode, allSchemaTypes, schemaTypesInHierarchy));
 
