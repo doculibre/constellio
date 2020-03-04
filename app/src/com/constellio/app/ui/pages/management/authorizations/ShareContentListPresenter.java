@@ -1,41 +1,37 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.data.ShareContentDataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.security.AuthorizationsServices;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.TabSheet;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
 public class ShareContentListPresenter extends BasePresenter<ShareContentListViewImpl> {
 
-	private TabSheet tabSheet;
 
-	private transient AuthorizationsServices authorizationsServices;
+	private MetadataSchemasManager metadataSchemasManager;
+	private SchemasRecordsServices schemasRecordsServices;
+
 
 	public ShareContentListPresenter(ShareContentListViewImpl view) {
 		super(view);
 
-		tabSheet = new TabSheet();
-
-		tabSheet.addTab(buildFolderTab());
-		tabSheet.addTab(buildDocumentTab());
-		//		tabSheet.addTab()
+		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.schemasRecordsServices = new SchemasRecordsServices(view.getCollection(), modelLayerFactory);
 	}
 
-	private Component buildFolderTab() {
-		return null;
-	}
-
-	private Component buildDocumentTab() {
-		return null;
-	}
-
-	private Component buildRecentItemsTab() {
-		return null;
-	}
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
@@ -51,10 +47,54 @@ public class ShareContentListPresenter extends BasePresenter<ShareContentListVie
 		return view.getSessionContext().getCurrentUser();
 	}
 
-	protected AuthorizationsServices authorizationsServices() {
-		if (authorizationsServices == null) {
-			authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-		}
-		return authorizationsServices;
+	public ShareContentDataProvider getPublishedDocumentDataProvider() {
+
+		MetadataSchemaVO documentMetadataSchemaVO = getMetadataSchemaVO(Document.DEFAULT_SCHEMA);
+
+		return new ShareContentDataProvider(documentMetadataSchemaVO, modelLayerFactory, view.getSessionContext()) {
+			@Override
+			public LogicalSearchQuery getAuthorizationQuery() {
+				return getSharedAuthorization(Document.SCHEMA_TYPE);
+			}
+		};
 	}
+
+	public ShareContentDataProvider getSharedDocumentDataProvider() {
+
+		MetadataSchemaVO documentMetadataSchemaVO = getMetadataSchemaVO(Document.DEFAULT_SCHEMA);
+
+		return new ShareContentDataProvider(documentMetadataSchemaVO, modelLayerFactory, view.getSessionContext()) {
+			@Override
+			public LogicalSearchQuery getAuthorizationQuery() {
+				return getSharedAuthorization(Document.SCHEMA_TYPE);
+			}
+		};
+	}
+
+	public ShareContentDataProvider getSharedFolderDataProvider() {
+
+		MetadataSchemaVO folderMetadataSchemaVO = getMetadataSchemaVO(Folder.DEFAULT_SCHEMA);
+
+		return new ShareContentDataProvider(folderMetadataSchemaVO, modelLayerFactory, view.getSessionContext()) {
+			@Override
+			public LogicalSearchQuery getAuthorizationQuery() {
+				return getSharedAuthorization(Folder.SCHEMA_TYPE);
+			}
+		};
+	}
+
+	private MetadataSchemaVO getMetadataSchemaVO(String schema) {
+		MetadataSchema folderMetadataSchema = this.metadataSchemasManager.getSchemaTypes(collection).getSchema(schema);
+		return new MetadataSchemaToVOBuilder().build(folderMetadataSchema, VIEW_MODE.TABLE, view.getSessionContext());
+	}
+
+	private LogicalSearchQuery getSharedAuthorization(String schemaType) {
+		return new LogicalSearchQuery((LogicalSearchQueryOperators.from(schemasRecordsServices.authorizationDetails.schemaType())
+				.where(schemasRecordsServices.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY)).isNotNull()
+				.andWhere(schemasRecordsServices.authorizationDetails.targetSchemaType()).isEqualTo(schemaType)));
+	}
+	//
+	//	private LogicalSearchQuery getPublishedDocument(String schemaType) {
+	//		return new LogicalSearchQuery((LogicalSearchQueryOperators.from(schemasRecordsServices.authorizationDetails.schemaType())).
+	//	}
 }
