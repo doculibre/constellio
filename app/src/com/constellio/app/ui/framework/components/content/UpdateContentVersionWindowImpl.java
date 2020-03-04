@@ -284,7 +284,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 			setHeight("200px");
 			updatedTitle = $("UpdateContentVersionWindow.checkInTitle");
 		} else {
-			setHeight("300px");
+			setHeight("350px");
 			updatedTitle = $("UpdateContentVersionWindow.newVersionTitle");
 		}
 		setCaption(updatedTitle);
@@ -293,6 +293,11 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 
 	public void saveWithSameVersion() {
 		presenter.contentVersionSaved(null, null);
+	}
+
+	@Override
+	public void showMessage(String message) {
+
 	}
 
 	@Override

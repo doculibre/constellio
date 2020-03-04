@@ -436,7 +436,14 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			builder.setUniqueValue(formMetadataVO.isUniqueValue());
 		}
 
-		validateUniqueCode(builder.getLocalCode());
+		try {
+			if (!editMode) {
+				validateUniqueCode(builder.getLocalCode());
+			}
+		} catch (MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists e) {
+			view.showErrorMessage($("AddEditMetadataView.metadataAlreadyExists", builder.getLocalCode()));
+			return;
+		}
 
 		try {
 			schemasManager.saveUpdateSchemaTypes(types);
@@ -707,7 +714,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			if (valueType != REFERENCE || !isMultivalue) {
 				sortingType = MetadataSortingType.ENTRY_ORDER;
 			}
-			
+
 			if (formMetadataVO.getValueType() == ENUM && editMode) {
 				enumClass = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(formMetadataVO.getCode()).getEnumClass();
 			}

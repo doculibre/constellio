@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.background;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.model.entities.records.Content;
@@ -40,11 +41,19 @@ public class AlertDocumentBorrowingPeriodBackgroundActionAcceptanceTest extends 
 	@Test
 	public void givenDocumentWithCheckoutPeriodOverWhenRunAlertDocumentBorrowingPeriodBackgroundActionThenSendEmail()
 			throws RecordServicesException {
+		givenConfig(RMConfigs.DOCUMENT_BORROWING_DURATION_IN_DAYS, 7);
 		Document document = records.getDocumentWithContent_A19().setBorrowed(true);
 		Content content = document.getContent();
 		content.checkOut(users.adminIn(zeCollection));
 		document.setContent(content);
 		recordServices.add(document);
+		doReturn(now.plusDays(7)).when(action).getCurrentDateTime();
+
+		action.run();
+
+		verify(action, never()).sendEmail(any(Document.class));
+
+
 		doReturn(now.plusDays(8)).when(action).getCurrentDateTime();
 
 		action.run();
@@ -71,6 +80,7 @@ public class AlertDocumentBorrowingPeriodBackgroundActionAcceptanceTest extends 
 	@Test
 	public void givenDocumentWithCheckoutPeriodNotOverWhenRunAlertDocumentBorrowingPeriodBackgroundActionThenEmailIsNotSent()
 			throws RecordServicesException {
+		givenConfig(RMConfigs.DOCUMENT_BORROWING_DURATION_IN_DAYS, 7);
 		Document document = records.getDocumentWithContent_A19().setBorrowed(true);
 		Content content = document.getContent();
 		content.checkOut(users.adminIn(zeCollection));

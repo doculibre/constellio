@@ -68,7 +68,7 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 				addAll(rmModuleExtensions.getFilteredActionsForContainers());
 				addAll(rmModuleExtensions.getFilteredActionsForFolders());
 			}};
-			return new RecordVOMenuBar(recordVO, filteredActions);
+			return new RecordVOMenuBar(recordVO, filteredActions, appLayerFactory);
 		} else {
 			return null;
 		}

@@ -94,16 +94,6 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 				batchProcessIds.get(0), batchProcessIds.get(1), batchProcessIds.get(2),
 				batchProcessIds.get(3), batchProcessIds.get(4));
 
-		givenConfig(ConstellioEIMConfigs.BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE, 2);
-		waitForBatchProcess();
-
-		RecordBatchProcess process = batchProcessesManager
-				.addPendingBatchProcess(recordIds, action, User.ADMIN, null, zeCollection);
-		batchProcessesManager.waitUntilFinished(process);
-
-		finishedBatchProcesses = batchProcessesManager.getFinishedBatchProcesses();
-		assertThat(finishedBatchProcesses).extracting("id")
-				.containsExactly(batchProcessIds.get(4), process.getId());
 	}
 
 }

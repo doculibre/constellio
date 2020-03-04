@@ -167,11 +167,13 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		remoteThread.join();
 
 		while (remoteReceivedEventExtensionCalledCounter.get() < 10000
-			   || localReceivedEventExtensionCalledCounter.get() < 20000) {
+			   || localReceivedEventExtensionCalledCounter.get() < 30000) {
 			System.out.println(remoteReceivedEventExtensionCalledCounter.get());
 			System.out.println(localReceivedEventExtensionCalledCounter.get());
 			Thread.sleep(50);
 		}
+
+		Thread.sleep(1000);
 
 		assertThat(localEventBus1ReceivedEvents.size()).isEqualTo(30000);
 		assertThat(localEventBus2ReceivedEvents.size()).isEqualTo(30000);
