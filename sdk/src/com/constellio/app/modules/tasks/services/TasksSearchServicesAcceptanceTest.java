@@ -214,7 +214,7 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	public void givenBobWhenSearchRecentlyClosedTasksThenReturnClosedTasksVisibleToBob() {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getRecentlyClosedTasks(bob));
-		assertThat(results.size()).isEqualTo(2);
+		assertThat(results.size()).isEqualTo(1);
 		assertThat(results).extracting("title")
 				.containsAll(asList("taskAssignedByBobToChuckClosed"));
 	}
