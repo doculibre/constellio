@@ -408,7 +408,7 @@ public class RMRecordsMenuItemServices {
 				break;
 			case RMRECORDS_BATCH_UNSHARE:
 				menuItemAction = buildMenuItemAction(RMRECORDS_BATCH_UNSHARE, state,
-						$("DocumentContextMenu.batchunshare"), FontAwesome.SHARE_SQUARE_O, -1, 1200,
+						$("DocumentContextMenu.batchunshare"), FontAwesome.REPLY, -1, 1200,
 						getRecordsLimit(actionType), (ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchUnshare(ids, params));
 				break;
 			case RMRECORDS_CHECKIN:
