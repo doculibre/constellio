@@ -19,24 +19,11 @@ import com.vaadin.data.Validator;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DropHandler;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.DragAndDropWrapper;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -60,7 +47,13 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		this.recordVOContainer = container;
 		this.presenter = presenter;
 
-		adaptee = new RecordVOTable(container);
+		adaptee = new RecordVOTable(container) {
+			@Override
+			public void sort(Object[] propertyId, boolean[] ascending) throws UnsupportedOperationException {
+				super.sort(propertyId, ascending);
+				deselectAll();
+			}
+		};
 		adaptee.setWidth("100%");
 
 		adaptee.setColumnCollapsingAllowed(true);
@@ -123,6 +116,12 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 			//			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
 			result.add((String) itemId);
 		}
+		Collections.sort(result, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				return 0;
+			}
+		});
 		return result;
 	}
 
