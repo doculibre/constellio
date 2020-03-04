@@ -524,21 +524,53 @@ public class RMRecordsMenuItemBehaviors {
 	public void createTask(List<String> ids, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(ids);
 	}
+
+	public void batchUnPublishDocument(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		Button button = new DeleteButton(false) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				batchUnPublishDocumentConfirmed(recordIds, params.getUser(), params.getView());
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("DocumentContextMenu.batchUnPublishConfirmationMsg");
+			}
+		};
+
+		button.click();
+	}
+
+	public void batchUnPublishDocumentConfirmed(List<String> recordIds, User user, BaseView baseView) {
+		List<Document> documentToUnPublish = rm.getDocuments(recordIds);
+
+		for (Document document : documentToUnPublish) {
+			document.setPublished(false);
+			document.setPublishingEndDate(null);
+			document.setPublishingStartDate(null);
+		}
+
+		try {
+			recordServices.update(documentToUnPublish, user);
+			baseView.refreshActionMenu();
+			baseView.partialRefresh();
+		} catch (RecordServicesException e) {
+			baseView.showErrorMessage(MessageUtils.toMessage(e));
+		}
+	}
+
 	public void batchUnshare(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		Button button = new DeleteButton(false) {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
 					unshareFolderButtonClicked( recordIds, params.getUser());
-					Page.getCurrent().reload();
+					params.getView().refreshActionMenu();
 					params.getView().partialRefresh();
 				}
 
 				@Override
 				protected String getConfirmDialogMessage() {
-					int folderCount = countPerShemaType(Folder.SCHEMA_TYPE, recordIds);
-					int documentCount = countPerShemaType(Document.SCHEMA_TYPE, recordIds);
-
-					return $("CartView.deleteConfirmationMessageWithoutJustification");
+					return $("DocumentContextMenu.batchUnshareConfirmationMsg");
 				}
 			};
 
@@ -555,7 +587,6 @@ public class RMRecordsMenuItemBehaviors {
 						.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
 
 			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-
 				return;
 			}
 		}

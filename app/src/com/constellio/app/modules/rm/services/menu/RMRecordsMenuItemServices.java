@@ -32,9 +32,10 @@ import java.util.stream.Collectors;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_CART;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CHECKIN;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CHECKOUT;
-import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_COPY;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF;
@@ -288,6 +289,25 @@ public class RMRecordsMenuItemServices {
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_BATCH_UNSHARE:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isUnshareActionPossible(record, user);
+					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isUnshareActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_BATCH_UNPUBLISH:
+				for (Record record : records) {
+					boolean actionPossible = documentRecordActionsServices.isUnPublishActionPossible(record, user);
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount,
+						records.size() - possibleCount, $("RMRecordsMenuItemServices.actionImpossible"));
 		}
 
 		return new MenuItemActionState(HIDDEN);
@@ -388,7 +408,7 @@ public class RMRecordsMenuItemServices {
 				break;
 			case RMRECORDS_BATCH_UNSHARE:
 				menuItemAction = buildMenuItemAction(RMRECORDS_BATCH_UNSHARE, state,
-						$("unshare"), FontAwesome.SHARE_SQUARE_O, -1, 1100,
+						$("DocumentContextMenu.batchunshare"), FontAwesome.SHARE_SQUARE_O, -1, 1200,
 						getRecordsLimit(actionType), (ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchUnshare(ids, params));
 				break;
 			case RMRECORDS_CHECKIN:
@@ -396,6 +416,11 @@ public class RMRecordsMenuItemServices {
 						$("DocumentContextMenu.checkIn"), FontAwesome.UNLOCK, -1, 1200,
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkInDocuments(ids, params));
+				break;
+			case RMRECORDS_BATCH_UNPUBLISH:
+				menuItemAction = buildMenuItemAction(RMRECORDS_BATCH_UNPUBLISH, state, $("DocumentContextMenu.batchunPublish"), FontAwesome.GLOBE, -1, 1300,
+						getRecordsLimit(actionType), (ids -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchUnPublishDocument(ids, params)));
+				break;
 		}
 
 		if (menuItemAction != null) {
@@ -461,7 +486,9 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_CHECKOUT(asList(Document.SCHEMA_TYPE), 25),
 		RMRECORDS_CHECKIN(asList(Document.SCHEMA_TYPE), 25),
 		RMRECORDS_CREATE_TASK(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000),
-		RMRECORDS_BATCH_UNSHARE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000);
+		RMRECORDS_BATCH_UNSHARE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000),
+		RMRECORDS_BATCH_UNPUBLISH(asList(Document.SCHEMA_TYPE), 10000);
+
 
 		private final List<String> schemaTypes;
 		private final int recordsLimit;
