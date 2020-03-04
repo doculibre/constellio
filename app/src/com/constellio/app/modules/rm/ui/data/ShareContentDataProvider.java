@@ -46,6 +46,7 @@ public abstract class ShareContentDataProvider extends RecordVODataProvider {
 		}
 	}
 
+
 	@Override
 	public final LogicalSearchQuery getQuery() {
 		init();
