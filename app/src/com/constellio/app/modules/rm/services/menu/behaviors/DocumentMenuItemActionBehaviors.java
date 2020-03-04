@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.services.menu.behaviors;
 
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -69,6 +70,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
@@ -105,6 +107,7 @@ public class DocumentMenuItemActionBehaviors {
 	private LoggingServices loggingServices;
 	private DecommissioningLoggingService decommissioningLoggingService;
 	private DocumentRecordActionsServices documentRecordActionsServices;
+	private AuthorizationsServices authorizationsServices;
 
 	public DocumentMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -117,6 +120,7 @@ public class DocumentMenuItemActionBehaviors {
 		decommissioningLoggingService = new DecommissioningLoggingService(appLayerFactory.getModelLayerFactory());
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 	}
 
 	public void getConsultationLink(Document document, MenuItemActionBehaviorParams params) {
@@ -257,10 +261,15 @@ public class DocumentMenuItemActionBehaviors {
 
 		document.setPublished(true);
 		Button publishButton = new WindowButton($("DisplayDocumentView.publish"),
-				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "30%", "375px")) {
+				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "30%", "300px")) {
 			@Override
 			protected Component buildWindowContent() {
-				return new PublishDocumentViewImpl(params.getRecordVO());
+				return new PublishDocumentViewImpl(params.getRecordVO()) {
+					@Override
+					protected boolean isBreadcrumbsVisible() {
+						return false;
+					}
+				};
 			}
 		};
 		publishButton.click();
@@ -432,13 +441,15 @@ public class DocumentMenuItemActionBehaviors {
 
 	public void unshareDocumentButtonClicked(Map<String, String> params, Document document, User user) {
 
-		Authorization authorization = rm.getSolrAuthorizationDetails(user, document.getId());
-		try {
+		boolean removeAllSharedAuthorizations = user.hasAny(RMPermissionsTo.MANAGE_SHARE, RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(document);
+
+		if (removeAllSharedAuthorizations) {
+			List<AuthorizationDeleteRequest> authorizationDeleteRequests = authorizationsServices.buildDeleteRequestsForAllSharedAutorizationsOnRecord(document.getWrappedRecord(), user);
+			authorizationDeleteRequests.stream().forEach(authorization -> authorizationsServices.execute(authorization));
+		} else {
+			Authorization authorization = rm.getSolrAuthorizationDetails(user, document.getId());
 			rm.getModelLayerFactory()
 					.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
-		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-
-			return;
 		}
 	}
 

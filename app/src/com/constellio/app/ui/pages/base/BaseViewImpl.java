@@ -163,9 +163,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 			String title = getTitle();
 			if (isBreadcrumbsVisible()) {
-				if (breadcrumbTrail != null && title != null) {
+				if (breadcrumbTrail == null && title != null) {
 					breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
-				} else if (title != null && breadcrumbTrail == null) {
+				}
+				//TODO fix me. Else if should be on the first if?
+				else if (title != null && breadcrumbTrail == null) {
 					titleLabel = new Label(title);
 					titleLabel.addStyleName(ValoTheme.LABEL_H1);
 				}

@@ -565,7 +565,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		List<AuthorizationVO> results = new ArrayList<>();
 		for (Authorization authorization : getAllAuthorizations()) {
 			if (isOwnAuthorization(authorization) && authorization.getSharedBy() != null &&
-				(isSharedByCurrentUser(authorization) || getCurrentUser().hasAny(CorePermissions.MANAGE_SHARE, VIEW_DOCUMENT_AUTHORIZATIONS, MANAGE_DOCUMENT_AUTHORIZATIONS).on(getDocument()))) {
+				(isSharedByCurrentUser(authorization) || getCurrentUser().hasAny(RMPermissionsTo.MANAGE_SHARE, VIEW_DOCUMENT_AUTHORIZATIONS, MANAGE_DOCUMENT_AUTHORIZATIONS).on(getDocument()))) {
 				results.add(builder.build(authorization));
 			}
 		}

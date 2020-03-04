@@ -109,5 +109,10 @@ public class ShareContentListViewImpl extends BaseViewImpl implements ShareConte
 				}
 			};
 		}
+
+		@Override
+		public boolean isMenuBarColumn() {
+			return true;
+		}
 	}
 }
