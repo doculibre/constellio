@@ -11,10 +11,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -292,6 +289,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		doReturn(theReferencedMetadata).when(services).getDependentMetadataFromDependency(any(ReferenceDependency.class),
 				eq(otherRecord));
 		when(aReferenceDependency.isRequired()).thenReturn(true);
+		when(aReferenceDependency.getLocalMetadataCode()).thenReturn("meta");
 		doReturn(aReferenceMetadata).when(services).getMetadataFromDependency(record, aReferenceDependency);
 		doReturn("otherRecordId").when(record).get(aReferenceMetadata);
 		when(recordProvider.getRecord("otherRecordId")).thenReturn(otherRecord);
@@ -300,35 +298,6 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 				Locale.FRENCH, STRICT))
 				.isFalse();
 		verify(aMap, never()).put(any(Dependency.class), anyObject());
-	}
-
-	@SuppressWarnings({"rawtypes", "unchecked"})
-	@Test
-	public void givenReferenceDependencyRequiredAndNotNullWhenGettingValueThenReturnTrueAndAddValue() {
-		Map aMap = mock(Map.class);
-		MetadataSchemaType referencedSchemaType = mock(MetadataSchemaType.class);
-		MetadataSchema referencedDefaultSchema = mock(MetadataSchema.class);
-		when(referencedSchemaType.getDefaultSchema()).thenReturn(referencedDefaultSchema);
-
-
-		when(referencedSchemaType.getCacheType()).thenReturn(RecordCacheType.NOT_CACHED);
-		Metadata aReferenceMetadata = mock(Metadata.class);
-		Metadata theReferencedMetadata = mock(Metadata.class);
-		when(aReferenceMetadata.getReferencedSchemaType()).thenReturn(referencedSchemaType);
-		when(referencedDefaultSchema.getMetadata("theReferencedMetadata")).thenReturn(theReferencedMetadata);
-		when(theReferencedMetadata.getSchemaType()).thenReturn(referencedSchemaType);
-		when(aReferenceDependency.isRequired()).thenReturn(true);
-		when(aReferenceDependency.getDependentMetadataCode()).thenReturn("theReferencedMetadata");
-		doReturn(aReferenceMetadata).when(services).getMetadataFromDependency(record, aReferenceDependency);
-		doReturn(theReferencedMetadata).when(services).getDependentMetadataFromDependency(any(ReferenceDependency.class),
-				eq(otherRecord));
-		doReturn("otherRecordId").when(record).get(aReferenceMetadata, Locale.FRENCH, STRICT);
-		when(recordProvider.getRecord("otherRecordId")).thenReturn(otherRecord);
-		doReturn("aValue").when(otherRecord).get(theReferencedMetadata, Locale.FRENCH, STRICT);
-
-		assertThat(services.addValueForReferenceDependency(record, recordProvider, aMap, aReferenceDependency, options,
-				Locale.FRENCH, STRICT)).isTrue();
-		verify(aMap).put(aReferenceDependency, "aValue");
 	}
 
 

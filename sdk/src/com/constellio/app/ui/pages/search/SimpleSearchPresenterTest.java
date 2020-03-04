@@ -87,11 +87,21 @@ public class SimpleSearchPresenterTest extends ConstellioTest {
 		when(roles.getSchemasRecordsServices()).thenReturn(schemasRecordsServices);
 		doReturn(authorizationsServices).when(factories.getModelLayerFactory()).newAuthorizationsServices();
 
-		User user = new User(record, metadataSchemaTypes, roles);
+		User user = new User(record, metadataSchemaTypes, roles) {
+			@Override
+			public boolean isApplyFacetsEnabled() {
+				return false;
+			}
+		};
 
 		when(userServices.getUserInCollection(any(String.class), any(String.class))).thenReturn(user);
 
-		presenter = spy(new SimpleSearchPresenter(view));
+		presenter = spy(new SimpleSearchPresenter(view) {
+			@Override
+			protected User getCurrentUser() {
+				return user;
+			}
+		});
 		doReturn(null).when(presenter).allowedSchemaTypes();
 	}
 

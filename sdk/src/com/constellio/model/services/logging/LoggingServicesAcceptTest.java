@@ -38,6 +38,7 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class LoggingServicesAcceptTest extends ConstellioTest {
 
@@ -241,7 +242,15 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 
 		List<Event> events = getAllEvents();
 
-		assertThat(events).hasSize(4);
+		assertThat(events).extracting("recordId", "type").containsOnly(
+				tuple("record1", "create_zeSchemaType"),
+				tuple("record2", "create_zeSchemaType"),
+				tuple("record2", "modify_zeSchemaType"),
+				tuple("record3", "create_zeSchemaType"),
+				tuple("record2", "delete_zeSchemaType")
+		);
+
+		assertThat(events).hasSize(5);
 		assertThat(events.get(0).getCreatedOn()).isEqualTo(shishOClock);
 		assertThat(events.get(0).getCollection()).isEqualTo(zeCollection);
 		assertThat(events.get(0).getUsername()).isEqualTo(aliceWonderland);
@@ -265,6 +274,12 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		assertThat(events.get(3).getUsername()).isEqualTo(aliceWonderland);
 		assertThat(events.get(3).getRecordId()).isEqualTo("record3");
 		assertThat(events.get(3).getType()).isEqualTo("create_zeSchemaType");
+
+		assertThat(events.get(4).getCreatedOn()).isEqualTo(teaOClock);
+		assertThat(events.get(4).getCollection()).isEqualTo(zeCollection);
+		assertThat(events.get(4).getUsername()).isEqualTo(aliceWonderland);
+		assertThat(events.get(4).getRecordId()).isEqualTo("record2");
+		assertThat(events.get(4).getType()).isEqualTo("delete_zeSchemaType");
 
 	}
 
