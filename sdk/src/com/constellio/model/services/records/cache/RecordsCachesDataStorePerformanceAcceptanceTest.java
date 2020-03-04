@@ -13,6 +13,7 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.PerformanceTest;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -27,6 +28,7 @@ import static com.constellio.model.services.records.RecordUtils.toIntKey;
 import static com.constellio.sdk.tests.TestUtils.calculateOpsPerSecondsOver;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@PerformanceTest
 public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioTest {
 
 	RecordsCachesDataStore dataStore;

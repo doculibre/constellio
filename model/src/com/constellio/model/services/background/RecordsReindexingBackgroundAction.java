@@ -48,11 +48,15 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 		run(true);
 	}
 
+	protected boolean isOfficeHours() {
+		return TimeProvider.getLocalDateTime().getHourOfDay() >= 7
+		&& TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
+	}
+
 	public synchronized void run(boolean waitDuringOfficeHours) {
 		checkConfigRecordsAndIntervalForReindexation();
 
-		boolean officeHours = TimeProvider.getLocalDateTime().getHourOfDay() >= 7
-							  && TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
+		boolean officeHours = isOfficeHours();
 
 		if (ReindexingServices.getReindexingInfos() == null &&
 			(modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized() ||
