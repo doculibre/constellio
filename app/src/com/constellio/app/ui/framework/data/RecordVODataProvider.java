@@ -19,6 +19,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
+import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
@@ -35,7 +36,7 @@ import java.util.Map;
 public abstract class RecordVODataProvider extends AbstractDataProvider {
 
 	SerializableSearchCache queryCache = new SerializableSearchCache();
-	transient LogicalSearchQuery query;
+	transient SearchQuery query;
 	transient Integer size = null;
 	transient Map<Integer, Record> cache;
 	transient MetadataSchemaVO defaultSchema;
@@ -197,18 +198,20 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	}
 
 	protected List<Record> doSearch() {
+		LogicalSearchQuery logicalSearchQuery = getLogicalSearchQueryForLogicalOperation();
+
 		List<Record> recordList;
-		if (query == null) {
+		if (logicalSearchQuery == null) {
 			recordList = new ArrayList<>();
 		} else if (isSearchCache()) {
-			query.setNumberOfRows(LogicalSearchQuery.DEFAULT_NUMBER_OF_ROWS);
-			query.setLanguage(sessionContext.getCurrentLocale());
+			logicalSearchQuery.setNumberOfRows(LogicalSearchQuery.DEFAULT_NUMBER_OF_ROWS);
+			logicalSearchQuery.setLanguage(sessionContext.getCurrentLocale());
 			SearchServices searchServices = modelLayerFactory.newSearchServices();
-			recordList = searchServices.cachedSearch(query);
+			recordList = searchServices.cachedSearch(logicalSearchQuery);
 		} else {
 			query.setLanguage(sessionContext.getCurrentLocale());
 			SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
-			recordList = searchServices.search(query, batchSize);
+			recordList = searchServices.search(logicalSearchQuery, batchSize);
 		}
 		return recordList;
 	}
@@ -216,7 +219,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	public SearchResponseIterator<Record> getIterator(){
 		query.setLanguage(sessionContext.getCurrentLocale());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
-		SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIterator(query, batchSize);
+		SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIterator(getLogicalSearchQueryForLogicalOperation(), batchSize);
 		return searchResponseIterator;
 	}
 
@@ -250,13 +253,13 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 
 	public void sort(MetadataVO[] propertyId, boolean[] ascending) {
 		if (query != null) {
-			clearSort(query);
+			clearSort(getLogicalSearchQueryForLogicalOperation());
 			cache.clear();
 
 			for (int i = 0; i < propertyId.length; i++) {
 				Metadata metadata;
 				MetadataSchema schema;
-				DataStoreFilters filters = query.getCondition().getFilters();
+				DataStoreFilters filters = getLogicalSearchQueryForLogicalOperation().getCondition().getFilters();
 				if (filters instanceof SchemaFilters) {
 					schema = ((SchemaFilters) filters).getSchema();
 				} else {
@@ -305,4 +308,10 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		return searchServices.getQueryFacetsValues(getQuery());
 	}
 
+	protected LogicalSearchQuery getLogicalSearchQueryForLogicalOperation() {
+		if (!(query instanceof LogicalSearchQuery)) {
+			throw (new UnsupportedOperationException());
+		}
+		return (LogicalSearchQuery) query;
+	}
 }

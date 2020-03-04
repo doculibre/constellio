@@ -1,12 +1,15 @@
 package com.constellio.model.services.search.query;
 
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
 
 import java.util.List;
+import java.util.Locale;
 
 public interface SearchQuery {
+
 
 	List<String> getFilterQueries();
 
@@ -28,9 +31,19 @@ public interface SearchQuery {
 
 	SearchQuery computeStatsOnField(DataStoreField metadata);
 
-	public SearchQuery sortAsc(DataStoreField metadata);
+	SearchQuery sortAsc(DataStoreField metadata);
 
-	public SearchQuery sortDesc(DataStoreField metadata);
+	SearchQuery sortDesc(DataStoreField metadata);
+
+	SearchQuery clone();
 
 	void clearSort();
+
+	SearchQuery setLanguage(String language);
+
+	SearchQuery setLanguage(Locale locale);
+
+	List<String> getFieldFacets();
+
+	KeySetMap<String, String> getQueryFacets();
 }

@@ -135,6 +135,10 @@ public class LogicalSearchQuery implements SearchQuery {
 		queryExecutionMethod = query.queryExecutionMethod;
 	}
 
+	public LogicalSearchQuery clone() {
+		return new LogicalSearchQuery(this);
+	}
+
 	// The following methods are attribute accessors
 
 

@@ -4,11 +4,15 @@ import com.constellio.data.dao.dto.records.FacetPivotValue;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.MoreLikeThisRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.SearchQuery;
+import com.constellio.model.services.search.query.list.RecordListSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -41,13 +45,13 @@ public class SerializedCacheSearchService {
 		this.highlights = new HashMap<>();
 	}
 
-	public SPEQueryResponse query(LogicalSearchQuery query) {
+	public SPEQueryResponse query(SearchQuery query) {
 		return query(query, 10);
 	}
 
-	public SPEQueryResponse query(LogicalSearchQuery query, final int batch) {
+	public SPEQueryResponse query(SearchQuery query, final int batch) {
 		long qtime = System.currentTimeMillis();
-		LogicalSearchQuery duplicateQuery = new LogicalSearchQuery(query);
+		SearchQuery duplicateQuery = query.clone();
 		List<Record> records = search(duplicateQuery, batch);
 		Map<String, Map<String, List<String>>> highlights = unmodifiableMap(cache.getHighlightingMap());
 
@@ -75,34 +79,61 @@ public class SerializedCacheSearchService {
 				numFound, records, highlights, correctlySpelt, emptySpellcheckerSuggestions, emptyRecordsWithMoreLikeThis);
 	}
 
-	private void validateQueryNotUsingUnsupportedFeatures(LogicalSearchQuery query) {
-		if (!query.getStatisticFields().isEmpty()) {
+	private void validateQueryNotUsingUnsupportedFeatures(SearchQuery query) {
+		validateQueryTypeIsSupported(query);
+		LogicalSearchQuery logicalSearchQuery = (LogicalSearchQuery) query;
+		if (!logicalSearchQuery.getStatisticFields().isEmpty()) {
 			throw new IllegalArgumentException("This service doesn't support stats");
 		}
 
-		if (query.isSpellcheck()) {
+		if (logicalSearchQuery.isSpellcheck()) {
 			throw new IllegalArgumentException("This service doesn't support spellcheck");
 		}
 
-		if (query.getResultsProjection() != null) {
+		if (logicalSearchQuery.getResultsProjection() != null) {
 			throw new IllegalArgumentException("This service doesn't support results projection");
 		}
-
 	}
 
-	public List<Record> search(LogicalSearchQuery query) {
+	private void validateQueryTypeIsSupported(SearchQuery query) {
+		if (!(query instanceof LogicalSearchQuery || query instanceof RecordListSearchQuery)) {
+			throw new IllegalArgumentException("This service doesn't support this search query implementation");
+		}
+	}
+
+	public List<Record> search(SearchQuery query) {
 		return search(query, 10);
 	}
 
-	public List<Record> search(LogicalSearchQuery query, int batch) {
-		validateQueryNotUsingUnsupportedFeatures(query);
-		cache.initializeFor(query);
-		return new LazyRecordList(batch, cache, modelLayerFactory, query, serializeRecords);
+	public List<Record> search(SearchQuery query, int batch) {
+		List<Record> records;
+		if (query instanceof LogicalSearchQuery) {
+			records = search((LogicalSearchQuery) query, batch);
+		} else if (query instanceof RecordListSearchQuery) {
+			RecordListSearchQuery listQuery = (RecordListSearchQuery) query;
+			if (!listQuery.isListOfIds()) {
+				records = listQuery.getRecords();
+			} else {
+				records = new ArrayList<>();
+				RecordServices recordServices = modelLayerFactory.newRecordServices();
+				listQuery.getRecordIds().forEach(id -> records.add(recordServices.realtimeGetRecordSummaryById(id)));
+			}
+		} else {
+			throw (new IllegalArgumentException());
+		}
+		return records;
 	}
 
-	public Map<String, List<FacetValue>> getFieldFacetValues(LogicalSearchQuery facetLoadingQuery) {
+	private List<Record> search(LogicalSearchQuery query, int batch) {
+		LogicalSearchQuery logicalSearchQuery = (LogicalSearchQuery) query;
+		cache.initializeFor(logicalSearchQuery);
+		return new LazyRecordList(batch, cache, modelLayerFactory, logicalSearchQuery, serializeRecords);
+	}
+
+	public Map<String, List<FacetValue>> getFieldFacetValues(SearchQuery facetLoadingQuery) {
 		if (!cache.areFacetsLoaded() && hasFacetsConfigured(facetLoadingQuery)) {
-			SPEQueryResponse speQueryResponse = searchServices.query(new LogicalSearchQuery(facetLoadingQuery).setNumberOfRows(0));
+			validateQueryTypeIsSupported(facetLoadingQuery);
+			SPEQueryResponse speQueryResponse = searchServices.query(((LogicalSearchQuery) facetLoadingQuery).clone().setNumberOfRows(0));
 			cache.setFieldFacetValues(speQueryResponse.getFieldFacetValues());
 			cache.setQueryFacetsValues(speQueryResponse.getQueryFacetsValues());
 			cache.setFacetsComputed(true);
@@ -111,9 +142,10 @@ public class SerializedCacheSearchService {
 		return cache.getFieldFacetValues();
 	}
 
-	public Map<String, Integer> getQueryFacetsValues(LogicalSearchQuery facetLoadingQuery) {
+	public Map<String, Integer> getQueryFacetsValues(SearchQuery facetLoadingQuery) {
 		if (!cache.areFacetsLoaded() && hasFacetsConfigured(facetLoadingQuery)) {
-			SPEQueryResponse speQueryResponse = searchServices.query(new LogicalSearchQuery(facetLoadingQuery).setNumberOfRows(0));
+			validateQueryTypeIsSupported(facetLoadingQuery);
+			SPEQueryResponse speQueryResponse = searchServices.query(((LogicalSearchQuery) facetLoadingQuery).clone().setNumberOfRows(0));
 			cache.setFieldFacetValues(speQueryResponse.getFieldFacetValues());
 			cache.setQueryFacetsValues(speQueryResponse.getQueryFacetsValues());
 			cache.setFacetsComputed(true);
@@ -122,7 +154,7 @@ public class SerializedCacheSearchService {
 		return cache.getQueryFacetsValues() == null ? Collections.emptyMap() : cache.getQueryFacetsValues();
 	}
 
-	private boolean hasFacetsConfigured(LogicalSearchQuery query) {
+	private boolean hasFacetsConfigured(SearchQuery query) {
 		return !query.getFieldFacets().isEmpty() || !query.getQueryFacets().isEmpty();
 	}
 }
