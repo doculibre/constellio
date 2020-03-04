@@ -246,7 +246,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 						$("RMRequestTaskButtonExtension.borrowDuration"));
 
 				borrowDurationField.setValue(String.valueOf(
-						new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).getBorrowingDurationDays()));
+						new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).getFolderBorrowingDurationDays()));
 				HorizontalLayout buttonLayout = new HorizontalLayout();
 
 				BaseButton borrowFolderButton = new BaseButton($("RMRequestTaskButtonExtension.confirmBorrowFolder")) {

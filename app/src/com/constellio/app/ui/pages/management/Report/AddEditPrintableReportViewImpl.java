@@ -98,16 +98,16 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
 	}
 
 	private PrintableReportFormImpl newForm() {
-		return recordForm = new PrintableReportFormImpl(recordVO, new PrintableReportRecordFieldFactory());
+		return recordForm = new PrintableReportFormImpl(recordVO, new PrintableReportRecordFieldFactory(), getConstellioFactories());
 	}
 
 	private class PrintableReportFormImpl extends RecordForm implements PrintableReportFrom {
-		public PrintableReportFormImpl(RecordVO recordVO) {
-			super(recordVO);
+		public PrintableReportFormImpl(RecordVO recordVO, ConstellioFactories constellioFactories) {
+			super(recordVO, constellioFactories);
 		}
 
-		public PrintableReportFormImpl(RecordVO recordVO, RecordFieldFactory recordFieldFactory) {
-			super(recordVO, recordFieldFactory);
+		public PrintableReportFormImpl(RecordVO recordVO, RecordFieldFactory recordFieldFactory, ConstellioFactories constellioFactories) {
+			super(recordVO, recordFieldFactory, constellioFactories);
 		}
 
 		@Override

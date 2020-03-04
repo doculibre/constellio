@@ -56,7 +56,7 @@ public class AddEditCapsuleViewImpl extends BaseViewImpl implements AddEditCapsu
 			this.recordVO = presenter.newRecordVO();
 		}
 
-		return new RecordForm(this.recordVO, new CapsuleRecordFieldFactory()) {
+		return new RecordForm(this.recordVO, new CapsuleRecordFieldFactory(), getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {

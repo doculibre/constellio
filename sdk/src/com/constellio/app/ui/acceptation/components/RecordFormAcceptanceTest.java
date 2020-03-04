@@ -3,11 +3,7 @@ package com.constellio.app.ui.acceptation.components;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.entities.CollectionInfoVO;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -31,19 +27,12 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @UiTest
 public class RecordFormAcceptanceTest extends ConstellioTest {
@@ -482,7 +471,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 			VerticalLayout verticalLayout = new VerticalLayout();
 
-			RecordForm anotherForm = new RecordForm(dummyViewRecord) {
+			RecordForm anotherForm = new RecordForm(dummyViewRecord, getConstellioFactories()) {
 				@Override
 				protected void saveButtonClick(RecordVO record)
 						throws ValidationException {
@@ -497,7 +486,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 				}
 			};
 
-			RecordForm form = new RecordForm(dummyViewRecord) {
+			RecordForm form = new RecordForm(dummyViewRecord, getConstellioFactories()) {
 				@Override
 				protected void saveButtonClick(RecordVO record)
 						throws ValidationException {

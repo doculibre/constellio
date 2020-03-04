@@ -126,7 +126,7 @@ public class AddEditRobotViewImpl extends BaseViewImpl implements AddEditRobotVi
 
 	public class RobotForm extends RecordForm {
 		public RobotForm(RecordVO record) {
-			super(record, new RobotMetadataFieldFactory(presenter));
+			super(record, new RobotMetadataFieldFactory(presenter), AddEditRobotViewImpl.this.getConstellioFactories());
 		}
 
 		@Override

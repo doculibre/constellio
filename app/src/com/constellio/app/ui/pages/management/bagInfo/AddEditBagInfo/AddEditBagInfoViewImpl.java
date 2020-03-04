@@ -56,7 +56,7 @@ public class AddEditBagInfoViewImpl extends BaseViewImpl implements AddEditBagIn
 			this.recordVO = presenter.newRecordVO();
 		}
 
-		return new RecordForm(this.recordVO) {
+		return new RecordForm(this.recordVO, AddEditBagInfoViewImpl.this.getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject) throws ValidationException {
 				try {

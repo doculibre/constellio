@@ -61,7 +61,7 @@ public class EditConnectorInstanceViewImpl extends BaseViewImpl implements EditC
 	}
 
 	private RecordForm newForm() {
-		RecordForm recordForm = new RecordForm(recordVO, new ConnectorInstanceFieldFactory()) {
+		RecordForm recordForm = new RecordForm(recordVO, new ConnectorInstanceFieldFactory(), getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {

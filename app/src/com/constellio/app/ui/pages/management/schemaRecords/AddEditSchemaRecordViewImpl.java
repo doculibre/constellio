@@ -40,7 +40,7 @@ public class AddEditSchemaRecordViewImpl extends BaseViewImpl implements AddEdit
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		return new RecordForm(recordVO, new OverridingMetadataFieldFactory(presenter)) {
+		return new RecordForm(recordVO, new OverridingMetadataFieldFactory(presenter), getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO recordVO)
 					throws ValidationException {

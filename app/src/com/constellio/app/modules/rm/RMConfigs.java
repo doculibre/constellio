@@ -62,7 +62,7 @@ public class RMConfigs {
 			CONTAINER_RECYCLING_ALLOWED,
 			MIXED_CONTAINERS_ALLOWED,
 			ACTIVES_IN_CONTAINER_ALLOWED,
-			BORROWING_DURATION_IN_DAYS,
+			FOLDER_BORROWING_DURATION_IN_DAYS,
 			DOCUMENT_BORROWING_DURATION_IN_DAYS,
 			DOCUMENTS_TYPES_CHOICE,
 			ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER,
@@ -267,7 +267,7 @@ public class RMConfigs {
 		add(ENABLE_TYPE_RESTRICTION_IN_FOLDER = others.createBooleanFalseByDefault("enableTypeRestrictionInFolder")
 				.scriptedBy(EnableOrDisableTypeRestrictionInFolderScript.class).whichIsHidden());
 
-		add(BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
+		add(FOLDER_BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
 
 		add(DOCUMENT_BORROWING_DURATION_IN_DAYS = others.createInteger("documentBorrowingDurationDays").withDefaultValue(7));
 
@@ -521,8 +521,8 @@ public class RMConfigs {
 		return manager.getValue(AGENT_CREATE_DROP_DIR_SHORTCUT);
 	}
 
-	public int getBorrowingDurationDays() {
-		return manager.getValue(BORROWING_DURATION_IN_DAYS);
+	public int getFolderBorrowingDurationDays() {
+		return manager.getValue(FOLDER_BORROWING_DURATION_IN_DAYS);
 	}
 
 	public int getDocumentBorrowingDurationDays() {

@@ -106,9 +106,10 @@ public class RMPermissionsTo {
 	public static final String DISPLAY_CONTAINERS = permission(DECOMMISSIONING, "displayContainers");
 
 	public static final String BORROW_CONTAINER = permission(DECOMMISSIONING, "borrowContainer");
+	public static final String BORROWING_CONTAINER_DIRECTLY = permission(DECOMMISSIONING, "borrowingContainerDirectly");
 	public static final String BORROWING_REQUEST_ON_CONTAINER = permission(DECOMMISSIONING, "borrowingRequestOnContainer");
 	public static final String MANAGE_REQUEST_ON_CONTAINER = permission(DECOMMISSIONING, "manageRequestOnContainer");
-	public static final String RETURN_OTHER_USERS_CONTAINERS = permission(DECOMMISSIONING, "returnOtherUsersContainerss");
+	public static final String RETURN_OTHER_USERS_CONTAINERS = permission(DECOMMISSIONING, "returnOtherUsersContainers");
 
 	public static final String CREATE_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "createActiveFolderToSemiActiveDecommissioningList");
 	public static final String EDIT_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "editActiveFolderToSemiActiveDecommissioningList");

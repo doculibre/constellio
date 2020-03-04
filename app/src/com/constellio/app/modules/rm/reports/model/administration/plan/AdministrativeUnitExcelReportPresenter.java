@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.reports.model.excel.BaseExcelReportPresente
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
@@ -46,6 +47,7 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 	private TaxonomiesSearchOptions searchOptions;
 	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(AdministrativeUnitExcelReportPresenter.class);
 	private MetadataSchemaTypes types;
+	private User currentUser = null;
 
 	public AdministrativeUnitExcelReportPresenter(String collection, AppLayerFactory appLayerFactory,
 												  Locale locale, List<String> administrativeUnitToIncludes) {
@@ -98,7 +100,7 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 
 			List<AdministrativeUnit> rootAmdinistrativeUnit = new ArrayList<>();
 			List<TaxonomySearchRecord> taxonomySearchRecords = taxonomiesSearchServices
-					.getLinkableRootConcept(User.GOD, collection,
+					.getLinkableRootConcept(getCurrentUser(), collection,
 							RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
 
 			if (taxonomySearchRecords != null) {
@@ -126,23 +128,31 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 			}
 		}
 
-			return model;
-		}
+		return model;
+	}
 
 	private List<Object> administrativeUnitToCellContentList(List<Metadata> metadataListed,
-			AdministrativeUnit administrativeUnit1) {
+															 AdministrativeUnit administrativeUnit1) {
 		List<Object> recordLine = getRecordLine(administrativeUnit1.getWrappedRecord(), metadataListed);
 		getExtraLineData(recordLine, administrativeUnit1);
 		return recordLine;
 	}
 
+	private User getCurrentUser() {
+		if (currentUser == null) {
+			currentUser = modelLayerFactory.newUserServices().getUserInCollection(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername(), collection);
+		}
+
+		return currentUser;
+	}
+
 	private void updateAcces(String user, Map<String, List<String>> accessList, List<String> newAcessList) {
 		List<String> currentAcces = accessList.get(user);
-		if(currentAcces == null) {
+		if (currentAcces == null) {
 			accessList.put(user, newAcessList);
 		} else {
-			for(String currentNewAccess : newAcessList) {
-				if(!currentAcces.contains(currentNewAccess)) {
+			for (String currentNewAccess : newAcessList) {
+				if (!currentAcces.contains(currentNewAccess)) {
 					currentAcces.add(currentNewAccess);
 				}
 			}
@@ -154,7 +164,7 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all())
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 
-		List<TaxonomySearchRecord> children = taxonomiesSearchServices.getLinkableChildConcept(User.GOD, record,
+		List<TaxonomySearchRecord> children = taxonomiesSearchServices.getLinkableChildConcept(getCurrentUser(), record,
 				RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
 
 		if (children != null) {

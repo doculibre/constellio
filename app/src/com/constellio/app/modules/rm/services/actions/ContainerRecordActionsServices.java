@@ -95,8 +95,13 @@ public class ContainerRecordActionsServices {
 	}
 
 	public boolean isCheckInActionPossible(Record record, User user) {
-		return user.has(RMPermissionsTo.RETURN_OTHER_USERS_CONTAINERS).on(record)
-			   && isSendReturnReminderActionPossible(record, user);
+		ContainerRecord containerRecord = rm.wrapContainerRecord(record);
+		try {
+			borrowingServices.validateCanReturnContainer(user, containerRecord);
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
 	}
 
 	public boolean isReturnRequestActionPossible(Record record, User user) {
@@ -231,7 +236,7 @@ public class ContainerRecordActionsServices {
 		} catch (Exception e) {
 			return false;
 		}
-		return user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(container) &&
+		return user.hasAll(RMPermissionsTo.BORROW_CONTAINER, RMPermissionsTo.BORROWING_CONTAINER_DIRECTLY).on(container) &&
 			   !record.isLogicallyDeleted();
 	}
 }
