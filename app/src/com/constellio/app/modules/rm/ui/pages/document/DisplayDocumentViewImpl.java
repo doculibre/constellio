@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.document;
 
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
@@ -60,7 +61,6 @@ import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsV
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.entities.CorePermissions;
 import com.vaadin.data.Container;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.event.ItemClickEvent;
@@ -1016,7 +1016,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					public boolean isVisible() {
 						return super.isVisible() &&
 							   (presenter.getUser().getId().equals(authorization.getSharedBy()) ||
-								presenter.getUser().hasAny(CorePermissions.MANAGE_SHARE, MANAGE_DOCUMENT_AUTHORIZATIONS).on(getRecordVO().getRecord()));
+								presenter.getUser().hasAny(RMPermissionsTo.MANAGE_SHARE, MANAGE_DOCUMENT_AUTHORIZATIONS).on(getRecordVO().getRecord()));
 					}
 				};
 				deleteButton.setVisible(inherited || !authorization.isSynched());

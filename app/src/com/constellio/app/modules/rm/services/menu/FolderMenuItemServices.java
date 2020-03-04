@@ -30,7 +30,6 @@ import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_DISPLAY;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_EDIT;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_GENERATE_REPORT;
-import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_MODIFY_SHARE;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_MOVE;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_PRINT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_REMOVE_FROM_SELECTION;
@@ -132,13 +131,6 @@ public class FolderMenuItemServices {
 					isMenuItemActionPossible(FOLDER_SHARE.name(), folder, user, params),
 					$("DisplayFolderView.shareFolder"), null, -1, 900,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).share(folder, params)));
-		}
-
-		if (!filteredActionTypes.contains(FOLDER_MODIFY_SHARE.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_MODIFY_SHARE.name(),
-					isMenuItemActionPossible(FOLDER_MODIFY_SHARE.name(), folder, user, params),
-					$("DisplayFolderView.modifyShareFolder"), FontAwesome.PAPER_PLANE_O, -1, 1000,
-					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).modifyShare(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_UNSHARE.name())) {
@@ -246,8 +238,6 @@ public class FolderMenuItemServices {
 				return folderRecordActionsServices.isAddAuthorizationActionPossible(record, user);
 			case FOLDER_SHARE:
 				return folderRecordActionsServices.isShareActionPossible(record, user);
-			case FOLDER_MODIFY_SHARE:
-				return folderRecordActionsServices.isModifyShareActionPossible(record, user);
 			case FOLDER_UNSHARE:
 				return folderRecordActionsServices.isUnshareActionPossible(record, user);
 			case FOLDER_ADD_TO_CART:
@@ -306,7 +296,6 @@ public class FolderMenuItemServices {
 		FOLDER_COPY,
 		FOLDER_ADD_AUTHORIZATION,
 		FOLDER_SHARE,
-		FOLDER_MODIFY_SHARE,
 		FOLDER_UNSHARE,
 		FOLDER_ADD_TO_CART,
 		FOLDER_BORROW,

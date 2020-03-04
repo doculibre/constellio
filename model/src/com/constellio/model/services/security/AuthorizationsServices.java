@@ -15,7 +15,11 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
@@ -26,7 +30,6 @@ import com.constellio.model.entities.security.global.AuthorizationModificationRe
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.EmailAddress;
-import com.constellio.model.entities.security.global.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -39,10 +42,18 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.*;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddAuhtorizationInNonPrincipalTaxonomy;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddUpdateWithoutPrincipalsAndOrTargetRecords;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotDetachConcept;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -50,14 +61,23 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.getAuthsReceivedBy;
-import static com.constellio.model.entities.schemas.Schemas.*;
+import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
+import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
+import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
+import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.records.RecordUtils.unwrap;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -797,6 +817,28 @@ public class AuthorizationsServices {
 		return recordExist != null && recordExist.size() > 0;
 	}
 
+	public boolean isRecordShared(Record record) {
+		List<Authorization> allShares = getAllSharedAuthorizationsOnRecord(record);
+		return allShares.size() > 0;
+	}
+
+	public List<Authorization> getAllSharedAuthorizationsOnRecord(Record record) {
+		SchemasRecordsServices schemas = schemas(record.getCollection());
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+				.where(sharedByMeta).isNotNull().andWhere(targetMeta).isEqualTo(record.getId());
+
+		List<Record> sharedAutorizations = searchServices.search(new LogicalSearchQuery(condition));
+		return sharedAutorizations == null ? ListUtils.EMPTY_LIST : schemas.wrapSolrAuthorizationDetailss(sharedAutorizations);
+	}
+
+	public List<AuthorizationDeleteRequest> buildDeleteRequestsForAllSharedAutorizationsOnRecord(Record record,
+																								 User user) {
+		List<Authorization> sharedAuthorizations = getAllSharedAuthorizationsOnRecord(record);
+		return sharedAuthorizations.stream().map(authorization -> AuthorizationDeleteRequest.authorizationDeleteRequest(authorization).setExecutedBy(user)).collect(Collectors.toList());
+	}
+
 	public Authorization getRecordShareAuthorization(Record record, User user) {
 		String userId = user.getId();
 
@@ -853,6 +895,23 @@ public class AuthorizationsServices {
 		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
 		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
 				.where(principalsMeta).isContainingText(userId).andWhere(sharedByMeta).isNotNull();
+
+
+		List<Record> recordsSharedToUser = searchServices.search(new LogicalSearchQuery(condition));
+
+
+		List<Authorization> authorizations = schemas.wrapSolrAuthorizationDetailss(recordsSharedToUser);
+
+		return authorizations;
+	}
+
+	public List<Authorization> getAllSharedRecords(String collection) {
+		SchemasRecordsServices schemas = schemas(collection);
+
+		Metadata principalsMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.PRINCIPALS);
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
+				.where(sharedByMeta).isNotNull();
 
 
 		List<Record> recordsSharedToUser = searchServices.search(new LogicalSearchQuery(condition));

@@ -35,7 +35,7 @@ public class CoreMigrationTo_9_0_1_4 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 
 			typesBuilder.getSchema(Authorization.DEFAULT_SCHEMA).create(Authorization.SHARED_BY)
-					.setType(STRING);
+					.setType(STRING).setCacheIndex(true);
 			typesBuilder.getSchema(Event.DEFAULT_SCHEMA).create(Event.SHARED_BY)
 					.setType(STRING);
 		}

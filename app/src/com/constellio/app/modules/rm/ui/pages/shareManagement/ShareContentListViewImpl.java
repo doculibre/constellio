@@ -183,6 +183,11 @@ public class ShareContentListViewImpl extends BaseViewImpl implements ShareConte
 		}
 
 		@Override
+		public boolean isMenuBarColumn() {
+			return true;
+		}
+
+		@Override
 		protected boolean isPagedInListMode() {
 			return true;
 		}

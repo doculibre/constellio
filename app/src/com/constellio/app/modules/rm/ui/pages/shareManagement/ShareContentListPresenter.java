@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.shareManagement;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.data.ShareContentDataProvider;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -36,7 +37,7 @@ public class ShareContentListPresenter extends BasePresenter<ShareContentListVie
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(CorePermissions.MANAGE_SHARE).globally() || user.has(CorePermissions.MANAGE_GLOBAL_LINKS).globally();
+		return user.has(RMPermissionsTo.MANAGE_SHARE).onSomething() || user.has(CorePermissions.MANAGE_GLOBAL_LINKS).onSomething();
 	}
 
 	@Override

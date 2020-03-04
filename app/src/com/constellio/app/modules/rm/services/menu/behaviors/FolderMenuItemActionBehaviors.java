@@ -5,6 +5,7 @@ import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -73,13 +74,13 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.Roles;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -131,6 +132,7 @@ public class FolderMenuItemActionBehaviors {
 	private MetadataSchemaTypes schemaTypes;
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
+	private AuthorizationsServices authorizationsServices;
 
 	public static final String USER_LOOKUP = "user-lookup";
 
@@ -150,6 +152,7 @@ public class FolderMenuItemActionBehaviors {
 		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 	}
 
 	public void getConsultationLink(Folder folder, MenuItemActionBehaviorParams params) {
@@ -489,19 +492,6 @@ public class FolderMenuItemActionBehaviors {
 		shareFolderButton.click();
 	}
 
-	public void modifyShare(Folder folder, MenuItemActionBehaviorParams params) {
-		Button shareFolderButton = new LinkButton($("DisplayFolderView.modifyShareFolder")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				if (!folderRecordActionsServices.isShareActionPossible(folder.getWrappedRecord(), params.getUser())) {
-					return;
-				}
-				params.getView().navigate().to().shareContent(folder.getId());
-			}
-		};
-		shareFolderButton.click();
-	}
-
 	public void unshare(Folder folder, MenuItemActionBehaviorParams params) {
 		Button unshareDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
 			@Override
@@ -520,14 +510,15 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	public void unshareFolderButtonClicked(Map<String, String> params, Folder folder, User user) {
+		boolean removeAllSharedAuthorizations = user.hasAny(RMPermissionsTo.MANAGE_SHARE, RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(folder);
 
-		Authorization authorization = rm.getSolrAuthorizationDetails(user, folder.getId());
-		try {
+		if (removeAllSharedAuthorizations) {
+			List<AuthorizationDeleteRequest> authorizationDeleteRequests = authorizationsServices.buildDeleteRequestsForAllSharedAutorizationsOnRecord(folder.getWrappedRecord(), user);
+			authorizationDeleteRequests.stream().forEach(authorization -> authorizationsServices.execute(authorization));
+		} else {
+			Authorization authorization = rm.getSolrAuthorizationDetails(user, folder.getId());
 			rm.getModelLayerFactory()
 					.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
-		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-
-			return;
 		}
 	}
 
