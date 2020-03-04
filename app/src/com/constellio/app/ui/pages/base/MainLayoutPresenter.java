@@ -99,12 +99,16 @@ public class MainLayoutPresenter implements Serializable {
 		GuideManager manager = new GuideManager(appLayerFactory.getModelLayerFactory().getDataLayerFactory());
 		String language = ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage();
 		String field = "guide." + currentView.getClass().getSimpleName();
-		String url = manager.getPropertyValue(language, field);
-		if (url == null || url.isEmpty()) {
-			return $(field);
+		String customUrl = manager.getPropertyValue(language, field);
+		if (customUrl == null || customUrl.isEmpty()) {
+			if (!$(field).equals(field)) {
+				return $(field);
+			}
+			return null;
 		}
-		return url;
+		return customUrl;
 	}
+
 
 	private String toPrintableVersion(String version) {
 		String[] versionSplitted = version.split("\\.");
