@@ -512,6 +512,7 @@ public class FolderMenuItemActionBehaviors {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				unshareFolderButtonClicked(ParamUtils.getCurrentParams(),folder, params.getUser());
+				params.getView().partialRefresh();
 			}
 		};
 

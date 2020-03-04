@@ -10,8 +10,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.cache.SerializableSearchCache;
-import com.constellio.model.services.search.cache.SerializedCacheSearchService;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
@@ -19,22 +18,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class ShareContentDataProvider extends RecordVODataProvider {
-	private SerializableSearchCache queryCacheForAuthorizations;
 	private SchemasRecordsServices schemasRecordsServices;
 	private MetadataSchemasManager metadataSchemasManager;
+	private SearchServices searchServices;
 	private User user;
 
 	public ShareContentDataProvider(MetadataSchemaVO metadataSchemaVO, ModelLayerFactory modelLayerFactory,
 									SessionContext context) {
 		super(metadataSchemaVO, new RecordToVOBuilder(), modelLayerFactory, context);
-	}
-
-	private SerializableSearchCache getQueryCacheForAuthorizations() {
-		if (queryCacheForAuthorizations == null) {
-			queryCacheForAuthorizations = new SerializableSearchCache();
-		}
-
-		return queryCacheForAuthorizations;
 	}
 
 	private void init() {
@@ -46,14 +37,21 @@ public abstract class ShareContentDataProvider extends RecordVODataProvider {
 		}
 	}
 
+	private SearchServices getSearchServices() {
+		if (searchServices == null) {
+			searchServices = modelLayerFactory.newSearchServices();
+		}
+
+		return searchServices;
+	}
 
 	@Override
 	public final LogicalSearchQuery getQuery() {
 		init();
 
-		SerializedCacheSearchService authorizationCacheSearchService = new SerializedCacheSearchService(modelLayerFactory, getQueryCacheForAuthorizations(), false);
+		SearchServices searchServices = getSearchServices();
 
-		List<Authorization> recordList = schemasRecordsServices.wrapSolrAuthorizationDetailss(authorizationCacheSearchService.search(getAuthorizationQuery()));
+		List<Authorization> recordList = schemasRecordsServices.wrapSolrAuthorizationDetailss(searchServices.search(getAuthorizationQuery()));
 
 		List<String> id = recordList.stream().map(authorization -> authorization.getTarget()).collect(Collectors.toList());
 

@@ -14,6 +14,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.components.PlaceHolder;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
@@ -43,7 +44,6 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Tree.TreeDragMode;
@@ -333,18 +333,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 					recordVOLazyContainer.forceRefresh();
 				}
 			}
-		}
-	}
-
-	private static class PlaceHolder extends CustomComponent {
-		@Override
-		public void setCompositionRoot(Component compositionRoot) {
-			super.setCompositionRoot(compositionRoot);
-		}
-
-		@Override
-		public Component getCompositionRoot() {
-			return super.getCompositionRoot();
 		}
 	}
 

@@ -265,7 +265,6 @@ public class DocumentMenuItemActionBehaviors {
 		};
 		publishButton.click();
 		updateSearchResultClicked(document.getWrappedRecord());
-
 	}
 
 	public void createPdf(Document document, MenuItemActionBehaviorParams params) {
@@ -304,6 +303,7 @@ public class DocumentMenuItemActionBehaviors {
 		try {
 			recordServices.update(document);
 			params.getView().refreshActionMenu();
+			params.getView().partialRefresh();
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
@@ -409,6 +409,7 @@ public class DocumentMenuItemActionBehaviors {
 	public void addAuthorization(Document document, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to().shareContent(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
+		params.getView().partialRefresh();
 	}
 
 	public void modifyShare(Document document, MenuItemActionBehaviorParams params) {
@@ -427,6 +428,7 @@ public class DocumentMenuItemActionBehaviors {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				unshareDocumentButtonClicked(ParamUtils.getCurrentParams(),document, params.getUser());
+				params.getView().partialRefresh();
 			}
 		};
 

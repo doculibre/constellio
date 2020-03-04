@@ -62,7 +62,6 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
-import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
@@ -107,7 +106,6 @@ import java.util.Map;
 import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
-import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
@@ -124,7 +122,6 @@ public class RMRecordsMenuItemBehaviors {
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 	private ContainerRecordActionsServices containerRecordActionsServices;
-	private RMSchemasRecordsServices rm;
 	private ModelLayerCollectionExtensions modelCollectionExtensions;
 
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
@@ -533,6 +530,7 @@ public class RMRecordsMenuItemBehaviors {
 				protected void confirmButtonClick(ConfirmDialog dialog) {
 					unshareFolderButtonClicked( recordIds, params.getUser());
 					Page.getCurrent().reload();
+					params.getView().partialRefresh();
 				}
 
 				@Override
