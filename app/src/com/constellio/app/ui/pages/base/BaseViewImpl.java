@@ -194,7 +194,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				breadcrumbTrail.setWidth(null);
 				breadcrumbTrailLayout.addComponent(breadcrumbTrail);
 				breadcrumbTrailLayout.setComponentAlignment(breadcrumbTrail, Alignment.MIDDLE_LEFT);
-			} else {
+			} else if (titleLabel != null) {
 				titleLabel.setWidth(null);
 				breadcrumbTrailLayout.addComponent(titleLabel);
 				breadcrumbTrailLayout.setComponentAlignment(titleLabel, Alignment.TOP_LEFT);
