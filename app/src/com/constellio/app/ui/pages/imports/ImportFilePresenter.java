@@ -9,6 +9,7 @@ import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003ImportDataProvider;
+import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2007ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.i18n.i18n;
@@ -77,14 +78,15 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 
 				ImportDataProvider importDataProvider = null;
 				if (upload.getFileName().endsWith(".xls")) {
-					importDataProvider = getExcelImportDataProviderFromFile(file);
-
+					importDataProvider = getExcel2003ImportDataProviderFromFile(file);
+				} else if (upload.getFileName().endsWith(".xlsx")) {
+					importDataProvider = getExcel2007ImportDataProviderFromFile(file);
 				} else if (upload.getFileName().endsWith(".zip")) {
 					importDataProvider = getXMLImportDataProviderForZipFile(modelLayerFactory, file);
 				} else if (upload.getFileName().endsWith(".xml")) {
 					importDataProvider = getXMLImportDataProviderForSingleXMLFile(modelLayerFactory, file, upload.getFileName());
 				} else {
-					view.showErrorMessage("Only xml, zip or xls formats are accepted");
+					view.showErrorMessage("Only xml, zip, xls or xlsx formats are accepted");
 				}
 
 				if (importDataProvider != null) {
@@ -170,8 +172,12 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 		return XMLImportDataProvider.forZipFile(modelLayerFactory, file);
 	}
 
-	protected ImportDataProvider getExcelImportDataProviderFromFile(File file) {
+	protected ImportDataProvider getExcel2003ImportDataProviderFromFile(File file) {
 		return Excel2003ImportDataProvider.fromFile(file);
+	}
+
+	protected ImportDataProvider getExcel2007ImportDataProviderFromFile(File file) {
+		return Excel2007ImportDataProvider.fromFile(file);
 	}
 
 	protected String format(ImportError error) {
