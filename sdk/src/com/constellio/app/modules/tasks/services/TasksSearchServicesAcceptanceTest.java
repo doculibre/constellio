@@ -207,19 +207,38 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getRecentlyCompletedTasks(bob));
-		assertThat(results.size()).isEqualTo(2);
+		assertThat(results.size()).isEqualTo(1);
 		assertThat(results).extracting("title")
-				.containsAll(asList("taskAssignedByBobToChuckFinished", "taskAssignedByBobToChuckClosed"));
+				.containsAll(asList("taskAssignedByBobToChuckFinished"));
 	}
 
 	@Test
-	public void whenSearchRecentlyCompletedTasksByChuckThenThenReturnAllCompletedAndClosedTasksVisibleToChuck()
+	public void givenBobWhenSearchRecentlyClosedTasksThenReturnClosedTasksVisibleToBob()
 			throws Exception {
 		List<Record> results = searchServices
+				.search(tasksSearchServices.getRecentlyClosedTasks(bob));
+		assertThat(results.size()).isEqualTo(2);
+		assertThat(results).extracting("title")
+				.containsAll(asList("taskAssignedByBobToChuckClosed"));
+	}
+
+	@Test
+	public void whenSearchRecentlyCompletedTasksByChuckThenReturnAllCompletedTasksVisibleToChuck()
+			throws Exception {
+		List<Record> completed = searchServices
 				.search(tasksSearchServices.getRecentlyCompletedTasks(chuck));
-		assertThat(results.size()).isEqualTo(4);
-		assertThat(results).extracting("title").containsAll(asList("taskAssignedByChuckToAliceClosed",
-				"taskAssignedByChuckToAliceFinished", "taskAssignedByBobToChuckFinished", "taskAssignedByBobToChuckClosed"));
+		assertThat(completed.size()).isEqualTo(2);
+		assertThat(completed).extracting("title")
+				.containsAll(asList("taskAssignedByChuckToAliceFinished", "taskAssignedByBobToChuckFinished"));
+	}
+
+	@Test
+	public void whenSearchRecentlyClosedTasksByChuckThenReturnAllClosedTaskVisibleToChuck() {
+		List<Record> completed = searchServices
+				.search(tasksSearchServices.getRecentlyClosedTasks(chuck));
+		assertThat(completed.size()).isEqualTo(2);
+		assertThat(completed).extracting("title")
+				.containsAll(asList("taskAssignedByChuckToAliceClosed", "taskAssignedByBobToChuckClosed"));
 	}
 
 	@Test
