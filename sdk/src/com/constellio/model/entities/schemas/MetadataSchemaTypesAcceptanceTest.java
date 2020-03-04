@@ -10,6 +10,10 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Iterator;
+import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -103,6 +107,21 @@ public class MetadataSchemaTypesAcceptanceTest extends ConstellioTest {
 				mdInDocumentSchemaWithLocalCode4.getCode(), mdInDocumentCustomSchemaWithLocalCode5.getCode(),
 				mdInCustomFolderSchema2WithLocalCode3.getCode()
 		);
+	}
+
+	@Test
+	public void displayOrderIsCoherent() {
+		MetadataSchemaTypes types = schemaManager.getSchemaTypes(zeCollection);
+		List<MetadataSchemaType> newTypeList = types.getSchemaTypesInDisplayOrder();
+
+		Iterator<MetadataSchemaType> i = newTypeList.iterator();
+		while (i.hasNext()) {
+			if (i.next().equals(types.getSchemaType("folder"))) {
+				assertThat(i.next())
+						.as("Document is right after Folder in the display order")
+						.isEqualTo(types.getSchemaType("document"));
+			}
+		}
 	}
 
 }

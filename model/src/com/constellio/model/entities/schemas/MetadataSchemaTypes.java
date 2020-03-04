@@ -220,46 +220,41 @@ public class MetadataSchemaTypes implements Serializable {
 	}
 
 	public List<MetadataSchemaType> getSchemaTypesInDisplayOrder() {
-		//TODO : Improve this ugly coupling!!!
-		List<MetadataSchemaType> schemaTypesInDisplayOrder = new ArrayList<>();
+		List<MetadataSchemaType> sortedSchemaTypes = new ArrayList<>(getSchemaTypes());
+		sortedSchemaTypes.sort(Comparator.comparing(MetadataSchemaType::getCode));
+		List<MetadataSchemaType> alreadyReunitedWithParent = new ArrayList<>();
 
-		MetadataSchemaType folderSchemaType = null;
-		MetadataSchemaType documentSchemaType = null;
-		MetadataSchemaType taskSchemaType = null;
-
-		for (MetadataSchemaType type : getSchemaTypes()) {
-			switch (type.getCode()) {
-				case "folder":
-					folderSchemaType = type;
-
-					break;
-				case "document":
-					documentSchemaType = type;
-
-					break;
-				case "userTask":
-					taskSchemaType = type;
-
-					break;
-				default:
-					schemaTypesInDisplayOrder.add(type);
-					break;
+		for (int i = sortedSchemaTypes.size() - 1; i >= 0; i--) {
+			MetadataSchemaType type = sortedSchemaTypes.get(i);
+			MetadataSchemaType parent = getFirstTypeParentThatIsNotItself(type);
+			if (parent != null && !alreadyReunitedWithParent.contains(type)) {
+				sortedSchemaTypes.remove(type);
+				sortedSchemaTypes.add(sortedSchemaTypes.indexOf(parent) + 1, type);
+				alreadyReunitedWithParent.add(type);
+				i = sortedSchemaTypes.indexOf(type) < i ? i + 1 : i;
 			}
 		}
+		return sortedSchemaTypes;
+	}
 
-		if (folderSchemaType != null) {
-			schemaTypesInDisplayOrder.add(folderSchemaType);
+	private MetadataSchemaType getFirstTypeParentThatIsNotItself(MetadataSchemaType type) {
+		MetadataSchemaType parentThatIsNotChild = null;
+
+		if (!type.getAllParentReferences().isEmpty()) {
+			for (Metadata reference : type.getAllParentReferences()) {
+				MetadataSchemaType parent = reference.getReferencedSchemaType();
+				if (parent != type) {
+					parentThatIsNotChild = parent;
+				}
+			}
+		}
+		//TODO c'est probablement pas fonctionnel
+		//	Il faut aller chercher les parents au schéma dans la taxonomie (mais laquelle?)
+		if (parentThatIsNotChild == null && type.hasMetadataWithCode("taxonomyRelationship")) {
+			parentThatIsNotChild = type.getMetadataWithCodeOrNull("taxonomyRelationship").getReferencedSchemaType();
 		}
 
-		if (documentSchemaType != null) {
-			schemaTypesInDisplayOrder.add(documentSchemaType);
-		}
-
-		if (taskSchemaType != null) {
-			schemaTypesInDisplayOrder.add(taskSchemaType);
-		}
-
-		return schemaTypesInDisplayOrder;
+		return parentThatIsNotChild;
 	}
 
 	public MetadataSchemaType getSchemaType(String schemaTypeCode) {
