@@ -14,6 +14,7 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
@@ -29,6 +30,8 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 	private final PublishDocumentPresenter presenter;
 	private RecordVO record;
 	private boolean deleteButtonVisible;
+
+	private Label fullTitle;
 
 	@PropertyId("publishStartDate") private JodaDateField publishStartDate;
 	@PropertyId("publishEndDate") private JodaDateField publishEndDate;
@@ -66,8 +69,9 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
+		VerticalLayout vertical = new VerticalLayout();
 		buildDateFields();
-		return new BaseForm<DocumentVO>(
+		BaseForm baseForm = new BaseForm<DocumentVO>(
 				new DocumentVO(record), this, publishStartDate, publishEndDate) {
 
 			@Override
@@ -76,7 +80,7 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 			}
 
 			@Override
-			protected void saveButtonClick(DocumentVO documentVO){
+			protected void saveButtonClick(DocumentVO documentVO) {
 				try {
 					Document document = presenter.publishDocument(record.getId(), publishStartDate.getValue(), publishEndDate.getValue());
 					closeWindow();
@@ -91,6 +95,9 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 				closeWindow();
 			}
 		};
+		vertical.addComponent(buildLabel());
+		vertical.addComponent(baseForm);
+		return vertical;
 	}
 
 	@Override
@@ -108,6 +115,18 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 	@Override
 	public void setDeleteButtonVisible(boolean visible) {
 		this.deleteButtonVisible = visible;
+	}
+
+	private Component buildLabel() {
+		HorizontalLayout hLayout = new HorizontalLayout();
+		hLayout.setSpacing(true);
+		hLayout.setSizeFull();
+
+		fullTitle = new Label(getTitle());
+		fullTitle.addStyleName(ValoTheme.LABEL_H1);
+		fullTitle.setSizeUndefined();
+		hLayout.addComponent(fullTitle);
+		return hLayout;
 	}
 
 	private void buildDateFields() {

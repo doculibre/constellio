@@ -163,7 +163,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 			String title = getTitle();
 			if (isBreadcrumbsVisible()) {
-				if (breadcrumbTrail == null && title != null) {
+				if (breadcrumbTrail != null && title != null) {
 					breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
 				} else if (title != null && breadcrumbTrail == null) {
 					titleLabel = new Label(title);
@@ -194,6 +194,10 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				breadcrumbTrail.setWidth(null);
 				breadcrumbTrailLayout.addComponent(breadcrumbTrail);
 				breadcrumbTrailLayout.setComponentAlignment(breadcrumbTrail, Alignment.MIDDLE_LEFT);
+			} else {
+				titleLabel.setWidth(null);
+				breadcrumbTrailLayout.addComponent(titleLabel);
+				breadcrumbTrailLayout.setComponentAlignment(titleLabel, Alignment.TOP_LEFT);
 			}
 
 			if (breadcrumbTrailLayout.getComponentCount() != 0) {

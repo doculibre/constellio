@@ -632,6 +632,12 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				columnIds.add(ACCESS);
 			}
 
+			if (seeSharedBy) {
+				table.addGeneratedColumn(SHARED_BY, this);
+				table.setColumnHeader(SHARED_BY, $("AuthorizationsView.sharedBy"));
+				columnIds.add(SHARED_BY);
+			}
+
 			columnIds.addAll(asList(START_DATE, END_DATE, SHARE_ACCESS));
 
 			if (seeRolesField) {
@@ -699,7 +705,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				case POSITIVE_OR_NEGATIVE:
 					return buildNegativeAuthorizationsColumn(authorization);
 				case SHARED_BY:
-					return authorization.getSharedBy();
+					return buildSharedByColumn(authorization.getSharedBy());
 				case SHARE_ACCESS:
 					return buildShareAccessColumn(authorization);
 				default:
@@ -734,6 +740,11 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				results.add(new ReferenceDisplay(userId, true, new UserIdToCaptionConverter()));
 			}
 			return new VerticalLayout(results.toArray(new Component[results.size()]));
+		}
+
+		private Object buildSharedByColumn(String users) {
+			ReferenceDisplay sharedBy = new ReferenceDisplay(users, true, new UserIdToCaptionConverter());
+			return sharedBy;
 		}
 
 		private Component buildAccessColumn(List<String> roles) {
