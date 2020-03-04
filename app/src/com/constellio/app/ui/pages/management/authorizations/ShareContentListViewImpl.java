@@ -45,7 +45,10 @@ public class ShareContentListViewImpl extends BaseViewImpl implements ShareConte
 	}
 
 	private Component buildPublished() {
-		return null;
+		RecordVOTable recordVOTable = new RecordVOTable(presenter.getPublishedDocumentDataProvider());
+		recordVOTable.setSizeFull();
+
+		return recordVOTable;
 	}
 
 	private Component buildDocumentTab() {
