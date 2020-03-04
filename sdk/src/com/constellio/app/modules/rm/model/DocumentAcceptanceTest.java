@@ -315,7 +315,7 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		assertThat(docWithDocx.isMarkedForPreviewConversion()).isTrue();
 		assertThat(docWithXlsx.isMarkedForPreviewConversion()).isTrue();
 		assertThat(docWithPptx.isMarkedForPreviewConversion()).isTrue();
-		assertThat(docWithPdf.isMarkedForPreviewConversion()).isFalse();
+		assertThat(docWithPdf.isMarkedForPreviewConversion()).isTrue();
 		assertThat(docWithDot.isMarkedForPreviewConversion()).isTrue();
 		assertThat(docWithOdt.isMarkedForPreviewConversion()).isTrue();
 		assertThat(docWithMp4.isMarkedForPreviewConversion()).isFalse();

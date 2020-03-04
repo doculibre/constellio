@@ -13,12 +13,7 @@ import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.RecordCacheType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
@@ -50,12 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.misc.VM;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -935,14 +925,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 	private void handleByteArrayDTOIntegrityError(String recordId, String errorMessage) {
-		if (FoldersLocator.usingAppWrapper()) {
-			SystemLogger.error("Validation of record '" + recordId + "' failed : " + errorMessage);
-		} else {
-			throw new IllegalArgumentException("Validation of record '" + recordId + "' failed : " + errorMessage);
-		}
-
+		SystemLogger.error("Validation of record '" + recordId + "' failed : " + errorMessage);
 	}
-
 
 	private RecordDTO prepareForCache(RecordDTO dto, InsertionReason reason) {
 
