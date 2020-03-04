@@ -56,6 +56,10 @@ public abstract class ResourceService extends BaseService {
 		validationService.validateUserAccess(user, resourceRecord, method);
 	}
 
+	protected void validateUserDeleteAccessOnHierarchy(User user, Record resourceRecord) {
+		validationService.validateUserDeleteAccessOnHierarchy(user, resourceRecord);
+	}
+
 	protected void validateAuthorizations(List<AceDto> authorizations, String collection) {
 		validationService.validateAuthorizations(authorizations, collection);
 	}
@@ -67,8 +71,17 @@ public abstract class ResourceService extends BaseService {
 	protected void validateParameters(String host, String id, String serviceKey, String method, String date,
 									  int expiration, String version, Boolean physical, String copySourceId,
 									  String signature) throws Exception {
+		validateParameters(host, id, serviceKey, method, date, expiration, version, physical, copySourceId,
+				signature, false);
+	}
+
+	protected void validateParameters(String host, String id, String serviceKey, String method, String date,
+									  int expiration, String version, Boolean physical, String copySourceId,
+									  String signature, boolean urlValidated) throws Exception {
 		validationService.validateHost(host);
-		validationService.validateUrl(date, expiration);
+		if (!urlValidated) {
+			validationService.validateUrl(date, expiration);
+		}
 		validationService.validateSignature(host, id, serviceKey, getSchemaType().name(), method, date,
 				expiration, version, physical, copySourceId, signature);
 	}

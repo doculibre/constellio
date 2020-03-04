@@ -1,5 +1,7 @@
 package com.constellio.app.modules.restapi.document.dao;
 
+import com.constellio.app.modules.restapi.core.exception.CannotReadContentException;
+import com.constellio.app.modules.restapi.core.exception.ConsolidationException;
 import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
@@ -9,8 +11,11 @@ import com.constellio.app.modules.restapi.document.dto.DocumentContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
 import com.constellio.app.modules.restapi.document.exception.DocumentContentNotFoundException;
 import com.constellio.app.modules.restapi.resource.dao.ResourceDao;
+import com.constellio.app.modules.rm.pdfgenerator.PdfGeneratorAsyncTask;
+import com.constellio.app.modules.rm.pdfgenerator.PdfGeneratorMergeTaskParam;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -19,6 +24,9 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentImplRuntimeException;
 import com.constellio.model.services.contents.ContentManager.ContentVersionDataSummaryResponse;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
@@ -27,8 +35,10 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 
 import java.io.InputStream;
+import java.util.List;
 
 import static com.constellio.app.modules.restapi.document.enumeration.VersionType.MAJOR;
+import static com.constellio.app.modules.restapi.document.enumeration.VersionType.MINOR;
 
 public class DocumentDao extends ResourceDao {
 
@@ -157,6 +167,58 @@ public class DocumentDao extends ResourceDao {
 			return contentManager.createMajor(user, filename, contentResponse.getContentVersionDataSummary());
 		}
 		return contentManager.createMinor(user, filename, contentResponse.getContentVersionDataSummary());
+	}
+
+	public Content mergeContent(DocumentDto document, List<String> mergeSourceIds, String collection, User user) {
+		String title = document.getTitle();
+		if (!title.endsWith(".pdf")) {
+			title += ".pdf";
+		}
+		String language = ConstellioFactories.getInstance().getModelLayerConfiguration().getMainDataLanguage();
+		PdfGeneratorAsyncTask task = new PdfGeneratorAsyncTask(mergeSourceIds, title, user.getUsername(), language);
+
+		Content content = null;
+		try {
+			task.execute(new PdfGeneratorMergeTaskParam(collection));
+			content = task.getConsolidatedContent();
+
+			if (content == null) {
+				throw new ConsolidationException();
+			}
+
+			ContentDto contentDto = ContentDto.builder()
+					.filename(content.getCurrentVersion().getFilename())
+					.versionType(content.getCurrentVersion().isMajor() ? MAJOR : MINOR)
+					.version(content.getCurrentVersion().getVersion())
+					.hash(content.getCurrentVersion().getHash())
+					.build();
+			document.setContent(contentDto);
+		} catch (ValidationException e) {
+			ValidationErrors validationErrors = e.getValidationErrors();
+			if (validationErrors == null) {
+				throw new ConsolidationException();
+			}
+
+			List<ValidationError> errors = validationErrors.getValidationErrors();
+			if (errors == null || errors.isEmpty()) {
+				throw new ConsolidationException();
+			}
+
+			ValidationError error = errors.get(0);
+			if (error == null) {
+				throw new ConsolidationException();
+			}
+
+			String documentId = (String) error.getParameter("id");
+			String msg = (String) error.getParameter("messageKey");
+			if (documentId == null || msg == null || !msg.equals(CannotReadContentException.CODE)) {
+				throw new ConsolidationException();
+			}
+
+			throw new CannotReadContentException(documentId);
+		}
+
+		return content;
 	}
 
 	private void updateDocumentMetadataValues(Record documentRecord, Record documentTypeRecord, MetadataSchema schema,

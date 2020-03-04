@@ -12,25 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
-import javax.mail.AuthenticationFailedException;
-import javax.mail.Authenticator;
-import javax.mail.BodyPart;
-import javax.mail.FolderNotFoundException;
-import javax.mail.MessageRemovedException;
-import javax.mail.MessagingException;
-import javax.mail.MethodNotSupportedException;
-import javax.mail.Multipart;
-import javax.mail.NoSuchProviderException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.ReadOnlyFolderException;
-import javax.mail.SendFailedException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.internet.MimeUtility;
+import javax.mail.*;
+import javax.mail.internet.*;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -102,6 +85,7 @@ public class EmailServices {
 										 ConstellioEIMConfigs configs)
 			throws MessagingException, IOException {
 		String charset = "UTF-8";
+		System.setProperty("mail.mime.splitlongparameters", "false");
 		MimeMessage message = new MimeMessage(Session.getInstance(System.getProperties()));
 		message.setSentDate(LocalDateTime.now().toDate());
 		if (StringUtils.isNotBlank(from) && configs.isIncludingFromFieldWhenGeneratingEmails()) {
