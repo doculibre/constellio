@@ -15,7 +15,6 @@ import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 public class ConstellioRestApiModule extends InstallableSystemModuleExcludedFromSSO {
@@ -53,16 +52,6 @@ public class ConstellioRestApiModule extends InstallableSystemModuleExcludedFrom
 	@Override
 	public List<SystemConfiguration> getConfigurations() {
 		return RestApiConfigs.configurations;
-	}
-
-	@Override
-	public Map<String, List<String>> getPermissions() {
-		return Collections.emptyMap();
-	}
-
-	@Override
-	public List<String> getRolesForCreator() {
-		return Collections.emptyList();
 	}
 
 	@Override

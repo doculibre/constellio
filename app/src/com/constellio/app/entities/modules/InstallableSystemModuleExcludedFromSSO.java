@@ -5,7 +5,9 @@ import com.constellio.app.start.ApplicationStarter;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public abstract class InstallableSystemModuleExcludedFromSSO implements InstallableSystemModule {
 
@@ -28,6 +30,16 @@ public abstract class InstallableSystemModuleExcludedFromSSO implements Installa
 
 	@Override
 	public void stop(String collection, AppLayerFactory appLayerFactory) {
+	}
+
+	@Override
+	public Map<String, List<String>> getPermissions() {
+		return Collections.emptyMap();
+	}
+
+	@Override
+	public List<String> getRolesForCreator() {
+		return Collections.emptyList();
 	}
 
 	public abstract String getServicePath();
