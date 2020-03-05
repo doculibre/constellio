@@ -522,8 +522,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		MetadataDisplayConfig displayConfig = displayManager.getMetadata(collection, code);
 
 		Map<Language, String> metadataHelpMessages = new HashMap<>();
-		for (Entry<String, String> helpMessage : formMetadataVO.getHelpMessages().entrySet()) {
-			metadataHelpMessages.put(Language.withCode(helpMessage.getKey()), helpMessage.getValue());
+		Map<String, String> helpMessages = formMetadataVO.getHelpMessages();
+
+		if (helpMessages != null) {
+			for (Entry<String, String> helpMessage : helpMessages.entrySet()) {
+				metadataHelpMessages.put(Language.withCode(helpMessage.getKey()), helpMessage.getValue());
+			}
 		}
 
 		if (displayConfig == null) {
