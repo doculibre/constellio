@@ -157,7 +157,7 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(schemaDisplayConfig.getDisplayMetadataCodes()).contains("document_default_USRcalculatedMDDisplayedInSchemas");
 		assertThat(schemaDisplayConfigPapier.getDisplayMetadataCodes())
-				.contains("document_papier_USRcalculatedMDDisplayedInSchemas");
+				.contains("document_default_USRcalculatedMDDisplayedInSchemas");
 	}
 
 	private void importInZeCollection(XMLImportDataProvider importDataProvider) {
