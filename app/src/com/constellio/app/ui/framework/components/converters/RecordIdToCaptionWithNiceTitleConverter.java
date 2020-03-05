@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components.converters;
 
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.vaadin.data.util.converter.Converter;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
@@ -21,7 +22,7 @@ public class RecordIdToCaptionWithNiceTitleConverter implements Converter<String
 		if (StringUtils.isNotBlank(value)) {
 			String niceTitle = SchemaCaptionUtils.getNiceTitleForRecordId(value, locale);
 			if (StringUtils.isNotBlank(niceTitle)) {
-				caption = "<span title=\"" + niceTitle + "\">" + SchemaCaptionUtils.getCaptionForRecordId(value, locale) + "</span>";
+				caption = "<span title=\"" + StringEscapeUtils.escapeJavaScript(niceTitle) + "\">" + SchemaCaptionUtils.getCaptionForRecordId(value, locale) + "</span>";
 			} else {
 				caption = SchemaCaptionUtils.getCaptionForRecordId(value, locale);
 			}
