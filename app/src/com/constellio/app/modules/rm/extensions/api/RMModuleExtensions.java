@@ -231,17 +231,21 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isAddDocumentActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isAddDocumentActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isAddDocumentActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		}
 	}
 
 	public boolean isMoveActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isMoveActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isAddSubFolderActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isAddSubFolderActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
@@ -251,24 +255,24 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isEditActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isEditActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isDeleteActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasDeleteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isDeleteActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isAddAuthorizationActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isAddAuthorizationActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	// TODO adapt to use lambda
 
 	public boolean isShareActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isShareActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
@@ -278,7 +282,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isDecommissioningActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<FolderExtension>() {
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<FolderExtension>() {
 			@Override
 			public ExtensionBooleanResult call(FolderExtension behavior) {
 				return behavior.isDecommissioningActionPossible(
@@ -288,18 +292,18 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isCreateDecommissioningListActionPossibleOnFolder(Folder folder, User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isCreateDecommissioningListActionPossible(
 						new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isBorrowingActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isBorrowingActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isReturnActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isReturnActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
@@ -324,12 +328,12 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isAddAuthorizationActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isAddAuthorizationActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
 	}
 
 	public boolean isManageAuthorizationActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isManageAuthorizationActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
 	}
 
@@ -345,7 +349,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isEditActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isEditActionPossible(
 						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
 	}
@@ -363,7 +367,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isCopyActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isCopyActionPossible(
 						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
 	}
@@ -383,7 +387,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	// TODO adapt methods below to use a lambda
 
 	public boolean isCreatePDFAActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isCreatePDFAActionPossible(
@@ -411,7 +415,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isUploadActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isUploadActionPossible(new DocumentExtensionActionPossibleParams(document, user));
@@ -420,7 +424,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isFinalizeActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isFinalizeActionPossible(
@@ -430,7 +434,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isMoveActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isMoveActionPossible(
@@ -440,7 +444,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isUnPublishActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isUnPublishActionPossible(
@@ -460,7 +464,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isPublishActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isPublishActionPossible(
@@ -471,7 +475,6 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public boolean isGetPublicLinkActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
-
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isGetPublicLinkActionPossible(
@@ -481,7 +484,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isDeleteActionPossbileOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasDeleteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isDeleteActionPossible(
@@ -491,7 +494,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isShareActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isShareActionPossible(

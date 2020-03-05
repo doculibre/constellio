@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Predicate;
 
 import static com.constellio.data.utils.LangUtils.isNotEmptyValue;
 import static com.constellio.model.entities.schemas.Schemas.CREATED_ON_CODE;
@@ -79,13 +80,29 @@ public class RecordEADBuilder {
 
 	private Locale locale;
 
+	private Predicate<Metadata> metadataIgnore;
+
 	public RecordEADBuilder(AppLayerFactory appLayerFactory, Locale locale, ValidationErrors errors) {
+		this(appLayerFactory, locale, errors, null);
+	}
+
+	public RecordEADBuilder(AppLayerFactory appLayerFactory, Locale locale, ValidationErrors errors,
+							Predicate<Metadata> metadataIgnore) {
 		this.errors = errors;
 		this.locale = locale;
 		this.appLayerFactory = appLayerFactory;
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.collectionsManager = appLayerFactory.getCollectionsManager();
+		this.metadataIgnore = metadataIgnore == null ? metadata -> true : metadataIgnore.negate();
+	}
+
+	public void setMetadataIgnore(Predicate<Metadata> metadataIgnore) {
+		this.metadataIgnore = metadataIgnore;
+	}
+
+	public Predicate<Metadata> getMetadataIgnore() {
+		return metadataIgnore;
 	}
 
 	public boolean isIncludeRelatedMaterials() {
@@ -128,7 +145,6 @@ public class RecordEADBuilder {
 				eadXmlWriter.addMetadataWithSimpleValue(metadata, recordCtx.getRecord().get(metadata));
 			}
 		}
-
 	}
 
 	private void writeContentMetadata(RecordInsertionContext recordCtx, Metadata metadata) {
@@ -349,8 +365,8 @@ public class RecordEADBuilder {
 	}
 
 	private boolean isMetadataIncludedInEAD(Metadata metadata) {
-		return includeArchiveDescriptionMetadatasFromODDs
-			   || !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode());
+		return (includeArchiveDescriptionMetadatasFromODDs
+				|| !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode())) && metadataIgnore.test(metadata);
 	}
 
 	public void build(RecordInsertionContext recordCtx, File file) throws IOException {

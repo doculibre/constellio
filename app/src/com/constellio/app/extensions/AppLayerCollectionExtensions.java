@@ -69,6 +69,8 @@ import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
+import com.constellio.app.extensions.api.SchemaMetadataExtension;
+import com.constellio.app.extensions.api.SchemaMetadataExtension.SchemaMetadataExtensionParams;
 import com.constellio.app.extensions.api.SchemaRecordExtention;
 import com.constellio.app.extensions.api.SchemaRecordExtention.SchemaRecordExtensionActionPossibleParams;
 import com.constellio.app.extensions.api.UserDocumentExtension;
@@ -225,8 +227,9 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<TabSheetInDisplayAndFormExtention> tabSheetCaptionToHide = new VaultBehaviorsList<>();
 
-	public VaultBehaviorsList<ExtraTabForSimpleSearchResultExtention> extraTabsForSimpleSearchResultExtentions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<SchemaMetadataExtension> schemaMetadataExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<ExtraTabForSimpleSearchResultExtention> extraTabsForSimpleSearchResultExtentions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -980,6 +983,20 @@ public class AppLayerCollectionExtensions {
 		return schemaRecordExtentions.getBooleanValue(true,
 				(behavior) -> behavior.isDeleteActionPossible(
 						new SchemaRecordExtensionActionPossibleParams(record, user)));
+	}
+
+	public void metadataSavedFromView(Metadata metadata, User user) {
+		SchemaMetadataExtensionParams params = new SchemaMetadataExtensionParams(metadata, user);
+		for (SchemaMetadataExtension extension : schemaMetadataExtensions) {
+			extension.metadataSavedFromView(params);
+		}
+	}
+
+	public void metadataDeletedFromView(Metadata metadata, User user) {
+		SchemaMetadataExtensionParams params = new SchemaMetadataExtensionParams(metadata, user);
+		for (SchemaMetadataExtension extension : schemaMetadataExtensions) {
+			extension.metadataDeletedFromView(params);
+		}
 	}
 
 	public boolean isClassifyActionPossibleOnUserDocument(final UserDocument userDocument, User user) {

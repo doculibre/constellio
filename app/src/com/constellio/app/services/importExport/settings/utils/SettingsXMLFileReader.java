@@ -233,6 +233,10 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			importedMetadata.setUnique(Boolean.parseBoolean(element.getAttributeValue(UNIQUE)));
 		}
 
+		if (element.getAttribute(SORTING_TYPE) != null) {
+			importedMetadata.setSortingType(element.getAttributeValue(SORTING_TYPE));
+		}
+
 		if (element.getAttribute(SORTABLE) != null) {
 			importedMetadata.setSortable(Boolean.parseBoolean(element.getAttributeValue(SORTABLE)));
 		}

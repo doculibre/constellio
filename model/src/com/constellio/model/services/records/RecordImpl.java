@@ -36,6 +36,7 @@ import com.constellio.model.services.records.RecordImplRuntimeException.RecordIm
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import com.constellio.model.utils.StringNormalizer;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -1129,6 +1130,8 @@ public class RecordImpl implements Record {
 			return ((Number) value).doubleValue();
 		} else if (value instanceof EnumWithSmallCode) {
 			return ((EnumWithSmallCode) value).getCode();
+		} else if (value instanceof String) {
+			return StringNormalizer.normalize((String) value);
 		}
 		return value;
 	}

@@ -301,6 +301,10 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 			metadataElem.setAttribute(UNIQUE, importedMetadata.getUnique() + "");
 		}
 
+		if (importedMetadata.getSortingType() != null) {
+			metadataElem.setAttribute(SORTING_TYPE, importedMetadata.getSortingType() + "");
+		}
+
 		if (importedMetadata.getUnmodifiable() != null) {
 			metadataElem.setAttribute(UNMODIFIABLE, importedMetadata.getUnmodifiable() + "");
 		}

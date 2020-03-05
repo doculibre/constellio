@@ -39,8 +39,8 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements ListMetadataGroupSchemaTypeView {
-	
-	public static final String GROUP_TABLE = "groups";
+
+	public static final String GROUP_TABLE = "metadata-groups";
 	public static final String GROUP_NAME = "label";
 	public static final String GROUP_BUTTON = "button";
 	public static final String GROUP_EDIT_BUTTON = "edit_button";

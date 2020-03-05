@@ -5,6 +5,7 @@ import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
 import com.constellio.app.services.extensions.AppRecordExtension;
 import com.constellio.app.services.extensions.core.CoreSearchFieldExtension;
 import com.constellio.app.services.extensions.core.CoreUserProfileFieldsExtension;
+import com.constellio.app.services.extensions.core.CoreUserRecordExtension;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_4;
@@ -82,6 +83,7 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_3;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_40;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_417;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_427;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_89;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
@@ -177,6 +179,7 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_9_0_1_3());
 		scripts.add(new CoreMigrationTo_9_0_1_40());
 		scripts.add(new CoreMigrationTo_9_0_1_417());
+		scripts.add(new CoreMigrationTo_9_0_1_427());
 
 		scripts.add(new CoreMigrationTo_9_0_42_1());
 		scripts.add(new CoreMigrationTo_9_0_1_89());
@@ -213,6 +216,8 @@ public class ConstellioEIM {
 				.schemaExtensions.add(new CoreSearchFieldExtension(collection, appLayerFactory));
 
 		modelFactory.getExtensions().forCollection(collection).recordExtensions.add(new AppRecordExtension(appLayerFactory, collection));
+		modelFactory.getExtensions().forCollection(collection)
+				.recordExtensions.add(new CoreUserRecordExtension(collection, appLayerFactory.getModelLayerFactory()));
 	}
 
 	private static void configureBaseDataLayerExtensions(AppLayerFactory appLayerFactory) {

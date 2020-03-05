@@ -136,11 +136,10 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 	private class CollaboratorValuesContainer extends ValuesContainer {
 
 		public CollaboratorValuesContainer(List<TaskCollaboratorItem> values) {
-			super(values);
+			super(values, null);
 			addContainerProperty(AUTHORIZATIONS_PROPERTY_ID, getCaptionComponentClass(), null);
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public Property<?> getContainerProperty(final Object itemId, Object propertyId) {
 			if (itemId != null) {

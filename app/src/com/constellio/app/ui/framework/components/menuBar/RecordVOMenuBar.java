@@ -3,7 +3,6 @@ package com.constellio.app.ui.framework.components.menuBar;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemFactory;
 import com.constellio.app.services.menu.MenuItemFactory.CommandCallback;
@@ -14,11 +13,13 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserDocumentVO;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.FontAwesome;
@@ -39,19 +40,22 @@ public class RecordVOMenuBar extends BaseMenuBar {
 	private MenuItemServices menuItemServices;
 	private MenuItemFactory menuItemFactory;
 	private UserServices userServices;
+	private RecordServices recordServices;
+	private RecordToVOBuilder recordToVOBuilder;
 
-	public RecordVOMenuBar(RecordVO recordVO, List<String> excludedActionTypes) {
+	public RecordVOMenuBar(RecordVO recordVO, List<String> excludedActionTypes, AppLayerFactory appLayerFactory) {
 		super(true, false);
 		this.recordVO = recordVO;
 		this.excludedActionTypes = excludedActionTypes;
 
-		sessionContext = ConstellioUI.getCurrentSessionContext();
-		collection = sessionContext.getCurrentCollection();
+		this.sessionContext = ConstellioUI.getCurrentSessionContext();
+		this.collection = sessionContext.getCurrentCollection();
 
-		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-		userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-		menuItemServices = new MenuItemServices(collection, appLayerFactory);
-		menuItemFactory = new MenuItemFactory();
+		this.userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+		this.menuItemServices = new MenuItemServices(collection, appLayerFactory);
+		this.menuItemFactory = new MenuItemFactory();
+		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		this.recordToVOBuilder = new RecordToVOBuilder();
 
 		buildMenuItems();
 	}
@@ -112,6 +116,10 @@ public class RecordVOMenuBar extends BaseMenuBar {
 			@Override
 			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
 				if (isAttached()) {
+					// Some action do not keep updated the provided record and/or recordVO, so after an action a refresh is required.
+					Record record = RecordVOMenuBar.this.recordServices.realtimeGetRecordById(recordVO.getId());
+					recordVO = recordToVOBuilder.build(record, recordVO.getViewMode(), sessionContext);
+
 					// Recursive call
 					buildMenuItems();
 				}

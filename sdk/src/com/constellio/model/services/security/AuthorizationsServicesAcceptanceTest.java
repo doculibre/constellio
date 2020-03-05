@@ -28,6 +28,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
+import com.constellio.model.services.security.SecurityAcceptanceTestSetup.FolderSchema;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
@@ -2106,6 +2107,51 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 						tuple("taxo1_category2", "Alice Wonderland", "delete_permission_category", "chuck"),
 						tuple("folder4", "Charles-François Xavier", "delete_permission_folder", "chuck")
 				);
+	}
+
+	@Test
+	public void whenDeleteMoreThan1000AuthorizationsThenDeletedFromEveryRecords()
+			throws Exception {
+
+		reset(FOLDER4);
+		detach(FOLDER4);
+		FolderSchema schema = setup.folderSchema;
+
+		List<Record> folder4SubFolders = new ArrayList<>();
+		for (int i = 0; i < 1000; i++) {
+			Record record = new TestRecord(schema);
+			record.set(schema.title(), aString());
+			record.set(schema.parent(), FOLDER4);
+
+			try {
+				getModelLayerFactory().newRecordServices().add(record);
+				folder4SubFolders.add(record);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		auth1 = addWithoutUser(authorizationForUser(bob).on(FOLDER4).givingReadWriteDeleteAccess());
+		auth2 = addWithoutUser(authorizationForUser(charles).on(FOLDER4).givingReadAccess());
+
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(bob, charles, chuck);
+		verifyRecord(FOLDER4).usersWithWriteAccess().containsOnly(bob, chuck);
+		verifyRecord(FOLDER4).usersWithDeleteAccess().containsOnly(bob, chuck);
+
+		services.execute(authorizationDeleteRequest(auth1, zeCollection)
+				.setReattachIfLastAuthDeleted(false)
+				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
+
+		assertThatAllAuthorizations().containsOnly(authOnRecord(FOLDER4).givingRead().forPrincipals(charles));
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
+		verifyRecord(FOLDER4).usersWithReadAccess().doesNotContain(bob);
+
+		recordServices.flush();
+
+		assertThatRecords(schemas.searchEvents(ALL)).extractingMetadatas(RECORD_ID, PERMISSION_USERS, TYPE, USERNAME)
+				.containsOnly(tuple("folder4", "Bob 'Elvis' Gratton", "delete_permission_folder", "chuck"));
+
+		checkIfChuckNorrisHasAccessToEverythingInZeCollection = false;
 	}
 
 	@Test

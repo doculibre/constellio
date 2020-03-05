@@ -36,6 +36,8 @@ public class Toggle {
 
 	public static AvailableToggle RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS = newToggle(true);
 
+	public static AvailableToggle FASTER_REINDEXING = newToggle(false);
+
 	public static AvailableToggle RETENTION_RULE_DATE_TYPES = newToggle(false);
 
 	public static AvailableToggle FOLDER_SUMMARY_CONFIG = newToggle(false);

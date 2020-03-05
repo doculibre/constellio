@@ -33,8 +33,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -661,19 +663,28 @@ public class RecordUtils {
 
 	private static List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types,
 												  RecordProvider recordProvider) {
+		List<String> collectedIds = new ArrayList<>();
+		return getHierarchyIdsTo(newReference, types, recordProvider, collectedIds);
+	}
+
+	private static List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types,
+												  RecordProvider recordProvider, List<String> collectedIds) {
 		List<String> ids = new ArrayList<>();
 
 		Record record = recordProvider.getRecordSummary(newReference);
 
 		if (record.isSaved()) {
-			ids.add(record.getId());
-		}
+			if (!collectedIds.contains(record.getId())) {
+				ids.add(record.getId());
+				collectedIds.add(record.getId());
+			}
 
-		for (Metadata metadata : types.getSchemaOf(record).getMetadatas()) {
-			if (metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship()) {
-				for (String aReference : record.<String>getValues(metadata)) {
-					if (!ids.contains(aReference)) {
-						ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
+			for (Metadata metadata : types.getSchemaOf(record).getMetadatas()) {
+				if (metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship()) {
+					for (String aReference : record.<String>getValues(metadata)) {
+						if (!ids.contains(aReference)) {
+							ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider, collectedIds));
+						}
 					}
 				}
 			}
@@ -771,6 +782,26 @@ public class RecordUtils {
 		}
 
 		throw new ImpossibleRuntimeException("Invalid key : " + key);
+	}
+
+	public static List<Record> compareRecords(List<Record> records, List<Metadata> comparedMetadatas) {
+		Record baseRecord = records.get(0);
+
+		Iterator currentTestedRecordIterator = records.iterator();
+		currentTestedRecordIterator.next();
+
+		while (currentTestedRecordIterator.hasNext()) {
+			Record currentRecord = (Record) currentTestedRecordIterator.next();
+			for (Metadata metadata : comparedMetadatas) {
+				if (!metadata.isSystemReserved()) {
+					if (!Objects.equals(baseRecord.get(metadata), currentRecord.get(metadata))) {
+						return records;
+					}
+				}
+			}
+		}
+
+		return Collections.emptyList();
 	}
 
 }

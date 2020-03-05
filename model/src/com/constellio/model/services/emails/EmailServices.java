@@ -102,6 +102,7 @@ public class EmailServices {
 										 ConstellioEIMConfigs configs)
 			throws MessagingException, IOException {
 		String charset = "UTF-8";
+		System.setProperty("mail.mime.splitlongparameters", "false");
 		MimeMessage message = new MimeMessage(Session.getInstance(System.getProperties()));
 		message.setSentDate(LocalDateTime.now().toDate());
 		if (StringUtils.isNotBlank(from) && configs.isIncludingFromFieldWhenGeneratingEmails()) {

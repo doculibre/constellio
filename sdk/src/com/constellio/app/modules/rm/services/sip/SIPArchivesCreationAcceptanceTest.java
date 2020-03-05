@@ -12,7 +12,9 @@ import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
 import com.constellio.app.services.sip.bagInfo.SIPZipBagInfoFactory;
+import com.constellio.app.services.sip.mets.MetsContentFileReference;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
+import com.constellio.app.services.sip.mets.MetsEADMetadataReference;
 import com.constellio.app.services.sip.record.UnclassifiedDataSIPWriter;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
 import com.constellio.app.services.sip.zip.DefaultSIPFileNameProvider;
@@ -31,6 +33,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserFolder;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -57,6 +60,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
@@ -78,6 +82,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	private IOServices ioServices;
 	private RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP;
 	private RMSchemasRecordsServices rmSchemasRecordsServices;
+	private Predicate<Metadata> metadataIgnore;
 
 	@Before
 	public void setUp() throws Exception {
@@ -103,6 +108,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
 		constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		metadataIgnore = null;
 	}
 
 	@Test
@@ -850,7 +856,9 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		writer.setSipFileHasher(SIPFileHasher());
 
 
-		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<String>(), asList(documentsIds), null);
+		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<String>(), asList(documentsIds), null,
+				metadataIgnore
+		);
 
 		if (!errors.isEmpty()) {
 			assertThat(TestUtils.frenchMessages(errors)).describedAs("errors").isEmpty();
@@ -864,6 +872,12 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 			@Override
 			public String computeHash(File input, String sipPath) throws IOException {
 				return "CHECKSUM{{" + sipPath.replace("\\", "/ d") + "}}";
+			}
+
+			@Override
+			public long length(File zipFile, List<MetsContentFileReference> contentFileReferences,
+							   List<MetsEADMetadataReference> eadMetadataReferences) {
+				return 42;
 			}
 		};
 	}
@@ -886,7 +900,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		writer.setSipFileHasher(SIPFileHasher());
 
 		RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
-		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<String>(), documentsIds, null
+		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<String>(), documentsIds, null,
+				metadataIgnore
 		);
 
 		if (!errors.isEmpty()) {

@@ -1,5 +1,6 @@
 package com.constellio.model.services.security;
 
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -27,6 +28,7 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -354,30 +356,50 @@ public class AuthorizationsServices {
 	}
 
 	public void execute(AuthorizationDeleteRequest request) {
-		AuthTransaction transaction = new AuthTransaction();
-		Authorization removedAuthorization = execute(request, transaction);
-		String grantedOnRecord = removedAuthorization.getTarget();
-		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
-		if (!transaction.getRecordIds().contains(grantedOnRecord)) {
+		execute(request, 0);
+	}
+
+	private void execute(AuthorizationDeleteRequest request, int attempt) {
+		if (attempt < 3) {
 			try {
-				transaction.add(recordServices.getDocumentById(grantedOnRecord));
-			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-				LOGGER.info("Failed to removeFromAllCaches hasChildrenCache after deletion of authorization", e);
+				AuthTransaction transaction = new AuthTransaction();
+				Authorization removedAuthorization = execute(request, transaction);
+				String grantedOnRecord = removedAuthorization.getTarget();
+				transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+				if (!transaction.getRecordIds().contains(grantedOnRecord)) {
+					try {
+						transaction.add(recordServices.getDocumentById(grantedOnRecord));
+					} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+						LOGGER.info("Failed to removeFromAllCaches hasChildrenCache after deletion of authorization", e);
+					}
+				}
+
+				executeTransaction(transaction, true);
+				if (grantedOnRecord != null) {
+					//			try {
+					////				refreshCaches(recordServices.getDocumentById(grantedOnRecord),
+					////						new ArrayList<String>(), request.get);
+					//			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					//				LOGGER.info("Failed to removeFromAllCaches hasChildrenCache after deletion of authorization", e);
+					//			}
+
+				}
+
+				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
+			} catch (AuthServices_RecordServicesException e) {
+				if (e.getCause() instanceof RecordServicesException.OptimisticLocking) {
+					LOGGER.info(String.format("Failed to exectute AuthorizationDeleteRequest for user %s retrying...",
+							request.getExecutedBy(), attempt), e);
+
+					recordServices.flush();
+					recordServices.refresh(request.getExecutedBy());
+					execute(request, ++attempt);
+				}
 			}
+		} else {
+			LOGGER.error(String.format("Stopping AuthorizationDeleteRequest attempts for user %s after %d tries",
+					request.getExecutedBy(), attempt));
 		}
-
-		executeTransaction(transaction);
-		if (grantedOnRecord != null) {
-			//			try {
-			////				refreshCaches(recordServices.getDocumentById(grantedOnRecord),
-			////						new ArrayList<String>(), request.get);
-			//			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-			//				LOGGER.info("Failed to removeFromAllCaches hasChildrenCache after deletion of authorization", e);
-			//			}
-
-		}
-
-		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
 	}
 
 	private static class AuthTransaction extends Transaction {
@@ -713,8 +735,16 @@ public class AuthorizationsServices {
 	}
 
 	private void executeTransaction(AuthTransaction transaction) {
+		executeTransaction(transaction, false);
+	}
+
+	private void executeTransaction(AuthTransaction transaction, boolean with1000Limit) {
 		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions()
 				.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL()));
+		if (with1000Limit) {
+			transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+		}
+
 		try {
 			recordServices.execute(transaction);
 		} catch (Exception e) {

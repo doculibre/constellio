@@ -160,6 +160,10 @@ public class RMDocumentExtension extends RecordExtension {
 
 	@Override
 	public void recordModified(RecordModificationEvent event) {
+		if (event.isSchemaType(Document.SCHEMA_TYPE)) {
+			adjustCheckoutAlertSent(event);
+		}
+
 	}
 
 	@Override
@@ -228,4 +232,12 @@ public class RMDocumentExtension extends RecordExtension {
 		}
 	}
 
+	private void adjustCheckoutAlertSent(RecordModificationEvent event) {
+		if (event.hasModifiedMetadata(Document.CONTENT)) {
+			Document document = rmSchema.wrapDocument(event.getRecord());
+			if (!document.getContent().isCheckedOut() && document.isCheckoutAlertSent()) {
+				document.setCheckoutAlertSent(false);
+			}
+		}
+	}
 }

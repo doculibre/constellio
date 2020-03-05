@@ -13,11 +13,13 @@ public class NavigationConfig implements Serializable {
 	private final KeyListMap<String, NavigationItem> navigation;
 	private final KeyListMap<String, PageItem> fragments;
 	private final Set<String> codes;
+	private final KeyListMap<String, String> refreshableCodes;
 
 	public NavigationConfig() {
 		navigation = new KeyListMap<>();
 		fragments = new KeyListMap<>();
 		codes = new HashSet<>();
+		refreshableCodes = new KeyListMap<>();
 	}
 
 	public void add(String group, NavigationItem item) {
@@ -40,6 +42,11 @@ public class NavigationConfig implements Serializable {
 		add(group, item, fragments);
 	}
 
+	public void addRefreshablePageItem(String group, PageItem item) {
+		add(group, item, fragments);
+		refreshableCodes.add(group, item.getCode());
+	}
+
 	public List<NavigationItem> getNavigation(String group) {
 		return navigation.get(group);
 	}
@@ -59,6 +66,10 @@ public class NavigationConfig implements Serializable {
 
 	public List<PageItem> getFragments(String group) {
 		return fragments.get(group);
+	}
+
+	public List<String> getRefreshable(String group) {
+		return refreshableCodes.get(group);
 	}
 
 	private <V extends CodedItem> void add(String group, V value, KeyListMap<String, V> map) {

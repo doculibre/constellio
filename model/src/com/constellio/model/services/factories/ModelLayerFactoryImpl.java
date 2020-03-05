@@ -1,5 +1,6 @@
 package com.constellio.model.services.factories;
 
+import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
@@ -23,6 +24,7 @@ import com.constellio.model.services.batch.state.StoredBatchProcessProgressionSe
 import com.constellio.model.services.caches.ModelLayerCachesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.configs.UserConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.emails.EmailQueueManager;
 import com.constellio.model.services.emails.EmailServices;
@@ -40,7 +42,6 @@ import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.pdftron.AnnotationLockManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
-import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.model.services.records.StringRecordIdLegacyMemoryMapping;
 import com.constellio.model.services.records.StringRecordIdLegacyPersistedMapping;
 import com.constellio.model.services.records.cache.CachedRecordServices;
@@ -109,6 +110,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final CollectionsListManager collectionsListManager;
 	private final SolrGlobalGroupsManager globalGroupsManager;
 	private final SystemConfigurationsManager systemConfigurationsManager;
+	private final UserConfigurationsManager userConfigurationsManager;
 	private final LanguageDetectionManager languageDetectionManager;
 	private final ModelLayerConfiguration modelLayerConfiguration;
 	private final ContentManager contentsManager;
@@ -200,6 +202,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.systemConfigurationsManager = add(
 				new SystemConfigurationsManager(this, configManager, modulesManagerDelayed,
 						dataLayerFactory.getDistributedCacheManager()));
+		this.userConfigurationsManager = add(new UserConfigurationsManager(configManager));
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
@@ -477,6 +480,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	public ConstellioEIMConfigs getSystemConfigs() {
 		return new ConstellioEIMConfigs(getSystemConfigurationsManager());
+	}
+
+	public UserConfigurationsManager getUserConfigurationsManager() {
+		return userConfigurationsManager;
 	}
 
 	public LoggingServices newLoggingServices() {
