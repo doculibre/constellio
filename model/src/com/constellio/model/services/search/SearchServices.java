@@ -40,6 +40,8 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.QueryElevation.DocElevation;
 import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
+import com.constellio.model.services.search.query.SearchQuery;
+import com.constellio.model.services.search.query.list.RecordListSearchQuery;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -617,11 +619,15 @@ public class SearchServices {
 
 	}
 
-	public List<Record> search(LogicalSearchQuery query) {
-		//return searchUsingSolr(query);
-		return cachedSearch(query);
+	public List<Record> search(SearchQuery query) {
+		if (query instanceof LogicalSearchQuery) {
+			return cachedSearch((LogicalSearchQuery) query);
+		} else if (query instanceof RecordListSearchQuery) {
+			return ((RecordListSearchQuery) query).convertIdsToSummaryRecords(modelLayerFactory).getRecords();
+		} else {
+			throw (new IllegalArgumentException());
+		}
 	}
-
 
 	public Record searchSingleResult(LogicalSearchCondition condition) {
 

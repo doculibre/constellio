@@ -106,10 +106,8 @@ public class SerializedCacheSearchService {
 	public List<Record> search(SearchQuery query, int batch) {
 		if (query instanceof LogicalSearchQuery) {
 			return search((LogicalSearchQuery) query, batch);
-		} else if (query instanceof RecordListSearchQuery) {
-			return search((RecordListSearchQuery) query, batch);
 		} else {
-			throw (new IllegalArgumentException());
+			return searchServices.search(query);
 		}
 	}
 
@@ -117,11 +115,6 @@ public class SerializedCacheSearchService {
 		LogicalSearchQuery logicalSearchQuery = query;
 		cache.initializeFor(logicalSearchQuery);
 		return new LazyRecordList(batch, cache, modelLayerFactory, logicalSearchQuery, serializeRecords);
-	}
-
-	private List<Record> search(RecordListSearchQuery query, int batch) {
-		//TODO include batch size (will need to generify SearchServices and LazyRecordList as well)
-		return query.convertIdsToSummaryRecords(modelLayerFactory).getRecords();
 	}
 
 	public Map<String, List<FacetValue>> getFieldFacetValues(SearchQuery facetLoadingQuery) {
