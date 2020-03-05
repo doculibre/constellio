@@ -11,6 +11,7 @@ import com.constellio.model.services.records.cache.StatsBigVaultServerExtension;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.query.list.RecordListSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -23,6 +24,7 @@ import org.apache.solr.common.params.SolrParams;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -424,6 +426,38 @@ public class SerializedCacheSearchServiceAcceptTest extends ConstellioTest {
 				.contains("<em>pomme</em> banane thirdSchema_3");
 
 		assertThat(queriesListener.queries).hasSize(5);
+	}
+
+	@Test
+	public void recordListSearchQueryRespondsWithTheCorrectListOfRecords()
+			throws Exception {
+		List<Record> queryRecords = new ArrayList<>();
+		queryRecords.add(newRecord(zeSchema, "banana bread"));
+		queryRecords.add(newRecord(zeSchema, "garlic bread"));
+		queryRecords.add(newRecord(zeSchema, "cinnamon bread"));
+		queryRecords.add(newRecord(zeSchema, "cheese bread"));
+		queryRecords.add(newRecord(zeSchema, "whole-wheat bread"));
+		queryRecords.add(newRecord(zeSchema, "apple bread"));
+		queryRecords.add(newRecord(zeSchema, "classic sandwich bread"));
+		queryRecords.add(newRecord(zeSchema, "chocolate bread"));
+		queryRecords.add(newRecord(zeSchema, "raisin bread"));
+		queryRecords.add(newRecord(zeSchema, "raspberry bread"));
+		queryRecords.add(newRecord(zeSchema, "lemon & poppy bread"));
+		queryRecords.add(newRecord(zeSchema, "nan"));
+		queryRecords.add(newRecord(zeSchema, "boring normal bread"));
+		queryRecords.add(newRecord(zeSchema, "bagel"));
+
+		execute(new Transaction(queryRecords));
+
+		RecordListSearchQuery query = RecordListSearchQuery.createFromRecords(queryRecords);
+		List<Record> resultedRecords = searchServices.search(query);
+		assertThat(resultedRecords).containsExactlyElementsOf(queryRecords);
+
+		List<String> queryRecordIds = new ArrayList<>();
+		queryRecords.forEach(r -> queryRecordIds.add(r.getId()));
+		query = RecordListSearchQuery.createFromIds(queryRecordIds);
+		resultedRecords = searchServices.search(query);
+		assertThat(resultedRecords).containsExactlyElementsOf(queryRecords);
 	}
 
 	private void iterateOverAllSchemasQueryByAscTitleAndValidateRecordAndHighlighting(SPEQueryResponse response) {

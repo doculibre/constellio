@@ -4,7 +4,6 @@ import com.constellio.data.dao.dto.records.FacetPivotValue;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.MoreLikeThisRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
@@ -12,7 +11,6 @@ import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.list.RecordListSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -106,28 +104,24 @@ public class SerializedCacheSearchService {
 	}
 
 	public List<Record> search(SearchQuery query, int batch) {
-		List<Record> records;
 		if (query instanceof LogicalSearchQuery) {
-			records = search((LogicalSearchQuery) query, batch);
+			return search((LogicalSearchQuery) query, batch);
 		} else if (query instanceof RecordListSearchQuery) {
-			RecordListSearchQuery listQuery = (RecordListSearchQuery) query;
-			if (!listQuery.isListOfIds()) {
-				records = listQuery.getRecords();
-			} else {
-				records = new ArrayList<>();
-				RecordServices recordServices = modelLayerFactory.newRecordServices();
-				listQuery.getRecordIds().forEach(id -> records.add(recordServices.realtimeGetRecordSummaryById(id)));
-			}
+			return search((RecordListSearchQuery) query, batch);
 		} else {
 			throw (new IllegalArgumentException());
 		}
-		return records;
 	}
 
 	private List<Record> search(LogicalSearchQuery query, int batch) {
-		LogicalSearchQuery logicalSearchQuery = (LogicalSearchQuery) query;
+		LogicalSearchQuery logicalSearchQuery = query;
 		cache.initializeFor(logicalSearchQuery);
 		return new LazyRecordList(batch, cache, modelLayerFactory, logicalSearchQuery, serializeRecords);
+	}
+
+	private List<Record> search(RecordListSearchQuery query, int batch) {
+		//TODO include batch size (will need to generify SearchServices and LazyRecordList as well)
+		return query.convertIdsToSummaryRecords(modelLayerFactory).getRecords();
 	}
 
 	public Map<String, List<FacetValue>> getFieldFacetValues(SearchQuery facetLoadingQuery) {

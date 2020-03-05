@@ -46,4 +46,6 @@ public interface SearchQuery {
 	List<String> getFieldFacets();
 
 	KeySetMap<String, String> getQueryFacets();
+
+	void clearFacets();
 }

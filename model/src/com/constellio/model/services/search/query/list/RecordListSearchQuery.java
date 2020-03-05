@@ -5,6 +5,8 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.DefaultUserFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
@@ -37,6 +39,7 @@ public class RecordListSearchQuery implements SearchQuery {
 
 	public static RecordListSearchQuery createFromIds(List<String> recordIds) {
 		RecordListSearchQuery query = new RecordListSearchQuery();
+		query.recordIds = recordIds;
 
 		return query;
 	}
@@ -176,6 +179,12 @@ public class RecordListSearchQuery implements SearchQuery {
 		return this;
 	}
 
+	@Override
+	public void clearFacets() {
+		fieldFacets.clear();
+		queryFacets.clear();
+	}
+
 	public List<Record> getRecords() {
 		return records;
 	}
@@ -185,6 +194,32 @@ public class RecordListSearchQuery implements SearchQuery {
 	}
 
 	public boolean isListOfIds() {
-		return !recordIds.isEmpty();
+		return recordIds != null;
+	}
+
+	public RecordListSearchQuery convertIdsToSummaryRecords(ModelLayerFactory modelLayerFactory) {
+		if (!isListOfIds()) {
+			return this;
+		}
+
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		records = new ArrayList<>();
+		recordIds.forEach(id -> records.add(recordServices.realtimeGetRecordSummaryById(id)));
+		recordIds = null;
+
+		return this;
+	}
+
+	public RecordListSearchQuery convertIdsToRecords(ModelLayerFactory modelLayerFactory) {
+		if (!isListOfIds()) {
+			return this;
+		}
+
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		records = new ArrayList<>();
+		recordIds.forEach(id -> records.add(recordServices.realtimeGetRecordById(id)));
+		recordIds = null;
+
+		return this;
 	}
 }
