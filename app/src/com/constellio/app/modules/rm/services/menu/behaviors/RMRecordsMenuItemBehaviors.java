@@ -89,7 +89,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
 import com.nimbusds.oauth2.sdk.util.CollectionUtils;
-import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
@@ -301,7 +300,7 @@ public class RMRecordsMenuItemBehaviors {
 
 	private void checkOutDocuments(List<Record> records, MenuItemActionBehaviorParams params) {
 		List<Document> documents = rm.wrapDocuments(records);
-		new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkOut(rm.wrapDocuments(records), params);
+		new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkOut(documents, params);
 
 		try {
 			recordServices.update(documents, new RecordUpdateOptions().setOverwriteModificationDateAndUser(false), params.getUser());
@@ -562,25 +561,6 @@ public class RMRecordsMenuItemBehaviors {
 
 	private int getBorrowingDuration() {
 		return new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()).getDocumentBorrowingDurationDays();
-	}
-
-	public void checkoutDocuments(List<String> recordIds, MenuItemActionBehaviorParams params) {
-		Button button = new Button($("DocumentContextMenu.checkOut"), FontAwesome.LOCK);
-		button.addClickListener((event) -> {
-			List<Record> records = recordServices.getRecordsById(collection, recordIds);
-			for (Record record : records) {
-				if (!documentRecordActionsServices.isCheckOutActionPossible(record, params.getUser())) {
-					if (documentRecordActionsServices.isCurrentBorrower(record, params.getUser())) {
-						recordIds.remove(record.getId());
-					} else {
-						params.getView().showMessage($("DocumentActionsComponent.checkoutOfDocumentsImpossible", record.getId()));
-						return;
-					}
-				}
-			}
-			checkOut(recordIds, params);
-		});
-		button.click();
 	}
 
 	public void checkInDocuments(List<String> recordIds, MenuItemActionBehaviorParams params) {

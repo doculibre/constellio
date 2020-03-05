@@ -234,6 +234,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		this.taxonomyCode = taxonomyCode;
 	}
 
+	public RecordVO getRecordVOForDisplay() {
+		return voBuilder.build(recordServices.realtimeGetRecordById(summaryFolderVO.getId()), VIEW_MODE.DISPLAY, view.getSessionContext());
+	}
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return true;
