@@ -9,12 +9,14 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.io.ConversionManager;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.io.FilenameUtils;
 
 import java.util.List;
 
@@ -169,7 +171,7 @@ public class DocumentRecordActionsServices {
 	public boolean isCreatePdfActionPossible(Record record, User user) {
 		Document document = rm.getDocument(record.getId());
 
-		if ((!isCheckOutPossible(document) && !isEmail(document)) ||
+		if ((!isCheckOutPossible(document) && !isEmailConvertibleToPDF(document)) ||
 			document.getContent() == null ||
 			!isEditActionPossible(record, user) ||
 			record.isLogicallyDeleted()) {
@@ -177,6 +179,18 @@ public class DocumentRecordActionsServices {
 		}
 
 		return rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
+
+	private boolean isEmailConvertibleToPDF(Document document) {
+		boolean emailConvertibleToPDF;
+		if (isEmail(document)) {
+			String extension = FilenameUtils.getExtension(document.getContent().getCurrentVersion().getFilename()).toLowerCase();
+			ConversionManager conversionManager = rm.getModelLayerFactory().getDataLayerFactory().getConversionManager();
+			emailConvertibleToPDF = conversionManager.isSupportedExtension(extension);
+		} else {
+			emailConvertibleToPDF = false;
+		}
+		return emailConvertibleToPDF;
 	}
 
 	public boolean isAddToCartActionPossible(Record record, User user) {
