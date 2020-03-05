@@ -22,7 +22,7 @@ public class RecordIdToCaptionWithNiceTitleConverter implements Converter<String
 		if (StringUtils.isNotBlank(value)) {
 			String niceTitle = SchemaCaptionUtils.getNiceTitleForRecordId(value, locale);
 			if (StringUtils.isNotBlank(niceTitle)) {
-				caption = "<span title=\"" + StringEscapeUtils.escapeJavaScript(niceTitle) + "\">" + SchemaCaptionUtils.getCaptionForRecordId(value, locale) + "</span>";
+				caption = "<span title=\"" + StringEscapeUtils.escapeHtml(niceTitle) + "\">" + SchemaCaptionUtils.getCaptionForRecordId(value, locale) + "</span>";
 			} else {
 				caption = SchemaCaptionUtils.getCaptionForRecordId(value, locale);
 			}
