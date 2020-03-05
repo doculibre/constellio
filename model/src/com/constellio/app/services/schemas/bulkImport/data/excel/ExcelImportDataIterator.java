@@ -65,7 +65,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 
 	@Override
 	public ImportDataOptions getOptions() {
-		return new ImportDataOptions();
+		return options;
 	}
 
 	@Override
@@ -141,7 +141,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 	}
 
 	public ImportData parseRecord() {
-		String schema = DEFAULT_SCHEMA;
+		String schema = null;
 		Map<String, Object> fields = new HashMap<>();
 		String legacy = null;
 
@@ -345,9 +345,12 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 			return formatDateString(value, type);
 		} else if (type.getDataPattern() != null) {
 			return type.getDataPattern() + ":" + value;
+
 		} else if (type.isFilenameHashImport() && StringUtils.isNotBlank(value) && value.contains(":")) {
 			String[] parts = value.split(":");
-			return new SimpleImportContent("hash:" + parts[1], parts[0], true, TimeProvider.getLocalDateTime());} else {
+			return new SimpleImportContent("hash:" + parts[1], parts[0], true, TimeProvider.getLocalDateTime());
+
+		} else {
 			return value;
 		}
 	}
