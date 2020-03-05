@@ -1027,6 +1027,18 @@ public class RecordsImportServicesExecutor {
 						contentVersionDataSummary = factory.get();
 					}
 
+				} else if (version.getUrl().toLowerCase().startsWith("hash:")) {
+					String hash = version.getUrl().substring(5);
+					try {
+						contentVersionDataSummary = contentManager.getContentVersionSummary(hash).getContentVersionDataSummary();
+					} catch (ContentManagerRuntimeException_NoSuchContent e) {
+						e.printStackTrace();
+						Map<String, Object> params = new HashMap<>();
+						params.put("hash", e.getId());
+						errors.add(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT, params);
+						return null;
+					}
+
 				} else {
 					contentVersionDataSummary = typeBatchImportContext.bulkUploader.get(version.getUrl());
 				}
