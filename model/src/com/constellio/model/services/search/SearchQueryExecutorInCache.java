@@ -15,6 +15,8 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
+import com.constellio.model.services.search.query.SearchQuery;
+import com.constellio.model.services.search.query.list.RecordListSearchQuery;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -32,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -47,9 +50,9 @@ import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
 import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_CACHE;
 import static java.util.Arrays.asList;
 
-public class LogicalSearchQueryExecutorInCache {
+public class SearchQueryExecutorInCache {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(LogicalSearchQueryExecutorInCache.class);
+	private static Logger LOGGER = LoggerFactory.getLogger(SearchQueryExecutorInCache.class);
 
 	SearchServices searchServices;
 	RecordsCaches recordsCaches;
@@ -59,12 +62,12 @@ public class LogicalSearchQueryExecutorInCache {
 	SearchConfigurationsManager searchConfigurationsManager;
 	ConstellioEIMConfigs constellioEIMConfigs;
 
-	public LogicalSearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
-											 MetadataSchemasManager schemasManager,
-											 SearchConfigurationsManager searchConfigurationsManager,
-											 ModelLayerSystemExtensions modelLayerExtensions,
-											 ConstellioEIMConfigs constellioEIMConfigs,
-											 String mainDataLanguage) {
+	public SearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
+									  MetadataSchemasManager schemasManager,
+									  SearchConfigurationsManager searchConfigurationsManager,
+									  ModelLayerSystemExtensions modelLayerExtensions,
+									  ConstellioEIMConfigs constellioEIMConfigs,
+									  String mainDataLanguage) {
 		this.constellioEIMConfigs = constellioEIMConfigs;
 		this.searchServices = searchServices;
 		this.recordsCaches = recordsCaches;
@@ -74,11 +77,10 @@ public class LogicalSearchQueryExecutorInCache {
 		this.searchConfigurationsManager = searchConfigurationsManager;
 	}
 
-	public Stream<Record> stream(LogicalSearchQuery query) {
-		MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
+	public Stream<Record> stream(SearchQuery query) {
 
 		Locale locale = query.getLanguage() == null ? null : Language.withCode(query.getLanguage()).getLocale();
-		final Predicate<TestedQueryRecord> filter = toStreamFilter(query, schemaType);
+		final Predicate<TestedQueryRecord> filter = toStreamFilter(query);
 		Predicate<Record> recordFilter = new Predicate<Record>() {
 			@Override
 			public boolean test(Record record) {
@@ -86,58 +88,71 @@ public class LogicalSearchQueryExecutorInCache {
 			}
 		};
 
-		Stream<Record> stream = newBaseRecordStream(query, schemaType, recordFilter);
+		Stream<Record> stream;
+		if (query instanceof LogicalSearchQuery) {
+			LogicalSearchQuery logicalSearchQuery = (LogicalSearchQuery) query;
+			MetadataSchemaType schemaType = getQueriedSchemaType(logicalSearchQuery.getCondition());
+			stream = newBaseRecordStream(logicalSearchQuery, schemaType, recordFilter);
 
-		if (!query.getSortFields().isEmpty()) {
-			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
+			if (!logicalSearchQuery.getSortFields().isEmpty()) {
+				stream = stream.sorted(newQuerySortFieldsComparator(logicalSearchQuery, schemaType));
+			}
+		} else if (query instanceof RecordListSearchQuery) {
+			stream = newBaseRecordStream((RecordListSearchQuery) query, recordFilter);
 		} else {
-			return stream;
+			throw (new UnsupportedOperationException());
 		}
+		return stream;
 	}
 
-	private Predicate<TestedQueryRecord> toStreamFilter(LogicalSearchQuery query, MetadataSchemaType schemaType) {
+	private Predicate<TestedQueryRecord> toStreamFilter(SearchQuery query) {
+		Predicate<TestedQueryRecord> filter = (query.getUserFilters() != null && !query.getUserFilters().isEmpty()) ?
+											  record -> isRecordAccessibleForUser(query.getUserFilters(), record.getRecord()) :
+											  record -> true;
 
+		if (!(query instanceof LogicalSearchQuery)) {
+			return filter != null ? filter : record -> true;
+		}
+
+		LogicalSearchQuery logicalSearchQuery = (LogicalSearchQuery) query;
+
+		MetadataSchemaType schemaType = getQueriedSchemaType(logicalSearchQuery.getCondition());
 		final List<String> excludedDocs = searchConfigurationsManager.getDocExlusions(schemaType.getCollection());
 
-		Predicate<TestedQueryRecord> filter = new Predicate<TestedQueryRecord>() {
-			@Override
-			public boolean test(TestedQueryRecord record) {
+		filter = filter.and(record -> {
+			boolean result = true;
 
-				boolean result = true;
+			switch (logicalSearchQuery.getVisibilityStatusFilter()) {
 
-				switch (query.getVisibilityStatusFilter()) {
-
-					case HIDDENS:
-						result = Boolean.TRUE.equals(record.getRecord().get(Schemas.HIDDEN));
-						break;
-					case VISIBLES:
-						result = !Boolean.TRUE.equals(record.getRecord().get(Schemas.HIDDEN));
-						break;
-				}
-
-				if (!result) {
-					return false;
-				}
-
-				switch (query.getStatusFilter()) {
-
-					case DELETED:
-						result = Boolean.TRUE.equals(record.getRecord().get(Schemas.LOGICALLY_DELETED_STATUS));
-						break;
-					case ACTIVES:
-						result = !Boolean.TRUE.equals(record.getRecord().get(Schemas.LOGICALLY_DELETED_STATUS));
-						break;
-				}
-
-				result &= !excludedDocs.contains(record.getRecord().getId());
-
-				return result;
+				case HIDDENS:
+					result = Boolean.TRUE.equals(record.getRecord().get(Schemas.HIDDEN));
+					break;
+				case VISIBLES:
+					result = !Boolean.TRUE.equals(record.getRecord().get(Schemas.HIDDEN));
+					break;
 			}
-		}.and(testedQueryRecord -> query.getCondition().test(testedQueryRecord));
 
+			if (!result) {
+				return false;
+			}
 
-		if (query.getCondition().getFilters() instanceof SchemaFilters) {
-			SchemaFilters schemaFilters = (SchemaFilters) query.getCondition().getFilters();
+			switch (logicalSearchQuery.getStatusFilter()) {
+
+				case DELETED:
+					result = Boolean.TRUE.equals(record.getRecord().get(Schemas.LOGICALLY_DELETED_STATUS));
+					break;
+				case ACTIVES:
+					result = !Boolean.TRUE.equals(record.getRecord().get(Schemas.LOGICALLY_DELETED_STATUS));
+					break;
+			}
+
+			result &= !excludedDocs.contains(record.getRecord().getId());
+
+			return result;
+		}).and(testedQueryRecord -> logicalSearchQuery.getCondition().test(testedQueryRecord));
+
+		if (logicalSearchQuery.getCondition().getFilters() instanceof SchemaFilters) {
+			SchemaFilters schemaFilters = (SchemaFilters) logicalSearchQuery.getCondition().getFilters();
 
 			if (schemaFilters.getSchemaFilter() != null && schemaFilters.getSchemaTypeFilter() == null) {
 				filter = new Predicate<TestedQueryRecord>() {
@@ -148,7 +163,6 @@ public class LogicalSearchQueryExecutorInCache {
 				}.and(filter);
 			}
 		}
-
 
 		//		if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
 		//			filter = filter.and(new Predicate<Record>() {
@@ -161,11 +175,9 @@ public class LogicalSearchQueryExecutorInCache {
 		//			});
 		//		}
 
-		if (query.getUserFilters() != null && !query.getUserFilters().isEmpty()) {
-			filter = filter.and(record -> isRecordAccessibleForUser(query.getUserFilters(), record.getRecord()));
-		}
 		return filter;
 	}
+
 
 	private DataStoreFieldLogicalSearchCondition findRequiredFieldEqualCondition(LogicalSearchCondition condition,
 																				 MetadataSchemaType schemaType) {
@@ -239,6 +251,17 @@ public class LogicalSearchQueryExecutorInCache {
 				});
 	}
 
+	@NotNull
+	private Stream<Record> newBaseRecordStream(RecordListSearchQuery query, Predicate<Record> filter) {
+		if (query.isListOfIds()) {
+			List<Record> records = new ArrayList<>();
+			query.getRecordIds().forEach(id -> records.add(recordsCaches.getRecordSummary(id)));
+			return records.stream();
+		}
+
+		return query.getRecords().stream().filter(filter);
+	}
+
 	private static boolean isRecordAccessibleForUser(List<UserFilter> userFilterList, Record record) {
 		for (UserFilter currentUserFilter : userFilterList) {
 			if (!currentUserFilter.hasUserAccessToRecord(record)) {
@@ -262,7 +285,7 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 	@NotNull
-	private Comparator<Record> newQuerySortFieldsComparator(LogicalSearchQuery query, MetadataSchemaType schemaType) {
+	private Comparator<Record> newQuerySortFieldsComparator(SearchQuery query, MetadataSchemaType schemaType) {
 		return (o1, o2) -> {
 
 			String queryLanguage = query.getLanguage() == null ? mainDataLanguage : query.getLanguage();

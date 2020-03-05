@@ -7,9 +7,12 @@ import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.DefaultUserFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +31,9 @@ public class RecordListSearchQuery implements SearchQuery {
 	private List<String> fieldFacets = new ArrayList<>();
 	private KeySetMap<String, String> queryFacets = new KeySetMap<>();
 	private String language;
-
+	private VisibilityStatusFilter visibilityStatusFilter;
+	private StatusFilter statusFilter;
+	private List<LogicalSearchQuerySort> sortFields;
 
 	public static RecordListSearchQuery createFromRecords(List<Record> records) {
 		RecordListSearchQuery query = new RecordListSearchQuery();
@@ -134,6 +139,8 @@ public class RecordListSearchQuery implements SearchQuery {
 		query.startRow = startRow;
 		query.statisticFields = statisticFields;
 		query.userFilters = userFilters;
+		query.visibilityStatusFilter = visibilityStatusFilter;
+		query.sortFields = sortFields;
 
 		return query;
 	}
@@ -198,11 +205,14 @@ public class RecordListSearchQuery implements SearchQuery {
 	}
 
 	public RecordListSearchQuery convertIdsToSummaryRecords(ModelLayerFactory modelLayerFactory) {
+		return convertIdsToSummaryRecords(modelLayerFactory.newRecordServices());
+	}
+
+	public RecordListSearchQuery convertIdsToSummaryRecords(RecordServices recordServices) {
 		if (!isListOfIds()) {
 			return this;
 		}
 
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		records = new ArrayList<>();
 		recordIds.forEach(id -> records.add(recordServices.realtimeGetRecordSummaryById(id)));
 		recordIds = null;
@@ -211,15 +221,36 @@ public class RecordListSearchQuery implements SearchQuery {
 	}
 
 	public RecordListSearchQuery convertIdsToRecords(ModelLayerFactory modelLayerFactory) {
+		return convertIdsToRecords(modelLayerFactory.newRecordServices());
+	}
+
+	public RecordListSearchQuery convertIdsToRecords(RecordServices recordServices) {
 		if (!isListOfIds()) {
 			return this;
 		}
 
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		records = new ArrayList<>();
 		recordIds.forEach(id -> records.add(recordServices.realtimeGetRecordById(id)));
 		recordIds = null;
 
 		return this;
+	}
+
+	public List<UserFilter> getUserFilters() {
+		return userFilters;
+	}
+
+	public VisibilityStatusFilter getVisibilityStatusFilter() {
+		return visibilityStatusFilter;
+	}
+
+	@Override
+	public StatusFilter getStatusFilter() {
+		return statusFilter;
+	}
+
+	@Override
+	public List<LogicalSearchQuerySort> getSortFields() {
+		return sortFields;
 	}
 }

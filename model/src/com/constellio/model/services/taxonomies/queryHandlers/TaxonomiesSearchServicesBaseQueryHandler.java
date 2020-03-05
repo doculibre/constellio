@@ -6,7 +6,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.search.LogicalSearchQueryExecutorInCache;
+import com.constellio.model.services.search.SearchQueryExecutorInCache;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -27,7 +27,7 @@ public class TaxonomiesSearchServicesBaseQueryHandler {
 	protected TaxonomiesSearchServicesCache cache;
 	protected ModelLayerExtensions extensions;
 	protected ModelLayerFactory modelLayerFactory;
-	protected LogicalSearchQueryExecutorInCache queryExecutorInCache;
+	protected SearchQueryExecutorInCache queryExecutorInCache;
 
 	public TaxonomiesSearchServicesBaseQueryHandler(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;

@@ -42,7 +42,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 	Users users = new Users();
 
-	LogicalSearchQueryExecutorInCache logicalSearchQueryExecutorInCache;
+	SearchQueryExecutorInCache logicalSearchQueryExecutorInCache;
 
 	MetadataSchemasManager metadataSchemasManager;
 	RecordServices recordServices;
@@ -80,7 +80,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 		searchServices = getModelLayerFactory().newSearchServices();
 		testsSchemaDefault = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("testschema").getDefaultSchema();
 
-		logicalSearchQueryExecutorInCache = new LogicalSearchQueryExecutorInCache(searchServices, searchServices.getConnectedRecordsCache(),
+		logicalSearchQueryExecutorInCache = new SearchQueryExecutorInCache(searchServices, searchServices.getConnectedRecordsCache(),
 				metadataSchemasManager,
 				getModelLayerFactory().getSearchConfigurationsManager(),
 				getModelLayerFactory().getExtensions().getSystemWideExtensions(), getModelLayerFactory().getSystemConfigs(), getModelLayerFactory().getConfiguration().getMainDataLanguage());

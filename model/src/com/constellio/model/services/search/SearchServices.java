@@ -132,7 +132,7 @@ public class SearchServices {
 	String mainDataLanguage;
 	ConstellioEIMConfigs systemConfigs;
 	ModelLayerFactory modelLayerFactory;
-	LogicalSearchQueryExecutorInCache logicalSearchQueryExecutorInCache;
+	SearchQueryExecutorInCache logicalSearchQueryExecutorInCache;
 
 	public SearchServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory) {
 		this(recordDao, modelLayerFactory, modelLayerFactory.getRecordsCaches());
@@ -152,13 +152,13 @@ public class SearchServices {
 		this.systemConfigs = modelLayerFactory.getSystemConfigs();
 		this.disconnectableRecordsCaches = recordsCaches;
 		this.modelLayerFactory = modelLayerFactory;
-		this.logicalSearchQueryExecutorInCache = new LogicalSearchQueryExecutorInCache(this, recordsCaches,
+		this.logicalSearchQueryExecutorInCache = new SearchQueryExecutorInCache(this, recordsCaches,
 				metadataSchemasManager,
 				modelLayerFactory.getSearchConfigurationsManager(),
 				modelLayerFactory.getExtensions().getSystemWideExtensions(), systemConfigs, mainDataLanguage);
 	}
 
-	public LogicalSearchQueryExecutorInCache getQueryExecutorInCache() {
+	public SearchQueryExecutorInCache getQueryExecutorInCache() {
 		return logicalSearchQueryExecutorInCache;
 	}
 

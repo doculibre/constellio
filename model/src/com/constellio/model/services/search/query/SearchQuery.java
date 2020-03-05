@@ -3,7 +3,10 @@ package com.constellio.model.services.search.query;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 
 import java.util.List;
 import java.util.Locale;
@@ -29,6 +32,8 @@ public interface SearchQuery {
 
 	SearchQuery filteredWithUser(User user, List<String> accessOrPermissions);
 
+	List<UserFilter> getUserFilters();
+
 	SearchQuery computeStatsOnField(DataStoreField metadata);
 
 	SearchQuery sortAsc(DataStoreField metadata);
@@ -43,9 +48,17 @@ public interface SearchQuery {
 
 	SearchQuery setLanguage(Locale locale);
 
+	String getLanguage();
+
 	List<String> getFieldFacets();
 
 	KeySetMap<String, String> getQueryFacets();
 
 	void clearFacets();
+
+	VisibilityStatusFilter getVisibilityStatusFilter();
+
+	StatusFilter getStatusFilter();
+
+	List<LogicalSearchQuerySort> getSortFields();
 }

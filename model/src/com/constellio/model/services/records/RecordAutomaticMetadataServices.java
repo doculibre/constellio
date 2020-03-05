@@ -54,7 +54,7 @@ import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.search.LogicalSearchQueryExecutorInCache;
+import com.constellio.model.services.search.SearchQueryExecutorInCache;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -240,7 +240,7 @@ public class RecordAutomaticMetadataServices {
 				@Override
 				public Stream<Record> get() {
 
-					LogicalSearchQueryExecutorInCache executorInCache = searchServices.getQueryExecutorInCache();
+					SearchQueryExecutorInCache executorInCache = searchServices.getQueryExecutorInCache();
 					Stream<Record> stream = null;
 					if (schemaType.getCacheType().isSummaryCache()) {
 						for (Metadata aMetadata : metadatas) {
