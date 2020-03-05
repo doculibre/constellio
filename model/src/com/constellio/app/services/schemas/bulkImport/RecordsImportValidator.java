@@ -430,7 +430,6 @@ public class RecordsImportValidator {
 			}
 
 		} else if (type == MetadataValueType.CONTENT) {
-
 			if (!ImportContent.class.isAssignableFrom(value.getClass())) {
 				errors.add(RecordsImportServices.class, INVALID_CONTENT_VALUE);
 			}
