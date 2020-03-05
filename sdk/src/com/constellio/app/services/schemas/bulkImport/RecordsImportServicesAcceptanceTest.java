@@ -26,6 +26,7 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
@@ -252,13 +253,60 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	public void whenImportingAnExcelFileThenImportedCorrectly()
 			throws Exception {
 
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		String hash1 = contentManager.upload(newTempFileWithContent("file.txt", "I am the first value")).getHash();
+		String hash2 = contentManager.upload(newTempFileWithContent("file.txt", "I am the second value")).getHash();
+		String hash3 = contentManager.upload(newTempFileWithContent("file.txt", "I am the third value")).getHash();
+		String hash4 = contentManager.upload(newTempFileWithContent("file.txt", "I am the fourth value")).getHash();
+		String hash5 = contentManager.upload(newTempFileWithContent("file.txt", "I am the fifth value")).getHash();
+		String hash6 = contentManager.upload(newTempFileWithContent("file.txt", "I am the sixth value")).getHash();
+
+		System.out.println(hash1);
+		System.out.println(hash2);
+		System.out.println(hash3);
+		System.out.println(hash4);
+		System.out.println(hash5);
+		System.out.println(hash6);
+
+
 		File excelFile = getTestResourceFile("datas.xls");
 		File excelFileModified = getTestResourceFile("datasModified.xls");
 
 		importServices.bulkImport(Excel2003ImportDataProvider.fromFile(excelFile), progressionListener, admin);
 
 		importAndValidate();
-		importAndValidateWithModifications(Excel2003ImportDataProvider.fromFile(excelFileModified));
+		Document document1 = rm.getDocumentByLegacyId("1");
+		assertThat(document1.getContent()).isNotNull();
+		assertThat(document1.getContent().getCurrentVersion().getHash()).isEqualTo(hash1);
+		assertThat(document1.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier1.txt");
+
+		Document document2 = rm.getDocumentByLegacyId("2");
+		assertThat(document2.getContent()).isNotNull();
+		assertThat(document2.getContent().getCurrentVersion().getHash()).isEqualTo(hash2);
+		assertThat(document2.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier2.txt");
+
+		Document document3 = rm.getDocumentByLegacyId("3");
+		assertThat(document3.getContent()).isNotNull();
+		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash3);
+		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier3.txt");
+
+//
+		//		importAndValidateWithModifications(Excel2003ImportDataProvider.fromFile(excelFileModified));
+		//		document1 = rm.getDocumentByLegacyId("1");
+		//		assertThat(document1.getContent()).isNotNull();
+		//		assertThat(document1.getContent().getCurrentVersion().getHash()).isEqualTo(hash4);
+		//		assertThat(document1.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier4.txt");
+		//
+		//		document2 = rm.getDocumentByLegacyId("2");
+		//		assertThat(document2.getContent()).isNotNull();
+		//		assertThat(document2.getContent().getCurrentVersion().getHash()).isEqualTo(hash5);
+		//		assertThat(document2.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier5.txt");
+		//
+		//		document3 = rm.getDocumentByLegacyId("3");
+		//		assertThat(document3.getContent()).isNotNull();
+		//		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash6);
+		//		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier6.txt");
+
 	}
 
 	private void importAndValidate() {
