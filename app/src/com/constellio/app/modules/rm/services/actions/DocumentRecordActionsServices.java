@@ -169,7 +169,7 @@ public class DocumentRecordActionsServices {
 	public boolean isCreatePdfActionPossible(Record record, User user) {
 		Document document = rm.getDocument(record.getId());
 
-		if (!isCheckOutPossible(document) ||
+		if ((!isCheckOutPossible(document) && !isEmail(document)) ||
 			document.getContent() == null ||
 			!isEditActionPossible(record, user) ||
 			record.isLogicallyDeleted()) {
