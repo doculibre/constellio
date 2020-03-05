@@ -49,12 +49,16 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 		run(true);
 	}
 
+	protected boolean isOfficeHours() {
+		return new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER
+			   && TimeProvider.getLocalDateTime().getHourOfDay() >= 7
+			   && TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
+	}
+
 	public synchronized void run(boolean waitDuringOfficeHours) {
 		checkConfigRecordsAndIntervalForReindexation();
 
-		boolean officeHours = new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER
-							  && TimeProvider.getLocalDateTime().getHourOfDay() >= 7
-							  && TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
+		boolean officeHours = isOfficeHours();
 
 		if (!Toggle.PERFORMANCE_TESTING.isEnabled()
 			&& ReindexingServices.getReindexingInfos() == null &&

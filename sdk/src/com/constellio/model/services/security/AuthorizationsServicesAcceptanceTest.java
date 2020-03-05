@@ -675,6 +675,24 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
+	public void givenAuthorizationIsSharedReturnUserIdSharingOnly() throws Exception {
+
+		User dakotaUser = users.dakotaLIndienIn(zeCollection);
+		//chuck already has full access
+		auth1 = add(authorizationForUser(bob).on(FOLDER4).givingUserWhoShared(dakotaUser).givingReadWriteDeleteAccess());
+		auth2 = add(authorizationForGroup(heroes).on(FOLDER4).givingReadAccess());
+
+		for (RecordVerifier verify : $(FOLDER4)) {
+			verify.usersWithDeleteAccess().containsOnly(bob, chuck);
+		}
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(FOLDER4).givingReadWriteDelete().forPrincipals(bob),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(heroes)
+		);
+	}
+
+	@Test
 	public void givenAccessTypesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
 

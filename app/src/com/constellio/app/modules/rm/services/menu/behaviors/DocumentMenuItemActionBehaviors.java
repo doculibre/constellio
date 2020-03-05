@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.services.menu.behaviors;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -25,6 +26,7 @@ import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -50,6 +52,8 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.PublishDocumentViewImpl;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
@@ -57,10 +61,13 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentConversionManager;
@@ -71,6 +78,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -97,6 +105,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -114,6 +123,7 @@ public class DocumentMenuItemActionBehaviors {
 	private LoggingServices loggingServices;
 	private DecommissioningLoggingService decommissioningLoggingService;
 	private DocumentRecordActionsServices documentRecordActionsServices;
+	private AuthorizationsServices authorizationsServices;
 
 	public DocumentMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -126,6 +136,7 @@ public class DocumentMenuItemActionBehaviors {
 		decommissioningLoggingService = new DecommissioningLoggingService(appLayerFactory.getModelLayerFactory());
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 	}
 
 	public void getConsultationLink(Document document, MenuItemActionBehaviorParams params) {
@@ -377,15 +388,23 @@ public class DocumentMenuItemActionBehaviors {
 
 
 	public void publish(Document document, MenuItemActionBehaviorParams params) {
+
 		document = loadingFullRecordIfSummary(document);
 		document.setPublished(true);
-		try {
-			recordServices.update(document);
-			linkToDocument(document, params);
-			params.getView().refreshActionMenu();
-		} catch (RecordServicesException e) {
-			params.getView().showErrorMessage(MessageUtils.toMessage(e));
-		}
+		Button publishButton = new WindowButton($("DisplayDocumentView.publish"),
+				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "30%", "300px")) {
+			@Override
+			protected Component buildWindowContent() {
+				return new PublishDocumentViewImpl(params.getRecordVO()) {
+					@Override
+					protected boolean isBreadcrumbsVisible() {
+						return false;
+					}
+				};
+			}
+		};
+		publishButton.click();
+		updateSearchResultClicked(document.getWrappedRecord());
 	}
 
 	public void createPdf(Document document, MenuItemActionBehaviorParams params) {
@@ -418,13 +437,15 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
-
 	public void unPublish(Document document, MenuItemActionBehaviorParams params) {
 		document = loadingFullRecordIfSummary(document);
 		document.setPublished(false);
+		document.setPublishingEndDate(null);
+		document.setPublishingStartDate(null);
 		try {
 			recordServices.update(document);
 			params.getView().refreshActionMenu();
+			params.getView().partialRefresh();
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
@@ -562,8 +583,72 @@ public class DocumentMenuItemActionBehaviors {
 		document = loadingFullRecordIfSummary(document);
 		params.getView().navigate().to().shareContent(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
+		params.getView().partialRefresh();
 	}
 
+	public void modifyShare(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to().shareContent(document.getId());
+		updateSearchResultClicked(document.getWrappedRecord());
+	}
+
+	public void unshare(Document document, MenuItemActionBehaviorParams params) {
+
+		Button unshareDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ConfirmDialog.confirmUnshare");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				unshareDocumentButtonClicked(ParamUtils.getCurrentParams(), document, params.getUser());
+				params.getView().partialRefresh();
+			}
+		};
+
+		unshareDocumentButton.click();
+	}
+
+	public void unshareDocumentButtonClicked(Map<String, String> params, Document document, User user) {
+
+		boolean removeAllSharedAuthorizations = user.hasAny(RMPermissionsTo.MANAGE_SHARE, RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(document);
+
+		if (removeAllSharedAuthorizations) {
+			List<AuthorizationDeleteRequest> authorizationDeleteRequests = authorizationsServices.buildDeleteRequestsForAllSharedAutorizationsOnRecord(document.getWrappedRecord(), user);
+			authorizationDeleteRequests.stream().forEach(authorization -> authorizationsServices.execute(authorization));
+		} else {
+			Authorization authorization = rm.getSolrAuthorizationDetails(user, document.getId());
+			rm.getModelLayerFactory()
+					.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
+		}
+	}
+
+	private AuthorizationModificationRequest toAuthorizationModificationRequest(Authorization authorization,
+																				String recordId, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationModificationRequest request = modifyAuthorizationOnRecord(authId, user.getCollection(), recordId);
+		request = request.withNewAccessAndRoles(authorization.getRoles());
+		request = request.withNewStartDate(authorization.getStartDate());
+		request = request.withNewEndDate(authorization.getEndDate());
+
+		List<String> principals = new ArrayList<>();
+		principals.addAll(authorization.getPrincipals());
+		request = request.withNewPrincipalIds(principals);
+		request = request.setExecutedBy(user);
+
+		return request;
+
+	}
+
+	private AuthorizationDeleteRequest toAuthorizationDeleteRequest(Authorization authorization, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationDeleteRequest request = AuthorizationDeleteRequest.authorizationDeleteRequest(authId, user.getCollection());
+
+		return request;
+
+	}
 
 	public void manageAuthorizations(Document document, MenuItemActionBehaviorParams params) {
 		document = loadingFullRecordIfSummary(document);
@@ -602,6 +687,10 @@ public class DocumentMenuItemActionBehaviors {
 		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(documentVO, params.getView());
 
 		uploadWindow.open(false);
+	}
+
+	public void createTask(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(document.getId()));
 	}
 
 	public void alertAvailable(Document document, MenuItemActionBehaviorParams params) {

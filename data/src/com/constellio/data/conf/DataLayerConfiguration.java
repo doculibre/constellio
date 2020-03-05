@@ -125,4 +125,6 @@ public interface DataLayerConfiguration {
 
 	int getMicrosoftSqlServerloginTimeout();
 
+	int getSolrMinimalReplicationFactor();
+
 }

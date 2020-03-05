@@ -93,7 +93,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 
 				if (folder == null || folder.getArchivisticStatus() != FolderStatus.INACTIVE_DESTROYED) {
 
-					if (!params.getExcludedActionTypes().contains(REQUEST_BORROW_BUTTON)) {
+					if (!params.getExcludedActionTypes().contains(REQUEST_BORROW_BUTTON.name())) {
 						boolean isBorrowRequestActionPossible = isBorrowRequestActionPossible(record, user);
 
 						params.getMenuItemActions().add(MenuItemAction.builder()
@@ -107,7 +107,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 								.build());
 					}
 
-					if (!params.getExcludedActionTypes().contains(REQUEST_BORROW_EXTENSION_BUTTON)) {
+					if (!params.getExcludedActionTypes().contains(REQUEST_BORROW_EXTENSION_BUTTON.name())) {
 						boolean isRequestBorrowExtensionActionPossible = isExtensionRequestActionPossible(record, user);
 
 						params.getMenuItemActions().add(MenuItemAction.builder()
@@ -121,7 +121,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 								.build());
 					}
 
-					if (!params.getExcludedActionTypes().contains(REACTIVATION_BUTTON)) {
+					if (!params.getExcludedActionTypes().contains(REACTIVATION_BUTTON.name())) {
 						boolean isReactivationActionPossible = isReactivationRequestActionPossible(record, user);
 
 						params.getMenuItemActions().add(MenuItemAction.builder()
@@ -140,7 +140,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 											  $("DisplayFolderView.confirmReturnContainerMessage") :
 											  $("DisplayFolderView.confirmReturnMessage");
 
-				if (!params.getExcludedActionTypes().contains(RETURN_REQUEST_BUTTON)) {
+				if (!params.getExcludedActionTypes().contains(RETURN_REQUEST_BUTTON.name())) {
 					boolean isReturnRequestActionPossible =
 							isReturnRequestActionPossible(record, user);
 

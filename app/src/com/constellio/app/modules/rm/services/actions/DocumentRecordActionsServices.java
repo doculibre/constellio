@@ -14,6 +14,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.security.AuthorizationsServices;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class DocumentRecordActionsServices {
 
 	private RMSchemasRecordsServices rm;
 	private RMModuleExtensions rmModuleExtensions;
+	private AuthorizationsServices authorizationService;
 	private String collection;
 	private RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions modelLayerCollectionExtensions;
@@ -29,6 +31,7 @@ public class DocumentRecordActionsServices {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		this.authorizationService = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 		this.modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
@@ -108,8 +111,10 @@ public class DocumentRecordActionsServices {
 		return user.has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
 					   .on(record) && rmModuleExtensions.isPublishActionPossibleOnDocument(document, user) &&
 			   !record.isLogicallyDeleted() &&
+			   document.hasContent() &&
 			   !document.isPublished();
 	}
+
 
 	public boolean isPrintLabelActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
@@ -310,6 +315,11 @@ public class DocumentRecordActionsServices {
 			   rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
+	public boolean isUnshareActionPossible(Record record, User user) {
+		return (authorizationService.itemIsSharedByUser(record, user) ||
+				(user.hasAny(RMPermissionsTo.MANAGE_SHARE, RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) && authorizationService.isRecordShared(record)))
+			   && !record.isLogicallyDeleted();
+	}
 
 	public boolean isManageAuthorizationActionPossible(Record record, User user) {
 		return user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) &&
@@ -391,6 +401,7 @@ public class DocumentRecordActionsServices {
 		return !email && (document.getContent() != null && isContentCheckedOut(document));
 	}
 
+
 	private boolean isEmail(Document document) {
 		boolean email;
 		if (document.getContent() != null && document.getContent().getCurrentVersion() != null) {
@@ -407,5 +418,9 @@ public class DocumentRecordActionsServices {
 
 	private boolean hasUserReadAccess(Record record, User user) {
 		return user.hasReadAccess().on(record);
+	}
+
+	public boolean isCreateTaskActionPossible(Record record, User user) {
+		return hasUserReadAccess(record, user);
 	}
 }

@@ -32,6 +32,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RecordCacheType;
@@ -93,12 +94,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
 import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.STOP_ON_FIRST_ERROR;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_METADATA_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.UNRESOLVED_VALUE;
 import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver;
 import static com.constellio.data.utils.LangUtils.replacingLiteral;
@@ -809,11 +812,28 @@ public class RecordsImportServicesExecutor {
 				key = substringBefore(key, "_");
 			}
 
-			Metadata metadata;
-			if (newSchema == null) {
-				metadata = defaultSchema.getMetadata(key);
-			} else {
-				metadata = newSchema.getMetadata(key);
+			Metadata metadata = null;
+
+			try {
+				if (newSchema == null) {
+					metadata = defaultSchema.getMetadata(key);
+				} else {
+					metadata = newSchema.getMetadata(key);
+				}
+			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+				if (Objects.isNull(field.getValue())) {
+					continue;
+				} else {
+					MetadataSchema metadataSchema = newSchema == null ? defaultSchema : newSchema;
+
+					Map<String, Object> parameters = new HashMap<>();
+					parameters.put("metadata", key);
+					parameters.put("schema", metadataSchema.getCode());
+					parameters.put("schemaLabel", metadataSchema.getLabel(language));
+
+					errors.add(RecordsImportServices.class, INVALID_METADATA_CODE, parameters);
+					return null;
+				}
 			}
 			if (metadata.getType() != MetadataValueType.STRUCTURE) {
 				Object value = field.getValue();

@@ -1,9 +1,9 @@
 package com.constellio.model.entities.records.wrappers;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.data.dao.dto.records.RecordId;
 import org.joda.time.LocalDate;
 
 import java.util.List;
@@ -14,6 +14,7 @@ public class Authorization extends RecordWrapper {
 	public static final String IDENTIFIER = "identifier";
 	public static final String ROLES = "roles";
 	public static final String PRINCIPALS = "principals";
+	public static final String SHARED_BY = "sharedBy";
 	public static final String START_DATE = "startDate";
 	public static final String END_DATE = "endDate";
 	public static final String TARGET = "target";
@@ -51,6 +52,14 @@ public class Authorization extends RecordWrapper {
 		return this;
 	}
 
+	public String getSharedBy() {
+		return get(SHARED_BY);
+	}
+
+	public Authorization setSharedBy(String sharedBy) {
+		set(SHARED_BY, sharedBy);
+		return this;
+	}
 
 	public List<String> getRoles() {
 		return get(ROLES);
@@ -157,7 +166,7 @@ public class Authorization extends RecordWrapper {
 	}
 
 	public String toString() {
-		return "Giving " + (isNegative() ? "negative " : "") + getRoles() + " to " + getPrincipals() + " on " + getTarget() + " (" + getTargetSchemaType() + ")";
+		return "Giving " + (isNegative() ? "negative " : "") + getRoles() + " to " + getPrincipals() + " from " + getSharedBy() + " on " + getTarget() + " (" + getTargetSchemaType() + ")";
 	}
 
 	private boolean isActiveAuthorizationAtDate(LocalDate date) {

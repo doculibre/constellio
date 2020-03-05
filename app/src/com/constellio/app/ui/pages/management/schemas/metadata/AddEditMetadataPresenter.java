@@ -483,7 +483,14 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			builder.setUniqueValue(formMetadataVO.isUniqueValue());
 		}
 
-		validateUniqueCode(builder.getLocalCode());
+		try {
+			if (!editMode) {
+				validateUniqueCode(builder.getLocalCode());
+			}
+		} catch (MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists e) {
+			view.showErrorMessage($("AddEditMetadataView.metadataAlreadyExists", builder.getLocalCode()));
+			return;
+		}
 
 		try {
 			schemasManager.saveUpdateSchemaTypes(types);

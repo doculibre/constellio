@@ -6,6 +6,7 @@ import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
+import com.constellio.app.entities.navigation.PageItem.SharedItemsTables;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -13,6 +14,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.components.PlaceHolder;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
@@ -42,7 +44,6 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Tree.TreeDragMode;
@@ -55,6 +56,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -162,6 +164,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 				return buildRecordTable((RecordTable) tabSource);
 			case RECORD_TREE:
 				return buildRecordTreeOrRecordMultiTree((RecordTree) tabSource);
+			case SHARED_ITEMS_TABLES:
+				return buildSharedTabs((SharedItemsTables) tabSource);
 			case CUSTOM_ITEM:
 				return buildCustomComponent((CustomItem) tabSource);
 			default:
@@ -203,6 +207,17 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 		String schemaTypeCode = tabSource.getSchemaType();
 		List<RecentItem> recentItems = tabSource.getItems(getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		return new ViewableRecentItemTablePanel(schemaTypeCode, tableId, recentItems);
+	}
+
+	private Component buildSharedTabs(final SharedItemsTables sharedItemsTables) {
+
+		Map<String, RecordVODataProvider> dataProviders = sharedItemsTables
+				.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
+		TabSheet tabs = new TabSheet();
+		for (Entry<String, RecordVODataProvider> dataProvider : dataProviders.entrySet()) {
+			tabs.addTab(buildTable(dataProvider.getValue()), $(dataProvider.getKey()));
+		}
+		return tabs;
 	}
 
 	private Component buildRecordTable(final RecordTable recordTable) {
@@ -360,18 +375,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 					recordVOLazyContainer.forceRefresh();
 				}
 			}
-		}
-	}
-
-	private static class PlaceHolder extends CustomComponent {
-		@Override
-		public void setCompositionRoot(Component compositionRoot) {
-			super.setCompositionRoot(compositionRoot);
-		}
-
-		@Override
-		public Component getCompositionRoot() {
-			return super.getCompositionRoot();
 		}
 	}
 

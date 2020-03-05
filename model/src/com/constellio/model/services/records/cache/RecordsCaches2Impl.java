@@ -1245,14 +1245,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 	private void handleByteArrayDTOIntegrityError(String recordId, String errorMessage) {
-		if (FoldersLocator.usingAppWrapper()) {
-			SystemLogger.error("Validation of record '" + recordId + "' failed : " + errorMessage);
-		} else {
-			throw new IllegalArgumentException("Validation of record '" + recordId + "' failed : " + errorMessage);
-		}
-
+		SystemLogger.error("Validation of record '" + recordId + "' failed : " + errorMessage);
 	}
-
 
 	private RecordDTO prepareForCache(RecordDTO dto, InsertionReason reason, int mainSortValue) {
 

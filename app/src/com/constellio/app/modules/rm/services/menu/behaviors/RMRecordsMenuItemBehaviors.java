@@ -34,6 +34,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
 import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.menu.behaviors.util.TaskUrlUtil;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -67,10 +68,12 @@ import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
@@ -800,6 +803,85 @@ public class RMRecordsMenuItemBehaviors {
 		button.click();
 	}
 
+	public void createTask(List<String> ids, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(ids);
+	}
+
+	public void batchUnPublishDocument(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		Button button = new DeleteButton(false) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				batchUnPublishDocumentConfirmed(recordIds, params.getUser(), params.getView());
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("DocumentContextMenu.batchUnPublishConfirmationMsg");
+			}
+		};
+
+		button.click();
+	}
+
+	public void batchUnPublishDocumentConfirmed(List<String> recordIds, User user, BaseView baseView) {
+		List<Document> documentToUnPublish = rm.getDocuments(recordIds);
+
+		for (Document document : documentToUnPublish) {
+			document.setPublished(false);
+			document.setPublishingEndDate(null);
+			document.setPublishingStartDate(null);
+		}
+
+		try {
+			recordServices.update(documentToUnPublish, user);
+			baseView.refreshActionMenu();
+			baseView.partialRefresh();
+		} catch (RecordServicesException e) {
+			baseView.showErrorMessage(MessageUtils.toMessage(e));
+		}
+	}
+
+	public void batchUnshare(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		Button button = new DeleteButton(false) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				unshareFolderButtonClicked(recordIds, params.getUser());
+				params.getView().refreshActionMenu();
+				params.getView().partialRefresh();
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("DocumentContextMenu.batchUnshareConfirmationMsg");
+			}
+		};
+
+		button.click();
+	}
+
+	public void unshareFolderButtonClicked(List<String> ids, User user) {
+
+		List<Authorization> authorizations = rm.getMultipleSolrAuthorizationDetails(user, ids);
+
+		for (Authorization authorization : authorizations) {
+			try {
+				rm.getModelLayerFactory()
+						.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
+
+			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+				return;
+			}
+		}
+	}
+
+	private AuthorizationDeleteRequest toAuthorizationDeleteRequest(Authorization authorization, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationDeleteRequest request = AuthorizationDeleteRequest.authorizationDeleteRequest(authId, user.getCollection());
+
+		return request;
+
+	}
 
 	private boolean isBatchDeletePossible(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		return documentRecordActionsServices.canDeleteDocuments(recordIds, params.getUser())

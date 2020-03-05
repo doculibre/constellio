@@ -192,10 +192,10 @@ public class FoldersLocator {
 	}
 
 	public File getSolrHomeConfFolder(double solrVersion) {
-		if (solrVersion < 6) {
+		if (solrVersion < 8) {
 			return new File(getConstellioWebappFolder(), "solrHome5");
 		}
-		return new File(getConstellioWebappFolder(), "solrHome7");
+		return new File(getConstellioWebappFolder(), "solrHome8");
 	}
 
 	public File getWrapperCommandFolder() {

@@ -215,6 +215,7 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getRecentlyClosedTasks(bob));
 		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.size()).isEqualTo(1);
 		assertThat(results).extracting("title")
 				.containsAll(asList("taskAssignedByBobToChuckClosed"));
 	}
@@ -222,9 +223,19 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenSearchRecentlyCompletedTasksByChuckThenThenReturnAllCompletedTasksVisibleToChuck() {
 		List<Record> results = searchServices
+				.search(tasksSearchServices.getRecentlyClosedTasks(bob));
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results).extracting("title")
+				.containsAll(asList("taskAssignedByBobToChuckClosed"));
+	}
+
+	@Test
+	public void whenSearchRecentlyCompletedTasksByChuckThenReturnAllCompletedTasksVisibleToChuck()
+			throws Exception {
+		List<Record> completed = searchServices
 				.search(tasksSearchServices.getRecentlyCompletedTasks(chuck));
-		assertThat(results.size()).isEqualTo(2);
-		assertThat(results).extracting("title").containsAll(asList(
+		assertThat(completed.size()).isEqualTo(2);
+		assertThat(completed).extracting("title").containsAll(asList(
 				"taskAssignedByChuckToAliceFinished", "taskAssignedByBobToChuckFinished"));
 	}
 

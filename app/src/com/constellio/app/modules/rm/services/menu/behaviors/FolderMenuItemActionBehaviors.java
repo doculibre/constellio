@@ -4,6 +4,7 @@ import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -24,6 +25,7 @@ import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -49,13 +51,15 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
@@ -64,6 +68,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.security.roles.Roles;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
@@ -75,16 +81,20 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.framework.components.ErrorDisplayUtil.showErrorMessage;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -103,6 +113,9 @@ public class FolderMenuItemActionBehaviors {
 	private BorrowingServices borrowingServices;
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
+	private AuthorizationsServices authorizationsServices;
+
+	public static final String USER_LOOKUP = "user-lookup";
 	private RecordHierarchyServices recordHierarchyServices;
 
 	public FolderMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
@@ -117,6 +130,7 @@ public class FolderMenuItemActionBehaviors {
 		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		recordHierarchyServices = new RecordHierarchyServices(modelLayerFactory);
 	}
 
@@ -454,6 +468,63 @@ public class FolderMenuItemActionBehaviors {
 		shareFolderButton.click();
 	}
 
+	public void unshare(Folder folder, MenuItemActionBehaviorParams params) {
+		Button unshareDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ConfirmDialog.confirmUnshare");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				unshareFolderButtonClicked(ParamUtils.getCurrentParams(), folder, params.getUser());
+				params.getView().partialRefresh();
+			}
+		};
+
+		unshareDocumentButton.click();
+	}
+
+	public void unshareFolderButtonClicked(Map<String, String> params, Folder folder, User user) {
+		boolean removeAllSharedAuthorizations = user.hasAny(RMPermissionsTo.MANAGE_SHARE, RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(folder);
+
+		if (removeAllSharedAuthorizations) {
+			List<AuthorizationDeleteRequest> authorizationDeleteRequests = authorizationsServices.buildDeleteRequestsForAllSharedAutorizationsOnRecord(folder.getWrappedRecord(), user);
+			authorizationDeleteRequests.stream().forEach(authorization -> authorizationsServices.execute(authorization));
+		} else {
+			Authorization authorization = rm.getSolrAuthorizationDetails(user, folder.getId());
+			rm.getModelLayerFactory()
+					.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
+		}
+	}
+
+	private AuthorizationDeleteRequest toAuthorizationDeleteRequest(Authorization authorization, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationDeleteRequest request = AuthorizationDeleteRequest.authorizationDeleteRequest(authId, user.getCollection());
+
+		return request;
+
+	}
+
+	private AuthorizationModificationRequest toAuthorizationModificationRequest(Authorization authorization,
+																				String recordId, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationModificationRequest request = modifyAuthorizationOnRecord(authId, user.getCollection(), recordId);
+		request = request.withNewAccessAndRoles(authorization.getRoles());
+		request = request.withNewStartDate(authorization.getStartDate());
+		request = request.withNewEndDate(authorization.getEndDate());
+
+		List<String> principals = new ArrayList<>();
+		principals.addAll(authorization.getPrincipals());
+		request = request.withNewPrincipalIds(principals);
+		request = request.setExecutedBy(user);
+
+		return request;
+
+	}
+
 	public void addToCart(Folder folder, MenuItemActionBehaviorParams params) {
 		folder = loadingFullRecordIfSummary(folder);
 		CartWindowButton cartWindowButton = new CartWindowButton(folder.getWrappedRecord(), params, AddedRecordType.FOLDER);
@@ -654,4 +725,37 @@ public class FolderMenuItemActionBehaviors {
 			return folder;
 		}
 	}
+
+	private boolean returnFolder(Folder folder, LocalDate returnDate, LocalDate borrowingDate,
+								 MenuItemActionBehaviorParams params) {
+		String errorMessage = borrowingServices.validateReturnDate(returnDate, borrowingDate);
+		if (errorMessage != null) {
+			params.getView().showErrorMessage($(errorMessage));
+			return false;
+		}
+		try {
+			borrowingServices.returnFolder(folder.getId(), params.getUser(), returnDate, true);
+			RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
+					appLayerFactory, collection);
+			return true;
+		} catch (RecordServicesException e) {
+			params.getView().showErrorMessage($("DisplayFolderView.cannotReturnFolder"));
+			return false;
+		}
+	}
+
+	public boolean returnFolder(Folder folder, LocalDate returnDate, MenuItemActionBehaviorParams params) {
+		LocalDateTime borrowDateTime = folder.getBorrowDate();
+		LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
+		return returnFolder(folder, returnDate, borrowDate, params);
+	}
+
+	public void createTask(Folder folder, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(folder.getId()));
+	}
+
+	private Roles getCollectionRoles() {
+		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
+	}
+
 }

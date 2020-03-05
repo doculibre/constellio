@@ -235,7 +235,7 @@ public class RMDocumentExtension extends RecordExtension {
 	private void adjustCheckoutAlertSent(RecordModificationEvent event) {
 		if (event.hasModifiedMetadata(Document.CONTENT)) {
 			Document document = rmSchema.wrapDocument(event.getRecord());
-			if (!document.getContent().isCheckedOut() && document.isCheckoutAlertSent()) {
+			if (document.getContent() != null && !document.getContent().isCheckedOut() && document.isCheckoutAlertSent()) {
 				document.setCheckoutAlertSent(false);
 			}
 		}

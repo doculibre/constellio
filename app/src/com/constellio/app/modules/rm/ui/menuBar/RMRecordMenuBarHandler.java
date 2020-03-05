@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.ui.menuBar;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -21,7 +23,8 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.ui.MenuBar;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 
@@ -58,7 +61,14 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 	public MenuBar get(RecordVO recordVO) {
 		String schemaTypeCode = recordVO.getSchema().getTypeCode();
 		if (Document.SCHEMA_TYPE.equals(schemaTypeCode) || Folder.SCHEMA_TYPE.equals(schemaTypeCode) || ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			return new RecordVOMenuBar(recordVO, Collections.emptyList(), appLayerFactory);
+			RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions()
+					.forCollection(recordVO.getRecord().getCollection())
+					.forModule(ConstellioRMModule.ID);
+			List<String> filteredActions = new ArrayList<String>() {{
+				addAll(rmModuleExtensions.getFilteredActionsForContainers());
+				addAll(rmModuleExtensions.getFilteredActionsForFolders());
+			}};
+			return new RecordVOMenuBar(recordVO, filteredActions, appLayerFactory);
 		} else {
 			return null;
 		}

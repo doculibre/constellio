@@ -234,7 +234,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		userServices.addUserToCollection(currentUser, collectionRecord.getId());
 		User user = userServices.getUserInCollection(currentUser.getUsername(), collectionCode);
 		try {
-			recordServices().update(user.setUserRoles(roles).setCollectionAllAccess(true));
+			recordServices().update(user.addUserRoles(roles.toArray(new String[roles.size()])).setCollectionAllAccess(true));
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}

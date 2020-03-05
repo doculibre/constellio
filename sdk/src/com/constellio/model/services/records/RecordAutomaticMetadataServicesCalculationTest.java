@@ -64,8 +64,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	@Mock ModelLayerFactory modelLayerFactory;
 
 	TransactionExecutionContext context = new TransactionExecutionContext(null);
-	TransactionExecutionRecordContext recordContext = new TransactionExecutionRecordContext(record, context);
-	//
+
 	//	@SuppressWarnings("unchecked")
 	//	@Before
 	//	public void setUp()
@@ -109,34 +108,34 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	//	@Test
 	//	public void givenDependencyModifiedWhenSettingCalculatedValuesInRecordThenValueCalculated() {
 	//		doNothing().when(services)
-	//				.calculateValueInRecord(eq(recordContext), any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
+	//				.calculateValueInRecord(eq(context), any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
 	//						any(MetadataSchemaTypes.class), any(Transaction.class));
 	//		doReturn(true).when(services).calculatorDependencyModified(any(RecordImpl.class), any(MetadataValueCalculator.class),
 	//				any(MetadataSchemaTypes.class), any(Metadata.class));
 	//
-	//		services.setCalculatedValuesInRecords(recordContext, record, zeSchema.calculatedDaysBetween(), recordProvider,
+	//		services.setCalculatedValuesInRecords(context, record, zeSchema.calculatedDaysBetween(), recordProvider,
 	//				reindexedMetadata,
 	//				schemas.getTypes(), zeTransaction);
 	//
 	//		verify(services)
-	//				.calculateValueInRecord(recordContext, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
+	//				.calculateValueInRecord(context, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
 	//						zeTransaction);
 	//	}
 	//
 	//	@Test
 	//	public void givenDependencyNotModifiedWhenSettingCalculatedValuesInRecordThenValueCalculated() {
 	//		doNothing().when(services)
-	//				.calculateValueInRecord(eq(recordContext), any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
+	//				.calculateValueInRecord(eq(context), any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
 	//						any(MetadataSchemaTypes.class), any(Transaction.class));
 	//		doReturn(false).when(services).calculatorDependencyModified(any(RecordImpl.class), any(MetadataValueCalculator.class),
 	//				any(MetadataSchemaTypes.class), any(Metadata.class));
 	//
-	//		services.setCalculatedValuesInRecords(recordContext, record, zeSchema.calculatedDaysBetween(), recordProvider,
+	//		services.setCalculatedValuesInRecords(context, record, zeSchema.calculatedDaysBetween(), recordProvider,
 	//				reindexedMetadata,
 	//				schemas.getTypes(), zeTransaction);
 	//
 	//		verify(services, never())
-	//				.calculateValueInRecord(recordContext, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
+	//				.calculateValueInRecord(context, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
 	//						zeTransaction);
 	//	}
 	//
@@ -160,13 +159,13 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	//	public void whenUpdatingAutomaticValuesInRecordsThenSetValueForAllMetadatas()
 	//			throws Exception {
 	//		doNothing().when(services)
-	//				.setCalculatedValuesInRecords(any(TransactionExecutionRecordContext.class), any(RecordImpl.class), any(Metadata.class),
+	//				.setCalculatedValuesInRecords(any(TransactionExecutionContext.class), any(RecordImpl.class), any(Metadata.class),
 	//						any(RecordProvider.class), eq(reindexedMetadata), any(MetadataSchemaTypes.class), any(Transaction.class));
 	//
 	//		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 	//
 	//		Metadata calculatedDaysBetween = zeSchema.calculatedDaysBetween();
-	//		verify(services).setCalculatedValuesInRecords(any(TransactionExecutionRecordContext.class), eq(record),
+	//		verify(services).setCalculatedValuesInRecords(any(TransactionExecutionContext.class), eq(record),
 	//				eq(calculatedDaysBetween), eq(recordProvider), eq(reindexedMetadata), eq(schemas.getTypes()), eq(zeTransaction));
 	//	}
 	//
@@ -178,7 +177,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	//						any(MetadataValueCalculator.class), any(Map.class), any(MetadataSchemaTypes.class),
 	//						any(Transaction.class), any(Locale.class), any(LocalisedRecordMetadataRetrieval.class));
 	//
-	//		services.calculateValueInRecord(recordContext, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
+	//		services.calculateValueInRecord(context, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
 	//				zeTransaction);
 	//
 	//		verify(record).updateAutomaticValue(zeSchema.calculatedDaysBetween(), -1.0, Locale.FRENCH);
@@ -193,7 +192,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	//						any(Transaction.class), any(Locale.class), any(LocalisedRecordMetadataRetrieval.class));
 	//		doReturn(calculator).when(services).getCalculatorFrom(any(Metadata.class));
 	//
-	//		services.calculateValueInRecord(recordContext, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
+	//		services.calculateValueInRecord(context, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
 	//				zeTransaction);
 	//
 	//		verify(record).updateAutomaticValue(eq(zeSchema.calculatedDaysBetween()), anyObject(), any(Locale.class));
@@ -261,6 +260,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	//		doReturn(theReferencedMetadata).when(services).getDependentMetadataFromDependency(any(ReferenceDependency.class),
 	//				eq(otherRecord));
 	//		when(aReferenceDependency.isRequired()).thenReturn(true);
+	//		when(aReferenceDependency.getLocalMetadataCode()).thenReturn("meta");
 	//		doReturn(aReferenceMetadata).when(services).getMetadataFromDependency(record, aReferenceDependency);
 	//		doReturn("otherRecordId").when(record).get(aReferenceMetadata);
 	//		when(recordProvider.getRecord("otherRecordId")).thenReturn(otherRecord);
@@ -269,35 +269,6 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	//				Locale.FRENCH, STRICT))
 	//				.isFalse();
 	//		verify(aMap, never()).put(any(Dependency.class), anyObject());
-	//	}
-	//
-	//	@SuppressWarnings({"rawtypes", "unchecked"})
-	//	@Test
-	//	public void givenReferenceDependencyRequiredAndNotNullWhenGettingValueThenReturnTrueAndAddValue() {
-	//		Map aMap = mock(Map.class);
-	//		MetadataSchemaType referencedSchemaType = mock(MetadataSchemaType.class);
-	//		MetadataSchema referencedDefaultSchema = mock(MetadataSchema.class);
-	//		when(referencedSchemaType.getDefaultSchema()).thenReturn(referencedDefaultSchema);
-	//
-	//
-	//		when(referencedSchemaType.getCacheType()).thenReturn(RecordCacheType.NOT_CACHED);
-	//		Metadata aReferenceMetadata = mock(Metadata.class);
-	//		Metadata theReferencedMetadata = mock(Metadata.class);
-	//		when(aReferenceMetadata.getReferencedSchemaType()).thenReturn(referencedSchemaType);
-	//		when(referencedDefaultSchema.getMetadata("theReferencedMetadata")).thenReturn(theReferencedMetadata);
-	//		when(theReferencedMetadata.getSchemaType()).thenReturn(referencedSchemaType);
-	//		when(aReferenceDependency.isRequired()).thenReturn(true);
-	//		when(aReferenceDependency.getDependentMetadataCode()).thenReturn("theReferencedMetadata");
-	//		doReturn(aReferenceMetadata).when(services).getMetadataFromDependency(record, aReferenceDependency);
-	//		doReturn(theReferencedMetadata).when(services).getDependentMetadataFromDependency(any(ReferenceDependency.class),
-	//				eq(otherRecord));
-	//		doReturn("otherRecordId").when(record).get(aReferenceMetadata, Locale.FRENCH, STRICT);
-	//		when(recordProvider.getRecord("otherRecordId")).thenReturn(otherRecord);
-	//		doReturn("aValue").when(otherRecord).get(theReferencedMetadata, Locale.FRENCH, STRICT);
-	//
-	//		assertThat(services.addValueForReferenceDependency(record, recordProvider, aMap, aReferenceDependency, options,
-	//				Locale.FRENCH, STRICT)).isTrue();
-	//		verify(aMap).put(aReferenceDependency, "aValue");
 	//	}
 	//
 	//

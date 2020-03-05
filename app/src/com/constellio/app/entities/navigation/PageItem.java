@@ -17,9 +17,10 @@ import org.joda.time.LocalDateTime;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public abstract class PageItem implements CodedItem, Serializable {
-	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, RECORD_TREE, CUSTOM_ITEM}
+	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, SHARED_ITEMS_TABLES, RECORD_TREE, CUSTOM_ITEM}
 
 	private final String code;
 	private final Type type;
@@ -89,6 +90,16 @@ public abstract class PageItem implements CodedItem, Serializable {
 		}
 
 		public abstract RecordVODataProvider getDataProvider(
+				AppLayerFactory appLayerFactory, SessionContext sessionContext);
+	}
+
+	public static abstract class SharedItemsTables extends PageItem {
+
+		public SharedItemsTables(String code) {
+			super(code, Type.SHARED_ITEMS_TABLES);
+		}
+
+		public abstract Map<String, RecordVODataProvider> getDataProvider(
 				AppLayerFactory appLayerFactory, SessionContext sessionContext);
 	}
 

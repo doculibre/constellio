@@ -26,6 +26,7 @@ import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.Provider;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Content;
@@ -108,7 +109,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
 		constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		metadataIgnore = null;
+		ignoreMetadatasWithLocalCode(asList("isCheckoutAlertSent", "markedForPreviewConversion"));
 	}
 
 	@Test
@@ -191,8 +192,12 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		File tempFolder = newTempFolder();
 		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
 
-
-		builder.exportAllFoldersAndDocuments(new ProgressInfo());
+		builder.exportAllFoldersAndDocuments(new ProgressInfo(), new Provider<String, Boolean>() {
+			@Override
+			public Boolean get(String input) {
+				return true;
+			}
+		});
 
 		assertThat(tempFolder.list()).containsOnly("info", "foldersAndDocuments-001.zip");
 
@@ -356,7 +361,12 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 			;
 		};
-		builder.exportAllEvents(new ProgressInfo());
+		builder.exportAllEvents(new ProgressInfo(), new Provider<String, Boolean>() {
+			@Override
+			public Boolean get(String input) {
+				return true;
+			}
+		});
 
 		File tempFolder1 = new File(tempFolder, "events.zip");
 
@@ -793,7 +803,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		List<String> tempFilesBeforeSIPCreation = LangUtils.listFilenames(tempFolder);
 
-		File sipFilesFolder = buildSIPWithDocumentsWith10MegabytesLimit(ids);
+		File sipFilesFolder = buildSIPWithDocumentsWith1MegabytesLimit(ids);
 
 		List<String> tempFilesAfterSIPCreation = new ArrayList<>(LangUtils.listFilenames(tempFolder));
 		tempFilesAfterSIPCreation.removeAll(tempFilesBeforeSIPCreation);
@@ -882,7 +892,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		};
 	}
 
-	private File buildSIPWithDocumentsWith10MegabytesLimit(List<String> documentsIds) throws Exception {
+	private File buildSIPWithDocumentsWith1MegabytesLimit(List<String> documentsIds) throws Exception {
 
 		List<String> bagInfoLines = new ArrayList<>();
 		bagInfoLines.add("This is the first bagInfo line");
@@ -897,10 +907,15 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(getAppLayerFactory(),
 				fileNameProvider, 1000 * 1000, bagInfoFactory);
 
-		writer.setSipFileHasher(SIPFileHasher());
+		writer.setSipFileHasher(new SIPFileHasher() {
+			@Override
+			public String computeHash(File input, String sipPath) throws IOException {
+				return "CHECKSUM{{" + sipPath.replace("\\", "/ d") + "}}";
+			}
+		});
 
 		RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
-		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<String>(), documentsIds, null,
+		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<>(), documentsIds, null,
 				metadataIgnore
 		);
 
@@ -921,5 +936,33 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		ContentVersionDataSummary dataSummary =
 				getModelLayerFactory().getContentManager().upload(getTestResourceFile(filename));
 		return ContentImpl.create("zeContent", users.adminIn(zeCollection), filename, dataSummary, false, false);
+	}
+
+	private void ignoreMetadatas(List<Metadata> ignoredMetadatas) {
+		Predicate<Metadata> predicate = null;
+		for (Metadata ignoredMetadata : ignoredMetadatas) {
+			if (predicate != null) {
+				predicate = predicate.or(metadata -> metadata.equals(ignoredMetadata));
+			} else {
+				predicate = metadata -> metadata.equals(ignoredMetadata);
+			}
+		}
+		metadataIgnore = predicate;
+	}
+
+	private void ignoreMetadatasWithLocalCode(List<String> ignoredLocalCodes) {
+		Predicate<Metadata> predicate = null;
+		for (String ignoredLocalCode : ignoredLocalCodes) {
+			if (predicate != null) {
+				predicate = predicate.or(metadata -> metadata.isLocalCode(ignoredLocalCode));
+			} else {
+				predicate = metadata -> metadata.isLocalCode(ignoredLocalCode);
+			}
+		}
+		metadataIgnore = predicate;
+	}
+
+	private void ignoreAllMetadatas() {
+		metadataIgnore = metadata -> true;
 	}
 }

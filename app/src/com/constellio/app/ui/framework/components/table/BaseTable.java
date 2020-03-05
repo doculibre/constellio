@@ -336,7 +336,7 @@ public class BaseTable extends Table implements SelectionComponent {
 				} else {
 					containerProperty = new ObjectProperty<>(new Label(index + ""));
 				}
-				return containerProperty;
+				return containerProperty.getValue();
 			}
 		};
 	}

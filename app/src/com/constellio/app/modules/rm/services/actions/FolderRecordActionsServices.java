@@ -13,6 +13,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.security.AuthorizationsServices;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class FolderRecordActionsServices {
 	private String collection;
 	private RecordServices recordServices;
 	private BorrowingServices borrowingServices;
+	private AuthorizationsServices authorizationsServices;
 
 	public FolderRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
@@ -36,6 +38,7 @@ public class FolderRecordActionsServices {
 		borrowingServices = new BorrowingServices(collection, appLayerFactory.getModelLayerFactory());
 		extensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		authorizationsServices = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 	}
 
 	public boolean isAddDocumentActionPossible(Record record, User user) {
@@ -197,6 +200,12 @@ public class FolderRecordActionsServices {
 		return rmModuleExtensions.isShareActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
+	public boolean isUnshareActionPossible(Record record, User user) {
+		return (authorizationsServices.itemIsSharedByUser(record, user) ||
+				(user.hasAny(RMPermissionsTo.MANAGE_SHARE, RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record) && authorizationsServices.isRecordShared(record)))
+			   && !record.isLogicallyDeleted();
+	}
+
 	public boolean isAddToCartActionPossible(Record record, User user) {
 		return hasUserReadAccess(record, user) &&
 			   !record.isLogicallyDeleted() &&
@@ -302,6 +311,10 @@ public class FolderRecordActionsServices {
 			};
 			linkToFolderButton.setVisible(false);
 	 */
+
+	public boolean isCreateTaskActionPossible(Record record, User user) {
+		return hasUserReadAccess(record, user);
+	}
 
 	private boolean hasUserWriteAccess(Record record, User user) {
 		return user.hasWriteAccess().on(record);

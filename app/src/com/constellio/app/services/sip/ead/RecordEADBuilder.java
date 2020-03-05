@@ -94,15 +94,15 @@ public class RecordEADBuilder {
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.collectionsManager = appLayerFactory.getCollectionsManager();
-		this.metadataIgnore = metadataIgnore == null ? metadata -> true : metadataIgnore.negate();
+		setMetadataIgnore(metadataIgnore);
 	}
 
 	public void setMetadataIgnore(Predicate<Metadata> metadataIgnore) {
-		this.metadataIgnore = metadataIgnore;
+		this.metadataIgnore = metadataIgnore == null ? metadata -> true : metadataIgnore.negate();
 	}
 
 	public Predicate<Metadata> getMetadataIgnore() {
-		return metadataIgnore;
+		return metadataIgnore.negate();
 	}
 
 	public boolean isIncludeRelatedMaterials() {
@@ -384,12 +384,14 @@ public class RecordEADBuilder {
 		eadXmlWriter.addHeader(collectionInfo, collectionName, record.getSchemaCode(), schemaTypeLabel, schemaLabel);
 		eadXmlWriter.addArchdesc(archdesc, record.getId(), record.getTitle());
 
-		for (Metadata metadata : types.getSchemaOf(record).getMetadatas()) {
-			if (isMetadataIncludedInEAD(metadata)
-				&& isNotEmptyValue(record.getValues(metadata))) {
-				addMetadata(recordCtx, metadata);
-			}
-		}
+		types.getSchemaOf(record).getMetadatas().stream().filter(metadataIgnore).forEachOrdered(
+				metadata -> {
+					if (isMetadataIncludedInEAD(metadata)
+						&& isNotEmptyValue(record.getValues(metadata))) {
+						addMetadata(recordCtx, metadata);
+					}
+				}
+		);
 
 		eadXmlWriter.build(recordCtx.getSipXMLPath(), errors, file);
 	}

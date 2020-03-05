@@ -83,7 +83,6 @@ import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstell
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
 import com.constellio.app.extensions.api.cmis.params.CheckInParams;
 import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
-import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension;
@@ -396,12 +395,6 @@ public class AppLayerCollectionExtensions {
 	public void onCheckOut(CheckOutParams params) {
 		for (CmisExtension extension : cmisExtensions) {
 			extension.onCheckOut(params);
-		}
-	}
-
-	public void onDeleteTree(DeleteTreeParams params) {
-		for (CmisExtension extension : cmisExtensions) {
-			extension.onDeleteTree(params);
 		}
 	}
 

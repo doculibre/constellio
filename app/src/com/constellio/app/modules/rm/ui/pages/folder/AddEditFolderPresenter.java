@@ -282,7 +282,6 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				return user.hasAll(requiredPermissions).on(restrictedFolder) && user.hasWriteAccess().on(restrictedFolder);
 			}
 		}
-
 	}
 
 	@Override

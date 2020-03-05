@@ -1,5 +1,6 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.SolrServers;
 import com.constellio.data.extensions.DataLayerExtensions;
@@ -20,6 +21,7 @@ import static org.mockito.Mockito.when;
 public class SolrServersTest extends ConstellioTest {
 
 	@Mock DataLayerExtensions extensions;
+	@Mock DataLayerConfiguration configurations;
 	@Mock SolrClient aCoreFirstSolrServerInstance;
 	@Mock SolrClient aCoreSecondSolrServerInstance;
 	@Mock SolrClient anotherCoreFirstSolrServerInstance;
@@ -59,7 +61,7 @@ public class SolrServersTest extends ConstellioTest {
 		when(solrServerFactory.newSolrServer(anOtherCore)).thenReturn(anotherCoreFirstSolrServerInstance).thenReturn(
 				anotherCoreSecondSolrServerInstance);
 
-		solrServers = new SolrServers(solrServerFactory, bigVaultLogger, extensions);
+		solrServers = new SolrServers(solrServerFactory, bigVaultLogger, extensions, configurations);
 	}
 
 	@Test
