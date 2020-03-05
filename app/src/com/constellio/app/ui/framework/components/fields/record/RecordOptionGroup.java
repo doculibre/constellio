@@ -3,7 +3,7 @@ package com.constellio.app.ui.framework.components.fields.record;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
+import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionWithNiceTitleConverter;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -12,7 +12,7 @@ import java.util.List;
 
 public class RecordOptionGroup extends ListOptionGroup implements RecordOptionField {
 
-	private RecordIdToCaptionConverter captionConverter = new RecordIdToCaptionConverter();
+	private RecordIdToCaptionWithNiceTitleConverter captionConverter = new RecordIdToCaptionWithNiceTitleConverter();
 
 	private RecordOptionFieldPresenter presenter;
 
@@ -22,6 +22,7 @@ public class RecordOptionGroup extends ListOptionGroup implements RecordOptionFi
 		super();
 		this.presenter = new RecordOptionFieldPresenter(this);
 		this.presenter.forSchemaCode(schemaCode);
+		setHtmlContentAllowed(true);
 	}
 
 	public RecordOptionGroup(String schemaCode, MetadataDisplayType metadataDisplayType) {
@@ -29,6 +30,7 @@ public class RecordOptionGroup extends ListOptionGroup implements RecordOptionFi
 		this.metadataDisplayType = metadataDisplayType;
 		this.presenter = new RecordOptionFieldPresenter(this);
 		this.presenter.forSchemaCode(schemaCode);
+		setHtmlContentAllowed(true);
 	}
 
 	@Override
