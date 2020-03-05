@@ -125,6 +125,8 @@ public class RecordsImportServicesExecutor {
 	private static final String CYCLIC_DEPENDENCIES_ERROR = "cyclicDependencies";
 	private static final String CONTENT_NOT_FOUND_ERROR = "contentNotFound";
 	private static final String HASH_NOT_FOUND_IN_VAULT = "hashNotFoundInVault";
+	private static final String HASH_NOT_FOUND_IN_VAULT_WITHOUT_FILEPATH = "hashNotFoundInVaultWithoutFilePath";
+
 	private static final String CONTENT_NOT_IMPORTED_ERROR = "contentNotImported";
 	private static final String RECORD_PREPARATION_ERROR = "recordPreparationError";
 	private static final String UNRESOLVED_DEPENDENCY_DURING_SECOND_PHASE = "unresolvedDependencyDuringSecondPhase";
@@ -673,7 +675,7 @@ public class RecordsImportServicesExecutor {
 										.iterator(); iterator.hasNext(); ) {
 									ContentImportVersion version = iterator.next();
 									String url = version.getUrl();
-									if (!url.toLowerCase().startsWith("imported://")) {
+									if (!url.toLowerCase().startsWith("imported://") && !url.toLowerCase().startsWith("hash:")) {
 										StreamFactory<InputStream> inputStreamStreamFactory = urlResolver
 												.resolve(url, version.getFileName());
 
@@ -1101,7 +1103,7 @@ public class RecordsImportServicesExecutor {
 						e.printStackTrace();
 						Map<String, Object> params = new HashMap<>();
 						params.put("hash", e.getId());
-						errors.add(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT, params);
+						errors.add(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT_WITHOUT_FILEPATH, params);
 						return null;
 					}
 
