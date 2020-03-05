@@ -12,8 +12,6 @@ import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
-import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEvent;
-import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -28,19 +26,9 @@ import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
@@ -48,12 +36,7 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEv
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
@@ -89,11 +72,6 @@ public class BaseTable extends Table implements SelectionComponent {
 	private PagedBaseTableContainer pagedTableContainer;
 
 	private List<PageChangeListener> pageChangeListeners = new ArrayList<>();
-
-	private List<RefreshRenderedCellsEvent> refreshRenderedCellsEventListenerList = new ArrayList<>();
-
-	private List<Object> selectedItem;
-	private boolean areAllItemSelected;
 
 	private List<ItemsPerPageChangeListener> itemsPerPageChangeListeners = new ArrayList<>();
 
@@ -219,19 +197,19 @@ public class BaseTable extends Table implements SelectionComponent {
 		}
 	}
 
-	public void addRefreshRenderedCellsEventListener(RefreshRenderedCellsEvent refreshRenderedCellsEvent) {
-		refreshRenderedCellsEventListenerList.add(refreshRenderedCellsEvent);
-	}
-
-	public void fireAddRefreshRenderedCellsEvent(List<Object> selectedId, boolean areAllItemSelected) {
-		if (refreshRenderedCellsEventListenerList == null) {
-			return;
-		}
-
-		for (RefreshRenderedCellsEvent currentRefreshRenderedCellsEvent : refreshRenderedCellsEventListenerList) {
-			currentRefreshRenderedCellsEvent.refreshRenderedCellsEvent(new RefreshRenderedCellsEventParams(selectedId, areAllItemSelected));
-		}
-	}
+	//	public void addRefreshRenderedCellsEventListener(RefreshRenderedCellsEvent refreshRenderedCellsEvent) {
+	//		refreshRenderedCellsEventListenerList.add(refreshRenderedCellsEvent);
+	//	}
+	//
+	//	public void fireAddRefreshRenderedCellsEvent(List<Object> selectedId, boolean areAllItemSelected) {
+	//		if (refreshRenderedCellsEventListenerList == null) {
+	//			return;
+	//		}
+	//
+	//		for (RefreshRenderedCellsEvent currentRefreshRenderedCellsEvent : refreshRenderedCellsEventListenerList) {
+	//			currentRefreshRenderedCellsEvent.refreshRenderedCellsEvent(new RefreshRenderedCellsEventParams(selectedId, areAllItemSelected));
+	//		}
+	//	}
 
 	public void setCurrentPage(int currentPage) {
 		if (isPaged()) {
@@ -240,13 +218,20 @@ public class BaseTable extends Table implements SelectionComponent {
 		}
 	}
 
+	@Override
+	public void refreshRenderedCells() {
+		super.refreshRenderedCells();
+	}
+
 	public int getItemsPerPage() {
 		return pagedTableContainer.getItemsPerPage();
 	}
 
 	public void setItemsPerPage(int itemsPerPage) {
-		pagedTableContainer.setItemsPerPage(itemsPerPage);
-		adjustPageLengthBasedOnItemsPerPage();
+		if (isPaged()) {
+			pagedTableContainer.setItemsPerPage(itemsPerPage);
+			adjustPageLengthBasedOnItemsPerPage();
+		}
 	}
 
 	@Override
@@ -509,19 +494,7 @@ public class BaseTable extends Table implements SelectionComponent {
 	public SelectDeselectAllButton newSelectDeselectAllToggleButton(String selectAllCaption,
 																	String deselectAllCaption) {
 		final SelectDeselectAllButton toggleButton =
-				new MaxLengthSelectDeselectAllButton(selectAllCaption, deselectAllCaption, !selectionManager.isAllItemsSelected());
-		addSelectionChangeListener(new SelectionChangeListener() {
-			@Override
-			public void selectionChanged(SelectionChangeEvent event) {
-				if (event.getComponent() != toggleButton) {
-					if (event.isAllItemsSelected()) {
-						toggleButton.setSelectAllMode(true);
-					} else if (event.isAllItemsDeselected()) {
-						toggleButton.setSelectAllMode(false);
-					}
-				}
-			}
-		});
+				new DefaultMaxLengthSelectDeselectAllButton(selectAllCaption, deselectAllCaption, !selectionManager.isAllItemsSelected());
 		return toggleButton;
 	}
 
@@ -534,11 +507,11 @@ public class BaseTable extends Table implements SelectionComponent {
 	}
 
 	private void clearCheckBoxSelectionChangeListeners() {
-		for (SelectionChangeListener listener : new ArrayList<>(selectionChangeListeners)) {
-			if (listener instanceof SelectionCheckBox.CheckBoxSelectionChangeListener) {
-				removeSelectionChangeListener(listener);
-			}
-		}
+		//		for (SelectionChangeListener listener : new ArrayList<>(selectionChangeListeners)) {
+		//			if (listener instanceof SelectionCheckBox) {
+		//				removeSelectionChangeListener(listener);
+		//			}
+		//		}
 	}
 
 	@Override
@@ -564,25 +537,6 @@ public class BaseTable extends Table implements SelectionComponent {
 	@Override
 	public void resetPageBuffer() {
 		super.resetPageBuffer();
-	}
-
-	@Override
-	public void refreshRenderedCells() {
-		// Optimisation pour pas que chacun des composantes de sélection (checkbox)
-		// est à appeler les écouteur d'événement de la sélection et de valeur changé. C'est fait une fois après le
-		// rendu des cullules du tableau.
-		if (selectedItem == null) {
-			selectedItem = new ArrayList<>();
-		} else {
-			selectedItem.clear();
-		}
-
-		areAllItemSelected = true;
-		super.refreshRenderedCells();
-
-		if (!selectedItem.isEmpty()) {
-			fireAddRefreshRenderedCellsEvent(selectedItem, areAllItemSelected);
-		}
 	}
 
 	@Override
@@ -737,6 +691,12 @@ public class BaseTable extends Table implements SelectionComponent {
 		firePageChangedEvent();
 	}
 
+	@Override
+	public void sort(Object[] propertyId, boolean[] ascending) throws UnsupportedOperationException {
+		super.sort(propertyId, ascending);
+		deselectAll();
+	}
+
 	private static class PagedBaseTableContainer extends ContainerAdapter implements ItemSetChangeNotifier {
 
 		private int startIndex;
@@ -839,19 +799,40 @@ public class BaseTable extends Table implements SelectionComponent {
 		}
 	}
 
-	private class SelectionCheckBox extends CheckBox {
+	private class DefaultMaxLengthSelectDeselectAllButton extends MaxLengthSelectDeselectAllButton implements SelectionChangeListener {
+
+		public DefaultMaxLengthSelectDeselectAllButton(String selectAllCaption, String deselectAllCaption,
+													   boolean selectAllMode) {
+			super(selectAllCaption, deselectAllCaption, selectAllMode);
+			addSelectionChangeListener(this);
+		}
+
+		@Override
+		public void detach() {
+			super.detach();
+			removeSelectionChangeListener(this);
+		}
+
+		@Override
+		public void selectionChanged(SelectionChangeEvent event) {
+			if (!(event.getComponent() instanceof DefaultMaxLengthSelectDeselectAllButton)) {
+				if (event.isAllItemsSelected()) {
+					setSelectAllMode(false);
+				} else {
+					setSelectAllMode(true);
+				}
+			}
+		}
+
+	}
+
+	private class SelectionCheckBox extends CheckBox implements SelectionChangeListener {
 
 		private Object itemId;
 
 		private SelectionCheckBox(final Object itemId) {
 			this.itemId = itemId;
 			boolean selected = selectionManager.isSelected(itemId);
-
-			if (selected) {
-				selectedItem.add(itemId);
-			} else {
-				areAllItemSelected = false;
-			}
 			setValue(selected);
 			addValueChangeListener(new ValueChangeListener() {
 				@Override
@@ -867,7 +848,6 @@ public class BaseTable extends Table implements SelectionComponent {
 					fireSelectionChangeEvent(selectionChangeEvent);
 				}
 			});
-			addSelectionChangeListener(new CheckBoxSelectionChangeListener());
 		}
 
 		@Override
@@ -880,16 +860,27 @@ public class BaseTable extends Table implements SelectionComponent {
 			super.setInternalValue(newValue);
 		}
 
-		private class CheckBoxSelectionChangeListener implements SelectionChangeListener {
-			@Override
-			public void selectionChanged(SelectionChangeEvent event) {
-				if (event.getComponent() != SelectionCheckBox.this) {
-					if (event.isAllItemsSelected() || (event.getSelectedItemIds() != null && event.getSelectedItemIds().contains(itemId))) {
-						setInternalValue(true);
-					} else if (event.isAllItemsDeselected() || (event.getDeselectedItemIds() != null && event.getDeselectedItemIds().contains(itemId))) {
-						setInternalValue(false);
-					}
+		@Override
+		public void attach() {
+			super.attach();
+			addSelectionChangeListener(this);
+		}
+
+		@Override
+		public void detach() {
+			removeSelectionChangeListener(this);
+			super.detach();
+		}
+
+		@Override
+		public void selectionChanged(SelectionChangeEvent event) {
+			if (event.getComponent() != SelectionCheckBox.this) {
+				if (event.isAllItemsSelected() || (event.getSelectedItemIds() != null && event.getSelectedItemIds().contains(itemId))) {
+					setInternalValue(true);
+				} else if (event.isAllItemsDeselected() || (event.getDeselectedItemIds() != null && event.getDeselectedItemIds().contains(itemId))) {
+					setInternalValue(false);
 				}
+				markAsDirty();
 			}
 		}
 

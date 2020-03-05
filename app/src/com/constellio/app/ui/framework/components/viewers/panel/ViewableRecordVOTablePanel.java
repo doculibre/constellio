@@ -34,8 +34,6 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.BaseTable.PagingControls;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable.RecordVOSelectionManager;
-import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEvent;
-import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
@@ -60,19 +58,10 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.JavaScript;
-import com.vaadin.ui.JavaScriptFunction;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
@@ -81,13 +70,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -384,6 +367,17 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			@Override
 			public void selectionChanged(SelectionChangeEvent event) {
 				selectionActionsMenuBar.buildMenuItems();
+
+				int selectedCount;
+				SelectionManager selectionManager = table.getSelectionManager();
+				if (selectionManager.isAllItemsSelected()) {
+					selectedCount = recordVOContainer.size();
+				} else if (selectionManager.isAllItemsDeselected()) {
+					selectedCount = 0;
+				} else {
+					selectedCount = selectionManager.getAllSelectedItemIds().size();
+				}
+				setSelectedCountCaption(selectedCount);
 			}
 		});
 	}
@@ -722,19 +716,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 		//resultsTable.setAlwaysRecalculateColumnWidths(true);
 
-		resultsTable.addRefreshRenderedCellsEventListener(new RefreshRenderedCellsEvent() {
-			@Override
-			public void refreshRenderedCellsEvent(RefreshRenderedCellsEventParams refreshRenderedCellsEventParams) {
-
-				SelectionChangeEvent selectionChangeEvent = new SelectionChangeEvent();
-				selectionChangeEvent.setSelectedItemIds(refreshRenderedCellsEventParams.getSelectedIds());
-				selectionChangeEvent.setAllItemsSelected(refreshRenderedCellsEventParams.isAreAllItemSelected());
-
-				resultsTable.getSelectionManager().selectionChanged(selectionChangeEvent);
-				setSelectedCountCaption(resultsTable.getSelectionManager().getAllSelectedItemIds().size());
-			}
-		});
-
 		return resultsTable;
 	}
 
@@ -801,9 +782,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			SelectDeselectAllButton selectDeselectAllToggleButtonBefore = selectDeselectAllToggleButton;
 			selectDeselectAllToggleButton = newSelectDeselectAllToggleButton();
 			selectDeselectAllToggleButton.addStyleName(ValoTheme.BUTTON_LINK);
-			if (selectDeselectAllToggleButtonBefore != null && selectDeselectAllToggleButtonBefore.isSelectAllMode() != selectDeselectAllToggleButton.isSelectAllMode()) {
-				selectDeselectAllToggleButton.setSelectAllMode(selectDeselectAllToggleButtonBefore.isSelectAllMode());
-			}
+			//			if (selectDeselectAllToggleButtonBefore != null && selectDeselectAllToggleButtonBefore.isSelectAllMode() != selectDeselectAllToggleButton.isSelectAllMode()) {
+			//				selectDeselectAllToggleButton.setSelectAllMode(selectDeselectAllToggleButtonBefore.isSelectAllMode());
+			//			}
 			selectionButtonsLayout.replaceComponent(selectDeselectAllToggleButtonBefore, selectDeselectAllToggleButton);
 		}
 	}
