@@ -18,6 +18,7 @@ import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003ImportDataProvider;
+import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2007ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -48,10 +49,12 @@ import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
@@ -254,14 +257,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		String hash5 = contentManager.upload(newTempFileWithContent("file.txt", "I am the fifth value")).getHash();
 		String hash6 = contentManager.upload(newTempFileWithContent("file.txt", "I am the sixth value")).getHash();
 
-		System.out.println(hash1);
-		System.out.println(hash2);
-		System.out.println(hash3);
-		System.out.println(hash4);
-		System.out.println(hash5);
-		System.out.println(hash6);
-
-
 		File excelFile = getTestResourceFile("datas.xls");
 		File excelFileModified = getTestResourceFile("datasModified.xls");
 
@@ -283,24 +278,101 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash3);
 		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier3.txt");
 
-//
-		//		importAndValidateWithModifications(Excel2003ImportDataProvider.fromFile(excelFileModified));
-		//		document1 = rm.getDocumentByLegacyId("1");
-		//		assertThat(document1.getContent()).isNotNull();
-		//		assertThat(document1.getContent().getCurrentVersion().getHash()).isEqualTo(hash4);
-		//		assertThat(document1.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier4.txt");
-		//
-		//		document2 = rm.getDocumentByLegacyId("2");
-		//		assertThat(document2.getContent()).isNotNull();
-		//		assertThat(document2.getContent().getCurrentVersion().getHash()).isEqualTo(hash5);
-		//		assertThat(document2.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier5.txt");
-		//
-		//		document3 = rm.getDocumentByLegacyId("3");
-		//		assertThat(document3.getContent()).isNotNull();
-		//		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash6);
-		//		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier6.txt");
+
+		importAndValidateWithModifications(Excel2003ImportDataProvider.fromFile(excelFileModified));
+		document1 = rm.getDocumentByLegacyId("1");
+		assertThat(document1.getContent()).isNotNull();
+		assertThat(document1.getContent().getCurrentVersion().getHash()).isEqualTo(hash4);
+		assertThat(document1.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier4.txt");
+
+		document2 = rm.getDocumentByLegacyId("2");
+		assertThat(document2.getContent()).isNotNull();
+		assertThat(document2.getContent().getCurrentVersion().getHash()).isEqualTo(hash5);
+		assertThat(document2.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier5.txt");
+
+		document3 = rm.getDocumentByLegacyId("3");
+		assertThat(document3.getContent()).isNotNull();
+		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash6);
+		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier6.txt");
 
 	}
+
+
+	@Test
+	public void whenImportingAnExcel2007FileThenImportedCorrectly()
+			throws Exception {
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		String hash1 = contentManager.upload(newTempFileWithContent("file.txt", "I am the first value")).getHash();
+		String hash2 = contentManager.upload(newTempFileWithContent("file.txt", "I am the second value")).getHash();
+		String hash3 = contentManager.upload(newTempFileWithContent("file.txt", "I am the third value")).getHash();
+		String hash4 = contentManager.upload(newTempFileWithContent("file.txt", "I am the fourth value")).getHash();
+		String hash5 = contentManager.upload(newTempFileWithContent("file.txt", "I am the fifth value")).getHash();
+		String hash6 = contentManager.upload(newTempFileWithContent("file.txt", "I am the sixth value")).getHash();
+
+		File excelFile = getTestResourceFile("datas.xlsx");
+		File excelFileModified = getTestResourceFile("datasModified.xlsx");
+
+		importServices.bulkImport(Excel2007ImportDataProvider.fromFile(excelFile), progressionListener, admin);
+
+		importAndValidate();
+		Document document1 = rm.getDocumentByLegacyId("1");
+		assertThat(document1.getContent()).isNotNull();
+		assertThat(document1.getContent().getCurrentVersion().getHash()).isEqualTo(hash1);
+		assertThat(document1.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier1.txt");
+
+		Document document2 = rm.getDocumentByLegacyId("2");
+		assertThat(document2.getContent()).isNotNull();
+		assertThat(document2.getContent().getCurrentVersion().getHash()).isEqualTo(hash2);
+		assertThat(document2.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier2.txt");
+
+		Document document3 = rm.getDocumentByLegacyId("3");
+		assertThat(document3.getContent()).isNotNull();
+		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash3);
+		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier3.txt");
+
+
+		importAndValidateWithModifications(Excel2007ImportDataProvider.fromFile(excelFileModified));
+		document1 = rm.getDocumentByLegacyId("1");
+		assertThat(document1.getContent()).isNotNull();
+		assertThat(document1.getContent().getCurrentVersion().getHash()).isEqualTo(hash4);
+		assertThat(document1.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier4.txt");
+
+		document2 = rm.getDocumentByLegacyId("2");
+		assertThat(document2.getContent()).isNotNull();
+		assertThat(document2.getContent().getCurrentVersion().getHash()).isEqualTo(hash5);
+		assertThat(document2.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier5.txt");
+
+		document3 = rm.getDocumentByLegacyId("3");
+		assertThat(document3.getContent()).isNotNull();
+		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash6);
+		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier6.txt");
+
+	}
+
+	@Test
+	public void whenImportingAnExcel2007FileWithMissingContentThenErrors()
+			throws Exception {
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		String hash1 = contentManager.upload(newTempFileWithContent("file.txt", "I am the first value")).getHash();
+		String hash2 = contentManager.upload(newTempFileWithContent("file.txt", "I am the second value")).getHash();
+
+		File excelFile = getTestResourceFile("datas.xlsx");
+		try {
+			importServices.bulkImport(Excel2007ImportDataProvider.fromFile(excelFile), progressionListener, admin);
+			fail("Exception expected");
+		} catch (ValidationException e) {
+			assertThat(frenchMessages(e)).containsOnly("Document 3 : Le contenu «PDnNE4i3IjJ9FFN1HzE_5FXROBs=» n'existe pas dans la voûte");
+
+		}
+
+		importAndValidate();
+		Document document1 = rm.getDocumentByLegacyId("1");
+		assertThat(document1).isNull();
+
+	}
+
 
 	private void importAndValidate() {
 		Category category1 = rm.wrapCategory(expectedRecordWithLegacyId("22200"));
