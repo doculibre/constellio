@@ -462,6 +462,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public String getActiveMQBrokerURL() {
+		return getString("eventBus.activemq.url", null);
+	}
+
+	@Override
 	public ElectionServiceType getElectionServiceType() {
 		return (ElectionServiceType) getEnum("leaderElectionMethod.type", ElectionServiceType.STANDALONE);
 	}

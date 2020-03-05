@@ -103,6 +103,7 @@ subprojects {
         compile group: 'net.markenwerk', name: 'utils-mail-dkim', version: '1.1.10'
         compile group: 'org.mapdb', name: 'mapdb', version: '3.0.7'
         compile group: 'com.carrotsearch', name: 'hppc', version: '0.8.1'
+        compile group: 'org.apache.activemq', name: 'activemq-all', version: '5.15.11'
         compile name: 'mets-api'
         compile 'com.ithit.webdav:webdav-server:4.2.2812'
         compile 'com.ithit.webdav.integration:servlet-integration:4.2.2812'

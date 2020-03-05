@@ -144,4 +144,9 @@ public class ConstellioEventMapCache implements ConstellioCache, EventBusListene
 
 		}
 	}
+
+	@Override
+	public void close() throws Exception {
+
+	}
 }

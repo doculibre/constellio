@@ -125,4 +125,5 @@ public interface DataLayerConfiguration {
 
 	int getMicrosoftSqlServerloginTimeout();
 
+	String getActiveMQBrokerURL();
 }

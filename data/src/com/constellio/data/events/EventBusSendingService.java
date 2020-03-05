@@ -1,5 +1,7 @@
 package com.constellio.data.events;
 
+import com.constellio.data.events.activeMQ.AbstractConsumer;
+
 /**
  * Have two responsibilities :
  * - send event remotely to other nodes
@@ -11,6 +13,14 @@ public abstract class EventBusSendingService {
 
 	EventReceiver eventReceiver;
 	EventDataSerializer eventDataSerializer;
+
+	public EventReceiver getEventReceiver() {
+		return eventReceiver;
+	}
+
+	public EventDataSerializer getEventDataSerializer() {
+		return eventDataSerializer;
+	}
 
 	public final EventBusSendingService setEventReceiver(EventReceiver eventReceiver) {
 		this.eventReceiver = eventReceiver;
@@ -37,5 +47,9 @@ public abstract class EventBusSendingService {
 
 	public void resume() {
 		this.paused = false;
+	}
+
+	public AbstractConsumer getConsumer(EventBusListener listener, String topic, String busName) {
+		return null;
 	}
 }

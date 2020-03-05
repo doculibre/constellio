@@ -81,6 +81,11 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		remoteEventBusManager.setEventBusSendingService(remoteSendingService);
 		localEventBus1.register(new EventBusListener() {
 			@Override
+			public void close() throws Exception {
+
+			}
+
+			@Override
 			public void onEventReceived(Event event) {
 				synchronized (localEventBus1ReceivedEvents) {
 					localEventBus1ReceivedEvents.add(event);
@@ -90,6 +95,11 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 
 		localEventBus2.register(new EventBusListener() {
 			@Override
+			public void close() throws Exception {
+
+			}
+
+			@Override
 			public void onEventReceived(Event event) {
 				synchronized (localEventBus2ReceivedEvents) {
 					localEventBus2ReceivedEvents.add(event);
@@ -97,6 +107,11 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 			}
 		});
 		remoteEventBus1.register(new EventBusListener() {
+			@Override
+			public void close() throws Exception {
+
+			}
+
 			@Override
 			public void onEventReceived(Event event) {
 				synchronized (remoteEventBus1ReceivedEvents) {
@@ -106,6 +121,11 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		});
 
 		remoteEventBus2.register(new EventBusListener() {
+			@Override
+			public void close() throws Exception {
+
+			}
+
 			@Override
 			public void onEventReceived(Event event) {
 				synchronized (remoteEventBus2ReceivedEvents) {
@@ -355,6 +375,11 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 
 		thirdInstanceEventBus1.register(new EventBusListener() {
 			@Override
+			public void close() throws Exception {
+
+			}
+
+			@Override
 			public void onEventReceived(Event event) {
 				synchronized (bus1ReceivedEvents) {
 					bus1ReceivedEvents.add(event);
@@ -363,6 +388,11 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		});
 
 		thirdInstanceEventBus2.register(new EventBusListener() {
+			@Override
+			public void close() throws Exception {
+
+			}
+
 			@Override
 			public void onEventReceived(Event event) {
 				synchronized (bus2ReceivedEvents) {

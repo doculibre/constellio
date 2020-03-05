@@ -64,6 +64,7 @@ import com.constellio.data.events.EventBusManager;
 import com.constellio.data.events.EventBusSendingService;
 import com.constellio.data.events.SolrEventBusSendingService;
 import com.constellio.data.events.StandaloneEventBusSendingService;
+import com.constellio.data.events.activeMQ.ActiveMQEventBusSendingService;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.IOServicesFactory;
@@ -166,6 +167,12 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			solrEventBusSendingService.setPollAndRetrieveFrequency(
 					dataLayerConfiguration.getSolrEventBusSendingServiceTypePollAndRetrieveFrequency());
 			eventBusSendingService = solrEventBusSendingService;
+		} else if (EventBusSendingServiceType.ACTIVEMQ.equals(dataLayerConfiguration.getEventBusSendingServiceType())) {
+			ActiveMQEventBusSendingService activeMQEventBusSendingService = new ActiveMQEventBusSendingService(
+					dataLayerConfiguration.getActiveMQBrokerURL());
+			activeMQEventBusSendingService.setPollAndRetrieveFrequency(
+					dataLayerConfiguration.getSolrEventBusSendingServiceTypePollAndRetrieveFrequency());
+			eventBusSendingService = activeMQEventBusSendingService;
 		}
 
 		this.eventBusManager = add(new EventBusManager(eventBusSendingService, dataLayerExtensions.getSystemWideExtensions()));

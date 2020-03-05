@@ -3,6 +3,7 @@ package com.constellio.data.events;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_EventBusAlreadyExist;
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_NoSuchEventBus;
+import com.constellio.data.events.activeMQ.AbstractConsumer;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,5 +126,9 @@ public class EventBusManager implements EventReceiver, StatefulService {
 		if (eventBusSendingService != null) {
 			eventBusSendingService.resume();
 		}
+	}
+
+	public AbstractConsumer getConsumer(EventBusListener listener, String topic, String busName) {
+		return eventBusSendingService.getConsumer(listener, topic, busName);
 	}
 }

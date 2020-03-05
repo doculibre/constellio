@@ -114,6 +114,11 @@ public class SecurityModelCache implements EventBusListener {
 		invalidateIfLoaded(collection);
 	}
 
+	@Override
+	public void close() throws Exception {
+
+	}
+
 	public class SecurityModelCacheRecordExtension extends RecordExtension {
 
 		@Override

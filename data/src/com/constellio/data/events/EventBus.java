@@ -1,6 +1,7 @@
 package com.constellio.data.events;
 
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.events.activeMQ.AbstractConsumer;
 import com.constellio.data.utils.TimeProvider;
 
 import java.util.ArrayList;
@@ -45,5 +46,9 @@ public class EventBus {
 
 	public String getName() {
 		return name;
+	}
+
+	public AbstractConsumer getEventConsumer(EventBusListener listener, String topic) {
+		return manager.getConsumer(listener, topic, name);
 	}
 }

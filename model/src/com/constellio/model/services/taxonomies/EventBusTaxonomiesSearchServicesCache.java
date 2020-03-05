@@ -7,6 +7,9 @@ import com.constellio.data.events.EventBusManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
 
 public class EventBusTaxonomiesSearchServicesCache implements TaxonomiesSearchServicesCache, EventBusListener {
@@ -19,6 +22,10 @@ public class EventBusTaxonomiesSearchServicesCache implements TaxonomiesSearchSe
 
 	TaxonomiesSearchServicesCache nestedCache;
 
+	//List<Thread> eventListenerThreads = new ArrayList<>();
+
+	ExecutorService pool = Executors.newFixedThreadPool(5);
+
 	EventBus eventBus;
 
 	public EventBusTaxonomiesSearchServicesCache(TaxonomiesSearchServicesCache nestedCache,
@@ -26,6 +33,12 @@ public class EventBusTaxonomiesSearchServicesCache implements TaxonomiesSearchSe
 		this.nestedCache = nestedCache;
 		this.eventBus = eventBusManager.createEventBus("taxonomiesHasChildren", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 		this.eventBus.register(this);
+		pool.execute(consume(INVALIDATE_ALL_EVENT_TYPE));
+		pool.execute(consume(INVALIDATE_WITH_CHILDREN_EVENT_TYPE));
+		pool.execute(consume(INVALIDATE_WITHOUT_CHILDREN_EVENT_TYPE));
+		pool.execute(consume(INVALIDATE_RECORD_EVENT_TYPE));
+		pool.execute(consume(INVALIDATE_USER_EVENT_TYPE));
+		//eventListenerThreads.stream().forEach(x -> x.start());
 	}
 
 	@Override
@@ -103,5 +116,15 @@ public class EventBusTaxonomiesSearchServicesCache implements TaxonomiesSearchSe
 		}
 	}
 
+	public Runnable consume(String topic) {
+		return eventBus.getEventConsumer(this, topic);
+	}
 
+	@Override
+	public void close() throws Exception {
+
+		pool.shutdown();
+		//eventListenerThreads.stream().forEach(x -> x.stop());
+
+	}
 }
