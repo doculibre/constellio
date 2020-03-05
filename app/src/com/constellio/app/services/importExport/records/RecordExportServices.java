@@ -232,6 +232,11 @@ public class RecordExportServices {
 			if (isMetadataExported(metadata, record, metadataSchemaTypes)) {
 				Object rawValue = record.get(metadata);
 				AppLayerCollectionExtensions collectionExtensions = appLayerFactory.getExtensions().forCollectionOf(record);
+
+				if (!options.isForSameSystem && metadata.isSameLocalCode(Schemas.LEGACY_ID)) {
+					rawValue = record.getId();
+				}
+
 				if (rawValue != null) {
 
 					if (metadata.getType() == STRUCTURE) {

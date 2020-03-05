@@ -84,11 +84,11 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		}
 
 		if (structure instanceof DecomListFolderDetail) {
-			return (Map) writeDecomListFolderDetail(((DecomListFolderDetail) structure));
+			return (Map) writeDecomListFolderDetail(((DecomListFolderDetail) structure), true);
 		}
 
 		if (structure instanceof DecomListContainerDetail) {
-			return (Map) writedecomListContainerDetail(((DecomListContainerDetail) structure));
+			return (Map) writedecomListContainerDetail(((DecomListContainerDetail) structure), true);
 		}
 
 		if (structure instanceof DecomListValidation) {
@@ -228,7 +228,7 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		List<Map<String, String>> containerDetail = new ArrayList<>();
 
 		for (DecomListContainerDetail decomListContainerDetail : decommissioningList.getContainerDetails()) {
-			Map<String, String> map = writedecomListContainerDetail(decomListContainerDetail);
+			Map<String, String> map = writedecomListContainerDetail(decomListContainerDetail, params.isForSameSystem());
 
 			containerDetail.add(map);
 		}
@@ -237,7 +237,7 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 		List<Map<String, String>> decomListFolderDetailList = new ArrayList<>();
 		for (DecomListFolderDetail decomListFolderDetail : decommissioningList.getFolderDetails()) {
-			Map<String, String> map = writeDecomListFolderDetail(decomListFolderDetail);
+			Map<String, String> map = writeDecomListFolderDetail(decomListFolderDetail, params.isForSameSystem());
 
 			decomListFolderDetailList.add(map);
 		}
@@ -297,10 +297,25 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		return map;
 	}
 
-	private Map<String, String> writedecomListContainerDetail(DecomListContainerDetail decomListContainerDetail) {
+	private Map<String, String> writedecomListContainerDetail(DecomListContainerDetail decomListContainerDetail,
+															  boolean sameSystemExport) {
 		Map<String, String> map = new HashMap<>();
 
-		map.put(DecommissioningListImportExtension.CONTAINER_RECORD_ID, decomListContainerDetail.getContainerRecordId());
+		String containerId = decomListContainerDetail.getContainerRecordId();
+		if (!sameSystemExport && containerId != null) {
+			try {
+				Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(containerId);
+
+				if (record.get(Schemas.LEGACY_ID) != null) {
+					containerId = record.get(Schemas.LEGACY_ID);
+				}
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+
+		map.put(DecommissioningListImportExtension.CONTAINER_RECORD_ID, containerId);
 		if (decomListContainerDetail.getAvailableSize() != null) {
 			map.put(DecommissioningListImportExtension.AVAILABLE_SIZE, Double.toString(decomListContainerDetail.getAvailableSize()));
 		}
@@ -309,13 +324,42 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		return map;
 	}
 
-	private Map<String, String> writeDecomListFolderDetail(DecomListFolderDetail decomListFolderDetail) {
+	private Map<String, String> writeDecomListFolderDetail(DecomListFolderDetail decomListFolderDetail,
+														   boolean sameSystemExport) {
 		Map<String, String> map = new HashMap<>();
 
-		map.put(DecommissioningListImportExtension.FOLDER_ID, decomListFolderDetail.getFolderId());
+		String folderId = decomListFolderDetail.getFolderId();
+		if (!sameSystemExport && folderId != null) {
+			try {
+				Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(folderId);
+
+				if (record.get(Schemas.LEGACY_ID) != null) {
+					folderId = record.get(Schemas.LEGACY_ID);
+				}
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+
+		String containerId = decomListFolderDetail.getContainerRecordId();
+		if (!sameSystemExport && containerId != null) {
+			try {
+				Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(containerId);
+
+				if (record.get(Schemas.LEGACY_ID) != null) {
+					containerId = record.get(Schemas.LEGACY_ID);
+				}
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+
+		map.put(DecommissioningListImportExtension.FOLDER_ID, folderId);
 		map.put(DecommissioningListImportExtension.FOLDER_EXCLUDED,
 				decomListFolderDetail.getFolderDetailStatus().getDescription());
-		map.put(DecommissioningListImportExtension.CONTAINER_RECORD_ID, decomListFolderDetail.getContainerRecordId());
+		map.put(DecommissioningListImportExtension.CONTAINER_RECORD_ID, containerId);
 		map.put(DecommissioningListImportExtension.REVERSED_SORT, Boolean.toString(decomListFolderDetail.isReversedSort()));
 		if (decomListFolderDetail.getFolderLinearSize() != null) {
 			map.put(DecommissioningListImportExtension.FOLDER_LINEAR_SIZE, Double.toString(decomListFolderDetail.getFolderLinearSize()));
