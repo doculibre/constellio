@@ -74,10 +74,14 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 					if (!importErrors.isEmpty()) {
 						response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 						for (ValidationError error : importErrors.getValidationErrors()) {
-							writer.println(i18n.$(error, Locale.FRENCH));
+							String message = i18n.$(error, Locale.FRENCH);
+							System.out.println(message);
+							writer.println(message);
 						}
 					} else {
 						response.setStatus(HttpServletResponse.SC_OK);
+						System.out.println("SUCCESS");
+						writer.println("SUCCESS");
 					}
 
 				}
