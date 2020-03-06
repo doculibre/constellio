@@ -82,6 +82,7 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 				}
 			}
 
+
 			@Override
 			public boolean exception(Exception e) {
 				boolean exceptionHandled;
@@ -313,5 +314,15 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 	public List<String> getConceptsWithPermissionsForCurrentUser(String... permissions) {
 		return presenterUtils.getConceptsWithPermissionsForCurrentUser(permissions);
 	}
+
+
+
+	/*public String getGuideUrl() {
+		GuideManager manager = new GuideManager(appLayerFactory.getModelLayerFactory().getDataLayerFactory());
+		String language = ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage();
+		String field = "guide." + getClass().getSimpleName();
+		return manager.getPropertyValue(language, field);
+		//return $("guide." + getClass().getSimpleName());
+	}*/
 
 }
