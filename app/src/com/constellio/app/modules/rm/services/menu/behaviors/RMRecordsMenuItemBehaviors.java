@@ -43,6 +43,8 @@ import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
@@ -354,6 +356,38 @@ public class RMRecordsMenuItemBehaviors {
 				VIEW_MODE.DISPLAY, params.getView().getSessionContext());
 	}
 
+	public void generateReport(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		if (recordIds.isEmpty()) {
+			return;
+		}
+
+		String schemaType = recordServices.getDocumentById(recordIds.get(0)).getSchemaCode().split("_")[0];
+
+		RMSelectionPanelReportPresenter rmSelectionPanelReportPresenter = new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
+			@Override
+			public String getSelectedSchemaType() {
+				return schemaType;
+			}
+
+			@Override
+			public List<String> getSelectedRecordIds() {
+				return recordIds;
+			}
+
+
+		};
+
+		ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"),
+				$("SearchView.metadataReportTitle"),
+				appLayerFactory, collection, false, false,
+				rmSelectionPanelReportPresenter, params.getView().getSessionContext()) {
+
+		};
+		List<RecordVO> recordVOList = getRecordVOList(recordIds, params.getView());
+		reportGeneratorButton.setRecordVoList(recordVOList.toArray(new RecordVO[0]));
+		reportGeneratorButton.click();
+	}
+
 	public void printLabels(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		if (recordIds.isEmpty()) {
 			return;
@@ -561,27 +595,27 @@ public class RMRecordsMenuItemBehaviors {
 
 	public void batchUnshare(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		Button button = new DeleteButton(false) {
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					unshareFolderButtonClicked( recordIds, params.getUser());
-					params.getView().refreshActionMenu();
-					params.getView().partialRefresh();
-				}
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				unshareFolderButtonClicked(recordIds, params.getUser());
+				params.getView().refreshActionMenu();
+				params.getView().partialRefresh();
+			}
 
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("DocumentContextMenu.batchUnshareConfirmationMsg");
-				}
-			};
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("DocumentContextMenu.batchUnshareConfirmationMsg");
+			}
+		};
 
 		button.click();
 	}
 
-	public void unshareFolderButtonClicked(List<String> ids,User user ) {
+	public void unshareFolderButtonClicked(List<String> ids, User user) {
 
 		List<Authorization> authorizations = rm.getMultipleSolrAuthorizationDetails(user, ids);
 
-		for(Authorization authorization: authorizations) {
+		for (Authorization authorization : authorizations) {
 			try {
 				rm.getModelLayerFactory()
 						.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
