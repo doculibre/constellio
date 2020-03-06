@@ -37,6 +37,7 @@ import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -122,6 +123,7 @@ import java.util.Set;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.model.services.contents.ContentFactory.isFilename;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -264,7 +266,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		folderContentDataProvider = new RecordVODataProvider(Arrays.asList(foldersSchemaVO, documentsSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				return getFolderContentQuery();
+				return getFolderContentQuery(folderVO.getId(), false);
 			}
 		};
 		//		folderContentDataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory, view.getSessionContext()) {
@@ -346,8 +348,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return query;
 	}
 
-	private LogicalSearchQuery getFolderContentQuery() {
-		Record record = getRecord(folderVO.getId());
+	private LogicalSearchQuery getFolderContentQuery(String folderId, boolean includeContentInHierarchy) {
+		Record record = getRecord(folderId);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Folder folder = rm.wrapFolder(record);
 
@@ -361,7 +363,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 
-		LogicalSearchCondition condition = from(foldersSchemaType, documentsSchemaType).where(rm.folder.parentFolder()).is(record).orWhere(rm.document.folder()).is(record);
+		LogicalSearchCondition condition;
+		if (includeContentInHierarchy) {
+			condition = from(foldersSchemaType, documentsSchemaType).where(Schemas.PATH_PARTS).isContaining(asList(record.getId()));
+		} else {
+			condition = from(foldersSchemaType, documentsSchemaType).where(rm.folder.parentFolder()).is(record).orWhere(rm.document.folder()).is(record);
+		}
 
 		if (!referencedDocuments.isEmpty()) {
 			condition = condition.orWhere(Schemas.IDENTIFIER).isIn(referencedDocuments);
@@ -1315,7 +1322,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public List<FacetVO> getFacets(RecordVODataProvider dataProvider) {
 		//Call #1
 		if (dataProvider == null /* || dataProvider.getFieldFacetValues() == null */) {
-			return service.getFacets(getFolderContentQuery(), facetStatus, getCurrentLocale());
+			return service.getFacets(getFolderContentQuery(folderVO.getId(), false), facetStatus, getCurrentLocale());
 		} else {
 			return service.buildFacetVOs(dataProvider.getFieldFacetValues(), dataProvider.getQueryFacetsValues(),
 					facetStatus, getCurrentLocale());
@@ -1405,6 +1412,35 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public RecordVO getReturnRecordVO() {
 		return returnRecordVO;
+	}
+
+	public void searchRequested(String expression) {
+		ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, null);
+		if (StringUtils.isNotBlank(expression)) {
+			view.navigate().to().simpleSearch(expression);
+		}
+	}
+
+	public void changeFolderContentDataProvider(String value, Boolean includeTree) {
+		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		MetadataSchema documentsSchema = getDocumentsSchema();
+		MetadataSchemaVO documentsSchemaVO = schemaVOBuilder.build(documentsSchema, VIEW_MODE.TABLE, view.getSessionContext());
+		Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
+		voBuilders.put(foldersSchemaVO.getCode(), folderVOBuilder);
+		voBuilders.put(documentsSchemaVO.getCode(), documentVOBuilder);
+		folderContentDataProvider = new RecordVODataProvider(Arrays.asList(foldersSchemaVO, documentsSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
+			@Override
+			public LogicalSearchQuery getQuery() {
+				if (includeTree) {
+					return getFolderContentQuery(folderVO.getId(), true).setFreeTextQuery(value);
+				} else {
+					return getFolderContentQuery(folderVO.getId(), false).setFreeTextQuery(value);
+				}
+			}
+		};
+		folderContentDataProvider.fireDataRefreshEvent();
+		view.setFolderContent(folderContentDataProvider);
+		folderContentTabSelected();
 	}
 
 }

@@ -27,6 +27,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail
 import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.fields.autocomplete.StringAutocompleteField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
@@ -42,6 +43,7 @@ import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
@@ -61,6 +63,7 @@ import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
@@ -85,6 +88,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static org.apache.ignite.internal.util.lang.GridFunc.asList;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler, BrowserWindowResizeListener {
 
@@ -108,6 +112,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private boolean dragNDropAllowed;
 	private Button displayFolderButton, editFolderButton, addDocumentButton;
 	private Label borrowedLabel;
+	private StringAutocompleteField<String> searchField;
+	private CheckBox checkBoxSearchField;
 
 	private Window documentVersionWindow;
 
@@ -519,7 +525,42 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				facetsSliderPanel = new FacetsSliderPanel(facetsPanel);
 				contentAndFacetsLayout.addComponent(facetsSliderPanel);
 			}
-			tabSheet.replaceComponent(folderContentComponent, folderContentComponent = viewerPanel);
+
+			if (checkBoxSearchField == null) {
+				checkBoxSearchField = new CheckBox("Inclure l'arborescence");
+			}
+			if (searchField == null) {
+				searchField = new StringAutocompleteField<String>(new StringAutocompleteField.AutocompleteSuggestionsProvider<String>() {
+					@Override
+					public List<String> suggest(String text) {
+						return asList(text);
+					}
+
+					@Override
+					public Class<String> getModelType() {
+						return String.class;
+					}
+
+					@Override
+					public int getBufferSize() {
+						return 0;
+					}
+				});
+				OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
+					@Override
+					public void onEnterKeyPressed() {
+						String value = searchField.getValue();
+						presenter.changeFolderContentDataProvider(value, checkBoxSearchField.getValue());
+					}
+				};
+				onEnterHandler.installOn(searchField);
+			}
+
+			VerticalLayout verticalLayout = new VerticalLayout();
+			verticalLayout.addComponent(searchField);
+			verticalLayout.addComponent(checkBoxSearchField);
+			verticalLayout.addComponent(viewerPanel);
+			tabSheet.replaceComponent(folderContentComponent, folderContentComponent = verticalLayout);
 			viewerPanel.setSelectionActionButtons();
 		}
 		tabSheet.setSelectedTab(folderContentComponent);
