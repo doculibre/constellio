@@ -6,14 +6,13 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.SearchQuery;
+import com.constellio.model.services.search.query.list.RecordListSearchQuery;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,9 +45,8 @@ public abstract class ShareContentDataProvider extends RecordVODataProvider {
 		}
 	}
 
-
 	@Override
-	public final LogicalSearchQuery getQuery() {
+	public final RecordListSearchQuery getQuery() {
 		init();
 
 		SerializedCacheSearchService authorizationCacheSearchService = new SerializedCacheSearchService(modelLayerFactory, getQueryCacheForAuthorizations(), false);
@@ -57,14 +55,13 @@ public abstract class ShareContentDataProvider extends RecordVODataProvider {
 
 		List<String> id = recordList.stream().map(authorization -> authorization.getTarget()).collect(Collectors.toList());
 
-		LogicalSearchQuery queryOnRecord = new LogicalSearchQuery(LogicalSearchQueryOperators.from(metadataSchemasManager
-				.getSchemaTypes(sessionContext.getCurrentCollection()).getSchema(getSchema().getCode())).where(Schemas.IDENTIFIER).isIn(id));
-		queryOnRecord.filteredWithUser(user);
-
-		queryOnRecord.setLanguage(sessionContext.getCurrentLocale());
+		RecordListSearchQuery queryOnRecord = (RecordListSearchQuery) RecordListSearchQuery.createFromIds(id)
+				.convertIdsToSummaryRecords(schemasRecordsServices.getModelLayerFactory())
+				.filteredWithUser(user)
+				.setLanguage(sessionContext.getCurrentLocale());
 
 		return queryOnRecord;
 	}
 
-	public abstract LogicalSearchQuery getAuthorizationQuery();
+	public abstract SearchQuery getAuthorizationQuery();
 }

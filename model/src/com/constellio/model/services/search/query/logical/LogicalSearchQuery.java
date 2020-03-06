@@ -14,6 +14,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.entities.SearchBoost;
+import com.constellio.model.services.search.query.BaseSearchQueryImplementation;
 import com.constellio.model.services.search.query.FilterUtils;
 import com.constellio.model.services.search.query.ResultsProjection;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
@@ -39,7 +40,7 @@ import static com.constellio.model.services.search.VisibilityStatusFilter.VISIBL
 import static java.util.Arrays.asList;
 
 //TODO Remove inheritance, rename to LogicalQuery
-public class LogicalSearchQuery implements SearchQuery {
+public class LogicalSearchQuery extends BaseSearchQueryImplementation implements SearchQuery {
 
 	public static final int DEFAULT_NUMBER_OF_ROWS = 100000;
 
@@ -178,55 +179,6 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
-	@Override
-	public LogicalSearchQuery filteredWith(UserFilter userFilter) {
-		userFilters = asList(userFilter);
-		return this;
-	}
-
-	@Override
-	public LogicalSearchQuery filteredWithUser(User user) {
-		return filteredWithUser(user, Role.READ);
-	}
-
-	@Override
-	public LogicalSearchQuery filteredWithUser(User user, String accessOrPermission) {
-		if (user == null) {
-			throw new IllegalArgumentException("user required");
-		}
-		if (accessOrPermission == null) {
-			throw new IllegalArgumentException("access/permission required");
-		}
-		userFilters = asList((UserFilter) new DefaultUserFilter(user, accessOrPermission));
-		return this;
-	}
-
-	@Override
-	public LogicalSearchQuery filteredWithUser(User user, List<String> accessOrPermissions) {
-		if (user == null) {
-			throw new IllegalArgumentException("user required");
-		}
-		if (accessOrPermissions == null || accessOrPermissions.isEmpty()) {
-			throw new IllegalArgumentException("access/permission required");
-		}
-
-		userFilters = new ArrayList<>();
-		for (String accessOrPermission : accessOrPermissions) {
-			userFilters.add(new DefaultUserFilter(user, accessOrPermission));
-		}
-
-		return this;
-	}
-
-	public LogicalSearchQuery filteredWithUserWrite(User user) {
-		return filteredWithUser(user, Role.WRITE);
-	}
-
-	public LogicalSearchQuery filteredWithUserDelete(User user) {
-		return filteredWithUser(user, Role.DELETE);
-	}
-
-
 	public LogicalSearchQuery filteredWithUserHierarchyRead(User user) {
 		if (user == null) {
 			throw new IllegalArgumentException("user required");
@@ -263,6 +215,55 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
+	public LogicalSearchQuery filteredByVisibilityStatus(VisibilityStatusFilter status) {
+		visibilityStatusFilter = status;
+		return this;
+	}
+
+	public LogicalSearchQuery filteredByStatus(StatusFilter status) {
+		statusFilter = status;
+		return this;
+	}
+
+	@Override
+	public LogicalSearchQuery filteredWith(UserFilter userFilter) {
+		userFilters = asList(userFilter);
+		return this;
+	}
+
+	@Override
+	public LogicalSearchQuery filteredWithUser(User user) {
+		return filteredWithUser(user, Role.READ);
+	}
+
+	@Override
+	public LogicalSearchQuery filteredWithUser(User user, String access) {
+		if (user == null) {
+			throw new IllegalArgumentException("user required");
+		}
+		if (access == null) {
+			throw new IllegalArgumentException("access/permission required");
+		}
+		userFilters = asList((UserFilter) new DefaultUserFilter(user, access));
+		return this;
+	}
+
+	@Override
+	public LogicalSearchQuery filteredWithUser(User user, List<String> accessOrPermissions) {
+		if (user == null) {
+			throw new IllegalArgumentException("user required");
+		}
+		if (accessOrPermissions == null || accessOrPermissions.isEmpty()) {
+			throw new IllegalArgumentException("access/permission required");
+		}
+
+		userFilters = new ArrayList<>();
+		for (String accessOrPermission : accessOrPermissions) {
+			userFilters.add(new DefaultUserFilter(user, accessOrPermission));
+		}
+
+		return this;
+	}
 
 	public LogicalSearchQuery filteredWithUserHierarchy(User user, String access, MetadataSchemaType selectedType,
 														boolean includeInvisible) {
@@ -273,20 +274,6 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
-	public List<UserFilter> getUserFilters() {
-		return userFilters;
-	}
-
-	public LogicalSearchQuery filteredByStatus(StatusFilter status) {
-		statusFilter = status;
-		return this;
-	}
-
-	public LogicalSearchQuery filteredByVisibilityStatus(VisibilityStatusFilter status) {
-		visibilityStatusFilter = status;
-		return this;
-	}
-
 	@Override
 	public LogicalSearchQuery computeStatsOnField(DataStoreField field) {
 		this.statisticFields.add(field.getDataStoreCode());
@@ -294,14 +281,14 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	@Override
-	public int getStartRow() {
-		return this.startRow;
-	}
-
-	@Override
 	public LogicalSearchQuery setStartRow(int row) {
 		startRow = row;
 		return this;
+	}
+
+	@Override
+	public int getStartRow() {
+		return startRow;
 	}
 
 	@Override
@@ -324,14 +311,9 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
-	public void clearSort() {
-		sortFields.clear();
-	}
-
 	public void clearFacets() {
-		fieldFacets.clear();
+		super.clearFacets();
 		fieldPivotFacets.clear();
-		queryFacets.clear();
 	}
 
 	public LogicalSearchQuery sortAsc(DataStoreField field) {
@@ -371,10 +353,6 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
-	public KeySetMap<String, String> getQueryFacets() {
-		return queryFacets;
-	}
-
 	public LogicalSearchQuery addQueryFacets(String facetGroup, List<String> queryFacets) {
 		for (String queryFacet : queryFacets) {
 			this.queryFacets.add(facetGroup, queryFacet);
@@ -385,10 +363,6 @@ public class LogicalSearchQuery implements SearchQuery {
 	public LogicalSearchQuery addQueryFacet(String facetGroup, String queryFacet) {
 		queryFacets.add(facetGroup, queryFacet);
 		return this;
-	}
-
-	public List<String> getFieldFacets() {
-		return fieldFacets;
 	}
 
 	public List<String> getFieldPivotFacets() {
@@ -814,19 +788,6 @@ public class LogicalSearchQuery implements SearchQuery {
 		}
 	}
 
-
-	public VisibilityStatusFilter getVisibilityStatusFilter() {
-		return visibilityStatusFilter;
-	}
-
-	public StatusFilter getStatusFilter() {
-		return statusFilter;
-	}
-
-	public List<LogicalSearchQuerySort> getSortFields() {
-		return sortFields;
-	}
-
 	public static LogicalSearchQuery query(LogicalSearchCondition condition) {
 		return new LogicalSearchQuery(condition);
 	}
@@ -839,5 +800,13 @@ public class LogicalSearchQuery implements SearchQuery {
 			QueryExecutionMethod queryExecutionMethod) {
 		this.queryExecutionMethod = queryExecutionMethod;
 		return this;
+	}
+
+	public LogicalSearchQuery filteredWithUserWrite(User user) {
+		return filteredWithUser(user, Role.WRITE);
+	}
+
+	public LogicalSearchQuery filteredWithUserDelete(User user) {
+		return filteredWithUser(user, Role.DELETE);
 	}
 }

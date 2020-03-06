@@ -121,11 +121,13 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		initializeQuery();
 	}
 
-	private LogicalSearchQuery getFilteredQuery() {
-		LogicalSearchQuery query = getQuery();
+	private SearchQuery getFilteredQuery() {
+		SearchQuery query = getQuery();
 		if (query != null) {
 			for (RecordVOFilter filter : CollectionUtils.emptyIfNull(filters)) {
-				filter.addCondition(query);
+				if (query instanceof LogicalSearchQuery) {
+					filter.addCondition((LogicalSearchQuery) query);
+				}
 			}
 		}
 		return query;
@@ -282,7 +284,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		query.clearSort();
 	}
 
-	public abstract LogicalSearchQuery getQuery();
+	public abstract SearchQuery getQuery();
 
 	public void setBatchSize(int batchSize) {
 		this.batchSize = batchSize;

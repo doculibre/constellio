@@ -98,6 +98,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
+import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryFacetFilters;
@@ -494,9 +495,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public int getTaskCount() {
-		LogicalSearchQuery query = new LogicalSearchQuery(tasksDataProvider.getQuery());
-		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
-		return (int) searchServices().getResultsCount(query);
+		SearchQuery query = tasksDataProvider.getQuery().clone();
+		if (query instanceof LogicalSearchQuery) {
+			((LogicalSearchQuery) query).setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
+			return (int) searchServices().getResultsCount((LogicalSearchQuery) query);
+		} else {
+			return query.getNumberOfRows();
+		}
 	}
 
 	public RecordVODataProvider getWorkflows() {
