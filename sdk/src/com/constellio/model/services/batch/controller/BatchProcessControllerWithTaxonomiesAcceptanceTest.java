@@ -10,6 +10,7 @@ import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -184,7 +185,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 		System.out.println(">> " + getTotalReindexedFolders());
 		printRecordsNotReindexed();
 		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
-		//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 		assertThat(getTotalReindexedFolders()).isEqualTo(nbFolders);
 	}
 
