@@ -32,7 +32,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Locale;
-import java.util.Map;
 
 public class ConstellioImportRecordsServlet extends HttpServlet {
 
@@ -42,9 +41,6 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		OutputStream output = null;
-		Map<String, Object> responseResult = null;
-
 		PrintWriter writer = response.getWriter();
 		ValidationErrors importErrors = null;
 		Throwable throwable = null;
@@ -75,14 +71,13 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 					}
 
 					importErrors = respond(tempFile, dataType, user);
-
 					if (!importErrors.isEmpty()) {
-						//response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+						response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 						for (ValidationError error : importErrors.getValidationErrors()) {
 							writer.println(i18n.$(error, Locale.FRENCH));
 						}
 					} else {
-						//response.setStatus(HttpServletResponse.SC_OK);
+						response.setStatus(HttpServletResponse.SC_OK);
 					}
 				}
 
