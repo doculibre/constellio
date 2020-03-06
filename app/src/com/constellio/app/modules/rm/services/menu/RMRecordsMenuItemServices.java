@@ -42,6 +42,7 @@ import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServi
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_SIP;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_DOWNLOAD_ZIP;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_MOVE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_PRINT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL;
@@ -116,6 +117,25 @@ public class RMRecordsMenuItemServices {
 			List<String> schemaTypes = getLocalizedSchemaTypes(menuItemActionType.getSchemaTypes());
 			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.unsupportedSchema",
 					StringUtils.join(schemaTypes, ", ")));
+		}
+
+		if (!menuItemActionType.allowDifferentSchemaType) {
+			String selectedSchemaType = null;
+			for (Record record : records) {
+				String recordSchemaType = null;
+				for (String schemaType : menuItemActionType.schemaTypes) {
+					if (record.isOfSchemaType(schemaType)) {
+						recordSchemaType = schemaType;
+						break;
+					}
+				}
+
+				if (selectedSchemaType == null) {
+					selectedSchemaType = recordSchemaType;
+				} else if (!selectedSchemaType.equals(recordSchemaType)) {
+					return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.actionImpossibleOnDifferentSchema"));
+				}
+			}
 		}
 
 		int possibleCount = 0;
@@ -308,6 +328,18 @@ public class RMRecordsMenuItemServices {
 				}
 				return calculateCorrectActionState(possibleCount,
 						records.size() - possibleCount, $("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_GENERATE_REPORT:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isGenerateReportActionPossible(record, user);
+					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isGenerateReportActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount,
+						records.size() - possibleCount, $("RMRecordsMenuItemServices.actionImpossible"));
 		}
 
 		return new MenuItemActionState(HIDDEN);
@@ -421,6 +453,13 @@ public class RMRecordsMenuItemServices {
 				menuItemAction = buildMenuItemAction(RMRECORDS_BATCH_UNPUBLISH, state, $("DocumentContextMenu.batchunPublish"), FontAwesome.GLOBE, -1, 1300,
 						getRecordsLimit(actionType), (ids -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchUnPublishDocument(ids, params)));
 				break;
+			case RMRECORDS_GENERATE_REPORT:
+				menuItemAction = buildMenuItemAction(RMRECORDS_GENERATE_REPORT, state,
+						$("DocumentContextMenu.ReportGeneratorButton"), FontAwesome.LIST_ALT, -1, 2400,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).generateReport(ids, params));
+
+				break;
 		}
 
 		if (menuItemAction != null) {
@@ -472,26 +511,27 @@ public class RMRecordsMenuItemServices {
 	@AllArgsConstructor
 	@Getter
 	public enum RMRecordsMenuItemActionType {
-		RMRECORDS_ADD_CART(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
-		RMRECORDS_MOVE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000),
-		RMRECORDS_COPY(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000),
-		RMRECORDS_CREATE_SIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000),
-		RMRECORDS_SEND_EMAIL(singletonList(Document.SCHEMA_TYPE), 100000),
-		RMRECORDS_CREATE_PDF(singletonList(Document.SCHEMA_TYPE), 100000),
-		RMRECORDS_PRINT_LABEL(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
-		RMRECORDS_ADD_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
-		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000),
-		RMRECORDS_BATCH_DELETE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
-		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 10000),
-		RMRECORDS_CHECKOUT(asList(Document.SCHEMA_TYPE), 25),
-		RMRECORDS_CHECKIN(asList(Document.SCHEMA_TYPE), 25),
-		RMRECORDS_CREATE_TASK(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000),
-		RMRECORDS_BATCH_UNSHARE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000),
-		RMRECORDS_BATCH_UNPUBLISH(asList(Document.SCHEMA_TYPE), 10000);
-
+		RMRECORDS_ADD_CART(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_MOVE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_COPY(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_CREATE_SIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_SEND_EMAIL(singletonList(Document.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_CREATE_PDF(singletonList(Document.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_PRINT_LABEL(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_ADD_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_BATCH_DELETE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 10000, true),
+		RMRECORDS_CHECKOUT(asList(Document.SCHEMA_TYPE), 25, false),
+		RMRECORDS_CHECKIN(asList(Document.SCHEMA_TYPE), 25, false),
+		RMRECORDS_CREATE_TASK(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, true),
+		RMRECORDS_BATCH_UNSHARE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, true),
+		RMRECORDS_BATCH_UNPUBLISH(asList(Document.SCHEMA_TYPE), 10000, false),
+		RMRECORDS_GENERATE_REPORT(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, false);
 
 		private final List<String> schemaTypes;
 		private final int recordsLimit;
+		private final boolean allowDifferentSchemaType;
 
 		public static boolean contains(String typeAsString) {
 			for (RMRecordsMenuItemActionType type : RMRecordsMenuItemActionType.values()) {
