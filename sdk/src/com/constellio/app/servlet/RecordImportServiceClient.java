@@ -1,5 +1,6 @@
 package com.constellio.app.servlet;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
@@ -47,7 +48,7 @@ public class RecordImportServiceClient {
 
 			File fileToSend = new File((String) inParams.get("importFile"));
 			if (fileToSend != null) {
-				byte[] file = IOUtils.toByteArray(fileToSend.toURI());
+				byte[] file = FileUtils.readFileToByteArray(fileToSend);
 				outConnection.getOutputStream().write(file);
 			}
 
@@ -57,8 +58,9 @@ public class RecordImportServiceClient {
 			if (responseCode == SC_OK) {
 
 			} else {
-				InputStream inputStream = outConnection.getErrorStream();
-				response = readResponse(inputStream);
+
+				byte[] responseBytes = IOUtils.toByteArray(outConnection.getErrorStream());
+				response = new String(responseBytes, "ISO-8859-1");
 			}
 			return response;
 		} catch (IOException e) {
