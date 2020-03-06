@@ -13,6 +13,8 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.search.query.SearchQuery;
+import com.constellio.model.services.search.query.list.RecordListSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
@@ -42,7 +44,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 	Users users = new Users();
 
-	SearchQueryExecutorInCache logicalSearchQueryExecutorInCache;
+	SearchQueryExecutorInCache searchQueryExecutorInCache;
 
 	MetadataSchemasManager metadataSchemasManager;
 	RecordServices recordServices;
@@ -80,7 +82,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 		searchServices = getModelLayerFactory().newSearchServices();
 		testsSchemaDefault = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("testschema").getDefaultSchema();
 
-		logicalSearchQueryExecutorInCache = new SearchQueryExecutorInCache(searchServices, searchServices.getConnectedRecordsCache(),
+		searchQueryExecutorInCache = new SearchQueryExecutorInCache(searchServices, searchServices.getConnectedRecordsCache(),
 				metadataSchemasManager,
 				getModelLayerFactory().getSearchConfigurationsManager(),
 				getModelLayerFactory().getExtensions().getSystemWideExtensions(), getModelLayerFactory().getSystemConfigs(), getModelLayerFactory().getConfiguration().getMainDataLanguage());
@@ -124,7 +126,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		validateExecutableInCacheTrue(logicalSearchQuery);
 
-		List<Record> recordsResult1 = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
+		List<Record> recordsResult1 = searchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 		assertThat(recordsResult1.size()).isEqualTo(0);
 
 		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
@@ -132,7 +134,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		authorizationsServices.add(authorizationAddRequest);
 
-		List<Record> recordsResult2 = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
+		List<Record> recordsResult2 = searchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 		assertThat(recordsResult2.size()).isEqualTo(1);
 		assertThat(recordsResult2.get(0).getId()).isEqualTo(record3.getId());
 
@@ -145,36 +147,69 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 		aliceInCollection.setCollectionReadAccess(false);
 		recordServices.update(aliceInCollection);
 
-		LogicalSearchQuery logicalSearchQuery1 = createValidQuery().filteredWithUser(aliceInCollection, CorePermissions.VIEW_EVENTS);
+		LogicalSearchQuery logicalSearchQuery1 = createValidLogicalQuery().filteredWithUser(aliceInCollection, CorePermissions.VIEW_EVENTS);
 
-		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery1)).isFalse();
+		assertThat(searchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery1)).isFalse();
 
-		LogicalSearchQuery logicalSearchQuery2 = createValidQuery().filteredWithUser(aliceInCollection, CorePermissions.MANAGE_LDAP);
+		LogicalSearchQuery logicalSearchQuery2 = createValidLogicalQuery().filteredWithUser(aliceInCollection, CorePermissions.MANAGE_LDAP);
 
-		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery2)).isFalse();
+		assertThat(searchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery2)).isFalse();
 
-		LogicalSearchQuery logicalSearchQuery3 = createValidQuery().filteredWithUser(aliceInCollection, Role.READ);
+		LogicalSearchQuery logicalSearchQuery3 = createValidLogicalQuery().filteredWithUser(aliceInCollection, Role.READ);
 
-		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery3)).isTrue();
+		assertThat(searchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery3)).isTrue();
 
-		LogicalSearchQuery logicalSearchQuery4 = createValidQuery().filteredWithUser(aliceInCollection, Role.WRITE);
+		LogicalSearchQuery logicalSearchQuery4 = createValidLogicalQuery().filteredWithUser(aliceInCollection, Role.WRITE);
 
-		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery4)).isTrue();
+		assertThat(searchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery4)).isTrue();
 
-		LogicalSearchQuery logicalSearchQuery5 = createValidQuery().filteredWithUser(aliceInCollection, Role.DELETE);
+		LogicalSearchQuery logicalSearchQuery5 = createValidLogicalQuery().filteredWithUser(aliceInCollection, Role.DELETE);
 
-		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery5)).isTrue();
+		assertThat(searchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery5)).isTrue();
+
+	}
+
+	@Test
+	public void testIsListQueryExecutableInCache() throws Exception {
+		User aliceInCollection = users.aliceIn(zeCollection);
+
+		aliceInCollection.setCollectionReadAccess(false);
+		recordServices.update(aliceInCollection);
+
+		SearchQuery listQuery1 = createValidListQuery();
+
+		assertThat(searchQueryExecutorInCache.stream(listQuery1).toArray()).containsOnly(record3);
+
+		SearchQuery listQuery2 = createValidListQuery().filteredWithUser(aliceInCollection, Role.READ);
+
+		assertThat(searchQueryExecutorInCache.isQueryExecutableInCache(listQuery2)).isTrue();
+
+		SearchQuery listQuery3 = createValidListQuery().filteredWithUser(aliceInCollection, Role.WRITE);
+
+		assertThat(searchQueryExecutorInCache.isQueryExecutableInCache(listQuery3)).isTrue();
+
+		SearchQuery listQuery4 = createValidListQuery().filteredWithUser(aliceInCollection, Role.DELETE);
+
+		assertThat(searchQueryExecutorInCache.isQueryExecutableInCache(listQuery4)).isTrue();
 
 	}
 
 	@NotNull
-	private LogicalSearchQuery createValidQuery() {
+	private LogicalSearchQuery createValidLogicalQuery() {
 		return new LogicalSearchQuery(LogicalSearchQueryOperators
 				.from(testsSchemaDefault).where(cacheIndex).isEqualTo("toBeFound3"));
 	}
 
+	@NotNull
+	private RecordListSearchQuery createValidListQuery() {
+		//return new LogicalSearchQuery(LogicalSearchQueryOperators
+		//		.from(testsSchemaDefault).where(cacheIndex).isEqualTo("toBeFound3"));
+		return RecordListSearchQuery.createFromRecords(Arrays.asList(record3));
+	}
+
+
 	private void validateExecutableInCacheTrue(LogicalSearchQuery logicalSearchQuery) {
-		boolean isExecutableInCache = logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE));
+		boolean isExecutableInCache = searchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE));
 		assertThat(isExecutableInCache).isTrue();
 	}
 
@@ -185,7 +220,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		validateExecutableInCacheTrue(logicalSearchQuery);
 
-		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
+		List<Record> queryResult = searchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
 		assertThat(queryResult.size()).isEqualTo(1);
 		assertThat(queryResult.get(0).getId()).isEqualTo(record3.getId());
@@ -199,7 +234,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		validateExecutableInCacheTrue(logicalSearchQuery);
 
-		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
+		List<Record> queryResult = searchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
 		assertThat(queryResult).extracting("id").containsOnly(record3.getId(), record4.getId());
 
@@ -212,7 +247,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		validateExecutableInCacheTrue(logicalSearchQuery);
 
-		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
+		List<Record> queryResult = searchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
 		assertThat(queryResult.size()).isEqualTo(1);
 
@@ -225,7 +260,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		validateExecutableInCacheTrue(logicalSearchQuery);
 
-		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
+		List<Record> queryResult = searchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
 		assertThat(queryResult.size()).isEqualTo(0);
 
@@ -238,7 +273,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		validateExecutableInCacheTrue(logicalSearchQuery);
 
-		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
+		List<Record> queryResult = searchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
 		assertThat(queryResult.size()).isEqualTo(0);
 

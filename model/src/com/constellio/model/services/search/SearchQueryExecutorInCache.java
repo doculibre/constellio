@@ -81,12 +81,7 @@ public class SearchQueryExecutorInCache {
 
 		Locale locale = query.getLanguage() == null ? null : Language.withCode(query.getLanguage()).getLocale();
 		final Predicate<TestedQueryRecord> filter = toStreamFilter(query);
-		Predicate<Record> recordFilter = new Predicate<Record>() {
-			@Override
-			public boolean test(Record record) {
-				return filter.test(new TestedQueryRecord(record, locale, PREFERRING));
-			}
-		};
+		Predicate<Record> recordFilter = record -> filter.test(new TestedQueryRecord(record, locale, PREFERRING));
 
 		Stream<Record> stream;
 		if (query instanceof LogicalSearchQuery) {
@@ -98,7 +93,11 @@ public class SearchQueryExecutorInCache {
 				stream = stream.sorted(newQuerySortFieldsComparator(logicalSearchQuery, schemaType));
 			}
 		} else if (query instanceof RecordListSearchQuery) {
-			stream = newBaseRecordStream((RecordListSearchQuery) query, recordFilter);
+			RecordListSearchQuery recordListSearchQuery = (RecordListSearchQuery) query;
+			stream = newBaseRecordStream(recordListSearchQuery, recordFilter);
+			if (query.getSortFields() != null && !recordListSearchQuery.getSortFields().isEmpty()) {
+				stream = stream.sorted(newQuerySortFieldsComparator(recordListSearchQuery));
+			}
 		} else {
 			throw (new UnsupportedOperationException());
 		}
@@ -285,35 +284,57 @@ public class SearchQueryExecutorInCache {
 	}
 
 	@NotNull
+	private Comparator<Record> newQuerySortFieldsComparator(SearchQuery query) {
+		return newQuerySortFieldsComparator(query, null);
+	}
+
+	@NotNull
 	private Comparator<Record> newQuerySortFieldsComparator(SearchQuery query, MetadataSchemaType schemaType) {
 		return (o1, o2) -> {
-
 			String queryLanguage = query.getLanguage() == null ? mainDataLanguage : query.getLanguage();
 			Locale locale = Language.withCode(queryLanguage).getLocale();
-			for (LogicalSearchQuerySort sort : query.getSortFields()) {
-				FieldLogicalSearchQuerySort fieldSort = (FieldLogicalSearchQuerySort) sort;
-				Metadata metadata =
-						schemaType.getDefaultSchema().getMetadataByDatastoreCode(fieldSort.getField().getDataStoreCode());
-				if (metadata != null) {
-					int sortValue;
-					sortValue = compareMetadatasValues(o1, o2, metadata, locale, sort.isAscending());
+			int sortValue = 0;
+
+			if (query instanceof RecordListSearchQuery) {
+				List<MetadataSchemaType> schemaTypes = getQuerySchemaTypes((RecordListSearchQuery) query);
+
+				for (LogicalSearchQuerySort sort : query.getSortFields()) {
+					FieldLogicalSearchQuerySort fieldSort = (FieldLogicalSearchQuerySort) sort;
+					for (MetadataSchemaType type : schemaTypes) {
+						sortValue = buildComparatorForType(type, fieldSort, locale, o1, o2);
+						if (sortValue != 0) {
+							return sortValue;
+						}
+					}
+				}
+			} else if (query instanceof LogicalSearchQuery) {
+				for (LogicalSearchQuerySort sort : query.getSortFields()) {
+					FieldLogicalSearchQuerySort fieldSort = (FieldLogicalSearchQuerySort) sort;
+					sortValue = buildComparatorForType(schemaType, fieldSort, locale, o1, o2);
 
 					if (sortValue != 0) {
 						return sortValue;
 					}
+
 				}
 			}
-
-			return 0;
+			return sortValue;
 		};
 	}
 
+	private int buildComparatorForType(MetadataSchemaType schemaType, FieldLogicalSearchQuerySort fieldSort,
+									   Locale locale, Record o1, Record o2) {
+		Metadata metadata = schemaType.getDefaultSchema()
+				.getMetadataByDatastoreCode(fieldSort.getField().getDataStoreCode());
+		if (metadata != null) {
+			int sortValue;
+			sortValue = compareMetadatasValues(o1, o2, metadata, locale, fieldSort.isAscending());
 
-	@NotNull
-	private Comparator<Record> newIdComparator() {
-		return (o1, o2) -> {
-			return o1.getId().compareTo(o2.getId());
-		};
+			if (sortValue != 0) {
+				return sortValue;
+			}
+		}
+		return 0;
 	}
 
 	private int compareMetadatasValues(Record record1, Record record2, Metadata metadata, Locale preferedLanguage,
@@ -366,13 +387,17 @@ public class SearchQueryExecutorInCache {
 		return stream(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL));
 	}
 
-	public boolean isQueryExecutableInCache(LogicalSearchQuery query) {
+	public boolean isQueryExecutableInCache(SearchQuery query) {
 		if (recordsCaches == null) {
 			return false;
 		}
-
-		return hasNoUnsupportedFeatureOrFilter(query)
-			   && isConditionExecutableInCache(query.getCondition(), query.getReturnedMetadatas(), query.getQueryExecutionMethod());
+		if (query instanceof RecordListSearchQuery) {
+			return true;
+		}
+		LogicalSearchQuery logicalSearchQuery = (LogicalSearchQuery) query;
+		return hasNoUnsupportedFeatureOrFilter(logicalSearchQuery)
+			   && isConditionExecutableInCache(logicalSearchQuery.getCondition(),
+				logicalSearchQuery.getReturnedMetadatas(), logicalSearchQuery.getQueryExecutionMethod());
 
 	}
 
@@ -523,5 +548,19 @@ public class SearchQueryExecutorInCache {
 			return -1;
 		}
 
+	}
+
+	private List<MetadataSchemaType> getQuerySchemaTypes(RecordListSearchQuery query) {
+		List<MetadataSchemaType> schemaTypes = new ArrayList<>();
+		MetadataSchemaType iterationType;
+
+		for (Record record : query.convertIdsToSummaryRecords(searchServices.recordServices).getRecords()) {
+			iterationType = schemasManager.getSchemaTypeOf(record);
+			if (!schemaTypes.contains(iterationType)) {
+				schemaTypes.add(iterationType);
+			}
+		}
+
+		return schemaTypes;
 	}
 }

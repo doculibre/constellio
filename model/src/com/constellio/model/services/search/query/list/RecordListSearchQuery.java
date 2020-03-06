@@ -49,6 +49,50 @@ public class RecordListSearchQuery implements SearchQuery {
 		return query;
 	}
 
+	public List<Record> getRecords() {
+		return records;
+	}
+
+	public List<String> getRecordIds() {
+		return recordIds;
+	}
+
+	public boolean isListOfIds() {
+		return recordIds != null;
+	}
+
+	public RecordListSearchQuery convertIdsToSummaryRecords(ModelLayerFactory modelLayerFactory) {
+		return convertIdsToSummaryRecords(modelLayerFactory.newRecordServices());
+	}
+
+	public RecordListSearchQuery convertIdsToSummaryRecords(RecordServices recordServices) {
+		if (!isListOfIds()) {
+			return this;
+		}
+
+		records = new ArrayList<>();
+		recordIds.forEach(id -> records.add(recordServices.realtimeGetRecordSummaryById(id)));
+		recordIds = null;
+
+		return this;
+	}
+
+	public RecordListSearchQuery convertIdsToRecords(ModelLayerFactory modelLayerFactory) {
+		return convertIdsToRecords(modelLayerFactory.newRecordServices());
+	}
+
+	public RecordListSearchQuery convertIdsToRecords(RecordServices recordServices) {
+		if (!isListOfIds()) {
+			return this;
+		}
+
+		records = new ArrayList<>();
+		recordIds.forEach(id -> records.add(recordServices.realtimeGetRecordById(id)));
+		recordIds = null;
+
+		return this;
+	}
+
 	@Override
 	public List<String> getFilterQueries() {
 		return null;
@@ -114,6 +158,12 @@ public class RecordListSearchQuery implements SearchQuery {
 
 		return this;
 	}
+
+	public SearchQuery filteredByStatus(StatusFilter status) {
+		statusFilter = status;
+		return this;
+	}
+
 
 	@Override
 	public RecordListSearchQuery computeStatsOnField(DataStoreField metadata) {
@@ -190,50 +240,6 @@ public class RecordListSearchQuery implements SearchQuery {
 	public void clearFacets() {
 		fieldFacets.clear();
 		queryFacets.clear();
-	}
-
-	public List<Record> getRecords() {
-		return records;
-	}
-
-	public List<String> getRecordIds() {
-		return recordIds;
-	}
-
-	public boolean isListOfIds() {
-		return recordIds != null;
-	}
-
-	public RecordListSearchQuery convertIdsToSummaryRecords(ModelLayerFactory modelLayerFactory) {
-		return convertIdsToSummaryRecords(modelLayerFactory.newRecordServices());
-	}
-
-	public RecordListSearchQuery convertIdsToSummaryRecords(RecordServices recordServices) {
-		if (!isListOfIds()) {
-			return this;
-		}
-
-		records = new ArrayList<>();
-		recordIds.forEach(id -> records.add(recordServices.realtimeGetRecordSummaryById(id)));
-		recordIds = null;
-
-		return this;
-	}
-
-	public RecordListSearchQuery convertIdsToRecords(ModelLayerFactory modelLayerFactory) {
-		return convertIdsToRecords(modelLayerFactory.newRecordServices());
-	}
-
-	public RecordListSearchQuery convertIdsToRecords(RecordServices recordServices) {
-		if (!isListOfIds()) {
-			return this;
-		}
-
-		records = new ArrayList<>();
-		recordIds.forEach(id -> records.add(recordServices.realtimeGetRecordById(id)));
-		recordIds = null;
-
-		return this;
 	}
 
 	public List<UserFilter> getUserFilters() {
