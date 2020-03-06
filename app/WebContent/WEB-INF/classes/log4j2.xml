@@ -45,7 +45,8 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="file"/>
         </Root>
-        <Logger name="com.constellio.data.utils.systemLogger" level="info" additivity="false">
+        <Logger name="com.constellio.com.constellio.importscript.data.utils.systemLogger" level="info"
+                additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="system"/>
         </Logger>
