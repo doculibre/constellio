@@ -843,7 +843,7 @@ public class RecordImpl implements Record {
 		fields.remove("_version_");
 		fields.put("schema_s", schemaCode);
 		fields.put("collection_s", collection);
-		if (getRecordId() != null && getRecordId().isInteger() || !schema.getSchemaType().getCode().equals(Event.SCHEMA_TYPE)) {
+		if (getRecordId() != null && getRecordId().isInteger() || schema.getSchemaType() != null && !schema.getSchemaType().getCode().equals(Event.SCHEMA_TYPE)) {
 			fields.put("estimatedSize_i", RecordUtils.estimateRecordSize(fields, copyfields));
 
 		} else {
