@@ -111,17 +111,28 @@ public class BigVaultServer implements Cloneable {
 		this.listeners.add(listener);
 	}
 
+	private static String cachedVersion;
+
 	public String getVersion() {
-		SolrRequest request = new GenericSolrRequest(SolrRequest.METHOD.GET, "/admin/system", new ModifiableSolrParams());
-		try {
-			NamedList<Object> response = server.request(request);
-			NamedList<Object> luceneResponse = (NamedList<Object>) response.get("lucene");
-			return luceneResponse.get("solr-spec-version").toString();
-		} catch (SolrServerException | IOException e) {
-			throw new SolrInternalError(e);
-		} catch (NullPointerException e) {
+
+		if (cachedVersion == null) {
+			synchronized (this) {
+				if (cachedVersion == null) {
+					SolrRequest request = new GenericSolrRequest(SolrRequest.METHOD.GET, "/admin/system", new ModifiableSolrParams());
+					try {
+						NamedList<Object> response = server.request(request);
+						NamedList<Object> luceneResponse = (NamedList<Object>) response.get("lucene");
+						cachedVersion = luceneResponse.get("solr-spec-version").toString();
+					} catch (Throwable t) {
+						t.printStackTrace();
+						cachedVersion = "";
+					}
+
+				}
+			}
 		}
-		return "";
+
+		return cachedVersion;
 	}
 
 	public void unregisterListener(BigVaultServerListener listener) {
