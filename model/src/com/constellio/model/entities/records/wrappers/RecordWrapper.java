@@ -357,6 +357,11 @@ public class RecordWrapper implements Serializable, CollectionObject, Supplier<R
 		return wrappedRecord.get(Schemas.MODIFIED_BY);
 	}
 
+	public RecordWrapper setModifiedBy(User modifiedBy) {
+		wrappedRecord.set(Schemas.MODIFIED_BY, modifiedBy);
+		return this;
+	}
+
 	public RecordWrapper setModifiedBy(String modifiedBy) {
 		wrappedRecord.set(Schemas.MODIFIED_BY, modifiedBy);
 		return this;
