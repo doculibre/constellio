@@ -75,7 +75,6 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 						response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 						for (ValidationError error : importErrors.getValidationErrors()) {
 							String message = i18n.$(error, Locale.FRENCH);
-							System.out.println(message);
 							writer.println(message);
 						}
 					} else {
