@@ -122,6 +122,7 @@ public class Toggle {
 
 	public static AvailableToggle COUNT_CACHE_FILESYSTEM_METADATA_USAGE = newToggle(false);
 
+	public static AvailableToggle TIFF_VIEWER = newToggle(false);
 
 	// ------------------------------------------------
 

@@ -8,6 +8,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.viewers.audio.AudioViewer;
 import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
 import com.constellio.app.ui.framework.components.viewers.image.ImageViewer;
+import com.constellio.app.ui.framework.components.viewers.image.TiffImageViewer;
 import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronViewer;
 import com.constellio.app.ui.framework.components.viewers.video.VideoViewer;
 import com.constellio.data.utils.dev.Toggle;
@@ -16,13 +17,7 @@ import com.vaadin.ui.CustomComponent;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
-
-import static com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronViewer.SUPPORTED_EXTENTION;
+import java.util.*;
 
 public class ContentViewer extends CustomComponent {
 
@@ -41,9 +36,20 @@ public class ContentViewer extends CustomComponent {
 			String fileName = contentVersionVO.getFileName();
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 
-			if (Toggle.ENABLE_PDFTRON_TRIAL.isEnabled() || StringUtils.isNotBlank(licenseForPdftron) && Arrays.asList(SUPPORTED_EXTENTION).contains(extension)) {
-				PdfTronViewer pdfTronViewer = new PdfTronViewer(recordVO.getId(), contentVersionVO, metadataCode, false, licenseForPdftron);
-				viewerComponent = pdfTronViewer;
+			if (Toggle.TIFF_VIEWER.isEnabled() && Arrays.asList(TiffImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
+				TiffImageViewer tiffImageViewer = new TiffImageViewer(recordVO, Document.CONTENT, contentVersionVO) {
+					@Override
+					public void setVisible(boolean newVisibility) {
+						boolean wasVisible = this.isVisible();
+						super.setVisible(newVisibility);
+
+						if (newVisibility != wasVisible) {
+							fireImageViewerVisibilityChangeListerners(newVisibility);
+						}
+					}
+				};
+
+				viewerComponent = tiffImageViewer;
 			} else if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
 				ImageViewer imageViewer = new ImageViewer(recordVO, Document.CONTENT, contentVersionVO) {
 					@Override
@@ -64,6 +70,12 @@ public class ContentViewer extends CustomComponent {
 			} else if (Arrays.asList(VideoViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
 				VideoViewer videoViewer = new VideoViewer(contentVersionVO);
 				viewerComponent = videoViewer;
+				//			} else if (EmailViewer.isSupported(fileName)) {
+				//				EmailViewer emailViewer = new EmailViewer(recordVO, Document.CONTENT, contentVersionVO);
+				//				viewerComponent = emailViewer;
+			} else if ((Toggle.ENABLE_PDFTRON_TRIAL.isEnabled() || StringUtils.isNotBlank(licenseForPdftron)) && (DocumentViewer.isSupported(fileName) || Arrays.asList(PdfTronViewer.SUPPORTED_EXTENTION).contains(extension))) {
+				PdfTronViewer pdfTronViewer = new PdfTronViewer(recordVO.getId(), contentVersionVO, metadataCode, false, licenseForPdftron);
+				viewerComponent = pdfTronViewer;
 			} else if (DocumentViewer.isSupported(fileName)) {
 				DocumentViewer documentViewer;
 				if (recordVO instanceof DocumentVO) {
