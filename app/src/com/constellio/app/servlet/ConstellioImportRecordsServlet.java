@@ -55,6 +55,8 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 				User user = authenticator.authenticateInCollection(request);
 				if (user == null) {
 					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					System.out.println("UNAUTHORIZED");
+					writer.println("UNAUTHORIZED");
 				} else {
 					byte[] buffer = new byte[4096];
 					int bytesRead;

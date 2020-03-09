@@ -80,7 +80,7 @@ public class ConstellioImportRecordsServletAcceptanceTest extends ConstellioTest
 		stopApplication();
 	}
 
-//	private void importInZeCollectionUsingWebService(File file, File responseFileIfNotOK) {
+	//	private void importInZeCollectionUsingWebService(File file, File responseFileIfNotOK) {
 	//		String collection = zeCollection;
 	//
 	//		HttpEntity entity = MultipartEntityBuilder.create()
@@ -88,9 +88,10 @@ public class ConstellioImportRecordsServletAcceptanceTest extends ConstellioTest
 	//				.build();
 	//
 	//		HttpPost request = new HttpPost(url + "/rm/uploadRecords");
-	//		request.addHeader("service_key", adminServiceKey);
-	//		request.addHeader("auth_token", adminToken);
+	//		request.addHeader("serviceKey", adminServiceKey);
+	//		request.addHeader("token", adminToken);
 	//		request.addHeader("collection", collection);
+	//		request.addHeader("dataType", "xlsx");
 	//		request.setEntity(entity);
 	//
 	//		HttpClient client = HttpClientBuilder.create().build();
@@ -114,19 +115,23 @@ public class ConstellioImportRecordsServletAcceptanceTest extends ConstellioTest
 	//
 	//	}
 
-		private void importInZeCollectionUsingWebService(File file, File responseFileIfNotOK) {
-			HttpConfigurations httpConfigurations = new HttpConfigurations(url);
-			RecordImportServiceClient client = new RecordImportServiceClient(httpConfigurations);
-			String message = client.uploadXLSXFile(file.getAbsolutePath());
-			if (StringUtils.isNotBlank(message)) {
-				try {
-					FileUtils.write(responseFileIfNotOK, message, "UTF-8");
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
+	private void importInZeCollectionUsingWebService(File file, File responseFileIfNotOK) {
+		HttpConfigurations httpConfigurations = new HttpConfigurations(url);
+		httpConfigurations.setServiceKey(adminServiceKey);
+		httpConfigurations.setToken(adminToken);
+		httpConfigurations.setUsername("admin");
+		httpConfigurations.setCollection(zeCollection);
+		RecordImportServiceClient client = new RecordImportServiceClient(httpConfigurations);
+		String message = client.uploadXLSXFile(file.getAbsolutePath());
+		if (StringUtils.isNotBlank(message)) {
+			try {
+				FileUtils.write(responseFileIfNotOK, message, "UTF-8");
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 			}
-
 		}
+
+	}
 
 	@Test
 	public void whenImportingAnExcel2007FileUsingServletThenImportedCorrectly()
@@ -173,24 +178,6 @@ public class ConstellioImportRecordsServletAcceptanceTest extends ConstellioTest
 		assertThat(document3.getContent()).isNotNull();
 		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash3);
 		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier3.txt");
-
-		importInZeCollectionUsingWebService(getTestResourceFile("dataModified.xlsx"), responseFileIfNotOk);
-		assertThat(responseFileIfNotOk).doesNotExist();
-
-		document1 = rm.getDocumentByLegacyId("1");
-		assertThat(document1.getContent()).isNotNull();
-		assertThat(document1.getContent().getCurrentVersion().getHash()).isEqualTo(hash4);
-		assertThat(document1.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier4.txt");
-
-		document2 = rm.getDocumentByLegacyId("2");
-		assertThat(document2.getContent()).isNotNull();
-		assertThat(document2.getContent().getCurrentVersion().getHash()).isEqualTo(hash5);
-		assertThat(document2.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier5.txt");
-
-		document3 = rm.getDocumentByLegacyId("3");
-		assertThat(document3.getContent()).isNotNull();
-		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash6);
-		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier6.txt");
 
 	}
 
