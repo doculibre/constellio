@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.IOServices;
@@ -95,11 +96,9 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 
 	@Override
 	public boolean tryRepairAutomaticValue(TryRepairAutomaticValueParams params) {
-		if (params.isMetadata(DecommissioningList.SCHEMA_TYPE, DecommissioningList.FOLDERS)) {
+		if (params.isMetadata(DecommissioningList.SCHEMA_TYPE, "folders")) {
 			DecommissioningList list = rm.wrapDecommissioningList(params.getRecord());
-			for (String folderToRemove : params.getValuesToRemove()) {
-				list.removeFolderDetail(folderToRemove);
-			}
+			DecomListUtil.removeFolderDetailsInDecomList(collection, appLayerFactory, list, params.getValuesToRemove());
 
 			return true;
 		} else if (params.isMetadata(DecommissioningList.SCHEMA_TYPE, DecommissioningList.CONTAINERS)) {

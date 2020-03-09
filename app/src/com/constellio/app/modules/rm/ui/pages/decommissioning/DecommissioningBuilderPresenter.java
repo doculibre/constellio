@@ -18,6 +18,7 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
@@ -251,12 +252,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	public void addToListButtonClicked(List<String> selected) {
 		try {
 			DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(decommissioningListId);
-			Set<String> allIds = new HashSet<>(decommissioningList.getFolders());
-			if (decommissioningList.getFolders() != null) {
-				allIds = new HashSet<>(decommissioningList.getFolders());
-			} else {
-				allIds = new HashSet<String>();
-			}
+			List<String> folderIds =
+					DecomListUtil.getFoldersInDecomList(rmRecordServices.getCollection(), appLayerFactory, decommissioningList);
+			Set<String> allIds = new HashSet<>();
+			allIds.addAll(folderIds);
 			allIds.addAll(selected);
 
 			if (allIds.size() > 1000) {
@@ -265,19 +264,19 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 				if (decommissioningList.getDecommissioningListType().isFolderList()) {
 					if (isDecommissioningListWithSelectedFolders()) {
-						decommissioningList.addFolderDetailsFor(FolderDetailStatus.SELECTED,
-								rmRecordServices.getFolders(selected).toArray(new Folder[0]));
+						DecomListUtil.addFolderDetailsInDecomList(rmRecordServices.getCollection(), appLayerFactory,
+								decommissioningList, selected, FolderDetailStatus.SELECTED);
 					} else {
-						decommissioningList.addFolderDetailsFor(FolderDetailStatus.INCLUDED,
-								rmRecordServices.getFolders(selected).toArray(new Folder[0]));
+						DecomListUtil.addFolderDetailsInDecomList(rmRecordServices.getCollection(), appLayerFactory,
+								decommissioningList, selected, FolderDetailStatus.INCLUDED);
 					}
 					decommissioningList
 							.addContainerDetailsFromFolders(rmRecordServices.getFolders(selected).toArray(new Folder[0]));
 					recordServices().update(decommissioningList.getWrappedRecord());
 					view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
 				} else {
-					decommissioningList.addDocuments(selected.toArray(new String[0]));
-					recordServices().update(decommissioningList.getWrappedRecord());
+					DecomListUtil.addDocumentsInDecomList(
+							rmRecordServices.getCollection(), appLayerFactory, decommissioningList, selected);
 					view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
 				}
 			}

@@ -15,6 +15,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Document extends RMObject {
@@ -69,6 +70,8 @@ public class Document extends RMObject {
 	public static final String IS_MODEL = "isModel";
 	public static final String CONTENT_HASHES = "contentHashes";
 	public static final String LINKED_TO = "linkedTo";
+	public static final String CURRENT_DECOMMISSIONING_LIST = "currentDecommissioningList";
+	public static final String PREVIOUS_DECOMMISSIONING_LISTS = "previousDecommissioningLists";
 
 	public Document(Record record,
 					MetadataSchemaTypes types) {
@@ -422,5 +425,49 @@ public class Document extends RMObject {
 	public Document setLinkedTo(String folder) {
 		set(LINKED_TO, folder);
 		return this;
+	}
+
+	public String getCurrentDecommissioningList() {
+		return get(CURRENT_DECOMMISSIONING_LIST);
+	}
+
+	public Document setCurrentDecommissioningList(String decommissioningListId) {
+		set(CURRENT_DECOMMISSIONING_LIST, decommissioningListId);
+		return this;
+	}
+
+	public List<String> getPreviousDecommissioningLists() {
+		return getList(PREVIOUS_DECOMMISSIONING_LISTS);
+	}
+
+	public Document setPreviousDecommissioningLists(List<String> decommissioningListIds) {
+		set(PREVIOUS_DECOMMISSIONING_LISTS, decommissioningListIds);
+		return this;
+	}
+
+	public void removePreviousDecommissioningList(String idToRemove) {
+		removePreviousDecommissioningLists(Arrays.asList(idToRemove));
+	}
+
+	public void removePreviousDecommissioningLists(List<String> idsToRemove) {
+		List<String> decommissioningListIds = new ArrayList<>();
+		decommissioningListIds.addAll(getPreviousDecommissioningLists());
+		decommissioningListIds.removeAll(idsToRemove);
+		setPreviousDecommissioningLists(decommissioningListIds);
+	}
+
+	public void addPreviousDecommissioningList(String idToAdd) {
+		addPreviousDecommissioningLists(Arrays.asList(idToAdd));
+	}
+
+	public void addPreviousDecommissioningLists(List<String> idsToAdd) {
+		List<String> decommissioningListIds = new ArrayList<>();
+		decommissioningListIds.addAll(getPreviousDecommissioningLists());
+		for (String idToAdd : idsToAdd) {
+			if (!decommissioningListIds.contains(idToAdd)) {
+				decommissioningListIds.add(idToAdd);
+			}
+		}
+		setPreviousDecommissioningLists(decommissioningListIds);
 	}
 }

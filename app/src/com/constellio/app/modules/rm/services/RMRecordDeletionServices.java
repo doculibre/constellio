@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -85,7 +86,6 @@ public class RMRecordDeletionServices {
 		Set<String> recordIDs = new HashSet<>();
 		while (documentIterator.hasNext()) {
 			Record document = documentIterator.next();
-			unlinkDocumentFromDecommissioningLists(document, collection, appLayerFactory);
 			unlinkDocumentFromTasks(document, taskList, collection, appLayerFactory);
 
 			if (recordIDs.add(document.getId())) {
@@ -199,32 +199,13 @@ public class RMRecordDeletionServices {
 		}
 	}
 
-	static private void unlinkDocumentFromDecommissioningLists(Record document, String collection,
-															   AppLayerFactory appLayerFactory) {
-
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(
-				where(rm.decommissioningList.documents()).isContaining(asList(document.getId())));
-		for (DecommissioningList decommissioningList : decommissioningLists) {
-			ArrayList<String> decommissioningListDocuments = new ArrayList<>(decommissioningList.getDocuments());
-			decommissioningListDocuments.remove(document.getId());
-			decommissioningList.setDocuments(decommissioningListDocuments);
-			try {
-				recordServices.update(decommissioningList.getWrappedRecord());
-			} catch (RecordServicesException e) {
-				LOGGER.info("Could not unlink document from decommissioningList");
-			}
-		}
-	}
-
 	static private void unlinkFolderFromDecommissioningLists(Record folder, String collection,
 															 AppLayerFactory appLayerFactory) {
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(
-				where(rm.decommissioningList.folders()).isContaining(asList(folder.getId())));
+		List<DecommissioningList> decommissioningLists =
+				rm.getDecommissioningLists(DecomListUtil.getDecomListsForFolder(rm.wrapFolder(folder)));
 		for (DecommissioningList decommissioningList : decommissioningLists) {
 			decommissioningList.removeFolderDetail(folder.getId());
 

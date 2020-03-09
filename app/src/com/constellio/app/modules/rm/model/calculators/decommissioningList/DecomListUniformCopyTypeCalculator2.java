@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.model.calculators.decommissioningList;
 
 import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
@@ -18,10 +17,10 @@ import static java.util.Arrays.asList;
 
 public class DecomListUniformCopyTypeCalculator2 extends AbstractMetadataValueCalculator<CopyType> {
 
-	ReferenceDependency<List<CopyType>> foldersCopyTypesParam = ReferenceDependency.toAnEnum(DecommissioningList.FOLDERS,
+	ReferenceDependency<List<CopyType>> foldersCopyTypesParam = ReferenceDependency.toAnEnum("folders",
 			Folder.COPY_STATUS).whichIsMultivalue();
 
-	ReferenceDependency<List<CopyType>> documentsCopyTypesParam = ReferenceDependency.toAnEnum(DecommissioningList.DOCUMENTS,
+	ReferenceDependency<List<CopyType>> documentsCopyTypesParam = ReferenceDependency.toAnEnum("documents",
 			Document.COPY_STATUS).whichIsMultivalue();
 
 	@Override

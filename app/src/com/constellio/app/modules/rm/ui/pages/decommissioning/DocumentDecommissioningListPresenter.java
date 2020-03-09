@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -20,11 +21,10 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresenter<DocumentDecommissioningListView> {
 	private transient RMSchemasRecordsServices rmRecordsServices;
@@ -57,9 +56,7 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 		return new RecordVODataProvider(schema, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				LogicalSearchCondition condition = from(rmRecordsServices().documentSchemaType())
-						.where(Schemas.IDENTIFIER).isIn(decommissioningList().getDocuments());
-				return new LogicalSearchQuery(condition);
+				return DecomListUtil.getDocumentsInDecomListQuery(collection, appLayerFactory, decommissioningList());
 			}
 		};
 	}
@@ -239,8 +236,8 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 				idsToRemove.add(recordVO.getId());
 			}
 		}
-		decommissioningList().removeDocuments(idsToRemove.toArray(new String[idsToRemove.size()]));
-		addOrUpdate(decommissioningList().getWrappedRecord());
+		DecomListUtil.removeDocumentsInDecomList(
+				collection, appLayerFactory, decommissioningList(), new ArrayList<>(idsToRemove));
 		refreshView();
 	}
 }

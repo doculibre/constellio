@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.decommissioningList;
 
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -16,7 +15,7 @@ import java.util.Set;
 
 public class FoldersMediumTypesCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
-	ReferenceDependency<List<String>> mediumTypesParam = ReferenceDependency.toAReference(DecommissioningList.FOLDERS,
+	ReferenceDependency<List<String>> mediumTypesParam = ReferenceDependency.toAReference("folders",
 			Folder.MEDIUM_TYPES).whichIsMultivalue();
 
 	@Override

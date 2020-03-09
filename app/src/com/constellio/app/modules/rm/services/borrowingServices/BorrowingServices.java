@@ -15,9 +15,9 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserWithoutReadAccessToContainer;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserWithoutReadAccessToFolder;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -445,7 +445,7 @@ public class BorrowingServices {
 			} else if (borrowingDate != null && borrowingDate.isAfter(TimeProvider.getLocalDate())) {
 				throw new BorrowingServicesRunTimeException_InvalidBorrowingDate(borrowingDate);
 
-			} else if (isInDecommissioningList(folder)) {
+			} else if (DecomListUtil.isInActiveDecomList(folder)) {
 				throw new BorrowingServicesRunTimeException_FolderIsInDecommissioningList(folder.getId());
 
 			} else if (folder.getContainer() != null) {
@@ -555,23 +555,6 @@ public class BorrowingServices {
 			errorMessage = "BorrowingServices.invalidReturnDate";
 		}
 		return errorMessage;
-	}
-
-	private boolean isInDecommissioningList(Folder folder) {
-		List<DecommissioningList> allDecommissioningLists = rm.wrapDecommissioningLists(searchServices.getAllRecords(
-				rm.decommissioningList.schemaType()));
-
-		for (DecommissioningList decommissioningList : allDecommissioningLists) {
-			if (decommissioningList.getFolders().contains(folder.getId()) && decommissioningList.getProcessingDate() == null) {
-				return true;
-			}
-		}
-
-		//		boolean isInDecommissioningList =
-		//				searchServices.getResultsCount(from(rm.decommissioningList.schemaType())
-		//						.where(rm.decommissioningList.folders()).isEqualTo(folder.getId())
-		//						.andWhere(rm.decommissioningList.processingDate()).isNull()) > 0;
-		return false;
 	}
 
 	private void alertUsers(String template, String schemaType, Record task, Record record, LocalDate borrowingDate,

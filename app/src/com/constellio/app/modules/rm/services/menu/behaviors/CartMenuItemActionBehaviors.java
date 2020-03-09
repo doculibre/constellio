@@ -3,7 +3,6 @@ package com.constellio.app.modules.rm.services.menu.behaviors;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
@@ -33,6 +32,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.modules.rm.wrappers.utils.CartUtil;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -94,6 +94,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
@@ -573,10 +574,14 @@ public class CartMenuItemActionBehaviors {
 		list.setTitle(title);
 		list.setAdministrativeUnit(getCommonAdministrativeUnit(cartUtil.getCartFolders(cartId)));
 		list.setDecommissioningListType(decomType);
+		List<String> folderIds =
+				cartUtil.getNotDeletedCartFolders(cartId).stream().map(Folder::getId).collect(Collectors.toList());
 		if (isDecommissioningListWithSelectedFolders()) {
-			list.setFolderDetailsFor(cartUtil.getNotDeletedCartFolders(cartId), FolderDetailStatus.SELECTED);
+			DecomListUtil.setFolderDetailsInDecomList(
+					collection, appLayerFactory, list, folderIds, FolderDetailStatus.SELECTED);
 		} else {
-			list.setFolderDetailsFor(cartUtil.getNotDeletedCartFolders(cartId), FolderDetailStatus.INCLUDED);
+			DecomListUtil.setFolderDetailsInDecomList(
+					collection, appLayerFactory, list, folderIds, FolderDetailStatus.INCLUDED);
 		}
 
 		try {
@@ -604,10 +609,13 @@ public class CartMenuItemActionBehaviors {
 	}
 
 	public boolean isAnyFolderInDecommissioningList(String cartId) {
-		return searchServices.getResultsCount(
-				from(rm.decommissioningList.schemaType()).where(rm.decommissioningList.status())
-						.isNotEqual(DecomListStatus.PROCESSED)
-						.andWhere(rm.decommissioningList.folders()).isContaining(cartUtil.getCartFolderIds(cartId))) > 0;
+		List<Folder> folders = rm.getFolders(cartUtil.getCartFolderIds(cartId));
+		for (Folder folder : folders) {
+			if (folder.getCurrentDecommissioningList() != null) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean isAnyFolderBorrowed(String cartId) {

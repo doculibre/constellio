@@ -35,6 +35,7 @@ import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -48,7 +49,6 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
@@ -61,6 +61,7 @@ import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -77,6 +78,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
@@ -223,12 +225,12 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public List<String> haveCheckoutedDocument() {
-		List<String> folders = decommissioningList().getFolders();
+		List<String> folderIds = DecomListUtil.getFoldersInDecomList(collection, appLayerFactory, decommissioningList());
 
 		List<Record> totalDocument = new ArrayList<>();
 		List<String> checkoutedDocument = new ArrayList<>();
 
-		for (String folder : folders) {
+		for (String folder : folderIds) {
 			LogicalSearchCondition condition = from(rmRecordsServices().documentSchemaType()).where(
 					rmRecordsServices().documentSchemaType().getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER)).isEqualTo(folder);
 			List<Record> listDocument = searchServices.search(new LogicalSearchQuery(condition));
@@ -335,9 +337,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public boolean isListReadyToBeProcessed() {
-		return !(searchServices().getResultsCount(
-				from(rmRecordsServices().folder.schemaType()).where(rmRecordsServices().folder.borrowed()).isTrue()
-						.andWhere(Schemas.IDENTIFIER).isIn(decommissioningList().getFolders())) > 0);
+		LogicalSearchCondition condition = where(rmRecordsServices().folder.borrowed()).isTrue();
+		List<String> folderIds =
+				DecomListUtil.getFoldersInDecomList(collection, appLayerFactory, decommissioningList(), condition);
+		return CollectionUtils.isEmpty(folderIds);
 	}
 
 	public void validateButtonClicked() {
@@ -674,11 +677,15 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public boolean shouldDisplayRetentionRuleInDetails() {
-		return StringUtils.isBlank(decommissioningList().getUniformRule());
+		// TODO::JOLA --> FIXME
+		//return StringUtils.isBlank(decommissioningList().getUniformRule());
+		return false;
 	}
 
 	public boolean shouldDisplayCategoryInDetails() {
-		return StringUtils.isBlank(decommissioningList().getUniformCategory());
+		// TODO::JOLA --> FIXME
+		//return StringUtils.isBlank(decommissioningList().getUniformCategory());
+		return false;
 	}
 
 	public boolean shouldDisplaySort() {
@@ -950,9 +957,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void removeFoldersButtonClicked(List<FolderDetailVO> selected) {
-		for (FolderDetailVO folderDetailVO : selected) {
-			decommissioningList().removeFolderDetail(folderDetailVO.getFolderId());
-		}
+		List<String> folderIds = selected.stream().map(FolderDetailVO::getFolderId).collect(Collectors.toList());
+		DecomListUtil.removeFolderDetailsInDecomList(collection, appLayerFactory, decommissioningList(), folderIds);
 		addOrUpdate(decommissioningList().getWrappedRecord());
 		refreshView();
 	}
@@ -1061,10 +1067,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public List<FolderVO> getFoldersVO() {
-		List<Folder> foldersIds = rmRecordsServices().getFolders(decommissioningList().getFolders());
+		List<String> folderIds = DecomListUtil.getFoldersInDecomList(collection, appLayerFactory, decommissioningList());
+		List<Folder> folders = rmRecordsServices().getFolders(folderIds);
 		List<FolderVO> folderVOList = new ArrayList<>();
 		FolderToVOBuilder builder = new FolderToVOBuilder();
-		for (Folder folder : foldersIds) {
+		for (Folder folder : folders) {
 			folderVOList.add(builder.build(folder.getWrappedRecord(), VIEW_MODE.TABLE, view.getSessionContext()));
 		}
 		return folderVOList;

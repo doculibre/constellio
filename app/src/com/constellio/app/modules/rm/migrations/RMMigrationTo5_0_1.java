@@ -455,8 +455,8 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 				Schemas.CREATED_BY.getLocalCode(),
 				Schemas.MODIFIED_ON.getLocalCode(),
 				Schemas.MODIFIED_BY.getLocalCode(),
-				DecommissioningList.UNIFORM_CATEGORY,
-				DecommissioningList.UNIFORM_RULE,
+				"uniformCategory",
+				"uniformRule",
 				DecommissioningList.STATUS,
 				DecommissioningList.APPROVAL_DATE,
 				DecommissioningList.APPROVAL_USER);
@@ -1131,24 +1131,24 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(DecommissioningList.ELECTRONIC_MEDIUM).setType(BOOLEAN)
 				.defineDataEntry().asCalculated(DecomListHasElectronicMediumTypesCalculator.class);
 
-		defaultSchema.createUndeletable(DecommissioningList.UNIFORM).setType(BOOLEAN)
+		defaultSchema.createUndeletable("uniform").setType(BOOLEAN)
 				.defineDataEntry().asCalculated(DecomListIsUniform.class);
 
 		defaultSchema.createUndeletable(DecommissioningList.STATUS).defineAsEnum(DecomListStatus.class)
 				.defineDataEntry().asCalculated(DecomListStatusCalculator.class);
 
-		defaultSchema.createUndeletable(DecommissioningList.UNIFORM_CATEGORY)
+		defaultSchema.createUndeletable("uniformCategory")
 				.setType(REFERENCE).defineReferencesTo(categorySchemaType)
 				.defineDataEntry().asCalculated(DecomListUniformCategoryCalculator.class);
 
-		defaultSchema.createUndeletable(DecommissioningList.UNIFORM_COPY_RULE)
+		defaultSchema.createUndeletable("uniformCopyRule")
 				.setType(STRUCTURE).defineStructureFactory(CopyRetentionRuleFactory.class)
 				.defineDataEntry().asCalculated(DecomListUniformCopyRuleCalculator.class);
 
-		defaultSchema.createUndeletable(DecommissioningList.UNIFORM_COPY_TYPE).defineAsEnum(CopyType.class)
+		defaultSchema.createUndeletable("uniformCopyType").defineAsEnum(CopyType.class)
 				.defineDataEntry().asCalculated(DecomListUniformCopyTypeCalculator.class);
 
-		defaultSchema.createUndeletable(DecommissioningList.UNIFORM_RULE)
+		defaultSchema.createUndeletable("uniformRule")
 				.setType(REFERENCE).defineReferencesTo(retentionRuleSchemaType)
 				.defineDataEntry().asCalculated(DecomListUniformRuleCalculator.class);
 

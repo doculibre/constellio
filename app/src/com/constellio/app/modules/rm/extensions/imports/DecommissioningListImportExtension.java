@@ -10,6 +10,9 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetai
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
@@ -50,10 +53,12 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
 	public static final String REQUEST_DATE = "requestDate";
 	public static final String VALIDATION_DATE = "validationDate";
 
+	private AppLayerFactory appLayerFactory;
 	private final RMSchemasRecordsServices rm;
 	private RMConfigs rmConfigs;
 
 	public DecommissioningListImportExtension(String collection, ModelLayerFactory modelLayerFactory) {
+		appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 	}
@@ -144,7 +149,8 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
 		for (Map<String, String> decomListFolderDetail : decomListFolderDetails) {
 			decomListFolderDetailList.add(buildDecomListFolderDetails(decomListFolderDetail, importAsLegacyId));
 		}
-		decommissioningList.setFolderDetails(decomListFolderDetailList);
+		DecomListUtil.setFolderDetailsInDecomList(
+				rm.getCollection(), appLayerFactory, decommissioningList, decomListFolderDetailList);
 
 		for (Map<String, String> decomListContainerDetail : decomListContainerDetails) {
 			decomListContainerDetailList.add(buildDecomListContainerDetails(decomListContainerDetail, importAsLegacyId));

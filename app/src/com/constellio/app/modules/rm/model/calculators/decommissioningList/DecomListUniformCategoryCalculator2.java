@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.decommissioningList;
 
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
@@ -17,10 +16,10 @@ import static java.util.Arrays.asList;
 
 public class DecomListUniformCategoryCalculator2 extends AbstractMetadataValueCalculator<String> {
 
-	ReferenceDependency<List<String>> foldersCategoriesParam = ReferenceDependency.toAReference(DecommissioningList.FOLDERS,
+	ReferenceDependency<List<String>> foldersCategoriesParam = ReferenceDependency.toAReference("folders",
 			Folder.CATEGORY).whichIsMultivalue();
 
-	ReferenceDependency<List<String>> documentsCategoriesParam = ReferenceDependency.toAReference(DecommissioningList.DOCUMENTS,
+	ReferenceDependency<List<String>> documentsCategoriesParam = ReferenceDependency.toAReference("documents",
 			Document.FOLDER_CATEGORY).whichIsMultivalue();
 
 	@Override

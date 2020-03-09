@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
@@ -20,9 +18,30 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
+
+// TODO::JOLA
+// Step 1b:
+// - Repair tests
+// --> Remove dupe folder from multiple active decom list
+// --> Uncomment commented test and remove reference to documents() and folders()
+// --> Replace all set/add folder details by a call to DecomListUtil to set folder's metadata too.
+// - Add test for migration
+
+// Misc
+// - When creating list, save before adding anything!
+// - When processing list, currentDecom --> prevDecom (maybe in Decommissioner) Add test?
+// - If delete decom, then delete currentDecom & prevDecom from records (maybe in record extension) Add test!
+// - Keep sort index in FolderDetails. Add test!
+
+// Step 2:
+// - Update Table to have the list of metadata in column menu. (1 screen for folder, 1 for document)
+// - Replace fields in form by custom fields (uniform rule & category)
+// END TODO
 
 public class DecommissioningList extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "decommissioningList";
@@ -41,16 +60,9 @@ public class DecommissioningList extends RecordWrapper {
 	public static final String PROCESSING_USER = "processingUser";
 	public static final String FOLDER_DETAILS = "folderDetails";
 	public static final String CONTAINER_DETAILS = "containerDetails";
-	public static final String FOLDERS = "folders";
 	public static final String CONTAINERS = "containers";
-	public static final String DOCUMENTS = "documents";
 	public static final String FOLDERS_MEDIA_TYPES = "foldersMediaTypes";
 	public static final String STATUS = "status";
-	public static final String UNIFORM_COPY_RULE = "uniformCopyRule";
-	public static final String UNIFORM_COPY_TYPE = "uniformCopyType";
-	public static final String UNIFORM_CATEGORY = "uniformCategory";
-	public static final String UNIFORM_RULE = "uniformRule";
-	public static final String UNIFORM = "uniform";
 	public static final String ORIGIN_ARCHIVISTIC_STATUS = "originArchivisticStatus";
 	public static final String VALIDATIONS = "validations";
 	public static final String PENDING_VALIDATIONS = "pendingValidations";
@@ -277,129 +289,6 @@ public class DecommissioningList extends RecordWrapper {
 		return this;
 	}
 
-	public List<DecomListFolderDetail> getFolderDetails() {
-		return getList(FOLDER_DETAILS);
-	}
-
-	public DecomListFolderDetail getFolderDetail(String folderId) {
-		for (DecomListFolderDetail detail : getFolderDetails()) {
-			if (folderId.equals(detail.getFolderId())) {
-				return detail;
-			}
-		}
-		return null;
-	}
-
-	public FolderDetailWithType getFolderDetailWithType(String folderId) {
-		for (FolderDetailWithType detail : getFolderDetailsWithType()) {
-			if (folderId.equals(detail.getFolderId())) {
-				return detail;
-			}
-		}
-		return null;
-	}
-
-	//	public DecommissioningList setFolderDetailsFor(String... folders) {
-	//		return setFolderDetailsFor(asList(folders));
-	//	}
-	//
-	//	public DecommissioningList addFolderDetailsFor(String... folders) {
-	//		List<DecomListFolderDetail> details = new ArrayList<>();
-	//		details.addAll(getFolderDetails());
-	//		List<String> existingDetails = getFolders();
-	//		for (String folder : folders) {
-	//			if(!existingDetails.contains(folder)) {
-	//				details.add(new DecomListFolderDetail(folder));
-	//			}
-	//		}
-	//		return setFolderDetails(details);
-	//	}
-	//
-	//	public DecommissioningList setFolderDetailsFor(List<String> folders) {
-	//		List<DecomListFolderDetail> details = new ArrayList<>();
-	//		for (String folder : folders) {
-	//			details.add(new DecomListFolderDetail(folder));
-	//		}
-	//		return setFolderDetails(details);
-	//	}
-
-	public DecommissioningList removeFolderDetail(String folderId) {
-		List<DecomListFolderDetail> details = new ArrayList<>();
-		for (DecomListFolderDetail detail : getFolderDetails()) {
-			if (!folderId.equals(detail.getFolderId())) {
-				details.add(detail);
-			}
-		}
-		return setFolderDetails(details);
-	}
-
-	public DecommissioningList removeFolderDetails(List<String> folderIds) {
-		List<DecomListFolderDetail> details = new ArrayList<>();
-		for (DecomListFolderDetail detail : getFolderDetails()) {
-			if (!folderIds.contains(detail.getFolderId())) {
-				details.add(detail);
-			}
-		}
-		return setFolderDetails(details);
-	}
-
-	public DecommissioningList addFolderDetailsFor(FolderDetailStatus folderDetailStatus, Folder... folders) {
-		List<DecomListFolderDetail> details = new ArrayList<>();
-		details.addAll(getFolderDetails());
-		List<String> existingDetails = getFolders();
-		for (Folder folder : folders) {
-			if (!existingDetails.contains(folder.getId())) {
-				details.add(new DecomListFolderDetail(folder, folderDetailStatus));
-			}
-		}
-		return setFolderDetails(details);
-	}
-
-	public DecommissioningList setFolderDetailsFor(List<Folder> folders, FolderDetailStatus folderDetailStatus) {
-		List<DecomListFolderDetail> details = new ArrayList<>();
-		for (Folder folder : folders) {
-			details.add(new DecomListFolderDetail(folder, folderDetailStatus).setFolderDetailStatus(folderDetailStatus));
-		}
-		setFolderDetails(details);
-		return this;
-	}
-
-	public DecommissioningList setFolderDetailsForIds(List<String> folders, FolderDetailStatus folderDetailStatus) {
-		List<DecomListFolderDetail> details = new ArrayList<>();
-		for (String folder : folders) {
-			details.add(new DecomListFolderDetail().setFolderId(folder).setFolderDetailStatus(folderDetailStatus));
-		}
-		setFolderDetails(details);
-		return this;
-	}
-
-	public DecommissioningList setAlreadyIncludedFolderDetailsForIds(List<String> folders) {
-		List<DecomListFolderDetail> details = new ArrayList<>();
-		for (String folder : folders) {
-			details.add(new DecomListFolderDetail().setFolderId(folder).setFolderDetailStatus(FolderDetailStatus.INCLUDED));
-		}
-		setFolderDetails(details);
-		return this;
-	}
-
-	public DecommissioningList setFolderDetailsForIds(FolderDetailStatus folderDetailStatus, String... folders) {
-		List<DecomListFolderDetail> details = new ArrayList<>();
-		for (String folder : folders) {
-			details.add(new DecomListFolderDetail().setFolderId(folder).setFolderDetailStatus(folderDetailStatus));
-		}
-		setFolderDetails(details);
-		return this;
-	}
-
-	public DecommissioningList setAlreadyIncludedFolderDetailsForIds(String... folders) {
-		List<DecomListFolderDetail> details = new ArrayList<>();
-		for (String folder : folders) {
-			details.add(new DecomListFolderDetail().setFolderId(folder).setFolderDetailStatus(FolderDetailStatus.INCLUDED));
-		}
-		setFolderDetails(details);
-		return this;
-	}
-
 	public DecommissioningList setContainerDetails(List<DecomListContainerDetail> containerDetails) {
 		set(CONTAINER_DETAILS, containerDetails);
 		return this;
@@ -473,11 +362,6 @@ public class DecommissioningList extends RecordWrapper {
 		return setContainerDetails(details);
 	}
 
-	public DecommissioningList setFolderDetails(List<DecomListFolderDetail> folderDetails) {
-		set(FOLDER_DETAILS, folderDetails);
-		return this;
-	}
-
 	public List<Comment> getComments() {
 		return getList(COMMENTS);
 	}
@@ -485,10 +369,6 @@ public class DecommissioningList extends RecordWrapper {
 	public DecommissioningList setComments(List<Comment> comments) {
 		set(COMMENTS, comments);
 		return this;
-	}
-
-	public List<String> getFolders() {
-		return get(FOLDERS);
 	}
 
 	//Containers
@@ -504,42 +384,12 @@ public class DecommissioningList extends RecordWrapper {
 		return get(ELECTRONIC_MEDIUM);
 	}
 
-	public boolean isUniform() {
-		return get(UNIFORM);
-	}
-
-	public String getUniformCategory() {
-		return get(UNIFORM_CATEGORY);
-	}
-
-	public CopyRetentionRule getUniformCopyRule() {
-		return get(UNIFORM_COPY_RULE);
-	}
-
-	public String getUniformRule() {
-		return get(UNIFORM_RULE);
-	}
-
-	public CopyType getUniformCopyType() {
-		return get(UNIFORM_COPY_TYPE);
-	}
-
 	public List<FolderMediaType> getFoldersMediaTypes() {
 		return getList(FOLDERS_MEDIA_TYPES);
 	}
 
 	public DecomListStatus getStatus() {
 		return get(STATUS);
-	}
-
-	public List<FolderDetailWithType> getFolderDetailsWithType() {
-		List<DecomListFolderDetail> details = getFolderDetails();
-		List<FolderMediaType> types = getFoldersMediaTypes();
-		List<FolderDetailWithType> result = new ArrayList<>();
-		for (int i = 0; i < details.size(); i++) {
-			result.add(new FolderDetailWithType(details.get(i), types.get(i), getDecommissioningListType()));
-		}
-		return result;
 	}
 
 	public boolean isUnprocessed() {
@@ -597,55 +447,75 @@ public class DecommissioningList extends RecordWrapper {
 		return this;
 	}
 
-	public DecommissioningList setDocuments(List<String> documents) {
-		set(DOCUMENTS, documents);
+	public List<DecomListFolderDetail> getFolderDetails() {
+		return getList(FOLDER_DETAILS);
+	}
+
+	public DecomListFolderDetail getFolderDetail(String folderId) {
+		for (DecomListFolderDetail detail : getFolderDetails()) {
+			if (folderId.equals(detail.getFolderId())) {
+				return detail;
+			}
+		}
+		return null;
+	}
+
+	public List<FolderDetailWithType> getFolderDetailsWithType() {
+		List<DecomListFolderDetail> details = getFolderDetails();
+		List<FolderMediaType> types = getFoldersMediaTypes();
+		List<FolderDetailWithType> result = new ArrayList<>();
+		for (int i = 0; i < details.size(); i++) {
+			result.add(new FolderDetailWithType(details.get(i), types.get(i), getDecommissioningListType()));
+		}
+		return result;
+	}
+
+	public FolderDetailWithType getFolderDetailWithType(String folderId) {
+		for (FolderDetailWithType detail : getFolderDetailsWithType()) {
+			if (folderId.equals(detail.getFolderId())) {
+				return detail;
+			}
+		}
+		return null;
+	}
+
+	public DecommissioningList setFolderDetails(List<DecomListFolderDetail> folderDetails) {
+		set(FOLDER_DETAILS, folderDetails);
 		return this;
 	}
 
-	public DecommissioningList addDocuments(String... documents) {
-		List<String> documentIDs = new ArrayList<>();
-		documentIDs.addAll(getDocuments());
-		List<String> existingDocuments = getDocuments();
-		for (String document : documents) {
-			if (!existingDocuments.contains(document)) {
-				documentIDs.add(document);
-			}
+	public DecommissioningList setFolderDetailsFor(List<Folder> folders, FolderDetailStatus folderDetailStatus) {
+		List<DecomListFolderDetail> details = new ArrayList<>();
+		for (Folder folder : folders) {
+			details.add(new DecomListFolderDetail(folder, folderDetailStatus).setFolderDetailStatus(folderDetailStatus));
 		}
-		return setDocuments(documentIDs);
-	}
-
-	public List<String> getDocuments() {
-		return getList(DOCUMENTS);
-	}
-
-	public DecommissioningList removeDocuments(String... idsToRemove) {
-		ArrayList<String> ids = new ArrayList<>(getDocuments());
-		for (int i = 0; i < idsToRemove.length; i++) {
-			ids.remove(idsToRemove[i]);
-		}
-		return setDocuments(ids);
-	}
-
-	public DecommissioningList removeDocument(String id) {
-		ArrayList<String> ids = new ArrayList<>(getDocuments());
-		ids.remove(id);
-		return setDocuments(ids);
-	}
-
-	public DecommissioningList removeReferences(Record... recordsToRemove) {
-		List<String> documentsToRemove = new ArrayList<>();
-		List<String> foldersToRemove = new ArrayList<>();
-
-		for (Record record : recordsToRemove) {
-			if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
-				foldersToRemove.add(record.getId());
-			} else if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
-				documentsToRemove.add(record.getId());
-			}
-		}
-
-		removeDocuments(documentsToRemove.toArray(new String[0]));
-		removeFolderDetails(foldersToRemove);
+		setFolderDetails(details);
 		return this;
+	}
+
+	public DecommissioningList removeFolderDetail(String folderId) {
+		return removeFolderDetails(Collections.singletonList(folderId));
+	}
+
+	public DecommissioningList removeFolderDetails(List<String> folderIds) {
+		List<DecomListFolderDetail> details = new ArrayList<>();
+		for (DecomListFolderDetail detail : getFolderDetails()) {
+			if (!folderIds.contains(detail.getFolderId())) {
+				details.add(detail);
+			}
+		}
+		return setFolderDetails(details);
+	}
+
+	public DecommissioningList addFolderDetailsFor(FolderDetailStatus folderDetailStatus, Folder... folders) {
+		List<DecomListFolderDetail> details = new ArrayList<>();
+		details.addAll(getFolderDetails());
+		List<String> existingDetails = getFolderDetails().stream().map(DecomListFolderDetail::getFolderId).collect(Collectors.toList());
+		for (Folder folder : folders) {
+			if (!existingDetails.contains(folder.getId())) {
+				details.add(new DecomListFolderDetail(folder, folderDetailStatus));
+			}
+		}
+		return setFolderDetails(details);
 	}
 }

@@ -182,16 +182,16 @@ public class RMMigrationTo5_1_9 implements MigrationScript {
 			schema.createUndeletable(DecommissioningList.FOLDERS_REPORT_CONTENT).setType(CONTENT);
 			schema.createUndeletable("documents").defineReferencesTo(document).setMultivalue(true);
 
-			schema.get(DecommissioningList.UNIFORM_CATEGORY).defineDataEntry().asCalculated(
+			schema.get("uniformCategory").defineDataEntry().asCalculated(
 					DecomListUniformCategoryCalculator2.class);
 
-			schema.get(DecommissioningList.UNIFORM_COPY_RULE).defineDataEntry().asCalculated(
+			schema.get("uniformCopyRule").defineDataEntry().asCalculated(
 					DecomListUniformCopyRuleCalculator2.class);
 
-			schema.get(DecommissioningList.UNIFORM_RULE).defineDataEntry().asCalculated(
+			schema.get("uniformRule").defineDataEntry().asCalculated(
 					DecomListUniformRuleCalculator2.class);
 
-			schema.get(DecommissioningList.UNIFORM_COPY_TYPE).defineDataEntry().asCalculated(
+			schema.get("uniformCopyType").defineDataEntry().asCalculated(
 					DecomListUniformCopyTypeCalculator2.class);
 
 			schema.get(DecommissioningList.TYPE).setDefaultRequirement(true);

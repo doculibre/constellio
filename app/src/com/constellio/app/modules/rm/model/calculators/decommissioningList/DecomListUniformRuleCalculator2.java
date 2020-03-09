@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.decommissioningList;
 
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
@@ -17,10 +16,10 @@ import static java.util.Arrays.asList;
 
 public class DecomListUniformRuleCalculator2 extends AbstractMetadataValueCalculator<String> {
 
-	ReferenceDependency<List<String>> foldersRulesParam = ReferenceDependency.toAReference(DecommissioningList.FOLDERS,
+	ReferenceDependency<List<String>> foldersRulesParam = ReferenceDependency.toAReference("folders",
 			Folder.RETENTION_RULE).whichIsMultivalue();
 
-	ReferenceDependency<List<String>> documentsRulesParam = ReferenceDependency.toAReference(DecommissioningList.DOCUMENTS,
+	ReferenceDependency<List<String>> documentsRulesParam = ReferenceDependency.toAReference("documents",
 			Document.FOLDER_RETENTION_RULE).whichIsMultivalue();
 
 	@Override

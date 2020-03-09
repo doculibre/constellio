@@ -19,6 +19,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.utils.ClassProvider;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,22 +88,35 @@ public class DataEntryBuilder {
 	}
 
 	public MetadataBuilder asUnion(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder... valueMetadatas) {
+		List<MetadataBuilder> valueMetadatasList = new ArrayList<>();
+		Collections.addAll(valueMetadatasList, valueMetadatas);
+
+		Map<MetadataBuilder, List<MetadataBuilder>> valueMetadatasByReferenceMetadata = new HashMap<>();
+		valueMetadatasByReferenceMetadata.put(referenceToAgregatingSchemaType, valueMetadatasList);
+		return asUnion(valueMetadatasByReferenceMetadata);
+	}
+
+	public MetadataBuilder asUnion(Map<MetadataBuilder, List<MetadataBuilder>> valueMetadatasByReferenceMetadata) {
 		if (!metadata.getCode().contains("_default_")) {
 			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
 		}
 
-		if (referenceToAgregatingSchemaType.getType() != REFERENCE || referenceToAgregatingSchemaType.isMultivalue()) {
-			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("reference",
-					referenceToAgregatingSchemaType.getCode(), REFERENCE);
+		Map<String, List<String>> inputMetadatasByReferenceMetadata = new HashMap<>();
+		for (MetadataBuilder referenceToAgregatingSchemaType : valueMetadatasByReferenceMetadata.keySet()) {
+			if (referenceToAgregatingSchemaType.getType() != REFERENCE) {
+				throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("reference",
+						referenceToAgregatingSchemaType.getCode(), REFERENCE);
+			}
+
+			List<String> valueMetadatasCodes = new ArrayList<>();
+			for (MetadataBuilder valueMetadata : valueMetadatasByReferenceMetadata.get(referenceToAgregatingSchemaType)) {
+				valueMetadatasCodes.add(valueMetadata.getCode());
+			}
+
+			inputMetadatasByReferenceMetadata.put(referenceToAgregatingSchemaType.getCode(), valueMetadatasCodes);
 		}
 
-		List<String> valueMetadatasCodes = new ArrayList<>();
-		for (MetadataBuilder valueMetadata : valueMetadatas) {
-			valueMetadatasCodes.add(valueMetadata.getCode());
-		}
-
-		metadata.dataEntry = new AggregatedDataEntry(valueMetadatasCodes, referenceToAgregatingSchemaType.getCode(),
-				VALUES_UNION);
+		metadata.dataEntry = new AggregatedDataEntry(inputMetadatasByReferenceMetadata, VALUES_UNION);
 		return metadata;
 	}
 

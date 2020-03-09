@@ -16,6 +16,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.io.services.facades.FileService;
@@ -473,9 +474,9 @@ public abstract class Decommissioner {
 	}
 
 	protected List<Document> getListDocuments() {
-		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.documentSchemaType())
-				.where(Schemas.IDENTIFIER).isIn(decommissioningList.getDocuments()));
-		return rm.wrapDocuments(searchServices.search(query));
+		List<String> documentIds =
+				DecomListUtil.getDocumentsInDecomList(rm.getCollection(), appLayerFactory, decommissioningList);
+		return rm.getDocuments(documentIds);
 	}
 
 	private List<Document> getAllDocumentsInFolder(Folder folder) {
@@ -593,7 +594,8 @@ public abstract class Decommissioner {
 				recordServices.logicallyDelete(record, user);
 			}
 
-			decommissioningList.removeReferences(recordsToDeletePhysically.toArray(new Record[0]));
+			DecomListUtil.removeReferencesInDecomList(
+					rm.getCollection(), appLayerFactory, decommissioningList, recordsToDeletePhysically);
 			recordServices.recalculate(decommissioningList);
 			recordServices.update(decommissioningList);
 			for (Record record : recordsToDeletePhysically) {

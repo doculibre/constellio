@@ -95,7 +95,12 @@ public class BulkRecordTransactionHandler {
 	}
 
 	public synchronized void append(List<Record> records) {
-		append(records, new ArrayList<Record>());
+		int iterations = (int) Math.ceil((double) records.size() / options.recordsPerBatch);
+		for (int i = 0; i < iterations; i++) {
+			int start = i * options.recordsPerBatch;
+			int end = Math.min(start + options.recordsPerBatch, records.size());
+			append(records.subList(start, end), new ArrayList<Record>());
+		}
 	}
 
 	public synchronized void append(List<Record> records, List<Record> referencedRecords) {

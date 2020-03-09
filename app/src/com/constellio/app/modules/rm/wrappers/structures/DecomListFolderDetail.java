@@ -9,6 +9,7 @@ public class DecomListFolderDetail implements ModifiableStructure {
 	String folderId;
 	FolderDetailStatus folderDetailStatus;
 	String containerRecordId;
+	int sortIndex;
 	boolean reversedSort;
 	Double folderLinearSize;
 	boolean isPlacedInContainer;
@@ -76,6 +77,16 @@ public class DecomListFolderDetail implements ModifiableStructure {
 		return this;
 	}
 
+	public int getSortIndex() {
+		return sortIndex;
+	}
+
+	public DecomListFolderDetail setSortIndex(int sortIndex) {
+		dirty = true;
+		this.sortIndex = sortIndex;
+		return this;
+	}
+
 	public Double getFolderLinearSize() {
 		return folderLinearSize;
 	}
@@ -108,6 +119,7 @@ public class DecomListFolderDetail implements ModifiableStructure {
 			   ", folderStatus" + folderDetailStatus.getDescription() +
 			   ", containerRecordId='" + containerRecordId + '\'' +
 			   ", reversedSort=" + reversedSort +
+			   ", sortIndex=" + sortIndex +
 			   ", dirty=" + dirty +
 			   ", isPlacedInContainer=" + isPlacedInContainer +
 			   '}';

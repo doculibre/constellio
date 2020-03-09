@@ -94,6 +94,8 @@ public class Folder extends RMObject {
 	public static final String DATE_TYPES = "dateTypes";
 	public static final String ALLOWED_DOCUMENT_TYPES = "allowedDocumentTypes";
 	public static final String ALLOWED_FOLDER_TYPES = "allowedFolderTypes";
+	public static final String CURRENT_DECOMMISSIONING_LIST = "currentDecommissioningList";
+	public static final String PREVIOUS_DECOMMISSIONING_LISTS = "previousDecommissioningLists";
 
 	public static final String MANUAL_EXPECTED_TRANSFER_DATE = "manualExpectedTransferDate";
 	public static final String MANUAL_EXPECTED_DEPOSIT_DATE = "manualExpectedDepositDate";
@@ -228,6 +230,50 @@ public class Folder extends RMObject {
 			}
 		}
 		setAllowedDocumentTypes(folderTypes);
+	}
+
+	public String getCurrentDecommissioningList() {
+		return get(CURRENT_DECOMMISSIONING_LIST);
+	}
+
+	public Folder setCurrentDecommissioningList(String decommissioningListId) {
+		set(CURRENT_DECOMMISSIONING_LIST, decommissioningListId);
+		return this;
+	}
+
+	public List<String> getPreviousDecommissioningLists() {
+		return getList(PREVIOUS_DECOMMISSIONING_LISTS);
+	}
+
+	public Folder setPreviousDecommissioningLists(List<String> decommissioningListIds) {
+		set(PREVIOUS_DECOMMISSIONING_LISTS, decommissioningListIds);
+		return this;
+	}
+
+	public void removePreviousDecommissioningList(String idToRemove) {
+		removePreviousDecommissioningLists(Arrays.asList(idToRemove));
+	}
+
+	public void removePreviousDecommissioningLists(List<String> idsToRemove) {
+		List<String> decommissioningListIds = new ArrayList<>();
+		decommissioningListIds.addAll(getPreviousDecommissioningLists());
+		decommissioningListIds.removeAll(idsToRemove);
+		setPreviousDecommissioningLists(decommissioningListIds);
+	}
+
+	public void addPreviousDecommissioningList(String idToAdd) {
+		addPreviousDecommissioningLists(Arrays.asList(idToAdd));
+	}
+
+	public void addPreviousDecommissioningLists(List<String> idsToAdd) {
+		List<String> decommissioningListIds = new ArrayList<>();
+		decommissioningListIds.addAll(getPreviousDecommissioningLists());
+		for (String idToAdd : idsToAdd) {
+			if (!decommissioningListIds.contains(idToAdd)) {
+				decommissioningListIds.add(idToAdd);
+			}
+		}
+		setPreviousDecommissioningLists(decommissioningListIds);
 	}
 
 	public Folder setParentFolder(String folder) {

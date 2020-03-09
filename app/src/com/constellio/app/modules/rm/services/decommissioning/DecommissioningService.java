@@ -28,6 +28,7 @@ import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.modules.rm.wrappers.type.YearType;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
@@ -88,10 +89,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 public class DecommissioningService {
 	private static Logger LOGGER = LoggerFactory.getLogger(DecommissioningService.class);
@@ -138,7 +141,7 @@ public class DecommissioningService {
 
 		List<String> recordIds = params.getSelectedRecordIds();
 		if (decommissioningList.getDecommissioningListType().isDocumentList()) {
-			decommissioningList.setDocuments(recordIds);
+			DecomListUtil.setDocumentsInDecomList(collection, appLayerFactory, decommissioningList, recordIds);
 		} else if (params.getSearchType().isFromSemiActive()) {
 			List<ContainerRecord> containers = getContainersOfFolders(recordIds);
 			List<Folder> folders = getFolders(recordIds);
@@ -146,10 +149,13 @@ public class DecommissioningService {
 				folders.addAll(getFoldersInContainers(containers));
 				folders = LangUtils.withoutDuplicates(folders);
 			}
-			decommissioningList.setFolderDetailsFor(folders, params.getFolderDetailStatus());
+			List<String> folderIds = folders.stream().map(Folder::getId).collect(Collectors.toList());
+			DecomListUtil.setFolderDetailsInDecomList(
+					collection, appLayerFactory, decommissioningList, folderIds, params.getFolderDetailStatus());
 			decommissioningList.setContainerDetailsFrom(containers);
 		} else {
-			decommissioningList.setFolderDetailsFor(rm.getFolders(recordIds), params.getFolderDetailStatus());
+			DecomListUtil.setFolderDetailsInDecomList(
+					collection, appLayerFactory, decommissioningList, recordIds, params.getFolderDetailStatus());
 			decommissioningList.setContainerDetailsFrom(getContainersOfFolders(recordIds));
 		}
 
@@ -596,10 +602,10 @@ public class DecommissioningService {
 	}
 
 	private boolean hasFoldersToSort(DecommissioningList decommissioningList) {
-		LogicalSearchCondition condition = from(rm.folder.schemaType())
-				.where(Schemas.IDENTIFIER).isIn(decommissioningList.getFolders())
-				.andWhere(rm.folder.inactiveDisposalType()).isEqualTo(DisposalType.SORT);
-		return searchServices.hasResults(condition);
+		LogicalSearchCondition condition = where(rm.folder.inactiveDisposalType()).isEqualTo(DisposalType.SORT);
+		List<String> folderIds =
+				DecomListUtil.getFoldersInDecomList(collection, appLayerFactory, decommissioningList, condition);
+		return CollectionUtils.isNotEmpty(folderIds);
 	}
 
 	public List<String> getAllAdminUnitIdsHierarchyOf(String administrativeUnitId) {

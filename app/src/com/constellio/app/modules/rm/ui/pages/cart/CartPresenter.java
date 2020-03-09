@@ -8,7 +8,6 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
@@ -29,6 +28,7 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -87,6 +87,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
@@ -738,10 +739,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		list.setTitle(title);
 		list.setAdministrativeUnit(getCommonAdministrativeUnit(getCartFolders()));
 		list.setDecommissioningListType(decomType);
+		List<String> folderIds = getNotDeletedCartFolders().stream().map(Folder::getId).collect(Collectors.toList());
 		if (isDecommissioningListWithSelectedFolders()) {
-			list.setFolderDetailsFor(getNotDeletedCartFolders(), FolderDetailStatus.SELECTED);
+			DecomListUtil.setFolderDetailsInDecomList(
+					collection, appLayerFactory, list, folderIds, FolderDetailStatus.SELECTED);
 		} else {
-			list.setFolderDetailsFor(getNotDeletedCartFolders(), FolderDetailStatus.INCLUDED);
+			DecomListUtil.setFolderDetailsInDecomList(
+					collection, appLayerFactory, list, folderIds, FolderDetailStatus.INCLUDED);
 		}
 
 		try {
@@ -885,10 +889,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public boolean isAnyFolderInDecommissioningList() {
-		return searchServices().getResultsCount(
-				from(rm().decommissioningList.schemaType()).where(rm().decommissioningList.status())
-						.isNotEqual(DecomListStatus.PROCESSED)
-						.andWhere(rm().decommissioningList.folders()).isContaining(getCartFolderIds())) > 0;
+		List<Folder> folders = rm.getFolders(getCartFolderIds());
+		for (Folder folder : folders) {
+			if (folder.getCurrentDecommissioningList() != null) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean isAnyFolderASubFolder() {

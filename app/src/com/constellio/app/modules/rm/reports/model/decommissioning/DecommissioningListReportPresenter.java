@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.MultipleFieldsComparator;
 import com.constellio.model.conf.FoldersLocator;
@@ -21,6 +22,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -59,8 +61,9 @@ public class DecommissioningListReportPresenter {
 		DecommissioningList decommissioningList = rm.getDecommissioningList(decommissioningListId);
 
 		List<String> processedFolders = new ArrayList<>();
-		if (decommissioningList.getFolders() != null) {
-			processedFolders.addAll(decommissioningList.getFolders());
+		List<String> folderIds = DecomListUtil.getFoldersInDecomList(collection, appLayerFactory, decommissioningList);
+		if (CollectionUtils.isNotEmpty(folderIds)) {
+			processedFolders.addAll(folderIds);
 			for (FolderDetailWithType folder : decommissioningList.getFolderDetailsWithType()) {
 				if (folder.isExcluded()) {
 					processedFolders.remove(folder.getFolderId());

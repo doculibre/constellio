@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -131,7 +132,8 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 			}
 		}
 		try {
-			recordServices().update(decommissioningList().setFolderDetails(sortedResult));
+			DecomListUtil.setFolderDetailsInDecomList(collection, appLayerFactory, decommissioningList(), sortedResult);
+			recordServices().update(decommissioningList());
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}

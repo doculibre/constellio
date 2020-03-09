@@ -1,19 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
@@ -31,6 +17,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
@@ -44,6 +31,20 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class DecomCertificateService {
 	private static final String DOCUMENTS_CERTIFICATE = "DecomCertificateService.documentsCertificate";
@@ -147,14 +148,19 @@ public class DecomCertificateService {
 
 	//FIXME test it!
 	DocumentsCertificateReportModel_Elements computeListElements() {
-		if (decommissioningList.getFolders() != null && !decommissioningList.getFolders().isEmpty()) {
+		List<String> folderIds =
+				DecomListUtil.getFoldersInDecomList(rm.getCollection(), appLayerFactory, decommissioningList);
+		if (CollectionUtils.isNotEmpty(folderIds)) {
 			return computeListElements(getFolders(decommissioningList.getFolderDetails()));
-		} else if (decommissioningList.getDocuments() != null) {
-			return new DocumentsCertificateReportModel_Elements()
-					.addAllDocuments(rm, getDocuments(decommissioningList.getDocuments()));
-		} else {
-			return new DocumentsCertificateReportModel_Elements();
 		}
+
+		List<String> documentIds =
+				DecomListUtil.getDocumentsInDecomList(rm.getCollection(), appLayerFactory, decommissioningList);
+		if (CollectionUtils.isNotEmpty(documentIds)) {
+			return new DocumentsCertificateReportModel_Elements().addAllDocuments(rm, getDocuments(documentIds));
+		}
+
+		return new DocumentsCertificateReportModel_Elements();
 	}
 
 	private List<Document> getDocuments(List<String> documents) {

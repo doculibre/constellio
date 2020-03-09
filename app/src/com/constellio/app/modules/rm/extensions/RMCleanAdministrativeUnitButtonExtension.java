@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
@@ -195,8 +196,8 @@ public class RMCleanAdministrativeUnitButtonExtension extends PagesComponentsExt
 																					  User currentUser) {
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(
-				where(rm.decommissioningList.documents()).isContaining(asList(document.getId())));
+		List<DecommissioningList> decommissioningLists =
+				rm.getDecommissioningLists(DecomListUtil.getDecomListsForDocument(rm.wrapDocument(document)));
 		for (DecommissioningList decommissioningList : decommissioningLists) {
 			if (!currentUser.hasWriteAccess().on(decommissioningList)) {
 				return false;
@@ -208,8 +209,8 @@ public class RMCleanAdministrativeUnitButtonExtension extends PagesComponentsExt
 	private boolean hasCurrentUserWriteRightsToUnlinkFolderFromDecommissioningLists(Record folder, User currentUser) {
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(
-				where(rm.decommissioningList.folders()).isContaining(asList(folder.getId())));
+		List<DecommissioningList> decommissioningLists =
+				rm.getDecommissioningLists(DecomListUtil.getDecomListsForFolder(rm.wrapFolder(folder)));
 		for (DecommissioningList decommissioningList : decommissioningLists) {
 			if (!currentUser.hasWriteAccess().on(decommissioningList)) {
 				return false;

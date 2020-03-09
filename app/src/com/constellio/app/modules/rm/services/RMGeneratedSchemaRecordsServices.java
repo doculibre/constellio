@@ -960,10 +960,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("description");
 		}
 
-		public Metadata documents() {
-			return metadata("documents");
-		}
-
 		public Metadata documentsReportContent() {
 			return metadata("documentsReportContent");
 		}
@@ -978,10 +974,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata folderDetails() {
 			return metadata("folderDetails");
-		}
-
-		public Metadata folders() {
-			return metadata("folders");
 		}
 
 		public Metadata foldersMediaTypes() {
@@ -1014,26 +1006,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata type() {
 			return metadata("type");
-		}
-
-		public Metadata uniform() {
-			return metadata("uniform");
-		}
-
-		public Metadata uniformCategory() {
-			return metadata("uniformCategory");
-		}
-
-		public Metadata uniformCopyRule() {
-			return metadata("uniformCopyRule");
-		}
-
-		public Metadata uniformCopyType() {
-			return metadata("uniformCopyType");
-		}
-
-		public Metadata uniformRule() {
-			return metadata("uniformRule");
 		}
 
 		public Metadata validationDate() {
@@ -1254,6 +1226,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata keywords() {
 			return metadata("keywords");
+		}
+
+		public Metadata currentDecommissioningList() {
+			return metadata("currentDecommissioningList");
+		}
+
+		public Metadata previousDecommissioningLists() {
+			return metadata("previousDecommissioningLists");
 		}
 
 		public Metadata mainCopyRule() {
@@ -1658,6 +1638,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata inactiveDisposalType() {
 			return metadata("inactiveDisposalType");
+		}
+
+		public Metadata currentDecommissioningList() {
+			return metadata("currentDecommissioningList");
+		}
+
+		public Metadata previousDecommissioningLists() {
+			return metadata("previousDecommissioningLists");
 		}
 
 		public Metadata isRestrictedAccess() {

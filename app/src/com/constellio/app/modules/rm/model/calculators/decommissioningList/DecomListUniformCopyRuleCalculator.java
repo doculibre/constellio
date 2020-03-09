@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.model.calculators.decommissioningList;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -17,7 +16,7 @@ import static java.util.Arrays.asList;
 
 public class DecomListUniformCopyRuleCalculator extends AbstractMetadataValueCalculator<CopyRetentionRule> {
 
-	ReferenceDependency<List<CopyRetentionRule>> copyRulesParam = ReferenceDependency.toAStructure(DecommissioningList.FOLDERS,
+	ReferenceDependency<List<CopyRetentionRule>> copyRulesParam = ReferenceDependency.toAStructure("folders",
 			Folder.MAIN_COPY_RULE).whichIsMultivalue();
 
 	@Override

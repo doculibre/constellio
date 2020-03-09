@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.model.calculators.decommissioningList;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -15,10 +14,10 @@ import static java.util.Arrays.asList;
 
 public class DecomListIsUniform extends AbstractMetadataValueCalculator<Boolean> {
 
-	LocalDependency<CopyRetentionRule> uniformCopyRuleParam = LocalDependency.toAStructure(DecommissioningList.UNIFORM_COPY_RULE);
-	LocalDependency<CopyType> uniformCopyTypeParam = LocalDependency.toAnEnum(DecommissioningList.UNIFORM_COPY_TYPE);
-	LocalDependency<String> uniformRuleParam = LocalDependency.toAReference(DecommissioningList.UNIFORM_RULE);
-	LocalDependency<String> uniformCategoryParam = LocalDependency.toAReference(DecommissioningList.UNIFORM_CATEGORY);
+	LocalDependency<CopyRetentionRule> uniformCopyRuleParam = LocalDependency.toAStructure("uniformCopyRule");
+	LocalDependency<CopyType> uniformCopyTypeParam = LocalDependency.toAnEnum("uniformCopyType");
+	LocalDependency<String> uniformRuleParam = LocalDependency.toAReference("uniformRule");
+	LocalDependency<String> uniformCategoryParam = LocalDependency.toAReference("uniformCategory");
 
 	@Override
 	public Boolean calculate(CalculatorParameters parameters) {
