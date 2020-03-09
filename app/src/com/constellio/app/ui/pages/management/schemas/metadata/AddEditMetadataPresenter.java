@@ -425,7 +425,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 								   MetadataBuilder builder) {
 		builder.setDefaultValue(formMetadataVO.getDefaultValue());
 		builder.setInputMask(formMetadataVO.getInputMask());
-		if (formMetadataVO.getMaxLength() != null && !isInherited(code)) {
+		if (!isInherited(code)) {
 			builder.setMaxLength(formMetadataVO.getMaxLength());
 		}
 		if (formMetadataVO.getMeasurementUnit() != null) {
