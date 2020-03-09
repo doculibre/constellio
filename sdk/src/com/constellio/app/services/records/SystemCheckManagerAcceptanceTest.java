@@ -706,7 +706,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().newRecordServices().add(zeFolder);
 		List<DecomListFolderDetail> details = new ArrayList<>(list.getFolderDetails());
 		details.add(new DecomListFolderDetail().setFolderId(zeFolder.getId()).setFolderDetailStatus(FolderDetailStatus.INCLUDED));
-		list.setFolderDetails(details);
+		//TODO::JOLA-list.setFolderDetails(details);
 		getModelLayerFactory().newRecordServices().update(list);
 
 		getModelLayerFactory().newRecordServices().logicallyDelete(zeFolder.getWrappedRecord(), User.GOD);

@@ -216,8 +216,8 @@ public class RMRecordDeletionServicesAcceptanceTest extends ConstellioTest {
 																			  List<String> documentIDs,
 																			  List<String> containerIDs) {
 		return rm.searchDecommissioningLists(anyConditions(
-				where(rm.decommissioningList.folders()).isContaining(folderIDs),
-				where(rm.decommissioningList.documents()).isContaining(documentIDs),
+				//TODO::JOLA-where(rm.decommissioningList.folders()).isContaining(folderIDs),
+				//TODO::JOLA-where(rm.decommissioningList.documents()).isContaining(documentIDs),
 				where(rm.decommissioningList.containers()).isContaining(containerIDs)
 		));
 	}

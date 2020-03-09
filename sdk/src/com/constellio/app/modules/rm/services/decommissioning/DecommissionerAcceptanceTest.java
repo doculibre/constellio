@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -57,6 +58,7 @@ public class DecommissionerAcceptanceTest extends ConstellioTest {
 
 		assertThat(records.getFolder_A01().getCloseDateEntered()).isNotEqualTo(now);
 
+		waitForBatchProcess();
 		closingDecommissioner.process(list24, records.getAdmin(), now);
 		waitForBatchProcess();
 
@@ -106,8 +108,7 @@ public class DecommissionerAcceptanceTest extends ConstellioTest {
 		DestroyingDecommissioner destroyingDecommissioner = new DestroyingDecommissioner(new DecommissioningService(zeCollection, getAppLayerFactory()), getAppLayerFactory());
 		LocalDate now = LocalDate.now();
 
-		List<String> processedFolders = getModelLayerFactory().newSearchServices().searchRecordIds(new LogicalSearchQuery()
-				.setCondition(from(rm.folder.schemaType()).where(Schemas.IDENTIFIER).isIn(list02.getFolders())));
+		List<String> processedFolders = DecomListUtil.getFoldersInDecomList(zeCollection, getAppLayerFactory(), list02);
 		assertThat(processedFolders).hasSize(3);
 
 		destroyingDecommissioner.process(list02, records.getAdmin(), now);

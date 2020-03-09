@@ -23,10 +23,12 @@ import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.modules.rm.wrappers.utils.DecomListUtil;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -550,6 +552,14 @@ public class RMTestRecords {
 			throw new RuntimeException(e);
 		}
 		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction = new Transaction();
+		setupFoldersInLists(transaction);
+		try {
+			recordServices.execute(transaction);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
 		return this;
 	}
 
@@ -1015,152 +1025,117 @@ public class RMTestRecords {
 				.setTitle("Listes avec plusieurs supports à détruire").setAdministrativeUnit(unitId_10a)
 				.setDecommissioningListType(FOLDERS_TO_DESTROY)
 				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-				.setContainerDetailsFor(containerId_bac18, containerId_bac19).setAlreadyIncludedFolderDetailsForIds(folder_A42, folder_A43, folder_A44, folder_A45, folder_A46, folder_A47);
+				.setContainerDetailsFor(containerId_bac18, containerId_bac19);
 
 		DecommissioningList zeList02 = rm.newDecommissioningListWithId(list_02).setTitle("Liste analogique à détruire")
 				.setAdministrativeUnit(unitId_10a)
 				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_DESTROY).setContainerDetailsFor(containerId_bac10)
-				.setAlreadyIncludedFolderDetailsForIds(folder_A54, folder_A55, folder_A56);
-		for (DecomListFolderDetail detail : zeList02.getFolderDetails()) {
-			detail.setContainerRecordId(containerId_bac10);
-		}
+				.setDecommissioningListType(FOLDERS_TO_DESTROY).setContainerDetailsFor(containerId_bac10);
 		zeList02.getContainerDetails().get(0).setFull(true);
 		transaction.add(zeList02);
 
 		transaction.add(rm.newDecommissioningListWithId(list_03)).setTitle("Liste hybride à fermer")
 				.setAdministrativeUnit(unitId_10a)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_CLOSE).setAlreadyIncludedFolderDetailsForIds(folder_A01, folder_A02, folder_A03);
+				.setDecommissioningListType(FOLDERS_TO_CLOSE);
 
 		transaction.add(rm.newDecommissioningListWithId(list_04)).setTitle("Liste analogique à transférer")
 				.setAdministrativeUnit(unitId_10a)
 				.setDecommissioningListType(FOLDERS_TO_TRANSFER).setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setContainerDetailsFor(containerId_bac14, containerId_bac15).setAlreadyIncludedFolderDetailsForIds(folder_A22, folder_A23, folder_A24);
+				.setContainerDetailsFor(containerId_bac14, containerId_bac15);
 
 		transaction.add(rm.newDecommissioningListWithId(list_05)).setTitle("Liste hybride à transférer")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_TRANSFER).setAlreadyIncludedFolderDetailsForIds(folder_A19, folder_A20, folder_A21);
+				.setDecommissioningListType(FOLDERS_TO_TRANSFER);
 
 		transaction.add(rm.newDecommissioningListWithId(list_06)).setTitle("Liste électronique à transférer")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_TRANSFER).setAlreadyIncludedFolderDetailsForIds(folder_A25, folder_A26, folder_A27);
+				.setDecommissioningListType(FOLDERS_TO_TRANSFER);
 
 		transaction.add(rm.newDecommissioningListWithId(list_07)).setTitle("Liste analogique à détruire 2")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_DESTROY).setAlreadyIncludedFolderDetailsForIds(folder_A54, folder_A55, folder_A56);
+				.setDecommissioningListType(FOLDERS_TO_DESTROY);
 
 		//TODO Vérifier, était autrefois dans le filing space B
-		DecommissioningList zeList08 = transaction.add(rm.newDecommissioningListWithId(list_08))
+		transaction.add(rm.newDecommissioningListWithId(list_08))
 				.setTitle("Liste hybride à verser")
 				.setAdministrativeUnit(unitId_20d).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_DEPOSIT).setAlreadyIncludedFolderDetailsForIds(folder_B30, folder_B33, folder_B35)
+				.setDecommissioningListType(FOLDERS_TO_DEPOSIT)
 				.setContainerDetailsFor(containerId_bac08, containerId_bac09);
-		List<DecomListFolderDetail> details = zeList08.getFolderDetails();
-		details.get(0).setContainerRecordId(containerId_bac08);
-		details.get(1).setContainerRecordId(containerId_bac09);
 
 		transaction.add(rm.newDecommissioningListWithId(list_09)).setTitle("Liste électronique à verser")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_DEPOSIT).setAlreadyIncludedFolderDetailsForIds(folder_A57, folder_A58, folder_A59);
+				.setDecommissioningListType(FOLDERS_TO_DEPOSIT);
 
-		DecommissioningList zeList10 = transaction.add(rm.newDecommissioningListWithId(list_10))
+		transaction.add(rm.newDecommissioningListWithId(list_10))
 				.setTitle("Liste avec plusieurs supports à verser").setAdministrativeUnit(unitId_10a)
 				.setDecommissioningListType(FOLDERS_TO_DEPOSIT)
 				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-				.setContainerDetailsFor(containerId_bac11, containerId_bac13)
-				.setAlreadyIncludedFolderDetailsForIds(folder_A42, folder_A43, folder_A44, folder_A48, folder_A49, folder_A50);
-		details = zeList10.getFolderDetails();
-		details.get(0).setContainerRecordId(containerId_bac13);
-		details.get(1).setContainerRecordId(containerId_bac13);
-		details.get(2).setContainerRecordId(containerId_bac13);
-		details.get(4).setContainerRecordId(containerId_bac11);
-		details.get(5).setContainerRecordId(containerId_bac11);
+				.setContainerDetailsFor(containerId_bac11, containerId_bac13);
 
 		transaction.add(rm.newDecommissioningListWithId(list_11)).setTitle("Liste de fermeture traîtée")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_CLOSE).setProcessingUser(dakota_managerInA_userInB)
-				.setProcessingDate(date(2012, 5, 5)).setAlreadyIncludedFolderDetailsForIds(folder_A10, folder_A11,
-				folder_A12, folder_A13, folder_A14, folder_A15);
+				.setProcessingDate(date(2012, 5, 5));
 
 		transaction.add(rm.newDecommissioningListWithId(list_12)).setTitle("Liste de transfert traîtée")
 				.setAdministrativeUnit(unitId_10a)
 				.setDecommissioningListType(FOLDERS_TO_TRANSFER).setProcessingUser(dakota_managerInA_userInB)
 				.setProcessingDate(date(2012, 5, 5)).setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setContainerDetailsFor(containerId_bac10, containerId_bac11, containerId_bac12)
-				.setAlreadyIncludedFolderDetailsForIds(folder_A45, folder_A46, folder_A47, folder_A48, folder_A49,
-						folder_A50, folder_A51, folder_A52, folder_A53, folder_A54, folder_A55, folder_A56, folder_A57, folder_A58, folder_A59);
+				.setContainerDetailsFor(containerId_bac10, containerId_bac11, containerId_bac12);
 
 		transaction.add(rm.newDecommissioningListWithId(list_13)).setTitle("Liste de transfert uniforme traîtée")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_TRANSFER).setProcessingUser(dakota_managerInA_userInB)
-				.setProcessingDate(date(2012, 5, 5)).setContainerDetailsFor(containerId_bac13)
-				.setAlreadyIncludedFolderDetailsForIds(folder_A42, folder_A43, folder_A44);
+				.setProcessingDate(date(2012, 5, 5)).setContainerDetailsFor(containerId_bac13);
 
 		transaction.add(rm.newDecommissioningListWithId(list_14)).setTitle("Liste de versement traîtée")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_DEPOSIT).setProcessingUser(dakota_managerInA_userInB)
-				.setProcessingDate(date(2012, 5, 5)).setContainerDetailsFor(containerId_bac05)
-				.setAlreadyIncludedFolderDetailsForIds(folder_A79, folder_A80, folder_A81, folder_A82, folder_A83,
-						folder_A84, folder_A85, folder_A86, folder_A87, folder_A88, folder_A89, folder_A90, folder_A91,
-						folder_A92, folder_A93);
+				.setProcessingDate(date(2012, 5, 5)).setContainerDetailsFor(containerId_bac05);
 
 		transaction.add(rm.newDecommissioningListWithId(list_15)).setTitle("Liste de versement uniforme traîtée")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_DEPOSIT).setProcessingUser(dakota_managerInA_userInB)
-				.setProcessingDate(date(2012, 5, 5)).setContainerDetailsFor(containerId_bac04)
-				.setAlreadyIncludedFolderDetailsForIds(folder_A94, folder_A95, folder_A96);
+				.setProcessingDate(date(2012, 5, 5)).setContainerDetailsFor(containerId_bac04);
 
-		DecommissioningList zeList16 = transaction.add(rm.newDecommissioningListWithId(list_16)
+		transaction.add(rm.newDecommissioningListWithId(list_16)
 				.setTitle("Liste analogique à transférer en contenants").setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setAdministrativeUnit(unitId_10a).setDecommissioningListType(FOLDERS_TO_TRANSFER)
-				.setContainerDetailsFor(containerId_bac14).setAlreadyIncludedFolderDetailsForIds(folder_A22, folder_A23, folder_A24));
-		for (DecomListFolderDetail detail : zeList16.getFolderDetails()) {
-			detail.setContainerRecordId(containerId_bac14);
-		}
+				.setContainerDetailsFor(containerId_bac14));
 
-		DecommissioningList zeList17 = transaction.add(rm.newDecommissioningListWithId(list_17))
+		transaction.add(rm.newDecommissioningListWithId(list_17))
 				.setTitle("Liste à verser").setAdministrativeUnit(unitId_10a)
 				.setDecommissioningListType(FOLDERS_TO_DEPOSIT)
 				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-				.setContainerDetailsFor(containerId_bac11)
-				.setAlreadyIncludedFolderDetailsForIds(folder_A48, folder_A49, folder_A50);
-		details = zeList17.getFolderDetails();
-		details.get(1).setContainerRecordId(containerId_bac11);
-		details.get(2).setContainerRecordId(containerId_bac11);
+				.setContainerDetailsFor(containerId_bac11);
 
 		//TODO Vérifier, était autrefois dans le filing space B
-		DecommissioningList zeList18 = transaction.add(rm.newDecommissioningListWithId(list_18))
+		transaction.add(rm.newDecommissioningListWithId(list_18))
 				.setTitle("Liste hybride à verser avec tri")
 				.setAdministrativeUnit(unitId_20d).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_DEPOSIT).setAlreadyIncludedFolderDetailsForIds(folder_B30, folder_B33)
+				.setDecommissioningListType(FOLDERS_TO_DEPOSIT)
 				.setContainerDetailsFor(containerId_bac08, containerId_bac09);
-		details = zeList18.getFolderDetails();
-		details.get(0).setContainerRecordId(containerId_bac08);
-		details.get(1).setContainerRecordId(containerId_bac09).setReversedSort(true);
 
 		//TODO Vérifier, était autrefois dans le filing space B
-		DecommissioningList zeList19 = transaction.add(rm.newDecommissioningListWithId(list_19))
+		transaction.add(rm.newDecommissioningListWithId(list_19))
 				.setTitle("Liste hybride à détruire avec tri")
 				.setAdministrativeUnit(unitId_20d).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_DESTROY).setAlreadyIncludedFolderDetailsForIds(folder_B30, folder_B33)
+				.setDecommissioningListType(FOLDERS_TO_DESTROY)
 				.setContainerDetailsFor(containerId_bac08, containerId_bac09);
-		details = zeList19.getFolderDetails();
-		details.get(0).setContainerRecordId(containerId_bac08);
-		details.get(1).setContainerRecordId(containerId_bac09).setReversedSort(true);
 
 		transaction.add(rm.newDecommissioningListWithId(list_20)).setTitle("Liste hybride à verser")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_DEPOSIT).setAlreadyIncludedFolderDetailsForIds(folder_A19, folder_A20, folder_A21);
+				.setDecommissioningListType(FOLDERS_TO_DEPOSIT);
 
 		transaction.add(rm.newDecommissioningListWithId(list_21)).setTitle("Liste hybride à détruire")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_DESTROY).setAlreadyIncludedFolderDetailsForIds(folder_A19, folder_A20, folder_A21);
+				.setDecommissioningListType(FOLDERS_TO_DESTROY);
 
 		transaction.add(rm.newDecommissioningListWithId(list_23)).setTitle("Liste à approuver")
 				.setAdministrativeUnit(unitId_10a)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_CLOSE).setAlreadyIncludedFolderDetailsForIds(folder_A01, folder_A02, folder_A03)
+				.setDecommissioningListType(FOLDERS_TO_CLOSE)
 				.setApprovalRequest(admin_userIdWithAllAccess).setApprovalRequestDate(new LocalDate());
 
 		DecomListValidation validationDakota = new DecomListValidation(dakota_managerInA_userInB, new LocalDate().minusDays(1))
@@ -1170,7 +1145,7 @@ public class RMTestRecords {
 		transaction.add(rm.newDecommissioningListWithId(list_24)).setTitle("Liste approuvée et validée")
 				.setAdministrativeUnit(unitId_10a)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_CLOSE).setAlreadyIncludedFolderDetailsForIds(folder_A01, folder_A02, folder_A03)
+				.setDecommissioningListType(FOLDERS_TO_CLOSE)
 				.setApprovalRequest(chuckNorris).setApprovalRequestDate(new LocalDate())
 				.setApprovalUser(getAdmin()).setApprovalDate(new LocalDate())
 				.setValidations(asList(validationDakota, validationBob));
@@ -1178,10 +1153,188 @@ public class RMTestRecords {
 		transaction.add(rm.newDecommissioningListWithId(list_25)).setTitle("Autre liste à approuver et valider")
 				.setAdministrativeUnit(unitId_10a)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setDecommissioningListType(FOLDERS_TO_CLOSE).setAlreadyIncludedFolderDetailsForIds(folder_A01, folder_A02, folder_A03)
+				.setDecommissioningListType(FOLDERS_TO_CLOSE)
 				.setApprovalRequest(chuckNorris).setApprovalRequestDate(new LocalDate())
 				.addValidationRequest(dakota_managerInA_userInB, new LocalDate())
 				.addValidationRequest(bob_userInAC, new LocalDate());
+	}
+
+	private void setupFoldersInLists(Transaction transaction) {
+		// TODO::JOLA --> Remove all dupe folder from multiple active decom list
+		DecommissioningList zeList01 = getList01();
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList01,
+				asList(folder_A42, folder_A43, folder_A44, folder_A45, folder_A46, folder_A47),
+				FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList01);
+
+		DecommissioningList zeList02 = rm.getDecommissioningList(list_02);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList02,
+				asList(folder_A54, folder_A55, folder_A56), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		for (DecomListFolderDetail detail : zeList02.getFolderDetails()) {
+			detail.setContainerRecordId(containerId_bac10);
+		}
+		transaction.add(zeList02);
+
+		DecommissioningList zeList03 = rm.getDecommissioningList(list_03);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList03,
+				asList(folder_A01, folder_A02, folder_A03), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList03);
+
+		DecommissioningList zeList04 = rm.getDecommissioningList(list_04);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList04,
+				asList(folder_A22, folder_A23, folder_A24), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList04);
+
+		DecommissioningList zeList05 = rm.getDecommissioningList(list_05);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList05,
+				asList(folder_A19, folder_A20, folder_A21), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList05);
+
+		DecommissioningList zeList06 = rm.getDecommissioningList(list_06);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList06,
+				asList(folder_A25, folder_A26, folder_A27), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList06);
+
+		DecommissioningList zeList07 = rm.getDecommissioningList(list_07);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList07,
+				asList(folder_A54, folder_A55, folder_A56), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList07);
+
+		DecommissioningList zeList08 = rm.getDecommissioningList(list_08);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList08,
+				asList(folder_B30, folder_B33, folder_B35), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		List<DecomListFolderDetail> details = zeList08.getFolderDetails();
+		details.get(0).setContainerRecordId(containerId_bac08);
+		details.get(1).setContainerRecordId(containerId_bac09);
+		transaction.add(zeList08);
+
+		DecommissioningList zeList09 = rm.getDecommissioningList(list_09);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList09,
+				asList(folder_A57, folder_A58, folder_A59), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList09);
+
+		DecommissioningList zeList10 = rm.getDecommissioningList(list_10);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList10,
+				asList(folder_A42, folder_A43, folder_A44, folder_A48, folder_A49, folder_A50),
+				FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		details = zeList10.getFolderDetails();
+		details.get(0).setContainerRecordId(containerId_bac13);
+		details.get(1).setContainerRecordId(containerId_bac13);
+		details.get(2).setContainerRecordId(containerId_bac13);
+		details.get(4).setContainerRecordId(containerId_bac11);
+		details.get(5).setContainerRecordId(containerId_bac11);
+		transaction.add(zeList10);
+
+		DecommissioningList zeList11 = rm.getDecommissioningList(list_11);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList11,
+				asList(folder_A10, folder_A11, folder_A12, folder_A13, folder_A14, folder_A15),
+				FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList11);
+
+		DecommissioningList zeList12 = rm.getDecommissioningList(list_12);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList12,
+				asList(folder_A45, folder_A46, folder_A47, folder_A48, folder_A49, folder_A50, folder_A51, folder_A52,
+						folder_A53, folder_A54, folder_A55, folder_A56, folder_A57, folder_A58, folder_A59),
+				FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList12);
+
+		DecommissioningList zeList13 = rm.getDecommissioningList(list_13);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList13,
+				asList(folder_A42, folder_A43, folder_A44), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList13);
+
+		DecommissioningList zeList14 = rm.getDecommissioningList(list_14);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList14,
+				asList(folder_A79, folder_A80, folder_A81, folder_A82, folder_A83, folder_A84, folder_A85, folder_A86,
+						folder_A87, folder_A88, folder_A89, folder_A90, folder_A91, folder_A92, folder_A93),
+				FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList14);
+
+		DecommissioningList zeList15 = rm.getDecommissioningList(list_15);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList15,
+				asList(folder_A94, folder_A95, folder_A96), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList15);
+
+		DecommissioningList zeList16 = rm.getDecommissioningList(list_16);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList16,
+				asList(folder_A22, folder_A23, folder_A24), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		for (DecomListFolderDetail detail : zeList16.getFolderDetails()) {
+			detail.setContainerRecordId(containerId_bac14);
+		}
+		transaction.add(zeList16);
+
+		DecommissioningList zeList17 = rm.getDecommissioningList(list_17);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList17,
+				asList(folder_A48, folder_A49, folder_A50), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		details = zeList17.getFolderDetails();
+		details.get(1).setContainerRecordId(containerId_bac11);
+		details.get(2).setContainerRecordId(containerId_bac11);
+		transaction.add(zeList17);
+
+		DecommissioningList zeList18 = rm.getDecommissioningList(list_18);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList18,
+				asList(folder_B30, folder_B33), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		details = zeList18.getFolderDetails();
+		details.get(0).setContainerRecordId(containerId_bac08);
+		details.get(1).setContainerRecordId(containerId_bac09).setReversedSort(true);
+		transaction.add(zeList18);
+
+		DecommissioningList zeList19 = rm.getDecommissioningList(list_19);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList19,
+				asList(folder_B30, folder_B33), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		details = zeList19.getFolderDetails();
+		details.get(0).setContainerRecordId(containerId_bac08);
+		details.get(1).setContainerRecordId(containerId_bac09).setReversedSort(true);
+		transaction.add(zeList19);
+
+		DecommissioningList zeList20 = rm.getDecommissioningList(list_20);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList20,
+				asList(folder_A19, folder_A20, folder_A21), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList20);
+
+		DecommissioningList zeList21 = rm.getDecommissioningList(list_21);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList21,
+				asList(folder_A19, folder_A20, folder_A21), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList21);
+
+		DecommissioningList zeList23 = rm.getDecommissioningList(list_23);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList23,
+				asList(folder_A01, folder_A02, folder_A03), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList23);
+
+		DecommissioningList zeList24 = rm.getDecommissioningList(list_24);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList24,
+				asList(folder_A01, folder_A02, folder_A03), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList24);
+
+		DecommissioningList zeList25 = rm.getDecommissioningList(list_25);
+		DecomListUtil.addFolderDetailsInDecomList(collection, appLayerFactory, zeList25,
+				asList(folder_A01, folder_A02, folder_A03), FolderDetailStatus.INCLUDED);
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+		transaction.add(zeList25);
 	}
 
 	public RMTestRecords withDocumentDecommissioningLists() {
@@ -1226,59 +1379,79 @@ public class RMTestRecords {
 		transaction.add(rm.newDecommissioningListWithId(list_30)).setTitle("Liste de transfert de documents traîtées")
 				.setAdministrativeUnit(unitId_10a)
 				.setDecommissioningListType(DOCUMENTS_TO_TRANSFER).setProcessingUser(dakota_managerInA_userInB)
-				.setProcessingDate(date(2012, 5, 5)).setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setDocuments(documentsWhithDifferentCopyForEach(folder_A45, folder_A46, folder_A47, folder_A48, folder_A49));
+				.setProcessingDate(date(2012, 5, 5)).setOriginArchivisticStatus(OriginStatus.ACTIVE);
 
 		// à transférer
 		transaction.add(rm.newDecommissioningListWithId(list_31))
 				.setTitle("Liste de transfert de documents").setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setAdministrativeUnit(unitId_10a).setDecommissioningListType(DOCUMENTS_TO_TRANSFER)
-				.setDocuments(documentsWhithDifferentCopyForEach(folder_A22, folder_A23, folder_A24));
+				.setAdministrativeUnit(unitId_10a).setDecommissioningListType(DOCUMENTS_TO_TRANSFER);
 
 		// ------------
 		// versée
 		transaction.add(rm.newDecommissioningListWithId(list_32)).setTitle("Liste de versement de documents traîtées")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setDecommissioningListType(DOCUMENTS_TO_DEPOSIT).setProcessingUser(dakota_managerInA_userInB)
-				.setProcessingDate(date(2012, 5, 5))
-				.setDocuments(documentsWhithDifferentCopyForEach(folder_A79, folder_A80, folder_A81, folder_A82, folder_A83,
-						folder_A84, folder_A85, folder_A86, folder_A87, folder_A88, folder_A89, folder_A90, folder_A91,
-						folder_A92, folder_A93));
+				.setProcessingDate(date(2012, 5, 5));
 
 		//semi-actif à verser
 		transaction.add(rm.newDecommissioningListWithId(list_33))
 				.setTitle("Liste de versement de documents semi-actifs").setAdministrativeUnit(unitId_10a)
 				.setDecommissioningListType(DOCUMENTS_TO_DEPOSIT)
 				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-				.setContainerDetailsFor(containerId_bac11)
-				.setDocuments(documentsWhithDifferentCopyForEach(folder_A48, folder_A49, folder_A50));
+				.setContainerDetailsFor(containerId_bac11);
 
 		// actif à verser
 		transaction.add(rm.newDecommissioningListWithId(list_34)).setTitle("Liste de versement de documents semi-actifs")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setDecommissioningListType(DOCUMENTS_TO_DEPOSIT)
-				.setDocuments(documentsWhithDifferentCopyForEach(folder_A19, folder_A20, folder_A21));
+				.setDecommissioningListType(DOCUMENTS_TO_DEPOSIT);
 
 		// ------------
 		// actif à détruire
 		transaction.add(rm.newDecommissioningListWithId(list_35)).setTitle("Liste de destruction de documents actifs")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setDecommissioningListType(DOCUMENTS_TO_DESTROY)
-				.setDocuments(documentsWhithDifferentCopyForEach(folder_A19, folder_A20, folder_A21));
+				.setDecommissioningListType(DOCUMENTS_TO_DESTROY);
 
 		// semi-actif à détruire
 		transaction.add(rm.newDecommissioningListWithId(list_36)).setTitle("Liste de destruction de documents semi-actifs")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-				.setDecommissioningListType(DOCUMENTS_TO_DESTROY)
-				.setDocuments(documentsWhithDifferentCopyForEach(folder_A54, folder_A55, folder_A56));
+				.setDecommissioningListType(DOCUMENTS_TO_DESTROY);
 
 		try {
  			recordServices.execute(transaction);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
+		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
+
+		setupDocumentsInLists();
 
 		return this;
+	}
+
+	private void setupDocumentsInLists() {
+
+		DecomListUtil.setDocumentsInDecomList(collection, appLayerFactory, rm.getDecommissioningList(list_30),
+				documentsWhithDifferentCopyForEach(folder_A45, folder_A46, folder_A47, folder_A48, folder_A49));
+
+		DecomListUtil.setDocumentsInDecomList(collection, appLayerFactory, rm.getDecommissioningList(list_31),
+				documentsWhithDifferentCopyForEach(folder_A22, folder_A23, folder_A24));
+
+		DecomListUtil.setDocumentsInDecomList(collection, appLayerFactory, rm.getDecommissioningList(list_32),
+				documentsWhithDifferentCopyForEach(folder_A79, folder_A80, folder_A81, folder_A82, folder_A83,
+						folder_A84, folder_A85, folder_A86, folder_A87, folder_A88, folder_A89, folder_A90, folder_A91,
+						folder_A92, folder_A93));
+
+		DecomListUtil.setDocumentsInDecomList(collection, appLayerFactory, rm.getDecommissioningList(list_33),
+				documentsWhithDifferentCopyForEach(folder_A48, folder_A49, folder_A50));
+
+		DecomListUtil.setDocumentsInDecomList(collection, appLayerFactory, rm.getDecommissioningList(list_34),
+				documentsWhithDifferentCopyForEach(folder_A19));
+
+		DecomListUtil.setDocumentsInDecomList(collection, appLayerFactory, rm.getDecommissioningList(list_35),
+				documentsWhithDifferentCopyForEach(folder_A20, folder_A21));
+
+		DecomListUtil.setDocumentsInDecomList(collection, appLayerFactory, rm.getDecommissioningList(list_36),
+				documentsWhithDifferentCopyForEach(folder_A54, folder_A55, folder_A56));
 	}
 
 	private List<String> createDocumentsAndReturnThoseWhithDifferentCopyForEach(Transaction transaction,
