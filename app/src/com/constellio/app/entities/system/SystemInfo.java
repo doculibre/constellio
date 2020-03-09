@@ -233,7 +233,7 @@ public class SystemInfo {
 			validationErrors.add(SystemInfo.class, SYSTEM_ERROR_ERROR);
 		}
 		if (isLogContainingSystemError("WARN")) {
-			validationErrors.add(SystemInfo.class, SYSTEM_ERROR_WARNING);
+			validationErrors.addWarning(SystemInfo.class, SYSTEM_ERROR_WARNING);
 		}
 	}
 
