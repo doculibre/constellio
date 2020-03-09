@@ -9,23 +9,18 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
+import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ContentVersion;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.*;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -371,49 +366,69 @@ public abstract class Decommissioner {
 		}
 	}
 
-	protected void cleanupDocumentsIn(Folder folder, boolean purgeMinorVersions, boolean createPDFa) {
-		if (!purgeMinorVersions && !createPDFa) {
+	protected void cleanupDocumentsIn(Folder folder, boolean purgeMinorVersions, boolean createPDFa,
+									  List<DocumentType> deletedDocumentTypes) {
+		if (!purgeMinorVersions && !createPDFa && (deletedDocumentTypes == null || deletedDocumentTypes.isEmpty())) {
 			return;
 		}
-		cleanupDocuments(getAllDocumentsInFolder(folder), purgeMinorVersions, createPDFa, null);
+		cleanupDocuments(getAllDocumentsInFolder(folder), purgeMinorVersions, createPDFa, null, deletedDocumentTypes);
 	}
 
 	protected void cleanupDocuments(
-			List<Document> documents, boolean purgeMinorVersions, boolean createPDFa, DocumentUpdater updater) {
+			List<Document> documents, boolean purgeMinorVersions, boolean createPDFa, DocumentUpdater updater,
+			List<DocumentType> deletedDocumentTypes) {
+		List<Document> destroyedDocuments = new ArrayList<>();
 		for (Document document : documents) {
-			Content content = document.getContent();
-			if (content != null) {
-				if (purgeMinorVersions) {
-					content = purgeMinorVersions(content);
-				}
-				if (createPDFa && content != null) {
-					try {
-						content = createPDFa(content);
-						loggingServices.logPdfAGeneration(document, user);
-					} catch (NullPointerException e) {
-						e.printStackTrace();
-					} catch (RuntimeException e) {
-						List<Throwable> allCauses = getAllCauses(e);
-						for (Throwable cause : allCauses) {
-							if (cause != null && cause instanceof OfficeException) {
-								HashMap<String, Object> errorParameters = new HashMap<>();
-								errorParameters.put("documentId", document.getId());
-								errorParameters.put("documentTitle", document.getTitle());
-								errorParameters.put("hash", content.getId());
-								validationErrors.add(Decommissioner.class, COULD_NOT_GENERATE_PDFA_ERROR, errorParameters);
-								break;
+			boolean deleteDocument;
+			String documentTypeId = document.getType();
+			if (deletedDocumentTypes != null && !deletedDocumentTypes.isEmpty() && StringUtils.isNotBlank(documentTypeId)) {
+				DocumentType documentType = rm.getDocumentType(documentTypeId);
+				deleteDocument = deletedDocumentTypes.contains(documentType);
+			} else {
+				deleteDocument = false;
+			}
+			if (deleteDocument) {
+				destroyedDocuments.add(document);
+			} else {
+				Content content = document.getContent();
+				if (content != null) {
+					if (deleteDocument) {
+						content = null;
+					} else {
+						if (purgeMinorVersions) {
+							content = purgeMinorVersions(content);
+						}
+						if (createPDFa && content != null) {
+							try {
+								content = createPDFa(content);
+								loggingServices.logPdfAGeneration(document, user);
+							} catch (NullPointerException e) {
+								e.printStackTrace();
+							} catch (RuntimeException e) {
+								List<Throwable> allCauses = getAllCauses(e);
+								for (Throwable cause : allCauses) {
+									if (cause != null && cause instanceof OfficeException) {
+										HashMap<String, Object> errorParameters = new HashMap<>();
+										errorParameters.put("documentId", document.getId());
+										errorParameters.put("documentTitle", document.getTitle());
+										errorParameters.put("hash", content.getId());
+										validationErrors.add(Decommissioner.class, COULD_NOT_GENERATE_PDFA_ERROR, errorParameters);
+										break;
+									}
+								}
+								LOGGER.error(String.format("Error creating PDFa from content: %s of document: %s",
+										content.getCurrentVersion().getHash(), document.getId()), e);
 							}
 						}
-						LOGGER.error(String.format("Error creating PDFa from content: %s of document: %s",
-								content.getCurrentVersion().getHash(), document.getId()), e);
 					}
 				}
+				if (updater != null) {
+					updater.update(document);
+				}
+				add(document.setContent(content));
 			}
-			if (updater != null) {
-				updater.update(document);
-			}
-			add(document.setContent(content));
 		}
+		destroyDocuments(destroyedDocuments, updater);
 	}
 
 	protected void destroyDocumentsIn(Folder folder) {
@@ -695,11 +710,11 @@ class TransferringDecommissioner extends Decommissioner {
 					public void update(Document document) {
 						markDocumentTransferred(document);
 					}
-				});
+				}, null);
 	}
 
 	private void processDocumentsIn(Folder folder) {
-		cleanupDocumentsIn(folder, configs.purgeMinorVersionsOnTransfer(), configs.createPDFaOnTransfer());
+		cleanupDocumentsIn(folder, configs.purgeMinorVersionsOnTransfer(), configs.createPDFaOnTransfer(), null);
 	}
 }
 
@@ -753,7 +768,7 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 	}
 
 	private void processDocumentsInDeposited(Folder folder) {
-		cleanupDocumentsIn(folder, shouldPurgeMinorVersions(), shouldCreatePDFa());
+		cleanupDocumentsIn(folder, shouldPurgeMinorVersions(), shouldCreatePDFa(), null);
 	}
 
 	private void processDocumentsInDeleted(Folder folder) {
@@ -798,7 +813,7 @@ class DepositingDecommissioner extends DeactivatingDecommissioner {
 			public void update(Document document) {
 				markDocumentDeposited(document);
 			}
-		});
+		}, null);
 	}
 }
 
@@ -870,6 +885,25 @@ class SortingDecommissioner extends DeactivatingDecommissioner {
 		} else {
 			processDepositedContainer(container, detail);
 		}
+	}
+
+	@Override
+	protected void processDepositedFolder(Folder folder, DecomListFolderDetail detail) {
+		super.processDepositedFolder(folder, detail);
+
+		final List<DocumentType> destroyedDocumentTypes = new ArrayList<>();
+		String folderRetentionRuleId = folder.getRetentionRule();
+		RetentionRule retentionRule = rm.getRetentionRule(folderRetentionRuleId);
+		List<RetentionRuleDocumentType> retentionRuleDocumentTypes = retentionRule.getDocumentTypesDetails();
+		for (RetentionRuleDocumentType retentionRuleDocumentType : retentionRuleDocumentTypes) {
+			if (retentionRuleDocumentType.getDisposalType() == DisposalType.DESTRUCTION) {
+				String destructionDocumentTypeId = retentionRuleDocumentType.getDocumentTypeId();
+				DocumentType destructionDocumentType = rm.getDocumentType(destructionDocumentTypeId);
+				destroyedDocumentTypes.add(destructionDocumentType);
+			}
+		}
+
+		cleanupDocumentsIn(folder, shouldPurgeMinorVersions(), shouldCreatePDFa(), destroyedDocumentTypes);
 	}
 
 	@Override
