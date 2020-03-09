@@ -2,10 +2,7 @@ package com.constellio.app.modules.rm.services.decommissioning;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
-import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import com.constellio.app.modules.rm.model.enums.DisposalType;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
@@ -72,8 +69,8 @@ public abstract class Decommissioner {
 	protected DecommissioningList decommissioningList;
 	private ContentConversionManager conversionManager;
 	private Transaction transaction;
-	private List<Record> recordsToDelete;
-	private List<Record> recordsToDeletePhysically;
+	protected List<Record> recordsToDelete;
+	protected List<Record> recordsToDeletePhysically;
 	private LocalDate processingDate;
 	private User user;
 	private ValidationErrors validationErrors;
@@ -285,13 +282,13 @@ public abstract class Decommissioner {
 	}
 
 	private void saveCertificates(DecommissioningList decommissioningList) {
-		if (!decommissioningList.getDecommissioningListType().isDestroyal()) {
+		if (!(decommissioningList.getDecommissioningListType().isDestroyal() || decommissioningService.isSortable(decommissioningList))) {
 			return;
 		}
 		FileService fileService = modelLayerFactory.getIOServicesFactory()
 				.newFileService();
 		DecomCertificateService service = new DecomCertificateService(rm, searchServices, contentManager, fileService,
-				user, decommissioningList, appLayerFactory);
+				user, decommissioningList, appLayerFactory, decommissioningService);
 		service.computeContents();
 		Content documentsContent = service.getDocumentsContent();
 		Content foldersContent = service.getFoldersContent();
@@ -351,6 +348,28 @@ public abstract class Decommissioner {
 
 	protected void markDocumentDestroyed(Document document) {
 		document.setActualDestructionDateEntered(processingDate);
+	}
+
+	protected boolean isRecordLogicallyOrPhysicallyDeleted(Record record) {
+		boolean logicallyOrPhysicallyDeleted = recordsToDelete.contains(record) || recordsToDeletePhysically.contains(record);
+		if (!logicallyOrPhysicallyDeleted) {
+			// RecordImpl#equals validates many fields, so let's check with only the id
+			for (Record recordToDelete : recordsToDelete) {
+				if (recordToDelete.getId().equals(record.getId())) {
+					logicallyOrPhysicallyDeleted = true;
+					break;
+				}
+			}
+			if (!logicallyOrPhysicallyDeleted) {
+				for (Record recordToDeletePhysically : recordsToDeletePhysically) {
+					if (recordToDeletePhysically.getId().equals(record.getId())) {
+						logicallyOrPhysicallyDeleted = true;
+						break;
+					}
+				}
+			}
+		}
+		return logicallyOrPhysicallyDeleted;
 	}
 
 	protected void removeFolderFromContainer(Folder folder) {
@@ -437,15 +456,18 @@ public abstract class Decommissioner {
 
 	protected void destroyDocuments(List<Document> documents, DocumentUpdater updater) {
 		for (Document document : documents) {
-			if (document.getContent() != null) {
-				destroyContent(document.getContent());
-			}
-			if (updater != null) {
-				updater.update(document);
-			}
-			add(document.setContent(null));
-			if (configs.deleteDocumentRecordsWithDestruction()) {
-				physicallyDelete(document);
+			// Might have already been deleted
+			if (!isRecordLogicallyOrPhysicallyDeleted(document.getWrappedRecord())) {
+				if (document.getContent() != null) {
+					destroyContent(document.getContent());
+				}
+				if (updater != null) {
+					updater.update(document);
+				}
+				add(document.setContent(null));
+				if (configs.deleteDocumentRecordsWithDestruction()) {
+					physicallyDelete(document);
+				}
 			}
 		}
 	}
@@ -493,7 +515,7 @@ public abstract class Decommissioner {
 		return rm.wrapDocuments(searchServices.search(query));
 	}
 
-	private List<Document> getAllDocumentsInFolder(Folder folder) {
+	protected List<Document> getAllDocumentsInFolder(Folder folder) {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.documentSchemaType())
 				.where(rm.documentFolder()).isEqualTo(folder));
 		return rm.wrapDocuments(searchServices.search(query));
@@ -747,11 +769,11 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 		//			e.printStackTrace();
 		//		}
 		//add(folder);
+		destroyedFolders.add(folder.getId());
+		processDocumentsInDeleted(folder);
 		if (configs.deleteFolderRecordsWithDestruction()) {
 			physicallyDelete(folder);
 		}
-		destroyedFolders.add(folder.getId());
-		processDocumentsInDeleted(folder);
 	}
 
 	protected void processDeletedContainer(ContainerRecord container, DecomListContainerDetail detail) {
@@ -904,6 +926,24 @@ class SortingDecommissioner extends DeactivatingDecommissioner {
 		}
 
 		cleanupDocumentsIn(folder, shouldPurgeMinorVersions(), shouldCreatePDFa(), destroyedDocumentTypes);
+
+		boolean destroyFolder;
+		if (folder.getMediaType() == FolderMediaType.ELECTRONIC) {
+			boolean allFolderDocumentsDeleted = true;
+			List<Document> folderDocuments = getAllDocumentsInFolder(folder);
+			for (Document folderDocument : folderDocuments) {
+				if (!isRecordLogicallyOrPhysicallyDeleted(folderDocument.getWrappedRecord())) {
+					allFolderDocumentsDeleted = false;
+					break;
+				}
+			}
+			destroyFolder = allFolderDocumentsDeleted;
+		} else {
+			destroyFolder = false;
+		}
+		if (destroyFolder) {
+			processDeletedFolder(folder, detail);
+		}
 	}
 
 	@Override
