@@ -9,6 +9,7 @@ import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocu
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
+import com.constellio.app.modules.rm.model.ExternalLinkType;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -16,6 +17,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.ExternalLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
@@ -178,6 +180,9 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(Trigger.DEFAULT_SCHEMA, Trigger.class);
 		wrappers.put(TriggerAction.DEFAULT_SCHEMA, Trigger.class);
 		wrappers.put(MoveInFolderTriggerAction.DEFAULT_SCHEMA, MoveInFolderTriggerAction.class);
+
+		wrappers.put(ExternalLink.DEFAULT_SCHEMA, ExternalLink.class);
+		wrappers.put(ExternalLinkType.DEFAULT_SCHEMA, ExternalLinkType.class);
 
 
 		System.out.println(header());
