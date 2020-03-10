@@ -3,8 +3,16 @@ package com.constellio.app.ui.framework.buttons;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.guide.GuideManager;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.vaadin.navigator.View;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HasComponents;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 
 import java.util.HashMap;
 import java.util.List;
@@ -67,7 +75,9 @@ public class GuideConfigButton extends WindowButton {
 			windowLayout.addComponent(cellLayout);
 		}
 
-		windowLayout.addComponent(buildButtonsLayout());
+		HorizontalLayout buttonLayout = buildButtonsLayout();
+		windowLayout.addComponent(buttonLayout);
+		windowLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
 		VerticalLayout bottomMargin = new VerticalLayout();
 		bottomMargin.setHeight(BOTTOM_MARGIN_HEIGHT);
 		windowLayout.addComponent(bottomMargin);
@@ -101,7 +111,7 @@ public class GuideConfigButton extends WindowButton {
 	}
 
 	private HorizontalLayout buildButtonsLayout() {
-		HorizontalLayout buttonsLayout = new HorizontalLayout();
+		I18NHorizontalLayout buttonsLayout = new I18NHorizontalLayout();
 		buttonsLayout.addComponent(buildSaveButton());
 		buttonsLayout.addComponent(buildCancelButton());
 		buttonsLayout.setSpacing(true);
