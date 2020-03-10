@@ -6,7 +6,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class MoveInFolderTriggerAction extends TriggerAction {
 
-	public static final String SCHEMA = SCHEMA_TYPE + "_moveInFolder";
+	public static final String SCHEMA_LOCAL_CODE = "moveInFolder";
+	public static final String SCHEMA = SCHEMA_TYPE + "_" + SCHEMA_LOCAL_CODE;
 
 	public static final String FOLDER_TITLE = "folderTitle";
 	public static final String FOLDER_TYPE = "folderType";

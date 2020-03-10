@@ -27,6 +27,11 @@ import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.UserFunction;
+import com.constellio.app.modules.rm.wrappers.triggers.Trigger;
+import com.constellio.app.modules.rm.wrappers.triggers.TriggerAction;
+import com.constellio.app.modules.rm.wrappers.triggers.TriggerActionType;
+import com.constellio.app.modules.rm.wrappers.triggers.TriggerType;
+import com.constellio.app.modules.rm.wrappers.triggers.actions.MoveInFolderTriggerAction;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
@@ -167,6 +172,12 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(SIParchive.SCHEMA, SIParchive.class);
 		wrappers.put(YearType.DEFAULT_SCHEMA, YearType.class);
 		wrappers.put(UserFunction.DEFAULT_SCHEMA, UserFunction.class);
+
+		wrappers.put(TriggerType.DEFAULT_SCHEMA, TriggerType.class);
+		wrappers.put(TriggerActionType.DEFAULT_SCHEMA, TriggerActionType.class);
+		wrappers.put(Trigger.DEFAULT_SCHEMA, Trigger.class);
+		wrappers.put(TriggerAction.DEFAULT_SCHEMA, Trigger.class);
+		wrappers.put(MoveInFolderTriggerAction.DEFAULT_SCHEMA, MoveInFolderTriggerAction.class);
 
 
 		System.out.println(header());
@@ -372,15 +383,6 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		String schemaTypeCall = schemaTypeCallerFor(schema);
 		stringBuilder.append("\n\tpublic Stream<" + wrapperName + "> " + StringUtils.uncapitalize(wrapperName) + "Stream() {");
 		stringBuilder.append("\n\t\treturn streamFromCache(" + schemaTypeCall + ",this::wrap" + wrapperName + ");");
-		stringBuilder.append("\n\t}\n");
-
-		stringBuilder.append("\n\tpublic Stream<" + wrapperName + "> " + StringUtils.uncapitalize(wrapperName) + "Stream(LogicalSearchQuery query) {");
-		stringBuilder.append("\n\t\treturn streamFromCache(" + schemaTypeCall + ",query,this::wrap" + wrapperName + ");");
-		stringBuilder.append("\n\t}\n");
-
-
-		stringBuilder.append("\n\tpublic Stream<" + wrapperName + "> " + StringUtils.uncapitalize(wrapperName) + "Stream(LogicalSearchCondition condition) {");
-		stringBuilder.append("\n\t\treturn streamFromCache(" + schemaTypeCall + ",condition,this::wrap" + wrapperName + ");");
 		stringBuilder.append("\n\t}\n");
 	}
 

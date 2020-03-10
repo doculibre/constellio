@@ -19,4 +19,13 @@ public class TriggerAction extends RecordWrapper {
 	public TriggerAction(Record record, MetadataSchemaTypes types, String schema) {
 		super(record, types, schema);
 	}
+
+	public String getType() {
+		return get(TYPE);
+	}
+
+	public TriggerAction setType(String type) {
+		set(TYPE, type);
+		return this;
+	}
 }

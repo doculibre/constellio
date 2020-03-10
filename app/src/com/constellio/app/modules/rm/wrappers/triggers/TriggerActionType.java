@@ -22,4 +22,18 @@ public class TriggerActionType extends RecordWrapper implements SchemaLinkingTyp
 	public String getLinkedSchema() {
 		return get(LINKED_SCHEMA);
 	}
+
+	public TriggerActionType setLinkedSchema(String linkedSchema) {
+		set(LINKED_SCHEMA, linkedSchema);
+		return this;
+	}
+
+	public String getCode() {
+		return get(CODE);
+	}
+
+	public TriggerActionType setCode(String code) {
+		set(CODE, code);
+		return this;
+	}
 }
