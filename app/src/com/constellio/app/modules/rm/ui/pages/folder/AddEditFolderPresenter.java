@@ -66,6 +66,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.vaadin.ui.Field;
@@ -126,6 +127,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	private Map<String, String> params;
 	private RMModuleExtensions rmModuleExtensions;
 	private transient MediumTypeService mediumTypeService;
+	private String mainCopyRuleEnteredAutomaticlyAssigned;
+	private boolean isMainCopyRuleEnteredAutomaticalyCannotBeAssigned;
+	private MetadataSchemasManager metadataSchemasManager;
 
 	public AddEditFolderPresenter(AddEditFolderView view, RecordVO recordVO) {
 		super(view, Folder.DEFAULT_SCHEMA);
@@ -133,6 +137,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				.forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
 
 		initTransientObjects();
+
+		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 
 		if (recordVO != null) {
 			FolderVO folderVO;
@@ -853,6 +859,24 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 	}
 
+	public boolean isMainCategoryEnteredAutomaticlyAssigned(Record record) {
+		if (mainCopyRuleEnteredAutomaticlyAssigned != null) {
+			List<Metadata> modifiedMetadataList = record.getModifiedMetadataList(metadataSchemasManager.getSchemaTypes(view.getCollection()));
+
+			if (modifiedMetadataList != null && modifiedMetadataList.size() == 1) {
+				Metadata modifedMetadata = modifiedMetadataList.get(0);
+
+				String mainCopyRuleIdEntered = record.get(modifedMetadata);
+				if (modifedMetadata.getCode().equals(rmSchemasRecordsServices.folder.mainCopyRuleIdEntered().getCode())
+					&& mainCopyRuleIdEntered != null && mainCopyRuleIdEntered.equals(mainCopyRuleEnteredAutomaticlyAssigned)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	private void adjustCopyRetentionRuleField() {
 		FolderCopyRuleField field = (FolderCopyRuleField) view.getForm().getCustomField(Folder.MAIN_COPY_RULE_ID_ENTERED);
 		if (field == null) {
@@ -868,6 +892,13 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			field.setFieldValue(null);
 		} else if (applicableCopyRules.size() == 1) {
 			CopyRetentionRule mainCopyRule = applicableCopyRules.get(0);
+
+			if (mainCopyRuleEnteredAutomaticlyAssigned == null && folderVO.getMainCopyRuleIdEntered() == null && !isMainCopyRuleEnteredAutomaticalyCannotBeAssigned) {
+				mainCopyRuleEnteredAutomaticlyAssigned = mainCopyRule.getId();
+			}
+
+			isMainCopyRuleEnteredAutomaticalyCannotBeAssigned = true;
+
 			folderVO.setMainCopyRuleEntered(mainCopyRule.getId());
 			field.setFieldValue(mainCopyRule.getId());
 		} else if (folder.getMainCopyRule() != null) {

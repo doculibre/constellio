@@ -98,6 +98,13 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 			}
 
 			@Override
+			public void forceCancelSaveOfForm(ForceCancelSaveOfFormParams forceCancelSaveOfFormParams) {
+				if (presenter.isMainCategoryEnteredAutomaticlyAssigned(forceCancelSaveOfFormParams.getRecord())) {
+					forceCancelSaveOfFormParams.doNotShowConfirmationMessage();
+				}
+			}
+
+			@Override
 			public boolean validateFields() {
 				if (validateRequiredFields()) {
 					return true;
@@ -173,6 +180,7 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 
 		return recordForm;
 	}
+
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
