@@ -28,8 +28,8 @@ import com.vaadin.ui.Image;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ViewableRecordVOContainer extends IndexedContainer implements ItemSetChangeNotifier, RecordVOContainer {
 
@@ -300,7 +300,7 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(currentUser);
 		RecordVO recordVO = recordVOContainer.getRecordVO(itemId);
-		SearchResultVO searchResultVO = new SearchResultVO(index, recordVO, new HashMap<String, List<String>>());
+		SearchResultVO searchResultVO = new SearchResultVO(index, recordVO, recordVOContainer.getHighlights(itemId));
 		SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, null, null, null, null);
 		return searchResultDisplay;
 	}
@@ -308,6 +308,11 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 	@Override
 	public List<MetadataSchemaVO> getSchemas() {
 		return recordVOContainer.getSchemas();
+	}
+
+	@Override
+	public Map<String, List<String>> getHighlights(Object itemId) {
+		return recordVOContainer.getHighlights(itemId);
 	}
 
 }

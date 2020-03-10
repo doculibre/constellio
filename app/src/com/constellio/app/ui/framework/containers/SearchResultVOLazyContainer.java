@@ -25,7 +25,9 @@ import org.vaadin.addons.lazyquerycontainer.QueryFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SearchResultVOLazyContainer extends LazyQueryContainer implements RecordVOContainer {
 
@@ -69,6 +71,11 @@ public class SearchResultVOLazyContainer extends LazyQueryContainer implements R
 
 	public List<MetadataSchemaVO> getSchemas() {
 		return getSchemaVOs(dataProvider);
+	}
+
+	@Override
+	public Map<String, List<String>> getHighlights(Object itemId) {
+		return new HashMap();
 	}
 
 	private static List<MetadataSchemaVO> getSchemaVOs(SearchResultVODataProvider dataProvider) {

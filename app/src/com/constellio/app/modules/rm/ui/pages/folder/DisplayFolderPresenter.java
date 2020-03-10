@@ -104,6 +104,7 @@ import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -1431,16 +1432,39 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		folderContentDataProvider = new RecordVODataProvider(Arrays.asList(foldersSchemaVO, documentsSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				if (includeTree) {
-					return getFolderContentQuery(folderVO.getId(), true).setFreeTextQuery(value);
+				String userSearchExpression = filterSolrOperators(value);
+				if (!StringUtils.isBlank(value)) {
+					LogicalSearchQuery logicalSearchQuery;
+					if (includeTree) {
+						logicalSearchQuery = getFolderContentQuery(folderVO.getId(), true).setFreeTextQuery(userSearchExpression);
+						;
+					} else {
+						logicalSearchQuery = getFolderContentQuery(folderVO.getId(), false).setFreeTextQuery(userSearchExpression);
+						;
+					}
+					if (!"*".equals(value)) {
+						logicalSearchQuery.setHighlighting(true);
+					}
+					return logicalSearchQuery;
 				} else {
-					return getFolderContentQuery(folderVO.getId(), false).setFreeTextQuery(value);
+					return getFolderContentQuery(folderVO.getId(), false);
 				}
 			}
 		};
 		folderContentDataProvider.fireDataRefreshEvent();
 		view.setFolderContent(folderContentDataProvider);
 		folderContentTabSelected();
+	}
+
+	protected String filterSolrOperators(String expression) {
+		String userSearchExpression = expression;
+
+		if (StringUtils.isNotBlank(userSearchExpression) && userSearchExpression.startsWith("\"") && userSearchExpression.endsWith("\"")) {
+			userSearchExpression = ClientUtils.escapeQueryChars(userSearchExpression);
+			userSearchExpression = "\"" + userSearchExpression + "\"";
+		}
+
+		return userSearchExpression;
 	}
 
 }
