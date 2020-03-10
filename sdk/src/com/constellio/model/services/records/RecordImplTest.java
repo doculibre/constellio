@@ -12,6 +12,7 @@ import com.constellio.model.entities.records.RecordRuntimeException;
 import com.constellio.model.entities.records.RecordRuntimeException.CannotMerge;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
@@ -97,6 +98,7 @@ public class RecordImplTest extends ConstellioTest {
 	@Mock ZeModifiableStructure anotherStructure;
 	@Mock ZeModifiableStructure aThirdStructure;
 	@Mock StructureFactory stringStructureFactory;
+	@Mock MetadataSchemaType metadataSchemaType;
 
 	@Mock FieldsPopulator copyfieldsPopulator, copyfieldsPopulator2;
 
@@ -116,6 +118,8 @@ public class RecordImplTest extends ConstellioTest {
 						textMetadata, copyMetadata, calculatedMetadata, factoredMetadata, factoredListMetadata));
 		when(zeSchema.getMetadatas()).thenReturn(zeSchemaMetadatas);
 
+		when(metadataSchemaType.getCode()).thenReturn("fakeSchemaType");
+
 		when(zeSchema.getMetadata(multipleTextMetadataCode)).thenReturn(multipleTextMetadata);
 		when(multipleTextMetadata.getLocalCode()).thenReturn(multipleTextMetadataCode);
 		when(multipleTextMetadata.getCode()).thenReturn(theSchemaCode + "_" + multipleTextMetadataCode);
@@ -123,6 +127,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(multipleTextMetadata.getDataStoreType()).thenReturn("ss");
 		when(multipleTextMetadata.getDataStoreCode()).thenReturn(multipleTextMetadataCodeAndType);
 		when(multipleTextMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
+		when(zeSchema.getSchemaType()).thenReturn(metadataSchemaType);
 
 		when(zeSchema.getMetadata(dateMetadataCode)).thenReturn(dateMetadata);
 		when(dateMetadata.getLocalCode()).thenReturn(dateMetadataCode);

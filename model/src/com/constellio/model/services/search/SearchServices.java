@@ -5,6 +5,7 @@ import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.MoreLikeThisDTO;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.Stats.CallStatCompiler;
 import com.constellio.data.dao.services.bigVault.LazyResultsIterator;
@@ -33,7 +34,6 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
@@ -1403,7 +1403,7 @@ public class SearchServices {
 		//			params.set(CommonParams.FL, "id");
 		//
 		//		} else
-		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().getAcceptedFields() != null) {
+		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().getAcceptedFields() != null && !query.getReturnedMetadatas().getAcceptedFields().isEmpty()) {
 			List<String> fields = new ArrayList<>();
 			fields.add("id");
 			fields.add("schema_s");

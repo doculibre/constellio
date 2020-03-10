@@ -17,7 +17,6 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 
-import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static java.util.Arrays.asList;
 import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA_TYPE;
@@ -40,7 +39,9 @@ public class RestApiWithDistributedCacheAcceptanceTest extends BaseDocumentRestf
 
 		modelLayerFactory = getModelLayerFactory();
 		modelLayerFactory2 = getModelLayerFactory("other-instance");
-		linkEventBus(modelLayerFactory, modelLayerFactory2, 1);
+
+
+		//linkEventBus(modelLayerFactory, modelLayerFactory2, 1);
 
 		recordServices2 = modelLayerFactory2.newRecordServices();
 		userServices2 = modelLayerFactory2.newUserServices();

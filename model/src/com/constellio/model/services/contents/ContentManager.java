@@ -1119,7 +1119,6 @@ public class ContentManager implements StatefulService {
 					hashToDelete.add(hash + ".preview");
 					hashToDelete.add(hash + ".thumbnail");
 					hashToDelete.add(hash + ".jpegConversion");
-					hashToDelete.add(hash + ".");
 					getContentDao().deleteFileNameContaining(hash, ".annotation.");
 				}
 				if (!hashToDelete.isEmpty()) {
