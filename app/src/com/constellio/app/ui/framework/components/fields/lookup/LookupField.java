@@ -128,6 +128,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 		}
 	}
 
+	@Override
+	public void setReadOnly(boolean readOnly) {
+		super.setReadOnly(readOnly);
+		if (autoCompleteField != null) {
+			autoCompleteField.setReadOnly(readOnly);
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	public void setProviders(TextInputDataProvider<T> suggestInputDataProvider,
 							 LookupTreeDataProvider<T>... lookupTreeDataProviders) {
