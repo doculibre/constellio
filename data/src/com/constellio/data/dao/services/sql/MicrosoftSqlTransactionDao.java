@@ -43,7 +43,7 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	@Override
 	public void insert(TransactionSqlDTO dto) throws SQLException {
 
-		String insertQuery = "INSERT INTO " + fullTableName + " WITH (TABLOCK) "
+		String insertQuery = "INSERT INTO " + fullTableName
 							 + " (id, transactionUUID,timestamp, logVersion, transactionSummary, content) "
 							 + "VALUES (default, ?, CURRENT_TIMESTAMP, ?, ?, ?)";
 
@@ -57,7 +57,7 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	@Override
 	public void insertBulk(List<TransactionSqlDTO> dtos) throws SQLException {
 
-		String insertQuery = "INSERT INTO " + fullTableName + " WITH (TABLOCK) "
+		String insertQuery = "INSERT INTO " + fullTableName
 							 + " (id, transactionUUID,timestamp, logVersion, transactionSummary, content) "
 							 + "VALUES (default, ?, CURRENT_TIMESTAMP, ?, ?, ?)";
 
@@ -86,7 +86,7 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	@Override
 	public void updateBulk(List<TransactionSqlDTO> dtos) throws SQLException {
 
-		String updateQuery = "UPDATE " + fullTableName + " WITH (TABLOCK) "
+		String updateQuery = "UPDATE " + fullTableName
 							 + "SET timestamp = CURRENT_TIMESTAMP, logVersion = ?, content= ?)) "
 							 + "WHERE transactionUUID = ? ";
 
