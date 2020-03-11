@@ -28,10 +28,12 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadsManager;
+import com.constellio.data.utils.AsyncTaskRegrouper;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import lombok.AllArgsConstructor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -59,6 +61,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.STOP;
+import static org.joda.time.Duration.standardSeconds;
 
 public class SqlServerTransactionLogManager implements SecondTransactionLogManager {
 
@@ -108,6 +111,8 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	private Integer currentLogVersion = null;
 
+	private AsyncTaskRegrouper<TransactionToSend> asyncTaskRegrouper;
+
 	public SqlServerTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices,
 										  RecordDao recordDao, SqlRecordDaoFactory sqlRecordDaoFactory,
 										  ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager,
@@ -137,6 +142,12 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			throw new SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized();
 		}
 
+		if (configuration.isAsyncSQLSecondTransactionLogInsertion()) {
+			this.asyncTaskRegrouper = new AsyncTaskRegrouper<>(standardSeconds(10), this::bulkLogInsert);
+			this.asyncTaskRegrouper.setQueueCapacity(1000);
+			this.asyncTaskRegrouper.start();
+		}
+
 		getUnflushedFolder().mkdirs();
 		//idSequence = newIdSequence();
 		started = true;
@@ -157,6 +168,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		//			destroyAndRebuildSolrCollection();
 		//		}
 	}
+
 
 	@Override
 	public void prepare(String transactionId, BigVaultServerTransaction transaction) {
@@ -193,17 +205,55 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 		String content = transactionContentMap.remove(transactionId);
 
-		tryThreeTimes(() -> {
+		if (asyncTaskRegrouper == null) {
+			tryThreeTimes(() -> {
 
-			sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).insert(createTransactionSqlDto(transactionId, transactionInfo, content, getLogVersion()));
-			return true;
-		});
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).insert(
+						createTransactionSqlDto(transactionId, transactionInfo, content, getLogVersion())
+				);
+				return true;
+			});
 
-		if (!source.toFile().exists()) {
-			throw new RuntimeException("Source does not exist");
+			if (!source.toFile().exists()) {
+				throw new RuntimeException("Source does not exist");
+			}
+
+			Files.delete(source);
+		} else {
+			asyncTaskRegrouper.addAsync(new TransactionToSend(transactionId, content, transactionInfo), () -> {
+				try {
+					Files.delete(source);
+				} catch (IOException e) {
+					e.printStackTrace();
+					exceptionOccured = true;
+				}
+			});
+		}
+	}
+
+	@AllArgsConstructor
+	private static class TransactionToSend {
+		String transactionId;
+		String content;
+		TransactionResponseDTO response;
+
+	}
+
+	private void bulkLogInsert(List<TransactionToSend> transactionToSends) {
+		try {
+			int logVersion = getLogVersion();
+			List<TransactionSqlDTO> dtos = transactionToSends.stream()
+					.map(tx -> createTransactionSqlDto(tx.transactionId, tx.response, tx.content, logVersion))
+					.collect(Collectors.toList());
+			tryThreeTimes(() -> {
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).insertBulk(dtos);
+				return true;
+			});
+		} catch (SQLException e) {
+			e.printStackTrace();
+			exceptionOccured = true;
 		}
 
-		Files.delete(source);
 	}
 
 	@Override

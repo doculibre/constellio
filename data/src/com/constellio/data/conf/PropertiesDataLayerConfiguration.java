@@ -376,6 +376,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public boolean isAsyncSQLSecondTransactionLogInsertion() {
+		return getBoolean("secondTransactionLog.sql.async", true);
+	}
+
+	@Override
 	public String createRandomUniqueKey() {
 		Random random = new Random();
 		return random.nextInt(1000) + "-" + random.nextInt(1000) + "-" + random.nextInt(1000);
@@ -460,6 +465,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	public int getMicrosoftSqlServerloginTimeout() {
 		return getInt("sql.server.loginTimeout", 0);
 	}
+
 
 	@Override
 	public ElectionServiceType getElectionServiceType() {
