@@ -180,7 +180,9 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			ioServices.replaceFileContent(file, contentUnflushed);
 			String content = newReadWriteSqlServices().toLogEntry(transaction);
 
-			transactionContentMap.put(transactionId, content);
+			synchronized (transactionContentMap) {
+				transactionContentMap.put(transactionId, content);
+			}
 		} catch (IOException e) {
 			exceptionOccured = true;
 			throw new RuntimeException(e);
@@ -203,13 +205,16 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 		Path source = FileSystems.getDefault().getPath(getUnflushedFolder().getAbsolutePath(), transactionId);
 
-		String content = transactionContentMap.remove(transactionId);
-
+		String content = null;
+		synchronized (transactionContentMap) {
+			content = transactionContentMap.remove(transactionId);
+		}
 		if (asyncTaskRegrouper == null) {
+			final String finalContent = content;
 			tryThreeTimes(() -> {
 
 				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).insert(
-						createTransactionSqlDto(transactionId, transactionInfo, content, getLogVersion())
+						createTransactionSqlDto(transactionId, transactionInfo, finalContent, getLogVersion())
 				);
 				return true;
 			});
@@ -260,7 +265,10 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	public void cancel(String transactionId) {
 		File transactionFile = new File(getUnflushedFolder().getAbsolutePath(), transactionId);
 		transactionFile.delete();
-		transactionContentMap.remove(transactionId);
+
+		synchronized (transactionContentMap) {
+			transactionContentMap.remove(transactionId);
+		}
 	}
 
 	@Override
