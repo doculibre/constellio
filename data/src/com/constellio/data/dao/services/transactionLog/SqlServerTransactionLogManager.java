@@ -41,7 +41,9 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -175,14 +177,20 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		ensureStarted();
 		ensureNoExceptionOccured();
 		File file = new File(getUnflushedFolder(), transactionId);
-		try {
-			String contentUnflushed = newReadWriteServices().toLogEntry(transaction);
-			ioServices.replaceFileContent(file, contentUnflushed);
-			String content = newReadWriteSqlServices().toLogEntry(transaction);
 
-			synchronized (transactionContentMap) {
-				transactionContentMap.put(transactionId, content);
-			}
+		String contentUnflushed = newReadWriteServices().toLogEntry(transaction);
+		writeBuffered(file, contentUnflushed);
+		String content = newReadWriteSqlServices().toLogEntry(transaction);
+
+		synchronized (transactionContentMap) {
+			transactionContentMap.put(transactionId, content);
+		}
+
+	}
+
+	private void writeBuffered(File file, String content) {
+		try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
+			bufferedWriter.write(content);
 		} catch (IOException e) {
 			exceptionOccured = true;
 			throw new RuntimeException(e);

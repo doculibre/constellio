@@ -23,7 +23,7 @@ public class AsyncTaskRegrouper<T> implements Closeable {
 
 	@Getter
 	@Setter
-	private int queueCapacity = 100;
+	private int queueCapacity = 5000;
 
 	private LinkedBlockingQueue<AsyncTaskRegrouperItem> queue = new LinkedBlockingQueue<>(queueCapacity);
 
@@ -120,7 +120,7 @@ public class AsyncTaskRegrouper<T> implements Closeable {
 		long time = TimeProvider.getLocalDateTime().toDate().getTime();
 		long sendAllBefore = time - (maxDelay.getMillis() - 2 * sleepTime);
 		int queueSize = queue.size();
-		return queueSize >= queueCapacity * 0.8 || (queueSize > 0 && queue.peek().timestamp <= sendAllBefore);
+		return queueSize >= queueCapacity * 0.5 || (queueSize > 0 && queue.peek().timestamp <= sendAllBefore);
 	}
 
 	private void regroup() {
@@ -145,7 +145,11 @@ public class AsyncTaskRegrouper<T> implements Closeable {
 
 	public void addAsync(T item, Runnable callback) {
 		long timestamp = TimeProvider.getLocalDateTime().toDate().getTime();
-		queue.add(new AsyncTaskRegrouperItem<T>(timestamp, item, callback));
+		try {
+			queue.put(new AsyncTaskRegrouperItem<T>(timestamp, item, callback));
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@AllArgsConstructor
