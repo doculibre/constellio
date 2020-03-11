@@ -37,7 +37,7 @@ import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -63,6 +63,7 @@ import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -85,6 +86,8 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -103,6 +106,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.thesaurus.ThesaurusManager;
+import com.constellio.model.services.thesaurus.ThesaurusService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.joda.time.LocalDate;
@@ -124,7 +129,6 @@ import java.util.Set;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.model.services.contents.ContentFactory.isFilename;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -1415,13 +1419,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return returnRecordVO;
 	}
 
-	public void searchRequested(String expression) {
-		ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, null);
-		if (StringUtils.isNotBlank(expression)) {
-			view.navigate().to().simpleSearch(expression);
-		}
-	}
-
 	public void changeFolderContentDataProvider(String value, Boolean includeTree) {
 		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		MetadataSchema documentsSchema = getDocumentsSchema();
@@ -1437,10 +1434,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					LogicalSearchQuery logicalSearchQuery;
 					if (includeTree) {
 						logicalSearchQuery = getFolderContentQuery(folderVO.getId(), true).setFreeTextQuery(userSearchExpression);
-						;
 					} else {
 						logicalSearchQuery = getFolderContentQuery(folderVO.getId(), false).setFreeTextQuery(userSearchExpression);
-						;
 					}
 					if (!"*".equals(value)) {
 						logicalSearchQuery.setHighlighting(true);
@@ -1451,7 +1446,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				}
 			}
 		};
-		folderContentDataProvider.fireDataRefreshEvent();
 		view.setFolderContent(folderContentDataProvider);
 		folderContentTabSelected();
 	}
@@ -1465,6 +1459,38 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 
 		return userSearchExpression;
+	}
+
+	public int getAutocompleteBufferSize() {
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
+	}
+
+	public List<String> getAutocompleteSuggestions(String text) {
+		List<String> suggestions = new ArrayList<>();
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			int minInputLength = 3;
+			int maxResults = 10;
+			String[] excludedRequests = new String[0];
+			String collection = view.getCollection();
+
+			SearchEventServices searchEventServices = new SearchEventServices(collection, modelLayerFactory);
+			ThesaurusManager thesaurusManager = modelLayerFactory.getThesaurusManager();
+			ThesaurusService thesaurusService = thesaurusManager.get(collection);
+
+			List<String> statsSuggestions = searchEventServices
+					.getMostPopularQueriesAutocomplete(text, maxResults, excludedRequests);
+			suggestions.addAll(statsSuggestions);
+			if (thesaurusService != null && statsSuggestions.size() < maxResults) {
+				int thesaurusMaxResults = maxResults - statsSuggestions.size();
+				List<String> thesaurusSuggestions = thesaurusService
+						.suggestSimpleSearch(text, view.getSessionContext().getCurrentLocale(), minInputLength,
+								thesaurusMaxResults, true, searchEventServices);
+				suggestions.addAll(thesaurusSuggestions);
+			}
+		}
+		return suggestions;
 	}
 
 }

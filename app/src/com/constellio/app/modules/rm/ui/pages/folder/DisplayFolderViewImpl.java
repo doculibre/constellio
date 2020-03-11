@@ -20,6 +20,8 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -66,6 +68,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
@@ -88,13 +91,14 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static org.apache.ignite.internal.util.lang.GridFunc.asList;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler, BrowserWindowResizeListener {
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
 
 	public static final String STYLE_NAME = "display-folder";
+	private static final String SEARCH_IN_FOLDER_STYLE_NAME = "header-show-advanced-search-button-popup-hidden";
+
 	public static final String USER_LOOKUP = "user-lookup";
 	private RecordVO recordVO;
 	private String taxonomyCode;
@@ -113,7 +117,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Button displayFolderButton, editFolderButton, addDocumentButton;
 	private Label borrowedLabel;
 	private StringAutocompleteField<String> searchField;
-	private CheckBox checkBoxSearchField;
+	private BaseButton searchButton;
+	private CheckBox includeTreeCheckBox;
+	private VerticalLayout searchLayout;
 
 	private Window documentVersionWindow;
 
@@ -526,14 +532,23 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				contentAndFacetsLayout.addComponent(facetsSliderPanel);
 			}
 
-			if (checkBoxSearchField == null) {
-				checkBoxSearchField = new CheckBox("Inclure l'arborescence");
+			if (includeTreeCheckBox == null) {
+				includeTreeCheckBox = new CheckBox($("DisplayFolderView.includeTree"));
 			}
+			BaseButton searchInFolderButton = new LinkButton($("DisplayFolderView.searchInFolder")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					if (searchLayout != null) {
+						searchLayout.setVisible(!searchLayout.isVisible());
+					}
+				}
+			};
+			searchInFolderButton.addStyleName(SEARCH_IN_FOLDER_STYLE_NAME);
 			if (searchField == null) {
 				searchField = new StringAutocompleteField<String>(new StringAutocompleteField.AutocompleteSuggestionsProvider<String>() {
 					@Override
 					public List<String> suggest(String text) {
-						return asList(text);
+						return presenter.getAutocompleteSuggestions(text);
 					}
 
 					@Override
@@ -543,22 +558,41 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 					@Override
 					public int getBufferSize() {
-						return 0;
+						return presenter.getAutocompleteBufferSize();
 					}
 				});
+				searchButton = new SearchButton() {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						String value = searchField.getValue();
+						presenter.changeFolderContentDataProvider(value, includeTreeCheckBox.getValue());
+					}
+				};
+				searchButton.addStyleName("header-search-button");
+				searchButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 				OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
 					@Override
 					public void onEnterKeyPressed() {
 						String value = searchField.getValue();
-						presenter.changeFolderContentDataProvider(value, checkBoxSearchField.getValue());
+						presenter.changeFolderContentDataProvider(value, includeTreeCheckBox.getValue());
 					}
 				};
 				onEnterHandler.installOn(searchField);
 			}
 
+			if (searchLayout == null) {
+				HorizontalLayout searchFieldLayout = new HorizontalLayout();
+				searchFieldLayout.addComponent(searchField);
+				searchFieldLayout.addComponent(searchButton);
+				searchLayout = new VerticalLayout();
+				searchLayout.addComponents(searchFieldLayout, includeTreeCheckBox);
+				searchLayout.setSpacing(true);
+				searchLayout.setVisible(false);
+			}
+
 			VerticalLayout verticalLayout = new VerticalLayout();
-			verticalLayout.addComponent(searchField);
-			verticalLayout.addComponent(checkBoxSearchField);
+			verticalLayout.addComponent(searchInFolderButton);
+			verticalLayout.addComponent(searchLayout);
 			verticalLayout.addComponent(viewerPanel);
 			tabSheet.replaceComponent(folderContentComponent, folderContentComponent = verticalLayout);
 			viewerPanel.setSelectionActionButtons();
