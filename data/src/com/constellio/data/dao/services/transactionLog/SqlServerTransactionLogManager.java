@@ -518,7 +518,9 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	@Override
 	public void close() {
-
+		if (asyncTaskRegrouper != null) {
+			asyncTaskRegrouper.close();
+		}
 		started = false;
 	}
 
