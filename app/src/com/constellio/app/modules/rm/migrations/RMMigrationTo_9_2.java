@@ -5,6 +5,7 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.triggers.Trigger;
 import com.constellio.app.modules.rm.wrappers.triggers.TriggerAction;
 import com.constellio.app.modules.rm.wrappers.triggers.TriggerActionType;
@@ -91,7 +92,7 @@ public class RMMigrationTo_9_2 extends MigrationHelper implements MigrationScrip
 			triggerSchema.createUndeletable(Trigger.TYPE).setType(REFERENCE).defineReferencesTo(triggerTypeSchema);
 			triggerSchema.createUndeletable(Trigger.CRITERIA).setType(STRUCTURE).defineStructureFactory(CriterionFactory.class);
 			triggerSchema.createUndeletable(Trigger.ACTIONS).setType(REFERENCE).defineReferencesTo(triggerActionSchemaType).setMultivalue(true);
-
+			triggerSchema.createUndeletable(Trigger.TARGET).setType(REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE));
 		}
 	}
 }

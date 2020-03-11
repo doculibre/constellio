@@ -454,4 +454,8 @@ public class RMViews extends CoreViews {
 	public void listBorrowings() {
 		navigator.navigateTo(RMNavigationConfiguration.LIST_BORROWINGS);
 	}
+
+	public void recordTriggerManager(String id) {
+		navigator.navigateTo(RMNavigationConfiguration.RECORD_TRIGGER_MANAGER + "/" + id);
+	}
 }

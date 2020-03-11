@@ -26,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -53,8 +54,6 @@ import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -545,6 +544,12 @@ public class FolderMenuItemActionBehaviors {
 		} catch (Exception e) {
 			showErrorMessage(e.getMessage());
 		}
+	}
+
+	public void navigateToRecordTriggerManager(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Navigation navigation = new Navigation();
+
+		navigation.to(RMViews.class).recordTriggerManager(folderSummary.getId());
 	}
 
 	public void generateReport(Folder folderSummary, MenuItemActionBehaviorParams params) {

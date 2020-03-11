@@ -35,6 +35,7 @@ import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_RETURN;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_RETURN_REMAINDER;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_SHARE;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_TRIGGER_MANAGEMENT;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -194,6 +195,15 @@ public class FolderMenuItemServices {
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).removeFromSelection(folder, params)));
 		}
 
+		if (!filteredActionTypes.contains(FOLDER_TRIGGER_MANAGEMENT.name())) {
+			menuItemActions.add(buildMenuItemAction(FOLDER_TRIGGER_MANAGEMENT.name(),
+					isMenuItemActionPossible(FOLDER_TRIGGER_MANAGEMENT.name(), folder, user, params),
+					$("DisplayFolderView.recordTriggerManager"), FontAwesome.COGS, -1, 1900,
+					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).navigateToRecordTriggerManager(folder, params)));
+		}
+
+
+
 		return menuItemActions;
 	}
 
@@ -245,6 +255,8 @@ public class FolderMenuItemServices {
 				return params.getView() != null &&
 					   (params.getView().getSessionContext().getSelectedRecordIds() != null &&
 						params.getView().getSessionContext().getSelectedRecordIds().contains(record.getId()));
+			case FOLDER_TRIGGER_MANAGEMENT:
+				return folderRecordActionsServices.isEditRecordTriggerPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -283,7 +295,8 @@ public class FolderMenuItemServices {
 		FOLDER_PRINT_LABEL,
 		FOLDER_GENERATE_REPORT,
 		FOLDER_ADD_TO_SELECTION,
-		FOLDER_REMOVE_FROM_SELECTION;
+		FOLDER_REMOVE_FROM_SELECTION,
+		FOLDER_TRIGGER_MANAGEMENT;
 	}
 
 }

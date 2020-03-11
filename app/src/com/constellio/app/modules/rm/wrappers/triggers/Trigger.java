@@ -26,9 +26,12 @@ public class Trigger extends RecordWrapper {
 	//Actions (ref multivaleur TriggerAction)
 	public static final String ACTIONS = "actions";
 
+	public static final String TARGET = "target";
+
 	public String getType() {
 		return get(TYPE);
 	}
+
 
 	public Trigger setType(String type) {
 		set(TYPE, type);
@@ -49,6 +52,15 @@ public class Trigger extends RecordWrapper {
 
 	public Trigger setActions(List<String> actions) {
 		set(ACTIONS, actions);
+		return this;
+	}
+
+	public String getTarget() {
+		return get(TARGET);
+	}
+
+	public Trigger setTarget(String trigger) {
+		set(TARGET, trigger);
 		return this;
 	}
 }

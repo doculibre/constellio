@@ -147,6 +147,10 @@ public class FolderRecordActionsServices {
 		return hasUserReadAccess(record, user) && rmModuleExtensions.isConsultLinkActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
+	public boolean isEditRecordTriggerPossible(Record record, User user) {
+		return hasUserWriteAccess(record, user);
+	}
+
 	public boolean isCopyActionPossible(Record record, User user) {
 		Folder folder = rm.wrapFolder(record);
 		if (!hasUserReadAccess(record, user) ||
