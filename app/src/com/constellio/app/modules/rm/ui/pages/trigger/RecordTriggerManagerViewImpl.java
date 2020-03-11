@@ -1,12 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.trigger;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.ui.pages.cart.CartsListViewImpl;
-import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
-import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
-import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -44,16 +39,11 @@ public class RecordTriggerManagerViewImpl extends BaseViewImpl implements Record
 		return Arrays.asList(buildAddRuleQuickActionButton());
 	}
 
-	//	@Override
-	//	protected boolean isOnlyQuickMenuActionVisible() {
-	//		return true;
-	//	}
-
 	private Button buildAddRuleQuickActionButton() {
-		Button addRuleButton = new BaseButton($("addRule")) {
+		Button addRuleButton = new BaseButton($("RecordTriggerManagerViewImpl.addRule")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				//				navigate().to(RMViews.class)
+				navigate().to(RMViews.class);
 			}
 		};
 
@@ -61,8 +51,13 @@ public class RecordTriggerManagerViewImpl extends BaseViewImpl implements Record
 	}
 
 	@Override
-	public List<Button> getActionMenuButtons() {
-		return Arrays.asList(new Button("aahaha"));
+	protected boolean isOnlyQuickMenuActionVisible() {
+		return true;
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
 	}
 
 	@Override
@@ -79,7 +74,7 @@ public class RecordTriggerManagerViewImpl extends BaseViewImpl implements Record
 
 		verticalLayout.addComponent(recordTable);
 		verticalLayout.setSizeFull();
-		verticalLayout.setMargin(new MarginInfo(true, true));
+		verticalLayout.setMargin(new MarginInfo(true, false));
 		recordTable.setSizeFull();
 		verticalLayout.setExpandRatio(recordTable, 1);
 
@@ -90,35 +85,5 @@ public class RecordTriggerManagerViewImpl extends BaseViewImpl implements Record
 	@Override
 	protected boolean isBreadcrumbsVisible() {
 		return true;
-	}
-
-	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		return Arrays.asList(new Button("ahaha"));
-	}
-
-	@Override
-	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new TitleBreadcrumbTrail(this, "title", false) {
-			@Override
-			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
-				return Arrays.asList(new IntermediateBreadCrumbTailItem() {
-					@Override
-					public String getTitle() {
-						return $(CartsListViewImpl.TITLE);
-					}
-
-					@Override
-					public void activate(Navigation navigate) {
-						navigate.to(RMViews.class).listCarts();
-					}
-
-					@Override
-					public boolean isEnabled() {
-						return true;
-					}
-				});
-			}
-		};
 	}
 }
