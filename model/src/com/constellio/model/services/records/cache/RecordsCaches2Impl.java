@@ -13,7 +13,12 @@ import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.RecordCacheType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
@@ -45,7 +50,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.misc.VM;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -880,7 +890,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			for (String field : byteArrayRecordDTO.getFields().keySet()) {
 				//System.out.println(field + ":" + byteArrayRecordDTO.getFields().get(field));
 				Object value = byteArrayRecordDTO.getFields().get(field);
-				if (value == null || ((value instanceof List) && ((List) value).isEmpty())) {
+				if (value == null
+					|| ((value instanceof List) && ((List) value).isEmpty())
+					|| ((value instanceof String) && ((String) value).isEmpty())) {
 					byteArrayFields.remove(field);
 				}
 			}
@@ -888,7 +900,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			for (String field : comparisonRecordDTO.getFields().keySet()) {
 				//	System.out.println(field + ":" + comparisonRecordDTO.getFields().get(field));
 				Object value = comparisonRecordDTO.getFields().get(field);
-				if (value == null || ((value instanceof List) && ((List) value).isEmpty())) {
+				if (value == null
+					|| ((value instanceof List) && ((List) value).isEmpty())
+					|| ((value instanceof String) && ((String) value).isEmpty())) {
 					comparisonFields.remove(field);
 				}
 			}
