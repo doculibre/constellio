@@ -428,6 +428,10 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		return false;
 	}
 
+	public boolean isInstalled(String moduleId) {
+		return getInstalledModules().stream().anyMatch(module -> module.getId().equals(moduleId));
+	}
+
 	public void removeCollectionFromVersionProperties(final String collection, ConfigManager configManager) {
 		configManager.updateProperties("/version.properties", newRemoveCollectionPropertiesAlteration(collection));
 
