@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.STOP;
@@ -114,6 +115,8 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	private Integer currentLogVersion = null;
 
 	private AsyncTaskRegrouper<TransactionToSend> asyncTaskRegrouper;
+
+	private AtomicLong loggedOperationsCount = new AtomicLong();
 
 	public SqlServerTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices,
 										  RecordDao recordDao, SqlRecordDaoFactory sqlRecordDaoFactory,
@@ -230,7 +233,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			if (!source.toFile().exists()) {
 				throw new RuntimeException("Source does not exist");
 			}
-
+			loggedOperationsCount.incrementAndGet();
 			Files.delete(source);
 		} else {
 			asyncTaskRegrouper.addAsync(new TransactionToSend(transactionId, content, transactionInfo), () -> {
@@ -262,6 +265,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).insertBulk(dtos);
 				return true;
 			});
+			loggedOperationsCount.addAndGet(dtos.size());
 		} catch (SQLException e) {
 			e.printStackTrace();
 			exceptionOccured = true;
@@ -522,6 +526,16 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	public void moveLastBackupAsCurrentLog() {
 
 		//table and schema backup is set up in SQL Server
+	}
+
+	@Override
+	public boolean isAlive() {
+		return !this.exceptionOccured && started;
+	}
+
+	@Override
+	public long getLoggedTransactionCount() {
+		return loggedOperationsCount.get();
 	}
 
 	@Override

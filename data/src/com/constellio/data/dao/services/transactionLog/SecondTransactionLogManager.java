@@ -31,4 +31,9 @@ public interface SecondTransactionLogManager extends StatefulService {
 			throws SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException;
 
 	void moveLastBackupAsCurrentLog();
+
+	boolean isAlive();
+
+	long getLoggedTransactionCount();
+
 }
