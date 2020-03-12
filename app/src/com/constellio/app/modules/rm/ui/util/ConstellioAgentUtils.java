@@ -172,7 +172,7 @@ public class ConstellioAgentUtils {
 			if (rmConfigs.isAgentEnabled() && agentStatus == AgentStatus.ENABLED && (!(recordVO instanceof UserDocumentVO) || rmConfigs.isAgentEditUserDocuments())) {
 				RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions()
 						.forCollection(recordVO.getRecord().getCollection()).forModule(ConstellioRMModule.ID);
-				if (rmModuleExtensions.getAgentExtensions().getAgentUrlExtension() != null) {
+				if (rmModuleExtensions.getAgentExtensions().getAgentUrlExtension().getValue() != null) {
 					if (request == null) {
 						request = VaadinServletService.getCurrentServletRequest();
 					}

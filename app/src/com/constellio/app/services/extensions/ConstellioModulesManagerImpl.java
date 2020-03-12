@@ -5,6 +5,8 @@ import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
 import com.constellio.app.entities.modules.locators.PropertiesLocatorFactory;
 import com.constellio.app.entities.navigation.NavigationConfig;
+import com.constellio.app.extensions.AppLayerSystemExtensions;
+import com.constellio.app.extensions.core.InstallableModuleExtension.ModuleStartedEvent;
 import com.constellio.app.services.extensions.ConstellioModulesManagerRuntimeException.ConstellioModulesManagerRuntimeException_ModuleIsNotInstalled;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.ConstellioPluginManagerRuntimeException_NoSuchModule;
@@ -80,8 +82,17 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	public void enableComplementaryModules() throws ConstellioModulesManagerException_ModuleInstallationFailed {
+		Set<String> alreadyStartedModuleIds = new HashSet<>(startedModulesInAnyCollections);
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
 			enableComplementaryModules(collection);
+		}
+
+		AppLayerSystemExtensions extensions = appLayerFactory.getExtensions().getSystemWideExtensions();
+		Set<String> systemModulesAdded = new HashSet<>(startedModulesInAnyCollections);
+		systemModulesAdded.removeAll(alreadyStartedModuleIds);
+		for (String moduleId : systemModulesAdded) {
+			extensions.callModuleStarted(new ModuleStartedEvent(moduleId, alreadyStartedModuleIds));
+			alreadyStartedModuleIds.add(moduleId);
 		}
 	}
 
@@ -362,7 +373,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	public void startModule(String collection, Module module) {
-
 		if (!startedModulesInCollections.get(collection).contains(module.getId())) {
 			startedModulesInCollections.add(collection, module.getId());
 			try {
