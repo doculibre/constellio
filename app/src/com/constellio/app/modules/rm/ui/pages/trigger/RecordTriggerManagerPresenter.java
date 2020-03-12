@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.trigger;
 
 
 import com.constellio.app.modules.rm.data.TriggerDataProvider;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.Language;
@@ -10,6 +11,9 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class RecordTriggerManagerPresenter extends BasePresenter<RecordTriggerManagerView> {
 	private Record currentRecord;
@@ -43,7 +47,16 @@ public class RecordTriggerManagerPresenter extends BasePresenter<RecordTriggerMa
 		return user.hasWriteAccess().on(restrictedRecord);
 	}
 
+	@Override
+	protected List<String> getRestrictedRecordIds(String params) {
+		return Arrays.asList(currentRecord.getId());
+	}
+
 	public RecordVODataProvider getDataProvider() {
 		return new TriggerDataProvider(currentRecord.getId(), appLayerFactory, view.getSessionContext());
+	}
+
+	public void addRecordTriggerClicked() {
+		view.navigate().to(RMViews.class).addEditTriggerToRecord(currentRecord.getId());
 	}
 }

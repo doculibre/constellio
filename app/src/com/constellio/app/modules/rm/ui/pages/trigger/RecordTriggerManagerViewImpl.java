@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.trigger;
 
-import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -43,7 +42,7 @@ public class RecordTriggerManagerViewImpl extends BaseViewImpl implements Record
 		Button addRuleButton = new BaseButton($("RecordTriggerManagerViewImpl.addRule")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				navigate().to(RMViews.class);
+				presenter.addRecordTriggerClicked();
 			}
 		};
 

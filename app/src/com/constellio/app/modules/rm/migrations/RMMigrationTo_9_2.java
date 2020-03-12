@@ -92,7 +92,7 @@ public class RMMigrationTo_9_2 extends MigrationHelper implements MigrationScrip
 			triggerSchema.createUndeletable(Trigger.TYPE).setType(REFERENCE).defineReferencesTo(triggerTypeSchema);
 			triggerSchema.createUndeletable(Trigger.CRITERIA).setType(STRUCTURE).defineStructureFactory(CriterionFactory.class);
 			triggerSchema.createUndeletable(Trigger.ACTIONS).setType(REFERENCE).defineReferencesTo(triggerActionSchemaType).setMultivalue(true);
-			triggerSchema.createUndeletable(Trigger.TARGET).setType(REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE));
+			triggerSchema.createUndeletable(Trigger.TARGET).setType(REFERENCE).setMultivalue(true).defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE));
 		}
 	}
 }

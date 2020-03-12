@@ -458,4 +458,20 @@ public class RMViews extends CoreViews {
 	public void recordTriggerManager(String id) {
 		navigator.navigateTo(RMNavigationConfiguration.RECORD_TRIGGER_MANAGER + "/" + id);
 	}
+
+	public void addEditTriggerToRecord(String recordId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("record", recordId);
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_EDIT_TRIGGER_TO_RECORD, params));
+	}
+
+
+	public void addEditTriggerToRecord(String recordId, String triggerId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("record", recordId);
+		params.put("trigger", triggerId);
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_EDIT_TRIGGER_TO_RECORD, params));
+	}
 }
