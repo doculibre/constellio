@@ -188,6 +188,10 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		return getSchemaTypes(record).getSchemaType(record.getTypeCode());
 	}
 
+	public MetadataSchemaType getSchemaTypeOf(RecordDTO recordDTO) {
+		return getSchemaOf(recordDTO).getSchemaType();
+	}
+
 	public List<MetadataSchemaType> getSchemaTypes(CollectionObject collectionObject, List<String> schemaTypeCodes) {
 		return getSchemaTypes(collectionObject.getCollection(), schemaTypeCodes);
 	}
