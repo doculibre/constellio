@@ -39,6 +39,7 @@ public class User extends RecordWrapper {
 	//public static final String GROUPS_AUTHORIZATIONS = "groupsauthorizations";
 	//public static final String ALL_USER_AUTHORIZATIONS = "alluserauthorizations";
 	public static final String USER_TOKENS = "usertokens";
+	public static final String AZURE_USER = "azureuser";
 	public static final String COLLECTION_READ_ACCESS = "collectionReadAccess";
 	public static final String COLLECTION_WRITE_ACCESS = "collectionWriteAccess";
 	public static final String COLLECTION_DELETE_ACCESS = "collectionDeleteAccess";
@@ -155,6 +156,15 @@ public class User extends RecordWrapper {
 
 	public User setLastName(String lastName) {
 		set(LASTNAME, lastName);
+		return this;
+	}
+
+	public String getAzureUser() {
+		return get(AZURE_USER);
+	}
+
+	public User setAzureUser(String azureuser) {
+		set(AZURE_USER, azureuser);
 		return this;
 	}
 
