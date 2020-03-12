@@ -36,14 +36,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class LDAPUserSyncManager implements StatefulService {
 	private final static Logger LOGGER = LoggerFactory.getLogger(LDAPUserSyncManager.class);
@@ -175,14 +168,14 @@ public class LDAPUserSyncManager implements StatefulService {
 
 		//FIXME cas rare mais possible nom d utilisateur/de groupe non unique (se trouvant dans des urls differentes)
 		for (String url : getNonEmptyUrls(serverConfiguration)) {
-			LDAPUsersAndGroups importedUsersAndgroups = ldapServices
+			LDAPUsersAndGroups importedUsersAndGroups = ldapServices
 					.importUsersAndGroups(serverConfiguration, userSyncConfiguration, url);
 			if (ldapSynchProgressionInfo != null) {
-				ldapSynchProgressionInfo.totalGroupsAndUsers = importedUsersAndgroups.getUsers().size() +
-															   importedUsersAndgroups.getGroups().size();
+				ldapSynchProgressionInfo.totalGroupsAndUsers = importedUsersAndGroups.getUsers().size() +
+															   importedUsersAndGroups.getGroups().size();
 			}
-			Set<LDAPGroup> ldapGroups = importedUsersAndgroups.getGroups();
-			Set<LDAPUser> ldapUsers = importedUsersAndgroups.getUsers();
+			Set<LDAPGroup> ldapGroups = importedUsersAndGroups.getGroups();
+			Set<LDAPUser> ldapUsers = importedUsersAndGroups.getUsers();
 
 			UpdatedUsersAndGroups updatedUsersAndGroups = updateUsersAndGroups(ldapUsers, ldapGroups, selectedCollectionsCodes,
 					ldapSynchProgressionInfo);
