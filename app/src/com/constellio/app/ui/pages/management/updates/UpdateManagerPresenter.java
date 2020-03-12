@@ -364,7 +364,8 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	private boolean recoveryModeEnabled() {
-		return appLayerFactory.getModelLayerFactory().getSystemConfigs().isInUpdateProcess();
+		return !appLayerFactory.getModelLayerFactory().getDataLayerFactory().isDistributed()
+			   && appLayerFactory.getModelLayerFactory().getSystemConfigs().isInUpdateProcess();
 	}
 
 	public boolean isUpdateEnabled() {
