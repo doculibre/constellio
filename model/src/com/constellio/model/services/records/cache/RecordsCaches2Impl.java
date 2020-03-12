@@ -873,7 +873,16 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 	public void updateRecordsMainSortValue() {
-		memoryDataStore.setRecordsMainSortValue(recordsIdSortedByTheirDefaultSort());
+		if (modelLayerFactory.getConfiguration().isForcingCacheSortValuesLoadingFromSolr()) {
+			memoryDataStore.setRecordsMainSortValue(recordsIdSortedByTheirDefaultSort());
+		} else {
+			memoryDataStore.setRecordsMainSortValue(new PersistedSortValuesServices(modelLayerFactory).readSortValues(), (recordDTO) -> {
+				Metadata mainSortMetadata = metadataSchemasManager.getSchemaTypeOf(recordDTO).getMainSortMetadata();
+				Object value = mainSortMetadata == null ? null : recordDTO.getFields().get(mainSortMetadata.getDataStoreCode());
+				return value == null ? 0 : value.hashCode();
+			});
+		}
+
 		cacheLoadingProgression = null;
 	}
 

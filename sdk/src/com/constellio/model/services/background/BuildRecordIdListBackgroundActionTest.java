@@ -49,13 +49,13 @@ public class BuildRecordIdListBackgroundActionTest extends ConstellioTest {
 		when(dataLayerFactory.isDistributed()).thenReturn(true);
 		when(searchServices.recordsIdIteratorExceptEvents()).thenReturn(ids.iterator());
 
-		assertThat(new BuildRecordIdListBackgroundAction(modelLayerFactory).loadRecordIds())
+		assertThat(new BuildRecordIdListAndSortValuesBackgroundAction(modelLayerFactory).loadRecordIds())
 				.isEqualTo(expectedRecordIds);
 
 		when(searchServices.recordsIdIteratorExceptEvents()).thenReturn(ids.iterator());
 		when(dataLayerFactory.isDistributed()).thenReturn(false);
 		expectedRecordIds.add(RecordId.toId(30001));
-		assertThat(new BuildRecordIdListBackgroundAction(modelLayerFactory).loadRecordIds())
+		assertThat(new BuildRecordIdListAndSortValuesBackgroundAction(modelLayerFactory).loadRecordIds())
 				.isEqualTo(expectedRecordIds);
 	}
 }
