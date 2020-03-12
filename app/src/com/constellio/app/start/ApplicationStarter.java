@@ -213,6 +213,22 @@ public class ApplicationStarter {
 		}
 	}
 
+	public static void replaceServlet(String pathRelativeToConstellioContext, Servlet servlet) {
+		replaceServlet(pathRelativeToConstellioContext, new ServletHolder(servlet));
+	}
+
+	public static void replaceServlet(String pathRelativeToConstellioContext, ServletHolder servletHolder) {
+		ServletHolder oldServletHolder = servletMappings.get(pathRelativeToConstellioContext);
+		servletMappings.put(pathRelativeToConstellioContext, servletHolder);
+		if (handler != null) {
+			for (int i = 0; i < handler.getServletHandler().getServlets().length; i++) {
+				if (handler.getServletHandler().getServlets()[i].getName().equals(oldServletHolder.getName())) {
+					handler.getServletHandler().getServlets()[i] = servletHolder;
+				}
+			}
+		}
+	}
+
 	public static void resetServlets() {
 		if (handler != null) {
 			handler.getServletHandler().setServlets(new ServletHolder[0]);
