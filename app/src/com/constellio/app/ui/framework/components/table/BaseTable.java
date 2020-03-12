@@ -28,19 +28,9 @@ import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
@@ -48,12 +38,7 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEv
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
@@ -1021,7 +1006,8 @@ public class BaseTable extends Table implements SelectionComponent {
 					@Override
 					public void valueChange(Property.ValueChangeEvent event) {
 						boolean valid;
-						String newValue = currentPageField.getValue();
+						// https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4510618
+						String newValue = StringUtils.replace(currentPageField.getValue(), "\u00a0", "");
 						if (StringUtils.isNotBlank(newValue)) {
 							try {
 								int newIntValue = Integer.parseInt(newValue);
