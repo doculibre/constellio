@@ -951,7 +951,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 							boolean useMapDb = !fileSystemDataStore.isRecreated() && !params.isRebuildCacheFromSolr();
 							typesLoadedAsync.forEach(type -> loadSchemaType(type, useMapDb));
 						}
-						memoryDataStore.setRecordsMainSortValue(recordsIdSortedByTheirDefaultSort());
+						updateRecordsMainSortValue();
 						summaryCacheInitialized = true;
 						CacheRecordDTOUtils.stopCompilingDTOsStats();
 						LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
