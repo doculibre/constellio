@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.model.ExternalLinkType;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.wrappers.ExternalLink;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.MigrationUtil;
 import com.constellio.model.entities.Language;
@@ -45,6 +46,10 @@ public class RMMigrationTo9_1_1000 implements MigrationScript {
 			externalLinkSchema.createUndeletable(ExternalLink.TYPE)
 					.setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(externalLinkTypeSchema);
+
+			MetadataSchemaBuilder folderSchema = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
+			folderSchema.createUndeletable(Folder.EXTERNAL_LINKS).setType(MetadataValueType.REFERENCE)
+					.defineReferencesTo(externalLinkSchema).setMultivalue(true);
 		}
 
 		private MetadataSchemaTypeBuilder setupExternalLinkTypeSchema() {

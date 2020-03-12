@@ -94,6 +94,7 @@ public class Folder extends RMObject {
 	public static final String DATE_TYPES = "dateTypes";
 	public static final String ALLOWED_DOCUMENT_TYPES = "allowedDocumentTypes";
 	public static final String ALLOWED_FOLDER_TYPES = "allowedFolderTypes";
+	public static final String EXTERNAL_LINKS = "externalLinks";
 
 	public static final String MANUAL_EXPECTED_TRANSFER_DATE = "manualExpectedTransferDate";
 	public static final String MANUAL_EXPECTED_DEPOSIT_DATE = "manualExpectedDepositDate";
@@ -228,6 +229,41 @@ public class Folder extends RMObject {
 			}
 		}
 		setAllowedDocumentTypes(folderTypes);
+	}
+
+	public List<String> getExternalLinks() {
+		return getList(EXTERNAL_LINKS);
+	}
+
+	public Folder setExternalLinks(List<String> links) {
+		set(EXTERNAL_LINKS, links);
+		return this;
+	}
+
+	public void removeExternalLink(String link) {
+		removeExternalLinks(Arrays.asList(link));
+	}
+
+	public void removeExternalLinks(List<String> linksToRemove) {
+		List<String> links = new ArrayList<>();
+		links.addAll(getExternalLinks());
+		links.removeAll(linksToRemove);
+		setExternalLinks(links);
+	}
+
+	public void addExternalLink(String link) {
+		addExternalLinks(Arrays.asList(link));
+	}
+
+	public void addExternalLinks(List<String> linksToAdd) {
+		List<String> links = new ArrayList<>();
+		links.addAll(getExternalLinks());
+		for (String folderType : linksToAdd) {
+			if (!links.contains(folderType)) {
+				links.add(folderType);
+			}
+		}
+		setExternalLinks(links);
 	}
 
 	public Folder setParentFolder(String folder) {
