@@ -50,6 +50,7 @@ import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.BatchUpdateException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -322,16 +323,24 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			final List<RecordTransactionSqlDTO> recordsToUpdate = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), true);
 			final List<String> updateTransactionIds = recordsToUpdate.stream().map(x -> x.getRecordId()).collect(Collectors.toList());
 			final List<String> recordsToDelete = extractRemoveRecordsFromTransaction(transactionsToConvert);
+			final List<RecordTransactionSqlDTO> victims = new ArrayList<>();
 
 			//save new records
 			tryThreeTimes(() -> {
 				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(recordsToinsert);
+
 				return true;
 			});
 
 			//save update records
 			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).updateBulk(recordsToUpdate);
+				try {
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).updateBulk(recordsToUpdate);
+				} catch (SQLException sqlEx) {
+					if (sqlEx instanceof BatchUpdateException) {
+						victims.addAll(recordsToUpdate);
+					}
+				}
 				return true;
 			});
 
@@ -342,6 +351,10 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			});
 
 			//Remove transactions
+			for (RecordTransactionSqlDTO victim : victims) {
+				transactionsToConvert.removeIf(tr -> tr.getId().equals(victim.getId()));
+			}
+
 			final String[] transactionsToRemove = transactionsToConvert.stream().map(x -> x.getId()).toArray(String[]::new);
 
 			tryThreeTimes(() -> {
@@ -350,7 +363,8 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			});
 
 		} catch (Exception ex) {
-			exceptionOccured = true;
+
+			//exceptionOccured = true;
 			throw new RuntimeException(ex);
 		}
 		return "";
