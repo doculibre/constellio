@@ -398,7 +398,6 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			}
 		} catch (final IcapException e) {
 			view.showErrorMessage(e.getMessage());
-
 			return;
 		}
 

@@ -55,11 +55,11 @@ public class Trigger extends RecordWrapper {
 		return this;
 	}
 
-	public String getTarget() {
-		return get(TARGET);
+	public List<String> getTarget() {
+		return getList(TARGET);
 	}
 
-	public Trigger setTarget(String trigger) {
+	public Trigger setTarget(List<String> trigger) {
 		set(TARGET, trigger);
 		return this;
 	}

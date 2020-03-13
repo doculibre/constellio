@@ -83,16 +83,16 @@ public class RMMigrationTo_9_2 extends MigrationHelper implements MigrationScrip
 
 			MetadataSchemaTypeBuilder triggerActionSchemaType = typesBuilder.createNewSchemaType(TriggerAction.SCHEMA_TYPE);
 			MetadataSchemaBuilder triggerActionSchema = triggerActionSchemaType.getDefaultSchema();
-			triggerActionSchema.createUndeletable(TriggerAction.TYPE).setType(REFERENCE).defineReferencesTo(triggerActionTypeSchemaType);
+			triggerActionSchema.createUndeletable(TriggerAction.TYPE).setType(REFERENCE).defineReferencesTo(triggerActionTypeSchemaType).required();
 			triggerActionSchemaType.createCustomSchema(MoveInFolderTriggerAction.SCHEMA_LOCAL_CODE);
 
 			MetadataSchemaTypeBuilder triggerSchemaType = typesBuilder.createNewSchemaType(Trigger.SCHEMA_TYPE);
 			MetadataSchemaBuilder triggerSchema = triggerSchemaType.getDefaultSchema();
 
-			triggerSchema.createUndeletable(Trigger.TYPE).setType(REFERENCE).defineReferencesTo(triggerTypeSchema);
+			triggerSchema.createUndeletable(Trigger.TYPE).setType(REFERENCE).defineReferencesTo(triggerTypeSchema).required();
 			triggerSchema.createUndeletable(Trigger.CRITERIA).setType(STRUCTURE).defineStructureFactory(CriterionFactory.class);
-			triggerSchema.createUndeletable(Trigger.ACTIONS).setType(REFERENCE).defineReferencesTo(triggerActionSchemaType).setMultivalue(true);
-			triggerSchema.createUndeletable(Trigger.TARGET).setType(REFERENCE).setMultivalue(true).defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE));
+			triggerSchema.createUndeletable(Trigger.ACTIONS).setType(REFERENCE).defineReferencesTo(triggerActionTypeSchemaType).setMultivalue(true);
+			triggerSchema.createUndeletable(Trigger.TARGET).setType(REFERENCE).setMultivalue(true).defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE)).setSystemReserved(true);
 		}
 	}
 }

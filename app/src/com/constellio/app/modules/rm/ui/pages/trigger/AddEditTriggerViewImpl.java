@@ -4,6 +4,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
@@ -37,6 +38,8 @@ public class AddEditTriggerViewImpl extends BaseViewImpl implements AddEditTrigg
 				presenter.cancelButtonClicked();
 			}
 		});
+
+		mainLayout.setMargin(new MarginInfo(false, true, false, false));
 
 		return mainLayout;
 	}

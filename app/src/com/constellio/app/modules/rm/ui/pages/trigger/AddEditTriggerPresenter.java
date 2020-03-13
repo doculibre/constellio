@@ -7,6 +7,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -22,9 +23,7 @@ public class AddEditTriggerPresenter extends BasePresenter<AddEditTriggerView> {
 	private RecordServices recordServices;
 	private MetadataSchemasManager metadataSchemasManager;
 	private RMSchemasRecordsServices rm;
-	private Record currentTrigger;
-	private Record targetRecord;
-	private RecordVO recordVO;
+	private Record currentTargetRecord;
 	private Trigger trigger;
 	private boolean isAddMode;
 
@@ -49,31 +48,33 @@ public class AddEditTriggerPresenter extends BasePresenter<AddEditTriggerView> {
 
 	@Override
 	protected List<String> getRestrictedRecordIds(String params) {
-		return Arrays.asList(targetRecord.getId());
+		return Arrays.asList(currentTargetRecord.getId());
 	}
 
 	public void forParams(String parameters) {
 		Map<String, String> params = ParamUtils.getParamsMap(parameters);
 
-		if (params == null || params.get("record") == null) {
+		String targetRecordId = params.get("record");
+		if (params == null || targetRecordId == null) {
 			throw new IllegalStateException("record is required for this page");
 		}
-		if (params.get("trigger") != null) {
-			currentTrigger = recordServices.getRecordSummaryById(view.getCollection(), parameters);
-			trigger = rm.wrapTrigger(currentTrigger);
-			isAddMode = false;
 
+		currentTargetRecord = recordServices.getRecordSummaryById(view.getCollection(), targetRecordId);
+
+		if (params.get("trigger") != null) {
+			trigger = rm.getTrigger(params.get("trigger"));
+			isAddMode = false;
 		} else {
 			trigger = rm.newTrigger();
-			currentTrigger = trigger.getWrappedRecord();
+
 			isAddMode = true;
-			targetRecord = recordServices.getRecordSummaryById(view.getCollection(), params.get("record"));
+			currentTargetRecord = recordServices.getRecordSummaryById(view.getCollection(), targetRecordId);
+			trigger.setTarget(Arrays.asList(targetRecordId));
 		}
 
-		targetRecord = recordServices.getRecordSummaryById(view.getCollection(), params.get("record"));
-		String schemaLabel = metadataSchemasManager.getSchemaOf(targetRecord).getSchemaType().getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
-		view.setRecordTitle(schemaLabel.toLowerCase() + " " + targetRecord.getTitle());
-		recordVO = new RecordToVOBuilder().build(currentTrigger, VIEW_MODE.TABLE, view.getSessionContext());
+
+		String schemaLabel = metadataSchemasManager.getSchemaOf(currentTargetRecord).getSchemaType().getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
+		view.setRecordTitle(schemaLabel.toLowerCase() + " " + currentTargetRecord.getTitle());
 	}
 
 	public boolean isAddMode() {
@@ -81,18 +82,27 @@ public class AddEditTriggerPresenter extends BasePresenter<AddEditTriggerView> {
 	}
 
 	public void saveButtonClick(RecordVO recordVO) {
+		SchemaPresenterUtils schemaPresenterUtils = new SchemaPresenterUtils(recordVO.getSchemaCode(), view.getConstellioFactories(), view.getSessionContext());
+		Record newRecord = schemaPresenterUtils.toRecord(recordVO);
+		recordVO.setRecord(newRecord);
+		Trigger triggerToSave = rm.wrapTrigger(newRecord);
 
+		triggerToSave.setTarget(trigger.getTarget());
+
+		schemaPresenterUtils.addOrUpdate(triggerToSave.getWrappedRecord(), getCurrentUser());
+
+		view.navigate().to(RMViews.class).recordTriggerManager(currentTargetRecord.getId());
 	}
 
 	public void cancelButtonClicked() {
-		view.navigate().to(RMViews.class).recordTriggerManager(getRecordId());
+		view.navigate().to(RMViews.class).recordTriggerManager(getCurrentTriggerId());
 	}
 
-	public String getRecordId() {
-		return currentTrigger.getId();
+	public String getCurrentTriggerId() {
+		return trigger.getId();
 	}
 
 	public RecordVO getRecordVO() {
-		return new RecordToVOBuilder().build(currentTrigger, VIEW_MODE.FORM, view.getSessionContext());
+		return new RecordToVOBuilder().build(trigger.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 	}
 }
