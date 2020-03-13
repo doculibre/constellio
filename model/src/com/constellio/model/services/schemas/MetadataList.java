@@ -360,7 +360,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 			if (metadata.getType() == MetadataValueType.REFERENCE) {
-				if (metadata.getCode().startsWith(VALUE_LIST_PREFIX)) {
+				if (metadata.getAllowedReferences().getAllowedSchemaType().startsWith(VALUE_LIST_PREFIX)) {
 					filteredMetadatasList.add(metadata);
 				}
 			} else {
