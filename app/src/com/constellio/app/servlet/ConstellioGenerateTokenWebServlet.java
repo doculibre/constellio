@@ -105,7 +105,11 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 
 		UserCredential userCredential;
 		if (grantType.equals("azure") && azurename != null) {
-			userCredential = userServices.getUserByAzureUsername(azurename);
+			try {
+				userCredential = userServices.getUserByAzureUsername(azurename);
+			} catch (UserServicesRuntimeException_NoSuchUser noUserEx) {
+				userCredential = null;
+			}
 			if (userCredential == null) {
 				resp.getWriter().write(NO_AZURE_USERNAME);
 				return;
