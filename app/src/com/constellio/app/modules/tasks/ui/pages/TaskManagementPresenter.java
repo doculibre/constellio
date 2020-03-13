@@ -119,6 +119,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 		if (isTaskTab(tabId)) {
 			provider = getTasks(tabId);
 			view.setTabBadge(tabId, "" + provider.size());
+			view.getMainLayout().getMenu().refreshBadges();
 			view.displayTasks(provider);
 		} else {
 			UpdateComponentExtensionParams params = new UpdateComponentExtensionParams((Component) view, view.getTabComponent(selectedTab));
