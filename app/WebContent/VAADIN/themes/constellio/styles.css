@@ -15499,6 +15499,10 @@ div.v-layout.v-horizontal.v-widget {
 	font-weight: 700;
 }
 
+.constellio .viewable-record-table-panel .viewable-record-table .v-button {
+	white-space: initial;
+}
+
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-title {
 	padding-top: 6px;
 	padding-bottom: 4px;
