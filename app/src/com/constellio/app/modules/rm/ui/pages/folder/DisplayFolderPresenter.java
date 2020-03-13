@@ -1450,6 +1450,23 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		folderContentTabSelected();
 	}
 
+	public void clearSearch() {
+		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		MetadataSchema documentsSchema = getDocumentsSchema();
+		MetadataSchemaVO documentsSchemaVO = schemaVOBuilder.build(documentsSchema, VIEW_MODE.TABLE, view.getSessionContext());
+		Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
+		voBuilders.put(foldersSchemaVO.getCode(), folderVOBuilder);
+		voBuilders.put(documentsSchemaVO.getCode(), documentVOBuilder);
+		folderContentDataProvider = new RecordVODataProvider(Arrays.asList(foldersSchemaVO, documentsSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
+			@Override
+			public LogicalSearchQuery getQuery() {
+				return getFolderContentQuery(folderVO.getId(), false);
+			}
+		};
+		view.setFolderContent(folderContentDataProvider);
+		folderContentTabSelected();
+	}
+
 	protected String filterSolrOperators(String expression) {
 		String userSearchExpression = expression;
 
@@ -1492,5 +1509,4 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 		return suggestions;
 	}
-
 }

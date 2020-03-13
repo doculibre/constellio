@@ -119,6 +119,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private StringAutocompleteField<String> searchField;
 	private BaseButton searchButton;
 	private CheckBox includeTreeCheckBox;
+	private BaseButton clearSearchButton;
 	private VerticalLayout searchLayout;
 
 	private Window documentVersionWindow;
@@ -535,11 +536,22 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			if (includeTreeCheckBox == null) {
 				includeTreeCheckBox = new CheckBox($("DisplayFolderView.includeTree"));
 			}
+			if (clearSearchButton == null) {
+				clearSearchButton = new LinkButton($("DisplayFolderView.clearSearch")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.clearSearch();
+						searchField.setValue("");
+						includeTreeCheckBox.setValue(false);
+					}
+				};
+			}
 			BaseButton searchInFolderButton = new LinkButton($("DisplayFolderView.searchInFolder")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					if (searchLayout != null) {
 						searchLayout.setVisible(!searchLayout.isVisible());
+						searchField.focus();
 					}
 				}
 			};
@@ -561,6 +573,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						return presenter.getAutocompleteBufferSize();
 					}
 				});
+				searchField.setWidth("100%");
+				searchField.addStyleName("header-search");
 				searchButton = new SearchButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -582,12 +596,19 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 			if (searchLayout == null) {
 				HorizontalLayout searchFieldLayout = new HorizontalLayout();
+				searchFieldLayout.setWidth("450px");
 				searchFieldLayout.addComponent(searchField);
 				searchFieldLayout.addComponent(searchButton);
+				searchFieldLayout.setExpandRatio(searchField, 1);
+				HorizontalLayout horizontalLayout = new HorizontalLayout();
+				horizontalLayout.addComponent(includeTreeCheckBox);
+				horizontalLayout.addComponent(clearSearchButton);
+				horizontalLayout.setSpacing(true);
 				searchLayout = new VerticalLayout();
-				searchLayout.addComponents(searchFieldLayout, includeTreeCheckBox);
+				searchLayout.addComponents(searchFieldLayout, horizontalLayout);
 				searchLayout.setSpacing(true);
 				searchLayout.setVisible(false);
+				searchLayout.getExpandRatio(searchFieldLayout);
 			}
 
 			VerticalLayout verticalLayout = new VerticalLayout();
