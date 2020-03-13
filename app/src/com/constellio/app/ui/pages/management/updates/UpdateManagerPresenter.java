@@ -176,11 +176,12 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public void restartAndReindex(boolean repopulate) {
-		File systemLogFile = getSystemLogFile();
-
-		if (systemLogFile.exists()) {
-			if (!FileUtils.deleteQuietly(systemLogFile)) {
-				view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotDeleted"));
+		if (FoldersLocator.usingAppWrapper()) {
+			File systemLogFile = getSystemLogFile();
+			if (systemLogFile.exists()) {
+				if (!FileUtils.deleteQuietly(systemLogFile)) {
+					view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotDeleted"));
+				}
 			}
 		}
 
