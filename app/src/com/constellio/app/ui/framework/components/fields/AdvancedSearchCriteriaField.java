@@ -49,7 +49,7 @@ public class AdvancedSearchCriteriaField extends CustomField<List<Criterion>> {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				String typesValue = (String) types.getValue();
-				presenter.selectAdvancedSearchSchemaType(typesValue);
+				presenter.selectSchemaType(typesValue);
 				advancedSearchCriteriaComponent.setSchemaType(typesValue);
 			}
 		});
@@ -108,6 +108,6 @@ public class AdvancedSearchCriteriaField extends CustomField<List<Criterion>> {
 
 	@Override
 	protected List<Criterion> getInternalValue() {
-		return advancedSearchCriteriaComponent.getSearchCriteria();
+		return advancedSearchCriteriaComponent.getSearchCriteriaWithSchemaType();
 	}
 }

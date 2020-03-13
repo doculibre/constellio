@@ -38,11 +38,11 @@ public class Trigger extends RecordWrapper {
 		return this;
 	}
 
-	public Criterion getCriteria() {
-		return get(CRITERIA);
+	public List<Criterion> getCriteria() {
+		return getList(CRITERIA);
 	}
 
-	public Criterion setCriteria(String criteria) {
+	public Trigger setCriteria(List<Criterion> criteria) {
 		return setCriteria(criteria);
 	}
 

@@ -18,7 +18,7 @@ public class TriggerFieldFactory extends MetadataFieldFactory {
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	protected Field<?> newSingleValueField(MetadataVO metadata, String recordId) {
+	protected Field<?> newMultipleValueField(MetadataVO metadata, String recordId) {
 		Field<?> field;
 
 		MetadataInputType metadataInputType = metadata.getMetadataInputType();
@@ -31,12 +31,13 @@ public class TriggerFieldFactory extends MetadataFieldFactory {
 				case STRUCTURE:
 					if (metadata.getStructureFactory() instanceof CriterionFactory) {
 						field = new AdvancedSearchCriteriaField(constellioFactories);
+						postBuild(field, metadata);
 					} else {
 						field = null;
 					}
 					break;
 				default:
-					field = super.newSingleValueField(metadata, recordId);
+					field = super.newMultipleValueField(metadata, recordId);
 					break;
 			}
 		}

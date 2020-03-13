@@ -92,7 +92,7 @@ public class AdvancedSearchCriteriaFieldPresenter implements SearchCriteriaPrese
 		return true;
 	}
 
-	public void selectAdvancedSearchSchemaType(String schemaType) {
+	public void selectSchemaType(String schemaType) {
 		this.schemaType = schemaType;
 	}
 
