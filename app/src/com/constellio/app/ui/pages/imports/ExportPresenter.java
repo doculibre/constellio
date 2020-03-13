@@ -444,7 +444,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 			}
 
 		}
-		File logsFolder = new File(modelLayerFactory.getFoldersLocator().getWrapperInstallationFolder(), "logs");
+		File logsFolder = modelLayerFactory.getFoldersLocator().getLogsFolder();
 		if (logsFolder.exists()) {
 			File[] logsFolderFiles = logsFolder.listFiles();
 			if (logsFolderFiles != null) {
