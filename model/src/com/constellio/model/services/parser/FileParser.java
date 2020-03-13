@@ -316,8 +316,24 @@ public class FileParser {
 	}
 
 	protected Map<String, Object> getPropertiesHashMap(Metadata metadata, String mimeType) {
-		HashMap<String, Object> properties = new HashMap<String, Object>();
+		HashMap<String, Object> properties = new HashMap<>();
+		for (String propertyName : metadata.names()) {
+			addPropertyTo(properties, metadata, propertyName, propertyName);
+		}
+		addAndConfigureBaseProperties(properties, metadata);
 
+		if (mimeType.contains("xml")) {
+			addCommentsTo(properties, metadata, "Comments", TikaCoreProperties.DESCRIPTION, "_x000d_");
+			addPropertyTo(properties, metadata, "Company", TikaCoreProperties.PUBLISHER);
+		} else {
+			addCommentsTo(properties, metadata, "Comments", TikaCoreProperties.COMMENTS, "[\r]");
+			addPropertyTo(properties, metadata, "Company", "Company");
+		}
+
+		return properties;
+	}
+
+	private void addAndConfigureBaseProperties(HashMap<String, Object> properties, Metadata metadata) {
 		addKeywordsTo(properties, metadata, "Keywords", TikaCoreProperties.KEYWORDS);
 		addPropertyTo(properties, metadata, "Title", TikaCoreProperties.TITLE);
 		addPropertyTo(properties, metadata, "Comments", TikaCoreProperties.COMMENTS);
@@ -329,16 +345,6 @@ public class FileParser {
 		addPropertyTo(properties, metadata, "CC", Message.MESSAGE_CC);
 		addPropertyTo(properties, metadata, "From", Message.MESSAGE_FROM);
 		addPropertyTo(properties, metadata, "To", Message.MESSAGE_TO);
-
-		if (mimeType.contains("xml")) {
-			addCommentsTo(properties, metadata, "Comments", TikaCoreProperties.DESCRIPTION, "_x000d_");
-			addPropertyTo(properties, metadata, "Company", TikaCoreProperties.PUBLISHER);
-		} else {
-			addCommentsTo(properties, metadata, "Comments", TikaCoreProperties.COMMENTS, "[\r]");
-			addPropertyTo(properties, metadata, "Company", "Company");
-		}
-
-		return properties;
 	}
 
 	//For Property
