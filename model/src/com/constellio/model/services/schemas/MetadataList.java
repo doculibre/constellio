@@ -355,6 +355,21 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	public MetadataList excludingNonValueListReferences() {
+		String VALUE_LIST_PREFIX = "ddv";
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.getType() == MetadataValueType.REFERENCE) {
+				if (metadata.getCode().startsWith(VALUE_LIST_PREFIX)) {
+					filteredMetadatasList.add(metadata);
+				}
+			} else {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
 	public MetadataList only(MetadataListFilter filter) {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
