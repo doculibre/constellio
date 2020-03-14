@@ -16,5 +16,12 @@ public class TriggerType extends RecordWrapper {
 		super(record, types, SCHEMA_TYPE);
 	}
 
+	public String getCode() {
+		return get(CODE);
+	}
 
+	public TriggerType setCode(String code) {
+		set(CODE, code);
+		return this;
+	}
 }
