@@ -233,6 +233,17 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	}
 
 	@Override
+	public boolean isForcingCacheSortValuesLoadingFromSolr() {
+		return getBoolean("dao.cache.forcingCacheSortValuesLoadingFromSolr", false);
+	}
+
+	@Override
+	public boolean isLoadingIdsFromVaultWhenPossible() {
+		return getBoolean("dao.cache.loadingIdsFromVaultWhenPossible", true);
+	}
+
+
+	@Override
 	public boolean isSummaryCacheEnabled() {
 		return getBoolean("caches.summary.enabled", true);
 	}

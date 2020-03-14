@@ -254,8 +254,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 				.getSystemConfigurationsManager();
 		configManager.initialize();
 		ConstellioEIMConfigs constellioConfigs = new ConstellioEIMConfigs(configManager);
-		boolean recoveryModeActive = constellioConfigs.isInUpdateProcess();
-		if (Toggle.FORCE_ROLLBACK.isEnabled() || recoveryModeActive) {
+		if (!dataLayerFactory.isDistributed() && (Toggle.FORCE_ROLLBACK.isEnabled() || constellioConfigs.isInUpdateProcess())) {
 			LOGGER.info("Launching in rollback mode");
 			startupWithPossibleRecovery(upgradeAppRecoveryService);
 		} else {

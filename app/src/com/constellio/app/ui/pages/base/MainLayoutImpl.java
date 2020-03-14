@@ -25,9 +25,21 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.DragAndDropWrapper;
+import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.JavaScriptFunction;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.SingleComponentContainer;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
@@ -143,6 +155,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 				WindowConfiguration.modalDialog("600px",
 						null), appLayerFactory);
 		guideButtonConfig.addStyleName(ValoTheme.BUTTON_BORDERLESS_COLORED);
+		I18NHorizontalLayout guideLayout = new I18NHorizontalLayout();
+		guideLayout.addComponents(guideButton, guideButtonConfig);
 
 
 		addComponent(header);
@@ -168,11 +182,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		staticFooterExtraComponentsLayout.setWidth("100%");
 		staticFooterExtraComponentsLayout.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
 
-		staticFooterContentAndGuideLayout.addComponent(guideButton);
-		staticFooterContentAndGuideLayout.setComponentAlignment(guideButton, Alignment.MIDDLE_RIGHT);
-
-		staticFooterContentAndGuideLayout.addComponent(guideButtonConfig);
-		staticFooterContentAndGuideLayout.setComponentAlignment(guideButtonConfig, Alignment.MIDDLE_RIGHT);
+		staticFooterContentAndGuideLayout.addComponent(guideLayout);
+		staticFooterContentAndGuideLayout.setComponentAlignment(guideLayout, Alignment.MIDDLE_RIGHT);
 
 		PagesComponentsExtensionParams params = new PagesComponentsExtensionParams(header, mainMenu, staticFooterExtraComponentsLayout, this,
 				contentViewWrapper, contentFooterWrapperLayout, presenter.getUser());

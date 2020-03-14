@@ -419,7 +419,6 @@ public class ContentManager implements StatefulService {
 		}
 
 
-
 		return new File(mainFileAbsolutePath);
 	}
 
@@ -427,7 +426,7 @@ public class ContentManager implements StatefulService {
 		boolean isMainFile = !(file.getName().endsWith("__parsed") || file.getName().endsWith(".preview")
 							   || file.getName().endsWith(".thumbnail") || file.getName().endsWith(".jpegConversion")
 							   || file.getName().endsWith(".icapscan") || file.getName().contains(".annotation."));
-		List<String> restrictedFiles = asList("tlogs", "tlogs_bck", "vaultRecovery");
+		List<String> restrictedFiles = asList("tlogs", "tlogs_bck", "vaultRecovery", "shared");
 		return isMainFile && !restrictedFiles.contains(file.getName());
 	}
 
@@ -1421,6 +1420,7 @@ public class ContentManager implements StatefulService {
 			} else {
 				String filename = path.toFile().getName();
 				if (path.endsWith("tlogs") || path.getParent().endsWith("tlogs")
+					|| path.endsWith("shared") || path.getParent().endsWith("shared")
 					|| filename.endsWith("tlogs-backup")) {
 					return false;
 

@@ -1,23 +1,11 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.builders.DocumentToDocumentCertificate;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.builders.FolderToFolderCertificate;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentsCertificateReportModel;
@@ -25,12 +13,11 @@ import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentsCert
 import com.constellio.app.modules.rm.reports.model.decommissioning.FoldersCertificateReportModel;
 import com.constellio.app.modules.rm.reports.model.decommissioning.FoldersCertificateReportModel.FoldersCertificateReportModel_Folder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
+import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
@@ -44,6 +31,15 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class DecomCertificateService {
 	private static final String DOCUMENTS_CERTIFICATE = "DecomCertificateService.documentsCertificate";
@@ -57,12 +53,14 @@ public class DecomCertificateService {
 	boolean contentsProcessed = false;
 	Content documentsContent, foldersContent;
 	AppLayerFactory appLayerFactory;
+	private DecommissioningService decommissioningService;
 
 	public DecomCertificateService(RMSchemasRecordsServices rm,
 								   SearchServices searchServices, ContentManager contentManager,
 								   FileService fileService,
 								   User user, DecommissioningList decommissioningList,
-								   AppLayerFactory appLayerFactory) {
+								   AppLayerFactory appLayerFactory,
+								   DecommissioningService decommissioningService) {
 		this.rm = rm;
 		this.decommissioningList = decommissioningList;
 		this.searchServices = searchServices;
@@ -70,6 +68,7 @@ public class DecomCertificateService {
 		this.fileService = fileService;
 		this.user = user;
 		this.appLayerFactory = appLayerFactory;
+		this.decommissioningService = decommissioningService;
 	}
 
 	public void computeContents() {
@@ -148,13 +147,68 @@ public class DecomCertificateService {
 	//FIXME test it!
 	DocumentsCertificateReportModel_Elements computeListElements() {
 		if (decommissioningList.getFolders() != null && !decommissioningList.getFolders().isEmpty()) {
-			return computeListElements(getFolders(decommissioningList.getFolderDetails()));
+			if (decommissioningList.getDecommissioningListType().isDeposit() && decommissioningService.isSortable(decommissioningList)) {
+				DocumentsCertificateReportModel_Elements elements = new DocumentsCertificateReportModel_Elements();
+
+				List<Folder> destroyedFolders = new ArrayList<>();
+				List<Document> destroyedDocuments = new ArrayList<>();
+				List<DecomListFolderDetail> foldersDetails = decommissioningList.getFolderDetails();
+				for (DecomListFolderDetail decomListFolderDetail : foldersDetails) {
+					Folder folder = rm.getFolder(decomListFolderDetail.getFolderId());
+
+					boolean destroyFolderIfAllFolderDocumentsDeleted = folder.getMediaType() == FolderMediaType.ELECTRONIC;
+
+					List<DocumentType> destroyedDocumentTypes = new ArrayList<>();
+					String folderRetentionRuleId = folder.getRetentionRule();
+					RetentionRule retentionRule = rm.getRetentionRule(folderRetentionRuleId);
+					List<RetentionRuleDocumentType> retentionRuleDocumentTypes = retentionRule.getDocumentTypesDetails();
+					for (RetentionRuleDocumentType retentionRuleDocumentType : retentionRuleDocumentTypes) {
+						if (retentionRuleDocumentType.getDisposalType() == DisposalType.DESTRUCTION) {
+							String destructionDocumentTypeId = retentionRuleDocumentType.getDocumentTypeId();
+							DocumentType destructionDocumentType = rm.getDocumentType(destructionDocumentTypeId);
+							destroyedDocumentTypes.add(destructionDocumentType);
+						}
+					}
+
+					List<Document> folderDocuments = getAllDocumentsInFolder(folder);
+					for (Document document : folderDocuments) {
+						boolean destroyDocument;
+						String documentTypeId = document.getType();
+						if (destroyedDocumentTypes != null && !destroyedDocumentTypes.isEmpty() && StringUtils.isNotBlank(documentTypeId)) {
+							DocumentType documentType = rm.getDocumentType(documentTypeId);
+							destroyDocument = destroyedDocumentTypes.contains(documentType);
+						} else {
+							destroyDocument = false;
+						}
+						if (destroyDocument) {
+							destroyedDocuments.add(document);
+						} else {
+							destroyFolderIfAllFolderDocumentsDeleted = false;
+						}
+					}
+
+					if (destroyFolderIfAllFolderDocumentsDeleted) {
+						destroyedFolders.add(folder);
+					}
+				}
+				elements.addAllFolders(rm, destroyedFolders);
+				elements.addAllDocuments(rm, destroyedDocuments);
+				return elements;
+			} else {
+				return computeListElements(getFolders(decommissioningList.getFolderDetails()));
+			}
 		} else if (decommissioningList.getDocuments() != null) {
 			return new DocumentsCertificateReportModel_Elements()
 					.addAllDocuments(rm, getDocuments(decommissioningList.getDocuments()));
 		} else {
 			return new DocumentsCertificateReportModel_Elements();
 		}
+	}
+
+	private List<Document> getAllDocumentsInFolder(Folder folder) {
+		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.documentSchemaType())
+				.where(rm.documentFolder()).isEqualTo(folder));
+		return rm.wrapDocuments(searchServices.search(query));
 	}
 
 	private List<Document> getDocuments(List<String> documents) {

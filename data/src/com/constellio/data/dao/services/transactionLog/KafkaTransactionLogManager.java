@@ -249,6 +249,16 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 	}
 
 	@Override
+	public boolean isAlive() {
+		return true;
+	}
+
+	@Override
+	public long getLoggedTransactionCount() {
+		return -1;
+	}
+
+	@Override
 	public void setAutomaticRegroupAndMoveEnabled(boolean enabled) {
 		automaticRegroupAndMoveInVaultEnabled = enabled;
 	}
