@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.wrappers.triggers.actions.MoveInFolderTrigg
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -83,8 +84,11 @@ public class RMMigrationTo_9_2 extends MigrationHelper implements MigrationScrip
 
 			MetadataSchemaTypeBuilder triggerActionSchemaType = typesBuilder.createNewSchemaType(TriggerAction.SCHEMA_TYPE);
 			MetadataSchemaBuilder triggerActionSchema = triggerActionSchemaType.getDefaultSchema();
+			triggerActionSchema.getMetadata(TriggerAction.TITLE).required();
 			triggerActionSchema.createUndeletable(TriggerAction.TYPE).setType(REFERENCE).defineReferencesTo(triggerActionTypeSchemaType).required();
+
 			triggerActionSchemaType.createCustomSchema(MoveInFolderTriggerAction.SCHEMA_LOCAL_CODE);
+			triggerActionSchemaType.getCustomSchema(MoveInFolderTriggerAction.SCHEMA_LOCAL_CODE).createUndeletable(MoveInFolderTriggerAction.DATE).setType(MetadataValueType.DATE);
 
 			MetadataSchemaTypeBuilder triggerSchemaType = typesBuilder.createNewSchemaType(Trigger.SCHEMA_TYPE);
 			MetadataSchemaBuilder triggerSchema = triggerSchemaType.getDefaultSchema();

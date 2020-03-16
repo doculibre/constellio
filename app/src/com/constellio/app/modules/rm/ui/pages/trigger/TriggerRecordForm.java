@@ -6,6 +6,6 @@ import com.constellio.app.ui.framework.components.RecordForm;
 
 public abstract class TriggerRecordForm extends RecordForm {
 	public TriggerRecordForm(RecordVO record, ConstellioFactories constellioFactories) {
-		super(record, new TriggerFieldFactory(constellioFactories), constellioFactories);
+		super(record, new TriggerFieldFactory(constellioFactories, record), constellioFactories);
 	}
 }

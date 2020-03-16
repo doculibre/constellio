@@ -178,8 +178,8 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(TriggerType.DEFAULT_SCHEMA, TriggerType.class);
 		wrappers.put(TriggerActionType.DEFAULT_SCHEMA, TriggerActionType.class);
 		wrappers.put(Trigger.DEFAULT_SCHEMA, Trigger.class);
-		wrappers.put(TriggerAction.DEFAULT_SCHEMA, Trigger.class);
-		wrappers.put(MoveInFolderTriggerAction.DEFAULT_SCHEMA, MoveInFolderTriggerAction.class);
+		wrappers.put(TriggerAction.DEFAULT_SCHEMA, TriggerAction.class);
+		wrappers.put(MoveInFolderTriggerAction.SCHEMA, MoveInFolderTriggerAction.class);
 
 		wrappers.put(ExternalLink.DEFAULT_SCHEMA, ExternalLink.class);
 		wrappers.put(ExternalLinkType.DEFAULT_SCHEMA, ExternalLinkType.class);
