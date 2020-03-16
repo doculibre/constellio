@@ -10,18 +10,8 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.FacetVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.DownloadLink;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.LinkButton;
-import com.constellio.app.ui.framework.buttons.SearchButton;
+import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -64,31 +54,14 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -117,10 +90,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Button displayFolderButton, editFolderButton, addDocumentButton;
 	private Label borrowedLabel;
 	private StringAutocompleteField<String> searchField;
-	private BaseButton searchButton;
+	private SearchButton searchButton;
 	private CheckBox includeTreeCheckBox;
 	private BaseButton clearSearchButton;
-	private VerticalLayout searchLayout;
+	private I18NHorizontalLayout searchLayout;
 
 	private Window documentVersionWindow;
 
@@ -535,6 +508,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 			if (includeTreeCheckBox == null) {
 				includeTreeCheckBox = new CheckBox($("DisplayFolderView.includeTree"));
+				includeTreeCheckBox.addStyleName("folder-search-include-tree");
 			}
 			if (clearSearchButton == null) {
 				clearSearchButton = new LinkButton($("DisplayFolderView.clearSearch")) {
@@ -545,6 +519,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						includeTreeCheckBox.setValue(false);
 					}
 				};
+				clearSearchButton.addStyleName("folder-search-clear");
 			}
 			BaseButton searchInFolderButton = new LinkButton($("DisplayFolderView.searchInFolder")) {
 				@Override
@@ -574,7 +549,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					}
 				});
 				searchField.setWidth("100%");
-				searchField.addStyleName("header-search");
+				searchField.addStyleName("folder-search-field");
 				searchButton = new SearchButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -582,8 +557,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						presenter.changeFolderContentDataProvider(value, includeTreeCheckBox.getValue());
 					}
 				};
-				searchButton.addStyleName("header-search-button");
+				searchButton.addStyleName("folder-search-button");
 				searchButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				searchButton.setIconOnly(true);
 				OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
 					@Override
 					public void onEnterKeyPressed() {
@@ -595,27 +571,21 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 
 			if (searchLayout == null) {
-				HorizontalLayout searchFieldLayout = new HorizontalLayout();
-				searchFieldLayout.setWidth("450px");
-				searchFieldLayout.addComponent(searchField);
-				searchFieldLayout.addComponent(searchButton);
-				searchFieldLayout.setExpandRatio(searchField, 1);
-				HorizontalLayout horizontalLayout = new HorizontalLayout();
-				horizontalLayout.addComponent(includeTreeCheckBox);
-				horizontalLayout.addComponent(clearSearchButton);
-				horizontalLayout.setSpacing(true);
-				searchLayout = new VerticalLayout();
-				searchLayout.addComponents(searchFieldLayout, horizontalLayout);
+				searchLayout = new I18NHorizontalLayout();
+				searchLayout.addStyleName("folder-search-layout");
 				searchLayout.setSpacing(true);
+				searchLayout.setWidth("100%");
+				searchLayout.addComponents(searchField, searchButton, includeTreeCheckBox, clearSearchButton);
+				searchLayout.setExpandRatio(searchField, 1);
 				searchLayout.setVisible(false);
-				searchLayout.getExpandRatio(searchFieldLayout);
 			}
 
-			VerticalLayout verticalLayout = new VerticalLayout();
-			verticalLayout.addComponent(searchInFolderButton);
-			verticalLayout.addComponent(searchLayout);
-			verticalLayout.addComponent(viewerPanel);
-			tabSheet.replaceComponent(folderContentComponent, folderContentComponent = verticalLayout);
+			VerticalLayout searchToggleAndFieldsLayout = new VerticalLayout();
+			searchToggleAndFieldsLayout.addStyleName("search-folder-toggle-and-fields-layout");
+			searchToggleAndFieldsLayout.addComponent(searchInFolderButton);
+			searchToggleAndFieldsLayout.addComponent(searchLayout);
+			searchToggleAndFieldsLayout.addComponent(viewerPanel);
+			tabSheet.replaceComponent(folderContentComponent, folderContentComponent = searchToggleAndFieldsLayout);
 			viewerPanel.setSelectionActionButtons();
 		}
 		tabSheet.setSelectedTab(folderContentComponent);

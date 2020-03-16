@@ -1389,6 +1389,18 @@ $popup-view-z-index: 3;
    		overflow-y: hidden;
    	}
 
+	.search-button-icon-only {
+		.v-button-caption {
+			display: none;
+		}
+	}
+
+	.search-button-icon-only:before {
+		content: "\f002";
+		margin-top: 5px;
+	    margin-left: -14px;
+	}
+
     .viewable-record-window {
    		width: 100%;
 
@@ -2549,6 +2561,16 @@ $popup-view-z-index: 3;
 	.display-folder-view {
 		.v-slot-facets-sliderpanel {
 			top: 40px;
+		}
+		
+		.folder-search-layout {
+			.v-slot-folder-search-field {
+				right: -12px;
+			}
+			
+			.v-slot-folder-search-include-tree {
+				top: 8px;
+			}
 		}
 	}
 
