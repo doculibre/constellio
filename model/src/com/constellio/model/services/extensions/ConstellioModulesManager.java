@@ -22,6 +22,8 @@ public interface ConstellioModulesManager {
 
 	boolean isInstalled(Module module);
 
+	boolean isInstalled(String moduleId);
+
 	void installValidModuleAndGetInvalidOnes(Module module, CollectionsListManager collectionsListManager)
 			throws ConstellioModulesManagerException_ModuleInstallationFailed;
 
