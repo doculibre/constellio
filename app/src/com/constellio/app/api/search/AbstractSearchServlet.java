@@ -1,6 +1,7 @@
 package com.constellio.app.api.search;
 
 import com.constellio.app.api.HttpServletRequestAuthenticator;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -106,6 +107,10 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 
 	protected ModelLayerFactory modelLayerFactory() {
 		return getConstellioFactories().getModelLayerFactory();
+	}
+
+	protected AppLayerFactory appLayerFactory() {
+		return getConstellioFactories().getAppLayerFactory();
 	}
 
 	protected QueryResponse getQueryResponse(String core, ModifiableSolrParams solrParams, UserCredential user) {

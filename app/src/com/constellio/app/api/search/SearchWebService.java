@@ -2,14 +2,21 @@ package com.constellio.app.api.search;
 
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.logging.SearchEventServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchBoostManager;
+import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.thesaurus.ResponseSkosConcept;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
 
@@ -18,8 +25,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
+
+import static com.constellio.model.services.search.SearchServices.addParamsForFreeTextSearch;
+import static java.util.Arrays.asList;
 
 public class SearchWebService extends AbstractSearchServlet {
 	@Override
@@ -47,6 +61,11 @@ public class SearchWebService extends AbstractSearchServlet {
 				break;
 			}
 		}
+
+		String freeText = solrParams.get("freeText");
+		solrParams.remove("freeText");
+		List<String> userCollections = user.getCollections();
+		adjustForFreeText(StringUtils.isNotBlank(collection) ? asList(collection) : userCollections, freeText, solrParams);
 
 		QueryResponse queryResponse;
 		if (!Strings.isNullOrEmpty(thesaurusValue) && searchingInEvents) {
@@ -152,5 +171,42 @@ public class SearchWebService extends AbstractSearchServlet {
 		}
 
 		writeResponse(resp, solrParams, queryResponse, skosConceptsNL, null, null, null, null);
+	}
+
+	private void adjustForFreeText(List<String> collections, String freeText, ModifiableSolrParams solrParams) {
+		if (freeText != null) {
+			ConstellioEIMConfigs systemConfigs = modelLayerFactory().getSystemConfigs();
+			MetadataSchemasManager schemas = modelLayerFactory().getMetadataSchemasManager();
+			CollectionsListManager collectionsManager = modelLayerFactory().getCollectionsListManager();
+			SearchBoostManager searchBoostManager = modelLayerFactory().getSearchBoostManager();
+			String mainDataLanguage = modelLayerFactory().getConfiguration().getMainDataLanguage();
+
+			Set<String> languages = new HashSet<>();
+			Comparator<SearchBoost> boostComparator = new Comparator<SearchBoost>() {
+				@Override
+				public int compare(SearchBoost o1, SearchBoost o2) {
+					return o1.getKey().compareTo(o2.getKey());
+				}
+			};
+			Set<SearchBoost> fieldBoosts = new TreeSet<>(boostComparator);
+			Set<SearchBoost> queryBoosts = new TreeSet<>(boostComparator);
+
+			List<MetadataSchemaType> searchedSchemaTypes = new ArrayList<>();
+			collections.stream().forEach(collection -> {
+				languages.addAll(collectionsManager.getCollectionInfo(collection).getCollectionLanguesCodes());
+				fieldBoosts.addAll(searchBoostManager.getAllSearchBoostsByMetadataType(collection));
+				queryBoosts.addAll(searchBoostManager.getAllSearchBoostsByQueryType(collection));
+				searchedSchemaTypes.addAll(schemas.getSchemaTypes(collection).getSchemaTypes());
+			});
+
+			addParamsForFreeTextSearch(solrParams, freeText, null, new ArrayList<>(languages), null,
+					mainDataLanguage, new ArrayList<>(fieldBoosts), new ArrayList<>(queryBoosts), searchedSchemaTypes, systemConfigs);
+		}
+
+		String oldQParam = solrParams.get(CommonParams.Q);
+		if (StringUtils.isNotBlank(oldQParam) && !oldQParam.equals("*:*")) {
+			solrParams.add(CommonParams.FQ, oldQParam);
+		}
+		solrParams.set(CommonParams.Q, StringUtils.defaultString(freeText, "*:*"));
 	}
 }
