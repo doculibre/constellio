@@ -87,7 +87,7 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	public void updateBulk(List<TransactionSqlDTO> dtos) throws SQLException {
 
 		String updateQuery = "UPDATE " + fullTableName
-							 + "SET timestamp = CURRENT_TIMESTAMP, logVersion = ?, content= ?)) "
+							 + " SET timestamp = CURRENT_TIMESTAMP, logVersion = ?, content= ?)) "
 							 + "WHERE transactionUUID = ? ";
 
 		Connection connection = connector.getConnection();

@@ -58,7 +58,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	public void insertBulk(List<RecordTransactionSqlDTO> dtos) throws SQLException {
 
 		String insertQuery = "INSERT INTO " + fullTableName
-							 + "(id, recordId, logVersion, solrVersion, content) "
+							 + " (id, recordId, logVersion, solrVersion, content) "
 							 + "VALUES ( default ,?, ?, ?, ?)";
 
 		Connection connection = connector.getConnection();
@@ -86,7 +86,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	public void updateBulk(List<RecordTransactionSqlDTO> dtos) throws SQLException {
 
 		String updateQuery = "UPDATE " + fullTableName
-							 + "SET logVersion = ?, solrVersion= ?, content= JSON_MODIFY(content,'append $', JSON_QUERY(?)) "
+							 + " SET logVersion = ?, solrVersion= ?, content= JSON_MODIFY(content,'append $', JSON_QUERY(?)) "
 							 + "WHERE recordId = ? ";
 
 		Connection connection = connector.getConnection();

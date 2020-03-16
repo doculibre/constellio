@@ -105,9 +105,13 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 
 		UserCredential userCredential;
 		if (grantType.equals("azure") && azurename != null) {
-			userCredential = userServices.getUserByAzureUsername(azurename);
+			try {
+				userCredential = userServices.getUserByAzureUsername(azurename);
+			} catch (UserServicesRuntimeException_NoSuchUser noUserEx) {
+				userCredential = null;
+			}
 			if (userCredential == null) {
-				resp.getWriter().write(NO_AZURE_USERNAME);
+				getResponseMessage(resp, null, null, NO_AZURE_USERNAME);
 				return;
 			} else {
 				username = userCredential.getUsername();
@@ -151,18 +155,34 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 			token = userServices.generateToken(userCredential.getUsername(), Duration.standardHours(tokenDurationInHours));
 		}
 
+		getResponseMessage(resp, userCredential, token);
+
+	}
+
+	private void getResponseMessage(HttpServletResponse resp, UserCredential userCredential, String token)
+			throws IOException {
+		getResponseMessage(resp, userCredential, token, null);
+	}
+
+	private void getResponseMessage(HttpServletResponse resp, UserCredential userCredential, String token, String error)
+			throws IOException {
 		StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-		sb.append("<response><serviceKey>");
-		sb.append(userCredential.getServiceKey());
-		sb.append("</serviceKey>");
-		sb.append("<token>");
-		sb.append(token);
-		sb.append("</token></response>");
+		if (error != null) {
+			sb.append("<response><error>");
+			sb.append(error);
+			sb.append("</error></response>");
+		} else {
+			sb.append("<response><serviceKey>");
+			sb.append(userCredential.getServiceKey());
+			sb.append("</serviceKey>");
+			sb.append("<token>");
+			sb.append(token);
+			sb.append("</token></response>");
+		}
 
 		resp.setContentType(TEXT_XML_CHARSET_UTF_8);
 		resp.setHeader("Access-Control-Allow-Origin", "*");
 		resp.getWriter().write(sb.toString());
-
 	}
 
 	private int getTokenDurationInHours(String duration) {
