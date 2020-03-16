@@ -2749,6 +2749,10 @@ $popup-view-z-index: 3;
 					font-weight: 700;
 				}
 			}
+			
+			.v-button {
+				white-space: initial;
+			}
 
 			.search-result-title {
 				padding-top: 6px;
@@ -2872,7 +2876,6 @@ $popup-view-z-index: 3;
 		}
 
 		.viewable-record-table-compressed {
-	
 			.search-result-title {
 				width: 350px;
 			}

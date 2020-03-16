@@ -29,12 +29,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -470,7 +465,20 @@ public class AzureAdClient {
 			for (int ig = 0; ig < groupsPageSize; ig++) {
 				LDAPGroup ldapGroup = buildLDAPGroupFromJsonObject(groupsArray.getJSONObject(ig));
 
-				if (ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
+				String simpleName = ldapGroup.getSimpleName();
+				String distinguishedName = ldapGroup.getDistinguishedName();
+				if (StringUtils.isBlank(simpleName) || StringUtils.isBlank(distinguishedName)) {
+					StringBuilder errorMessage = new StringBuilder();
+					if (StringUtils.isBlank(simpleName) && StringUtils.isBlank(distinguishedName)) {
+						errorMessage.append("Simple name and distinguished name are empty");
+					} else if (StringUtils.isBlank(simpleName)) {
+						errorMessage.append("Simple name is empty");
+					} else if (StringUtils.isBlank(distinguishedName)) {
+						errorMessage.append("Distinguished name is empty");
+					}
+					errorMessage.append(" for group " + groupsArray.getJSONObject(ig).toString(4));
+					LOGGER.warn(errorMessage.toString());
+				} else if (ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
 					if (ldapGroups.containsKey(ldapGroup.getDistinguishedName())) {
 						ldapGroup = ldapGroups.get(ldapGroup.getDistinguishedName());
 					} else {
