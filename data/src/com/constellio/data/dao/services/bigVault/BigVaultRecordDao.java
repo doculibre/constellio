@@ -911,11 +911,11 @@ public class BigVaultRecordDao implements RecordDao {
 		boolean hasNonNullValues = false;
 		for (int i = 0; i < strings.size(); i++) {
 			String aString = strings.get(i);
-			if ("__TRUE__".equals(aString) || "true".equals(aString)) {
+			if ("__TRUE__".equals(aString)) {
 				booleans.add(Boolean.TRUE);
 				hasBooleanValues = true;
 				hasNonNullValues = true;
-			} else if ("__FALSE__".equals(aString) || "false".equals(aString)) {
+			} else if ("__FALSE__".equals(aString)) {
 				booleans.add(Boolean.FALSE);
 				hasBooleanValues = true;
 				hasNonNullValues = true;
