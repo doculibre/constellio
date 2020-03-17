@@ -10,8 +10,18 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.entities.*;
-import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.FacetVO;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -54,14 +64,30 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -520,10 +546,15 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				};
 				clearSearchButton.addStyleName("folder-search-clear");
 			}
-			BaseButton searchInFolderButton = new LinkButton($("DisplayFolderView.searchInFolder")) {
+			BaseButton searchInFolderButton = new LinkButton($("DisplayFolderView.showSearchInFolder")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					if (searchLayout != null) {
+						if (searchLayout.isVisible()) {
+							setCaption($("DisplayFolderView.showSearchInFolder"));
+						} else {
+							setCaption($("DisplayFolderView.hideSearchInFolder"));
+						}
 						searchLayout.setVisible(!searchLayout.isVisible());
 						searchField.focus();
 					}
@@ -573,7 +604,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				searchLayout = new VerticalLayout();
 				searchLayout.addStyleName("folder-search-layout");
 				searchLayout.setSpacing(true);
-				searchLayout.setWidth("450px");
+				searchLayout.setWidth("50%");
 				searchLayout.setVisible(false);
 				
 				I18NHorizontalLayout searchFieldAndButtonLayout = new I18NHorizontalLayout(searchField, searchButton);
