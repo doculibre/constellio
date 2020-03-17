@@ -562,7 +562,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	@Override
 	public void showErrorMessage(String errorMessage) {
-		Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Type.WARNING_MESSAGE);
+		Notification notification = new Notification(errorMessage.replace("\n", "<br/>") +
+													 "<br/><br/>" + $("clickToClose"), Type.WARNING_MESSAGE);
 		notification.setHtmlContentAllowed(true);
 		notification.show(Page.getCurrent());
 	}
