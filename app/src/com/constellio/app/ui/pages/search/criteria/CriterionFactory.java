@@ -62,7 +62,9 @@ public class CriterionFactory implements StructureFactory {
 		BooleanOperator booleanOperator = criterion.getBooleanOperator();
 		newCriterion.setBooleanOperator(booleanOperator);
 
-		newCriterion.setMetadata(criterion.getMetadataCode(), criterion.getMetadataType(), criterion.getEnumClassName());
+		if (criterion.getMetadataCode() != null) {
+			newCriterion.setMetadata(criterion.getMetadataCode(), criterion.getMetadataType(), criterion.getEnumClassName());
+		}
 
 		SearchOperator searchOperator = criterion.getSearchOperator();
 		newCriterion.setSearchOperator(searchOperator);
@@ -85,83 +87,87 @@ public class CriterionFactory implements StructureFactory {
 			endValue = "" + criterion.getEndValue();
 		}
 
-		switch (metadataValueType) {
-			case DATE:
-			case DATE_TIME:
+		if (metadataValueType != null) {
 
-				if (relativeCriteria != null
-					&& (relativeCriteria.getRelativeSearchOperator() == RelativeSearchOperator.PAST
-						|| relativeCriteria.getRelativeSearchOperator() == RelativeSearchOperator.FUTURE)) {
-					Double newValue = Double.valueOf(value);
-					newCriterion.setValue(newValue);
-				} else if (value != null) {
-					LocalDateTime ldt = new LocalDateTime().parse(value);
-					newCriterion.setValue(ldt);
-				}
-				if (relativeCriteria != null
-					&& (relativeCriteria.getEndRelativeSearchOperator() == RelativeSearchOperator.PAST
-						|| relativeCriteria.getEndRelativeSearchOperator() == RelativeSearchOperator.FUTURE)) {
-					Double newEndValue = Double.valueOf(endValue);
-					newCriterion.setEndValue(newEndValue);
-				} else if (endValue != null) {
-					LocalDateTime ldt = new LocalDateTime().parse(endValue);
-					newCriterion.setEndValue(ldt);
-				}
+			switch (metadataValueType) {
+				case DATE:
+				case DATE_TIME:
 
-				break;
-			case STRING:
-				newCriterion.setValue(value);
-				break;
-			case TEXT:
-				newCriterion.setValue(value);
-				break;
-			case INTEGER:
-				newCriterion.setValue(Integer.valueOf(value));
-				break;
-			case NUMBER:
-				if (value != null) {
-					double doubleValue = Double.parseDouble(value);
-					newCriterion.setValue(doubleValue);
-					if (endValue != null) {
-						double doubleEndValue = Double.parseDouble(endValue);
-						newCriterion.setEndValue(doubleEndValue);
+					if (relativeCriteria != null
+						&& (relativeCriteria.getRelativeSearchOperator() == RelativeSearchOperator.PAST
+							|| relativeCriteria.getRelativeSearchOperator() == RelativeSearchOperator.FUTURE)) {
+						Double newValue = Double.valueOf(value);
+						newCriterion.setValue(newValue);
+					} else if (value != null) {
+						LocalDateTime ldt = new LocalDateTime().parse(value);
+						newCriterion.setValue(ldt);
 					}
-				} else {
-					newCriterion.setValue(null);
-				}
-				break;
-			case BOOLEAN:
-				Boolean booleanValue = null;
-				if (value != null) {
-					booleanValue = Boolean.parseBoolean(value);
-				}
-				newCriterion.setValue(booleanValue);
-				break;
-			case REFERENCE:
-				newCriterion.setValue(value);
-				break;
-			case CONTENT:
-				newCriterion.setValue(value);
-				break;
-			case STRUCTURE:
-				newCriterion.setValue(value);
-				break;
-			case ENUM:
-				Class clazz = null;
-				try {
-					clazz = Class.forName(criterion.getEnumClassName());
-				} catch (ClassNotFoundException e) {
-					newCriterion.setValue(null);
-				}
-				if (value != null) {
-					newCriterion.setValue(Enum.valueOf(clazz, value));
-				} else {
-					newCriterion.setValue(null);
-				}
-				break;
-			default:
-				throw new UnsupportedOperationException("Unknow metadata type");
+					if (relativeCriteria != null
+						&& (relativeCriteria.getEndRelativeSearchOperator() == RelativeSearchOperator.PAST
+							|| relativeCriteria.getEndRelativeSearchOperator() == RelativeSearchOperator.FUTURE)) {
+						Double newEndValue = Double.valueOf(endValue);
+						newCriterion.setEndValue(newEndValue);
+					} else if (endValue != null) {
+						LocalDateTime ldt = new LocalDateTime().parse(endValue);
+						newCriterion.setEndValue(ldt);
+					}
+
+					break;
+				case STRING:
+					newCriterion.setValue(value);
+					break;
+				case TEXT:
+					newCriterion.setValue(value);
+					break;
+				case INTEGER:
+					newCriterion.setValue(Integer.valueOf(value));
+					break;
+				case NUMBER:
+					if (value != null) {
+						double doubleValue = Double.parseDouble(value);
+						newCriterion.setValue(doubleValue);
+						if (endValue != null) {
+							double doubleEndValue = Double.parseDouble(endValue);
+							newCriterion.setEndValue(doubleEndValue);
+						}
+					} else {
+						newCriterion.setValue(null);
+					}
+					break;
+				case BOOLEAN:
+					Boolean booleanValue = null;
+					if (value != null) {
+						booleanValue = Boolean.parseBoolean(value);
+					}
+					newCriterion.setValue(booleanValue);
+					break;
+				case REFERENCE:
+					newCriterion.setValue(value);
+					break;
+				case CONTENT:
+					newCriterion.setValue(value);
+					break;
+				case STRUCTURE:
+					newCriterion.setValue(value);
+					break;
+				case ENUM:
+					Class clazz = null;
+					try {
+						clazz = Class.forName(criterion.getEnumClassName());
+					} catch (ClassNotFoundException e) {
+						newCriterion.setValue(null);
+					}
+					if (value != null) {
+						newCriterion.setValue(Enum.valueOf(clazz, value));
+					} else {
+						newCriterion.setValue(null);
+					}
+					break;
+				default:
+					throw new UnsupportedOperationException("Unknow metadata type");
+			}
 		}
+
 		return newCriterion;
 	}
 

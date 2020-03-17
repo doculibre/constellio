@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.trigger;
 
+import com.constellio.app.modules.rm.ui.field.TableAddRemoveTriggerActionField;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -27,17 +28,21 @@ public class AddEditTriggerViewImpl extends BaseViewImpl implements AddEditTrigg
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout mainLayout = new VerticalLayout();
 
-		mainLayout.addComponent(new TriggerRecordForm(presenter.getRecordVO(), getConstellioFactories()) {
+		final TriggerRecordForm triggerRecordForm = new TriggerRecordForm(presenter.getRecordVO(), getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject) throws ValidationException {
-				presenter.saveButtonClick(viewObject);
+				TableAddRemoveTriggerActionField triggerActionField = this.getTriggerActionField();
+				presenter.saveButtonClick(triggerActionField.getTriggerActionVOListToSave(), triggerActionField.getTriggerActionVOListToDelete(),
+						viewObject);
 			}
 
 			@Override
 			protected void cancelButtonClick(RecordVO viewObject) {
 				presenter.cancelButtonClicked();
 			}
-		});
+		};
+
+		mainLayout.addComponent(triggerRecordForm);
 
 		mainLayout.setMargin(new MarginInfo(false, true, false, false));
 

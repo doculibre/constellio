@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.field;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.triggers.Trigger;
 import com.constellio.app.modules.rm.wrappers.triggers.TriggerAction;
 import com.constellio.app.modules.rm.wrappers.triggers.TriggerActionType;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -17,8 +18,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.vaadin.data.Property;
+import com.vaadin.data.util.ObjectProperty;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -32,37 +36,61 @@ public class TableAddRemoveTriggerActionFieldPresenter {
 	private RecordToVOBuilder recordToVOBuilder;
 	private SessionContext sessionContext;
 	private RMSchemasRecordsServices rm;
-	private List<RecordVO> triggerActionVOTOSave;
+	private List<RecordVO> triggerActionVOListToSave;
+	private List<RecordVO> triggerActionVOListToDelete;
 	private SchemaPresenterUtils triggerActionsSchemaPresenterUtils;
 	private MetadataSchemasManager metadataSchemasManager;
+	private TableAddRemoveTriggerActionField tableAddRemoveTriggerActionField;
 
 	public TableAddRemoveTriggerActionFieldPresenter(TableAddRemoveTriggerActionField tableAddRemoveTriggerActionField,
 													 ConstellioFactories constellioFactories,
 													 RecordVO triggerRecordVO) {
 		this.constellioFactories = constellioFactories;
 		this.recordServices = constellioFactories.getModelLayerFactory().newRecordServices();
+		this.tableAddRemoveTriggerActionField = tableAddRemoveTriggerActionField;
 		this.recordToVOBuilder = new RecordToVOBuilder();
 		this.sessionContext = ConstellioUI.getCurrentSessionContext();
 		this.triggerRecordVO = triggerRecordVO;
 		this.appLayerFactory = constellioFactories.getAppLayerFactory();
 		this.rm = new RMSchemasRecordsServices(sessionContext.getCurrentCollection(), appLayerFactory);
-		this.triggerActionVOTOSave = new ArrayList<>();
+		this.triggerActionVOListToSave = new ArrayList<>();
+		this.triggerActionVOListToDelete = new ArrayList<>();
 		this.triggerActionsSchemaPresenterUtils = new SchemaPresenterUtils(TriggerAction.DEFAULT_SCHEMA, constellioFactories, sessionContext);
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 	}
 
-	public TriggerContainer getContainer() {
+	public TriggerActionContainer getCurrentContainer() {
 		TriggerActionDataProvider recordVODataProvider = new TriggerActionDataProvider();
 
-		return new TriggerContainer(recordVODataProvider);
+		return new TriggerActionContainer(recordVODataProvider);
 	}
 
-	public List<RecordVO> getTriggerActionToSave() {
-		return triggerActionVOTOSave;
+	public List<RecordVO> getTriggerActionVOListToDelete() {
+		return triggerActionVOListToDelete;
 	}
 
-	public void saveActionTrigger(RecordVO triggerActionToSave) {
-		Iterator<RecordVO> triggerActionVOTOSaveIterator = this.triggerActionVOTOSave.iterator();
+	public List<RecordVO> getTriggerActionVOListToSave() {
+		return triggerActionVOListToSave;
+	}
+
+	public void deleteTriggerAction(RecordVO triggerActionToDelete) {
+		Iterator<RecordVO> triggerActionIterator = this.triggerActionVOListToSave.iterator();
+
+		while (triggerActionIterator.hasNext()) {
+			RecordVO currentTriggerActionVO = triggerActionIterator.next();
+
+			if (currentTriggerActionVO.getId().equals(triggerActionToDelete.getId())) {
+				if (currentTriggerActionVO.isSaved()) {
+					triggerActionVOListToDelete.add(triggerActionToDelete);
+				}
+
+				triggerActionIterator.remove();
+			}
+		}
+	}
+
+	public void addUpdateActionTrigger(RecordVO triggerActionToSave) {
+		Iterator<RecordVO> triggerActionVOTOSaveIterator = this.triggerActionVOListToSave.iterator();
 
 		while (triggerActionVOTOSaveIterator.hasNext()) {
 			RecordVO currentTriggerActionTOSave = triggerActionVOTOSaveIterator.next();
@@ -72,7 +100,8 @@ public class TableAddRemoveTriggerActionFieldPresenter {
 			}
 		}
 
-		this.triggerActionVOTOSave.add(triggerActionToSave);
+		this.tableAddRemoveTriggerActionField.getTriggerContainer().addUpdateItem(triggerActionToSave);
+		this.triggerActionVOListToSave.add(triggerActionToSave);
 	}
 
 	public RecordVO newTriggerAction() {
@@ -138,16 +167,25 @@ public class TableAddRemoveTriggerActionFieldPresenter {
 			return Collections.unmodifiableList(recordVOList);
 		}
 
-		public void setTriggers(List<RecordVO> batchProcessVOs) {
+		public void setTriggerActions(List<RecordVO> batchProcessVOs) {
 			this.recordVOList = batchProcessVOs;
 		}
 
-		public void addTrigger(RecordVO batchProcessVO) {
+		public void addTriggerActions(RecordVO batchProcessVO) {
 			recordVOList.add(batchProcessVO);
 		}
 
-		public void removeTrigger(RecordVO batchProcessVO) {
-			recordVOList.remove(batchProcessVO);
+		public void removeTriggerActions(String id) {
+			Iterator<RecordVO> iterator = recordVOList.iterator();
+
+			while (iterator.hasNext()) {
+				RecordVO currentTriggerActionVO = iterator.next();
+
+				if (currentTriggerActionVO.getId().equals(id)) {
+					iterator.remove();
+					break;
+				}
+			}
 		}
 
 		public void clear() {
@@ -157,18 +195,69 @@ public class TableAddRemoveTriggerActionFieldPresenter {
 	}
 
 
-	public class TriggerContainer extends DataContainer<TriggerActionDataProvider> {
+	public class TriggerActionContainer extends DataContainer<TriggerActionDataProvider> {
 
-		public TriggerContainer(
+		public TriggerActionContainer(
 				TriggerActionDataProvider dataProvider) {
 			super(dataProvider);
 		}
+
+		@Override
+		protected Property<?> getOwnContainerProperty(Object itemId, Object propertyId) {
+			final RecordVO triggerActionVO = (RecordVO) itemId;
+			Object value;
+			if (Trigger.TITLE.equals(propertyId)) {
+				value = triggerActionVO.getTitle();
+			} else if (Trigger.TYPE.equals(propertyId)) {
+				TriggerActionType triggerActionType = rm.getTriggerActionType(triggerActionVO.get(TriggerAction.TYPE));
+				value = triggerActionType.getTitle();
+			} else {
+				throw new IllegalArgumentException("Invalid propertyId : " + propertyId);
+			}
+			Class<?> type = getType(propertyId);
+			return new ObjectProperty(value, type);
+		}
+
 
 		@Override
 		protected void populateFromData(TriggerActionDataProvider dataProvider) {
 			for (RecordVO triggerVO : dataProvider.getTriggerVOs()) {
 				addItem(triggerVO);
 			}
+		}
+
+		public void addUpdateItem(RecordVO newTriggerActionVO) {
+			List<RecordVO> recordVOS = this.getDataProvider().getTriggerVOs();
+			List<String> currentIds = recordVOS.stream().map(element -> element.getId()).collect(Collectors.toList());
+
+			if (currentIds.contains(newTriggerActionVO.getId())) {
+				this.getDataProvider().removeTriggerActions(newTriggerActionVO.getId());
+			}
+
+			this.getDataProvider().addTriggerActions(newTriggerActionVO);
+			this.forceRefresh();
+		}
+
+		@Override
+		protected Class<?> getOwnType(Object propertyId) {
+			Class<?> type;
+			if (TriggerAction.TITLE.equals(propertyId)) {
+				type = String.class;
+			} else if (TriggerAction.TYPE.equals(propertyId)) {
+				type = String.class;
+			} else {
+				throw new IllegalArgumentException("Invalid propertyId : " + propertyId);
+			}
+			return type;
+		}
+
+		@Override
+		protected Collection<?> getOwnContainerPropertyIds() {
+			List<String> containerPropertyIds = new ArrayList<>();
+			containerPropertyIds.add(TriggerAction.TITLE);
+			containerPropertyIds.add(TriggerAction.TYPE);
+
+			return containerPropertyIds;
 		}
 
 		public void setContent(List<String> ids) {

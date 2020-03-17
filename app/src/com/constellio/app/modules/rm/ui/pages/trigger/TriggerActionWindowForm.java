@@ -29,6 +29,7 @@ public class TriggerActionWindowForm extends WindowButton {
 		this.isAdd = isAdd;
 	}
 
+
 	public void setTriggerActionVO(RecordVO triggerActionVO) {
 		this.triggerActionVO = triggerActionVO;
 	}
@@ -51,7 +52,8 @@ public class TriggerActionWindowForm extends WindowButton {
 
 			@Override
 			protected void saveButtonClick(RecordVO viewObject) throws ValidationException {
-				presenter.saveActionTrigger(viewObject);
+				presenter.addUpdateActionTrigger(viewObject);
+				TriggerActionWindowForm.this.getWindow().close();
 			}
 
 			@Override
