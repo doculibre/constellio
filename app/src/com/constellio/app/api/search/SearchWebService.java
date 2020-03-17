@@ -1,12 +1,20 @@
 package com.constellio.app.api.search;
 
+import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchBoostManager;
@@ -15,6 +23,8 @@ import com.constellio.model.services.thesaurus.ResponseSkosConcept;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.shaded.com.google.common.base.Objects;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -25,12 +35,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.constellio.model.services.search.SearchServices.addParamsForFreeTextSearch;
 import static java.util.Arrays.asList;
@@ -64,8 +79,11 @@ public class SearchWebService extends AbstractSearchServlet {
 
 		String freeText = solrParams.get("freeText");
 		solrParams.remove("freeText");
+		String facetWithLabels = solrParams.get("facet.withLabels");
+		solrParams.remove("facet.withLabels");
 		List<String> userCollections = user.getCollections();
-		adjustForFreeText(StringUtils.isNotBlank(collection) ? asList(collection) : userCollections, freeText, solrParams);
+		List<String> queryCollections = StringUtils.isNotBlank(collection) ? asList(collection) : userCollections;
+		adjustForFreeText(queryCollections, freeText, solrParams);
 
 		QueryResponse queryResponse;
 		if (!Strings.isNullOrEmpty(thesaurusValue) && searchingInEvents) {
@@ -170,7 +188,64 @@ public class SearchWebService extends AbstractSearchServlet {
 			skosConceptsNL.add(ThesaurusService.DISAMBIGUATIONS, disambiguationsNL);
 		}
 
-		writeResponse(resp, solrParams, queryResponse, skosConceptsNL, null, null, null, null);
+		NamedList facetLabels = null;
+		if (StringUtils.isNotBlank(facetWithLabels) && facetWithLabels.trim().toLowerCase().equals("true")) {
+			facetLabels = getFacetLabels(queryResponse, queryCollections);
+		}
+
+		writeResponse(resp, solrParams, queryResponse, skosConceptsNL, null, facetLabels, null, null);
+	}
+
+	private NamedList getFacetLabels(QueryResponse queryResponse, List<String> collections) {
+		RecordServices recordServices = modelLayerFactory().newRecordServices();
+		List<MetadataSchemaTypes> allCollectionsSchemaTypes = modelLayerFactory().getMetadataSchemasManager().getAllCollectionsSchemaTypes();
+		List<Metadata> allMetadatas = new ArrayList<>();
+		allCollectionsSchemaTypes.stream().forEach(schemaTypes -> allMetadatas.addAll(schemaTypes.getAllMetadatas()));
+		Map<String, Metadata> uniqueMetadatas = allMetadatas.stream()
+				.collect(Collectors.toMap(Metadata::getDataStoreCode, Function.identity(), (meta1, meta2) -> meta1));
+
+		NamedList facetLabelsNL = new NamedList();
+		NamedList facetFieldsLabelsNL = new NamedList();
+
+		List<FacetField> facetFields = Objects.firstNonNull(queryResponse.getFacetFields(), Collections.emptyList());
+		for (FacetField facetField : facetFields) {
+			Metadata facetMetadata = uniqueMetadatas.get(facetField.getName());
+			if (facetMetadata != null) {
+				Map<String, String> facetLabels = facetMetadata.getLabelsByLanguageCodes();
+				NamedList valuesName = new NamedList();
+				for (String languageCode : facetLabels.keySet()) {
+					Locale locale = Language.withCode(languageCode).getLocale();
+					Map<String, String> valueLabels = new HashMap<>();
+					switch (facetMetadata.getType()) {
+						case REFERENCE:
+							valueLabels = facetField.getValues().stream().map(value -> recordServices.getDocumentById(value.getName())).collect(Collectors.toMap(Record::getId, record -> record.get(Schemas.TITLE, locale)));
+							break;
+						case ENUM:
+							Class<? extends EnumWithSmallCode> enumClass = (Class<? extends EnumWithSmallCode>) facetMetadata.getEnumClass();
+							EnumWithSmallCodeToCaptionConverter captionConverter = new EnumWithSmallCodeToCaptionConverter(enumClass);
+							valueLabels = facetField.getValues().stream().map(value -> value.getName()).collect(
+									Collectors.toMap(enumCode -> enumCode, enumCode -> captionConverter.convertToPresentation(enumCode, null, locale)));
+							break;
+						default:
+							break;
+					}
+
+					if (!valueLabels.isEmpty()) {
+						valuesName.add(languageCode, valueLabels);
+					}
+				}
+
+				if (valuesName.size() != 0) {
+					facetFieldsLabelsNL.add(facetMetadata.getDataStoreCode(), valuesName);
+				}
+			}
+		}
+
+		if (facetFieldsLabelsNL.size() != 0) {
+			facetLabelsNL.add("facet_fields", facetFieldsLabelsNL);
+		}
+
+		return facetLabelsNL;
 	}
 
 	private void adjustForFreeText(List<String> collections, String freeText, ModifiableSolrParams solrParams) {
