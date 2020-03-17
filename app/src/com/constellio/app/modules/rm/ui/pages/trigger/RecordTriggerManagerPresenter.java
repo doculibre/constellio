@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class RecordTriggerManagerPresenter extends BasePresenter<RecordTriggerManagerView> {
-	private Record currentRecord;
+	private Record targetedRecord;
 	private RecordServices recordServices;
 	private MetadataSchemasManager metadataSchemasManager;
 
@@ -29,12 +29,16 @@ public class RecordTriggerManagerPresenter extends BasePresenter<RecordTriggerMa
 
 	public void forParams(String parameters) {
 		if (StringUtils.isNotBlank(parameters)) {
-			currentRecord = recordServices.getRecordSummaryById(view.getCollection(), parameters);
-			String schemaLabel = metadataSchemasManager.getSchemaOf(currentRecord).getSchemaType().getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
-			view.setRecordTitle(schemaLabel.toLowerCase() + " " + currentRecord.getTitle());
+			targetedRecord = recordServices.getRecordSummaryById(view.getCollection(), parameters);
+			String schemaLabel = metadataSchemasManager.getSchemaOf(targetedRecord).getSchemaType().getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
+			view.setRecordTitle(schemaLabel.toLowerCase() + " " + targetedRecord.getTitle());
 		} else {
 			throw new IllegalStateException("this page require a recordid");
 		}
+	}
+
+	public Record getTargetedRecord() {
+		return targetedRecord;
 	}
 
 	@Override
@@ -49,14 +53,14 @@ public class RecordTriggerManagerPresenter extends BasePresenter<RecordTriggerMa
 
 	@Override
 	protected List<String> getRestrictedRecordIds(String params) {
-		return Arrays.asList(currentRecord.getId());
+		return Arrays.asList(targetedRecord.getId());
 	}
 
 	public RecordVODataProvider getDataProvider() {
-		return new TriggerDataProvider(currentRecord.getId(), appLayerFactory, view.getSessionContext());
+		return new TriggerDataProvider(targetedRecord.getId(), appLayerFactory, view.getSessionContext());
 	}
 
 	public void addRecordTriggerClicked() {
-		view.navigate().to(RMViews.class).addEditTriggerToRecord(currentRecord.getId());
+		view.navigate().to(RMViews.class).addEditTriggerToRecord(targetedRecord.getId());
 	}
 }

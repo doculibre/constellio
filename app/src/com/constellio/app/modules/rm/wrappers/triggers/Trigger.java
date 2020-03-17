@@ -11,6 +11,7 @@ import java.util.List;
 public class Trigger extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "trigger";
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
+	public static final String DESCRIPTION = "description";
 
 	public Trigger(Record record,
 				   MetadataSchemaTypes types) {

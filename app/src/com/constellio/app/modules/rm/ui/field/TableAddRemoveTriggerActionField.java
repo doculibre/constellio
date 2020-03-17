@@ -71,7 +71,7 @@ public class TableAddRemoveTriggerActionField extends CustomField<List<String>> 
 		recordVOTable.setColumnHeader(TriggerAction.TITLE, $("TableAddRemoveTriggerActionField.title"));
 		recordVOTable.setColumnHeader(TriggerAction.TYPE, $("TableAddRemoveTriggerActionField.type"));
 		recordVOTable.addGeneratedColumn(TRIGGER_ACTION_BUTTONS, new ActionColumnGenerator());
-		recordVOTable.setColumnWidth(TRIGGER_ACTION_BUTTONS, 120);
+		recordVOTable.setColumnWidth(TRIGGER_ACTION_BUTTONS, 90);
 		recordVOTable.setColumnHeader(TRIGGER_ACTION_BUTTONS, "");
 
 		VerticalLayout mainVLayout = new VerticalLayout();

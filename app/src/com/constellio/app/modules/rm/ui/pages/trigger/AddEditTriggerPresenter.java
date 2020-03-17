@@ -135,10 +135,6 @@ public class AddEditTriggerPresenter extends BasePresenter<AddEditTriggerView> {
 		view.navigate().to(RMViews.class).recordTriggerManager(currentTargetRecord.getId());
 	}
 
-	public String getCurrentTriggerId() {
-		return trigger.getId();
-	}
-
 	public RecordVO getRecordVO() {
 		return new RecordToVOBuilder().build(trigger.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 	}

@@ -18,6 +18,7 @@ import com.vaadin.ui.CustomField;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 
@@ -32,17 +33,18 @@ public class AdvancedSearchCriteriaField extends CustomField<List<Criterion>> {
 	public AdvancedSearchCriteriaField(ConstellioFactories constellioFactories) {
 		presenter = new AdvancedSearchCriteriaFieldPresenter(this, constellioFactories);
 		advancedSearchCriteriaComponent = new AdvancedSearchCriteriaComponent(presenter);
-	}
-
-	@Override
-	protected Component initContent() {
-
 		types = new ComboBox();
+
 		for (MetadataSchemaTypeVO schemaType : presenter.getSchemaTypes()) {
 			types.addItem(schemaType.getCode());
 			String itemCaption = schemaType.getLabel(Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage()));
 			types.setItemCaption(schemaType.getCode(), itemCaption);
 		}
+	}
+
+	@Override
+	protected Component initContent() {
+
 		types.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 		types.setNullSelectionAllowed(false);
 		types.addValueChangeListener(new ValueChangeListener() {
@@ -99,11 +101,25 @@ public class AdvancedSearchCriteriaField extends CustomField<List<Criterion>> {
 	protected void setInternalValue(List<Criterion> newValue) {
 		super.setInternalValue(newValue);
 		if (newValue == null || newValue.isEmpty()) {
+			types.setValue(null);
 			advancedSearchCriteriaComponent.removeAllItems();
 			advancedSearchCriteriaComponent.addEmptyCriterion();
 		} else {
+			String schemaType = getSchemaType(newValue);
+			types.setValue(schemaType);
+			presenter.selectSchemaType(schemaType);
 			advancedSearchCriteriaComponent.setSearchCriteria(newValue);
 		}
+	}
+
+	private String getSchemaType(List<Criterion> newValue) {
+		for (Criterion criterion : newValue) {
+			if (StringUtils.isNotBlank(criterion.getSchemaType())) {
+				return criterion.getSchemaType();
+			}
+		}
+
+		return null;
 	}
 
 	@Override
