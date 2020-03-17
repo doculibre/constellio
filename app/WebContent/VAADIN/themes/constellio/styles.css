@@ -15339,11 +15339,16 @@ div.v-layout.v-horizontal.v-widget {
 	top: 40px;
 }
 
-.constellio .display-folder-view .folder-search-layout .v-slot-folder-search-field {
-	right: -12px;
+.constellio .display-folder-view .search-in-folder-button {
+	padding-left: 10px;
+}
+
+.constellio .display-folder-view .folder-search-layout {
+	padding-left: 10px;
 }
 
 .constellio .display-folder-view .folder-search-layout .v-slot-folder-search-include-tree {
+	position: relative;
 	top: 8px;
 }
 

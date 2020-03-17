@@ -2563,12 +2563,15 @@ $popup-view-z-index: 3;
 			top: 40px;
 		}
 		
+		.search-in-folder-button {
+			padding-left: 10px;
+		}
+		
 		.folder-search-layout {
-			.v-slot-folder-search-field {
-				right: -12px;
-			}
-			
+			padding-left: 10px;
+		
 			.v-slot-folder-search-include-tree {
+				position: relative;
 				top: 8px;
 			}
 		}

@@ -70,7 +70,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
 
 	public static final String STYLE_NAME = "display-folder";
-	private static final String SEARCH_IN_FOLDER_STYLE_NAME = "header-show-advanced-search-button-popup-hidden";
 
 	public static final String USER_LOOKUP = "user-lookup";
 	private RecordVO recordVO;
@@ -93,7 +92,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private SearchButton searchButton;
 	private CheckBox includeTreeCheckBox;
 	private BaseButton clearSearchButton;
-	private I18NHorizontalLayout searchLayout;
+	private VerticalLayout searchLayout;
 
 	private Window documentVersionWindow;
 
@@ -530,7 +529,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					}
 				}
 			};
-			searchInFolderButton.addStyleName(SEARCH_IN_FOLDER_STYLE_NAME);
+			searchInFolderButton.addStyleName("search-in-folder-button");
 			if (searchField == null) {
 				searchField = new StringAutocompleteField<String>(new StringAutocompleteField.AutocompleteSuggestionsProvider<String>() {
 					@Override
@@ -571,13 +570,22 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 
 			if (searchLayout == null) {
-				searchLayout = new I18NHorizontalLayout();
+				searchLayout = new VerticalLayout();
 				searchLayout.addStyleName("folder-search-layout");
 				searchLayout.setSpacing(true);
-				searchLayout.setWidth("100%");
-				searchLayout.addComponents(searchField, searchButton, includeTreeCheckBox, clearSearchButton);
-				searchLayout.setExpandRatio(searchField, 1);
+				searchLayout.setWidth("450px");
 				searchLayout.setVisible(false);
+				
+				I18NHorizontalLayout searchFieldAndButtonLayout = new I18NHorizontalLayout(searchField, searchButton);
+				searchFieldAndButtonLayout.addStyleName("folder-search-field-and-button-layout");
+				searchFieldAndButtonLayout.setWidth("100%");
+				searchFieldAndButtonLayout.setExpandRatio(searchField, 1);
+				
+				I18NHorizontalLayout extraFieldsSearchLayout = new I18NHorizontalLayout(includeTreeCheckBox, clearSearchButton);
+				extraFieldsSearchLayout.addStyleName("folder-search-extra-fields-layout");
+				extraFieldsSearchLayout.setSpacing(true);
+				
+				searchLayout.addComponents(searchFieldAndButtonLayout, extraFieldsSearchLayout);
 			}
 
 			VerticalLayout searchToggleAndFieldsLayout = new VerticalLayout();
