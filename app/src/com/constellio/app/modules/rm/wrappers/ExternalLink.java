@@ -36,4 +36,9 @@ public class ExternalLink extends RecordWrapper {
 		set(TYPE, type);
 		return this;
 	}
+
+	public ExternalLink setType(String type) {
+		set(TYPE, type);
+		return this;
+	}
 }
