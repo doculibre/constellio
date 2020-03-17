@@ -103,6 +103,7 @@ public class ListExternalLinksViewImpl extends BaseViewImpl implements ListExter
 		table.setColumnHeader("buttons", "");
 		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
 		table.setColumnWidth("buttons", 40);
+		table.setColumnCollapsible("buttons", false);
 		table.setColumnExpandRatio(dataProvider.getSchema().getCode() + "_" + Schemas.TITLE_CODE, 1.0f);
 		table.setPageLength(Math.min(15, dataProvider.size()));
 		table.sort();
