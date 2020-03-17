@@ -293,6 +293,10 @@ public class FolderRecordActionsServices {
 			   rmModuleExtensions.isGenerateReportActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
+	public boolean isListExternalLinksActionPossible(Record record, User user) {
+		return hasUserWriteAccess(record, user);
+	}
+
 	/*
 			linkToFolderButton = new LinkButton($("DisplayFolderView.linkToFolder")) {
 				@Override

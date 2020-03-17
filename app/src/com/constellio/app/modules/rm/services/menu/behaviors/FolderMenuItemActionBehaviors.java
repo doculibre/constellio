@@ -53,8 +53,6 @@ import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -653,5 +651,9 @@ public class FolderMenuItemActionBehaviors {
 		} else {
 			return folder;
 		}
+	}
+
+	public void listExternalLinks(Folder folder, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(RMViews.class).listExternalLinks(folder.getId());
 	}
 }
