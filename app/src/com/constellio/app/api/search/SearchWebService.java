@@ -276,6 +276,8 @@ public class SearchWebService extends AbstractSearchServlet {
 
 			addParamsForFreeTextSearch(solrParams, freeText, null, new ArrayList<>(languages), null,
 					mainDataLanguage, new ArrayList<>(fieldBoosts), new ArrayList<>(queryBoosts), searchedSchemaTypes, systemConfigs);
+
+			solrParams.add(CommonParams.DF, Schemas.TITLE.getDataStoreCode());
 		}
 
 		String oldQParam = solrParams.get(CommonParams.Q);
