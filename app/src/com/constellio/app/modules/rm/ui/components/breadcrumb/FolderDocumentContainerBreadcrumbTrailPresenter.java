@@ -35,12 +35,13 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 
-public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
+public class FolderDocumentContainerBreadcrumbTrailPresenter implements Serializable {
 
-	private final static Logger LOGGER = LoggerFactory.getLogger(FolderDocumentBreadcrumbTrailPresenter.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(FolderDocumentContainerBreadcrumbTrailPresenter.class);
 
 	private String recordId;
 
@@ -52,7 +53,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	private String favoritesId;
 
-	private FolderDocumentContainerBreadcrumbTrail breadcrumbTrail;
+	protected FolderDocumentContainerBreadcrumbTrail breadcrumbTrail;
 
 	private transient TaxonomiesManager taxonomiesManager;
 
@@ -60,13 +61,9 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 
-	public FolderDocumentBreadcrumbTrailPresenter(String recordId, String taxonomyCode,
-			FolderDocumentContainerBreadcrumbTrail breadcrumbTrail, String containerId) {
-		this(recordId, taxonomyCode, breadcrumbTrail, containerId, null);
-	}
-
-	public FolderDocumentBreadcrumbTrailPresenter(String recordId, String taxonomyCode,
-												  FolderDocumentContainerBreadcrumbTrail breadcrumbTrail, String containerId, String favoritesId) {
+	public FolderDocumentContainerBreadcrumbTrailPresenter(String recordId, String taxonomyCode,
+														   FolderDocumentContainerBreadcrumbTrail breadcrumbTrail,
+														   String containerId, String favoritesId) {
 		this.recordId = recordId;
 		this.taxonomyCode = taxonomyCode;
 		this.breadcrumbTrail = breadcrumbTrail;
@@ -94,10 +91,10 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, breadcrumbTrail);
 	}
 
-	private void addBreadcrumbItems() {
+	protected void addBreadcrumbItems() {
 		List<BreadcrumbItem> breadcrumbItems = new ArrayList<>();
 		int folderOffSet = 0;
-		if(containerId != null) {
+		if (containerId != null) {
 			breadcrumbItems.add(new ContainerBreadcrumbItem(containerId));
 			folderOffSet = 1;
 		}
@@ -186,7 +183,6 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			}
 		} else if (favoritesId != null) {
 			breadcrumbItems.add(0, new FavoritesBreadcrumbItem());
-
 
 			String title = favoritesId.equals(breadcrumbTrail.getView().getSessionContext().getCurrentUser().getId()) ? i18n.$("CartView.defaultFavorites") : rmSchemasRecordsServices.getCart(favoritesId).getTitle();
 
@@ -285,6 +281,9 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		} else if (item instanceof FavoritesBreadcrumbItem) {
 			handled = true;
 			breadcrumbTrail.navigate().to(RMViews.class).listCarts();
+		} else if (item instanceof TriggerManagerBreadcrumbItem) {
+			handled = true;
+			breadcrumbTrail.navigate().to(RMViews.class).recordTriggerManager(((TriggerManagerBreadcrumbItem) item).getParams());
 		} else {
 			handled = false;
 		}
@@ -370,5 +369,53 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			return true;
 		}
 
+	}
+
+	public static class TriggerManagerBreadcrumbItem implements BreadcrumbItem {
+		private Map<String, String> params;
+		private String label;
+
+		public TriggerManagerBreadcrumbItem(Map<String, String> params, String label) {
+			this.params = params;
+			this.label = label;
+		}
+
+		public Map<String, String> getParams() {
+			return params;
+		}
+
+		@Override
+		public String getLabel() {
+			return label;
+		}
+
+		@Override
+		public boolean isEnabled() {
+			return true;
+		}
+	}
+
+	public static class TriggerFormBreadcrumbItem implements BreadcrumbItem {
+		private Map<String, String> params;
+		private String label;
+
+		public TriggerFormBreadcrumbItem(Map<String, String> params, String label) {
+			this.params = params;
+			this.label = label;
+		}
+
+		public Map<String, String> getParams() {
+			return params;
+		}
+
+		@Override
+		public String getLabel() {
+			return label;
+		}
+
+		@Override
+		public boolean isEnabled() {
+			return true;
+		}
 	}
 }

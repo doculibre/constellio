@@ -48,6 +48,7 @@ import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.NavigationParams;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
@@ -79,7 +80,9 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.framework.components.ErrorDisplayUtil.showErrorMessage;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -546,10 +549,19 @@ public class FolderMenuItemActionBehaviors {
 		}
 	}
 
-	public void navigateToRecordTriggerManager(Folder folderSummary, MenuItemActionBehaviorParams params) {
-		Navigation navigation = new Navigation();
+	public void navigateToRecordTriggerManager(Folder folder, MenuItemActionBehaviorParams params) {
 
-		navigation.to(RMViews.class).recordTriggerManager(folderSummary.getId());
+		Navigation navigation = new Navigation();
+		BaseView currentView = params.getView();
+		Map<String, String> navigationParams = new HashMap<>();
+
+		if (currentView instanceof NavigationParams) {
+			navigationParams = ((NavigationParams) currentView).getNavigationParams();
+		} else {
+			navigationParams = params.getFormParams();
+		}
+
+		navigation.to(RMViews.class).recordTriggerManager(navigationParams);
 	}
 
 	public void generateReport(Folder folderSummary, MenuItemActionBehaviorParams params) {

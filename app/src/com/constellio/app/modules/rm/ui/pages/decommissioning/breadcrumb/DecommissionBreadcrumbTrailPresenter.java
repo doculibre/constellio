@@ -5,7 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.DocumentBreadCrumbItem;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderBreadCrumbItem;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrailPresenter;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -94,7 +94,7 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 			});
 		}
 
-		breadcrumbItems.addAll(FolderDocumentBreadcrumbTrailPresenter.
+		breadcrumbItems.addAll(FolderDocumentContainerBreadcrumbTrailPresenter.
 				getGetFolderDocumentBreadCrumbItems(recordId, folderPresenterUtils, rmSchemasRecordsServices));
 
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {

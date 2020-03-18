@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerPresenterParam;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.extrabehavior.ProvideSecurityWithNoUrlParamSupport;
@@ -509,7 +510,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;
 		} else if (favGroupIdKey != null) {
-			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), null, null, favGroupIdKey, this);
+
+			return new FolderDocumentContainerBreadcrumbTrail(new FolderDocumentContainerPresenterParam(documentVO.getId(), null, null, favGroupIdKey, this));
 		} else if (saveSearchDecommissioningId != null && searchType != null) {
 			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
 					saveSearchDecommissioningId, presenter.getRecord().getId(), this);
@@ -519,7 +521,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				containerId = presenter.getParams().get("containerId");
 			}
 
-			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), taxonomyCode, containerId, this);
+			return new FolderDocumentContainerBreadcrumbTrail(new FolderDocumentContainerPresenterParam(documentVO.getId(), taxonomyCode, containerId, null, this));
 		}
 	}
 

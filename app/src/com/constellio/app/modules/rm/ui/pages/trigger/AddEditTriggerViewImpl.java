@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.trigger;
 
 import com.constellio.app.modules.rm.ui.field.TableAddRemoveTriggerActionField;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -54,7 +55,7 @@ public class AddEditTriggerViewImpl extends BaseViewImpl implements AddEditTrigg
 	}
 
 	@Override
-	protected String getTitle() {
+	public String getTitle() {
 		if (presenter.isAddMode()) {
 			return $("AddEditTriggerViewImpl.addTitle", recordTitle);
 		} else {
@@ -65,5 +66,10 @@ public class AddEditTriggerViewImpl extends BaseViewImpl implements AddEditTrigg
 	@Override
 	protected boolean isBreadcrumbsVisible() {
 		return true;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return presenter.getBuildBreadcrumbTrail();
 	}
 }

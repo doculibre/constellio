@@ -4,4 +4,6 @@ import com.constellio.app.ui.pages.base.BaseView;
 
 public interface RecordTriggerManagerView extends BaseView {
 	void setRecordTitle(String title);
+
+	String getTitle();
 }

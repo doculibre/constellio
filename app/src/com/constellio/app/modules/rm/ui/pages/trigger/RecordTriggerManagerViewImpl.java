@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.trigger;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.items.RecordVOItem;
@@ -15,7 +16,9 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -66,7 +69,7 @@ public class RecordTriggerManagerViewImpl extends BaseViewImpl implements Record
 	}
 
 	@Override
-	protected String getTitle() {
+	public String getTitle() {
 		return $("RecordTriggerManagerViewImpl.title", recordTitle);
 	}
 
@@ -85,7 +88,13 @@ public class RecordTriggerManagerViewImpl extends BaseViewImpl implements Record
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						RecordVOItem recordVOItem = (RecordVOItem) recordTable.getItem(itemId);
-						navigate().to(RMViews.class).addEditTriggerToRecord(presenter.getTargetedRecord().getId(), recordVOItem.getRecord().getId());
+
+						Map<String, String> paramsForNav = new HashMap<>();
+
+						paramsForNav.putAll(presenter.getParams());
+						paramsForNav.put("trigger", recordVOItem.getRecord().getId());
+
+						navigate().to(RMViews.class).addEditTriggerToRecord(paramsForNav);
 					}
 				};
 			}
@@ -103,6 +112,11 @@ public class RecordTriggerManagerViewImpl extends BaseViewImpl implements Record
 		return verticalLayout;
 	}
 
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return presenter.getBuildBreadcrumbTrail();
+	}
 
 	@Override
 	protected boolean isBreadcrumbsVisible() {
