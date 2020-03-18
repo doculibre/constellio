@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.wrappers.ExternalLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServicesException;
@@ -39,6 +40,7 @@ public class ExternalLinkSourcePresenter extends BasePresenter<ExternalLinkSourc
 		}
 
 		Transaction tr = new Transaction();
+		tr.setRecordFlushing(RecordsFlushing.NOW());
 		tr.setUser(getCurrentUser());
 		tr.addAll(links);
 		tr.add(folder);
@@ -46,7 +48,6 @@ public class ExternalLinkSourcePresenter extends BasePresenter<ExternalLinkSourc
 		try {
 			rm.executeTransaction(tr);
 			view.closeWindow();
-			// TODO::JOLA --> Refresh isn't right, no new link displayed?
 		} catch (RecordServicesException e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 		}

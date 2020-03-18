@@ -28,7 +28,7 @@ public class ListExternalLinksPresenter extends BasePresenter<ListExternalLinksV
 	private SearchServices searchServices;
 	private RecordServices recordServices;
 
-	private Folder folder;
+	private String folderId;
 	private List<ExternalLinkSource> sources;
 
 	public ListExternalLinksPresenter(ListExternalLinksView view) {
@@ -42,7 +42,7 @@ public class ListExternalLinksPresenter extends BasePresenter<ListExternalLinksV
 	}
 
 	public void forParams(String params) {
-		folder = rm.getFolder(params);
+		folderId = params;
 	}
 
 	public void addSource(ExternalLinkSource source) {
@@ -62,7 +62,7 @@ public class ListExternalLinksPresenter extends BasePresenter<ListExternalLinksV
 	}
 
 	public String getFolderId() {
-		return folder.getId();
+		return folderId;
 	}
 
 	public boolean hasResults(List<String> types) {
@@ -83,12 +83,14 @@ public class ListExternalLinksPresenter extends BasePresenter<ListExternalLinksV
 	}
 
 	private LogicalSearchQuery getQuery(List<String> types) {
+		Folder folder = rm.getFolder(folderId);
 		return new LogicalSearchQuery(from(rm.externalLink.schemaType())
 				.where(Schemas.IDENTIFIER).isIn(folder.getExternalLinks())
 				.andWhere(rm.externalLink.type()).isIn(types));
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
+		Folder folder = rm.getFolder(folderId);
 		folder.removeExternalLink(recordVO.getId());
 		try {
 			recordServices.update(folder.getWrappedRecord());
