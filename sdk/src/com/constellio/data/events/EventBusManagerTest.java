@@ -26,7 +26,12 @@ import static com.constellio.sdk.tests.TestUtils.asSet;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class EventBusManagerTest extends ConstellioTest {
 
@@ -115,8 +120,33 @@ public class EventBusManagerTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenSendingEventThenValidatedThenSentLocallyThenSentRemotely()
+	public void whenSendingEventToPausedEventBusThenValidatedThenSentLocallyThenSentRemotely()
 			throws Exception {
+
+		EventBus magicBus = eventBusManager.createEventBus("Bus magique", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
+		magicBus.register(listener1);
+		magicBus.register(listener2);
+
+		eventBusManager = spy(eventBusManager);
+		eventBusManager.eventDataSerializer = spy(eventBusManager.eventDataSerializer);
+		Event event1 = new Event("Bus magique", "flying", "1", 1l, "zeValue");
+		eventBusManager.send(event1, EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
+
+		Event event2 = new Event("Bus magique", "landing", "1", 1l, "anotherValue");
+		eventBusManager.send(event2, EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
+
+		verify(eventBusManager, never()).receive(any(Event.class));
+		verify(eventBusManager, never()).receive(any(Event.class), anyBoolean());
+		verifyZeroInteractions(eventBusManager.eventDataSerializer);
+		verify(eventBusManager.eventBusSendingService, never()).sendRemotely(any(Event.class));
+	}
+
+
+	@Test
+	public void whenSendingEventToResumedEventBusThenValidatedThenSentLocallyThenSentRemotely()
+			throws Exception {
+
+		eventBusManager.resume();
 
 		EventBus magicBus = eventBusManager.createEventBus("Bus magique", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 		magicBus.register(listener1);
