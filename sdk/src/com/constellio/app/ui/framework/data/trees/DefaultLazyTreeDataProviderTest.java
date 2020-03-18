@@ -57,13 +57,13 @@ public class DefaultLazyTreeDataProviderTest extends ConstellioTest {
 	@Test
 	public void whenIteratingRootNodesThenConsumeNodeProviderOnlyOnceReturningItemsInSameOrder() {
 		when(nodesProvider.getNodes(eq(null), eq(0), eq(3), any())).thenReturn(
-				new TreeNodesProviderResponse<>(4, asList(node1, node2, node3), "continueAtNode4!"));
+				new TreeNodesProviderResponse<>(true, asList(node1, node2, node3), "continueAtNode4!"));
 
 		when(nodesProvider.getNodes(eq(null), eq(3), eq(3), any())).thenReturn(
-				new TreeNodesProviderResponse<>(7, asList(node4, node5, node6), "continueAtNode7!"));
+				new TreeNodesProviderResponse<>(true, asList(node4, node5, node6), "continueAtNode7!"));
 
 		when(nodesProvider.getNodes(eq(null), eq(6), eq(3), any())).thenReturn(
-				new TreeNodesProviderResponse<>(8, asList(node7, node8), "youShallNotContinue!"));
+				new TreeNodesProviderResponse<>(false, asList(node7, node8), "youShallNotContinue!"));
 
 		assertThat(dataProvider.getRootObjects(0, 3)).isEqualTo(
 				new ObjectsResponse<String>(asList("id1", "id2", "id3"), 4L));
@@ -105,13 +105,13 @@ public class DefaultLazyTreeDataProviderTest extends ConstellioTest {
 	@Test
 	public void whenIteratingChildNodesThenConsumeNodeProviderOnlyOnceReturningItemsInSameOrder() {
 		when(nodesProvider.getNodes(eq("zeParent"), eq(0), eq(3), any())).thenReturn(
-				new TreeNodesProviderResponse<>(4, asList(node1, node2, node3), "continueAtNode4!"));
+				new TreeNodesProviderResponse<>(true, asList(node1, node2, node3), "continueAtNode4!"));
 
 		when(nodesProvider.getNodes(eq("zeParent"), eq(3), eq(3), any())).thenReturn(
-				new TreeNodesProviderResponse<>(7, asList(node4, node5, node6), "continueAtNode7!"));
+				new TreeNodesProviderResponse<>(true, asList(node4, node5, node6), "continueAtNode7!"));
 
 		when(nodesProvider.getNodes(eq("zeParent"), eq(6), eq(3), any())).thenReturn(
-				new TreeNodesProviderResponse<>(8, asList(node7, node8), "youShallNotContinue!"));
+				new TreeNodesProviderResponse<>(false, asList(node7, node8), "youShallNotContinue!"));
 
 		assertThat(dataProvider.getChildren("zeParent", 0, 3)).isEqualTo(
 				new ObjectsResponse<String>(asList("zeParent|id1", "zeParent|id2", "zeParent|id3"), 4L));

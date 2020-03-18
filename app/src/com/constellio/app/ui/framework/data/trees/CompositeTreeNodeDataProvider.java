@@ -30,27 +30,28 @@ public class CompositeTreeNodeDataProvider implements TreeNodesProvider<Composit
 
 		int continueAtProvider = 0;
 		int continueAtProviderIndex = 0;
-		Serializable currentFastContinuationInfos = "";
+		Serializable currentFastContinuationInfos = null;
 
 		if (fastContinuationInfos != null) {
 			continueAtProvider = fastContinuationInfos.continueAtProvider;
 			continueAtProviderIndex = fastContinuationInfos.continueAtProviderIndex;
 			currentFastContinuationInfos = (Serializable) fastContinuationInfos.currentFastContinuationInfos;
-			fastContinuationInfos = new CompositeTreeNodeDataProviderFastContinuationInfos(0, 0, null);
 		}
 
 		List<TreeNode> nodes = new ArrayList<>();
 		boolean hasMoreNodes = false;
 
-		while (continueAtProvider < childTreeNodesProviders.size() && nodes.size() < maxSize && !hasMoreNodes) {
+		while (continueAtProvider < childTreeNodesProviders.size() && (nodes.size() < maxSize || !hasMoreNodes)) {
 			int missingNodes = maxSize - nodes.size();
 			TreeNodesProviderResponse<Object> response = childTreeNodesProviders.get(continueAtProvider)
 					.getNodes(optionalParentId, continueAtProviderIndex, missingNodes, currentFastContinuationInfos);
 			nodes.addAll(response.getNodes());
-			if (continueAtProviderIndex + response.getNodes().size() < response.getNumFound()) {
+			if (response.isMoreNodes()) {
 				hasMoreNodes = true;
-				continueAtProviderIndex += missingNodes;
-				currentFastContinuationInfos = (Serializable) response.getFastContinuationInfos();
+				if (missingNodes > 0) {
+					continueAtProviderIndex += missingNodes;
+					currentFastContinuationInfos = (Serializable) response.getFastContinuationInfos();
+				}
 			} else {
 				continueAtProvider++;
 				continueAtProviderIndex = 0;
@@ -58,12 +59,7 @@ public class CompositeTreeNodeDataProvider implements TreeNodesProvider<Composit
 			}
 		}
 
-		int numfound = start + nodes.size();
-		if (hasMoreNodes) {
-			numfound++;
-		}
-
-		return new TreeNodesProviderResponse(numfound, nodes, new CompositeTreeNodeDataProviderFastContinuationInfos(
+		return new TreeNodesProviderResponse(hasMoreNodes, nodes, new CompositeTreeNodeDataProviderFastContinuationInfos(
 				continueAtProvider, continueAtProviderIndex, currentFastContinuationInfos));
 	}
 

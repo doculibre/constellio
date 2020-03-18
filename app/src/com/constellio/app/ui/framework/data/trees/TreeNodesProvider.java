@@ -14,7 +14,7 @@ public interface TreeNodesProvider<T extends Serializable> {
 	class TreeNodesProviderResponse<T> {
 
 		@Getter
-		private long numFound;
+		private boolean moreNodes;
 
 		@Getter
 		private List<TreeNode> nodes;
@@ -22,14 +22,14 @@ public interface TreeNodesProvider<T extends Serializable> {
 		@Getter
 		private T fastContinuationInfos;
 
-		public TreeNodesProviderResponse(long numFound, List<TreeNode> nodes, T fastContinuationInfos) {
-			this.numFound = numFound;
+		public TreeNodesProviderResponse(boolean moreNodes, List<TreeNode> nodes, T fastContinuationInfos) {
+			this.moreNodes = moreNodes;
 			this.nodes = nodes;
 			this.fastContinuationInfos = fastContinuationInfos;
 		}
 
-		public TreeNodesProviderResponse(long numFound, List<TreeNode> nodes) {
-			this.numFound = numFound;
+		public TreeNodesProviderResponse(boolean moreNodes, List<TreeNode> nodes) {
+			this.moreNodes = moreNodes;
 			this.nodes = nodes;
 		}
 	}

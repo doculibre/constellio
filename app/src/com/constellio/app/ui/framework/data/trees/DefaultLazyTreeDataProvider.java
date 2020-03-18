@@ -70,7 +70,11 @@ public class DefaultLazyTreeDataProvider extends AbstractDataProvider implements
 			this.nodesCache.put(node.getId(), node);
 			recordIds.add(node.getId());
 		}
-		updateParentEstimatedChildrenCount("root", response.getNumFound());
+		int numFound = start + response.getNodes().size();
+		if (response.isMoreNodes()) {
+			numFound++;
+		}
+		updateParentEstimatedChildrenCount("root", numFound);
 
 		int end = start + maxSize;
 		Serializable nextFastContinueInfos = response.getFastContinuationInfos();
@@ -78,7 +82,7 @@ public class DefaultLazyTreeDataProvider extends AbstractDataProvider implements
 			fastContinuationInfosMap.put("root@" + end, nextFastContinueInfos);
 		}
 
-		return new ObjectsResponse<>(recordIds, response.getNumFound());
+		return new ObjectsResponse<>(recordIds, (long) numFound);
 	}
 
 	@Override
@@ -109,7 +113,11 @@ public class DefaultLazyTreeDataProvider extends AbstractDataProvider implements
 		}
 		//LOGGER.info("getChildren(" + parent + ", " + start + ", " + maxSize + ") => " + recordIds);
 
-		updateParentEstimatedChildrenCount(parent, response.getNumFound());
+		int numFound = start + response.getNodes().size();
+		if (response.isMoreNodes()) {
+			numFound++;
+		}
+		updateParentEstimatedChildrenCount(parent, numFound);
 
 		int end = start + maxSize;
 		Serializable nextFastContinueInfos = response.getFastContinuationInfos();
@@ -117,7 +125,8 @@ public class DefaultLazyTreeDataProvider extends AbstractDataProvider implements
 			fastContinuationInfosMap.put(parent + "@" + end, nextFastContinueInfos);
 		}
 
-		return new ObjectsResponse<>(recordIds, response.getNumFound());
+
+		return new ObjectsResponse<>(recordIds, (long) numFound);
 	}
 
 	private void updateParentEstimatedChildrenCount(String parent, long numfound) {

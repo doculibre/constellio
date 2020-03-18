@@ -31,17 +31,19 @@ public class LegacyTreeNodesDataProviderAdapter implements TreeNodesProvider<Fas
 																 FastContinueInfos fastContinuationInfos) {
 
 		if (optionalParentId == null) {
-			return adapt(legacyDataProvider.getRootNodes(start, maxSize, fastContinuationInfos));
+			return adapt(start, legacyDataProvider.getRootNodes(start, maxSize, fastContinuationInfos));
 		} else {
-			return adapt(legacyDataProvider.getChildrenNodes(optionalParentId, start, maxSize, fastContinuationInfos));
+			return adapt(start, legacyDataProvider.getChildrenNodes(optionalParentId, start, maxSize, fastContinuationInfos));
 		}
 
 	}
 
-	private TreeNodesProviderResponse<FastContinueInfos> adapt(LinkableTaxonomySearchResponse legacyResponse) {
+	private TreeNodesProviderResponse<FastContinueInfos> adapt(int start,
+															   LinkableTaxonomySearchResponse legacyResponse) {
 
 		List<TreeNode> nodes = legacyResponse.getRecords().stream().map(this::toTreeNode).collect(Collectors.toList());
-		return new TreeNodesProviderResponse<>(legacyResponse.getNumFound(), nodes, legacyResponse.getFastContinueInfos());
+		boolean hasMoreNodes = start + nodes.size() < legacyResponse.getNumFound();
+		return new TreeNodesProviderResponse<>(hasMoreNodes, nodes, legacyResponse.getFastContinueInfos());
 	}
 
 
