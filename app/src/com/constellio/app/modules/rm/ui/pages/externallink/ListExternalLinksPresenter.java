@@ -53,6 +53,18 @@ public class ListExternalLinksPresenter extends BasePresenter<ListExternalLinksV
 		return sources;
 	}
 
+	public boolean hasSource() {
+		return sources.size() > 0;
+	}
+
+	public boolean hasSingleSource() {
+		return sources.size() == 1;
+	}
+
+	public String getFolderId() {
+		return folder.getId();
+	}
+
 	public boolean hasResults(List<String> types) {
 		return searchServices.hasResults(getQuery(types));
 	}
@@ -74,17 +86,6 @@ public class ListExternalLinksPresenter extends BasePresenter<ListExternalLinksV
 		return new LogicalSearchQuery(from(rm.externalLink.schemaType())
 				.where(Schemas.IDENTIFIER).isIn(folder.getExternalLinks())
 				.andWhere(rm.externalLink.type()).isIn(types));
-	}
-
-	public void addButtonClicked() {
-		if (sources.size() > 1) {
-			// TODO::JOLA --> Create view to select external link source (need extension to fill types)
-		} else {
-			// TODO::JOLA --> Create view to choose external content (need extension to display content)
-			// TODO::JOLA --> Create external link for each selected content
-		}
-
-		// TODO::JOLA --> Refresh table after add
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
