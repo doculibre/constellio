@@ -1,5 +1,6 @@
 package com.constellio.app.entities.modules;
 
+import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.start.ApplicationStarter;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -40,6 +41,10 @@ public abstract class InstallableSystemModuleExcludedFromSSO implements Installa
 	@Override
 	public List<String> getRolesForCreator() {
 		return Collections.emptyList();
+	}
+
+	@Override
+	public void configureNavigation(NavigationConfig config) {
 	}
 
 	public abstract String getServicePath();
