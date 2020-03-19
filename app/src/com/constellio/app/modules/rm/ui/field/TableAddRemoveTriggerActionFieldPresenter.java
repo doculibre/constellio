@@ -87,6 +87,8 @@ public class TableAddRemoveTriggerActionFieldPresenter {
 				triggerActionIterator.remove();
 			}
 		}
+
+		this.tableAddRemoveTriggerActionField.getTriggerContainer().removeItem(triggerActionToDelete);
 	}
 
 	public void addUpdateActionTrigger(RecordVO triggerActionToSave) {
@@ -235,6 +237,11 @@ public class TableAddRemoveTriggerActionFieldPresenter {
 			}
 
 			this.getDataProvider().addTriggerActions(newTriggerActionVO);
+			this.forceRefresh();
+		}
+
+		public void removeItem(RecordVO triggerToRemoveVO) {
+			this.getDataProvider().removeTriggerActions(triggerToRemoveVO.getId());
 			this.forceRefresh();
 		}
 
