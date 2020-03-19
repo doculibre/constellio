@@ -19,6 +19,8 @@ import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RecordPopulateServices {
 
@@ -39,15 +43,17 @@ public class RecordPopulateServices {
 	SystemConfigurationsManager systemConfigurationsManager;
 	ModelLayerExtensions modelLayerExtensions;
 	ConstellioEIMConfigs eimConfigs;
+	SearchServices searchServices;
 
 	public RecordPopulateServices(MetadataSchemasManager schemasManager, ContentManager contentManager,
 								  SystemConfigurationsManager systemConfigurationsManager,
-								  ModelLayerExtensions modelLayerExtensions) {
+								  ModelLayerExtensions modelLayerExtensions, SearchServices searchServices) {
 		this.schemasManager = schemasManager;
 		this.contentManager = contentManager;
 		this.systemConfigurationsManager = systemConfigurationsManager;
 		this.modelLayerExtensions = modelLayerExtensions;
 		this.eimConfigs = new ConstellioEIMConfigs(systemConfigurationsManager);
+		this.searchServices = searchServices;
 	}
 
 	public void populate(Record record) {
@@ -228,7 +234,6 @@ public class RecordPopulateServices {
 			if (metadata.isSameLocalCode(Schemas.TITLE)) {
 				return populateTitleUsingPropertiesAndStyles(record, contentMetadatas);
 			} else {
-
 				Object value = null;
 				for (String source : priority.getPrioritizedSources()) {
 					if (value == null || value.equals(new ArrayList<>())) {
@@ -381,11 +386,29 @@ public class RecordPopulateServices {
 					}
 
 					if (contentPopulatedValue != null) {
-						return convert(contentPopulatedValue);
+						if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
+							return populateReferenceUsingProperties(contentPopulatedValue);
+						} else {
+							return convert(contentPopulatedValue);
+						}
 					}
 				} catch (ContentManagerRuntimeException_NoSuchContent e) {
 					if (LOG_CONTENT_MISSING) {
 						LOGGER.error("No content " + content.getCurrentVersion().getHash());
+					}
+				}
+			}
+			return null;
+		}
+
+
+		private Record populateReferenceUsingProperties(List<String> values) {
+			List<Record> allowedReferences = searchServices.search(new LogicalSearchQuery()
+					.setCondition(from(metadata.getReferencedSchemaType()).returnAll()));
+			for (String code : values) {
+				for (Record record : allowedReferences) {
+					if (record.getRecordDTO().getFields().get("code_s").equals(code)) {
+						return record;
 					}
 				}
 			}
@@ -502,6 +525,7 @@ public class RecordPopulateServices {
 		}
 
 	}
+
 
 	private static List<String> asStringList(Object value) {
 		if (value == null) {
