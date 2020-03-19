@@ -8,6 +8,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
@@ -27,10 +28,36 @@ public class CoreMigrationTo_9_0_2_7 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory)
 			throws Exception {
-		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
-		new CoreSchemaAlterationFor_9_0_2_7(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		if (isNecessary(collection, migrationResourcesProvider, appLayerFactory)) {
+			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+			new CoreSchemaAlterationFor_9_0_2_7(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
-		updatePermissions(appLayerFactory, collection);
+			updatePermissions(appLayerFactory, collection);
+		}
+	}
+
+	private boolean isNecessary(String collection, MigrationResourcesProvider migrationResourcesProvider,
+								AppLayerFactory appLayerFactory) {
+		boolean necessary = false;
+		RolesManager roleManager = appLayerFactory.getModelLayerFactory().getRolesManager();
+		List<Role> allRoles = roleManager.getAllRoles(collection);
+		for (Role role : allRoles) {
+			if (roleManager.hasPermission(collection, role.getCode(), CorePermissions.MANAGE_SYSTEM_UPDATES) && !roleManager.hasPermission(collection, role.getCode(), CorePermissions.VIEW_SYSTEM_STATE)) {
+				necessary = true;
+			}
+		}
+
+		MetadataSchemasManager metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+		MetadataSchemaTypesBuilder typesBuilder = metadataSchemasManager.modify(collection);
+		MetadataSchemaBuilder emailToSendSchema = typesBuilder.getDefaultSchema(EmailToSend.SCHEMA_TYPE);
+		if (!emailToSendSchema.hasMetadata(EmailToSend.BODY)) {
+			necessary = true;
+		}
+		if (!emailToSendSchema.hasMetadata(EmailToSend.LINKED_FILES)) {
+			necessary = true;
+		}
+
+		return necessary;
 	}
 
 	private void updatePermissions(AppLayerFactory appLayerFactory, String collection) {
