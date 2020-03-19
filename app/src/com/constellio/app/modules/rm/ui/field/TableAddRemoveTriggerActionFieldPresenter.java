@@ -169,12 +169,12 @@ public class TableAddRemoveTriggerActionFieldPresenter {
 			return Collections.unmodifiableList(recordVOList);
 		}
 
-		public void setTriggerActions(List<RecordVO> batchProcessVOs) {
-			this.recordVOList = batchProcessVOs;
+		public void setTriggerActions(List<RecordVO> triggerActionsVO) {
+			this.recordVOList = triggerActionsVO;
 		}
 
-		public void addTriggerActions(RecordVO batchProcessVO) {
-			recordVOList.add(batchProcessVO);
+		public void addTriggerActions(RecordVO triggerAction) {
+			recordVOList.add(triggerAction);
 		}
 
 		public void removeTriggerActions(String id) {
@@ -274,6 +274,7 @@ public class TableAddRemoveTriggerActionFieldPresenter {
 			for (String id : ids) {
 				if (!currentIds.contains(id)) {
 					RecordVO recordVO = recordToVOBuilder.build(TableAddRemoveTriggerActionFieldPresenter.this.recordServices.getRecordSummaryById(sessionContext.getCurrentCollection(), id), VIEW_MODE.TABLE, sessionContext);
+					getDataProvider().addTriggerActions(recordVO);
 					addItem(recordVO);
 				}
 			}
