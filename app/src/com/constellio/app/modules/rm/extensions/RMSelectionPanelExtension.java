@@ -14,12 +14,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryF
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -69,14 +64,7 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.IOUtils;
 import org.joda.time.LocalDateTime;
@@ -87,11 +75,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -551,7 +535,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 								break;
 							}
 							if (isMovePossible) {
-								recordServices.update(folder.setParentFolder(parentId));
+								recordServices.update(folder.setParentFolder(parentId), param.getUser());
 							}
 							break;
 						case Document.SCHEMA_TYPE:
@@ -561,7 +545,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 								break;
 							}
 							if (isMovePossible) {
-								recordServices.update(rmSchemas.getDocument(id).setFolder(parentId));
+								recordServices.update(rmSchemas.getDocument(id).setFolder(parentId), param.getUser());
 							}
 							break;
 						default:
@@ -607,7 +591,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 							Folder oldFolder = rmSchemas.wrapFolder(record);
 							Folder newFolder = decommissioningService(param).duplicateStructureAndDocuments(oldFolder, param.getUser(), false);
 							newFolder.setParentFolder(parentId);
-							recordServices.add(newFolder);
+							recordServices.add(newFolder, param.getUser());
 							break;
 						case Document.SCHEMA_TYPE:
 							if (!rmModuleExtensions.isCopyActionPossibleOnDocument(rm.wrapDocument(record), param.getUser())) {
@@ -645,7 +629,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 							String title = record.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")";
 							newDocument.setTitle(title);
 							newDocument.setFolder(parentId);
-							recordServices.add(newDocument);
+							recordServices.add(newDocument, param.getUser());
 							break;
 						default:
 							couldNotDuplicate.add(record.getTitle());
@@ -688,7 +672,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 							if (isClassifiedInFolder) {
 								newFolder.setParentFolder(parentId);
 							}
-							recordServices.add(newFolder);
+							recordServices.add(newFolder, param.getUser());
 							decommissioningService(param).duplicateSubStructureAndSave(newFolder, userFolder, param.getUser());
 							deleteUserFolder(param, userFolder, param.getUser());
 							break;
@@ -697,7 +681,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 							UserDocument userDocument = rm.wrapUserDocument(record);
 							decommissioningService(param).populateDocumentFromUserDocument(newDocument, userDocument, param.getUser());
 							newDocument.setFolder(parentId);
-							recordServices.add(newDocument);
+							recordServices.add(newDocument, param.getUser());
 							deleteUserDocument(param, rm.wrapUserDocument(record), param.getUser());
 							break;
 						default:
