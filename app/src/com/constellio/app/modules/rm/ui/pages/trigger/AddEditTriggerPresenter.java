@@ -154,7 +154,7 @@ public class AddEditTriggerPresenter extends BasePresenter<AddEditTriggerView> {
 	}
 
 	public BaseBreadcrumbTrail getBuildBreadcrumbTrail() {
-		BaseBreadcrumbTrail baseBreadcrumbTrail = DisplayFolderPresenter.getBreadCrumbTrail(params, view, currentTargetRecord.getId(), null);
+		BaseBreadcrumbTrail baseBreadcrumbTrail = DisplayFolderPresenter.getBreadCrumbTrail(params, view, currentTargetRecord.getId(), null, true);
 
 		String schemaLabel = metadataSchemasManager.getSchemaOf(currentTargetRecord).getSchemaType().getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
 		baseBreadcrumbTrail

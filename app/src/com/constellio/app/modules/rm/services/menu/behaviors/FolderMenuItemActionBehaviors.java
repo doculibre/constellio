@@ -561,6 +561,10 @@ public class FolderMenuItemActionBehaviors {
 			navigationParams = params.getFormParams();
 		}
 
+		if (navigationParams == null || navigationParams.size() == 0) {
+			navigationParams.put("id", folder.getId());
+		}
+
 		navigation.to(RMViews.class).recordTriggerManager(navigationParams);
 	}
 

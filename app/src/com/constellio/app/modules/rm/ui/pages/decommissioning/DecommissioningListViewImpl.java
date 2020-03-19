@@ -1202,7 +1202,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new DecommissionBreadcrumbTrail(getTitle(), null, null, null, this);
+		return new DecommissionBreadcrumbTrail(getTitle(), null, null, null, this, false);
 	}
 
 	private class ContentsTableGenerator implements ColumnGenerator {

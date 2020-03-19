@@ -485,11 +485,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public BaseBreadcrumbTrail getBreadCrumbTrail() {
-		return getBreadCrumbTrail(getParams(), view, getFolderId(), taxonomyCode);
+		return getBreadCrumbTrail(getParams(), view, getFolderId(), taxonomyCode, false);
 	}
 
 	public static BaseBreadcrumbTrail getBreadCrumbTrail(Map<String, String> params, BaseView view, String recordId,
-														 String taxonomyCode) {
+														 String taxonomyCode, boolean forceBaseItemEnabled) {
 		String saveSearchDecommissioningId = null;
 		String searchTypeAsString = null;
 		String favoritesId = null;
@@ -523,17 +523,17 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;
 		} else if (favoritesId != null) {
-			return new FolderDocumentContainerBreadcrumbTrail(new FolderDocumentContainerPresenterParam(recordId, null, null, favoritesId, view));
+			return new FolderDocumentContainerBreadcrumbTrail(new FolderDocumentContainerPresenterParam(recordId, null, null, favoritesId, view, forceBaseItemEnabled));
 		} else if (saveSearchDecommissioningId == null) {
 			String containerId = null;
 			if (params != null && params instanceof Map) {
 				containerId = params.get("containerId");
 			}
 			return new FolderDocumentContainerBreadcrumbTrail(new FolderDocumentContainerPresenterParam(recordId, taxonomyCode, containerId,
-					null, view));
+					null, view, forceBaseItemEnabled));
 		} else {
 			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()),
-					searchType, saveSearchDecommissioningId, recordId, view);
+					searchType, saveSearchDecommissioningId, recordId, view, true);
 		}
 	}
 

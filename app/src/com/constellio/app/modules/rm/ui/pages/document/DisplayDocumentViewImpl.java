@@ -514,7 +514,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			return new FolderDocumentContainerBreadcrumbTrail(new FolderDocumentContainerPresenterParam(documentVO.getId(), null, null, favGroupIdKey, this));
 		} else if (saveSearchDecommissioningId != null && searchType != null) {
 			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
-					saveSearchDecommissioningId, presenter.getRecord().getId(), this);
+					saveSearchDecommissioningId, presenter.getRecord().getId(), this, false);
 		} else {
 			String containerId = null;
 			if (presenter.getParams() != null && presenter.getParams() instanceof Map) {

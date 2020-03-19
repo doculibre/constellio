@@ -53,6 +53,8 @@ public class FolderDocumentContainerBreadcrumbTrailPresenter implements Serializ
 
 	private String favoritesId;
 
+	private boolean forceBaseItemEnabled;
+
 	protected FolderDocumentContainerBreadcrumbTrail breadcrumbTrail;
 
 	private transient TaxonomiesManager taxonomiesManager;
@@ -63,12 +65,14 @@ public class FolderDocumentContainerBreadcrumbTrailPresenter implements Serializ
 
 	public FolderDocumentContainerBreadcrumbTrailPresenter(String recordId, String taxonomyCode,
 														   FolderDocumentContainerBreadcrumbTrail breadcrumbTrail,
-														   String containerId, String favoritesId) {
+														   String containerId, String favoritesId,
+														   boolean forceBaseItemEnabled) {
 		this.recordId = recordId;
 		this.taxonomyCode = taxonomyCode;
 		this.breadcrumbTrail = breadcrumbTrail;
 		this.containerId = containerId;
 		this.favoritesId = favoritesId;
+		this.forceBaseItemEnabled = forceBaseItemEnabled;
 		initTransientObjects();
 		addBreadcrumbItems();
 	}
@@ -100,7 +104,7 @@ public class FolderDocumentContainerBreadcrumbTrailPresenter implements Serializ
 		}
 
 		breadcrumbItems.addAll(getGetFolderDocumentBreadCrumbItems(recordId, folderPresenterUtils,
-				rmSchemasRecordsServices));
+				rmSchemasRecordsServices, forceBaseItemEnabled));
 
 		UIContext uiContext = breadcrumbTrail.getUIContext();
 		String searchId = uiContext.getAttribute(BaseBreadcrumbTrail.SEARCH_ID);
@@ -199,7 +203,9 @@ public class FolderDocumentContainerBreadcrumbTrailPresenter implements Serializ
 	}
 
 	public static List<BreadcrumbItem> getGetFolderDocumentBreadCrumbItems(String currentRecordId,
-			SchemaPresenterUtils schemaPresenterUtils, RMSchemasRecordsServices rmSchemasRecordsServices) {
+																		   SchemaPresenterUtils schemaPresenterUtils,
+																		   RMSchemasRecordsServices rmSchemasRecordsServices,
+																		   boolean forceEnableBaseItem) {
 
 		String baseRecordId = currentRecordId;
 
@@ -210,7 +216,7 @@ public class FolderDocumentContainerBreadcrumbTrailPresenter implements Serializ
 			String currentSchemaTypeCode = SchemaUtils.getSchemaTypeCode(currentSchemaCode);
 			if (Folder.SCHEMA_TYPE.equals(currentSchemaTypeCode)) {
 				FolderBreadCrumbItem folderBreadCrumbItem = new FolderBreadCrumbItem(currentRecordId, schemaPresenterUtils,
-						baseRecordId);
+						baseRecordId, forceEnableBaseItem);
 				breadcrumbItems.add(0, folderBreadCrumbItem);
 
 				Folder folder = rmSchemasRecordsServices.wrapFolder(currentRecord);

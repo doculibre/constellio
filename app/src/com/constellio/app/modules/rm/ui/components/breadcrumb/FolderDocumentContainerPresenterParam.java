@@ -11,13 +11,20 @@ public class FolderDocumentContainerPresenterParam {
 	private String containerId;
 	private String favoritesId;
 	private BaseView view;
+	private boolean forceBaseItemEnabled;
 
 	public FolderDocumentContainerPresenterParam(String recordId, String taxonomyCode, String containerId,
 												 String favoritesId, BaseView view) {
+		this(recordId, taxonomyCode, containerId, favoritesId, view, false);
+	}
+
+	public FolderDocumentContainerPresenterParam(String recordId, String taxonomyCode, String containerId,
+												 String favoritesId, BaseView view, boolean forceBaseItemEnabled) {
 		this.recordId = recordId;
 		this.taxonomyCode = taxonomyCode;
 		this.containerId = containerId;
 		this.favoritesId = favoritesId;
 		this.view = view;
+		this.forceBaseItemEnabled = forceBaseItemEnabled;
 	}
 }

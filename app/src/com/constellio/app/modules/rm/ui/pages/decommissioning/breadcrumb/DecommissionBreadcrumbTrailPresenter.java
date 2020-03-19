@@ -25,8 +25,10 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 
 	private String recordId;
-	
+
 	private String collection;
+
+	private boolean forceBaseItemEnabled;
 
 	private DecommissionBreadcrumbTrail breadcrumbTrail;
 
@@ -39,12 +41,15 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 	private String searchId;
 	private SearchType searchType;
 
-	public DecommissionBreadcrumbTrailPresenter(String titre, SearchType searchType, String searchId, String recordId, DecommissionBreadcrumbTrail breadcrumbTrail) {
+	public DecommissionBreadcrumbTrailPresenter(String titre, SearchType searchType, String searchId, String recordId,
+												DecommissionBreadcrumbTrail breadcrumbTrail,
+												boolean forceBaseItemEnabled) {
 		this.recordId = recordId;
 		this.titre = titre;
 		this.breadcrumbTrail = breadcrumbTrail;
 		this.searchId = searchId;
 		this.searchType = searchType;
+		this.forceBaseItemEnabled = forceBaseItemEnabled;
 		initTransientObjects();
 		addBreadcrumbItems();
 	}
@@ -95,7 +100,7 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 		}
 
 		breadcrumbItems.addAll(FolderDocumentContainerBreadcrumbTrailPresenter.
-				getGetFolderDocumentBreadCrumbItems(recordId, folderPresenterUtils, rmSchemasRecordsServices));
+				getGetFolderDocumentBreadCrumbItems(recordId, folderPresenterUtils, rmSchemasRecordsServices, forceBaseItemEnabled));
 
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);

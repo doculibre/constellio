@@ -83,7 +83,7 @@ public class RecordTriggerManagerPresenter extends BasePresenter<RecordTriggerMa
 	}
 
 	public BaseBreadcrumbTrail getBuildBreadcrumbTrail() {
-		BaseBreadcrumbTrail baseBreadcrumbTrail = DisplayFolderPresenter.getBreadCrumbTrail(params, view, targetedRecord.getId(), null);
+		BaseBreadcrumbTrail baseBreadcrumbTrail = DisplayFolderPresenter.getBreadCrumbTrail(params, view, targetedRecord.getId(), null, true);
 		baseBreadcrumbTrail.addItem(new TriggerManagerBreadcrumbItem(getParams(), view.getTitle()) {
 			@Override
 			public boolean isEnabled() {

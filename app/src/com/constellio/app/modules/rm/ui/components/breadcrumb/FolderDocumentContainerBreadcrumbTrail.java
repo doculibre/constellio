@@ -31,7 +31,7 @@ public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail
 	protected FolderDocumentContainerBreadcrumbTrailPresenter getPresenter(
 			FolderDocumentContainerPresenterParam folderDocumentContainerPresenterParam) {
 		return new FolderDocumentContainerBreadcrumbTrailPresenter(folderDocumentContainerPresenterParam.getRecordId(), folderDocumentContainerPresenterParam.getTaxonomyCode(),
-				this, folderDocumentContainerPresenterParam.getContainerId(), folderDocumentContainerPresenterParam.getFavoritesId());
+				this, folderDocumentContainerPresenterParam.getContainerId(), folderDocumentContainerPresenterParam.getFavoritesId(), folderDocumentContainerPresenterParam.isForceBaseItemEnabled());
 	}
 
 	@Override
