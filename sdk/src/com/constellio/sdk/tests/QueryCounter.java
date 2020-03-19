@@ -95,11 +95,6 @@ public class QueryCounter extends BigVaultServerExtension {
 				if (fq.contains("collection_s:" + collection)) {
 					return true;
 				}
-
-				if (fq.contains("collection_s:" + collection)) {
-					return true;
-				}
-
 			}
 			return false;
 		};
