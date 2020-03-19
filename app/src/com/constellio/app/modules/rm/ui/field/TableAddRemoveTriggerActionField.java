@@ -23,7 +23,6 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -140,9 +139,15 @@ public class TableAddRemoveTriggerActionField extends CustomField<List<String>> 
 	@Override
 	protected List<String> getInternalValue() {
 		if (dataSource != null) {
-			return dataSource.getItemIds().stream().map(element -> ((RecordVO) element).getId()).collect(Collectors.toList());
+			List<String> collect = dataSource.getItemIds().stream().map(element -> ((RecordVO) element).getId()).collect(Collectors.toList());
+
+			if (collect == null || collect.size() == 0) {
+				return null;
+			}
+
+			return collect;
 		} else {
-			return Arrays.asList();
+			return null;
 		}
 	}
 

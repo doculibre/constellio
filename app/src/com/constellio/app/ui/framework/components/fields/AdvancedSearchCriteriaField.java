@@ -124,6 +124,12 @@ public class AdvancedSearchCriteriaField extends CustomField<List<Criterion>> {
 
 	@Override
 	protected List<Criterion> getInternalValue() {
-		return advancedSearchCriteriaComponent.getSearchCriteriaWithSchemaType();
+		List<Criterion> searchCriteria = advancedSearchCriteriaComponent.getSearchCriteriaWithSchemaType();
+
+		if (searchCriteria == null || searchCriteria.size() == 0) {
+			return null;
+		} else {
+			return searchCriteria;
+		}
 	}
 }
