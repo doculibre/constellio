@@ -55,6 +55,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.STOP;
 
@@ -99,6 +100,8 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	private final TransactionLogRecovery transactionLogXmlRecoveryManager;
 	private boolean automaticRegroup = true;
+
+	private AtomicLong loggedTransactions = new AtomicLong();
 
 	public XMLSecondTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices,
 										  RecordDao recordDao,
@@ -216,6 +219,16 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 				e.printStackTrace();
 			}
 		}
+	}
+
+	@Override
+	public boolean isAlive() {
+		return !this.exceptionOccured && started;
+	}
+
+	@Override
+	public long getLoggedTransactionCount() {
+		return loggedTransactions.get();
 	}
 
 	public String getLastTLOGBackup() {
@@ -344,6 +357,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 			throw new RuntimeException("Source does not exist");
 		}
 		Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
+		loggedTransactions.incrementAndGet();
 	}
 
 	private List<String> readFileToLines(File file) {

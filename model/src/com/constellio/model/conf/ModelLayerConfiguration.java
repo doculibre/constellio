@@ -67,6 +67,10 @@ public interface ModelLayerConfiguration {
 
 	boolean isForcingCacheLoadingFromSolr();
 
+	boolean isForcingCacheSortValuesLoadingFromSolr();
+
+	boolean isLoadingIdsFromVaultWhenPossible();
+
 	boolean isSummaryCacheEnabled();
 
 	long getReindexingThreadMaxBatchMemorySize();

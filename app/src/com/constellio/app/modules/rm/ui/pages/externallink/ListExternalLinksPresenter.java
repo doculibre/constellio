@@ -28,7 +28,7 @@ public class ListExternalLinksPresenter extends BasePresenter<ListExternalLinksV
 	private SearchServices searchServices;
 	private RecordServices recordServices;
 
-	private Folder folder;
+	private String folderId;
 	private List<ExternalLinkSource> sources;
 
 	public ListExternalLinksPresenter(ListExternalLinksView view) {
@@ -42,7 +42,7 @@ public class ListExternalLinksPresenter extends BasePresenter<ListExternalLinksV
 	}
 
 	public void forParams(String params) {
-		folder = rm.getFolder(params);
+		folderId = params;
 	}
 
 	public void addSource(ExternalLinkSource source) {
@@ -51,6 +51,18 @@ public class ListExternalLinksPresenter extends BasePresenter<ListExternalLinksV
 
 	public List<ExternalLinkSource> getSources() {
 		return sources;
+	}
+
+	public boolean hasSource() {
+		return sources.size() > 0;
+	}
+
+	public boolean hasSingleSource() {
+		return sources.size() == 1;
+	}
+
+	public String getFolderId() {
+		return folderId;
 	}
 
 	public boolean hasResults(List<String> types) {
@@ -71,23 +83,14 @@ public class ListExternalLinksPresenter extends BasePresenter<ListExternalLinksV
 	}
 
 	private LogicalSearchQuery getQuery(List<String> types) {
+		Folder folder = rm.getFolder(folderId);
 		return new LogicalSearchQuery(from(rm.externalLink.schemaType())
 				.where(Schemas.IDENTIFIER).isIn(folder.getExternalLinks())
 				.andWhere(rm.externalLink.type()).isIn(types));
 	}
 
-	public void addButtonClicked() {
-		if (sources.size() > 1) {
-			// TODO::JOLA --> Create view to select external link source (need extension to fill types)
-		} else {
-			// TODO::JOLA --> Create view to choose external content (need extension to display content)
-			// TODO::JOLA --> Create external link for each selected content
-		}
-
-		// TODO::JOLA --> Refresh table after add
-	}
-
 	public void deleteButtonClicked(RecordVO recordVO) {
+		Folder folder = rm.getFolder(folderId);
 		folder.removeExternalLink(recordVO.getId());
 		try {
 			recordServices.update(folder.getWrappedRecord());

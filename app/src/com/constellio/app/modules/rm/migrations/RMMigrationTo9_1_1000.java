@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.migrations;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.model.ExternalLinkType;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
@@ -10,8 +11,10 @@ import com.constellio.app.modules.rm.wrappers.ExternalLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.MigrationUtil;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -28,6 +31,13 @@ public class RMMigrationTo9_1_1000 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
 		new SchemaAlterationFor9_1_1000(collection, migrationResourcesProvider, appLayerFactory).migrate();
+
+		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
+		SchemaDisplayConfig config = manager.getSchema(collection, ExternalLink.DEFAULT_SCHEMA);
+
+		manager.saveSchema(config
+				.withNewTableMetadatas(ExternalLink.DEFAULT_SCHEMA + "_" + ExternalLink.TYPE)
+				.withRemovedTableMetadatas(ExternalLink.DEFAULT_SCHEMA + "_" + Schemas.MODIFIED_ON));
 	}
 
 	private class SchemaAlterationFor9_1_1000 extends MetadataSchemasAlterationHelper {
@@ -40,8 +50,8 @@ public class RMMigrationTo9_1_1000 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder externalLinkTypeSchema = setupExternalLinkTypeSchema().getDefaultSchema();
 
-			MetadataSchemaBuilder externalLinkSchema =
-					typesBuilder.createNewSchemaType(ExternalLink.SCHEMA_TYPE).getDefaultSchema();
+			MetadataSchemaTypeBuilder externalLinkSchemaType = typesBuilder.createNewSchemaType(ExternalLink.SCHEMA_TYPE);
+			MetadataSchemaBuilder externalLinkSchema = externalLinkSchemaType.getDefaultSchema();
 
 			externalLinkSchema.createUndeletable(ExternalLink.TYPE)
 					.setType(MetadataValueType.REFERENCE)
@@ -49,7 +59,7 @@ public class RMMigrationTo9_1_1000 implements MigrationScript {
 
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
 			folderSchema.createUndeletable(Folder.EXTERNAL_LINKS).setType(MetadataValueType.REFERENCE)
-					.defineReferencesTo(externalLinkSchema).setMultivalue(true);
+					.defineReferencesTo(externalLinkSchemaType).setMultivalue(true);
 		}
 
 		private MetadataSchemaTypeBuilder setupExternalLinkTypeSchema() {

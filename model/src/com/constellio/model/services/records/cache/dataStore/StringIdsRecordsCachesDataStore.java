@@ -12,6 +12,7 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithStringId;
+import com.constellio.model.services.records.cache.PersistedSortValuesServices.SortValue;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 import java.util.ArrayList;
@@ -21,6 +22,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -451,10 +454,11 @@ public class StringIdsRecordsCachesDataStore {
 		return stats;
 	}
 
-	public void setRecordsMainSortValue(List<RecordId> recordIds) {
+	public void setRecordsMainSortValue(List<?> recordIds) {
 		synchronized (mainSortValues) {
 			for (int i = 0; i < recordIds.size(); i++) {
-				RecordId recordId = recordIds.get(i);
+				Object o = recordIds.get(i);
+				RecordId recordId = (o instanceof RecordId) ? (RecordId) o : ((Supplier<RecordId>) o).get();
 				if (!recordId.isInteger()) {
 					mainSortValues.put(recordId.intValue(), i * 2 + 1);
 				}
@@ -483,5 +487,10 @@ public class StringIdsRecordsCachesDataStore {
 
 
 		return list == null ? Collections.emptyList() : list;
+	}
+
+	public void setRecordsMainSortValueComparingValues(List<SortValue> sortValues,
+													   ToIntFunction<RecordDTO> valueHascodeFunction) {
+		//Records with non-standard ids has no sorts
 	}
 }

@@ -183,6 +183,11 @@ public class MainSortValueRecordCacheAcceptanceTest extends ConstellioTest {
 		recordServices.update(recordServices.getDocumentById(id4).set(Schemas.TITLE, "Value 34b"));
 		assertThat(recordServices.realtimeGetRecordSummaryById(id4).getRecordDTO().getMainSortValue()).isEqualTo(MAIN_SORT_UNDEFINED);
 
+		//Update is done on the list of main sort values stored in vault
+		recordsCaches.updateRecordsMainSortValue();
+		assertThat(recordServices.realtimeGetRecordSummaryById(id4).getRecordDTO().getMainSortValue()).isEqualTo(MAIN_SORT_UNDEFINED);
+
+		new PersistedSortValuesServices(getModelLayerFactory()).retreiveAndRewriteSortValuesFile();
 		recordsCaches.updateRecordsMainSortValue();
 		assertThat(recordServices.realtimeGetRecordSummaryById(id4).getRecordDTO().getMainSortValue()).isNotEqualTo(MAIN_SORT_UNDEFINED);
 	}

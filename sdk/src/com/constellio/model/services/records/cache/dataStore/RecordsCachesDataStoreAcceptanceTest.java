@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.ThreadList;
@@ -9,7 +10,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.exceptions.CollectionIdNotSetRuntimeException;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTOUtilsAcceptanceTest;
@@ -169,7 +169,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		});
 		initTestVariables();
 
-		dataStore.structureCacheUsingExistingIds(asList(RecordId.toId(1), RecordId.toId(2), RecordId.toId(3), RecordId.toId(6)).iterator());
+		dataStore.getIntIdsDataStore().structureCacheUsingExistingIds(asList(RecordId.toId(1), RecordId.toId(2), RecordId.toId(3), RecordId.toId(6)).iterator());
 
 		assertThat(dataStore.getIntIdsDataStore().ids.stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6);

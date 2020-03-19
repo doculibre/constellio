@@ -16,6 +16,7 @@ import com.constellio.data.dao.services.leaderElection.LeaderElectionManager;
 import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
+import com.constellio.data.dao.services.sql.MicrosoftSqlRecordTransactionDao;
 import com.constellio.data.dao.services.sql.MicrosoftSqlTransactionDao;
 import com.constellio.data.dao.services.sql.SqlRecordDaoFactory;
 import com.constellio.data.dao.services.sql.SqlRecordDaoType;
@@ -42,6 +43,8 @@ import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.BatchUpdateException;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,6 +59,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.notNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -71,6 +75,10 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Mock DataLayerSystemExtensions systemExtensions;
 
 	@Mock MicrosoftSqlTransactionDao sqlTransactionDao;
+
+	@Mock MicrosoftSqlRecordTransactionDao sqlRecordDaoMock;
+
+	@Mock SqlRecordDaoFactory sqlRecordDaoFactoryMock;
 
 	LocalDateTime shishOclockLocalDateTime = new LocalDateTime().plusHours(1);
 	LocalDateTime tockOClockLocalDateTime = shishOclockLocalDateTime.plusMinutes(1);
@@ -347,6 +355,36 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	public void givenInitializedTransactionLogWhenStartASecondTimeThenException() {
 
 		transactionLog.initialize();
+
+	}
+
+	@Test
+	public void whenRecordDaoThrowsBatchUpdateExceptionThenVictimizeAndDoNotRemove()
+			throws Exception {
+
+		givenTimeIs(new LocalDateTime(2345, 6, 7, 8, 9, 10, 11));
+
+		doThrow(new SQLException()).doNothing().when(sqlRecordDaoMock).deleteAll((List<String>) notNull());
+		doThrow(new BatchUpdateException()).doNothing().when(sqlRecordDaoMock).updateBulk((List<RecordTransactionSqlDTO>) notNull());
+		List<TransactionSqlDTO> transactions = new ArrayList<>();
+		TransactionSqlDTO dto1 = new TransactionSqlDTO("004f1c56-767e-4011-9c3b-e125976db0df", new Date((new java.util.Date()).getTime()), 1, "", "");
+		TransactionSqlDTO dto2 = new TransactionSqlDTO("f38e7dc8-912b-4e34-9940-3e6a28ff5cbd", new Date((new java.util.Date()).getTime()), 1, "", "");
+		transactions.add(dto1);
+		transactions.add(dto2);
+
+		when(sqlTransactionDao.getAll(1000)).thenReturn(transactions);
+		when(sqlTransactionDao.getAll(1000)).thenReturn(transactions);
+
+		when(sqlRecordDaoFactoryMock.getRecordDao(SqlRecordDaoType.RECORDS)).thenReturn(sqlRecordDaoMock);
+		when(sqlRecordDaoFactoryMock.getRecordDao(SqlRecordDaoType.TRANSACTIONS)).thenReturn(sqlTransactionDao);
+
+
+		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactoryMock, contentDao,
+				backgroundThreadsManager, dataLayerLogger, systemExtensions,
+				getDataLayerFactory().getTransactionLogXmlRecoveryManager(), electionManager));
+
+
+		String id = transactionLog.regroupAndMove();
 
 	}
 
