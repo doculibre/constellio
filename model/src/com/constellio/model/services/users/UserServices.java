@@ -1016,7 +1016,7 @@ public class UserServices {
 
 		List<User> deletedUsers = new ArrayList<>();
 		for (Record record : searchServices.search(query)) {
-			deletedUsers.add(new User(record, collectionTypes, null));
+			deletedUsers.add(new User(record, collectionTypes, rolesManager.getCollectionRoles(collection, modelLayerFactory)));
 		}
 		for (User user : deletedUsers) {
 			LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
