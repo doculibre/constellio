@@ -312,29 +312,35 @@ public class SearchResultDisplay extends VerticalLayout {
 	}
 
 	@Override
-	public void addLayoutClickListener(final LayoutClickListener layoutListener) {
+	public void addLayoutClickListener(LayoutClickListener layoutListener) {
 		if (searchResultVO.isDeleted()) {
 			return;
 		}
 
 		super.addLayoutClickListener(layoutListener);
 
-		Button nestedButton = ComponentTreeUtils.getFirstChild(titleLink, Button.class);
-		if (nestedButton != null) {
-			nestedButton.addClickListener(new ClickListener() {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					MouseEventDetails mouseEventDetails = new MouseEventDetails();
-					mouseEventDetails.setButton(MouseButton.LEFT);
-					mouseEventDetails.setClientX(event.getClientX());
-					mouseEventDetails.setClientY(event.getClientY());
-					mouseEventDetails.setRelativeX(event.getRelativeX());
-					mouseEventDetails.setRelativeY(event.getRelativeY());
-					LayoutClickEvent layoutClickEvent = new LayoutClickEvent(event.getComponent(), mouseEventDetails, SearchResultDisplay.this, event.getComponent());
-					layoutListener.layoutClick(layoutClickEvent);
-				}
-			});
+		List<Button> nestedButtons = ComponentTreeUtils.getChildren(this, Button.class);
+		for (Button nestedButton : nestedButtons) {
+			if (!(nestedButton instanceof ElevationButton)) {
+				addClickListener(layoutListener, nestedButton);
+			}
 		}
+	}
+
+	private void addClickListener(final LayoutClickListener layoutListener, Button button) {
+		button.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				MouseEventDetails mouseEventDetails = new MouseEventDetails();
+				mouseEventDetails.setButton(MouseButton.LEFT);
+				mouseEventDetails.setClientX(event.getClientX());
+				mouseEventDetails.setClientY(event.getClientY());
+				mouseEventDetails.setRelativeX(event.getRelativeX());
+				mouseEventDetails.setRelativeY(event.getRelativeY());
+				LayoutClickEvent layoutClickEvent = new LayoutClickEvent(event.getComponent(), mouseEventDetails, SearchResultDisplay.this, event.getComponent());
+				layoutListener.layoutClick(layoutClickEvent);
+			}
+		});
 	}
 
 	public void addClickListener(final ClickListener listener) {

@@ -290,8 +290,10 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements RecordV
 			if (sortPropertyIds != null && sortPropertyIds.length > 0) {
 				List<MetadataVO> sortMetadatas = new ArrayList<MetadataVO>();
 				for (int i = 0; i < sortPropertyIds.length; i++) {
-					MetadataVO sortMetadata = (MetadataVO) sortPropertyIds[i];
-					sortMetadatas.add(sortMetadata);
+					if (sortPropertyIds[i] instanceof MetadataVO) {
+						MetadataVO sortMetadata = (MetadataVO) sortPropertyIds[i];
+						sortMetadatas.add(sortMetadata);
+					}
 				}
 				for (RecordVODataProvider dataProvider : dataProviders) {
 					dataProvider.sort(sortMetadatas.toArray(new MetadataVO[0]), queryDefinition.getSortPropertyAscendingStates());

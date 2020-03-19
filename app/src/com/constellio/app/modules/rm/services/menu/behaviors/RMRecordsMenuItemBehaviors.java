@@ -54,6 +54,8 @@ import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
@@ -614,6 +616,38 @@ public class RMRecordsMenuItemBehaviors {
 	private DocumentVO getDocumentVO(MenuItemActionBehaviorParams params, Document document) {
 		return new DocumentToVOBuilder(appLayerFactory.getModelLayerFactory()).build(document.getWrappedRecord(),
 				VIEW_MODE.DISPLAY, params.getView().getSessionContext());
+	}
+
+	public void generateReport(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		if (recordIds.isEmpty()) {
+			return;
+		}
+
+		String schemaType = recordServices.getDocumentById(recordIds.get(0)).getSchemaCode().split("_")[0];
+
+		RMSelectionPanelReportPresenter rmSelectionPanelReportPresenter = new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
+			@Override
+			public String getSelectedSchemaType() {
+				return schemaType;
+			}
+
+			@Override
+			public List<String> getSelectedRecordIds() {
+				return recordIds;
+			}
+
+
+		};
+
+		ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"),
+				$("SearchView.metadataReportTitle"),
+				appLayerFactory, collection, false, false,
+				rmSelectionPanelReportPresenter, params.getView().getSessionContext()) {
+
+		};
+		List<RecordVO> recordVOList = getRecordVOList(recordIds, params.getView());
+		reportGeneratorButton.setRecordVoList(recordVOList.toArray(new RecordVO[0]));
+		reportGeneratorButton.click();
 	}
 
 	public void printLabels(List<String> recordIds, MenuItemActionBehaviorParams params) {

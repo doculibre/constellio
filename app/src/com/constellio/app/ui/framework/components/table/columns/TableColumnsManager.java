@@ -183,13 +183,15 @@ public class TableColumnsManager implements Serializable {
 					String columnId = toColumnId(propertyId);
 
 					TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, tableId);
-					if (columnId.equals(properties.getSortedColumnId())) {
-						properties.setSortedAscending(!properties.getSortedAscending());
-					} else {
-						properties.setSortedColumnId(columnId);
-						properties.setSortedAscending(true);
+					if (table.getSortableContainerPropertyIds().contains(propertyId)) {
+						if (columnId.equals(properties.getSortedColumnId())) {
+							properties.setSortedAscending(!properties.getSortedAscending());
+						} else {
+							properties.setSortedColumnId(columnId);
+							properties.setSortedAscending(true);
+						}
+						userConfigManager.setTablePropertiesValue(currentUser, tableId, properties);
 					}
-					userConfigManager.setTablePropertiesValue(currentUser, tableId, properties);
 				}
 			});
 		}

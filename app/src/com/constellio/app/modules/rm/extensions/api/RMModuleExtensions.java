@@ -48,6 +48,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<TaskPreCompletionExtention> taskPreCompletionExetention;
 	private VaultBehaviorsList<CartExtensions> cartExtensions;
 	private VaultBehaviorsList<FilteredActionsExtension> filteredActionsExtension;
+	private AgentExtension agentExtensions;
 
 	private ModelLayerExtensions modelLayerExtensions;
 
@@ -60,13 +61,14 @@ public class RMModuleExtensions implements ModuleExtensions {
 		documentExtensions = new VaultBehaviorsList<>();
 		folderExtensions = new VaultBehaviorsList<>();
 		advancedSearchPresenterExtensions = new VaultBehaviorsList<>();
-		this.documentBreadcrumExtentions = new VaultBehaviorsList<>();
-		this.navigateToFromAPageExtensions = new VaultBehaviorsList<>();
-		this.taskPreCompletionExetention = new VaultBehaviorsList<>();
-		this.cartExtensions = new VaultBehaviorsList<>();
-		this.modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
-		this.containerRecordExtensions = new VaultBehaviorsList<>();
-		this.filteredActionsExtension = new VaultBehaviorsList<>();
+		documentBreadcrumExtentions = new VaultBehaviorsList<>();
+		navigateToFromAPageExtensions = new VaultBehaviorsList<>();
+		taskPreCompletionExetention = new VaultBehaviorsList<>();
+		cartExtensions = new VaultBehaviorsList<>();
+		modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
+		containerRecordExtensions = new VaultBehaviorsList<>();
+		filteredActionsExtension = new VaultBehaviorsList<>();
+		agentExtensions = new AgentExtension();
 	}
 
 	public List<String> getFilteredActionsForContainers() {
@@ -148,6 +150,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public VaultBehaviorsList<DocumentFolderBreadCrumbExtention> getDocumentBreadcrumExtentions() {
 		return documentBreadcrumExtentions;
+	}
+
+	public AgentExtension getAgentExtensions() {
+		return agentExtensions;
 	}
 
 	public boolean isCopyActionPossibleOnFolder(final Folder folder, final User user) {

@@ -1,5 +1,6 @@
 package com.constellio.model.conf.ldap.services;
 
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
@@ -29,12 +30,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -486,16 +482,16 @@ public class AzureAdClient {
 
 								LDAPUser ldapUser = buildLDAPUserFromJsonObject(jsonObject);
 
-								//if (ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
-								if (ldapUsers.containsKey(ldapUser.getId())) {
-									ldapUser = ldapUsers.get(ldapUser.getId());
-								} else {
-									ldapUsers.put(ldapUser.getId(), ldapUser);
-								}
+								if (Toggle.IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS.isEnabled() || ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
+									if (ldapUsers.containsKey(ldapUser.getId())) {
+										ldapUser = ldapUsers.get(ldapUser.getId());
+									} else {
+										ldapUsers.put(ldapUser.getId(), ldapUser);
+									}
 
-								ldapGroup.addUser(ldapUser.getId());
-								ldapUser.addGroup(ldapGroup);
-								//}
+									ldapGroup.addUser(ldapUser.getId());
+									ldapUser.addGroup(ldapGroup);
+								}
 							}
 						}
 					}
@@ -574,16 +570,16 @@ public class AzureAdClient {
 
 								LDAPGroup ldapGroup = buildLDAPGroupFromJsonObject(jsonObject);
 
-								//if (ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
-								if (ldapGroups.containsKey(ldapGroup.getDistinguishedName())) {
-									ldapGroup = ldapGroups.get(ldapGroup.getDistinguishedName());
-								} else {
-									ldapGroups.put(ldapGroup.getDistinguishedName(), ldapGroup);
-								}
+								if (Toggle.IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS.isEnabled() || ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
+									if (ldapGroups.containsKey(ldapGroup.getDistinguishedName())) {
+										ldapGroup = ldapGroups.get(ldapGroup.getDistinguishedName());
+									} else {
+										ldapGroups.put(ldapGroup.getDistinguishedName(), ldapGroup);
+									}
 
-								ldapGroup.addUser(ldapUser.getId());
-								ldapUser.addGroup(ldapGroup);
-								//}
+									ldapGroup.addUser(ldapUser.getId());
+									ldapUser.addGroup(ldapGroup);
+								}
 							}
 						}
 					}

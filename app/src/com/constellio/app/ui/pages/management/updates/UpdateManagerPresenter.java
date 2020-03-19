@@ -181,11 +181,12 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public void restartAndReindex(boolean repopulate) {
-		File systemLogFile = getSystemLogFile();
-
-		if (systemLogFile.exists()) {
-			if (!FileUtils.deleteQuietly(systemLogFile)) {
-				view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotDeleted"));
+		if (FoldersLocator.usingAppWrapper()) {
+			File systemLogFile = getSystemLogFile();
+			if (systemLogFile.exists()) {
+				if (!FileUtils.deleteQuietly(systemLogFile)) {
+					view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotDeleted"));
+				}
 			}
 		}
 
@@ -263,7 +264,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	private File getSystemLogFile() {
 		File systemLogFile = null;
 
-		File logsFolder = new File(modelLayerFactory.getFoldersLocator().getWrapperInstallationFolder(), "logs");
+		File logsFolder = modelLayerFactory.getFoldersLocator().getLogsFolder();
 		if (logsFolder.exists()) {
 			File tempFile = new File(logsFolder, SYSTEM_LOG_FILE_NAME);
 			if (tempFile.exists()) {
