@@ -312,15 +312,16 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	public synchronized String regroupAndMove() {
 
 		//build record on json
+		int converted = 0;
 		try {
 
 			//get transactions
 			List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
 					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll(1000));
-
+			converted = transactionsToConvert.size();
 			if (transactionsToConvert.size() == 0) {
 				//end
-				return "";
+				return "" + converted;
 			}
 
 			final List<RecordTransactionSqlDTO> recordsToinsert = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), false);
@@ -371,7 +372,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			//exceptionOccured = true;
 			throw new RuntimeException(ex);
 		}
-		return "";
+		return "" + converted;
 	}
 
 	private List<String> extractRemoveRecordsFromTransaction(List<TransactionSqlDTO> transactions) {
@@ -656,8 +657,12 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		return new Runnable() {
 			@Override
 			public void run() {
+
+				boolean finished = false;
+
 				if (isAutomaticRegroup() && isCurrentNodeLeader()) {
-					regroupAndMove();
+					String regrouped = regroupAndMove();
+					finished = !"1000".equals(regrouped);
 				}
 			}
 		};

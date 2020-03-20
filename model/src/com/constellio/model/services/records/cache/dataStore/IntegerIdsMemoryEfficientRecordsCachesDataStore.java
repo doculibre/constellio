@@ -922,7 +922,13 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 				RecordId recordId = sortValue.recordId();
 
 				if (recordId.isInteger()) {
-					RecordDTO recordDTO = __get(recordId.intValue());
+					int index = ids.binarySearch(recordId.intValue());
+
+					RecordDTO recordDTO = null;
+					if (index != -1) {
+						recordDTO = get(recordId.intValue(), index);
+					}
+
 					if (recordDTO != null) {
 						if (sortValue.valueHash() == valueHascodeFunction.applyAsInt(recordDTO)) {
 							unchangedRecordIds.add(recordId);
