@@ -79,6 +79,7 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_0_5;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_3;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_7;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;

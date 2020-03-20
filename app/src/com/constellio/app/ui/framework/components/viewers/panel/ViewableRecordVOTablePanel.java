@@ -61,6 +61,8 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
@@ -71,6 +73,8 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
@@ -79,7 +83,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -800,19 +810,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 		//resultsTable.setAlwaysRecalculateColumnWidths(true);
-
-		resultsTable.addRefreshRenderedCellsEventListener(new RefreshRenderedCellsEvent() {
-			@Override
-			public void refreshRenderedCellsEvent(RefreshRenderedCellsEventParams refreshRenderedCellsEventParams) {
-
-				SelectionChangeEvent selectionChangeEvent = new SelectionChangeEvent();
-				selectionChangeEvent.setSelectedItemIds(refreshRenderedCellsEventParams.getSelectedIds());
-				selectionChangeEvent.setAllItemsSelected(refreshRenderedCellsEventParams.isAreAllItemSelected());
-
-				resultsTable.getSelectionManager().selectionChanged(selectionChangeEvent);
-				setSelectedCountCaption(getSelectedSize());
-			}
-		});
 
 		return resultsTable;
 	}

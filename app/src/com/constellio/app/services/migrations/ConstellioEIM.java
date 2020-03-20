@@ -87,6 +87,7 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_417;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_427;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_428;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_89;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_7;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
 import com.constellio.data.extensions.DataLayerSystemExtensions;

@@ -2596,7 +2596,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		} else {
 			ByteArrayRecordDTO recordDTO = new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
 					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),
-					type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+					type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory, -1);
 			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
 				ByteArrayRecordDTOWithIntegerId byteArrayRecordDTO = new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
 						instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),

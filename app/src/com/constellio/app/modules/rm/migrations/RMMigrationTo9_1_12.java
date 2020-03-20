@@ -9,6 +9,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class RMMigrationTo9_1_12 implements MigrationScript {
@@ -53,6 +54,14 @@ public class RMMigrationTo9_1_12 implements MigrationScript {
 					.defineReferencesTo(types().getDefaultSchema(Folder.SCHEMA_TYPE))
 					.setMultivalue(true)
 					.setCacheIndex(true);
+
+			// FIXME not for production (test only)
+			MetadataSchemaBuilder folderSchema = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE);
+			folderSchema.get(Folder.TITLE).setEssentialInSummary(true).setCacheIndex(true);
+
+			MetadataSchemaBuilder documentSchema = typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE);
+			documentSchema.get(Document.TITLE).setEssentialInSummary(true).setCacheIndex(true);
+			documentSchema.get(Document.CONTENT_CHECKED_OUT_BY).setEssentialInSummary(true).setCacheIndex(true);
 		}
 	}
 }
