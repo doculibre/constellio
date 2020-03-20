@@ -146,6 +146,10 @@ public class RecordExportServices {
 		while (recordsToExportIterator.hasNext()) {
 
 			Record record = recordsToExportIterator.next();
+			if (record.getSchemaCode().equals("workflowExecution_default")) {
+				continue;
+			}
+
 			String collection = record.getCollection();
 			atLestOneRecord = true;
 
