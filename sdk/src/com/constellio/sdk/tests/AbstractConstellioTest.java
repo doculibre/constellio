@@ -1288,6 +1288,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				if (preparator.modules.contains(ConstellioRestApiModule.ID)) {
 					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withConstellioRestApiModule();
 				}
+				for (Class<? extends InstallableModule> pluginClass : preparator.preexistingPlugins) {
+					givenInstalledModule(pluginClass);
+				}
 
 				ModelLayerFactory modelLayerFactory = getModelLayerFactory();
 				if (preparator.allTestUsers) {
@@ -1389,6 +1392,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 		List<Class<? extends InstallableModule>> plugins = new ArrayList<>();
 
+		List<Class<? extends InstallableModule>> preexistingPlugins = new ArrayList<>();
+
 		List<String> languages = new ArrayList<>();
 
 		public CollectionPreparator(String collection) {
@@ -1436,6 +1441,15 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 			for (Class<?> plugin : pluginsToAdd) {
 				plugins.add((Class<? extends InstallableModule>) plugin);
+			}
+
+			return this;
+		}
+
+		public CollectionPreparator withPreexistingPlugins(Class<?>... pluginsToAdd) {
+
+			for (Class<?> plugin : pluginsToAdd) {
+				preexistingPlugins.add((Class<? extends InstallableModule>) plugin);
 			}
 
 			return this;
@@ -1538,6 +1552,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				return false;
 			}
 
+			if (!preexistingPlugins.equals(that.preexistingPlugins)) {
+				return false;
+			}
+
+
 			return true;
 		}
 
@@ -1554,6 +1573,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			result = 31 * result + collection.hashCode();
 			result = 31 * result + modules.hashCode();
 			result = 31 * result + plugins.hashCode();
+			result = 31 * result + preexistingPlugins.hashCode();
 			result = 31 * result + (languages == null ? 0 : languages.hashCode());
 			return result;
 		}

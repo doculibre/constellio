@@ -57,11 +57,11 @@ public class RMMigrationTo9_1_12 implements MigrationScript {
 
 			// FIXME not for production (test only)
 			MetadataSchemaBuilder folderSchema = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE);
-			folderSchema.get(Folder.TITLE).setEssentialInSummary(true).setCacheIndex(true);
+			//	folderSchema.get(Folder.TITLE).setEssentialInSummary(true).setCacheIndex(true);
 
-			MetadataSchemaBuilder documentSchema = typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE);
-			documentSchema.get(Document.TITLE).setEssentialInSummary(true).setCacheIndex(true);
-			documentSchema.get(Document.CONTENT_CHECKED_OUT_BY).setEssentialInSummary(true).setCacheIndex(true);
+//			MetadataSchemaBuilder documentSchema = typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE);
+			//			documentSchema.get(Document.TITLE).setEssentialInSummary(true).setCacheIndex(true);
+			//			documentSchema.get(Document.CONTENT_CHECKED_OUT_BY).setEssentialInSummary(true).setCacheIndex(true);
 		}
 	}
 }
