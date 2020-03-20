@@ -5,6 +5,7 @@ import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
 import com.constellio.app.services.extensions.AppRecordExtension;
 import com.constellio.app.services.extensions.core.CoreSearchFieldExtension;
 import com.constellio.app.services.extensions.core.CoreUserProfileFieldsExtension;
+import com.constellio.app.services.extensions.core.CoreUserProfileSignatureFieldsExtension;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_4;
@@ -85,6 +86,7 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_417;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_89;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_1003;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -181,6 +183,8 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_9_0_42_1());
 		scripts.add(new CoreMigrationTo_9_0_1_89());
 		scripts.add(new CoreMigrationTo_9_0_42_2());
+
+		scripts.add(new CoreMigrationTo_9_1_1003());
 		return scripts;
 	}
 
@@ -204,7 +208,8 @@ public class ConstellioEIM {
 	private static void configureBaseAppLayerExtensions(AppLayerFactory appLayerFactory, String collection) {
 		appLayerFactory.getExtensions().forCollection(collection)
 				.pagesComponentsExtensions.add(new CoreUserProfileFieldsExtension(collection, appLayerFactory));
-
+		appLayerFactory.getExtensions().forCollection(collection)
+				.pagesComponentsExtensions.add(new CoreUserProfileSignatureFieldsExtension(collection, appLayerFactory));
 	}
 
 	private static void configureBaseModelLayerExtensions(AppLayerFactory appLayerFactory, String collection) {

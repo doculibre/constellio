@@ -1,5 +1,6 @@
 package com.constellio.model.entities.security.global;
 
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -42,6 +43,8 @@ public class UserCredential extends RecordWrapper {
 	public static final String DO_NOT_RECEIVE_EMAILS = "doNotReceiveEmails";
 	public static final String ENABLE_FACETS_APPLY_BUTTON = "enableFacetsApplyButton";
 	public static final String HAS_READ_LAST_ALERT = "hasReadLastAlert";
+	public static final String ELECTRONIC_SIGNATURE = "electronicSignature";
+	public static final String ELECTRONIC_INITIALS = "electronicInitials";
 
 	public UserCredential(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -319,5 +322,23 @@ public class UserCredential extends RecordWrapper {
 
 	public boolean isApplyFacetsEnabled() {
 		return Boolean.TRUE.equals(ENABLE_FACETS_APPLY_BUTTON);
+	}
+
+	public Content getElectronicSignature() {
+		return get(ELECTRONIC_SIGNATURE);
+	}
+
+	public UserCredential setElectronicSignature(Content content) {
+		set(ELECTRONIC_SIGNATURE, content);
+		return this;
+	}
+
+	public Content getElectronicInitials() {
+		return get(ELECTRONIC_INITIALS);
+	}
+
+	public UserCredential setElectronicInitials(Content content) {
+		set(ELECTRONIC_INITIALS, content);
+		return this;
 	}
 }

@@ -108,6 +108,7 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
+import com.constellio.app.ui.framework.components.fields.SignatureRecordField;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -928,6 +929,14 @@ public class AppLayerCollectionExtensions {
 		}
 		return additionnalFields;
     }
+
+	public List<SignatureRecordField> getSignatureFields(RecordFieldsExtensionParams params) {
+		List<SignatureRecordField> signatureFields = new ArrayList<>();
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
+			signatureFields.addAll(extension.getSignatureFields(params));
+		}
+		return signatureFields;
+	}
 
 	public void fieldBindingExtentions(FieldBindingExtentionParam fieldBindingExtentionParam) {
 		for (FieldBindingExtention fieldBindingExtention : fieldBindingExtentions) {
