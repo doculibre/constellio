@@ -32,7 +32,12 @@ public class ImportSchemaTypesFilePresenter extends ImportFilePresenter {
 	}
 
 	@Override
-	protected ImportDataProvider getExcelImportDataProviderFromFile(File file) {
+	protected ImportDataProvider getExcel2003ImportDataProviderFromFile(File file) {
+		return null;
+	}
+
+	@Override
+	protected ImportDataProvider getExcel2007ImportDataProviderFromFile(File file) {
 		return null;
 	}
 }

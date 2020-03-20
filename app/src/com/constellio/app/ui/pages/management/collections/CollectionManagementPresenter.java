@@ -6,6 +6,8 @@ import com.constellio.app.ui.framework.data.CollectionVODataProvider;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.dao.services.bigVault.solr.SolrCloudUtils;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -16,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.conf.SolrServerType.CLOUD;
 
 public class CollectionManagementPresenter extends BasePresenter<CollectionManagementView> {
 	protected transient CollectionsManager collectionManager;
@@ -36,6 +39,12 @@ public class CollectionManagementPresenter extends BasePresenter<CollectionManag
 	}
 
 	public void deleteButtonClicked(CollectionVODataProvider dataProvider, Integer index) {
+		DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
+		if (dataLayerFactory.getDataLayerConfiguration().getRecordsDaoSolrServerType() == CLOUD &&
+			!SolrCloudUtils.isOnline(dataLayerFactory.getRecordsVaultServer().getNestedSolrServer())) {
+			view.showErrorMessage($("CollectionManagementView.degradatedState"));
+			return;
+		}
 		CollectionVO collectionVO = dataProvider.getRecordVO(index);
 		dataProvider.delete(index);
 		collectionManager().deleteCollection(collectionVO.getCode());

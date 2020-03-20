@@ -1,33 +1,26 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.params.ParamUtils.addParams;
+import com.constellio.app.extensions.records.RecordNavigationExtension;
+import com.constellio.app.extensions.records.RecordNavigationExtensionUtils;
+import com.constellio.app.extensions.records.params.NavigationParams;
+import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Table;
 
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.app.extensions.records.RecordNavigationExtension;
-import com.constellio.app.extensions.records.RecordNavigationExtensionUtils;
-import com.constellio.app.extensions.records.params.NavigationParams;
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
-import com.constellio.app.modules.rm.wrappers.*;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
-import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.app.ui.util.FileIconUtils;
-import com.constellio.app.ui.util.SchemaCaptionUtils;
-import com.constellio.model.entities.Language;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.vaadin.server.Resource;
-import com.vaadin.server.ResourceReference;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Table;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RMRecordNavigationExtension implements RecordNavigationExtension {
 
@@ -135,8 +128,14 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 								  Locale currentLocale) {
 		String schemaTypeCode = navigationParams.getSchemaTypeCode();
 		if (isViewForSchemaTypeCode(schemaTypeCode)) {
-			String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-					.getSchemaType(schemaTypeCode).getLabel(Language.withLocale(currentLocale)).toLowerCase();
+			MetadataSchemaType schemaType = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(schemaTypeCode);
+			String schemaTypeLabel = schemaType.getLabel(Language.withLocale(currentLocale));
+			if (schemaTypeLabel == null && !schemaType.getLabels().isEmpty()) {
+				schemaTypeLabel = schemaType.getLabels().values().iterator().next();
+			} else {
+				schemaTypeLabel = schemaType.getCode();
+			}
+			schemaTypeLabel = schemaTypeLabel.toLowerCase();
 			Map<String, Object> params = new HashMap<>();
 			params.put("schemaType", schemaTypeLabel);
 			final String errorMessage = $("ReferenceDisplay.cannotDisplayLogicallyDeletedRecord", params);

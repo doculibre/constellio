@@ -16,11 +16,13 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 
 import javax.annotation.PostConstruct;
@@ -37,8 +39,10 @@ public abstract class BaseDao {
 	protected RestApiConfigs restApiConfigs;
 
 	protected RecordServices recordServices;
+	protected RecordDeleteServices recordDeleteServices;
 	protected SearchServices searchServices;
 	protected UserServices userServices;
+	protected AuthorizationsServices authorizationServices;
 	protected SchemasRecordsServices schemas;
 
 	@PostConstruct
@@ -51,8 +55,10 @@ public abstract class BaseDao {
 		restApiConfigs = new RestApiConfigs(modelLayerFactory);
 
 		recordServices = modelLayerFactory.newRecordServices();
+		recordDeleteServices = new RecordDeleteServices(modelLayerFactory);
 		searchServices = modelLayerFactory.newSearchServices();
 		userServices = modelLayerFactory.newUserServices();
+		authorizationServices = modelLayerFactory.newAuthorizationsServices();
 		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 

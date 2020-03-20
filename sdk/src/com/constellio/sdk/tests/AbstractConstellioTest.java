@@ -1616,7 +1616,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	private String getServerConfigurations(String coreName) {
-		File configFld = new File(new FoldersLocator().getSolrHomeConfFolder(), "configsets");
+		File configFld = new File(new FoldersLocator().getSolrHomeConfFolder(getSolrVersion()), "configsets");
 		for (File configFile : configFld.listFiles()) {
 			if (configFile.getName().startsWith(coreName)) {
 				return new File(configFile, "conf").getAbsolutePath();
