@@ -381,6 +381,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public boolean isReplaySQLSecondTransactionLogDuringOfficeHours() {
+		return getBoolean("secondTransactionLog.sql.replayTransactionsDuringOfficeHours", false);
+	}
+
+	@Override
 	public String createRandomUniqueKey() {
 		Random random = new Random();
 		return random.nextInt(1000) + "-" + random.nextInt(1000) + "-" + random.nextInt(1000);

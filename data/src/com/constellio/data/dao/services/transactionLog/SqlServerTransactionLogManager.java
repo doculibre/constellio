@@ -30,6 +30,7 @@ import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.AsyncTaskRegrouper;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.TimeProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -38,6 +39,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -311,68 +314,79 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	@Override
 	public synchronized String regroupAndMove() {
 
-		//build record on json
 		int converted = 0;
-		try {
+		if (configuration.isReplaySQLSecondTransactionLogDuringOfficeHours() || !isOfficeHours()) {
 
-			//get transactions
-			List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
-					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll(1000));
-			converted = transactionsToConvert.size();
-			if (transactionsToConvert.size() == 0) {
-				//end
-				return "" + converted;
-			}
+			//build record on json
 
-			final List<RecordTransactionSqlDTO> recordsToinsert = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), false);
-			final List<RecordTransactionSqlDTO> recordsToUpdate = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), true);
-			final List<String> updateTransactionIds = recordsToUpdate.stream().map(x -> x.getRecordId()).collect(Collectors.toList());
-			final List<String> recordsToDelete = extractRemoveRecordsFromTransaction(transactionsToConvert);
-			final List<RecordTransactionSqlDTO> victims = new ArrayList<>();
+			try {
 
-			//save new records
-			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(recordsToinsert);
-
-				return true;
-			});
-
-			//save update records
-			tryThreeTimes(() -> {
-				try {
-					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).updateBulk(recordsToUpdate);
-				} catch (SQLException sqlEx) {
-					if (sqlEx instanceof BatchUpdateException) {
-						victims.addAll(recordsToUpdate);
-					}
+				//get transactions
+				List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
+						sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll(1000));
+				converted = transactionsToConvert.size();
+				if (transactionsToConvert.size() == 0) {
+					//end
+					return "" + converted;
 				}
-				return true;
-			});
 
-			//remove deleted records
-			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(recordsToDelete);
-				return true;
-			});
+				final List<RecordTransactionSqlDTO> recordsToinsert = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), false);
+				final List<RecordTransactionSqlDTO> recordsToUpdate = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), true);
+				final List<String> updateTransactionIds = recordsToUpdate.stream().map(x -> x.getRecordId()).collect(Collectors.toList());
+				final List<String> recordsToDelete = extractRemoveRecordsFromTransaction(transactionsToConvert);
+				final List<RecordTransactionSqlDTO> victims = new ArrayList<>();
 
-			//Remove transactions
-			for (RecordTransactionSqlDTO victim : victims) {
-				transactionsToConvert.removeIf(tr -> tr.getId().equals(victim.getId()));
+				//save new records
+				tryThreeTimes(() -> {
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(recordsToinsert);
+
+					return true;
+				});
+
+				//save update records
+				tryThreeTimes(() -> {
+					try {
+						sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).updateBulk(recordsToUpdate);
+					} catch (SQLException sqlEx) {
+						if (sqlEx instanceof BatchUpdateException) {
+							victims.addAll(recordsToUpdate);
+						}
+					}
+					return true;
+				});
+
+				//remove deleted records
+				tryThreeTimes(() -> {
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(recordsToDelete);
+					return true;
+				});
+
+				//Remove transactions
+				for (RecordTransactionSqlDTO victim : victims) {
+					transactionsToConvert.removeIf(tr -> tr.getId().equals(victim.getId()));
+				}
+
+				final String[] transactionsToRemove = transactionsToConvert.stream().map(x -> x.getId()).toArray(String[]::new);
+
+				tryThreeTimes(() -> {
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll(transactionsToRemove);
+					return true;
+				});
+
+			} catch (Exception ex) {
+
+				//exceptionOccured = true;
+				throw new RuntimeException(ex);
 			}
-
-			final String[] transactionsToRemove = transactionsToConvert.stream().map(x -> x.getId()).toArray(String[]::new);
-
-			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll(transactionsToRemove);
-				return true;
-			});
-
-		} catch (Exception ex) {
-
-			//exceptionOccured = true;
-			throw new RuntimeException(ex);
 		}
 		return "" + converted;
+	}
+
+	private boolean isOfficeHours() {
+		LocalDateTime time = TimeProvider.getLocalDateTime();
+		return time.getHourOfDay() > 18 || time.getHourOfDay() < 7
+			   || time.getDayOfWeek() == DateTimeConstants.SATURDAY
+			   || time.getDayOfWeek() == DateTimeConstants.SUNDAY;
 	}
 
 	private List<String> extractRemoveRecordsFromTransaction(List<TransactionSqlDTO> transactions) {
