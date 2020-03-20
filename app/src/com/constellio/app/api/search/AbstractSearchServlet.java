@@ -166,11 +166,13 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 		try (OutputStreamWriter out = new OutputStreamWriter(outputStream)) {
 			if (("json").equals(solrParams.get("wt"))) {
 				response.setCharacterEncoding("UTF-8");
+				response.setHeader("Access-Control-Allow-Origin", "*");
 				response.setContentType("application/json; charset=UTF-8");
 				JSONResponseWriter jsonWriter = new JSONResponseWriter();
 				jsonWriter.write(out, new LocalSolrQueryRequest(null, solrParams), sResponse);
 			} else {
 				response.setCharacterEncoding("UTF-8");
+				response.setHeader("Access-Control-Allow-Origin", "*");
 				response.setContentType("application/xml; charset=UTF-8");
 				xmlWriter.write(out, new LocalSolrQueryRequest(null, solrParams), sResponse);
 			}
