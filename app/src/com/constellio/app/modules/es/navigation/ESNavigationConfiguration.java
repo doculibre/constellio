@@ -16,7 +16,7 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
-import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.app.ui.pages.home.TaxonomyTabSheet;
@@ -79,8 +79,8 @@ public class ESNavigationConfiguration implements Serializable {
 		if (!config.hasNavigationItem(HomeView.TABS, CoreNavigationConfiguration.TAXONOMIES)) {
 			config.add(HomeView.TABS, new RecordTree(CoreNavigationConfiguration.TAXONOMIES) {
 				@Override
-				public List<RecordLazyTreeDataProvider> getDataProviders(AppLayerFactory appLayerFactory,
-																		 SessionContext sessionContext) {
+				public List<LazyTreeDataProvider<String>> getDataProviders(AppLayerFactory appLayerFactory,
+																   SessionContext sessionContext) {
 					TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
 					if (getDefaultDataProvider() == -1) {
 						int defaultTab = tabSheet.getDefaultTab();

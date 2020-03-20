@@ -4,12 +4,16 @@ import com.constellio.app.ui.framework.data.TreeNode;
 import lombok.Getter;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 
 public interface TreeNodesProvider<T extends Serializable> {
 
-	TreeNodesProviderResponse<T> getNodes(String optionalParentId, int start, int maxSize, T fastContinuationInfos);
+	boolean areNodesPossibleIn(TreeNode optionalParentTreeNode);
+
+	TreeNodesProviderResponse<T> getNodes(TreeNode optionalParentTreeNode, int start, int maxSize,
+										  T fastContinuationInfos);
 
 	class TreeNodesProviderResponse<T> {
 
@@ -31,6 +35,10 @@ public interface TreeNodesProvider<T extends Serializable> {
 		public TreeNodesProviderResponse(boolean moreNodes, List<TreeNode> nodes) {
 			this.moreNodes = moreNodes;
 			this.nodes = nodes;
+		}
+
+		public static <T extends Serializable> TreeNodesProviderResponse<T> EMPTY() {
+			return new TreeNodesProviderResponse<>(false, Collections.emptyList());
 		}
 	}
 

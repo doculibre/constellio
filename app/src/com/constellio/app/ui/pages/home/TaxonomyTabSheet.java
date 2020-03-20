@@ -2,7 +2,8 @@ package com.constellio.app.ui.pages.home;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.TreeDataProviderFactory;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Taxonomy;
@@ -27,10 +28,10 @@ public class TaxonomyTabSheet implements Serializable {
 		this.sessionContext = sessionContext;
 	}
 
-	public List<RecordLazyTreeDataProvider> getDataProviders() {
-		List<RecordLazyTreeDataProvider> providers = new ArrayList<>();
+	public List<LazyTreeDataProvider<String>> getDataProviders() {
+		List<LazyTreeDataProvider<String>> providers = new ArrayList<>();
 		for (String taxonomy : getTaxonomyCodes()) {
-			providers.add(new RecordLazyTreeDataProvider(taxonomy, sessionContext.getCurrentCollection()));
+			providers.add(TreeDataProviderFactory.forTaxonomy(taxonomy, sessionContext.getCurrentCollection()));
 		}
 		return providers;
 	}

@@ -5,7 +5,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
-import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
@@ -118,7 +118,7 @@ public abstract class PageItem implements CodedItem, Serializable {
 			this.expandedRecordIds = expandedRecordIds;
 		}
 
-		public abstract List<RecordLazyTreeDataProvider> getDataProviders(
+		public abstract List<LazyTreeDataProvider<String>> getDataProviders(
 				AppLayerFactory appLayerFactory, SessionContext sessionContext);
 
 		public abstract BaseContextMenu getContextMenu();

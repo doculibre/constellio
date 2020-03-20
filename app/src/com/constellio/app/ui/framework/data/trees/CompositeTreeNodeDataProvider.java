@@ -18,14 +18,29 @@ public class CompositeTreeNodeDataProvider implements TreeNodesProvider<Composit
 
 	private List<TreeNodesProvider> childTreeNodesProviders;
 
+	private static boolean DEBUG = true;
+
 	public CompositeTreeNodeDataProvider(
 			List<TreeNodesProvider<?>> childTreeNodesProviders) {
 		this.childTreeNodesProviders = (List) childTreeNodesProviders;
 	}
 
+	public static TreeNodesProvider forNodesProvider(List<TreeNodesProvider<?>> nodesProvider) {
+		if (nodesProvider.size() == 1) {
+			return nodesProvider.get(0);
+		} else {
+			return new CompositeTreeNodeDataProvider(nodesProvider);
+		}
+	}
+
+	@Override
+	public boolean areNodesPossibleIn(TreeNode optionalParentTreeNode) {
+		return childTreeNodesProviders.stream().anyMatch((p) -> p.areNodesPossibleIn(optionalParentTreeNode));
+	}
+
 	@Override
 	public TreeNodesProviderResponse<CompositeTreeNodeDataProviderFastContinuationInfos> getNodes(
-			String optionalParentId, int start, int maxSize,
+			TreeNode optionalParent, int start, int maxSize,
 			CompositeTreeNodeDataProviderFastContinuationInfos fastContinuationInfos) {
 
 		int continueAtProvider = 0;
@@ -43,9 +58,16 @@ public class CompositeTreeNodeDataProvider implements TreeNodesProvider<Composit
 
 		while (continueAtProvider < childTreeNodesProviders.size() && (nodes.size() < maxSize || !hasMoreNodes)) {
 			int missingNodes = maxSize - nodes.size();
-			TreeNodesProviderResponse<Object> response = childTreeNodesProviders.get(continueAtProvider)
-					.getNodes(optionalParentId, continueAtProviderIndex, missingNodes, currentFastContinuationInfos);
-			nodes.addAll(response.getNodes());
+			TreeNodesProviderResponse<Serializable> response = TreeNodesProviderResponse.EMPTY();
+			if (childTreeNodesProviders.get(continueAtProvider).areNodesPossibleIn(optionalParent)) {
+				response = childTreeNodesProviders.get(continueAtProvider).getNodes(
+						optionalParent, continueAtProviderIndex, missingNodes, currentFastContinuationInfos);
+				if (DEBUG ) {
+
+				}
+				nodes.addAll(response.getNodes());
+			}
+
 			if (response.isMoreNodes()) {
 				hasMoreNodes = true;
 				if (missingNodes > 0) {

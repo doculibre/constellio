@@ -1,32 +1,45 @@
 package com.constellio.app.ui.framework.data;
 
+import com.constellio.data.utils.LangUtils;
 import com.vaadin.server.Resource;
+import lombok.Getter;
 
 import java.io.Serializable;
 
 public class TreeNode implements Serializable {
+	@Getter
 	private String id;
 
-	private String type;
+	@Getter
+	private String providerType;
 
+	@Getter
+	private String nodeType;
+
+	@Getter
 	private String caption;
 
+	@Getter
 	private String description;
 
+	@Getter
 	private Resource collapsedIconFilename;
 
+	@Getter
 	private Resource expandedIconFilename;
 
+	@Getter
 	private boolean expandable;
 
-	public TreeNode(String id, String type, String caption, String description,
+	public TreeNode(String id, String providerType, String nodeType, String caption, String description,
 					Resource collapsedIconFilename, Resource expandedIconFilename, boolean expandable) {
 
 		if (id.contains("|") || id.equals("root")) {
 			throw new IllegalArgumentException("Invalid tree node id : " + id);
 		}
 		this.id = id;
-		this.type = type;
+		this.providerType = providerType;
+		this.nodeType = nodeType;
 		this.caption = caption;
 		this.description = description;
 		this.expandable = expandable;
@@ -34,24 +47,8 @@ public class TreeNode implements Serializable {
 		this.expandedIconFilename = expandedIconFilename;
 	}
 
-	public String getId() {
-		return id;
-	}
-
 	public Resource getIcon(boolean expanded) {
 		return expanded ? expandedIconFilename : collapsedIconFilename;
-	}
-
-	public String getCaption() {
-		return caption;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public boolean expandable() {
-		return expandable;
 	}
 
 	@Override
@@ -70,6 +67,14 @@ public class TreeNode implements Serializable {
 		}
 
 		return true;
+	}
+
+	public boolean isType(String providerType, String providerNodeType) {
+		return LangUtils.isEqual(this.providerType, providerType) && LangUtils.isEqual(this.nodeType, providerNodeType);
+	}
+
+	public boolean isProviderType(String providerType) {
+		return LangUtils.isEqual(this.providerType, providerType);
 	}
 
 	@Override

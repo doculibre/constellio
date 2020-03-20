@@ -13,6 +13,9 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -35,16 +38,16 @@ public class DefaultLazyTreeDataProviderTest extends ConstellioTest {
 
 	@Before
 	public void setUp() throws Exception {
-		node1 = new TreeNode("id1", "type1", "caption1", "description1", collapsedIcon1, expandedIcon1, true);
-		node2 = new TreeNode("id2", "type2", "caption2", "description2", collapsedIcon2, expandedIcon2, false);
-		node3 = new TreeNode("id3", "type3", "caption3", "description3", collapsedIcon3, expandedIcon3, true);
-		node4 = new TreeNode("id4", "type4", "caption4", "description4", collapsedIcon4, expandedIcon4, false);
-		node5 = new TreeNode("id5", "type5", "caption5", "description5", collapsedIcon5, expandedIcon5, true);
-		node6 = new TreeNode("id6", "type6", "caption6", "description6", collapsedIcon6, expandedIcon6, false);
-		node7 = new TreeNode("id7", "type7", "caption7", "description7", collapsedIcon7, expandedIcon7, true);
-		node8 = new TreeNode("id8", "type8", "caption8", "description8", collapsedIcon8, expandedIcon8, true);
+		node1 = new TreeNode("id1", "providerId", "type1", "caption1", "description1", collapsedIcon1, expandedIcon1, true);
+		node2 = new TreeNode("id2", "providerId", "type2", "caption2", "description2", collapsedIcon2, expandedIcon2, false);
+		node3 = new TreeNode("id3", "providerId", "type3", "caption3", "description3", collapsedIcon3, expandedIcon3, true);
+		node4 = new TreeNode("id4", "providerId", "type4", "caption4", "description4", collapsedIcon4, expandedIcon4, false);
+		node5 = new TreeNode("id5", "providerId", "type5", "caption5", "description5", collapsedIcon5, expandedIcon5, true);
+		node6 = new TreeNode("id6", "providerId", "type6", "caption6", "description6", collapsedIcon6, expandedIcon6, false);
+		node7 = new TreeNode("id7", "providerId", "type7", "caption7", "description7", collapsedIcon7, expandedIcon7, true);
+		node8 = new TreeNode("id8", "providerId", "type8", "caption8", "description8", collapsedIcon8, expandedIcon8, true);
 
-		dataProvider = new DefaultLazyTreeDataProvider(nodesProvider, "zeTaxonomy");
+		dataProvider = spy(new DefaultLazyTreeDataProvider(nodesProvider, "zeTaxonomy"));
 
 		assertThat(dataProvider.getCaption("id1")).isEqualTo("");
 		assertThat(dataProvider.getDescription("id1")).isNull();
@@ -104,26 +107,32 @@ public class DefaultLazyTreeDataProviderTest extends ConstellioTest {
 
 	@Test
 	public void whenIteratingChildNodesThenConsumeNodeProviderOnlyOnceReturningItemsInSameOrder() {
-		when(nodesProvider.getNodes(eq("zeParent"), eq(0), eq(3), any())).thenReturn(
+
+		TreeNode zeParent = mock(TreeNode.class);
+		when(zeParent.getId()).thenReturn("zeParent");
+
+		doReturn(zeParent).when(dataProvider).getNode("zeParent");
+
+		when(nodesProvider.getNodes(eq(zeParent), eq(0), eq(3), any())).thenReturn(
 				new TreeNodesProviderResponse<>(true, asList(node1, node2, node3), "continueAtNode4!"));
 
-		when(nodesProvider.getNodes(eq("zeParent"), eq(3), eq(3), any())).thenReturn(
+		when(nodesProvider.getNodes(eq(zeParent), eq(3), eq(3), any())).thenReturn(
 				new TreeNodesProviderResponse<>(true, asList(node4, node5, node6), "continueAtNode7!"));
 
-		when(nodesProvider.getNodes(eq("zeParent"), eq(6), eq(3), any())).thenReturn(
+		when(nodesProvider.getNodes(eq(zeParent), eq(6), eq(3), any())).thenReturn(
 				new TreeNodesProviderResponse<>(false, asList(node7, node8), "youShallNotContinue!"));
 
 		assertThat(dataProvider.getChildren("zeParent", 0, 3)).isEqualTo(
 				new ObjectsResponse<String>(asList("zeParent|id1", "zeParent|id2", "zeParent|id3"), 4L));
-		verify(nodesProvider).getNodes("zeParent", 0, 3, null);
+		verify(nodesProvider).getNodes(zeParent, 0, 3, null);
 
 		assertThat(dataProvider.getChildren("zeParent", 3, 3)).isEqualTo(
 				new ObjectsResponse<String>(asList("zeParent|id4", "zeParent|id5", "zeParent|id6"), 7L));
-		verify(nodesProvider).getNodes("zeParent", 3, 3, "continueAtNode4!");
+		verify(nodesProvider).getNodes(zeParent, 3, 3, "continueAtNode4!");
 
 		assertThat(dataProvider.getChildren("zeParent", 6, 3)).isEqualTo(
 				new ObjectsResponse<String>(asList("zeParent|id7", "zeParent|id8"), 8L));
-		verify(nodesProvider).getNodes("zeParent", 6, 3, "continueAtNode7!");
+		verify(nodesProvider).getNodes(zeParent, 6, 3, "continueAtNode7!");
 		verifyNoMoreInteractions(nodesProvider);
 
 		assertThat(dataProvider.getCaption("zeParent|id1")).isEqualTo("caption1");

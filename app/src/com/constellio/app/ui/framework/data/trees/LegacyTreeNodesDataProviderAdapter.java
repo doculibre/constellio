@@ -17,9 +17,14 @@ import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.records.Record.GetMetadataOption.NO_SUMMARY_METADATA_VALIDATION;
 
+/**
+ * This class is temporary, replace with proper implementations
+ */
 public class LegacyTreeNodesDataProviderAdapter implements TreeNodesProvider<FastContinueInfos> {
 
-	RecordTreeNodesDataProvider legacyDataProvider;
+	public static final String PROVIDER_ID = "records-legacyAdapter";
+
+	private RecordTreeNodesDataProvider legacyDataProvider;
 
 	public LegacyTreeNodesDataProviderAdapter(
 			RecordTreeNodesDataProvider legacyDataProvider) {
@@ -27,13 +32,22 @@ public class LegacyTreeNodesDataProviderAdapter implements TreeNodesProvider<Fas
 	}
 
 	@Override
-	public TreeNodesProviderResponse<FastContinueInfos> getNodes(String optionalParentId, int start, int maxSize,
+	public boolean areNodesPossibleIn(TreeNode optionalParentTreeNode) {
+		return optionalParentTreeNode == null || optionalParentTreeNode.isProviderType(PROVIDER_ID);
+	}
+
+	@Override
+	public TreeNodesProviderResponse<FastContinueInfos> getNodes(TreeNode optionalParent, int start, int maxSize,
 																 FastContinueInfos fastContinuationInfos) {
 
-		if (optionalParentId == null) {
+		if (optionalParent == null) {
 			return adapt(start, legacyDataProvider.getRootNodes(start, maxSize, fastContinuationInfos));
+
+		} else if (PROVIDER_ID.equals(optionalParent.getProviderType())) {
+			return adapt(start, legacyDataProvider.getChildrenNodes(optionalParent.getId(), start, maxSize, fastContinuationInfos));
+
 		} else {
-			return adapt(start, legacyDataProvider.getChildrenNodes(optionalParentId, start, maxSize, fastContinuationInfos));
+			return TreeNodesProviderResponse.EMPTY();
 		}
 
 	}
@@ -49,7 +63,7 @@ public class LegacyTreeNodesDataProviderAdapter implements TreeNodesProvider<Fas
 
 	protected TreeNode toTreeNode(TaxonomySearchRecord searchRecord) {
 		Record record = searchRecord.getRecord();
-		String schemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+		String type = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		String caption = SchemaCaptionUtils.getCaptionForRecord(record, i18n.getLocale());
 		String description = record.get(Schemas.DESCRIPTION_STRING, NO_SUMMARY_METADATA_VALIDATION);
 		if (description == null) {
@@ -59,7 +73,7 @@ public class LegacyTreeNodesDataProviderAdapter implements TreeNodesProvider<Fas
 		Resource collapsedIcon = getCollapsedIconOf(record);
 		Resource expandedIcon = getExpandedIconOf(record);
 
-		return new TreeNode(searchRecord.getId(), caption, description, schemaType,
+		return new TreeNode(searchRecord.getId(), PROVIDER_ID, type, caption, description,
 				collapsedIcon, expandedIcon, searchRecord.hasChildren());
 	}
 

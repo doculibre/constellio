@@ -6,7 +6,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
-import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.TreeDataProviderFactory;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.vaadin.data.Item;
 import com.vaadin.server.Resource;
@@ -16,12 +16,12 @@ public class RecordLazyTree extends LazyTree<String> {
 	private RecordIdToCaptionConverter itemsConverter;
 
 	public RecordLazyTree(String taxonomyCode, int bufferSize) {
-		super(new RecordLazyTreeDataProvider(taxonomyCode, ConstellioUI.getCurrentSessionContext().getCurrentCollection()), bufferSize);
+		super(TreeDataProviderFactory.forTaxonomy(taxonomyCode, ConstellioUI.getCurrentSessionContext().getCurrentCollection()), bufferSize);
 		init();
 	}
 
 	public RecordLazyTree(String taxonomyCode) {
-		super(new RecordLazyTreeDataProvider(taxonomyCode, ConstellioUI.getCurrentSessionContext().getCurrentCollection()));
+		super(TreeDataProviderFactory.forTaxonomy(taxonomyCode, ConstellioUI.getCurrentSessionContext().getCurrentCollection()));
 		init();
 	}
 

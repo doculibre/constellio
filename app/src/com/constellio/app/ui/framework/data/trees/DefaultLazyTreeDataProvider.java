@@ -37,7 +37,7 @@ public class DefaultLazyTreeDataProvider extends AbstractDataProvider implements
 		return taxonomyCode;
 	}
 
-	private final TreeNode getNode(String id) {
+	TreeNode getNode(String id) {
 		return nodesCache.get(id);
 	}
 
@@ -103,7 +103,13 @@ public class DefaultLazyTreeDataProvider extends AbstractDataProvider implements
 		if (parent.contains("|")) {
 			localId = StringUtils.substringAfterLast(localId, "|");
 		}
-		TreeNodesProviderResponse<Serializable> response = this.nodesProvider.getNodes(localId, start, maxSize, previousFastContinueInfos);
+
+		TreeNode parentTreeNode = getNode(parent);
+		if (parentTreeNode == null) {
+			throw new IllegalStateException("Todo Francis : navigate using parent to retrieve node : " + parent);
+		}
+
+		TreeNodesProviderResponse<Serializable> response = this.nodesProvider.getNodes(parentTreeNode, start, maxSize, previousFastContinueInfos);
 
 		List<String> recordIds = new ArrayList<>();
 		for (TreeNode treeNode : response.getNodes()) {
@@ -140,12 +146,12 @@ public class DefaultLazyTreeDataProvider extends AbstractDataProvider implements
 
 	@Override
 	public boolean hasChildren(String parent) {
-		return getNode(parent).expandable();
+		return getNode(parent).isExpandable();
 	}
 
 	@Override
 	public boolean isLeaf(String parent) {
-		return !getNode(parent).expandable();
+		return !getNode(parent).isExpandable();
 	}
 
 	@Override
