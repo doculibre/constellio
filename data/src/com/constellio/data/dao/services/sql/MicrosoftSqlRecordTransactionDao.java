@@ -21,6 +21,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	public static final String SCHEMA_NAME = "constellio";
 	private static final String DBO = "dbo";
 	private static String fullTableName = SCHEMA_NAME + "." + DBO + "." + TABLE_NAME;
+	private static String fullVersionTableName = SCHEMA_NAME + "." + DBO + ".versions";
 	private final QueryRunner queryRunner;
 	private ScalarHandler<Integer> defaultHandler = new ScalarHandler<>();
 
@@ -44,11 +45,11 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	public void insert(RecordTransactionSqlDTO dto) throws SQLException {
 
 		String insertQuery = "INSERT INTO " + fullTableName
-							 + " (id, recordId, solrVersion, content) "
-							 + "VALUES ( default , ?, ?, ?)";
+							 + " (id, recordId, logVersion, solrVersion, content) "
+							 + "VALUES ( default ,?, ?, ?, ?)";
 
 		queryRunner.insert(connector.getConnection(),
-				insertQuery, defaultHandler, dto.getRecordId(),
+				insertQuery, defaultHandler, dto.getRecordId(), dto.getLogVersion(),
 				dto.getSolrVersion(), dto.getContent());
 
 		//dto.setId(newId);
@@ -228,7 +229,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	@Override
 	public int increaseVersion() throws SQLException {
 
-		String updateQuery = "UPDATE versions SET version = version + 1 WHERE name = 'transactionLog' ";
+		String updateQuery = "UPDATE " + fullVersionTableName + " SET version = version + 1 WHERE name = 'transactionLog' ";
 		queryRunner.update(connector.getConnection(),
 				updateQuery);
 		return getCurrentVersion();
@@ -243,13 +244,17 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 				"SELECT version FROM versions WHERE name = 'transactionLog' ", scalarHandler);
 
 		if (version == null) {
-			String insertQuery = "INSERT INTO versions "
-								 + "(name, version) "
-								 + "VALUES ('transactionLog', 1)";
+			try {
+				String insertQuery = "INSERT INTO " + fullVersionTableName
+									 + " (name, version) "
+									 + "VALUES ('transactionLog', 1)";
 
-			queryRunner.insert(connector.getConnection(),
-					insertQuery, defaultHandler);
-			return 1;
+				queryRunner.insert(connector.getConnection(),
+						insertQuery, defaultHandler);
+			} finally {
+
+				return 1;
+			}
 		}
 
 		return version;

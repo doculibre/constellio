@@ -500,7 +500,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAllByLogVersion(version);
 				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insert(
 						new RecordTransactionSqlDTO("reindexation_v" + version + "_solrv_" + solrVersion,
-								version, this.recordDao.getBigVaultServer().getVersion(), "Reindexation end")
+								version, solrVersion, "Reindexation end")
 				);
 				return true;
 			});

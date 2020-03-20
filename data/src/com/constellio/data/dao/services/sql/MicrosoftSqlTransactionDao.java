@@ -21,6 +21,7 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	public static final String SCHEMA_NAME = "constellio";
 	private static final String DBO = "dbo";
 	private static String fullTableName = SCHEMA_NAME + "." + DBO + "." + TABLE_NAME;
+	private static String fullVersionTableName = SCHEMA_NAME + "." + DBO + ".versions";
 	private final QueryRunner queryRunner;
 	private ScalarHandler<Integer> defaultHandler = new ScalarHandler<>();
 
@@ -232,7 +233,7 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	public int increaseVersion() throws SQLException {
 
 		queryRunner.update(connector.getConnection(),
-				"UPDATE versions SET version = version + 1 WHERE name = 'transactionLog' ");
+				"UPDATE " + fullVersionTableName + " SET version = version + 1 WHERE name = 'transactionLog' ");
 
 		return getCurrentVersion();
 	}
@@ -243,21 +244,26 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 		ScalarHandler<Integer> scalarHandler = new ScalarHandler<>();
 
 		Integer version = queryRunner.query(connector.getConnection(),
-				"SELECT version FROM versions WHERE name = 'transactionLog' ", scalarHandler);
+				"SELECT version FROM " + fullVersionTableName + " WHERE name = 'transactionLog' ", scalarHandler);
 
 		if (version == null) {
-			String insertQuery = "INSERT INTO versions "
-								 + "(name, version) "
-								 + "VALUES ('transactionLog', 1)";
+			try {
+				String insertQuery = "INSERT INTO versions "
+									 + "(name, version) "
+									 + "VALUES ('transactionLog', 1)";
 
-			queryRunner.insert(connector.getConnection(),
-					insertQuery, defaultHandler);
-			return 1;
+				queryRunner.insert(connector.getConnection(),
+						insertQuery, defaultHandler);
+			} finally {
+
+				return 1;
+			}
 		}
 
 		return version;
 	}
 
+	@Override
 	public void resetVersion() throws SQLException {
 
 		queryRunner.update(connector.getConnection(),
