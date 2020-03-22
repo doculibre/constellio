@@ -5,14 +5,29 @@ import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
-import com.constellio.model.entities.enums.*;
+import com.constellio.model.entities.enums.AutocompleteSplitCriteria;
+import com.constellio.model.entities.enums.BackgroundRecordsReindexingMode;
+import com.constellio.model.entities.enums.EmailTextFormat;
+import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
+import com.constellio.model.entities.enums.MemoryConsumptionLevel;
+import com.constellio.model.entities.enums.MetadataPopulatePriority;
+import com.constellio.model.entities.enums.ParsingBehavior;
+import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.EnableThumbnailsScript;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
@@ -77,7 +92,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration UPDATE_SERVER_CONNECTION_ENABLED;
 
 	public static final SystemConfiguration ADD_COMMENTS_WHEN_READ_AUTHORIZATION;
-	;
 
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
 																 "  { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat' ] },\r\n" +
@@ -151,6 +165,7 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration LEGACY_IDENTIFIER_INDEXED_IN_MEMORY;
 
+	public static final SystemConfiguration ENABLE_ILLEGAL_CHARACTERS_VALIDATION;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -309,6 +324,8 @@ public class ConstellioEIMConfigs {
 
 		add(NO_LINKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
 		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
+
+		add(ENABLE_ILLEGAL_CHARACTERS_VALIDATION = others.createBooleanTrueByDefault("enabledIllegalCharactersValidation"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 
@@ -643,5 +660,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isLegacyIdentifierIndexedInMemory() {
 		return manager.getValue(LEGACY_IDENTIFIER_INDEXED_IN_MEMORY);
+	}
+
+	public boolean isIllegalCharactersValidationEnabled() {
+		return manager.getValue(ENABLE_ILLEGAL_CHARACTERS_VALIDATION);
 	}
 }

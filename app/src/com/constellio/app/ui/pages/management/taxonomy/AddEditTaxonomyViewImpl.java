@@ -14,9 +14,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.schemas.validators.metadatas.IllegalCharactersValidator;
 import com.google.common.base.Strings;
-import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.AbstractField;
@@ -104,19 +102,7 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 
 		for (String languageCode : presenter.getCollectionLanguage()) {
 			BaseTextField titleBaseTextField = new BaseTextField();
-			titleBaseTextField.addValidator(value -> {
-				if (value != null && !IllegalCharactersValidator.isValid((String) value)) {
-					throw new InvalidValueException($("AddEditTaxonomyView.illegalCharactersNotAllowed",
-							titleBaseTextField.getCaption()));
-				}
-			});
 			BaseTextField abbreviationBaseTextField = new BaseTextField();
-			abbreviationBaseTextField.addValidator(value -> {
-				if (value != null && !IllegalCharactersValidator.isValid((String) value)) {
-					throw new InvalidValueException($("AddEditTaxonomyView.illegalCharactersNotAllowed",
-							abbreviationBaseTextField.getCaption()));
-				}
-			});
 
 			int numberOfLanguage = getConstellioFactories().getAppLayerFactory().getCollectionsManager().getCollectionLanguages(getCollection()).size();
 
@@ -139,6 +125,10 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 
 			abbreviationBaseTextField.addStyleName("title");
 			baseTextFieldAbbreviationMap.put(Language.withCode(languageCode), abbreviationBaseTextField);
+
+			titleBaseTextField.addValidator(presenter.newIllegalCharactersValidator(titleBaseTextField.getCaption()));
+			abbreviationBaseTextField
+					.addValidator(presenter.newIllegalCharactersValidator(abbreviationBaseTextField.getCaption()));
 		}
 
 

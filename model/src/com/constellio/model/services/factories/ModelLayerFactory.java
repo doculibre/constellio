@@ -8,6 +8,8 @@ import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -177,4 +179,13 @@ public interface ModelLayerFactory extends LayerFactory {
 	void postInitialization();
 
 	void markForReindexing();
+
+	default ConfigProvider newConfigProvider() {
+		return new ConfigProvider() {
+			@Override
+			public <T> T get(SystemConfiguration config) {
+				return getSystemConfigurationsManager().getValue(config);
+			}
+		};
+	}
 }
