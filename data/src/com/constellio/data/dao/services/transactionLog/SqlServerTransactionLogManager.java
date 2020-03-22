@@ -67,7 +67,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import static com.constellio.data.threads.BackgroundThreadExceptionHandling.STOP;
+import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
 import static org.joda.time.Duration.standardSeconds;
 
 public class SqlServerTransactionLogManager implements SecondTransactionLogManager {
@@ -170,7 +170,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 		backgroundThreadsManager.configure(
 				BackgroundThreadConfiguration.repeatingAction(MERGE_LOGS_ACTION, newRegroupAndMoveInVaultRunnable())
-						.handlingExceptionWith(STOP).executedEvery(configuration.getSecondTransactionLogMergeFrequency()));
+						.handlingExceptionWith(CONTINUE).executedEvery(configuration.getSecondTransactionLogMergeFrequency()));
 
 		//		if (bigVaultServer.countDocuments() == 0) {
 		//			regroupAndMove();
@@ -321,15 +321,18 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 			try {
 
+
 				//get transactions
 				List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
 						sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll(1000));
+
 				converted = transactionsToConvert.size();
 				if (transactionsToConvert.size() == 0) {
 					//end
 					return "" + converted;
 				}
 
+				LOGGER.info("Replay of " + transactionsToConvert.size() + " transactions...");
 				final List<RecordTransactionSqlDTO> recordsToinsert = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), false);
 				final List<RecordTransactionSqlDTO> recordsToUpdate = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), true);
 				final List<String> updateTransactionIds = recordsToUpdate.stream().map(x -> x.getRecordId()).collect(Collectors.toList());
@@ -372,9 +375,8 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll(transactionsToRemove);
 					return true;
 				});
-
+				LOGGER.info("Replay of " + transactionsToConvert.size() + " transactions done!");
 			} catch (Exception ex) {
-
 				//exceptionOccured = true;
 				throw new RuntimeException(ex);
 			}
@@ -384,9 +386,9 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	private boolean isOfficeHours() {
 		LocalDateTime time = TimeProvider.getLocalDateTime();
-		return time.getHourOfDay() > 18 || time.getHourOfDay() < 7
-			   || time.getDayOfWeek() == DateTimeConstants.SATURDAY
-			   || time.getDayOfWeek() == DateTimeConstants.SUNDAY;
+		return time.getHourOfDay() < 18 && time.getHourOfDay() > 7
+			   && time.getDayOfWeek() != DateTimeConstants.SATURDAY
+			   && time.getDayOfWeek() != DateTimeConstants.SUNDAY;
 	}
 
 	private List<String> extractRemoveRecordsFromTransaction(List<TransactionSqlDTO> transactions) {
@@ -673,8 +675,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			public void run() {
 
 				boolean finished = false;
-
-				if (isAutomaticRegroup() && isCurrentNodeLeader()) {
+				while (!finished && isAutomaticRegroup() && isCurrentNodeLeader()) {
 					String regrouped = regroupAndMove();
 					finished = !"1000".equals(regrouped);
 				}
