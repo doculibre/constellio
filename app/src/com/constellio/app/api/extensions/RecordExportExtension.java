@@ -1,7 +1,9 @@
 package com.constellio.app.api.extensions;
 
 import com.constellio.app.api.extensions.params.ConvertStructureToMapParams;
+import com.constellio.app.api.extensions.params.IsRecordExportableParams;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,4 +28,7 @@ public abstract class RecordExportExtension {
 		return Collections.emptySet();
 	}
 
+	public ExtensionBooleanResult isExportable(IsRecordExportableParams params) {
+		return ExtensionBooleanResult.TRUE;
+	}
 }

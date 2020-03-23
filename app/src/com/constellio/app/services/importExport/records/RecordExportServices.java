@@ -146,11 +146,13 @@ public class RecordExportServices {
 		while (recordsToExportIterator.hasNext()) {
 
 			Record record = recordsToExportIterator.next();
-			if (record.getSchemaCode().equals("workflowExecution_default")) {
-				continue;
-			}
 
 			String collection = record.getCollection();
+			AppLayerCollectionExtensions collectionExtensions = appLayerFactory.getExtensions().forCollectionOf(record);
+			MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypeOf(record);
+			if (!collectionExtensions.isSchemaTypeExportable(schemaType, collection)) {
+				continue;
+			}
 			atLestOneRecord = true;
 
 			if (!receivedTypes.contains(record.getTypeCode())) {
