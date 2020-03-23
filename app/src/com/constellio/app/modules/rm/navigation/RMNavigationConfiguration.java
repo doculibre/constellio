@@ -60,6 +60,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.data.trees.LegacyTreeNodesDataProviderAdapter;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
@@ -307,8 +308,23 @@ public class RMNavigationConfiguration implements Serializable {
 					@Override
 					public void onContextMenuOpenFromTreeItem(ContextMenuOpenedOnTreeItemEvent event) {
 						String recordPath = (String) event.getItemId();
-						String recordId = recordPath.contains("|") ? substringAfterLast(recordPath, "|") : recordPath;
-						menu.openFor(recordId);
+
+						if (recordPath.contains("|")) {
+
+							String parts[] = recordPath.split("\\|");
+							String providerId = parts[0];
+							String nodetype = parts[1];
+							String last = parts[parts.length - 1];
+
+							if (LegacyTreeNodesDataProviderAdapter.PROVIDER_ID.equals(providerId)
+								&& Document.SCHEMA_TYPE.equals(nodetype)) {
+								menu.openFor(last);
+							}
+						} else {
+							//TODO Francis, j'ai laissé ce open, il faudrait valider si ce cas est possible
+							menu.openFor(recordPath);
+						}
+
 					}
 				});
 				menu.addContextMenuTableListener(new TableListener() {
