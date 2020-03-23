@@ -57,14 +57,18 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.STOP;
+import static com.constellio.data.utils.LangUtils.executeInParallelUntilSupplierReturnsNull;
+import static com.constellio.data.utils.LangUtils.newBatchSupplier;
 import static org.joda.time.Duration.standardSeconds;
 
 public class SqlServerTransactionLogManager implements SecondTransactionLogManager {
@@ -330,29 +334,67 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			final List<RecordTransactionSqlDTO> victims = new ArrayList<>();
 
 			//save new records
-			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(recordsToinsert);
+			if (!recordsToinsert.isEmpty()) {
+				if (recordsToinsert.size() < 100) {
+					LOGGER.info("Inserting " + recordsToinsert.size() + " records");
+					tryThreeTimes(() -> {
+						sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk((List) recordsToinsert);
+						return true;
+					});
+				} else {
+					LOGGER.info("Inserting " + recordsToinsert.size() + " records in parallel");
+					executeInParallelUntilSupplierReturnsNull(4, newBatchSupplier(recordsToinsert, 1000), (batch) -> {
+						tryThreeTimes(() -> {
+							sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk((List) batch);
 
-				return true;
-			});
+							return true;
+						});
+					});
+				}
+			}
 
 			//save update records
-			tryThreeTimes(() -> {
-				try {
-					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).updateBulk(recordsToUpdate);
-				} catch (SQLException sqlEx) {
-					if (sqlEx instanceof BatchUpdateException) {
-						victims.addAll(recordsToUpdate);
-					}
+			if (!recordsToUpdate.isEmpty()) {
+				if (hasSameRecordTwice(recordsToUpdate) || recordsToUpdate.size() < 100) {
+					LOGGER.info("Updating " + recordsToUpdate.size() + " records");
+					tryThreeTimes(() -> {
+						try {
+							sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).updateBulk(recordsToUpdate);
+						} catch (SQLException sqlEx) {
+							LOGGER.warn("Error while updating records", sqlEx);
+							if (sqlEx instanceof BatchUpdateException) {
+								victims.addAll(recordsToUpdate);
+							}
+						}
+						return true;
+					});
+				} else {
+					LOGGER.info("Updating " + recordsToUpdate.size() + " records in parallel");
+					executeInParallelUntilSupplierReturnsNull(4, newBatchSupplier(recordsToUpdate, 100), (batch) -> {
+						tryThreeTimes(() -> {
+							try {
+								sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).updateBulk(batch);
+							} catch (SQLException sqlEx) {
+								LOGGER.warn("Error while updating records", sqlEx);
+								if (sqlEx instanceof BatchUpdateException) {
+									victims.addAll(batch);
+								}
+							}
+							return true;
+						});
+					});
 				}
-				return true;
-			});
+
+			}
 
 			//remove deleted records
-			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(recordsToDelete);
-				return true;
-			});
+			if (!recordsToDelete.isEmpty()) {
+				LOGGER.info("Deleting " + recordsToDelete.size() + " records in parallel");
+				tryThreeTimes(() -> {
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(recordsToDelete);
+					return true;
+				});
+			}
 
 			//Remove transactions
 			for (RecordTransactionSqlDTO victim : victims) {
@@ -372,6 +414,17 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			throw new RuntimeException(ex);
 		}
 		return "";
+	}
+
+	private boolean hasSameRecordTwice(List<RecordTransactionSqlDTO> recordsToUpdate) {
+		Set<String> ids = new HashSet<>();
+
+		for (RecordTransactionSqlDTO dto : recordsToUpdate) {
+			if (!ids.add(dto.getId())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private List<String> extractRemoveRecordsFromTransaction(List<TransactionSqlDTO> transactions) {
