@@ -28,7 +28,7 @@ public class ExternalLink extends RecordWrapper {
 		return this;
 	}
 
-	public ExternalLinkType getType() {
+	public String getType() {
 		return get(TYPE);
 	}
 
