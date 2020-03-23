@@ -193,6 +193,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 												 || pdfTronPresenter.doesCurrentPageHaveLock());
 					setMessageIfAnOtherUserOrAnOtherPageIsEditing(false);
 					com.vaadin.ui.JavaScript.eval("setEnableAnnotations(true)");
+					disableAnnotationSignatureTool();
 					editAnnotationBtn.setImmediate(true);
 					editAnnotationBtn.removeStyleName("disabled-link");
 					this.setCaption($("pdfTronViewer.hideAnnotation"));
@@ -380,6 +381,11 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 	private void setWebViewerReadEditable() {
 		com.vaadin.ui.JavaScript.eval("setWebViewerReadOnly(false)");
+		disableAnnotationSignatureTool();
+	}
+
+	private void disableAnnotationSignatureTool() {
+		com.vaadin.ui.JavaScript.eval("disableAnnotationSignatureTool()");
 	}
 
 	private void setMessageIfAnOtherUserOrAnOtherPageIsEditing(boolean showNotification) {

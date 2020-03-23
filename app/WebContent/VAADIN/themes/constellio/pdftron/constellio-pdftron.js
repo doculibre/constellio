@@ -15,15 +15,34 @@ const FitWidth = "FitWidth";
     }
 });
 
+(window.disableAnnotationSignatureTool = function() {
+    if(isWebViewerInstanceSet()) {
+        window.webViewerInstance.disableTools(['AnnotationCreateSignature']);
+    }
+});
+
 (window.setEnableAnnotations = function(enableAnnotations) {
     if(isWebViewerInstanceSet()) {
-        if(enableAnnotations) {
-               window.webViewerInstance.enableAnnotations();
-               annotationEnabled=true;
-        } else {
-            window.webViewerInstance.disableAnnotations();
-            annotationEnabled=false;
+        const {docViewer} = window.webViewerInstance;
+        const annotManager = docViewer.getAnnotationManager();
+        var annots = annotManager.getAnnotationsList();
+
+        var i;
+        for (i = 0; i < annots.length; i++) {
+            var annot = annots[i];
+            if (annot.Subject.localeCompare("Signature") == 0) {
+                annotManager.showAnnotation(annot);
+            } else {
+                if (enableAnnotations) {
+                    annotManager.showAnnotation(annot);
+                } else {
+                    annotManager.hideAnnotation(annot);
+                }
+
+            }
         }
+
+        annotationEnabled = enableAnnotations;
     }
 });
 
