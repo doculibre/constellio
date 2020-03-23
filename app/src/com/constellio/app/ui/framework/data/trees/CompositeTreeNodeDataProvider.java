@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -15,6 +17,8 @@ import java.util.List;
  *
  */
 public class CompositeTreeNodeDataProvider implements TreeNodesProvider<CompositeTreeNodeDataProviderFastContinuationInfos> {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(CompositeTreeNodeDataProvider.class);
 
 	private List<TreeNodesProvider> childTreeNodesProviders;
 
@@ -62,8 +66,17 @@ public class CompositeTreeNodeDataProvider implements TreeNodesProvider<Composit
 			if (childTreeNodesProviders.get(continueAtProvider).areNodesPossibleIn(optionalParent)) {
 				response = childTreeNodesProviders.get(continueAtProvider).getNodes(
 						optionalParent, continueAtProviderIndex, missingNodes, currentFastContinuationInfos);
-				if (DEBUG ) {
-
+				if (DEBUG) {
+					StringBuilder sb = new StringBuilder();
+					sb.append(childTreeNodesProviders.get(continueAtProvider).getClass().getName());
+					sb.append("(").append(optionalParent == null ? "null" : optionalParent.getId());
+					sb.append(",").append(continueAtProviderIndex);
+					sb.append(",").append(missingNodes);
+					sb.append(",").append(currentFastContinuationInfos).append(")");
+					for (TreeNode treeNode : response.getNodes()) {
+						sb.append("\n\t" + treeNode.getId() + "\t" + treeNode.getCaption());
+					}
+					LOGGER.info(sb.toString());
 				}
 				nodes.addAll(response.getNodes());
 			}
