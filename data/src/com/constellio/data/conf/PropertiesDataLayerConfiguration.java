@@ -108,8 +108,8 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setInt("secondTransactionLog.backupCount", value);
 		}
 
-		public void setSecondTransactionLogMergeFrequency(Duration duration) {
-			setDuration("secondTransactionLog.mergeFrequency", duration);
+		public void setSecondTransactionLogMergeFrequency(int duration) {
+			setInt("secondTransactionLog.mergeFrequency", duration);
 		}
 
 		public void setSecondaryIdGeneratorType(IdGeneratorType idGeneratorType) {
@@ -312,8 +312,8 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
-	public Duration getSecondTransactionLogMergeFrequency() {
-		return getDuration("secondTransactionLog.mergeFrequency", Duration.standardMinutes(15));
+	public int getSecondTransactionLogMergeFrequency() {
+		return getInt("secondTransactionLog.mergeFrequency", 15);
 	}
 
 	@Override
@@ -382,7 +382,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public boolean isReplaySQLSecondTransactionLogDuringOfficeHours() {
-		return getBoolean("secondTransactionLog.sql.replayTransactionsDuringOfficeHours", false);
+		return getBoolean("secondTransactionLog.sql.replayTransactionsDuringOfficeHours", true);
 	}
 
 	@Override

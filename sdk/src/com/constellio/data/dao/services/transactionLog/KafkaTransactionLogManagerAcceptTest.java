@@ -62,7 +62,7 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 			public void alter(InMemoryDataLayerConfiguration configuration) {
 				configuration.setSecondTransactionLogEnabled(true);
 				configuration.setSecondTransactionLogMode(SecondTransactionLogType.KAFKA);
-				configuration.setSecondTransactionLogMergeFrequency(Duration.standardSeconds(5));
+				configuration.setSecondTransactionLogMergeFrequency(5);
 				configuration.setSecondTransactionLogBackupCount(3);
 				configuration.setReplayTransactionStartVersion(0L);
 				configuration.setKafkaServers("localhost:9092");

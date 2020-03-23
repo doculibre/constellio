@@ -94,7 +94,7 @@ public class SqlServerTransactionLogManagerAcceptTest extends ConstellioTest {
 			public void alter(InMemoryDataLayerConfiguration configuration) {
 				configuration.setSecondTransactionLogEnabled(true);
 				configuration.setSecondTransactionLogMode(SecondTransactionLogType.SQL_SERVER);
-				configuration.setSecondTransactionLogMergeFrequency(Duration.standardSeconds(5));
+				configuration.setSecondTransactionLogMergeFrequency(5);
 				configuration.setSecondTransactionLogBackupCount(3);
 				configuration.setReplayTransactionStartVersion(0L);
 				configuration.setMicrosoftSqlServerUrl("jdbc:sqlserver://localhost:1433");

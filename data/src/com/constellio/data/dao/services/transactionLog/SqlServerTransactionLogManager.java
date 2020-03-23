@@ -40,6 +40,7 @@ import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.DateTimeConstants;
+import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -170,7 +171,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 		backgroundThreadsManager.configure(
 				BackgroundThreadConfiguration.repeatingAction(MERGE_LOGS_ACTION, newRegroupAndMoveInVaultRunnable())
-						.handlingExceptionWith(CONTINUE).executedEvery(configuration.getSecondTransactionLogMergeFrequency()));
+						.handlingExceptionWith(CONTINUE).executedEvery(Duration.standardSeconds(configuration.getSecondTransactionLogMergeFrequency())));
 
 		//		if (bigVaultServer.countDocuments() == 0) {
 		//			regroupAndMove();
