@@ -332,12 +332,11 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 					return "" + converted;
 				}
 
+			final List<RecordTransactionSqlDTO> recordsToinsert = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), false);
+			final List<RecordTransactionSqlDTO> recordsToUpdate = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), true);
+			final List<String> recordsToDelete = extractRemoveRecordsFromTransaction(transactionsToConvert);
+			final List<RecordTransactionSqlDTO> victims = new ArrayList<>();
 				LOGGER.info("Replay of " + transactionsToConvert.size() + " transactions...");
-				final List<RecordTransactionSqlDTO> recordsToinsert = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), false);
-				final List<RecordTransactionSqlDTO> recordsToUpdate = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), true);
-				//final List<String> updateTransactionIds = recordsToUpdate.stream().map(x -> x.getRecordId()).collect(Collectors.toList());
-				final List<String> recordsToDelete = extractRemoveRecordsFromTransaction(transactionsToConvert);
-				final List<RecordTransactionSqlDTO> victims = new ArrayList<>();
 
 				//save new records
 				tryThreeTimes(() -> {
@@ -455,16 +454,14 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		String solrVersion = this.recordDao.getBigVaultServer().getVersion();
 
 		//update documents
-		Map<String, RecordTransactionSqlDTO> recordsUpdate = bigVaultServerTransaction.getUpdatedDocuments().stream()
-				.filter(x -> !((x.getFields().size() == 1) && (x.getFields().containsKey("markedForReindexing_s")))).map(x -> {
-					try {
-						RecordTransactionSqlDTO record = new RecordTransactionSqlDTO(x.getId(), logVersion, solrVersion, toJson(x));
-						return record;
-					} catch (JsonProcessingException e) {
-						e.printStackTrace();
-					}
-					return new RecordTransactionSqlDTO();
-				}).collect(Collectors.toMap(e -> e.getRecordId(), e -> e));
+		Map<String, RecordTransactionSqlDTO> recordsUpdate = bigVaultServerTransaction.getUpdatedDocuments().stream().map(x -> {
+			try {
+				return new RecordTransactionSqlDTO(x.getId(), logVersion, solrVersion, toJson(x));
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+			return new RecordTransactionSqlDTO();
+		}).collect(Collectors.toMap(e -> e.getRecordId(), e -> e));
 
 		return recordsUpdate.values().stream().collect(Collectors.toList());
 	}

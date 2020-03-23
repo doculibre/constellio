@@ -27,6 +27,7 @@ import java.util.Spliterators;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -1002,4 +1003,50 @@ public class LangUtils {
 		return integers;
 	}
 
+	public static <T> Supplier<List<T>> newBatchSupplier(Iterable<T> iterable, int batchSize) {
+		return newBatchSupplier(iterable.iterator(), batchSize);
+	}
+
+	public static <T> Supplier<List<T>> newBatchSupplier(Iterator<T> iterator, int batchSize) {
+		Iterator<List<T>> groupedIterator = new BatchBuilderIterator(iterator, batchSize);
+		return () -> {
+
+			synchronized (groupedIterator) {
+				if (groupedIterator.hasNext()) {
+					return groupedIterator.next();
+				} else {
+					return null;
+				}
+			}
+
+		};
+	}
+
+	public static <T> void executeInParallelUntilSupplierReturnsNull(int threads, Supplier<T> supplier,
+																	 Consumer<T> consumer) {
+		AtomicReference<RuntimeException> firstException = new AtomicReference<>();
+		ThreadList threadList = ThreadList.running(threads, () -> {
+
+			T batch;
+			while ((batch = supplier.get()) != null && firstException.get() == null) {
+
+				try {
+					consumer.accept(batch);
+				} catch (RuntimeException e) {
+					firstException.set(e);
+				}
+
+			}
+
+		});
+		try {
+			threadList.startAll().joinAll();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		if (firstException.get() != null) {
+			throw firstException.get();
+
+		}
+	}
 }

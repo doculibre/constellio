@@ -6,11 +6,17 @@ import com.constellio.data.utils.LangUtils.ModifiedEntry;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LangUtilsTest extends ConstellioTest {
@@ -76,5 +82,35 @@ public class LangUtilsTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void testSupplierAndParallelExecutor() {
 
+		List<Integer> values = IntStream.range(0, 10_000_000).boxed().collect(toList());
+
+		Supplier<List<Integer>> supplier = LangUtils.newBatchSupplier(values, 2);
+		ThreadLocal<Set<Integer>> localReceivers = new ThreadLocal<>();
+		List<Set<Integer>> allReceivers = new ArrayList<>();
+
+		LangUtils.executeInParallelUntilSupplierReturnsNull(6, supplier, (items) -> {
+
+			Set<Integer> localReceiver = localReceivers.get();
+			if (localReceiver == null) {
+				localReceiver = new HashSet<>();
+				localReceivers.set(localReceiver);
+				allReceivers.add(localReceiver);
+			}
+
+			localReceiver.addAll(items);
+		});
+
+		Set<Integer> setReceiver = new HashSet<>();
+		List<Integer> listReceiver = new ArrayList<>();
+		for (Set<Integer> aReceiver : allReceivers) {
+			setReceiver.addAll(aReceiver);
+			listReceiver.addAll(aReceiver);
+		}
+		assertThat(setReceiver).hasSize(10_000_000);
+		assertThat(listReceiver).hasSize(10_000_000);
+
+	}
 }
