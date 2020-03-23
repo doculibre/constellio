@@ -27,18 +27,11 @@ const FitWidth = "FitWidth";
         const annotManager = docViewer.getAnnotationManager();
         var annots = annotManager.getAnnotationsList();
 
-        var i;
-        for (i = 0; i < annots.length; i++) {
-            var annot = annots[i];
-            if (annot.Subject.localeCompare("Signature") == 0) {
-                annotManager.showAnnotation(annot);
+        for (var i = 0; i < annots.length; i++) {
+            if (enableAnnotations || annots[i].Subject.localeCompare("Signature") == 0) {
+                annotManager.showAnnotation(annots[i]);
             } else {
-                if (enableAnnotations) {
-                    annotManager.showAnnotation(annot);
-                } else {
-                    annotManager.hideAnnotation(annot);
-                }
-
+                annotManager.hideAnnotation(annots[i]);
             }
         }
 
