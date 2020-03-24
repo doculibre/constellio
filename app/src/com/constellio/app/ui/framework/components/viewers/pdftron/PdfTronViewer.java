@@ -38,6 +38,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.json.simple.JSONObject;
@@ -451,15 +452,19 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		StringBuilder toExecute = new StringBuilder();
 
-		toExecute.append("canvasId='" + canvasId + "';");
+		if (pdfTronLicense == null) {
+			pdfTronLicense = "";
+		}
+
+		toExecute.append("canvasId='" + StringEscapeUtils.escapeJavaScript(canvasId) + "';");
 		toExecute.append("ignoreAnnotationChange='" + true + "';");
-		toExecute.append("documentContent='" + documentContentUrl + "';");
-		toExecute.append("documentAnnotationRK='" + documentAnnotationResourceKey + "';");
-		toExecute.append("documentAnnotationUrl='" + documentAnnotationUrl + "';");
-		toExecute.append("documentAnnotationCallBack='" + saveButtonCallbackURL + "';");
-		toExecute.append("name='" + userFirstNameAndLastName + " (" + currentUser.getUsername() + ")" + "';");
+		toExecute.append("documentContent='" + StringEscapeUtils.escapeJavaScript(documentContentUrl) + "';");
+		toExecute.append("documentAnnotationRK='" + StringEscapeUtils.escapeJavaScript(documentAnnotationResourceKey) + "';");
+		toExecute.append("documentAnnotationUrl='" + StringEscapeUtils.escapeJavaScript(documentAnnotationUrl) + "';");
+		toExecute.append("documentAnnotationCallBack='" + StringEscapeUtils.escapeJavaScript(saveButtonCallbackURL) + "';");
+		toExecute.append("name='" + StringEscapeUtils.escapeJavaScript(userFirstNameAndLastName + " (" + currentUser.getUsername() + ")") + "';");
 		toExecute.append("admin=" + userHasRightToEditOtherUserAnnotation + ";");
-		toExecute.append("license=" + pdfTronLicense + ";");
+		toExecute.append("license='" + StringEscapeUtils.escapeJavaScript(pdfTronLicense) + "';");
 		toExecute.append("isReadOnly=" + isViewerInReadOnly + ";");
 		toExecute.append("language='" + getPdfTronLanguageCode() + "';");
 
