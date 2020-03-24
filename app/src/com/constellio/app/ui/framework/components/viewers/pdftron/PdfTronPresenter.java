@@ -4,6 +4,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -14,6 +15,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.pdftron.AnnotationLockManager;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
@@ -23,8 +25,10 @@ import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLExcep
 import com.constellio.model.services.pdftron.PdfTronXMLService;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -141,6 +145,43 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		User user = schemasRecordsServices.getUser(userId);
 
 		return user.getFirstName() + " " + user.getLastName();
+	}
+
+	public String getSignatureImageData() {
+		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+		UserCredential userCredentials = userServices.getUser(currentUser.getUsername());
+		return getImageData(userCredentials.getElectronicSignature());
+	}
+
+	public String getInitialsImageData() {
+		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+		UserCredential userCredentials = userServices.getUser(currentUser.getUsername());
+		return getImageData(userCredentials.getElectronicInitials());
+	}
+
+	private String getImageData(Content content) {
+		if (content != null) {
+			ContentVersion version = content.getCurrentVersion();
+			InputStream inputStream =
+					contentManager.getContentInputStream(version.getHash(), "getImageData");
+			try {
+				byte[] data = new byte[inputStream.available()];
+				inputStream.read(data);
+				String base64str = DatatypeConverter.printBase64Binary(data);
+
+				StringBuilder sb = new StringBuilder();
+				sb.append("data:");
+				sb.append(version.getMimetype());
+				sb.append(";base64,");
+				sb.append(base64str);
+				return sb.toString();
+			} catch (IOException e) {
+				MessageUtils.toMessage(e);
+			} finally {
+				ioServices.closeQuietly(inputStream);
+			}
+		}
+		return "";
 	}
 
 	public boolean hasWriteAccessToDocument() {
