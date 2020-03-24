@@ -94,6 +94,23 @@ public class DefaultLazyTreeDataProvider extends AbstractDataProvider implements
 		}
 	}
 
+	String nodeUniqueId(String parentPath, TreeNode node) {
+		//We could use a map to have shorter names
+		if (parentPath == null) {
+			return node.getProviderType() + ":" + node.getNodeType() + ":" + node.getId();
+		} else {
+			return parentPath + "|" + node.getProviderType() + ":" + node.getNodeType() + ":" + node.getId();
+		}
+	}
+
+	//	public static TreeNode toCurrentNode(String nodePath) {
+	//		String parent = null;
+	//		if (nodePath.contains("|")) {
+	//			parent
+	//		}
+	//		TreeNode treeNode =
+	//	}
+
 	@Override
 	public ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
 
