@@ -1252,6 +1252,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(stateFolder);
 
 			for (CollectionPreparator preparator : preparators) {
+				for (Class<? extends InstallableModule> pluginClass : preparator.preexistingPlugins) {
+					givenInstalledModule(pluginClass);
+				}
 				if (preparator.rmTestRecords) {
 					preparator.rmTestRecordsObject.alreadySettedUp(getAppLayerFactory());
 				}
