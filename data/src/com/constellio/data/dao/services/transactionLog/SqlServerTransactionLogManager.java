@@ -325,10 +325,10 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 			try {
 
-
+				LOGGER.info("Retrieving next batch...");
 				//get transactions
 				List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
-						sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll(5000, true));
+						sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll(1000, true));
 
 				converted = transactionsToConvert.size();
 				if (transactionsToConvert.size() == 0) {
