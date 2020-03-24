@@ -25,7 +25,7 @@ public interface SqlRecordDao<Object> {
 
 	List<Object> getAll() throws SQLException;
 
-	List<Object> getAll(int top) throws SQLException;
+	List<Object> getAll(int top, boolean orderByTimestamp) throws SQLException;
 
 	void delete(String id) throws SQLException;
 

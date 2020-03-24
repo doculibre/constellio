@@ -101,7 +101,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 			public void alter(InMemoryDataLayerConfiguration configuration) {
 				configuration.setSecondTransactionLogEnabled(true);
 				configuration.setSecondTransactionLogBaseFolder(logBaseFolder);
-				configuration.setSecondTransactionLogMergeFrequency(5);
+				configuration.setSecondTransactionLogMergeFrequency(Duration.standardSeconds(5));
 				configuration.setSecondTransactionLogBackupCount(3);
 			}
 		});

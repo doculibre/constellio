@@ -155,15 +155,31 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	}
 
 	@Override
-	public List<RecordTransactionSqlDTO> getAll(int top) throws SQLException {
+	public List<RecordTransactionSqlDTO> getAll(int top, boolean sortByTimestamp) throws SQLException {
 
 		if (top < 1) {
 			return getAll();
 		}
 		ResultSetHandler<List<RecordTransactionSqlDTO>> handler = new BeanListHandler<>(RecordTransactionSqlDTO.class);
 
-		List<RecordTransactionSqlDTO> dto = queryRunner.query(connector.getConnection(),
-				"SELECT TOP(" + top + ") * FROM records", handler);
+		String fecthQuery;
+		if (sortByTimestamp) {
+			fecthQuery = "SELECT TOP(" + top + ") * FROM " + fullTableName + " ORDER BY timestamp";
+		} else {
+			fecthQuery = "SELECT TOP(" + top + ") * FROM " + fullTableName;
+		}
+
+
+		List<RecordTransactionSqlDTO> dto;
+
+		if (sortByTimestamp) {
+			dto = queryRunner.query(connector.getConnection(),
+					"SELECT TOP(" + top + ") * FROM records ORDER BY timestamp", handler);
+		} else {
+			dto = queryRunner.query(connector.getConnection(),
+					"SELECT TOP(" + top + ") * FROM records", handler);
+		}
+
 
 		if (dto == null) {
 			return new ArrayList<>();

@@ -159,14 +159,19 @@ public class MicrosoftSqlTransactionDao implements SqlRecordDao<TransactionSqlDT
 	}
 
 	@Override
-	public List<TransactionSqlDTO> getAll(int top) throws SQLException {
+	public List<TransactionSqlDTO> getAll(int top, boolean sortByTimestamp) throws SQLException {
 
 		if (top < 1) {
 			return getAll();
 		}
 		ResultSetHandler<List<TransactionSqlDTO>> handler = new BeanListHandler<>(TransactionSqlDTO.class);
 
-		String fecthQuery = "SELECT TOP(" + top + ") * FROM " + fullTableName;
+		String fecthQuery;
+		if (sortByTimestamp) {
+			fecthQuery = "SELECT TOP(" + top + ") * FROM " + fullTableName + " ORDER BY timestamp";
+		} else {
+			fecthQuery = "SELECT TOP(" + top + ") * FROM " + fullTableName;
+		}
 
 		List<TransactionSqlDTO> dto = queryRunner.query(connector.getConnection(),
 				fecthQuery, handler);

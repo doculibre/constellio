@@ -34,7 +34,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -136,7 +135,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 		backgroundThreadsManager.configure(
 				BackgroundThreadConfiguration.repeatingAction(MERGE_LOGS_ACTION, newRegroupAndMoveInVaultRunnable())
-						.handlingExceptionWith(STOP).executedEvery(Duration.standardSeconds(configuration.getSecondTransactionLogMergeFrequency())));
+						.handlingExceptionWith(STOP).executedEvery(configuration.getSecondTransactionLogMergeFrequency()));
 
 		if (bigVaultServer.countDocuments() == 0) {
 			regroupAndMove();
