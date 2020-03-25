@@ -1,13 +1,11 @@
 package com.constellio.app.ui;
 
-import com.constellio.app.conf.SharepointGraphAPIConfigs;
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.sharepointGraphAPI.SharepointGraphAPIPlugin;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -16,7 +14,6 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataNetwork;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -52,12 +49,6 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
-		givenInstalledModule(SharepointGraphAPIPlugin.class);
-		givenConfig(SharepointGraphAPIConfigs.OFFICE_365_APP_ID, "893e7caa-d36f-4eb0-bf55-1acca254a50e");
-		givenConfig(SharepointGraphAPIConfigs.OFFICE_365_CLIENT_SECRET, "B/ktCk8tB6doP71+lJatHlxOobj*tu[o");
-		givenConfig(ConstellioEIMConfigs.CONSTELLIO_URL, "http://localhost:7070/constellio/");
-
 		givenBackgroundThreadsEnabled();
 
 		givenTransactionLogIsEnabled();
