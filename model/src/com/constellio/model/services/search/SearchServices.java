@@ -1397,18 +1397,7 @@ public class SearchServices {
 		}
 
 		if (query.isHighlighting() && ctx.getTypes() != null) {
-			HashSet<String> highligthedMetadatas = new HashSet<>();
-			for (Metadata metadata : ctx.getTypes().getSearchableMetadatas()) {
-				for (String language : ctx.getLanguages()) {
-					highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
-				}
-			}
-
-			params.add(HighlightParams.HIGHLIGHT, "true");
-			params.add(HighlightParams.FIELDS, StringUtils.join(highligthedMetadatas, " "));
-			params.add(HighlightParams.SNIPPETS, "1");
-			params.add(HighlightParams.FRAGSIZE, "140");
-			params.add(HighlightParams.MERGE_CONTIGUOUS_FRAGMENTS, "true");
+			addParamsForHighlight(params, ctx.getTypes().getSearchableMetadatas(), ctx.getLanguages());
 		}
 
 		if (query.isSpellcheck()) {
@@ -1534,6 +1523,22 @@ public class SearchServices {
 				params.add(DisMaxParams.BQ, boost.getKey() + "^" + boost.getValue());
 			}
 		}
+	}
+
+	public static void addParamsForHighlight(ModifiableSolrParams params, List<Metadata> searchableMetadatas,
+											 List<String> languages) {
+		HashSet<String> highligthedMetadatas = new HashSet<>();
+		for (Metadata metadata : searchableMetadatas) {
+			for (String language : languages) {
+				highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
+			}
+		}
+
+		params.add(HighlightParams.HIGHLIGHT, "true");
+		params.add(HighlightParams.FIELDS, StringUtils.join(highligthedMetadatas, " "));
+		params.add(HighlightParams.SNIPPETS, "1");
+		params.add(HighlightParams.FRAGSIZE, "140");
+		params.add(HighlightParams.MERGE_CONTIGUOUS_FRAGMENTS, "true");
 	}
 
 	public static boolean isFreeTextRequiringEDismax(String freeTextQuery) {

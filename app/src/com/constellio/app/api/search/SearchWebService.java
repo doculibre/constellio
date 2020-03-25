@@ -48,6 +48,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.constellio.model.services.search.SearchServices.addParamsForFreeTextSearch;
+import static com.constellio.model.services.search.SearchServices.addParamsForHighlight;
 import static java.util.Arrays.asList;
 
 public class SearchWebService extends AbstractSearchServlet {
@@ -278,6 +279,8 @@ public class SearchWebService extends AbstractSearchServlet {
 					mainDataLanguage, new ArrayList<>(fieldBoosts), new ArrayList<>(queryBoosts), searchedSchemaTypes, systemConfigs);
 
 			solrParams.add(CommonParams.DF, Schemas.TITLE.getDataStoreCode());
+
+			addParamsForHighlight(solrParams, MetadataSchemaTypes.getSearchableMetadatas(searchedSchemaTypes), new ArrayList<>(languages));
 		}
 
 		String oldQParam = solrParams.get(CommonParams.Q);
