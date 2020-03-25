@@ -1,5 +1,6 @@
 package com.constellio.model.services.factories;
 
+import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
@@ -40,7 +41,6 @@ import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.pdftron.AnnotationLockManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
-import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.model.services.records.StringRecordIdLegacyMemoryMapping;
 import com.constellio.model.services.records.StringRecordIdLegacyPersistedMapping;
 import com.constellio.model.services.records.cache.CachedRecordServices;
@@ -544,7 +544,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public RecordPopulateServices newRecordPopulateServices() {
-		return new RecordPopulateServices(schemasManager, contentsManager, systemConfigurationsManager, modelLayerExtensions);
+		return new RecordPopulateServices(schemasManager, contentsManager, systemConfigurationsManager, modelLayerExtensions, searchServices);
 	}
 
 	public Factory<ModelLayerFactory> getModelLayerFactoryFactory() {
