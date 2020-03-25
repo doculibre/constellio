@@ -44,7 +44,6 @@ import com.constellio.app.ui.framework.components.table.columns.TaskVOTableColum
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
-import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
@@ -470,14 +469,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 						@Override
 						public List<Object> getAllSelectedItemIds() {
-							List<Object> allSelectedItemIds;
-							RecordVOContainer recordVOContainer = getRecordVOContainer();
-							if (isAllItemsSelected()) {
-								allSelectedItemIds = new ArrayList<>(recordVOContainer.getItemIds());
-							} else {
-								allSelectedItemIds = new ArrayList<>(selectedItemIds);
-							}
-							return allSelectedItemIds;
+							return new ArrayList<>(selectedItemIds);
 						}
 
 						@Override
@@ -499,6 +491,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						@Override
 						public void selectionChanged(SelectionChangeEvent event) {
 							if (event.isAllItemsSelected()) {
+								selectedItemIds.addAll(getRecordVOContainer().getItemIds());
 								presenter.selectAllClicked();
 							} else if (event.isAllItemsDeselected()) {
 								selectedItemIds.clear();

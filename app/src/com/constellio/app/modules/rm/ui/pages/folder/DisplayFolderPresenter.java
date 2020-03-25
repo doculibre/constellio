@@ -172,6 +172,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	protected RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 
 	private Set<String> selectedRecordIds = new HashSet<>();
+	private Set<String> allRecordIds;
 
 	Boolean allItemsSelected = false;
 
@@ -1173,17 +1174,44 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return allItemsSelected || selectedRecordIds.contains(recordVO.getId());
 	}
 
-	public boolean isFacetApplyButtonEnabled(){
+	public boolean isFacetApplyButtonEnabled() {
 		return getCurrentUser().isApplyFacetsEnabled();
 	}
 
 	public void recordSelectionChanged(RecordVO recordVO, Boolean selected) {
 		String recordId = recordVO.getId();
-		if (selected) {
+		if (allItemsSelected && !selected) {
+			allItemsSelected = false;
+
+			for (String currentRecordId : getOrFetchAllRecordIds()) {
+				if (!selectedRecordIds.contains(currentRecordId)) {
+					selectedRecordIds.add(currentRecordId);
+					allRecordIds.add(currentRecordId);
+				}
+			}
+		} else if (selected) {
+			if (allItemsDeselected) {
+				allItemsDeselected = false;
+			}
 			selectedRecordIds.add(recordId);
+			if (selectedRecordIds.size() == getOrFetchAllRecordIds().size()) {
+				allItemsSelected = true;
+			}
 		} else {
 			selectedRecordIds.remove(recordId);
+			if (!allItemsSelected && selectedRecordIds.isEmpty()) {
+				allItemsDeselected = true;
+			}
 		}
+	}
+
+	private Set<String> getOrFetchAllRecordIds() {
+		if (allRecordIds == null) {
+			List<String> allRecordIdsList = searchServices().searchRecordIds(getFolderContentQuery());
+			allRecordIds = new HashSet<>(allRecordIdsList);
+		}
+
+		return allRecordIds;
 	}
 
 	boolean isAllItemsSelected() {
@@ -1197,7 +1225,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	void selectAllClicked() {
 		allItemsSelected = true;
 		allItemsDeselected = false;
-		selectedRecordIds.clear();
 	}
 
 	void deselectAllClicked() {
