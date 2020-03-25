@@ -28,11 +28,16 @@ public class ExternalLink extends RecordWrapper {
 		return this;
 	}
 
-	public ExternalLinkType getType() {
+	public String getType() {
 		return get(TYPE);
 	}
 
 	public ExternalLink setType(ExternalLinkType type) {
+		set(TYPE, type);
+		return this;
+	}
+
+	public ExternalLink setType(String type) {
 		set(TYPE, type);
 		return this;
 	}

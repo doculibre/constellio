@@ -454,4 +454,10 @@ public class RMViews extends CoreViews {
 	public void listBorrowings() {
 		navigator.navigateTo(RMNavigationConfiguration.LIST_BORROWINGS);
 	}
+
+	// EXTERNAL LINKS
+
+	public void listExternalLinks(String folderId) {
+		navigator.navigateTo(RMNavigationConfiguration.LIST_EXTERNAL_LINKS + "/" + folderId);
+	}
 }
