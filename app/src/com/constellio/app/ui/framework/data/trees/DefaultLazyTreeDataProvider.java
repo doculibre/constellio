@@ -66,9 +66,10 @@ public class DefaultLazyTreeDataProvider extends AbstractDataProvider implements
 				nodesProvider.getNodes(null, start, maxSize, (Serializable) previousFastContinueInfos);
 
 		List<String> recordIds = new ArrayList<>();
-		for (TreeNode node : response.getNodes()) {
-			this.nodesCache.put(node.getId(), node);
-			recordIds.add(node.getId());
+		for (TreeNode treeNode : response.getNodes()) {
+			String uniqueId = nodeUniqueId(null, treeNode);
+			this.nodesCache.put(uniqueId, treeNode);
+			recordIds.add(uniqueId);
 		}
 		int numFound = start + response.getNodes().size();
 		if (response.isMoreNodes()) {
@@ -94,43 +95,42 @@ public class DefaultLazyTreeDataProvider extends AbstractDataProvider implements
 		}
 	}
 
-	String nodeUniqueId(String parentPath, TreeNode node) {
+	/**
+	 * Create a unique id, storing the node's local id, provider type and node type and it's parent unique id
+	 */
+	String nodeUniqueId(String parentUniqueId, TreeNode node) {
 		//We could use a map to have shorter names
-		if (parentPath == null) {
+		if (parentUniqueId == null) {
 			return node.getProviderType() + ":" + node.getNodeType() + ":" + node.getId();
 		} else {
-			return parentPath + "|" + node.getProviderType() + ":" + node.getNodeType() + ":" + node.getId();
+			return parentUniqueId + "|" + node.getProviderType() + ":" + node.getNodeType() + ":" + node.getId();
 		}
 	}
 
-	//	public static TreeNode toCurrentNode(String nodePath) {
-	//		String parent = null;
-	//		if (nodePath.contains("|")) {
-	//			parent
-	//		}
-	//		TreeNode treeNode =
-	//	}
+	public static TreeNode toTreeNode(String nodePath) {
+		String[] nodeParts;
+		if (nodePath.contains("|")) {
+			String nodePart = StringUtils.substringAfterLast(nodePath, "|");
+			nodeParts = nodePart.split(":");
+		} else {
+			nodeParts = nodePath.split(":");
+		}
+
+		return TreeNode.namelessNode(nodeParts[2], nodeParts[0], nodeParts[1]);
+	}
 
 	@Override
 	public ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
 
 		Serializable previousFastContinueInfos = fastContinuationInfosMap.get(parent + "@" + start);
 
-		String localId = parent;
-		if (parent.contains("|")) {
-			localId = StringUtils.substringAfterLast(localId, "|");
-		}
-
-		TreeNode parentTreeNode = getNode(parent);
-		if (parentTreeNode == null) {
-			throw new IllegalStateException("Todo Francis : navigate using parent to retrieve node : " + parent);
-		}
-
+		//This parent tree node has no label, description or icon
+		TreeNode parentTreeNode = toTreeNode(parent);
 		TreeNodesProviderResponse<Serializable> response = this.nodesProvider.getNodes(parentTreeNode, start, maxSize, previousFastContinueInfos);
 
 		List<String> recordIds = new ArrayList<>();
 		for (TreeNode treeNode : response.getNodes()) {
-			String uniqueId = parent + "|" + treeNode.getId();
+			String uniqueId = nodeUniqueId(parent, treeNode);
 			nodesCache.put(uniqueId, treeNode);
 			recordIds.add(uniqueId);
 		}

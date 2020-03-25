@@ -69,38 +69,38 @@ public class DefaultLazyTreeDataProviderTest extends ConstellioTest {
 				new TreeNodesProviderResponse<>(false, asList(node7, node8), "youShallNotContinue!"));
 
 		assertThat(dataProvider.getRootObjects(0, 3)).isEqualTo(
-				new ObjectsResponse<String>(asList("id1", "id2", "id3"), 4L));
+				new ObjectsResponse<String>(asList("providerId:type1:id1", "providerId:type2:id2", "providerId:type3:id3"), 4L));
 		verify(nodesProvider).getNodes(null, 0, 3, null);
 
 		assertThat(dataProvider.getRootObjects(3, 3)).isEqualTo(
-				new ObjectsResponse<String>(asList("id4", "id5", "id6"), 7L));
+				new ObjectsResponse<String>(asList("providerId:type4:id4", "providerId:type5:id5", "providerId:type6:id6"), 7L));
 		verify(nodesProvider).getNodes(null, 3, 3, "continueAtNode4!");
 
 		assertThat(dataProvider.getRootObjects(6, 3)).isEqualTo(
-				new ObjectsResponse<String>(asList("id7", "id8"), 8L));
+				new ObjectsResponse<String>(asList("providerId:type7:id7", "providerId:type8:id8"), 8L));
 		verify(nodesProvider).getNodes(null, 6, 3, "continueAtNode7!");
 		verifyNoMoreInteractions(nodesProvider);
 
-		assertThat(dataProvider.getCaption("id1")).isEqualTo("caption1");
-		assertThat(dataProvider.getDescription("id1")).isEqualTo("description1");
-		assertThat(dataProvider.getEstimatedChildrenNodesCount("id1")).isEqualTo(-1);
-		assertThat(dataProvider.getParent("id1")).isNull();
-		assertThat(dataProvider.getIcon("id1", true)).isEqualTo(expandedIcon1);
-		assertThat(dataProvider.getIcon("id1", false)).isEqualTo(collapsedIcon1);
+		assertThat(dataProvider.getCaption("providerId:type1:id1")).isEqualTo("caption1");
+		assertThat(dataProvider.getDescription("providerId:type1:id1")).isEqualTo("description1");
+		assertThat(dataProvider.getEstimatedChildrenNodesCount("providerId:type1:id1")).isEqualTo(-1);
+		assertThat(dataProvider.getParent("providerId:type1:id1")).isNull();
+		assertThat(dataProvider.getIcon("providerId:type1:id1", true)).isEqualTo(expandedIcon1);
+		assertThat(dataProvider.getIcon("providerId:type1:id1", false)).isEqualTo(collapsedIcon1);
 
-		assertThat(dataProvider.getCaption("id2")).isEqualTo("caption2");
-		assertThat(dataProvider.getDescription("id2")).isEqualTo("description2");
-		assertThat(dataProvider.getEstimatedChildrenNodesCount("id2")).isEqualTo(-1);
-		assertThat(dataProvider.getParent("id2")).isNull();
-		assertThat(dataProvider.getIcon("id2", true)).isEqualTo(expandedIcon2);
-		assertThat(dataProvider.getIcon("id2", false)).isEqualTo(collapsedIcon2);
+		assertThat(dataProvider.getCaption("providerId:type2:id2")).isEqualTo("caption2");
+		assertThat(dataProvider.getDescription("providerId:type2:id2")).isEqualTo("description2");
+		assertThat(dataProvider.getEstimatedChildrenNodesCount("providerId:type2:id2")).isEqualTo(-1);
+		assertThat(dataProvider.getParent("providerId:type2:id2")).isNull();
+		assertThat(dataProvider.getIcon("providerId:type2:id2", true)).isEqualTo(expandedIcon2);
+		assertThat(dataProvider.getIcon("providerId:type2:id2", false)).isEqualTo(collapsedIcon2);
 
-		assertThat(dataProvider.getCaption("id7")).isEqualTo("caption7");
-		assertThat(dataProvider.getDescription("id7")).isEqualTo("description7");
-		assertThat(dataProvider.getEstimatedChildrenNodesCount("id7")).isEqualTo(-1);
-		assertThat(dataProvider.getParent("id7")).isNull();
-		assertThat(dataProvider.getIcon("id7", true)).isEqualTo(expandedIcon7);
-		assertThat(dataProvider.getIcon("id7", false)).isEqualTo(collapsedIcon7);
+		assertThat(dataProvider.getCaption("providerId:type7:id7")).isEqualTo("caption7");
+		assertThat(dataProvider.getDescription("providerId:type7:id7")).isEqualTo("description7");
+		assertThat(dataProvider.getEstimatedChildrenNodesCount("providerId:type7:id7")).isEqualTo(-1);
+		assertThat(dataProvider.getParent("providerId:type7:id7")).isNull();
+		assertThat(dataProvider.getIcon("providerId:type7:id7", true)).isEqualTo(expandedIcon7);
+		assertThat(dataProvider.getIcon("providerId:type7:id7", false)).isEqualTo(collapsedIcon7);
 
 
 	}
@@ -111,50 +111,52 @@ public class DefaultLazyTreeDataProviderTest extends ConstellioTest {
 		TreeNode zeParent = mock(TreeNode.class);
 		when(zeParent.getId()).thenReturn("zeParent");
 
-		doReturn(zeParent).when(dataProvider).getNode("zeParent");
+		doReturn(zeParent).when(dataProvider).getNode("providerId:type:zeParent");
 
-		when(nodesProvider.getNodes(eq(zeParent), eq(0), eq(3), any())).thenReturn(
+		TreeNode namelessParent = TreeNode.namelessNode("zeParent", "providerId", "type");
+
+		when(nodesProvider.getNodes(eq(namelessParent), eq(0), eq(3), any())).thenReturn(
 				new TreeNodesProviderResponse<>(true, asList(node1, node2, node3), "continueAtNode4!"));
 
-		when(nodesProvider.getNodes(eq(zeParent), eq(3), eq(3), any())).thenReturn(
+		when(nodesProvider.getNodes(eq(namelessParent), eq(3), eq(3), any())).thenReturn(
 				new TreeNodesProviderResponse<>(true, asList(node4, node5, node6), "continueAtNode7!"));
 
-		when(nodesProvider.getNodes(eq(zeParent), eq(6), eq(3), any())).thenReturn(
+		when(nodesProvider.getNodes(eq(namelessParent), eq(6), eq(3), any())).thenReturn(
 				new TreeNodesProviderResponse<>(false, asList(node7, node8), "youShallNotContinue!"));
 
-		assertThat(dataProvider.getChildren("zeParent", 0, 3)).isEqualTo(
-				new ObjectsResponse<String>(asList("zeParent|id1", "zeParent|id2", "zeParent|id3"), 4L));
-		verify(nodesProvider).getNodes(zeParent, 0, 3, null);
+		assertThat(dataProvider.getChildren("providerId:type:zeParent", 0, 3)).isEqualTo(
+				new ObjectsResponse<String>(asList("providerId:type:zeParent|providerId:type1:id1", "providerId:type:zeParent|providerId:type2:id2", "providerId:type:zeParent|providerId:type3:id3"), 4L));
+		verify(nodesProvider).getNodes(namelessParent, 0, 3, null);
 
-		assertThat(dataProvider.getChildren("zeParent", 3, 3)).isEqualTo(
-				new ObjectsResponse<String>(asList("zeParent|id4", "zeParent|id5", "zeParent|id6"), 7L));
-		verify(nodesProvider).getNodes(zeParent, 3, 3, "continueAtNode4!");
+		assertThat(dataProvider.getChildren("providerId:type:zeParent", 3, 3)).isEqualTo(
+				new ObjectsResponse<String>(asList("providerId:type:zeParent|providerId:type4:id4", "providerId:type:zeParent|providerId:type5:id5", "providerId:type:zeParent|providerId:type6:id6"), 7L));
+		verify(nodesProvider).getNodes(namelessParent, 3, 3, "continueAtNode4!");
 
-		assertThat(dataProvider.getChildren("zeParent", 6, 3)).isEqualTo(
-				new ObjectsResponse<String>(asList("zeParent|id7", "zeParent|id8"), 8L));
-		verify(nodesProvider).getNodes(zeParent, 6, 3, "continueAtNode7!");
+		assertThat(dataProvider.getChildren("providerId:type:zeParent", 6, 3)).isEqualTo(
+				new ObjectsResponse<String>(asList("providerId:type:zeParent|providerId:type7:id7", "providerId:type:zeParent|providerId:type8:id8"), 8L));
+		verify(nodesProvider).getNodes(namelessParent, 6, 3, "continueAtNode7!");
 		verifyNoMoreInteractions(nodesProvider);
 
-		assertThat(dataProvider.getCaption("zeParent|id1")).isEqualTo("caption1");
-		assertThat(dataProvider.getDescription("zeParent|id1")).isEqualTo("description1");
-		assertThat(dataProvider.getEstimatedChildrenNodesCount("zeParent|id1")).isEqualTo(-1);
-		assertThat(dataProvider.getParent("zeParent|id1")).isEqualTo("zeParent");
-		assertThat(dataProvider.getIcon("zeParent|id1", true)).isEqualTo(expandedIcon1);
-		assertThat(dataProvider.getIcon("zeParent|id1", false)).isEqualTo(collapsedIcon1);
+		assertThat(dataProvider.getCaption("providerId:type:zeParent|providerId:type1:id1")).isEqualTo("caption1");
+		assertThat(dataProvider.getDescription("providerId:type:zeParent|providerId:type1:id1")).isEqualTo("description1");
+		assertThat(dataProvider.getEstimatedChildrenNodesCount("providerId:type:zeParent|providerId:type1:id1")).isEqualTo(-1);
+		assertThat(dataProvider.getParent("providerId:type:zeParent|providerId:type1:id1")).isEqualTo("providerId:type:zeParent");
+		assertThat(dataProvider.getIcon("providerId:type:zeParent|providerId:type1:id1", true)).isEqualTo(expandedIcon1);
+		assertThat(dataProvider.getIcon("providerId:type:zeParent|providerId:type1:id1", false)).isEqualTo(collapsedIcon1);
 
-		assertThat(dataProvider.getCaption("zeParent|id2")).isEqualTo("caption2");
-		assertThat(dataProvider.getDescription("zeParent|id2")).isEqualTo("description2");
-		assertThat(dataProvider.getEstimatedChildrenNodesCount("zeParent|id2")).isEqualTo(-1);
-		assertThat(dataProvider.getParent("zeParent|id2")).isEqualTo("zeParent");
-		assertThat(dataProvider.getIcon("zeParent|id2", true)).isEqualTo(expandedIcon2);
-		assertThat(dataProvider.getIcon("zeParent|id2", false)).isEqualTo(collapsedIcon2);
+		assertThat(dataProvider.getCaption("providerId:type:zeParent|providerId:type2:id2")).isEqualTo("caption2");
+		assertThat(dataProvider.getDescription("providerId:type:zeParent|providerId:type2:id2")).isEqualTo("description2");
+		assertThat(dataProvider.getEstimatedChildrenNodesCount("providerId:type:zeParent|providerId:type2:id2")).isEqualTo(-1);
+		assertThat(dataProvider.getParent("providerId:type:zeParent|providerId:type2:id2")).isEqualTo("providerId:type:zeParent");
+		assertThat(dataProvider.getIcon("providerId:type:zeParent|providerId:type2:id2", true)).isEqualTo(expandedIcon2);
+		assertThat(dataProvider.getIcon("providerId:type:zeParent|providerId:type2:id2", false)).isEqualTo(collapsedIcon2);
 
-		assertThat(dataProvider.getCaption("zeParent|id7")).isEqualTo("caption7");
-		assertThat(dataProvider.getDescription("zeParent|id7")).isEqualTo("description7");
-		assertThat(dataProvider.getEstimatedChildrenNodesCount("zeParent|id7")).isEqualTo(-1);
-		assertThat(dataProvider.getParent("zeParent|id7")).isEqualTo("zeParent");
-		assertThat(dataProvider.getIcon("zeParent|id7", true)).isEqualTo(expandedIcon7);
-		assertThat(dataProvider.getIcon("zeParent|id7", false)).isEqualTo(collapsedIcon7);
+		assertThat(dataProvider.getCaption("providerId:type:zeParent|providerId:type7:id7")).isEqualTo("caption7");
+		assertThat(dataProvider.getDescription("providerId:type:zeParent|providerId:type7:id7")).isEqualTo("description7");
+		assertThat(dataProvider.getEstimatedChildrenNodesCount("providerId:type:zeParent|providerId:type7:id7")).isEqualTo(-1);
+		assertThat(dataProvider.getParent("providerId:type:zeParent|providerId:type7:id7")).isEqualTo("providerId:type:zeParent");
+		assertThat(dataProvider.getIcon("providerId:type:zeParent|providerId:type7:id7", true)).isEqualTo(expandedIcon7);
+		assertThat(dataProvider.getIcon("providerId:type:zeParent|providerId:type7:id7", false)).isEqualTo(collapsedIcon7);
 
 
 	}

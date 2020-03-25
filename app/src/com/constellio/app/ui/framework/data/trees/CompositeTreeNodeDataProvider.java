@@ -63,23 +63,30 @@ public class CompositeTreeNodeDataProvider implements TreeNodesProvider<Composit
 		while (continueAtProvider < childTreeNodesProviders.size() && (nodes.size() < maxSize || !hasMoreNodes)) {
 			int missingNodes = maxSize - nodes.size();
 			TreeNodesProviderResponse<Serializable> response = TreeNodesProviderResponse.EMPTY();
-			if (childTreeNodesProviders.get(continueAtProvider).areNodesPossibleIn(optionalParent)) {
-				response = childTreeNodesProviders.get(continueAtProvider).getNodes(
-						optionalParent, continueAtProviderIndex, missingNodes, currentFastContinuationInfos);
-				if (DEBUG) {
-					StringBuilder sb = new StringBuilder();
-					sb.append(childTreeNodesProviders.get(continueAtProvider).getClass().getName());
-					sb.append("(").append(optionalParent == null ? "null" : optionalParent.getId());
-					sb.append(",").append(continueAtProviderIndex);
-					sb.append(",").append(missingNodes);
-					sb.append(",").append(currentFastContinuationInfos).append(")");
-					for (TreeNode treeNode : response.getNodes()) {
-						sb.append("\n\t" + treeNode.getId() + "\t" + treeNode.getCaption());
+
+			TreeNodesProvider childProvider = childTreeNodesProviders.get(continueAtProvider);
+			try {
+				if (childProvider.areNodesPossibleIn(optionalParent)) {
+					response = childProvider.getNodes(optionalParent, continueAtProviderIndex, missingNodes,
+							currentFastContinuationInfos);
+					if (DEBUG) {
+						StringBuilder sb = new StringBuilder();
+						sb.append(childProvider.getClass().getName());
+						sb.append("(").append(optionalParent == null ? "null" : optionalParent.getId());
+						sb.append(",").append(continueAtProviderIndex);
+						sb.append(",").append(missingNodes);
+						sb.append(",").append(currentFastContinuationInfos).append(")");
+						for (TreeNode treeNode : response.getNodes()) {
+							sb.append("\n\t" + treeNode.getId() + "\t" + treeNode.getCaption());
+						}
+						LOGGER.info(sb.toString());
 					}
-					LOGGER.info(sb.toString());
+					nodes.addAll(response.getNodes());
 				}
-				nodes.addAll(response.getNodes());
+			} catch (Throwable t) {
+				LOGGER.warn("Child provider '" + childProvider.getClass() + "' has thrown an exception, continuing with next provider", t);
 			}
+
 
 			if (response.isMoreNodes()) {
 				hasMoreNodes = true;

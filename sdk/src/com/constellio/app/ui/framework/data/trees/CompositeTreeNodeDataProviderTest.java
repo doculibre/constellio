@@ -14,8 +14,12 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class CompositeTreeNodeDataProviderTest extends ConstellioTest {
@@ -24,14 +28,16 @@ public class CompositeTreeNodeDataProviderTest extends ConstellioTest {
 	@Mock TreeNode provider2Node1, provider2Node2, provider2Node3, provider2Node4, provider2Node5;
 	@Mock TreeNode provider3Node1, provider3Node2, provider3Node3, provider3Node4, provider3Node5, provider3Node6, provider3Node7;
 
-	@Mock TreeNodesProvider provider1, provider2, provider3;
+	@Mock TreeNode provider4MouhahahahaNode;
+
+	@Mock TreeNodesProvider provider1, provider2, exceptionProvider, provider3, doomProvider;
 
 
 	@Test
 	public void whenGetNodesThenLazyConsumeEachChildNodeProviders() {
 
 		CompositeTreeNodeDataProvider dataProvider = new CompositeTreeNodeDataProvider(
-				asList(provider1, provider2, provider3));
+				asList(provider1, provider2, exceptionProvider, provider3, doomProvider));
 
 		when(provider1.getNodes(eq(null), eq(0), eq(3), any())).thenReturn(
 				new TreeNodesProviderResponse(true, asList(provider1Node1, provider1Node2, provider1Node3), "node4IsZeNext!"));
@@ -57,6 +63,20 @@ public class CompositeTreeNodeDataProviderTest extends ConstellioTest {
 		when(provider3.getNodes(eq(null), eq(4), eq(3), any())).thenReturn(
 				new TreeNodesProviderResponse(false, asList(provider3Node5, provider3Node6, provider3Node7), "itsTheEnd"));
 
+
+		when(provider1.areNodesPossibleIn(null)).thenReturn(true);
+		when(provider2.areNodesPossibleIn(null)).thenReturn(true);
+		when(provider3.areNodesPossibleIn(null)).thenReturn(true);
+
+		//This provider tells you that he return no root nodes, but if you still call it, the mouhahahaha node is returned
+		when(doomProvider.areNodesPossibleIn(null)).thenReturn(false);
+		when(doomProvider.getNodes(eq(null), anyInt(), anyInt(), any())).thenReturn(
+				new TreeNodesProviderResponse(false, asList(provider4MouhahahahaNode), "yourDoomHasArrived"));
+
+		//This provider tells you that he return root nodes, but throw an exception
+		when(exceptionProvider.areNodesPossibleIn(null)).thenReturn(true);
+		when(exceptionProvider.getNodes(eq(null), anyInt(), anyInt(), any())).thenThrow(
+				new RuntimeException("Your doom has arrived, Mouhahahaha!"));
 
 		List<TreeNodesProviderResponse> responses = new ArrayList<>();
 		CompositeTreeNodeDataProviderFastContinuationInfos infos = null;
@@ -87,17 +107,17 @@ public class CompositeTreeNodeDataProviderTest extends ConstellioTest {
 		assertThat(responses.get(3)).isEqualToComparingFieldByField(new TreeNodesProviderResponse<>(
 				true,
 				asList(provider2Node4, provider2Node5, provider3Node1),
-				new CompositeTreeNodeDataProviderFastContinuationInfos(2, 1, "ContinueWithTheSecondNode")));
+				new CompositeTreeNodeDataProviderFastContinuationInfos(3, 1, "ContinueWithTheSecondNode")));
 
 		assertThat(responses.get(4)).isEqualToComparingFieldByField(new TreeNodesProviderResponse<>(
 				true,
 				asList(provider3Node2, provider3Node3, provider3Node4),
-				new CompositeTreeNodeDataProviderFastContinuationInfos(2, 4, "stillALotOfNodes")));
+				new CompositeTreeNodeDataProviderFastContinuationInfos(3, 4, "stillALotOfNodes")));
 
 		assertThat(responses.get(5)).isEqualToComparingFieldByField(new TreeNodesProviderResponse<>(
 				false,
 				asList(provider3Node5, provider3Node6, provider3Node7),
-				new CompositeTreeNodeDataProviderFastContinuationInfos(3, 0, null)));
+				new CompositeTreeNodeDataProviderFastContinuationInfos(5, 0, null)));
 
 
 		InOrder inOrder = inOrder(provider1, provider2, provider3);
@@ -111,5 +131,7 @@ public class CompositeTreeNodeDataProviderTest extends ConstellioTest {
 		inOrder.verify(provider3).getNodes(null, 4, 3, "stillALotOfNodes");
 
 		inOrder.verifyNoMoreInteractions();
+
+		verify(doomProvider, never()).getNodes(eq(null), anyInt(), anyInt(), anyObject());
 	}
 }

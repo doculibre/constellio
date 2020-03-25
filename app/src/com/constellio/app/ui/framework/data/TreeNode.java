@@ -82,5 +82,7 @@ public class TreeNode implements Serializable {
 		return id != null ? id.hashCode() : 0;
 	}
 
-
+	public static TreeNode namelessNode(String localId, String providerType, String nodeType) {
+		return new TreeNode(localId, providerType, nodeType, null, null, null, null, false);
+	}
 }
