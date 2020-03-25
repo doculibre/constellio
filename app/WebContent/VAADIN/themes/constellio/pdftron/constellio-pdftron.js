@@ -136,7 +136,7 @@ const FitWidth = "FitWidth";
     };
 
     ConstellioSignatureAnnotation.prototype = new Annotations.StampAnnotation();
-    ConstellioSignatureAnnotation.prototype.elementName = 'constellioSignature';
+    ConstellioSignatureAnnotation.prototype.elementName = 'stamp';
 
 
     // Create custom tool
@@ -150,7 +150,7 @@ const FitWidth = "FitWidth";
     // Register custom tool
     const constellioSignatureToolName = 'AnnotationCreateConstellioSignature';
 
-    annotManager.registerAnnotationType(ConstellioSignatureAnnotation.prototype.elementName, ConstellioSignatureAnnotation);
+    //annotManager.registerAnnotationType(ConstellioSignatureAnnotation.prototype.elementName, ConstellioSignatureAnnotation);
 
     const constellioSignatureTool = new ConstellioSignatureCreateTool(docViewer);
     instance.registerTool({
@@ -188,7 +188,7 @@ const FitWidth = "FitWidth";
     };
 
     ConstellioInitialsAnnotation.prototype = new Annotations.StampAnnotation();
-    ConstellioInitialsAnnotation.prototype.elementName = 'constellioInitials';
+    ConstellioInitialsAnnotation.prototype.elementName = 'stamp';
 
 
     // Create custom tool
@@ -202,7 +202,7 @@ const FitWidth = "FitWidth";
     // Register custom tool
     const constellioInitialsToolName = 'AnnotationCreateConstellioInitials';
 
-    annotManager.registerAnnotationType(ConstellioInitialsAnnotation.prototype.elementName, ConstellioInitialsAnnotation);
+    //annotManager.registerAnnotationType(ConstellioInitialsAnnotation.prototype.elementName, ConstellioInitialsAnnotation);
 
     const constellioInitialsTool = new ConstellioInitialsCreateTool(docViewer);
     instance.registerTool({
