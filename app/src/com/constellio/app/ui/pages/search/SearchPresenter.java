@@ -29,13 +29,13 @@ import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
+import com.constellio.app.ui.pages.MetadataSorterUtil;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.util.CapsuleUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
-import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
@@ -94,8 +94,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -833,7 +831,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				}
 			}
 		}
-		sort(result);
+		MetadataSorterUtil.sort(result, view.getSessionContext());
 		return result;
 	}
 
@@ -1107,17 +1105,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			searchConfigurationsManager.setExcluded(collection, record);
 		}
 		view.refreshSearchResultsAndFacets();
-	}
-
-	protected void sort(List<MetadataVO> metadataVOs) {
-		Collections.sort(metadataVOs, new Comparator<MetadataVO>() {
-			@Override
-			public int compare(MetadataVO o1, MetadataVO o2) {
-				String firstLabel = AccentApostropheCleaner.removeAccents(o1.getLabel(view.getSessionContext()).toLowerCase());
-				String secondLabel = AccentApostropheCleaner.removeAccents(o2.getLabel(view.getSessionContext()).toLowerCase());
-				return firstLabel.compareTo(secondLabel);
-			}
-		});
 	}
 
 	public void fireSomeRecordsSelected() {

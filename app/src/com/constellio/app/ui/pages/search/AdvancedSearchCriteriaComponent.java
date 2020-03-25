@@ -38,6 +38,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.joda.time.LocalDateTime;
 
@@ -122,6 +123,19 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		addItem(new Criterion(schemaType));
 		setPageLength(size());
 		return this;
+	}
+
+	public List<Criterion> getSearchCriteriaWithSchemaType() {
+		List<Criterion> searchCriteria = getSearchCriteria();
+
+		if (searchCriteria.isEmpty() && container.size() > 0) {
+			Criterion criterion = container.getItemIds().iterator().next();
+			if (StringUtils.isNotBlank(criterion.getSchemaType()) || StringUtils.isNotBlank(criterion.getSchemaCode())) {
+				return Arrays.asList(criterion);
+			}
+		}
+
+		return searchCriteria;
 	}
 
 	public List<Criterion> getSearchCriteria() {

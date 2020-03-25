@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType;
 import com.constellio.app.modules.rm.ui.breadcrumb.ContainerByAdministrativeUnitBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerPresenterParam;
 import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.modules.rm.wrappers.Cart;
@@ -377,11 +378,13 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		}
 
 		if(favGroupIdKey != null) {
-			return new FolderDocumentContainerBreadcrumbTrail(null, null,presenter.getContainer().getId(), favGroupIdKey, this);
+
+			return new FolderDocumentContainerBreadcrumbTrail(new FolderDocumentContainerPresenterParam(null, null, presenter.getContainer().getId(), favGroupIdKey, this));
 		} else if (searchId == null && regularSearchId != null && advancedSearch) {
-			return new FolderDocumentContainerBreadcrumbTrail(null, null, presenter.getContainer().getId(), this);
+
+			return new FolderDocumentContainerBreadcrumbTrail(new FolderDocumentContainerPresenterParam(null, null, presenter.getContainer().getId(), null, this));
 		} else {
-			return new FolderDocumentContainerBreadcrumbTrail(null, null, presenter.getContainer().getId(), this) {
+			return new FolderDocumentContainerBreadcrumbTrail(new FolderDocumentContainerPresenterParam(null, null, presenter.getContainer().getId(), null, this)) {
 				@Override
 				public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
 					return Arrays.asList(BreadcrumbTrailUtil.getArchiveManagementIntermediateBreadcrumb());

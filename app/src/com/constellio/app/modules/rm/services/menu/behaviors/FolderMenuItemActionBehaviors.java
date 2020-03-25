@@ -26,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -47,14 +48,13 @@ import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.NavigationParams;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -80,7 +80,9 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.framework.components.ErrorDisplayUtil.showErrorMessage;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -545,6 +547,25 @@ public class FolderMenuItemActionBehaviors {
 		} catch (Exception e) {
 			showErrorMessage(e.getMessage());
 		}
+	}
+
+	public void navigateToRecordTriggerManager(Folder folder, MenuItemActionBehaviorParams params) {
+
+		Navigation navigation = new Navigation();
+		BaseView currentView = params.getView();
+		Map<String, String> navigationParams = new HashMap<>();
+
+		if (currentView instanceof NavigationParams) {
+			navigationParams = ((NavigationParams) currentView).getNavigationParams();
+		} else {
+			navigationParams = params.getFormParams();
+		}
+
+		if (navigationParams == null || navigationParams.size() == 0) {
+			navigationParams.put("id", folder.getId());
+		}
+
+		navigation.to(RMViews.class).recordTriggerManager(navigationParams);
 	}
 
 	public void generateReport(Folder folderSummary, MenuItemActionBehaviorParams params) {
