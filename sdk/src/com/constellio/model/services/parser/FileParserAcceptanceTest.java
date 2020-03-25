@@ -316,7 +316,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 
 		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
-		assertThat(parsedContent.getProperties()).containsOnly(
+		assertThat(parsedContent.getProperties()).contains(
 				entry("Category", "category2"),
 				entry("Comments", "comments2"),
 				entry("Subject", "subject2"),
@@ -329,7 +329,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 
 		assertThat(parsedContent.getMimeType())
 				.isEqualTo("application/msword");
-		assertThat(parsedContent.getStyles()).containsOnly(
+		assertThat(parsedContent.getStyles()).contains(
 				entry("titreofficiel", asList("The ring contract")),
 				entry("nomdelacompagnie", asList("Frodon", "Bilbon")),
 				entry("adressedelacompagnie", asList("Hobbiton, Shire")),

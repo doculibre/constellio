@@ -388,9 +388,8 @@ public class RecordPopulateServices {
 					if (contentPopulatedValue != null) {
 						if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
 							return populateReferenceUsingProperties(contentPopulatedValue);
-						} else {
-							return convert(contentPopulatedValue);
 						}
+						return convert(contentPopulatedValue);
 					}
 				} catch (ContentManagerRuntimeException_NoSuchContent e) {
 					if (LOG_CONTENT_MISSING) {
@@ -404,7 +403,7 @@ public class RecordPopulateServices {
 
 		private Record populateReferenceUsingProperties(List<String> values) {
 			List<Record> allowedReferences = searchServices.search(new LogicalSearchQuery()
-					.setCondition(from(metadata.getReferencedSchemaType()).returnAll()));
+					.setCondition(from(metadata.getReferencedSchemaType()).where(Schemas.CODE).isIn(values)));
 			for (String code : values) {
 				for (Record record : allowedReferences) {
 					if (record.getRecordDTO().getFields().get("code_s").equals(code)) {
