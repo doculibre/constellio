@@ -29,6 +29,7 @@ import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_DISPLAY;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_EDIT;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_GENERATE_REPORT;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_LIST_EXTERNAL_LINKS;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_MOVE;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_PRINT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_REMOVE_FROM_SELECTION;
@@ -202,7 +203,12 @@ public class FolderMenuItemServices {
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).navigateToRecordTriggerManager(folder, params)));
 		}
 
-
+		if (!filteredActionTypes.contains(FOLDER_LIST_EXTERNAL_LINKS.name())) {
+			menuItemActions.add(buildMenuItemAction(FOLDER_LIST_EXTERNAL_LINKS.name(),
+					isMenuItemActionPossible(FOLDER_LIST_EXTERNAL_LINKS.name(), folder, user, params),
+					$("DisplayFolderView.externalLink"), FontAwesome.CLOUD, -1, 2000,
+					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).listExternalLinks(folder, params)));
+		}
 
 		return menuItemActions;
 	}
@@ -257,6 +263,8 @@ public class FolderMenuItemServices {
 						params.getView().getSessionContext().getSelectedRecordIds().contains(record.getId()));
 			case FOLDER_TRIGGER_MANAGEMENT:
 				return folderRecordActionsServices.isEditRecordTriggerPossible(record, user);
+			case FOLDER_LIST_EXTERNAL_LINKS:
+				return folderRecordActionsServices.isListExternalLinksActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -296,7 +304,8 @@ public class FolderMenuItemServices {
 		FOLDER_GENERATE_REPORT,
 		FOLDER_ADD_TO_SELECTION,
 		FOLDER_REMOVE_FROM_SELECTION,
-		FOLDER_TRIGGER_MANAGEMENT;
+		FOLDER_TRIGGER_MANAGEMENT,
+		FOLDER_LIST_EXTERNAL_LINKS
 	}
 
 }

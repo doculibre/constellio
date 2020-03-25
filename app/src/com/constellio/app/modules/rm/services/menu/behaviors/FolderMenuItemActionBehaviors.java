@@ -675,4 +675,8 @@ public class FolderMenuItemActionBehaviors {
 			return folder;
 		}
 	}
+
+	public void listExternalLinks(Folder folder, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(RMViews.class).listExternalLinks(folder.getId());
+	}
 }

@@ -33,6 +33,7 @@ import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.email.AddEmailAndEmailAttachmentsToFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.email.AddEmailAttachmentsToFolderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.externallink.ListExternalLinksViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
@@ -162,6 +163,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String LIST_BORROWINGS = "listBorrowings";
 	public static final String RECORD_TRIGGER_MANAGER = "triggerRecordManager";
 	public static final String ADD_EDIT_TRIGGER_TO_RECORD = "addEditTriggerToRecord";
+	public static final String LIST_EXTERNAL_LINKS = "listExternalLinks";
 
 
 	public static void configureNavigation(NavigationConfig config) {
@@ -211,7 +213,7 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(LIST_BORROWINGS, ListBorrowingsViewImpl.class);
 		service.register(RECORD_TRIGGER_MANAGER, RecordTriggerManagerViewImpl.class);
 		service.register(ADD_EDIT_TRIGGER_TO_RECORD, AddEditTriggerViewImpl.class);
-
+		service.register(LIST_EXTERNAL_LINKS, ListExternalLinksViewImpl.class);
 	}
 
 	private static void configureHeaderActionMenu(NavigationConfig config) {
