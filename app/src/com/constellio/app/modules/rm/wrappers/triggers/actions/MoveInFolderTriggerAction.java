@@ -11,6 +11,7 @@ public class MoveInFolderTriggerAction extends TriggerAction {
 
 	public static final String FOLDER_TITLE = "folderTitle";
 	public static final String FOLDER_TYPE = "folderType";
+	public static final String DATE = "date";
 
 	public MoveInFolderTriggerAction(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA);

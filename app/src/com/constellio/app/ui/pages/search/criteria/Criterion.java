@@ -189,6 +189,10 @@ public class Criterion implements Serializable, ModifiableStructure {
 	}
 
 	public String getSchemaCode() {
+		if (metadataCode == null) {
+			return null;
+		}
+
 		String[] splittedCode = metadataCode.split("_");
 		return splittedCode[0] + "_" + splittedCode[1];
 	}

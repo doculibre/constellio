@@ -455,6 +455,14 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.LIST_BORROWINGS);
 	}
 
+	public void recordTriggerManager(Map<String, String> params) {
+		navigator.navigateTo(addParams(RMNavigationConfiguration.RECORD_TRIGGER_MANAGER, params));
+	}
+
+	public void addEditTriggerToRecord(Map<String, String> params) {
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_EDIT_TRIGGER_TO_RECORD, params));
+	}
+
 	// EXTERNAL LINKS
 
 	public void listExternalLinks(String folderId) {

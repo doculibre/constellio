@@ -8,6 +8,7 @@ import com.constellio.model.services.parser.FileParserException.FileParserExcept
 import com.constellio.model.services.parser.FileParserException.FileParserException_FileSizeExceedLimitForParsing;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -315,7 +316,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 
 		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
-		assertThat(parsedContent.getProperties()).containsOnly(
+		assertThat(parsedContent.getProperties()).contains(
 				entry("Category", "category2"),
 				entry("Comments", "comments2"),
 				entry("Subject", "subject2"),
@@ -328,7 +329,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 
 		assertThat(parsedContent.getMimeType())
 				.isEqualTo("application/msword");
-		assertThat(parsedContent.getStyles()).containsOnly(
+		assertThat(parsedContent.getStyles()).contains(
 				entry("titreofficiel", asList("The ring contract")),
 				entry("nomdelacompagnie", asList("Frodon", "Bilbon")),
 				entry("adressedelacompagnie", asList("Hobbiton, Shire")),
@@ -346,7 +347,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 
 		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
-		assertThat(parsedContent.getProperties()).containsOnly(
+		assertThat(parsedContent.getProperties()).contains(
 				entry("Category", "category2"),
 				entry("Comments", "comments2"),
 				entry("Subject", "subject2"),
@@ -359,7 +360,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 
 		assertThat(parsedContent.getMimeType())
 				.isEqualTo("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-		assertThat(parsedContent.getStyles()).containsOnly(
+		assertThat(parsedContent.getStyles()).contains(
 				entry("titreofficiel", asList("The ring contract")),
 				entry("nomdelacompagnie", asList("Frodon", "Bilbon")),
 				entry("adressedelacompagnie", asList("Hobbiton, Shire")),
@@ -368,6 +369,26 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		);
 
 	}
+
+
+	@Test
+	public void givenWord2007DocumentWithCustomPropertiesThenCustomPropertiesExtracted()
+			throws Exception {
+		inputStreamFactory = getTestResourceInputStreamFactory("DocumentWithCustomProperties.docx");
+		long length = getLengthOf("DocumentWithCustomProperties.docx");
+		LocalDate DATE_PROPERTY_VALUE = new LocalDate(2038, 01, 19);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
+
+		assertThat(parsedContent.getProperties()).contains(
+				entry("customTextProperty", "test custom property"),
+				entry("customNumberProperty", 13),
+				entry("customDateProperty", DATE_PROPERTY_VALUE),
+				entry("customBooleanProperty", true),
+				entry("customLinkProperty", "Frodon.")
+		);
+	}
+
+
 
 	@Test
 	public void whenParsingLargeFileNotExceedingFileSizeLimitThenParsed()

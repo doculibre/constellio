@@ -11,6 +11,7 @@ import java.util.List;
 public class Trigger extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "trigger";
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
+	public static final String DESCRIPTION = "description";
 
 	public Trigger(Record record,
 				   MetadataSchemaTypes types) {
@@ -26,20 +27,23 @@ public class Trigger extends RecordWrapper {
 	//Actions (ref multivaleur TriggerAction)
 	public static final String ACTIONS = "actions";
 
+	public static final String TARGET = "target";
+
 	public String getType() {
 		return get(TYPE);
 	}
+
 
 	public Trigger setType(String type) {
 		set(TYPE, type);
 		return this;
 	}
 
-	public Criterion getCriteria() {
-		return get(CRITERIA);
+	public List<Criterion> getCriteria() {
+		return getList(CRITERIA);
 	}
 
-	public Criterion setCriteria(String criteria) {
+	public Trigger setCriteria(List<Criterion> criteria) {
 		return setCriteria(criteria);
 	}
 
@@ -49,6 +53,15 @@ public class Trigger extends RecordWrapper {
 
 	public Trigger setActions(List<String> actions) {
 		set(ACTIONS, actions);
+		return this;
+	}
+
+	public List<String> getTarget() {
+		return getList(TARGET);
+	}
+
+	public Trigger setTarget(List<String> trigger) {
+		set(TARGET, trigger);
 		return this;
 	}
 }

@@ -45,6 +45,8 @@ import com.constellio.app.modules.rm.ui.pages.retentionRule.AddEditRetentionRule
 import com.constellio.app.modules.rm.ui.pages.retentionRule.DisplayRetentionRuleViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.ListRetentionRulesViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.SearchRetentionRulesViewImpl;
+import com.constellio.app.modules.rm.ui.pages.trigger.AddEditTriggerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.trigger.RecordTriggerManagerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.AgentViewGroup;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
@@ -161,6 +163,8 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String LIST_USER_DOCUMENTS = "listUserDocuments";
 	public static final String LIST_USER_DOCUMENTS_ICON = "images/icons/config/briefcase.png";
 	public static final String LIST_BORROWINGS = "listBorrowings";
+	public static final String RECORD_TRIGGER_MANAGER = "triggerRecordManager";
+	public static final String ADD_EDIT_TRIGGER_TO_RECORD = "addEditTriggerToRecord";
 	public static final String LIST_EXTERNAL_LINKS = "listExternalLinks";
 
 
@@ -209,6 +213,9 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(RETENTION_RULES_SEARCH, SearchRetentionRulesViewImpl.class);
 		service.register(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class);
 		service.register(LIST_BORROWINGS, ListBorrowingsViewImpl.class);
+		service.register(RECORD_TRIGGER_MANAGER, RecordTriggerManagerViewImpl.class);
+		service.register(ADD_EDIT_TRIGGER_TO_RECORD, AddEditTriggerViewImpl.class);
+
 		service.register(LIST_EXTERNAL_LINKS, ListExternalLinksViewImpl.class);
 	}
 

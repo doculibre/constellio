@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerPresenterParam;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
@@ -49,6 +50,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
@@ -236,6 +238,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			id = this.params.get("id");
 		} else {
 			id = params;
+			this.params = new HashMap<>();
+			this.params.put("id", id);
 		}
 
 		view.getSessionContext().addVisited(id);
@@ -481,11 +485,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public BaseBreadcrumbTrail getBreadCrumbTrail() {
+		return getBreadCrumbTrail(getParams(), view, getFolderId(), taxonomyCode, false);
+	}
+
+	public static BaseBreadcrumbTrail getBreadCrumbTrail(Map<String, String> params, BaseView view, String recordId,
+														 String taxonomyCode, boolean forceBaseItemEnabled) {
 		String saveSearchDecommissioningId = null;
 		String searchTypeAsString = null;
 		String favoritesId = null;
 
-		Map<String, String> params = getParams();
 
 		if (params != null) {
 			if (params.get("decommissioningSearchId") != null) {
@@ -510,21 +518,22 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		RMModuleExtensions rmModuleExtensions = view.getConstellioFactories().getAppLayerFactory().getExtensions()
 				.forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
 		breadcrumbTrail = rmModuleExtensions
-				.getBreadCrumbtrail(new DocumentFolderBreadCrumbParams(getFolderId(), params, view));
+				.getBreadCrumbtrail(new DocumentFolderBreadCrumbParams(recordId, params, view));
 
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;
 		} else if (favoritesId != null) {
-			return new FolderDocumentContainerBreadcrumbTrail(view.getSummaryRecord().getId(), null, null, favoritesId, this.view);
+			return new FolderDocumentContainerBreadcrumbTrail(new FolderDocumentContainerPresenterParam(recordId, null, null, favoritesId, view, forceBaseItemEnabled));
 		} else if (saveSearchDecommissioningId == null) {
 			String containerId = null;
 			if (params != null && params instanceof Map) {
 				containerId = params.get("containerId");
 			}
-			return new FolderDocumentContainerBreadcrumbTrail(view.getSummaryRecord().getId(), taxonomyCode, containerId, this.view);
+			return new FolderDocumentContainerBreadcrumbTrail(new FolderDocumentContainerPresenterParam(recordId, taxonomyCode, containerId,
+					null, view, forceBaseItemEnabled));
 		} else {
 			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()),
-					searchType, saveSearchDecommissioningId, view.getSummaryRecord().getId(), this.view);
+					searchType, saveSearchDecommissioningId, recordId, view, true);
 		}
 	}
 

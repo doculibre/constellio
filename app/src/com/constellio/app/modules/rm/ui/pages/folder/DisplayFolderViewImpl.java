@@ -39,6 +39,7 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.base.NavigationParams;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.KeySetMap;
@@ -84,7 +85,7 @@ import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler, BrowserWindowResizeListener {
+public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler, BrowserWindowResizeListener, NavigationParams {
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
 
@@ -829,4 +830,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		// TODO Auto-generated method stub
 	}
 
+	@Override
+	public Map<String, String> getNavigationParams() {
+		return presenter.getParams();
+	}
 }

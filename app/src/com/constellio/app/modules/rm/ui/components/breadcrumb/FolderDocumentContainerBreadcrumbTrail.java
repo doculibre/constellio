@@ -1,8 +1,10 @@
 package com.constellio.app.modules.rm.ui.components.breadcrumb;
 
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.ContainerBreadcrumbItem;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.TaxonomyBreadcrumbItem;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.TaxonomyElementBreadcrumbItem;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrailPresenter.ContainerBreadcrumbItem;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrailPresenter.TaxonomyBreadcrumbItem;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrailPresenter.TaxonomyElementBreadcrumbItem;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrailPresenter.TriggerFormBreadcrumbItem;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrailPresenter.TriggerManagerBreadcrumbItem;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
@@ -11,7 +13,6 @@ import com.constellio.app.ui.framework.components.breadcrumb.GroupFavoritesBread
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
-import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.base.UIContextProvider;
 import com.constellio.app.ui.util.FileIconUtils;
@@ -20,20 +21,17 @@ import com.vaadin.ui.Button;
 
 public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail implements UIContextProvider {
 
-	private FolderDocumentBreadcrumbTrailPresenter presenter;
+	private FolderDocumentContainerBreadcrumbTrailPresenter presenter;
 
-
-	public FolderDocumentContainerBreadcrumbTrail(String recordId, String taxonomyCode, BaseView view) {
-		this(recordId, taxonomyCode, null, view);
+	public FolderDocumentContainerBreadcrumbTrail(FolderDocumentContainerPresenterParam presenterParam) {
+		super(presenterParam.getView(), null, false);
+		this.presenter = getPresenter(presenterParam);
 	}
 
-	public FolderDocumentContainerBreadcrumbTrail(String recordId, String taxonomyCode, String containerId, String favoritesId, BaseView view) {
-		super(view, null, false);
-		this.presenter = new FolderDocumentBreadcrumbTrailPresenter(recordId, taxonomyCode, this, containerId, favoritesId);
-	}
-
-	public FolderDocumentContainerBreadcrumbTrail(String recordId, String taxonomyCode, String containerId, BaseView view) {
-		this(recordId, taxonomyCode, containerId, null, view);
+	protected FolderDocumentContainerBreadcrumbTrailPresenter getPresenter(
+			FolderDocumentContainerPresenterParam folderDocumentContainerPresenterParam) {
+		return new FolderDocumentContainerBreadcrumbTrailPresenter(folderDocumentContainerPresenterParam.getRecordId(), folderDocumentContainerPresenterParam.getTaxonomyCode(),
+				this, folderDocumentContainerPresenterParam.getContainerId(), folderDocumentContainerPresenterParam.getFavoritesId(), folderDocumentContainerPresenterParam.isForceBaseItemEnabled());
 	}
 
 	@Override
@@ -60,7 +58,11 @@ public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail
 			recordId = null;
 		} else if (item instanceof GroupFavoritesBreadcrumbItem) {
 			recordId = ((GroupFavoritesBreadcrumbItem)item).getFavoriteGroupId();
-		} else if (item instanceof FavoritesBreadcrumbItem){
+		} else if (item instanceof FavoritesBreadcrumbItem) {
+			recordId = null;
+		} else if (item instanceof TriggerManagerBreadcrumbItem) {
+			recordId = null;
+		} else if (item instanceof TriggerFormBreadcrumbItem) {
 			recordId = null;
 		} else {
 			throw new RuntimeException("Unrecognized breadcrumb item type : " + item.getClass());

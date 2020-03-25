@@ -20,6 +20,7 @@ import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.UserFunction;
 import com.constellio.app.modules.rm.wrappers.triggers.Trigger;
+import com.constellio.app.modules.rm.wrappers.triggers.TriggerAction;
 import com.constellio.app.modules.rm.wrappers.triggers.TriggerActionType;
 import com.constellio.app.modules.rm.wrappers.triggers.TriggerType;
 import com.constellio.app.modules.rm.wrappers.triggers.actions.MoveInFolderTriggerAction;
@@ -1410,7 +1411,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("subjectToBroadcastRule");
 		}
 	}
-
 	public ExternalLink wrapExternalLink(Record record) {
 		return record == null ? null : new ExternalLink(record, getTypes());
 	}
@@ -1464,7 +1464,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_externalLink_default externalLink
 			= new SchemaTypeShortcuts_externalLink_default("externalLink_default");
-
 	public class SchemaTypeShortcuts_externalLink_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_externalLink_default(String schemaCode) {
 			super(schemaCode);
@@ -1474,7 +1473,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("type");
 		}
 	}
-
 	public ExternalLinkType wrapExternalLinkType(Record record) {
 		return record == null ? null : new ExternalLinkType(record, getTypes());
 	}
@@ -1532,7 +1530,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_externalLinkType_default externalLinkType
 			= new SchemaTypeShortcuts_externalLinkType_default("externalLinkType_default");
-
 	public class SchemaTypeShortcuts_externalLinkType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_externalLinkType_default(String schemaCode) {
 			super(schemaCode);
@@ -2430,7 +2427,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("user");
 		}
 	}
-
 	public Trigger wrapTrigger(Record record) {
 		return record == null ? null : new Trigger(record, getTypes());
 	}
@@ -2498,6 +2494,74 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("criteria");
 		}
 
+		public Metadata target() {
+			return metadata("target");
+		}
+
+		public Metadata type() {
+			return metadata("type");
+		}
+	}
+
+	public TriggerAction wrapTriggerAction(Record record) {
+		return record == null ? null : new TriggerAction(record, getTypes());
+	}
+
+	public List<TriggerAction> wrapTriggerActions(List<Record> records) {
+		List<TriggerAction> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new TriggerAction(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<TriggerAction> searchTriggerActions(LogicalSearchQuery query) {
+		return wrapTriggerActions(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<TriggerAction> searchTriggerActions(LogicalSearchCondition condition) {
+		MetadataSchemaType type = triggerAction.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapTriggerActions(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<TriggerAction> triggerActionIterator() {
+		return iterateFromCache(triggerAction.schemaType(), this::wrapTriggerAction);
+	}
+
+	public Stream<TriggerAction> triggerActionStream() {
+		return streamFromCache(triggerAction.schemaType(), this::wrapTriggerAction);
+	}
+
+	public TriggerAction getTriggerAction(String id) {
+		return wrapTriggerAction(get(triggerAction.schemaType(), id));
+	}
+
+	public List<TriggerAction> getTriggerActions(List<String> ids) {
+		return wrapTriggerActions(get(triggerAction.schemaType(), ids));
+	}
+
+	public TriggerAction getTriggerActionWithLegacyId(String legacyId) {
+		return wrapTriggerAction(getByLegacyId(triggerAction.schemaType(), legacyId));
+	}
+
+	public TriggerAction newTriggerAction() {
+		return wrapTriggerAction(create(triggerAction.schema()));
+	}
+
+	public TriggerAction newTriggerActionWithId(String id) {
+		return wrapTriggerAction(create(triggerAction.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_triggerAction_default triggerAction
+			= new SchemaTypeShortcuts_triggerAction_default("triggerAction_default");
+
+	public class SchemaTypeShortcuts_triggerAction_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_triggerAction_default(String schemaCode) {
+			super(schemaCode);
+		}
+
 		public Metadata type() {
 			return metadata("type");
 		}
@@ -2547,18 +2611,18 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public MoveInFolderTriggerAction newMoveInFolderTriggerAction() {
-		return wrapMoveInFolderTriggerAction(create(triggerAction.schema()));
+		return wrapMoveInFolderTriggerAction(create(triggerAction_moveInFolder.schema()));
 	}
 
 	public MoveInFolderTriggerAction newMoveInFolderTriggerActionWithId(String id) {
-		return wrapMoveInFolderTriggerAction(create(triggerAction.schema(), id));
+		return wrapMoveInFolderTriggerAction(create(triggerAction_moveInFolder.schema(), id));
 	}
 
-	public final SchemaTypeShortcuts_triggerAction_default triggerAction
-			= new SchemaTypeShortcuts_triggerAction_default("triggerAction_default");
+	public final SchemaTypeShortcuts_triggerAction_moveInFolder triggerAction_moveInFolder
+			= new SchemaTypeShortcuts_triggerAction_moveInFolder("triggerAction_moveInFolder");
 
-	public class SchemaTypeShortcuts_triggerAction_default extends SchemaTypeShortcuts {
-		protected SchemaTypeShortcuts_triggerAction_default(String schemaCode) {
+	public class SchemaTypeShortcuts_triggerAction_moveInFolder extends SchemaTypeShortcuts_triggerAction_default {
+		protected SchemaTypeShortcuts_triggerAction_moveInFolder(String schemaCode) {
 			super(schemaCode);
 		}
 	}
@@ -2620,7 +2684,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_triggerActionType_default triggerActionType
 			= new SchemaTypeShortcuts_triggerActionType_default("triggerActionType_default");
-
 	public class SchemaTypeShortcuts_triggerActionType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_triggerActionType_default(String schemaCode) {
 			super(schemaCode);
@@ -2638,7 +2701,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("title");
 		}
 	}
-
 	public TriggerType wrapTriggerType(Record record) {
 		return record == null ? null : new TriggerType(record, getTypes());
 	}
@@ -2696,7 +2758,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_triggerType_default triggerType
 			= new SchemaTypeShortcuts_triggerType_default("triggerType_default");
-
 	public class SchemaTypeShortcuts_triggerType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_triggerType_default(String schemaCode) {
 			super(schemaCode);
@@ -2951,5 +3012,4 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- end
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
-
 }

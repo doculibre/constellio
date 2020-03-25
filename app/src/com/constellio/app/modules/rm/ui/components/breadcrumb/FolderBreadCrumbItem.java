@@ -11,11 +11,14 @@ public class FolderBreadCrumbItem implements BreadcrumbItem {
 	private String folderId;
 	private SchemaPresenterUtils schemaPresenterUtils;
 	private String recordId;
+	boolean forceEnableBaseItem;
 
-	public FolderBreadCrumbItem(String folderId, SchemaPresenterUtils schemaPresenterUtils, String recordId) {
+	public FolderBreadCrumbItem(String folderId, SchemaPresenterUtils schemaPresenterUtils, String recordId,
+								boolean forceEnableBaseItem) {
 		this.folderId = folderId;
 		this.schemaPresenterUtils = schemaPresenterUtils;
 		this.recordId = recordId;
+		this.forceEnableBaseItem = forceEnableBaseItem;
 	}
 
 	public final String getFolderId() {
@@ -30,7 +33,7 @@ public class FolderBreadCrumbItem implements BreadcrumbItem {
 	@Override
 	public boolean isEnabled() {
 		boolean enabled;
-		if (folderId.equals(recordId)) {
+		if (folderId.equals(recordId) && !this.forceEnableBaseItem) {
 			enabled = false;
 		} else {
 			Record record = schemaPresenterUtils.getRecord(folderId);
