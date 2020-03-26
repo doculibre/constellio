@@ -163,6 +163,7 @@ public class ListExternalLinksViewImpl extends BaseViewImpl implements ListExter
 
 	private Component buildTable(RecordVODataProvider dataProvider) {
 		ButtonsContainer recordsContainer = new ButtonsContainer<>(new RecordVOLazyContainer(dataProvider), "buttons");
+		// TODO: Uncomment this code after March 31st demo and implement consult functionnality.
 		/*recordsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
