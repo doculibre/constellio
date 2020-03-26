@@ -30,6 +30,7 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.themes.ValoTheme;
+import lombok.extern.slf4j.Slf4j;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.ComponentListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnComponentEvent;
 
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+@Slf4j
 public class ReferenceDisplay extends Button {
 
 	public static final String STYLE_NAME = "reference-display";
@@ -112,11 +114,14 @@ public class ReferenceDisplay extends Button {
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 
 		Record record = null;
-
 		if (recordVO != null) {
 			record = recordVO.getRecord();
 		} else if (recordId != null) {
-			record = recordServices.getDocumentById(recordId);
+			try {
+				record = recordServices.getDocumentById(recordId);
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				record = null;
+			}
 		}
 		SessionContext sessionContext = ui.getSessionContext();
 
@@ -176,7 +181,7 @@ public class ReferenceDisplay extends Button {
 				String niceTitle = getNiceTitle(recordServices.getDocumentById(recordId), types);
 				addExtension(new NiceTitle(niceTitle));
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-				e.printStackTrace();
+				log.warn("Referenced recordId doesn't exist : " + recordId, e);
 			}
 		}
 	}
@@ -216,7 +221,7 @@ public class ReferenceDisplay extends Button {
 						this);
 				isRecordInTrash = Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS));
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-				e.printStackTrace();
+				log.warn("Cannot prepare link for missing recordId " + recordId, e);
 			}
 		}
 		if (navigationParams != null) {
@@ -230,7 +235,7 @@ public class ReferenceDisplay extends Button {
 			if (activeLink && isEnabled()) {
 				addActiveLinkStyle();
 			}
-			
+
 			// Mark as visited
 			Component component = navigationParams.getComponent();
 			if (component instanceof Button) {
@@ -239,7 +244,7 @@ public class ReferenceDisplay extends Button {
 				if (id != null && sessionContext.isVisited(id)) {
 					button.addStyleName("visited-link");
 				}
-			}	
+			}
 		}
 	}
 
