@@ -21,6 +21,8 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -28,6 +30,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail
 import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.fields.autocomplete.StringAutocompleteField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
@@ -46,6 +49,7 @@ import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.NavigationParams;
 import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.AuthorizationSource;
@@ -72,6 +76,7 @@ import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
@@ -106,6 +111,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
 
 	public static final String STYLE_NAME = "display-folder";
+
 	public static final String USER_LOOKUP = "user-lookup";
 	private RecordVO summaryRecordVO;
 	private String taxonomyCode;
@@ -124,6 +130,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private boolean dragNDropAllowed;
 	private Button displayFolderButton, editFolderButton, addDocumentButton;
 	private Label borrowedLabel;
+	private StringAutocompleteField<String> searchField;
+	private SearchButton searchButton;
+	private CheckBox includeTreeCheckBox;
+	private BaseButton clearSearchButton;
+	private VerticalLayout searchLayout;
 
 	private Window documentVersionWindow;
 
@@ -557,7 +568,101 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				});
 				contentAndFacetsLayout.addComponent(facetsSliderPanel);
 			}
-			tabSheet.replaceComponent(folderContentComponent, folderContentComponent = viewerPanel);
+
+			if (includeTreeCheckBox == null) {
+				includeTreeCheckBox = new CheckBox($("DisplayFolderView.includeTree"));
+				includeTreeCheckBox.addStyleName("folder-search-include-tree");
+			}
+			if (clearSearchButton == null) {
+				clearSearchButton = new LinkButton($("DisplayFolderView.clearSearch")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.clearSearch();
+						searchField.setValue("");
+						includeTreeCheckBox.setValue(false);
+					}
+				};
+				clearSearchButton.addStyleName("folder-search-clear");
+			}
+			BaseButton searchInFolderButton = new LinkButton($("DisplayFolderView.showSearchInFolder")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					if (searchLayout != null) {
+						if (searchLayout.isVisible()) {
+							setCaption($("DisplayFolderView.showSearchInFolder"));
+						} else {
+							setCaption($("DisplayFolderView.hideSearchInFolder"));
+						}
+						searchLayout.setVisible(!searchLayout.isVisible());
+						searchField.focus();
+					}
+				}
+			};
+			searchInFolderButton.addStyleName("search-in-folder-button");
+			if (searchField == null) {
+				searchField = new StringAutocompleteField<String>(new StringAutocompleteField.AutocompleteSuggestionsProvider<String>() {
+					@Override
+					public List<String> suggest(String text) {
+						return presenter.getAutocompleteSuggestions(text);
+					}
+
+					@Override
+					public Class<String> getModelType() {
+						return String.class;
+					}
+
+					@Override
+					public int getBufferSize() {
+						return presenter.getAutocompleteBufferSize();
+					}
+				});
+				searchField.setWidth("100%");
+				searchField.addStyleName("folder-search-field");
+				searchButton = new SearchButton() {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						String value = searchField.getValue();
+						presenter.changeFolderContentDataProvider(value, includeTreeCheckBox.getValue());
+					}
+				};
+				searchButton.addStyleName("folder-search-button");
+				searchButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				searchButton.setIconOnly(true);
+				OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
+					@Override
+					public void onEnterKeyPressed() {
+						String value = searchField.getValue();
+						presenter.changeFolderContentDataProvider(value, includeTreeCheckBox.getValue());
+					}
+				};
+				onEnterHandler.installOn(searchField);
+			}
+
+			if (searchLayout == null) {
+				searchLayout = new VerticalLayout();
+				searchLayout.addStyleName("folder-search-layout");
+				searchLayout.setSpacing(true);
+				searchLayout.setWidth("50%");
+				searchLayout.setVisible(false);
+				
+				I18NHorizontalLayout searchFieldAndButtonLayout = new I18NHorizontalLayout(searchField, searchButton);
+				searchFieldAndButtonLayout.addStyleName("folder-search-field-and-button-layout");
+				searchFieldAndButtonLayout.setWidth("100%");
+				searchFieldAndButtonLayout.setExpandRatio(searchField, 1);
+				
+				I18NHorizontalLayout extraFieldsSearchLayout = new I18NHorizontalLayout(includeTreeCheckBox, clearSearchButton);
+				extraFieldsSearchLayout.addStyleName("folder-search-extra-fields-layout");
+				extraFieldsSearchLayout.setSpacing(true);
+				
+				searchLayout.addComponents(searchFieldAndButtonLayout, extraFieldsSearchLayout);
+			}
+
+			VerticalLayout searchToggleAndFieldsLayout = new VerticalLayout();
+			searchToggleAndFieldsLayout.addStyleName("search-folder-toggle-and-fields-layout");
+			searchToggleAndFieldsLayout.addComponent(searchInFolderButton);
+			searchToggleAndFieldsLayout.addComponent(searchLayout);
+			searchToggleAndFieldsLayout.addComponent(viewerPanel);
+			tabSheet.replaceComponent(folderContentComponent, folderContentComponent = searchToggleAndFieldsLayout);
 			viewerPanel.setSelectionActionButtons();
 		}
 		tabSheet.setSelectedTab(folderContentComponent);

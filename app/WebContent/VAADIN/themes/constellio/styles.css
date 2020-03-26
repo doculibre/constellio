@@ -14436,6 +14436,16 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: hidden;
 }
 
+.constellio .search-button-icon-only .v-button-caption {
+	display: none;
+}
+
+.constellio .search-button-icon-only:before {
+	content: "\f002";
+	margin-top: 5px;
+	margin-left: -14px;
+}
+
 .constellio .viewable-record-window {
 	width: 100%;
 }
@@ -15422,6 +15432,19 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .display-folder-view .v-slot-facets-sliderpanel {
 	top: 40px;
+}
+
+.constellio .display-folder-view .search-in-folder-button {
+	padding-left: 10px;
+}
+
+.constellio .display-folder-view .folder-search-layout {
+	padding-left: 10px;
+}
+
+.constellio .display-folder-view .folder-search-layout .v-slot-folder-search-include-tree {
+	position: relative;
+	top: 8px;
 }
 
 .constellio .-facets-sliderpanel .v-sliderpanel-wrapper .v-sliderpanel-content {

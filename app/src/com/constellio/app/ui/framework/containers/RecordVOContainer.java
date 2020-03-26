@@ -10,6 +10,7 @@ import com.vaadin.data.Container.Sortable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public interface RecordVOContainer extends Indexed, Sortable, Filterable, PropertySetChangeNotifier, ItemSetChangeNotifier, RefreshableContainer {
 
@@ -26,5 +27,7 @@ public interface RecordVOContainer extends Indexed, Sortable, Filterable, Proper
 	}
 
 	List<MetadataSchemaVO> getSchemas();
+
+	Map<String, List<String>> getHighlights(Object itemId);
 
 }
