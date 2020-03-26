@@ -36,7 +36,7 @@ public class CompositeTreeNodeDataProviderTest extends ConstellioTest {
 	@Test
 	public void whenGetNodesThenLazyConsumeEachChildNodeProviders() {
 
-		CompositeTreeNodeDataProvider dataProvider = new CompositeTreeNodeDataProvider(
+		CompositeTreeNodeDataProvider dataProvider = (CompositeTreeNodeDataProvider) CompositeTreeNodeDataProvider.forNodesProvider(
 				asList(provider1, provider2, exceptionProvider, provider3, doomProvider));
 
 		when(provider1.getNodes(eq(null), eq(0), eq(3), any())).thenReturn(

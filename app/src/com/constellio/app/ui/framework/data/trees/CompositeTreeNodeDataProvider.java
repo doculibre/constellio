@@ -30,7 +30,7 @@ public class CompositeTreeNodeDataProvider implements TreeNodesProvider<Composit
 		this.childTreeNodesProvidersFunction = childTreeNodesProvidersFunction;
 	}
 
-	public static TreeNodesProvider forNodesProvider(List<TreeNodesProvider<?>> nodesProvider) {
+	public static TreeNodesProvider<?> forNodesProvider(List<TreeNodesProvider<?>> nodesProvider) {
 		if (nodesProvider.size() == 1) {
 			return nodesProvider.get(0);
 		} else {
