@@ -42,7 +42,6 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
-
 public class RecordsImportValidator {
 
 	public static final String LEGACY_ID_LOCAL_CODE = Schemas.LEGACY_ID.getLocalCode();
@@ -244,6 +243,8 @@ public class RecordsImportValidator {
 			errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
 		} else if (User.SCHEMA_TYPE.equals(schemaType.getCode()) && params
 				.isAllowingReferencesToNonExistingUsers()) {
+			errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
+		} else if (usedByMetadata.equals("document_default_linkedTo")) {
 			errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
 		} else {
 			errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
