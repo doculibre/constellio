@@ -92,17 +92,19 @@ const FitWidth = "FitWidth";
         const doc = docViewer.getDocument();
         const data = await doc.getFileData({
             // saves the document with annotations in it
-            xfdfString
+            xfdfString,
+            downloadType: 'pdf'
         });
         const arr = new Uint8Array(data);
         const blob = new Blob([arr], { type: 'application/pdf' });
 
         var reader = new FileReader();
         var base64data;
-        reader.readAsDataURL(blob);
+        //reader.readAsDataURL(blob);
+        reader.readAsText(blob);
         reader.onloadend = function() {
             base64data = reader.result;
-            debugger
+
             $.post(documentAnnotationCallBack, {
                 'resourceKey': documentAnnotationRK,
                 'blob': base64data
