@@ -1,11 +1,14 @@
 package com.constellio.app.services.sip.zip;
 
+import com.constellio.app.services.sip.mets.MetsContentFileReference;
+import com.constellio.app.services.sip.mets.MetsEADMetadataReference;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 
 public class SIPFileHasher {
 
@@ -23,6 +26,10 @@ public class SIPFileHasher {
 		} finally {
 			IOUtils.closeQuietly(fileInputStream);
 		}
+	}
 
+	public long length(File zipFile, List<MetsContentFileReference> contentFileReferences,
+					   List<MetsEADMetadataReference> eadMetadataReferences) {
+		return zipFile.length() + contentFileReferences.size() * 75L + eadMetadataReferences.size() * 25L;
 	}
 }

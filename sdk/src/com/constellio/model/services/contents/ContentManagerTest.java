@@ -10,6 +10,8 @@ import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoE
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
@@ -135,6 +137,8 @@ public class ContentManagerTest extends ConstellioTest {
 	@Mock DataLayerConfiguration dataLayerConfiguration;
 	@Mock ConstellioEIMConfigs constellioEIMConfigs;
 	@Mock SystemConfigurationsManager systemConfigurationsManager;
+	@Mock DataLayerExtensions dataLayerExtensions;
+	@Mock DataLayerSystemExtensions dataLayerSystemExtensions;
 
 	@Before
 	public void setUp()
@@ -148,15 +152,19 @@ public class ContentManagerTest extends ConstellioTest {
 		when(modelLayerFactory.newFileParser()).thenReturn(fileParser);
 		when(modelLayerFactory.getSystemConfigs()).thenReturn(constellioEIMConfigs);
 
+		when(dataLayerExtensions.getSystemWideExtensions()).thenReturn(dataLayerSystemExtensions);
+
 		when(dataLayerFactory.newRecordDao()).thenReturn(recordDao);
 		when(dataLayerFactory.getContentsDao()).thenReturn(contentDao);
 		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
 		when(dataLayerFactory.getUniqueIdGenerator()).thenReturn(uniqueIdGenerator);
+		when(dataLayerFactory.getExtensions()).thenReturn(dataLayerExtensions);
 		when(ioServicesFactory.newHashingService(BASE64_URL_ENCODED)).thenReturn(hashingService);
 		when(ioServicesFactory.newIOServices()).thenReturn(ioServices);
 
 		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
 		when(dataLayerConfiguration.getHashingEncoding()).thenReturn(BASE64_URL_ENCODED);
+
 
 		contentManager = spy(new ContentManager(modelLayerFactory));
 		when(ioServices.copyToReusableStreamFactory(contentInputStream, null)).thenReturn(streamFactory);

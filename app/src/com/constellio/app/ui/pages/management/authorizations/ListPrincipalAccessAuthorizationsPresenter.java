@@ -75,6 +75,12 @@ public class ListPrincipalAccessAuthorizationsPresenter extends ListAuthorizatio
 		return true;
 	}
 
+
+	@Override
+	public boolean seeSharedBy() {
+		return false;
+	}
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return user.has(CorePermissions.MANAGE_SECURITY).globally();

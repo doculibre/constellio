@@ -174,6 +174,10 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setInt("sql.server.loginTimeout", value);
 		}
 
+		public void setSolrMinimalReplicationFactor(int replicationFactor) {
+			setInt("replicationFactorLog.minimalReplicationFactor", replicationFactor);
+		}
+
 	}
 
 	public SolrServerType getRecordsDaoSolrServerType() {
@@ -466,6 +470,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getInt("sql.server.loginTimeout", 0);
 	}
 
+
+	@Override
+	public int getSolrMinimalReplicationFactor() {
+		return getInt("replicationFactorLog.minimalReplicationFactor", 2);
+	}
 
 	@Override
 	public ElectionServiceType getElectionServiceType() {

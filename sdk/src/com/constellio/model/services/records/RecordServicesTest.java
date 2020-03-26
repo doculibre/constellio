@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
@@ -14,6 +15,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.RecordDaoRuntimeException_RecordsFlushingFailed;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.Factory;
@@ -210,6 +212,8 @@ public class RecordServicesTest extends ConstellioTest {
 	MetadataSchemaTypes metadataSchemaTypes;
 	@Mock MetadataSchemaType metadataSchemaType;
 	@Mock MetadataSchema metadataSchema;
+	@Mock DataLayerFactory dataLayerFactory;
+	@Mock DataLayerConfiguration dataLayerConfiguration;
 
 	@Before
 	public void setUp()
@@ -251,6 +255,12 @@ public class RecordServicesTest extends ConstellioTest {
 		when(secondRecord.getVersion()).thenReturn(secondRecordVersion);
 		when(thirdRecord.getVersion()).thenReturn(thirdRecordVersion);
 
+
+		when(dataLayerConfiguration.isCopyingRecordsInSearchCollection()).thenReturn(false);
+
+		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
+
+		when(modelFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
 		when(modelFactory.getBatchProcessesManager()).thenReturn(batchProcessesManager);
 		when(modelFactory.getMetadataSchemasManager()).thenReturn(schemaManager);
 		when(modelFactory.newSearchServices()).thenReturn(searchServices);
@@ -955,6 +965,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(zeRecord.getSchemaCode()).thenReturn("zeSchemaType_default");
 		Transaction transaction = new Transaction(zeRecord);
 		doNothing().when(recordServices).mergeRecords(any(Transaction.class), anyString());
+		when(metadataSchemaType.getCode()).thenReturn("fakeSchemaTypeForTest");
 		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
 		doThrow(RecordDaoException.OptimisticLocking.class).when(recordDao).execute(any(TransactionDTO.class));
 

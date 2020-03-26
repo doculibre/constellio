@@ -127,4 +127,6 @@ public interface DataLayerConfiguration {
 
 	boolean isAsyncSQLSecondTransactionLogInsertion();
 
+	int getSolrMinimalReplicationFactor();
+
 }

@@ -27,6 +27,12 @@ import com.constellio.app.ui.pages.management.Report.ListPrintableReportViewImpl
 import com.constellio.app.ui.pages.management.TemporaryRecord.ListTemporaryRecordViewImpl;
 import com.constellio.app.ui.pages.management.app.AppManagementView;
 import com.constellio.app.ui.pages.management.authorizations.*;
+import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAndRoleAuthorizationsViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAuthorizationsViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.ListContentRoleAuthorizationsViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.ListPrincipalAccessAuthorizationsViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.PublishDocumentViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.ShareContentViewImpl;
 import com.constellio.app.ui.pages.management.bagInfo.AddEditBagInfo.AddEditBagInfoViewImpl;
 import com.constellio.app.ui.pages.management.bagInfo.DisplayBagInfo.DisplayBagInfoViewImpl;
 import com.constellio.app.ui.pages.management.bagInfo.ListBagInfo.ListBagInfoViewImpl;
@@ -126,6 +132,8 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_OBJECT_ROLE_AUTHORIZATIONS = "objectRoleAuthorizations";
 	public static final String LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS = "objectAccessAndRoleAuthorizations";
 	public static final String SHARE_CONTENT = "shareContent";
+	public static final String MODIFY_SHARE = "modifyShare";
+	public static final String UNSHARE_CONTENT = "unshareContent";
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String TRASH = "trash";
 	public static final String COLLECTION_USER_LIST = "collectionSecurity";
@@ -173,6 +181,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String PRINTABLE_REPORT_VIEW = "printableReportView";
 	public static final String PRINTABLE_REPORT_ADD = "pritnableReportAdd";
 	public static final String PRINTABLE_REPORT_MANAGE = "printableReportManage";
+	public static final String PUBLISH_DOCUMENT = "publishDocument";
 	public static final String EXCEL_REPORT_MANAGE = "excelReportManage";
 	public static final String EXCEL_REPORT_DISPLAY = "excelReportDisplay";
 
@@ -258,6 +267,8 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS,
 				ListContentAccessAndRoleAuthorizationsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SHARE_CONTENT, ShareContentViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(MODIFY_SHARE, ShareContentViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(PUBLISH_DOCUMENT, PublishDocumentViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER_LIST, ListCollectionUserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER, CollectionUserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER_ROLES, CollectionUserRolesViewImpl.class));

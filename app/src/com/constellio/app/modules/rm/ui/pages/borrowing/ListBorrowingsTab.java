@@ -160,7 +160,7 @@ public abstract class ListBorrowingsTab {
 				case BORROWING_USER:
 					return new ReferenceDisplay(getBorrowingUserId(recordVO));
 				case ACTIONS:
-					return new RecordVOMenuBar(recordVO, Collections.emptyList());
+					return new RecordVOMenuBar(recordVO, Collections.emptyList(), appLayerFactory);
 			}
 
 			return null;

@@ -116,6 +116,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public static final String DEFAULT_VIEW_MODE = Toggle.SEARCH_RESULTS_VIEWER.isEnabled() ? SearchResultsViewMode.TABLE : SearchResultsViewMode.DETAILED;
 
+	private Locale currentLocale;
+
 	public int getDefaultPageLength() {
 		SearchPageLength defaultPageLength = getCurrentUser().getDefaultPageLength();
 		return defaultPageLength != null ? defaultPageLength.getValue() : 10;
@@ -290,6 +292,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	void init(ConstellioFactories constellioFactories, SessionContext sessionContext) {
 		collection = sessionContext.getCurrentCollection();
+		currentLocale = sessionContext.getCurrentLocale();
 
 		User user = view.getConstellioFactories().getAppLayerFactory()
 				.getModelLayerFactory().newUserServices().getUserInCollection(
@@ -361,7 +364,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public Capsule getCapsuleForCurrentSearch() {
-		Locale currentLocale = view.getSessionContext().getCurrentLocale();
 
 		Capsule match = null;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
@@ -454,7 +456,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private void logSearchEvent(final SearchResultVODataProvider dataProvider, final SPEQueryResponse response) {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			new Thread() {
+			view.runAsync(new Runnable() {
 				@Override
 				public void run() {
 					LogicalSearchQuery query = dataProvider.getQuery();
@@ -519,7 +521,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 						checkAndUpdateDwellTime(oldSearchEvent);
 					}
 				}
-			}.start();
+			});
 		}
 	}
 
@@ -788,24 +790,18 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
 				.getFieldFacetValues("schema_s");
 		Set<String> metadataCodes = new HashSet<>();
-		if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
-			if (schema_s != null) {
-				for (FacetValue facetValue : schema_s) {
-					if (facetValue.getQuantity() > 0) {
-						String schema = facetValue.getValue();
-						for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
-							if (metadata.getInheritance() != null && metadata.isEnabled()) {
-								metadataCodes.add(metadata.getInheritance().getCode());
-							} else if (metadata.getInheritance() == null && metadata.isEnabled()) {
-								metadataCodes.add(metadata.getCode());
-							}
+		if (schema_s != null) {
+			for (FacetValue facetValue : schema_s) {
+				if (facetValue.getQuantity() > 0) {
+					String schema = facetValue.getValue();
+					for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
+						if (metadata.getInheritance() != null && metadata.isEnabled()) {
+							metadataCodes.add(metadata.getInheritance().getCode());
+						} else if (metadata.getInheritance() == null && metadata.isEnabled()) {
+							metadataCodes.add(metadata.getCode());
 						}
 					}
 				}
-			}
-		} else {
-			for (Metadata metadata : schemaType.getAllMetadatas()) {
-				metadataCodes.add(metadata.getCode());
 			}
 		}
 

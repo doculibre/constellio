@@ -38,14 +38,20 @@ public class ByFolderEventsDataProvider extends DefaultEventsDataProvider implem
 			return EventType.GRANT_PERMISSION_FOLDER;
 		} else if (index == 4) {
 			return EventType.MODIFY_PERMISSION_FOLDER;
-		} else {
+		} else if (index == 5) {
 			return EventType.DELETE_PERMISSION_FOLDER;
+		} else if (index == 6) {
+			return EventType.CREATE_SHARE_FOLDER;
+		} else if (index == 7) {
+			return EventType.MODIFY_SHARE_FOLDER;
+		} else {
+			return EventType.DELETE_SHARE_FOLDER;
 		}
 	}
 
 	@Override
 	public int specificSize() {
-		return 6;
+		return 9;
 	}
 
 	@Override

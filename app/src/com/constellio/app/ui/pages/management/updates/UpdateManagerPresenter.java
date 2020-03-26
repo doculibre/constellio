@@ -35,6 +35,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
 
 import static com.constellio.app.services.migrations.VersionsComparator.isFirstVersionBeforeSecond;
 import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_SPACE;
@@ -47,6 +48,9 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	private SystemInformationsService systemInformationsService = new SystemInformationsService();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateManagerPresenter.class);
+
+	private static final String SYSTEM_LOG_FILE_NAME = "system.log";
+	private static final String FILE_NAME_PARAMETER_KEY = "fileName";
 
 
 	public UpdateManagerPresenter(UpdateManagerView view) {
@@ -177,6 +181,14 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public void restartAndReindex(boolean repopulate) {
+		File systemLogFile = getSystemLogFile();
+
+		if (systemLogFile.exists()) {
+			if (!FileUtils.deleteQuietly(systemLogFile)) {
+				view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotDeleted"));
+			}
+		}
+
 		FoldersLocator foldersLocator = new FoldersLocator();
 		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
 			//Application is started from a test, it cannot be restarted
@@ -247,6 +259,30 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		ConstellioMonitoringServlet.systemRestarting = true;
 		view.navigate().to().serviceMonitoring();
 	}
+
+	private File getSystemLogFile() {
+		File systemLogFile = null;
+
+		File logsFolder = new File(modelLayerFactory.getFoldersLocator().getWrapperInstallationFolder(), "logs");
+		if (logsFolder.exists()) {
+			File tempFile = new File(logsFolder, SYSTEM_LOG_FILE_NAME);
+			if (tempFile.exists()) {
+				systemLogFile = tempFile;
+			} else {
+				HashMap<String, Object> i18nParameters = buildSingleValueParameters(FILE_NAME_PARAMETER_KEY, SYSTEM_LOG_FILE_NAME);
+				view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotFound", i18nParameters));
+			}
+		}
+
+		return systemLogFile;
+	}
+
+	private HashMap<String, Object> buildSingleValueParameters(String key, Object value) {
+		HashMap<String, Object> parameters = new HashMap<>();
+		parameters.put(key, value);
+		return parameters;
+	}
+
 
 	public void licenseUpdateRequested() {
 		view.showLicenseUploadPanel();

@@ -46,10 +46,12 @@ public class HomePresenter extends BasePresenter<HomeView> {
 	private String currentTab;
 
 	private List<PageItem> tabItems;
+	private List<String> refreshablePageItem;
 
 	public HomePresenter(HomeView view) {
 		super(view);
 		tabItems = navigationConfig().getFragments(HomeView.TABS);
+		refreshablePageItem = navigationConfig().getRefreshable(HomeView.TABS);
 	}
 
 	public HomePresenter forParams(String params) {
@@ -136,6 +138,10 @@ public class HomePresenter extends BasePresenter<HomeView> {
 			view.updateUI();
 		}
 		return this;
+	}
+
+	public boolean isRefreshable(String code) {
+		return refreshablePageItem.contains(code);
 	}
 
 	public List<PageItem> getTabs() {

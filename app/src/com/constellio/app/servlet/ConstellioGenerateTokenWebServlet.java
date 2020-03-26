@@ -18,8 +18,10 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 
 	public static final String TEXT_XML_CHARSET_UTF_8 = "text/xml;charset=UTF-8";
 	public static final String USERNAME = "username";
+	public static final String AZURENAME = "azurename";
 	public static final String PASSWORD = "password";
 	public static final String DURATION = "duration";
+	public static final String GRANTTYPE = "grantType";
 	public static final String AS_USER = "asUser";
 
 	public static final String BAD_DURATION = "Bad Duration. Example : 14d or 24h";
@@ -27,6 +29,8 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 	public static final String PARAM_PASSWORD_REQUIRED = "Parameter 'password' required";
 	public static final String PARAM_DURATION_REQUIRED = "Parameter 'duration' required";
 	public static final String BAD_USERNAME_PASSWORD = "Bad username/password";
+	public static final String MISSING_AZURE_USERNAME = "Missing azure username";
+	public static final String NO_AZURE_USERNAME = "This azure user does not exists";
 	public static final String BAD_ASUSER = "Bad asUser value";
 	public static final String REQUIRE_ADMIN_RIGHTS = "asUser requires system admin rights";
 
@@ -35,15 +39,28 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 			throws ServletException, IOException {
 
 		String username = req.getParameter(USERNAME);
+		String azurename = req.getParameter(AZURENAME);
 		String password = req.getParameter(PASSWORD);
 		String duration = req.getParameter(DURATION);
 		String asUser = req.getParameter(AS_USER);
+		String grantType = req.getParameter(GRANTTYPE);
+
+		if (StringUtils.isBlank(grantType)) {
+			grantType = req.getHeader(GRANTTYPE);
+		}
+		if (StringUtils.isBlank(grantType) || "null".equalsIgnoreCase(grantType)) {
+			grantType = "password";
+		}
 
 		if (StringUtils.isBlank(username)) {
 			username = req.getHeader(USERNAME);
 		}
 
-		if (StringUtils.isBlank(password)) {
+		if (StringUtils.isBlank(azurename)) {
+			azurename = req.getHeader(AZURENAME);
+		}
+
+		if (StringUtils.isBlank(password) && !grantType.equals("azure")) {
 			password = req.getHeader(PASSWORD);
 		}
 
@@ -65,13 +82,16 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 			return;
 		}
 
-		if (StringUtils.isBlank(password)) {
+		if (StringUtils.isBlank(password) && !grantType.equals("azure")) {
 			resp.getWriter().write(PARAM_PASSWORD_REQUIRED);
 			return;
 		}
 
 		if (StringUtils.isBlank(asUser) || "null".equalsIgnoreCase(asUser)) {
 			asUser = null;
+		}
+		if (StringUtils.isBlank(azurename) || "null".equalsIgnoreCase(azurename)) {
+			azurename = null;
 		}
 
 		int tokenDurationInHours = getTokenDurationInHours(duration);
@@ -82,13 +102,29 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 
 		UserServices userServices = ConstellioFactories.getInstance().getModelLayerFactory().newUserServices();
 		AuthenticationService authService = ConstellioFactories.getInstance().getModelLayerFactory().newAuthenticationService();
-		if (!authService.authenticate(username, password)) {
+
+		UserCredential userCredential;
+		if (grantType.equals("azure") && azurename != null) {
+			try {
+				userCredential = userServices.getUserByAzureUsername(azurename);
+			} catch (UserServicesRuntimeException_NoSuchUser noUserEx) {
+				userCredential = null;
+			}
+			if (userCredential == null) {
+				getResponseMessage(resp, null, null, NO_AZURE_USERNAME);
+				return;
+			} else {
+				username = userCredential.getUsername();
+			}
+		} else if (grantType.equals("azure") && azurename == null) {
+			resp.getWriter().write(MISSING_AZURE_USERNAME);
+			return;
+		} else if (!authService.authenticate(username, password)) {
 			resp.getWriter().write(BAD_USERNAME_PASSWORD);
 			return;
 		}
 
 		String token;
-		UserCredential userCredential;
 		synchronized (username.intern()) {
 			userCredential = userServices.getUserCredential(username);
 			if (asUser != null) {
@@ -107,6 +143,9 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 					return;
 				}
 			}
+			if (azurename != null) {
+				userServices.updateAzureUsername(userCredential, azurename);
+			}
 
 			if (userCredential.getServiceKey() == null) {
 				userCredential = userCredential.setServiceKey("agent_" + userCredential.getUsername());
@@ -116,18 +155,34 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 			token = userServices.generateToken(userCredential.getUsername(), Duration.standardHours(tokenDurationInHours));
 		}
 
+		getResponseMessage(resp, userCredential, token);
+
+	}
+
+	private void getResponseMessage(HttpServletResponse resp, UserCredential userCredential, String token)
+			throws IOException {
+		getResponseMessage(resp, userCredential, token, null);
+	}
+
+	private void getResponseMessage(HttpServletResponse resp, UserCredential userCredential, String token, String error)
+			throws IOException {
 		StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-		sb.append("<response><serviceKey>");
-		sb.append(userCredential.getServiceKey());
-		sb.append("</serviceKey>");
-		sb.append("<token>");
-		sb.append(token);
-		sb.append("</token></response>");
+		if (error != null) {
+			sb.append("<response><error>");
+			sb.append(error);
+			sb.append("</error></response>");
+		} else {
+			sb.append("<response><serviceKey>");
+			sb.append(userCredential.getServiceKey());
+			sb.append("</serviceKey>");
+			sb.append("<token>");
+			sb.append(token);
+			sb.append("</token></response>");
+		}
 
 		resp.setContentType(TEXT_XML_CHARSET_UTF_8);
 		resp.setHeader("Access-Control-Allow-Origin", "*");
 		resp.getWriter().write(sb.toString());
-
 	}
 
 	private int getTokenDurationInHours(String duration) {

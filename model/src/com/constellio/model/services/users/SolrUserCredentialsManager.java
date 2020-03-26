@@ -165,6 +165,26 @@ public class SolrUserCredentialsManager {
 		return record != null ? schemas.wrapCredential(record) : null;
 	}
 
+	public UserCredential getAzureUserCredential(String azureUsername) {
+
+		if (azureUsername == null) {
+			return null;
+		}
+
+		Record record = modelLayerFactory.newRecordServices()
+				.getRecordByMetadata(schemas.credentialAzureUsername(), azureUsername);
+
+		if (record == null) {
+
+			String cleanedUsername = cleanUsername(azureUsername);
+			if (!cleanedUsername.equals(azureUsername)) {
+				record = modelLayerFactory.newRecordServices()
+						.getRecordByMetadata(schemas.credentialAzureUsername(), cleanUsername(azureUsername));
+			}
+		}
+		return record != null ? schemas.wrapCredential(record) : null;
+	}
+
 	public LogicalSearchQuery getUserCredentialsQuery() {
 		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).returnAll()).sortAsc(Schemas.TITLE);
 	}

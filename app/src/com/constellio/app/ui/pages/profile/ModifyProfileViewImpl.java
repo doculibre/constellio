@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.components.converters.TempFileUploadToCon
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
+import com.constellio.app.ui.framework.components.fields.SignatureRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -26,7 +27,6 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Field;
-import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
@@ -293,14 +293,24 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 
 		List<Field> allFields = new ArrayList<Field>(asList(imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
 				phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField));
+
 		final List<AdditionnalRecordField> configFields = getAdditionnalFields();
 		allFields.addAll(configFields);
+
+		final List<SignatureRecordField> signatureFields = getSignatureFields();
+		allFields.addAll(signatureFields);
+
 		form = new BaseForm<ProfileVO>(profileVO, this, allFields.toArray(new Field[0])) {
 			@Override
 			protected void saveButtonClick(ProfileVO profileVO)
 					throws ValidationException {
 				HashMap<String, Object> additionnalMetadataValues = new HashMap<>();
 				for(AdditionnalRecordField field: configFields) {
+					field.commit();
+					additionnalMetadataValues.put(field.getMetadataLocalCode(), field.getCommittableValue());
+				}
+
+				for (SignatureRecordField field : signatureFields) {
 					field.commit();
 					additionnalMetadataValues.put(field.getMetadataLocalCode(), field.getCommittableValue());
 				}
@@ -316,6 +326,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 			protected String getTabCaption(Field<?> field, Object propertyId) {
 				if(field instanceof AdditionnalRecordField) {
 					return $("ModifyProfileView.configsTab");
+				} else if (field instanceof SignatureRecordField) {
+					return $("ModifyProfileView.signatureTab");
 				} else {
 					return $("ModifyProfileView.profileTab");
 				}
@@ -349,5 +361,10 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	public List<AdditionnalRecordField> getAdditionnalFields() {
 		RecordFieldsExtensionParams params = new RecordFieldsExtensionParams(this, presenter.getUserRecord().getWrappedRecord());
 		return getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getAdditionnalFields(params);
+	}
+
+	private List<SignatureRecordField> getSignatureFields() {
+		RecordFieldsExtensionParams params = new RecordFieldsExtensionParams(this, presenter.getUserRecord().getWrappedRecord());
+		return getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getSignatureFields(params);
 	}
 }

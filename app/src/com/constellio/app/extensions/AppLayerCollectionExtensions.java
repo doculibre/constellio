@@ -69,6 +69,8 @@ import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
+import com.constellio.app.extensions.api.SchemaMetadataExtension;
+import com.constellio.app.extensions.api.SchemaMetadataExtension.SchemaMetadataExtensionParams;
 import com.constellio.app.extensions.api.SchemaRecordExtention;
 import com.constellio.app.extensions.api.SchemaRecordExtention.SchemaRecordExtensionActionPossibleParams;
 import com.constellio.app.extensions.api.UserDocumentExtension;
@@ -81,7 +83,6 @@ import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstell
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
 import com.constellio.app.extensions.api.cmis.params.CheckInParams;
 import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
-import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension;
@@ -108,6 +109,7 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
+import com.constellio.app.ui.framework.components.fields.SignatureRecordField;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -225,8 +227,9 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<TabSheetInDisplayAndFormExtention> tabSheetCaptionToHide = new VaultBehaviorsList<>();
 
-	public VaultBehaviorsList<ExtraTabForSimpleSearchResultExtention> extraTabsForSimpleSearchResultExtentions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<SchemaMetadataExtension> schemaMetadataExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<ExtraTabForSimpleSearchResultExtention> extraTabsForSimpleSearchResultExtentions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -393,12 +396,6 @@ public class AppLayerCollectionExtensions {
 	public void onCheckOut(CheckOutParams params) {
 		for (CmisExtension extension : cmisExtensions) {
 			extension.onCheckOut(params);
-		}
-	}
-
-	public void onDeleteTree(DeleteTreeParams params) {
-		for (CmisExtension extension : cmisExtensions) {
-			extension.onDeleteTree(params);
 		}
 	}
 
@@ -929,6 +926,14 @@ public class AppLayerCollectionExtensions {
 		return additionnalFields;
     }
 
+	public List<SignatureRecordField> getSignatureFields(RecordFieldsExtensionParams params) {
+		List<SignatureRecordField> signatureFields = new ArrayList<>();
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
+			signatureFields.addAll(extension.getSignatureFields(params));
+		}
+		return signatureFields;
+	}
+
 	public void fieldBindingExtentions(FieldBindingExtentionParam fieldBindingExtentionParam) {
 		for (FieldBindingExtention fieldBindingExtention : fieldBindingExtentions) {
 			fieldBindingExtention.baseFormFieldBinding(fieldBindingExtentionParam);
@@ -980,6 +985,20 @@ public class AppLayerCollectionExtensions {
 		return schemaRecordExtentions.getBooleanValue(true,
 				(behavior) -> behavior.isDeleteActionPossible(
 						new SchemaRecordExtensionActionPossibleParams(record, user)));
+	}
+
+	public void metadataSavedFromView(Metadata metadata, User user) {
+		SchemaMetadataExtensionParams params = new SchemaMetadataExtensionParams(metadata, user);
+		for (SchemaMetadataExtension extension : schemaMetadataExtensions) {
+			extension.metadataSavedFromView(params);
+		}
+	}
+
+	public void metadataDeletedFromView(Metadata metadata, User user) {
+		SchemaMetadataExtensionParams params = new SchemaMetadataExtensionParams(metadata, user);
+		for (SchemaMetadataExtension extension : schemaMetadataExtensions) {
+			extension.metadataDeletedFromView(params);
+		}
 	}
 
 	public boolean isClassifyActionPossibleOnUserDocument(final UserDocument userDocument, User user) {

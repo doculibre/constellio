@@ -19,7 +19,7 @@ vaadinAddon {
 
 vaadinCompile {
     widgetset 'com.constellio.app.ui.application.widgetset.AppWidgetset'
-    manageWidgetset true
+    manageWidgetset false
     profiler true
 }
 

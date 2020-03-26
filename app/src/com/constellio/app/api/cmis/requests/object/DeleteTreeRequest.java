@@ -2,7 +2,6 @@ package com.constellio.app.api.cmis.requests.object;
 
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
@@ -34,8 +33,6 @@ public class DeleteTreeRequest extends CmisCollectionRequest<FailedToDeleteData>
 		Record record = recordServices.getDocumentById(folderId, user);
 		ensureUserHasAllowableActionsOnRecord(record, Action.CAN_DELETE_TREE);
 
-		DeleteTreeParams params = new DeleteTreeParams(user, record);
-		appLayerFactory.getExtensions().forCollection(collection).onDeleteTree(params);
 		recordServices.logicallyDelete(record, user);
 
 		try {

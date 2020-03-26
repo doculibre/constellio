@@ -164,7 +164,7 @@ public class ValidationErrors {
 		return getValidationErrors().isEmpty() && getValidationWarnings().isEmpty();
 	}
 
-	public final boolean isEmptyErrorWarningAmdLogs() {
+	public final boolean isEmptyErrorWarningAndLogs() {
 		return getValidationErrors().isEmpty() && getValidationWarnings().isEmpty() && getValidationLogs().isEmpty();
 	}
 

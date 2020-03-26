@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.menu;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.ContainerRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
@@ -15,6 +16,7 @@ import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
 import lombok.AllArgsConstructor;
@@ -30,13 +32,17 @@ import java.util.stream.Collectors;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_CART;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BORROW;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BORROW_REQUEST;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CANCEL_RETURN;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CHECKIN;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_COPY;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_SIP;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_DOWNLOAD_ZIP;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_MOVE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_PRINT_LABEL;
@@ -48,6 +54,7 @@ import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActio
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.getLanguage;
 import static com.vaadin.server.FontAwesome.STAR;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -61,6 +68,7 @@ public class RMRecordsMenuItemServices {
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private ContainerRecordActionsServices containerRecordActionsServices;
 	private TaskRecordActionsServices taskRecordActionsServices;
+	private RMSchemasRecordsServices rm;
 
 	//public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
 	public static final Resource SELECTION_ICON_RESOURCE = FontAwesome.SHOPPING_BASKET;
@@ -73,6 +81,7 @@ public class RMRecordsMenuItemServices {
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		containerRecordActionsServices = new ContainerRecordActionsServices(collection, appLayerFactory);
 		taskRecordActionsServices = new TaskRecordActionsServices(collection, appLayerFactory);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	public List<MenuItemAction> getActionsForRecords(List<Record> records, User user, List<String> excludedActionTypes,
@@ -109,8 +118,9 @@ public class RMRecordsMenuItemServices {
 		if (recordWithSupportedSchemaTypeCount == 0) {
 			return new MenuItemActionState(HIDDEN);
 		} else if (recordWithSupportedSchemaTypeCount != records.size()) {
+			List<String> schemaTypes = getLocalizedSchemaTypes(menuItemActionType.getSchemaTypes());
 			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.unsupportedSchema",
-					StringUtils.join(menuItemActionType.getSchemaTypes(), ",")));
+					StringUtils.join(schemaTypes, ", ")));
 		}
 
 		if (!menuItemActionType.allowDifferentSchemaType) {
@@ -335,6 +345,47 @@ public class RMRecordsMenuItemServices {
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_CREATE_TASK:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isCreateTaskActionPossible(record, user);
+					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isCreateTaskActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_CHECKIN:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isCheckInActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_BATCH_UNSHARE:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isUnshareActionPossible(record, user);
+					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isUnshareActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_BATCH_UNPUBLISH:
+				for (Record record : records) {
+					boolean actionPossible = documentRecordActionsServices.isUnPublishActionPossible(record, user);
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount,
+						records.size() - possibleCount, $("RMRecordsMenuItemServices.actionImpossible"));
 		}
 
 		return new MenuItemActionState(HIDDEN);
@@ -459,6 +510,26 @@ public class RMRecordsMenuItemServices {
 						$("deleteWithIcon"), null, -1, 1000,
 						getRecordsLimit(actionType), (ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchDelete(ids, params));
 				break;
+			case RMRECORDS_CREATE_TASK:
+				menuItemAction = buildMenuItemAction(RMRECORDS_CREATE_TASK, state,
+						$("ConstellioHeader.selection.actions.createTask"), FontAwesome.TASKS, -1, 1100,
+						getRecordsLimit(actionType), (ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).createTask(ids, params));
+				break;
+			case RMRECORDS_BATCH_UNSHARE:
+				menuItemAction = buildMenuItemAction(RMRECORDS_BATCH_UNSHARE, state,
+						$("DocumentContextMenu.batchunshare"), FontAwesome.REPLY, -1, 1200,
+						getRecordsLimit(actionType), (ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchUnshare(ids, params));
+				break;
+			case RMRECORDS_CHECKIN:
+				menuItemAction = buildMenuItemAction(RMRECORDS_CHECKIN, state,
+						$("DocumentContextMenu.checkIn"), FontAwesome.UNLOCK, -1, 1200,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkInDocuments(ids, params));
+				break;
+			case RMRECORDS_BATCH_UNPUBLISH:
+				menuItemAction = buildMenuItemAction(RMRECORDS_BATCH_UNPUBLISH, state, $("DocumentContextMenu.batchunPublish"), FontAwesome.GLOBE, -1, 1300,
+						getRecordsLimit(actionType), (ids -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchUnPublishDocument(ids, params)));
+				break;
 		}
 
 		if (menuItemAction != null) {
@@ -497,6 +568,16 @@ public class RMRecordsMenuItemServices {
 				.collect(Collectors.toList());
 	}
 
+	public List<String> getLocalizedSchemaTypes(List<String> schemaTypes) {
+		ArrayList<String> localizedSchemas = new ArrayList<>();
+		MetadataSchemasManager schemaManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+		for (String schema : schemaTypes) {
+			localizedSchemas.add(schemaManager.getSchemaTypes(collection).getSchemaType(schema).getLabel(getLanguage()));
+		}
+		return localizedSchemas;
+	}
+
+
 	@AllArgsConstructor
 	@Getter
 	public enum RMRecordsMenuItemActionType {
@@ -516,7 +597,11 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_ADD_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_BATCH_DELETE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
-		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 10000, true);
+		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 10000, true),
+		RMRECORDS_CHECKIN(asList(Document.SCHEMA_TYPE), 25, false),
+		RMRECORDS_CREATE_TASK(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, false),
+		RMRECORDS_BATCH_UNSHARE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, false),
+		RMRECORDS_BATCH_UNPUBLISH(asList(Document.SCHEMA_TYPE), 10000, false);
 
 		private final List<String> schemaTypes;
 		private final int recordsLimit;

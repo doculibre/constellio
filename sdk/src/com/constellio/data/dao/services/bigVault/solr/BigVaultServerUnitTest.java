@@ -1,5 +1,6 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
@@ -41,6 +42,7 @@ import static org.mockito.Mockito.when;
 
 public class BigVaultServerUnitTest extends ConstellioTest {
 	@Mock DataLayerSystemExtensions extensions;
+	@Mock DataLayerConfiguration configurations;
 	@Mock AtomicFileSystem solrFileSystem;
 	@Mock SolrParams solrParams;
 	@Mock SolrClient server;
@@ -62,7 +64,7 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		String serverName = "Test";
 		when(solrServerFactory.getConfigFileSystem(serverName)).thenReturn(solrFileSystem);
 		when(solrServerFactory.newSolrServer(serverName)).thenReturn(server);
-		bigVaultServer = spy(new BigVaultServer(serverName, BigVaultLogger.disabled(), solrServerFactory, extensions));
+		bigVaultServer = spy(new BigVaultServer(serverName, BigVaultLogger.disabled(), solrServerFactory, extensions, configurations));
 		when(emptyQueryResults.size()).thenReturn(0);
 		when(twoElementsQueryResults.size()).thenReturn(2);
 	}

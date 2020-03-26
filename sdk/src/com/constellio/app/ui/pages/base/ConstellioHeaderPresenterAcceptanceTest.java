@@ -242,64 +242,6 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(allowedMetadatas).extracting("code").contains("folder_default_myMetadata");
 	}
 
-	@Test
-	public void givenMetadataWithoutHeritanceButInTwoDifferentCustomSchemasThenShowsUpInAdvancedSearchIndependently()
-			throws RecordServicesException {
-		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				MetadataSchemaBuilder mySchema = types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("mySchema");
-				mySchema.create("myMetadata").setType(MetadataValueType.STRING).setSearchable(true).setEnabled(true);
-				MetadataSchemaBuilder mySchema2 = types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("mySchema2");
-				mySchema2.create("myMetadata").setType(MetadataValueType.STRING).setSearchable(true).setEnabled(true);
-			}
-		});
-		SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
-		manager.saveMetadata(
-				manager.getMetadata(zeCollection, "folder_mySchema_myMetadata").withVisibleInAdvancedSearchStatus(true));
-		manager.saveMetadata(
-				manager.getMetadata(zeCollection, "folder_mySchema2_myMetadata").withVisibleInAdvancedSearchStatus(true));
-		List<MetadataVO> allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
-		assertThat(allowedMetadatas).extracting("code")
-				.doesNotContain("folder_mySchema_myMetadata", "folder_mySchema2_myMetadata");
-
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		Transaction transaction = new Transaction();
-		transaction.add(rm.newFolderType().setCode("newType").setTitle("newType")
-				.setLinkedSchema("folder_mySchema"));
-		recordServices.execute(transaction);
-		recordServices.add(rm.newFolderWithType(rm.getFolderTypeWithCode("newType")).setTitle("test")
-				.setAdministrativeUnitEntered(rmRecords.unitId_10).setCategoryEntered(rmRecords.categoryId_X)
-				.setOpenDate(LocalDate.now())
-				.setRetentionRuleEntered(rmRecords.ruleId_1));
-		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
-		assertThat(allowedMetadatas).extracting("code").contains("folder_mySchema_myMetadata");
-		assertThat(allowedMetadatas).extracting("code").doesNotContain("folder_mySchema2_myMetadata");
-
-		transaction = new Transaction();
-		transaction.add(rm.newFolderType().setCode("newType2").setTitle("newType2")
-				.setLinkedSchema("folder_mySchema2"));
-		recordServices.execute(transaction);
-		recordServices.add(rm.newFolderWithType(rm.getFolderTypeWithCode("newType2")).setTitle("test2")
-				.setAdministrativeUnitEntered(rmRecords.unitId_10).setCategoryEntered(rmRecords.categoryId_X)
-				.setOpenDate(LocalDate.now())
-				.setRetentionRuleEntered(rmRecords.ruleId_1));
-		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
-		assertThat(allowedMetadatas).extracting("code").contains("folder_mySchema_myMetadata");
-		assertThat(allowedMetadatas).extracting("code").contains("folder_mySchema2_myMetadata");
-
-		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				MetadataSchemaBuilder mySchema2 = types.getSchemaType(Folder.SCHEMA_TYPE).getSchema("mySchema2");
-				mySchema2.get("myMetadata").setEnabled(false);
-			}
-		});
-		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
-		assertThat(allowedMetadatas).extracting("code").contains("folder_mySchema_myMetadata");
-		assertThat(allowedMetadatas).extracting("code").doesNotContain("folder_mySchema2_myMetadata");
-	}
-
 	private ConstellioHeaderPresenter presenterConnectedWithAdmin() {
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);

@@ -193,6 +193,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 												 || pdfTronPresenter.doesCurrentPageHaveLock());
 					setMessageIfAnOtherUserOrAnOtherPageIsEditing(false);
 					com.vaadin.ui.JavaScript.eval("setEnableAnnotations(true)");
+					disableAnnotationSignatureTool();
 					editAnnotationBtn.setImmediate(true);
 					editAnnotationBtn.removeStyleName("disabled-link");
 					this.setCaption($("pdfTronViewer.hideAnnotation"));
@@ -380,6 +381,11 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 	private void setWebViewerReadEditable() {
 		com.vaadin.ui.JavaScript.eval("setWebViewerReadOnly(false)");
+		disableAnnotationSignatureTool();
+	}
+
+	private void disableAnnotationSignatureTool() {
+		com.vaadin.ui.JavaScript.eval("disableAnnotationSignatureTool()");
 	}
 
 	private void setMessageIfAnOtherUserOrAnOtherPageIsEditing(boolean showNotification) {
@@ -467,6 +473,10 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		toExecute.append("license='" + StringEscapeUtils.escapeJavaScript(pdfTronLicense) + "';");
 		toExecute.append("isReadOnly=" + isViewerInReadOnly + ";");
 		toExecute.append("language='" + getPdfTronLanguageCode() + "';");
+		toExecute.append("signatureCaption='" + $("pdfTronViewer.electronicSignature") + "';");
+		toExecute.append("signatureImage='" + pdfTronPresenter.getSignatureImageData() + "';");
+		toExecute.append("initialsCaption='" + $("pdfTronViewer.electronicInitials") + "';");
+		toExecute.append("initialsImage='" + pdfTronPresenter.getInitialsImageData() + "';");
 
 		if (searchTerm != null) {
 			toExecute.append("searchTerm='" + searchTerm + "';");

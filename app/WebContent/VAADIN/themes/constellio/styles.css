@@ -14529,6 +14529,10 @@ div.v-layout.v-horizontal.v-widget {
 	color: #6c2621;
 }
 
+.constellio .list-add-remove-table-sortable .v-table-table .v-table-row, .constellio .list-add-remove-table-sortable .v-table-table .v-table-row-odd, .constellio .metadata-groups .v-table-table .v-table-row, .constellio .metadata-groups .v-table-table .v-table-row-odd {
+	cursor: all-scroll;
+}
+
 .constellio .list-add-remove-error {
 	border-color: #ed473b !important;
 	background: #fffbfb;

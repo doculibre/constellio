@@ -79,7 +79,7 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 				.containsAll(Arrays.stream(RMRecordsMenuItemActionType.values())
 						.map(RMRecordsMenuItemActionType::name).collect(Collectors.toList()));
 
-		assertThat(actions).extracting("type", "state.status").containsExactly(
+		assertThat(actions).extracting("type", "state.status").isEqualTo(asList(
 				tuple("CONSULTATION_LINK", MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name(), MenuItemActionStateStatus.VISIBLE),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_MOVE.name(), MenuItemActionStateStatus.VISIBLE),
@@ -91,8 +91,12 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name(), MenuItemActionStateStatus.VISIBLE),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_DOWNLOAD_ZIP.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE.name(), MenuItemActionStateStatus.VISIBLE),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK.name(), MenuItemActionStateStatus.VISIBLE)
-		);
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CHECKIN.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE, MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH, MenuItemActionStateStatus.DISABLED)
+		));
 
 	}
 

@@ -69,6 +69,7 @@ import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtens
 import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.extensions.ui.RMConstellioUIExtention;
+import com.constellio.app.modules.rm.extensions.ui.RMDocumentPathCriterionExtension;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
@@ -79,6 +80,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.background.AlertDocumentBorrowingPeriodBackgroundAction;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -108,7 +110,10 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
+import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
 import static java.util.Arrays.asList;
+import static org.joda.time.Duration.standardHours;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration,
 		InstallableSystemModuleWithRecordMigrations {
@@ -254,10 +259,12 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo9_0_54());
 		scripts.add(new RMMigrationTo9_0_1_11());
 		scripts.add(new RMMigrationTo9_0_0_45());
+		scripts.add(new RMMigrationTo9_0_0_47());
 		scripts.add(new RMMigrationTo9_1_0_12());
 		scripts.add(new RMMigrationTo9_1_0_13());
 		scripts.add(new RMMigrationTo9_1_12());
 		scripts.add(new RMMigrationTo9_1_13());
+		scripts.add(new RMMigrationTo9_0_0_60_1());
 		scripts.add(new RMMigrationTo_9_2());
 		scripts.add(new RMMigrationTo9_1_1000());
 		//scripts.add(new RMMigrationTo9_0_666());
@@ -318,6 +325,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	public void start(final String collection, final AppLayerFactory appLayerFactory) {
 		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
+		AlertDocumentBorrowingPeriodBackgroundAction action = new AlertDocumentBorrowingPeriodBackgroundAction(appLayerFactory, collection);
+		appLayerFactory.getModelLayerFactory().getDataLayerFactory().getBackgroundThreadsManager()
+				.configure(repeatingAction("alertDocumentBorrowingPeriod", action)
+						.executedEvery(standardHours(2)).handlingExceptionWith(CONTINUE));
 
 	}
 
@@ -400,6 +411,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.xmlGeneratorExtensions.add(new RMXmlGeneratorExtension(collection, appLayerFactory));
 		extensions.pagesComponentsExtensions.add(new RMManageAuthorizationsPageExtension(collection, appLayerFactory));
 		extensions.sipExtensions.add(new RMSIPExtension(collection, appLayerFactory));
+		extensions.searchCriterionExtensions.add(new RMDocumentPathCriterionExtension(appLayerFactory, collection));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);

@@ -35,12 +35,14 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentConversionManager;
@@ -63,6 +65,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
@@ -310,6 +313,37 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		}
 	}
 
+	public void unshareDocumentButtonClicked(Map<String, String> params) {
+
+		Authorization authorization = rmSchemasRecordsServices.getSolrAuthorizationDetails(getCurrentUser(), documentVO.getId());
+		try {
+			rmSchemasRecordsServices.getModelLayerFactory()
+					.newAuthorizationsServices().execute(toAuthorizationModificationRequest(authorization, documentVO.getId()));
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+			actionsComponent.showMessage(MessageUtils.toMessage(e));
+			return;
+		}
+		actionsComponent.navigate().to().recordsManagement();
+	}
+
+	private AuthorizationModificationRequest toAuthorizationModificationRequest(Authorization authorization,
+																				String recordId) {
+		String authId = authorization.getId();
+
+		AuthorizationModificationRequest request = modifyAuthorizationOnRecord(authId, currentUser.getCollection(), recordId);
+		request = request.withNewAccessAndRoles(authorization.getRoles());
+		request = request.withNewStartDate(authorization.getStartDate());
+		request = request.withNewEndDate(authorization.getEndDate());
+
+		List<String> principals = new ArrayList<>();
+		principals.addAll(authorization.getPrincipals());
+		request = request.withNewPrincipalIds(principals);
+		request = request.setExecutedBy(getCurrentUser());
+
+		return request;
+
+	}
+
 	public void linkToDocumentButtonClicked() {
 		// TODO ZeroClipboardComponent
 		actionsComponent.showMessage("Clipboard integration TODO!");
@@ -362,6 +396,15 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return ComponentState.visibleIf(isShareDocumentPossible());
 	}
 
+	private ComponentState getUnshareDocumentState() {
+		return ComponentState.visibleIf(isShareDocumentPossible() && isSharedDocument());
+	}
+
+	public boolean isSharedDocument() {
+		Authorization authorization = rmSchemasRecordsServices.getSolrAuthorizationDetails(getCurrentUser(), documentVO.getId());
+		return authorization != null && authorization.isActiveAuthorization();
+	}
+
 	protected boolean isShareDocumentPossible() {
 		FolderStatus archivisticStatus = rmSchemasRecordsServices.wrapDocument(currentDocument()).getArchivisticStatus();
 
@@ -402,6 +445,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			actionsComponent.navigate().to().shareContent(documentVO.getId());
 			updateSearchResultClicked();
 		}
+	}
+
+	public void unshareDocumentButtonClicked() {
+		actionsComponent.navigate().to().unshareContent(documentVO.getId());
+		updateSearchResultClicked();
 	}
 
 	public void updateWindowClosed() {
@@ -769,6 +817,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			actionsComponent.setViewAuthorizationButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setCreatePDFAButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setShareDocumentButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setUnshareDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setUploadButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setCheckInButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setCheckOutButtonState(ComponentState.INVISIBLE);
@@ -790,6 +839,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		actionsComponent.setViewAuthorizationButtonState(getViewAuthorizationState());
 		actionsComponent.setCreatePDFAButtonState(getCreatePDFAState());
 		actionsComponent.setShareDocumentButtonState(getShareDocumentState());
+		actionsComponent.setUnshareDocumentButtonState(getUnshareDocumentState());
 		actionsComponent.setUploadButtonState(getUploadButtonState());
 		actionsComponent.setCheckInButtonState(getCheckInState());
 		actionsComponent.setCheckOutButtonState(getCheckOutState());

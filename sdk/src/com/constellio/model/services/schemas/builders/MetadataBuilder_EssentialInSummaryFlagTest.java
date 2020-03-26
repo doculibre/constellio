@@ -88,7 +88,14 @@ public class MetadataBuilder_EssentialInSummaryFlagTest extends MetadataBuilderT
 	}
 
 	@Test(expected = MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled.class)
-	public void givenEssentialInSummaryFlagAndDisabledThenException()
+	public void givenEssentialSystemInSummaryFlagAndDisabledThenException()
+			throws Exception {
+		metadataWithoutInheritanceBuilder.setType(STRING).setEssentialInSummary(true).setEnabled(false);
+
+		build();
+	}
+
+	public void givenUSREssentialInSummaryFlagAndDisabledThenNoException()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING).setEssentialInSummary(true).setEnabled(false);
 

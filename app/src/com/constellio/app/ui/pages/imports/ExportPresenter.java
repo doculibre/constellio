@@ -19,6 +19,7 @@ import com.constellio.app.services.importExport.systemStateExport.SystemStateExp
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.io.services.zip.ZipService;
@@ -37,7 +38,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -426,10 +426,12 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		return new PartialSystemStateExporter(appLayerFactory);
 	}
 
+	//todo: Could be rewritten so it would be reusable for both SDKPAnel and ExportPresenter, modelLayerFactory and view
+	//	are the two differences that are obstructing this modification
 	public void exportLogs() {
 		ZipService zipService = modelLayerFactory.getIOServicesFactory().newZipService();
 
-		String filename = "logs-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+		String filename = "logs-" + new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date()) + ".zip";
 		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
 				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File zipFile = new File(folder, filename);

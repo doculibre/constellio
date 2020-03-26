@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_AUTHORIZATION;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TASK;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TO_CART;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_AVAILABLE_ALERT;
@@ -43,6 +44,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_REMOVE_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RETURN_REMAINDER;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNPUBLISH;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNSHARE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UPLOAD;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
@@ -276,10 +278,19 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
+		if (!filteredActionTypes.contains(DOCUMENT_UNSHARE.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_UNSHARE.name(),
+					isMenuItemActionPossible(DOCUMENT_UNSHARE.name(), document, user, params),
+					$("DocumentContextMenu.unshareDocument"), FontAwesome.REPLY, -1, 2200,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).unshare(document, params));
+
+			menuItemActions.add(menuItemAction);
+		}
+
 		if (!filteredActionTypes.contains(DOCUMENT_MANAGE_AUTHORIZATIONS.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_MANAGE_AUTHORIZATIONS.name(),
 					isMenuItemActionPossible(DOCUMENT_MANAGE_AUTHORIZATIONS.name(), document, user, params),
-					$("DocumentContextMenu.manageAuthorizations"), FontAwesome.KEY, -1, 2100,
+					$("DocumentContextMenu.manageAuthorizations"), FontAwesome.KEY, -1, 2300,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).manageAuthorizations(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -288,8 +299,17 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_GENERATE_REPORT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_GENERATE_REPORT.name(),
 					isMenuItemActionPossible(DOCUMENT_GENERATE_REPORT.name(), document, user, params),
-					$("DocumentContextMenu.ReportGeneratorButton"), FontAwesome.LIST_ALT, -1, 2200,
+					$("DocumentContextMenu.ReportGeneratorButton"), FontAwesome.LIST_ALT, -1, 2400,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).reportGeneratorButton(document, params));
+
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!filteredActionTypes.contains(DOCUMENT_ADD_TASK.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_TASK.name(),
+					isMenuItemActionPossible(DOCUMENT_ADD_TASK.name(), document, user, params),
+					$("DocumentContextMenu.createTask"), FontAwesome.TASKS, -1, 2300,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).createTask(document, params));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -355,10 +375,14 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.isAvailableAlertActionPossible(record, user);
 			case DOCUMENT_ADD_AUTHORIZATION:
 				return documentRecordActionsServices.isAddAuthorizationActionPossible(record, user);
+			case DOCUMENT_UNSHARE:
+				return documentRecordActionsServices.isUnshareActionPossible(record, user);
 			case DOCUMENT_MANAGE_AUTHORIZATIONS:
 				return documentRecordActionsServices.isManageAuthorizationActionPossible(record, user);
 			case DOCUMENT_GENERATE_REPORT:
 				return documentRecordActionsServices.isGenerateReportActionPossible(record, user);
+			case DOCUMENT_ADD_TASK:
+				return documentRecordActionsServices.isCreateTaskActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -378,7 +402,7 @@ public class DocumentMenuItemServices {
 				.build();
 	}
 
-	public static enum DocumentMenuItemActionType {
+	public enum DocumentMenuItemActionType {
 		DOCUMENT_DISPLAY,
 		DOCUMENT_OPEN,
 		DOCUMENT_EDIT,
@@ -402,8 +426,10 @@ public class DocumentMenuItemServices {
 		DOCUMENT_CHECK_IN,
 		DOCUMENT_AVAILABLE_ALERT,
 		DOCUMENT_ADD_AUTHORIZATION,
+		DOCUMENT_UNSHARE,
 		DOCUMENT_MANAGE_AUTHORIZATIONS,
 		DOCUMENT_GENERATE_REPORT,
-		DOCUMENT_RETURN_REMAINDER
+		DOCUMENT_RETURN_REMAINDER,
+		DOCUMENT_ADD_TASK;
 	}
 }

@@ -1314,42 +1314,10 @@ public class SearchServices {
 
 			}
 		}
-		if (query.getFreeTextQuery() != null) {
-			User user = null;
-			if (query.getUserFilters() != null && query.getUserFilters().size() > 0) {
-				user = query.getUserFilters().get(0).getUser();
-			}
-			String qf = getQfFor(ctx.getLanguages(), query.getLanguage(), query.getFieldBoosts(), ctx.getSearchedSchemaTypes(), user);
-			params.add(DisMaxParams.QF, qf);
-			params.add(DisMaxParams.PF, qf);
-			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
-				int mm = calcMM(query.getFreeTextQuery());
-				params.add(DisMaxParams.MM, "" + mm);
-				if (systemConfigs.isRunningWithSolr6()) {
-					params.add(DisMaxParams.MM, "1");
-					params.add("q.op", "AND");
-				}
-			} else {
-				params.add(DisMaxParams.MM, "1");
-				if (systemConfigs.isRunningWithSolr6()) {
-					params.add("q.op", "OR");
-				}
-			}
 
-			if (systemConfigs.isAlwaysSearchUsingEDismax() || isFreeTextRequiringEDismax(query)) {
-				params.add("defType", "edismax");
-			} else {
-				params.add("defType", "dismax");
-			}
-
-			if (systemConfigs.isSearchUsingTermsInBQ()) {
-				params.add(DisMaxParams.BQ, "\"" + query.getFreeTextQuery() + "\"");
-			}
-
-			for (SearchBoost boost : query.getQueryBoosts()) {
-				params.add(DisMaxParams.BQ, boost.getKey() + "^" + boost.getValue());
-			}
-		}
+		addParamsForFreeTextSearch(params, query.getFreeTextQuery(), query.getUserFilters(),
+				ctx.getLanguages(), query.getLanguage(), mainDataLanguage,
+				query.getFieldBoosts(), query.getQueryBoosts(), ctx.getSearchedSchemaTypes(), systemConfigs);
 
 		if (query.getUserFilters() != null) {
 			for (UserFilter userFilter : query.getUserFilters()) {
@@ -1403,7 +1371,7 @@ public class SearchServices {
 		//			params.set(CommonParams.FL, "id");
 		//
 		//		} else
-		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().getAcceptedFields() != null) {
+		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().getAcceptedFields() != null && !query.getReturnedMetadatas().getAcceptedFields().isEmpty()) {
 			List<String> fields = new ArrayList<>();
 			fields.add("id");
 			fields.add("schema_s");
@@ -1429,18 +1397,7 @@ public class SearchServices {
 		}
 
 		if (query.isHighlighting() && ctx.getTypes() != null) {
-			HashSet<String> highligthedMetadatas = new HashSet<>();
-			for (Metadata metadata : ctx.getTypes().getSearchableMetadatas()) {
-				for (String language : ctx.getLanguages()) {
-					highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
-				}
-			}
-
-			params.add(HighlightParams.HIGHLIGHT, "true");
-			params.add(HighlightParams.FIELDS, StringUtils.join(highligthedMetadatas, " "));
-			params.add(HighlightParams.SNIPPETS, "1");
-			params.add(HighlightParams.FRAGSIZE, "140");
-			params.add(HighlightParams.MERGE_CONTIGUOUS_FRAGMENTS, "true");
+			addParamsForHighlight(params, ctx.getTypes().getSearchableMetadatas(), ctx.getLanguages());
 		}
 
 		if (query.isSpellcheck()) {
@@ -1524,13 +1481,72 @@ public class SearchServices {
 		return params;
 	}
 
-	private boolean isFreeTextRequiringEDismax(LogicalSearchQuery query) {
+	public static void addParamsForFreeTextSearch(ModifiableSolrParams params, String freeTextQuery,
+												  List<UserFilter> userFilters,
+												  List<String> languages, String queryLanguage, String mainDataLanguage,
+												  List<SearchBoost> fieldBoosts, List<SearchBoost> queryBoosts,
+												  List<MetadataSchemaType> searchedSchemaTypes,
+												  ConstellioEIMConfigs systemConfigs) {
+		if (freeTextQuery != null) {
+			User user = null;
+			if (userFilters != null && userFilters.size() > 0) {
+				user = userFilters.get(0).getUser();
+			}
+			String qf = getQfFor(languages, queryLanguage, mainDataLanguage, fieldBoosts, searchedSchemaTypes, user).trim();
+			params.add(DisMaxParams.QF, qf);
+			params.add(DisMaxParams.PF, qf);
+			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
+				int mm = calcMM(freeTextQuery);
+				params.add(DisMaxParams.MM, "" + mm);
+				if (systemConfigs.isRunningWithSolr6()) {
+					params.add(DisMaxParams.MM, "1");
+					params.add("q.op", "AND");
+				}
+			} else {
+				params.add(DisMaxParams.MM, "1");
+				if (systemConfigs.isRunningWithSolr6()) {
+					params.add("q.op", "OR");
+				}
+			}
 
-		if (query.getFreeTextQuery() == null) {
+			if (systemConfigs.isAlwaysSearchUsingEDismax() || isFreeTextRequiringEDismax(freeTextQuery)) {
+				params.add("defType", "edismax");
+			} else {
+				params.add("defType", "dismax");
+			}
+
+			if (systemConfigs.isSearchUsingTermsInBQ()) {
+				params.add(DisMaxParams.BQ, "\"" + freeTextQuery + "\"");
+			}
+
+			for (SearchBoost boost : queryBoosts) {
+				params.add(DisMaxParams.BQ, boost.getKey() + "^" + boost.getValue());
+			}
+		}
+	}
+
+	public static void addParamsForHighlight(ModifiableSolrParams params, List<Metadata> searchableMetadatas,
+											 List<String> languages) {
+		HashSet<String> highligthedMetadatas = new HashSet<>();
+		for (Metadata metadata : searchableMetadatas) {
+			for (String language : languages) {
+				highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
+			}
+		}
+
+		params.add(HighlightParams.HIGHLIGHT, "true");
+		params.add(HighlightParams.FIELDS, StringUtils.join(highligthedMetadatas, " "));
+		params.add(HighlightParams.SNIPPETS, "1");
+		params.add(HighlightParams.FRAGSIZE, "140");
+		params.add(HighlightParams.MERGE_CONTIGUOUS_FRAGMENTS, "true");
+	}
+
+	public static boolean isFreeTextRequiringEDismax(String freeTextQuery) {
+		if (freeTextQuery == null) {
 			return false;
 
 		} else {
-			String freeText = query.getFreeTextQuery().toLowerCase();
+			String freeText = freeTextQuery.toLowerCase();
 			return freeText.contains("?") || freeText.contains("*") || freeText.contains("(")
 				   || freeText.contains(")") || freeText.contains("and") || freeText.contains("or")
 				   || freeText.contains("not");
@@ -1637,7 +1653,7 @@ public class SearchServices {
 	 * @param userQuery
 	 * @return
 	 */
-	private int calcMM(String userQuery) {
+	static public int calcMM(String userQuery) {
 		HashSet queryTerms = new HashSet(asList(StringUtils.split(StringUtils.lowerCase(userQuery))));
 		queryTerms.removeAll(asList(STOP_WORDS_FR));
 		return queryTerms.size();
@@ -1645,6 +1661,12 @@ public class SearchServices {
 
 	String getQfFor(List<String> languages, String queryLanguage, List<SearchBoost> boosts,
 					List<MetadataSchemaType> searchedSchemaTypes, User user) {
+		return getQfFor(languages, queryLanguage, mainDataLanguage, boosts, searchedSchemaTypes, user);
+	}
+
+	public static String getQfFor(List<String> languages, String queryLanguage, String mainDataLanguage,
+								  List<SearchBoost> boosts,
+								  List<MetadataSchemaType> searchedSchemaTypes, User user) {
 		StringBuilder sb = new StringBuilder();
 
 		Set<String> fields = new HashSet<>();

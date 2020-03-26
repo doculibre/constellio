@@ -36,6 +36,7 @@ import com.constellio.model.services.records.RecordImplRuntimeException.RecordIm
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import com.constellio.model.utils.StringNormalizer;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -703,7 +704,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public String getId() {
-		if (cachedStringId == null) {
+		if (cachedStringId == null && getRecordId() != null) {
 			cachedStringId = getRecordId().stringValue();
 		}
 		return cachedStringId;
@@ -842,7 +843,7 @@ public class RecordImpl implements Record {
 		fields.remove("_version_");
 		fields.put("schema_s", schemaCode);
 		fields.put("collection_s", collection);
-		if (getRecordId().isInteger() || !schema.getSchemaType().getCode().equals(Event.SCHEMA_TYPE)) {
+		if (getRecordId() != null && getRecordId().isInteger() || schema.getSchemaType() != null && !schema.getSchemaType().getCode().equals(Event.SCHEMA_TYPE)) {
 			fields.put("estimatedSize_i", RecordUtils.estimateRecordSize(fields, copyfields));
 
 		} else {
@@ -1129,6 +1130,8 @@ public class RecordImpl implements Record {
 			return ((Number) value).doubleValue();
 		} else if (value instanceof EnumWithSmallCode) {
 			return ((EnumWithSmallCode) value).getCode();
+		} else if (value instanceof String) {
+			return StringNormalizer.normalize((String) value);
 		}
 		return value;
 	}

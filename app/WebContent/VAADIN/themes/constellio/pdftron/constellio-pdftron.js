@@ -8,6 +8,14 @@ const FitWidth = "FitWidth";
     return window.webViewerInstance && true;
 })
 
+(window.isSignatureAnnotation = function(subject) {
+    return subject.localeCompare("ConstellioSignature") == 0 || subject.localeCompare("ConstellioInitials") == 0;
+});
+
+(window.isEmpty = function(data) {
+    return data.localeCompare("") == 0;
+});
+
 (window.setWebViewerReadOnly = function(isReadOnly) {
     if(isWebViewerInstanceSet()) {
         window.webViewerInstance.setReadOnly(isReadOnly);
@@ -15,15 +23,27 @@ const FitWidth = "FitWidth";
     }
 });
 
+(window.disableAnnotationSignatureTool = function() {
+    if(isWebViewerInstanceSet()) {
+        window.webViewerInstance.disableTools(['AnnotationCreateSignature']);
+    }
+});
+
 (window.setEnableAnnotations = function(enableAnnotations) {
     if(isWebViewerInstanceSet()) {
-        if(enableAnnotations) {
-               window.webViewerInstance.enableAnnotations();
-               annotationEnabled=true;
-        } else {
-            window.webViewerInstance.disableAnnotations();
-            annotationEnabled=false;
+        const {docViewer} = window.webViewerInstance;
+        const annotManager = docViewer.getAnnotationManager();
+        var annotations = annotManager.getAnnotationsList();
+
+        for (var i = 0; i < annotations.length; i++) {
+            if (enableAnnotations || isSignatureAnnotation(annotations[i].Subject)) {
+                annotManager.showAnnotation(annotations[i]);
+            } else {
+                annotManager.hideAnnotation(annotations[i]);
+            }
         }
+
+        annotationEnabled = enableAnnotations;
     }
 });
 
@@ -105,6 +125,110 @@ const FitWidth = "FitWidth";
     });
 });
 
+(window.createConstellioSignatureTool = function(instance, signatureCaption, signatureImage) {
+    const { Annotations, Tools, annotManager, docViewer } = instance;
+
+    // Create custom annotation
+    const ConstellioSignatureAnnotation = function() {
+        Annotations.StampAnnotation.call(this);
+        this.Subject = 'ConstellioSignature';
+        this.ImageData  = signatureImage;
+    };
+
+    ConstellioSignatureAnnotation.prototype = new Annotations.StampAnnotation();
+    ConstellioSignatureAnnotation.prototype.elementName = 'stamp';
+
+
+    // Create custom tool
+    const ConstellioSignatureCreateTool = function(docViewer) {
+        Tools.GenericAnnotationCreateTool.call(this, docViewer, ConstellioSignatureAnnotation);
+    };
+
+    ConstellioSignatureCreateTool.prototype = new Tools.GenericAnnotationCreateTool();
+
+
+    // Register custom tool
+    const constellioSignatureToolName = 'AnnotationCreateConstellioSignature';
+
+    //annotManager.registerAnnotationType(ConstellioSignatureAnnotation.prototype.elementName, ConstellioSignatureAnnotation);
+
+    const constellioSignatureTool = new ConstellioSignatureCreateTool(docViewer);
+    instance.registerTool({
+        toolName: constellioSignatureToolName,
+        toolObject: constellioSignatureTool,
+        buttonImage: '/constellio/VAADIN/themes/constellio/pdftron/lib/ui/assets/hand-outline-gesture.png',
+        buttonName: 'constellioSignatureButton',
+        tooltip: signatureCaption
+    }, ConstellioSignatureAnnotation);
+
+    instance.setHeaderItems(header => {
+        const constellioSignatureButton = {
+            type: 'toolButton',
+            toolName: constellioSignatureToolName
+        };
+        if (!isEmpty(signatureImage)) {
+            header.get('freeHandToolGroupButton').insertBefore(constellioSignatureButton);
+        }
+    });
+
+    docViewer.on('documentLoaded', () => {
+        // set the tool mode to our tool so that we can start using it right away
+        instance.setToolMode(constellioSignatureToolName);
+    });
+});
+
+(window.createConstellioInitialsTool = function(instance, initialsCaption, initialsImage) {
+    const { Annotations, Tools, annotManager, docViewer } = instance;
+
+    // Create custom annotation
+    const ConstellioInitialsAnnotation = function() {
+        Annotations.StampAnnotation.call(this);
+        this.Subject = "ConstellioInitials";
+        this.ImageData  = initialsImage;
+    };
+
+    ConstellioInitialsAnnotation.prototype = new Annotations.StampAnnotation();
+    ConstellioInitialsAnnotation.prototype.elementName = 'stamp';
+
+
+    // Create custom tool
+    const ConstellioInitialsCreateTool = function(docViewer) {
+        Tools.GenericAnnotationCreateTool.call(this, docViewer, ConstellioInitialsAnnotation);
+    };
+
+    ConstellioInitialsCreateTool.prototype = new Tools.GenericAnnotationCreateTool();
+
+
+    // Register custom tool
+    const constellioInitialsToolName = 'AnnotationCreateConstellioInitials';
+
+    //annotManager.registerAnnotationType(ConstellioInitialsAnnotation.prototype.elementName, ConstellioInitialsAnnotation);
+
+    const constellioInitialsTool = new ConstellioInitialsCreateTool(docViewer);
+    instance.registerTool({
+        toolName: constellioInitialsToolName,
+        toolObject: constellioInitialsTool,
+        buttonImage: '/constellio/VAADIN/themes/constellio/pdftron/lib/ui/assets/ic_annotation_signature_black_24px.svg',
+        buttonName: 'constellioInitialsButton',
+        tooltip: initialsCaption
+    }, ConstellioInitialsAnnotation);
+
+    instance.setHeaderItems(header => {
+        const constellioInitialsButton = {
+            type: 'toolButton',
+            toolName: constellioInitialsToolName
+        };
+        if (!isEmpty(initialsImage)) {
+            header.get('freeHandToolGroupButton').insertBefore(constellioInitialsButton);
+        }
+    });
+
+    docViewer.on('documentLoaded', () => {
+        // set the tool mode to our tool so that we can start using it right away
+        instance.setToolMode(constellioInitialsToolName);
+    });
+});
+
 $(() => {
     let mapParams;
 
@@ -121,19 +245,20 @@ $(() => {
         }
     }
 
-    WebViewer(mapParams,
-        document.getElementById(canvasId)).then(instance => {
+    WebViewer(mapParams, document.getElementById(canvasId)).then(instance => {
+        window.webViewerInstance = instance;
 
-            window.webViewerInstance = instance;
+        instance.setAnnotationUser(name);
+        instance.setAdminUser(admin);
+        instance.setReadOnly(isReadOnly);
+        instance.setLanguage(language);
+        annotationEnabled=true;
+        isViewerReadOnly = isReadOnly;
 
-            instance.setAnnotationUser(name);
-            instance.setAdminUser(admin);
-            instance.setReadOnly(isReadOnly);
-            instance.setLanguage(language);
-            annotationEnabled=true;
-            isViewerReadOnly = isReadOnly;
+        registerAnnotationChanged(instance);
+        registerAnnotationLoaded(instance);
 
-            registerAnnotationChanged(instance);
-            registerAnnotationLoaded(instance);
-        });
+        createConstellioSignatureTool(instance, signatureCaption, signatureImage);
+        createConstellioInitialsTool(instance, initialsCaption, initialsImage);
+    });
 })

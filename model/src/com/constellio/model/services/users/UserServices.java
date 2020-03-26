@@ -302,6 +302,22 @@ public class UserServices {
 				schemaTypes(collection), rolesManager.getCollectionRoles(collection, modelLayerFactory));
 	}
 
+
+	public UserCredential getUserByAzureUsername(String azureUsername) {
+
+		UserCredential credential = userCredentialsManager.getAzureUserCredential(azureUsername);
+		if (credential == null) {
+			throw new UserServicesRuntimeException_NoSuchUser(azureUsername);
+		}
+		return credential;
+	}
+
+	public void updateAzureUsername(UserCredential userCredential, String azureUser) {
+		userCredential.setAzureUsername(azureUser);
+		userCredentialsManager.addUpdate(userCredential);
+	}
+
+
 	public GlobalGroup getGroup(String groupCode) {
 		GlobalGroup group = globalGroupsManager.getGlobalGroupWithCode(groupCode);
 		if (group == null) {
@@ -1214,4 +1230,5 @@ public class UserServices {
 
 		return groups;
 	}
+
 }

@@ -1,5 +1,6 @@
 package com.constellio.app.ui.application;
 
+import com.constellio.app.api.HttpServletRequestAuthenticator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -7,8 +8,11 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.UserServices;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -26,6 +30,8 @@ public class DownloadServlet extends HttpServlet {
 
 		String documentId = req.getParameter("id");
 
+		UserCredential user = authenticate(req);
+
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
@@ -37,7 +43,7 @@ public class DownloadServlet extends HttpServlet {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), appLayerFactory);
 		Document document = rm.wrapDocument(record);
 
-		if (document.isPublished() && document.getContent() != null) {
+		if (isUserReadAccess(user,document) || isDocumentAccessByPublish(document)) {
 			ContentVersion version = document.getContent().getLastMajorContentVersion();
 
 			if (version == null) {
@@ -56,6 +62,9 @@ public class DownloadServlet extends HttpServlet {
 				String headerValue = String.format("attachment; filename=\"%s\"", version.getFilename());
 				response.setHeader(headerKey, headerValue);
 
+				//CORS policy
+				response.setHeader("Access-Control-Allow-Origin", "*");
+
 				// obtains response's output stream
 				OutputStream outStream = response.getOutputStream();
 
@@ -71,5 +80,37 @@ public class DownloadServlet extends HttpServlet {
 				ioServices.closeQuietly(inputStream);
 			}
 		}
+	}
+
+	private boolean isDocumentAccessByPublish(Document document) {
+		return document.isPublished() && document.isActiveAuthorization() && document.getContent() != null;
+	}
+
+	private boolean isUserReadAccess(UserCredential user, Document document){
+		if(user !=null){
+			User userRecord = getUserService().getUserInCollection(user.getUsername(),document.getCollection());
+			return userRecord.hasReadAccess().on(document);
+		}
+		else{
+			return false;
+		}
+	}
+
+	public UserCredential authenticate(HttpServletRequest request) {
+		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
+		UserCredential user = authenticator.authenticate(request);
+
+		return user;
+	}
+
+	private synchronized ConstellioFactories getConstellioFactories() {
+		return ConstellioFactories.getInstance();
+	}
+	private UserServices getUserService(){
+		return new UserServices(modelLayerFactory());
+	}
+
+	private ModelLayerFactory modelLayerFactory() {
+		return getConstellioFactories().getModelLayerFactory();
 	}
 }

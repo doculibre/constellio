@@ -28,6 +28,8 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class UpdateContentVersionPresenter implements Serializable {
 
 	private static final String STREAM_NAME = "UpdateContentVersionPresenter-InputStream";
@@ -45,6 +47,8 @@ public class UpdateContentVersionPresenter implements Serializable {
 	ConstellioFactories constellioFactories;
 
 	SessionContext sessionContext;
+
+	private int successCount;
 
 	public UpdateContentVersionPresenter(UpdateContentVersionWindow window, Map<RecordVO, MetadataVO> records) {
 		this.window = window;
@@ -127,6 +131,7 @@ public class UpdateContentVersionPresenter implements Serializable {
 	}
 
 	public void contentVersionSaved(ContentVersionVO newVersionVO, Boolean majorVersion) {
+		successCount = 0;
 		Iterator<RecordVO> iterator = records.keySet().iterator();
 		RecordUpdateOptions updateOptions = new RecordUpdateOptions();
 		while (iterator.hasNext()) {
@@ -232,12 +237,15 @@ public class UpdateContentVersionPresenter implements Serializable {
 					if (inputStreamProvider != null) {
 						inputStreamProvider.deleteTemp();
 					}
+					successCount++;
 				} catch (Exception e) {
 					LOGGER.error(e.getMessage(), e);
 					window.showErrorMessage("UpdateContentVersionWindow.errorWhileUploading");
 				}
 			}
 		}
+
+		window.showMessage($("DocumentActionsComponent.checkedInDocuments", successCount, records.size()));
 	}
 
 	private boolean wasMajorVersion(Content content) {

@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
 import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
+import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -18,6 +19,8 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 	void setFolderContent(RecordVODataProvider dataProvider);
 
 	void setTasks(RecordVODataProvider dataProvider);
+
+	void selectSharesTab();
 
 	void selectMetadataTab();
 
@@ -67,4 +70,5 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	RecordVO getReturnRecordVO();
 
+	void removeAuthorization(AuthorizationVO authorizationVO);
 }
