@@ -14,22 +14,22 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CoreMigrationTo_9_0_3_11 implements MigrationScript {
+public class CoreMigrationTo_9_0_2_11 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.0.3.11";
+		return "9.0.2.11";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
-		new CoreMigrationTo_9_0_3_11.SchemaAlterationFor9_0_3_11(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new CoreMigrationTo_9_0_2_11.SchemaAlterationFor9_0_2_11(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	class SchemaAlterationFor9_0_3_11 extends MetadataSchemasAlterationHelper {
+	class SchemaAlterationFor9_0_2_11 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor9_0_3_11(String collection, MigrationResourcesProvider migrationResourcesProvider,
+		protected SchemaAlterationFor9_0_2_11(String collection, MigrationResourcesProvider migrationResourcesProvider,
 											  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
