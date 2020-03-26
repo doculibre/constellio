@@ -203,6 +203,12 @@ public class FolderMenuItemServices {
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).navigateToRecordTriggerManager(folder, params)));
 		}
 
+		if (!filteredActionTypes.contains(FOLDER_LIST_EXTERNAL_LINKS.name())) {
+			menuItemActions.add(buildMenuItemAction(FOLDER_LIST_EXTERNAL_LINKS.name(),
+					isMenuItemActionPossible(FOLDER_LIST_EXTERNAL_LINKS.name(), folder, user, params),
+					$("DisplayFolderView.externalLink"), FontAwesome.CLOUD, -1, 2000,
+					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).listExternalLinks(folder, params)));
+		}
 
 
 		if (!filteredActionTypes.contains(FOLDER_LIST_EXTERNAL_LINKS.name())) {
@@ -307,7 +313,8 @@ public class FolderMenuItemServices {
 		FOLDER_ADD_TO_SELECTION,
 		FOLDER_REMOVE_FROM_SELECTION,
 		FOLDER_LIST_EXTERNAL_LINKS,
-		FOLDER_TRIGGER_MANAGEMENT;
+		FOLDER_TRIGGER_MANAGEMENT,
+		FOLDER_LIST_EXTERNAL_LINKS
 	}
 
 }

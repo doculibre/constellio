@@ -217,7 +217,6 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(LIST_BORROWINGS, ListBorrowingsViewImpl.class);
 		service.register(RECORD_TRIGGER_MANAGER, RecordTriggerManagerViewImpl.class);
 		service.register(ADD_EDIT_TRIGGER_TO_RECORD, AddEditTriggerViewImpl.class);
-
 		service.register(LIST_EXTERNAL_LINKS, ListExternalLinksViewImpl.class);
 	}
 
