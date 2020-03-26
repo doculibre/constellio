@@ -327,7 +327,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 				throw new RuntimeException(optimisticLockingConfiguration);
 			}
 
-
+			ConstellioEIM.start(this);
 			collectionsManager.initializeCollectionsAndGetInvalidModules();
 			getModulesManager().enableComplementaryModules();
 		} catch (ConstellioModulesManagerException_ModuleInstallationFailed e) {

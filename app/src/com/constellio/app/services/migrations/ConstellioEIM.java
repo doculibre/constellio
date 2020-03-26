@@ -1,5 +1,6 @@
 package com.constellio.app.services.migrations;
 
+import com.constellio.app.api.search.CachedSearchWebService;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
 import com.constellio.app.services.extensions.AppRecordExtension;
@@ -90,6 +91,7 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_89;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_2;
+import com.constellio.app.start.ApplicationStarter;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -195,6 +197,10 @@ public class ConstellioEIM {
 
 	public List<SystemConfiguration> getConfigurations() {
 		return ConstellioEIMConfigs.configurations;
+	}
+
+	static public void start(AppLayerFactory appLayerFactory) {
+		ApplicationStarter.registerServlet("/cachedSelect", new CachedSearchWebService());
 	}
 
 	static public void start(AppLayerFactory appLayerFactory, String collection) {
