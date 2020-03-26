@@ -26,6 +26,7 @@ import com.constellio.model.services.pdftron.PdfTronXMLService;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserServices;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 
 import javax.xml.bind.DatatypeConverter;
@@ -35,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter {
 
 	private AppLayerFactory appLayerFactory;
@@ -176,7 +178,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 				sb.append(base64str);
 				return sb.toString();
 			} catch (IOException e) {
-				MessageUtils.toMessage(e);
+				log.warn(MessageUtils.toMessage(e));
 			} finally {
 				ioServices.closeQuietly(inputStream);
 			}

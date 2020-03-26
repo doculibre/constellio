@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
 import com.constellio.app.ui.framework.components.fields.SignatureRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.pages.profile.ModifyProfileView;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -21,6 +22,7 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.InvalidValueException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
+@Slf4j
 public class CoreUserProfileSignatureFieldsExtension extends PagesComponentsExtension {
 	String collection;
 	AppLayerFactory appLayerFactory;
@@ -116,6 +119,7 @@ public class CoreUserProfileSignatureFieldsExtension extends PagesComponentsExte
 			try {
 				validate();
 			} catch (InvalidValueException e) {
+				log.warn(MessageUtils.toMessage(e));
 				return null;
 			}
 
