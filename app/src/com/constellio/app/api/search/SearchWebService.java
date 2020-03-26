@@ -208,7 +208,7 @@ public class SearchWebService extends AbstractSearchServlet {
 		NamedList facetLabelsNL = new NamedList();
 		NamedList facetFieldsLabelsNL = new NamedList();
 
-		List<FacetField> facetFields = Objects.firstNonNull(queryResponse.getFacetFields(), Collections.emptyList());
+		List<FacetField> facetFields = Objects.firstNonNull(queryResponse.getFacetFields(), Collections.<FacetField>emptyList());
 		for (FacetField facetField : facetFields) {
 			Metadata facetMetadata = uniqueMetadatas.get(facetField.getName());
 			if (facetMetadata != null) {
