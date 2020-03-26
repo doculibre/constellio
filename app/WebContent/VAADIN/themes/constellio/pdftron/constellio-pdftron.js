@@ -100,8 +100,7 @@ const FitWidth = "FitWidth";
 
         var reader = new FileReader();
         var base64data;
-        //reader.readAsDataURL(blob);
-        reader.readAsText(blob);
+        reader.readAsDataURL(blob);
         reader.onloadend = function() {
             base64data = reader.result;
 
