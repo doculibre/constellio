@@ -1431,12 +1431,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			public LogicalSearchQuery getQuery() {
 				String userSearchExpression = filterSolrOperators(value);
 				if (!StringUtils.isBlank(value)) {
-					LogicalSearchQuery logicalSearchQuery;
-					if (includeTree) {
-						logicalSearchQuery = getFolderContentQuery(folderVO.getId(), true).setFreeTextQuery(userSearchExpression);
-					} else {
-						logicalSearchQuery = getFolderContentQuery(folderVO.getId(), false).setFreeTextQuery(userSearchExpression);
-					}
+					LogicalSearchQuery logicalSearchQuery = getFolderContentQuery(folderVO.getId(), includeTree).setFreeTextQuery(userSearchExpression);
 					if (!"*".equals(value)) {
 						logicalSearchQuery.setHighlighting(true);
 					}

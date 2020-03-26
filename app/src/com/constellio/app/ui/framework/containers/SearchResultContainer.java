@@ -13,9 +13,7 @@ import com.vaadin.data.util.AbstractProperty;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyContainer> implements RecordVOContainer {
 
@@ -91,11 +89,6 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 	@Override
 	public List<MetadataSchemaVO> getSchemas() {
 		return adapted.getSchemas();
-	}
-
-	@Override
-	public Map<String, List<String>> getHighlights(Object itemId) {
-		return new HashMap<>();
 	}
 
 }
