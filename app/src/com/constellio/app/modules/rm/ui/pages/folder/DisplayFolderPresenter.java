@@ -34,7 +34,6 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.AuthorizationVO;
@@ -63,7 +62,6 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.KeySetMap;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
@@ -104,9 +102,9 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.thesaurus.ThesaurusService;
-import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.utils.Lazy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
@@ -302,7 +300,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		folderContentDataProvider = new RecordVODataProvider(Arrays.asList(foldersSchemaVO, documentsSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				return getFolderContentQuery(folderVO.getId(), false);
+				return getFolderContentQuery(summaryFolderVO.getId(), false);
 			}
 
 			@Override
@@ -370,19 +368,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.filteredWithUser(getCurrentUser());
-		query.filteredByStatus(StatusFilter.ACTIVES);
-		query.sortAsc(Schemas.TITLE);
-		return query;
-	}
-
-	private LogicalSearchQuery getSubFoldersQuery() {
-		Record record = getRecord(folderVO.getId());
-		MetadataSchemaType foldersSchemaType = getFoldersSchemaType();
-		MetadataSchema foldersSchema = getFoldersSchema();
-		Metadata parentFolderMetadata = foldersSchema.getMetadata(Folder.PARENT_FOLDER);
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(from(foldersSchemaType).where(parentFolderMetadata).is(record));
 		query.filteredWithUser(getCurrentUser());
 		query.filteredByStatus(StatusFilter.ACTIVES);
 		query.sortAsc(Schemas.TITLE);
@@ -1145,7 +1130,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public List<FacetVO> getFacets(RecordVODataProvider dataProvider) {
 		//Call #1
 		if (dataProvider == null /* || dataProvider.getFieldFacetValues() == null */) {
-			return service.getFacets(getFolderContentQuery(folderVO.getId(), false), facetStatus, getCurrentLocale());
+			return service.getFacets(getFolderContentQuery(summaryFolderVO.getId(), false), facetStatus, getCurrentLocale());
 		} else {
 			return service.buildFacetVOs(dataProvider.getFieldFacetValues(), dataProvider.getQueryFacetsValues(),
 					facetStatus, getCurrentLocale());
@@ -1319,16 +1304,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				if (!StringUtils.isBlank(value)) {
 					LogicalSearchQuery logicalSearchQuery;
 					if (includeTree) {
-						logicalSearchQuery = getFolderContentQuery(folderVO.getId(), true).setFreeTextQuery(userSearchExpression);
+						logicalSearchQuery = getFolderContentQuery(summaryFolderVO.getId(), true).setFreeTextQuery(userSearchExpression);
 					} else {
-						logicalSearchQuery = getFolderContentQuery(folderVO.getId(), false).setFreeTextQuery(userSearchExpression);
+						logicalSearchQuery = getFolderContentQuery(summaryFolderVO.getId(), false).setFreeTextQuery(userSearchExpression);
 					}
 					if (!"*".equals(value)) {
 						logicalSearchQuery.setHighlighting(true);
 					}
 					return logicalSearchQuery;
 				} else {
-					return getFolderContentQuery(folderVO.getId(), false);
+					return getFolderContentQuery(summaryFolderVO.getId(), false);
 				}
 			}
 		};
@@ -1346,7 +1331,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		folderContentDataProvider = new RecordVODataProvider(Arrays.asList(foldersSchemaVO, documentsSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				return getFolderContentQuery(folderVO.getId(), false);
+				return getFolderContentQuery(summaryFolderVO.getId(), false);
 			}
 		};
 		view.setFolderContent(folderContentDataProvider);
