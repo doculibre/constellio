@@ -7,6 +7,7 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.SolrInputField;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.MultiMapSolrParams;
 import org.apache.solr.common.params.SolrParams;
@@ -226,7 +227,8 @@ public class SolrUtils {
 	}
 
 	public static TransactionResponseDTO createTransactionResponseDTO(UpdateResponse updateResponse) {
-		return new TransactionResponseDTO(SolrUtils.retrieveQTime(updateResponse), SolrUtils.retrieveNewDocumentVersions(updateResponse));
+		return new TransactionResponseDTO(SolrUtils.retrieveQTime(updateResponse), retrieveRf(updateResponse),
+				SolrUtils.retrieveNewDocumentVersions(updateResponse));
 	}
 
 	public static int retrieveQTime(UpdateResponse updateResponse) {
@@ -236,7 +238,16 @@ public class SolrUtils {
 		} else {
 			return 0;
 		}
+	}
 
+	public static int retrieveRf(UpdateResponse updateResponse) {
+		NamedList header = updateResponse.getResponseHeader();
+		if (header != null) {
+			Object rf = header.get("rf");
+			return rf != null ? ((Number) rf).intValue() : -1;
+		} else {
+			return -1;
+		}
 	}
 
 	public static Map<String, Long> retrieveNewDocumentVersions(UpdateResponse updateResponse) {
@@ -270,5 +281,13 @@ public class SolrUtils {
 		Map<String, Object> atomicValueMap = new HashMap<>();
 		atomicValueMap.put("set", newValue);
 		return atomicValueMap;
+	}
+
+	public static Map<String, SolrInputField> getFields(SolrInputDocument document) {
+		Map<String, SolrInputField> fieldsByName = new HashMap<>();
+		for (String name : document.getFieldNames()) {
+			fieldsByName.put(name, document.get(name));
+		}
+		return fieldsByName;
 	}
 }

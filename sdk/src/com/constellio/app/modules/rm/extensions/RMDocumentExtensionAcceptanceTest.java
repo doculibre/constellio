@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
@@ -106,6 +107,25 @@ public class RMDocumentExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.update(document);
 
 		assertThat(document.getFavorites()).containsOnly(firstCart.getId(), secondCart.getId());
+	}
+
+	@Test
+	public void givenCheckoutDocumentWithCheckoutAlertSentWhenCheckInDocumentThenCheckoutAlertIsSetToFalse()
+			throws RecordServicesException {
+		Document document = records.getDocumentWithContent_A19();
+		Content content = document.getContent();
+		content.checkOut(users.adminIn(zeCollection));
+		document.setContent(content);
+		document.setCheckoutAlertSent(true);
+
+		recordServices.add(document);
+		assertThat(document.isCheckoutAlertSent()).isTrue();
+
+		content.checkIn();
+		document.setContent(content);
+
+		recordServices.add(document);
+		assertThat(document.isCheckoutAlertSent()).isFalse();
 	}
 
 }

@@ -35,6 +35,7 @@ import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
 import com.constellio.app.ui.entities.FacetVO;
@@ -42,6 +43,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
 import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
@@ -64,6 +66,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
@@ -71,6 +74,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -94,6 +98,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.utils.Lazy;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -112,8 +117,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.contents.ContentFactory.isFilename;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -177,11 +186,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private RecordVO returnRecordVO;
 	private Integer returnIndex;
 
+	private AuthorizationsServices authorizationsServices;
+
 	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		super(view, Folder.DEFAULT_SCHEMA);
 		this.nestedView = nestedView;
 		this.inWindow = inWindow;
 		presenterUtilsForDocument = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
+		authorizationsServices = new AuthorizationsServices(appLayerFactory.getModelLayerFactory());
 		initTransientObjects();
 		if (recordVO != null) {
 			this.taxonomyCode = recordVO.getId();
@@ -222,6 +234,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	protected void setTaxonomyCode(String taxonomyCode) {
 		this.taxonomyCode = taxonomyCode;
+	}
+
+	public RecordVO getRecordVOForDisplay() {
+		return voBuilder.build(recordServices.realtimeGetRecordById(summaryFolderVO.getId()), VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	@Override
@@ -285,12 +301,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				return eimConfigs.isOnlySummaryMetadatasDisplayedInTables();
 			}
 		};
-		//		folderContentDataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory, view.getSessionContext()) {
-		//			@Override
-		//			public LogicalSearchQuery getQuery() {
-		//				return getFolderContentQuery();
-		//			}
-		//		};
 
 		tasksSchemaVO = schemaVOBuilder
 				.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
@@ -930,6 +940,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		};
 	}
 
+	void sharesTabSelected() {
+		view.selectSharesTab();
+	}
+
 	protected boolean hasCurrentUserPermissionToViewEvents() {
 		Folder folder = rmSchemasRecordsServices.getFolderSummary(summaryFolderVO.getId());
 		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(folder);
@@ -1205,5 +1219,66 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public FolderVO getLazyFullFolderVO() {
 		return lazyFullFolderVO.get();
+	}
+
+	public List<AuthorizationVO> getSharedAuthorizations() {
+		AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
+
+		List<AuthorizationVO> results = new ArrayList<>();
+		for (Authorization authorization : getAllAuthorizations()) {
+			if (isOwnAuthorization(authorization) && authorization.getSharedBy() != null &&
+				(isSharedByCurrentUser(authorization) || user.hasAny(RMPermissionsTo.MANAGE_SHARE, VIEW_FOLDER_AUTHORIZATIONS, MANAGE_FOLDER_AUTHORIZATIONS).on(summaryFolderVO.getRecord()))) {
+				results.add(builder.build(authorization));
+			}
+		}
+		return results;
+	}
+
+	protected boolean isOwnAuthorization(Authorization authorization) {
+		return authorization.getTarget().equals(getFolderId());
+	}
+
+	private boolean isSharedByCurrentUser(Authorization authorization) {
+		return getCurrentUser().getId().equals(authorization.getSharedBy());
+	}
+
+	private List<Authorization> getAllAuthorizations() {
+		Record record = presenterService().getRecord(getFolderId());
+		return authorizationsServices.getRecordAuthorizations(record);
+	}
+
+	private AuthorizationToVOBuilder newAuthorizationToVOBuilder() {
+		return new AuthorizationToVOBuilder(modelLayerFactory);
+	}
+
+	public void onAutorizationModified(AuthorizationVO authorizationVO) {
+		AuthorizationModificationRequest request = toAuthorizationModificationRequest(authorizationVO);
+		authorizationsServices.execute(request);
+		sharesTabSelected();
+	}
+
+	private AuthorizationModificationRequest toAuthorizationModificationRequest(AuthorizationVO authorizationVO) {
+		String authId = authorizationVO.getAuthId();
+
+		AuthorizationModificationRequest request = modifyAuthorizationOnRecord(authId, collection, getFolderId());
+		request = request.withNewAccessAndRoles(authorizationVO.getAccessRoles());
+		request = request.withNewStartDate(authorizationVO.getStartDate());
+		request = request.withNewEndDate(authorizationVO.getEndDate());
+
+		List<String> principals = new ArrayList<>();
+		principals.addAll(authorizationVO.getUsers());
+		principals.addAll(authorizationVO.getGroups());
+		request = request.withNewPrincipalIds(principals);
+		request = request.setExecutedBy(getCurrentUser());
+
+		return request;
+
+	}
+
+	public void deleteAutorizationButtonClicked(AuthorizationVO authorizationVO) {
+		Authorization authorization = authorizationsServices.getAuthorization(
+				view.getCollection(), authorizationVO.getAuthId());
+		authorizationsServices.execute(authorizationDeleteRequest(authorization).setExecutedBy(getCurrentUser()));
+		view.removeAuthorization(authorizationVO);
 	}
 }

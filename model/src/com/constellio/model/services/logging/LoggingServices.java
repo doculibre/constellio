@@ -21,7 +21,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.collections.CollectionUtils;
@@ -84,16 +83,18 @@ public class LoggingServices {
 		}
 	}
 
-	public void grantPermission(Authorization authorization, User user) {
+	public void grantPermission(Authorization authorization, User user, boolean isShared) {
 		Event event = eventFactory
-				.eventPermission(authorization, null, user, authorization.getTarget(), EventType.GRANT_PERMISSION);
+				.eventPermission(authorization, null, user, authorization.getTarget(),
+						isShared ? EventType.CREATE_SHARE : EventType.GRANT_PERMISSION);
 		executeTransaction(event);
 	}
 
 	public void modifyPermission(Authorization authorization, Authorization authorizationBefore, Record record,
-								 User user) {
+								 User user, boolean isShared) {
 		String recordId = record == null ? null : record.getId();
-		Event event = eventFactory.eventPermission(authorization, authorizationBefore, user, recordId, MODIFY_PERMISSION);
+		Event event = eventFactory.eventPermission(authorization, authorizationBefore, user, recordId,
+				isShared ? EventType.MODIFY_SHARE : MODIFY_PERMISSION);
 		executeTransaction(event);
 	}
 
@@ -274,7 +275,6 @@ public class LoggingServices {
 	}
 
 	public void logDeleteRecordWithJustification(Record record, User user, String reason) {
-		SchemaUtils schemaUtils = new SchemaUtils();
 		executeTransaction(eventFactory.newRecordEvent(record, user, EventType.DELETE, reason));
 	}
 

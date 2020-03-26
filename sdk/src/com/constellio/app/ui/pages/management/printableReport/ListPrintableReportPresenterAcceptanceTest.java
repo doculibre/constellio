@@ -120,7 +120,7 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			RecordVODataProvider folderRecordVODataProvider = presenter.getPrintableReportFolderDataProvider();
 			List<RecordVO> recordVOList = folderRecordVODataProvider.listRecordVOs(0, folderRecordVODataProvider.size());
 
-			RecordVO firstLabel = recordVOList.get(0);
+			RecordVO firstLabel = getRecordVOById(recordVOList, report1.getId());
 			assertThat(firstLabel.getTitle()).isEqualTo(titleForFolder1);
 			String hash = jasperFileContent.getCurrentVersion().getHash();
 			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
@@ -128,14 +128,14 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			assertThat(firstLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
 			assertThat(firstLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
 
-			RecordVO secondLabel = recordVOList.get(1);
+			RecordVO secondLabel = getRecordVOById(recordVOList, report2.getId());
 			assertThat(secondLabel.getTitle()).isEqualTo(titleForFolder2);
 			assertThat(((ContentVersionVO) secondLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
 			assertThat(secondLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
 			assertThat(secondLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
 
-			RecordVO thirdLabel = recordVOList.get(2);
+			RecordVO thirdLabel = getRecordVOById(recordVOList, report3.getId());
 			assertThat(thirdLabel.getTitle()).isEqualTo(titleForFolder3);
 			assertThat(((ContentVersionVO) thirdLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
@@ -200,7 +200,7 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			RecordVODataProvider documentDataProvider = presenter.getPrintableReportDocumentDataProvider();
 			List<RecordVO> recordVOList = documentDataProvider.listRecordVOs(0, documentDataProvider.size());
 
-			RecordVO firstLabel = recordVOList.get(0);
+			RecordVO firstLabel = getRecordVOById(recordVOList, report1.getId());
 			String hash = jasperFileContent.getCurrentVersion().getHash();
 			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
@@ -208,14 +208,14 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			assertThat(firstLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
 			assertThat(firstLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
 
-			RecordVO secondLabel = recordVOList.get(1);
+			RecordVO secondLabel = getRecordVOById(recordVOList, report2.getId());
 			assertThat(((ContentVersionVO) secondLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
 			assertThat(secondLabel.getTitle()).isEqualTo(titleForFolder2);
 			assertThat(secondLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
 			assertThat(secondLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
 
-			RecordVO thirdLabel = recordVOList.get(2);
+			RecordVO thirdLabel = getRecordVOById(recordVOList, report3.getId());
 			assertThat(((ContentVersionVO) thirdLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
 			assertThat(thirdLabel.getTitle()).isEqualTo(titleForFolder3);
@@ -224,7 +224,16 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 		} finally {
 			ioServices.closeQuietly(jasperInputStream);
 		}
+	}
 
+	private RecordVO getRecordVOById(List<RecordVO> recordVOS, String id) {
+		for (RecordVO recordVO : recordVOS) {
+			if (recordVO.getId().equals(id)) {
+				return recordVO;
+			}
+		}
+
+		throw new IllegalStateException("Test should only call this with existing id");
 	}
 
 	@Test
@@ -277,7 +286,7 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			RecordVODataProvider taskRecordVODataProvider = presenter.getPrintableReportTaskDataProvider();
 			List<RecordVO> recordVOList = taskRecordVODataProvider.listRecordVOs(0, taskRecordVODataProvider.size());
 
-			RecordVO firstLabel = recordVOList.get(0);
+			RecordVO firstLabel = getRecordVOById(recordVOList, report1.getId());
 			String hash = jasperFileContent.getCurrentVersion().getHash();
 			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
@@ -285,14 +294,14 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			assertThat(firstLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
 			assertThat(firstLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
 
-			RecordVO secondLabel = recordVOList.get(1);
+			RecordVO secondLabel = getRecordVOById(recordVOList, report2.getId());
 			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
 			assertThat(secondLabel.getTitle()).isEqualTo(titleForFolder2);
 			assertThat(secondLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
 			assertThat(secondLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
 
-			RecordVO thirdLabel = recordVOList.get(2);
+			RecordVO thirdLabel = getRecordVOById(recordVOList, report3.getId());
 			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
 			assertThat(thirdLabel.getTitle()).isEqualTo(titleForFolder3);
@@ -336,9 +345,9 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			RecordVODataProvider recordVODataProvider = presenter.getPrintableReportFolderDataProvider();
 			List<RecordVO> recordVOS = recordVODataProvider.listRecordVOs(0, recordVODataProvider.size());
 
-			presenter.removeRecord(recordVOS.get(0));
+			presenter.removeRecord(getRecordVOById(recordVOS, reportToRemoveByIndex.getId()));
 			try {
-				recordServices.getDocumentById(recordVOS.get(0).getId());
+				recordServices.getDocumentById(reportToRemoveByIndex.getId());
 				fail();
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) { /* OK ! */}
 

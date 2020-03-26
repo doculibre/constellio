@@ -2,6 +2,7 @@ package com.constellio.app.ui.entities;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.EnumWithSmallCode;
@@ -41,6 +42,7 @@ public class MetadataVO implements Serializable {
 	final String[] taxonomyCodes;
 	final MetadataInputType metadataInputType;
 	final MetadataDisplayType metadataDisplayType;
+	final MetadataSortingType metadataSortingType;
 	final AllowedReferences allowedReferences;
 	final StructureFactory structureFactory;
 	final String metadataGroup;
@@ -67,14 +69,15 @@ public class MetadataVO implements Serializable {
 					  boolean multivalue, boolean readOnly, boolean unmodifiable, Map<Locale, String> labels,
 					  Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
 					  MetadataInputType metadataInputType,
-					  MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled,
+					  MetadataDisplayType metadataDisplayType, MetadataSortingType metadataSortingType,
+					  AllowedReferences allowedReferences, boolean enabled,
 					  StructureFactory structureFactory,
 					  String metadataGroup, Object defaultValue, Set<String> customAttributes, boolean multiLingual,
 					  Locale locale, Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO,
 					  boolean sortable, boolean isSyntetic, boolean summaryMetadata, Integer maxLength,
 					  String measurementUnit, Map<Locale, String> helpMessages) {
 		this(id, code, localCode, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
-				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
+				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, metadataSortingType, allowedReferences, enabled,
 				structureFactory, metadataGroup,
 				defaultValue, null, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata, maxLength, measurementUnit, helpMessages);
 	}
@@ -86,7 +89,7 @@ public class MetadataVO implements Serializable {
 					  boolean required, boolean multivalue, boolean readOnly, boolean unmodifiable,
 					  Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
 					  String schemaTypeCode, MetadataInputType metadataInputType,
-					  MetadataDisplayType metadataDisplayType,
+					  MetadataDisplayType metadataDisplayType, MetadataSortingType metadataSortingType,
 					  AllowedReferences allowedReferences,
 					  boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue,
 					  String inputMask, Set<String> customAttributes, boolean multiLingual, Locale locale,
@@ -111,6 +114,7 @@ public class MetadataVO implements Serializable {
 		this.taxonomyCodes = taxonomyCodes;
 		this.metadataInputType = metadataInputType;
 		this.metadataDisplayType = metadataDisplayType;
+		this.metadataSortingType = metadataSortingType;
 		this.allowedReferences = allowedReferences;
 		this.enabled = enabled;
 		this.structureFactory = structureFactory;
@@ -146,7 +150,7 @@ public class MetadataVO implements Serializable {
 					  boolean multivalue, boolean readOnly, Map<Locale, String> labels,
 					  Class<? extends Enum<?>> enumClass,
 					  String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
-					  MetadataDisplayType metadataDisplayType,
+					  MetadataDisplayType metadataDisplayType, MetadataSortingType metadataSortingType,
 					  AllowedReferences allowedReferences, String metadataGroup, Object defaultValue,
 					  boolean isWriteNullValues,
 					  Set<String> customAttributes, boolean multiLingual, Locale locale,
@@ -155,7 +159,7 @@ public class MetadataVO implements Serializable {
 					  Map<Locale, String> helpMessages) {
 
 		this(id, code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
-				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
+				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, metadataSortingType, allowedReferences, true, null,
 				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata, maxLength, measurementUnit, helpMessages);
 	}
 
@@ -165,7 +169,7 @@ public class MetadataVO implements Serializable {
 					  boolean multivalue, boolean readOnly, Map<Locale, String> labels,
 					  Class<? extends Enum<?>> enumClass,
 					  String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
-					  MetadataDisplayType metadataDisplayType,
+					  MetadataDisplayType metadataDisplayType, MetadataSortingType metadataSortingType,
 					  AllowedReferences allowedReferences, String metadataGroup, Object defaultValue,
 					  boolean isWriteNullValues,
 					  Set<String> customAttributes, boolean multiLingual, Locale locale,
@@ -174,7 +178,7 @@ public class MetadataVO implements Serializable {
 					  Map<Locale, String> helpMessages) {
 
 		this(id, code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
-				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
+				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, metadataSortingType, allowedReferences, true, null,
 				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable, isSyntetic, summaryMetadata, maxLength, measurementUnit, helpMessages);
 	}
 
@@ -197,6 +201,7 @@ public class MetadataVO implements Serializable {
 		this.taxonomyCodes = new String[0];
 		this.metadataInputType = null;
 		this.metadataDisplayType = null;
+		this.metadataSortingType = null;
 		this.enabled = true;
 		this.allowedReferences = null;
 		this.structureFactory = null;
@@ -289,6 +294,10 @@ public class MetadataVO implements Serializable {
 
 	public final MetadataDisplayType getMetadataDisplayType() {
 		return metadataDisplayType;
+	}
+
+	public final MetadataSortingType getMetadataSortingType() {
+		return metadataSortingType;
 	}
 
 	public final StructureFactory getStructureFactory() {

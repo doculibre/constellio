@@ -92,15 +92,26 @@ public class ByUserEventsDataProvider extends DefaultEventsDataProvider implemen
 			return EventType.MODIFY_TASK;
 		} else if (index == 27) {
 			return EventType.DELETE_TASK;
+		} else if (index == 28) {
+			return EventType.CREATE_SHARE_FOLDER;
+		} else if (index == 29) {
+			return EventType.MODIFY_SHARE_FOLDER;
+		} else if (index == 30) {
+			return EventType.DELETE_SHARE_FOLDER;
+		} else if (index == 31) {
+			return EventType.CREATE_SHARE_DOCUMENT;
+		} else if (index == 32) {
+			return EventType.MODIFY_SHARE_DOCUMENT;
+		} else if (index == 33) {
+			return EventType.DELETE_SHARE_DOCUMENT;
 		} else {
 			return EventType.BATCH_PROCESS_CREATED;
 		}
-
 	}
 
 	@Override
 	public int specificSize() {
-		return 29;
+		return 35;
 	}
 
 	@Override

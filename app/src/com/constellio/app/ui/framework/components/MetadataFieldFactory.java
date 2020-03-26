@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -9,7 +10,11 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.UserVO;
-import com.constellio.app.ui.framework.components.fields.*;
+import com.constellio.app.ui.framework.components.fields.BaseRichTextArea;
+import com.constellio.app.ui.framework.components.fields.BaseTextArea;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
+import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateTimeField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
@@ -338,6 +343,7 @@ public class MetadataFieldFactory implements Serializable {
 		MetadataInputType metadataInputType = metadata.getMetadataInputType();
 		MetadataDisplayType metadataDisplayType = metadata.getMetadataDisplayType();
 		MetadataValueType metadataValueType = metadata.getType();
+		MetadataSortingType metadataSortingType = metadata.getMetadataSortingType();
 
 		if (metadataInputType == MetadataInputType.HIDDEN) {
 			field = null;
@@ -387,7 +393,7 @@ public class MetadataFieldFactory implements Serializable {
 				case REFERENCE:
 					switch (metadataInputType) {
 						case LOOKUP:
-							field = new ListAddRemoveRecordLookupField(schemaTypeCode);
+							field = new ListAddRemoveRecordLookupField(schemaTypeCode, metadataSortingType == MetadataSortingType.ALPHANUMERICAL_ORDER);
 							break;
 						case DROPDOWN:
 							if (enumClass != null) {
@@ -397,7 +403,7 @@ public class MetadataFieldFactory implements Serializable {
 							} else if (allowedReferences != null) {
 								String firstSchemaCode = getFirstSchemaCode(allowedReferences, collection);
 								if (firstSchemaCode != null) {
-									field = new ListAddRemoveRecordComboBox(firstSchemaCode);
+									field = new ListAddRemoveRecordComboBox(firstSchemaCode, metadataSortingType == MetadataSortingType.ALPHANUMERICAL_ORDER);
 								} else {
 									field = null;
 								}

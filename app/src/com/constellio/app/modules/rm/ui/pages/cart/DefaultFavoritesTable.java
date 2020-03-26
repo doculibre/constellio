@@ -5,6 +5,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
+import com.constellio.model.entities.structures.TableProperties;
 import com.vaadin.data.Container;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.ui.Table;
@@ -157,7 +158,8 @@ public class DefaultFavoritesTable extends BaseTable {
 			@Override
 			protected List<String> getDefaultVisibleColumnIds(Table table) {
 				List<String> visibleColumnIds = new ArrayList<>();
-				List<String> userVisibleColumns = currentUser.getVisibleTableColumnsFor(table.getId());
+				TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, getTableId());
+				List<String> userVisibleColumns = properties.getVisibleColumnIds();
 				if (userVisibleColumns != null) {
 					visibleColumnIds.addAll(userVisibleColumns);
 				}

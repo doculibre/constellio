@@ -26,6 +26,7 @@ import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
@@ -1236,7 +1237,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			givenTransactionLogIsEnabled();
 		}
 
-		File stateFolder = new File(getTurboCacheFolder(), "" + preparators.hashCode());
+		File stateFolder;
+
+		if (mode.isEnabled()) {
+			stateFolder = new File(getTurboCacheFolder(), "" + preparators.hashCode());
+		} else {
+			String uuid = UUIDV1Generator.newRandomId();
+			stateFolder = new File(getTurboCacheFolder(), "single-usage" + File.separator + uuid.charAt(0) + File.separator + uuid);
+		}
 
 		String taskName;
 		long start = new Date().getTime();
@@ -1346,10 +1354,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			}
 		}
 		long end = new Date().getTime();
+
 		taskName = preparationNames.get(preparators.hashCode());
 		if (taskName == null) {
 			taskName = "Collections preparation similar to '" + getClass().getSimpleName() + "#" + getTestName() + "'";
-			preparationNames.put(preparators.hashCode(), taskName);
+			if (mode.isEnabled()) {
+				preparationNames.put(preparators.hashCode(), taskName);
+			}
 		} else {
 			log.info("Using turbo cache : " + taskName);
 		}

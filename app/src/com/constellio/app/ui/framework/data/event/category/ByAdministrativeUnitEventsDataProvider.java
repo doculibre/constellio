@@ -61,8 +61,20 @@ public class ByAdministrativeUnitEventsDataProvider extends DefaultEventsDataPro
 		} else if (index == 14) {
 			return EventType.DELETE_PERMISSION_DOCUMENT;
 		} else if (index == 15) {
-			return EventType.CREATE_TASK;
+			return EventType.CREATE_SHARE_FOLDER;
 		} else if (index == 16) {
+			return EventType.MODIFY_SHARE_FOLDER;
+		} else if (index == 17) {
+			return EventType.DELETE_SHARE_FOLDER;
+		} else if (index == 18) {
+			return EventType.CREATE_SHARE_DOCUMENT;
+		} else if (index == 19) {
+			return EventType.MODIFY_SHARE_DOCUMENT;
+		} else if (index == 20) {
+			return EventType.DELETE_SHARE_DOCUMENT;
+		} else if (index == 21) {
+			return EventType.CREATE_TASK;
+		} else if (index == 22) {
 			return EventType.MODIFY_TASK;
 		} else {
 			return EventType.DELETE_TASK;
@@ -71,7 +83,7 @@ public class ByAdministrativeUnitEventsDataProvider extends DefaultEventsDataPro
 
 	@Override
 	public int specificSize() {
-		return 18;
+		return 24;
 	}
 
 	@Override

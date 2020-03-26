@@ -390,7 +390,11 @@ public class ReindexingServices {
 					}
 
 				} finally {
-					bulkTransactionHandler.closeAndJoin();
+					try {
+						bulkTransactionHandler.closeAndJoin();
+					} catch (Throwable t) {
+						SystemLogger.error("An error occured during the reindexing : ", t);
+					}
 				}
 				modelLayerFactory.getDataLayerFactory().newRecordDao().removeOldLocks();
 				level++;
@@ -399,7 +403,6 @@ public class ReindexingServices {
 			aggregatedValuesTempStorage.clear();
 			aggregatedValuesTempStorage = null;
 		}
-
 	}
 
 	@NotNull

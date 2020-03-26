@@ -50,6 +50,8 @@ public interface DocumentActionsComponent extends ViewComponent {
 
 	void setShareDocumentButtonState(ComponentState state);
 
+	void setUnshareDocumentButtonState(ComponentState state);
+
 	void setUploadButtonState(ComponentState state);
 
 	void setCheckInButtonState(ComponentState state);

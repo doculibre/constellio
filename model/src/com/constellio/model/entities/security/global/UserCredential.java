@@ -45,6 +45,7 @@ public class UserCredential extends RecordWrapper {
 	public static final String HAS_READ_LAST_ALERT = "hasReadLastAlert";
 	public static final String ELECTRONIC_SIGNATURE = "electronicSignature";
 	public static final String ELECTRONIC_INITIALS = "electronicInitials";
+	public static final String AZURE_USERNAME = "azureUsername";
 
 	public UserCredential(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -94,6 +95,16 @@ public class UserCredential extends RecordWrapper {
 		set(PERSONAL_EMAILS, personalEmails);
 		return this;
 	}
+
+	public String getAzureUsername() {
+		return get(AZURE_USERNAME);
+	}
+
+	public UserCredential setAzureUsername(String azureUsername) {
+		set(AZURE_USERNAME, azureUsername);
+		return this;
+	}
+
 
 	public String getServiceKey() {
 		return get(SERVICE_KEY);

@@ -255,7 +255,7 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 
 		assertThat(instanceGetByIdCounter.newCalls()).hasSize(0);
 		if (useZeroPaddedIds) {
-			assertThat(otherInstanceGetByIdCounter.newIdCalled()).containsOnly(idOf(101), idOf(102), idOf(1));
+			assertThat(otherInstanceGetByIdCounter.newIdCalled()).containsOnly(idOf(101));
 		} else {
 			assertThat(otherInstanceGetByIdCounter.newIdCalled()).containsOnly(idOf(101), idOf(102), idOf(1));
 		}
@@ -332,7 +332,7 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 		otherInstanceGetByIdCounter.reset();
 		recordServices.execute(tx);
 		if (useZeroPaddedIds) {
-			assertThat(otherInstanceGetByIdCounter.newIdCalled()).containsOnly(idOf(101), idOf(102), idOf(1));
+			assertThat(otherInstanceGetByIdCounter.newIdCalled()).containsOnly(idOf(101));
 		} else {
 			assertThat(otherInstanceGetByIdCounter.newIdCalled()).containsOnly(idOf(101), idOf(102), idOf(1));
 		}

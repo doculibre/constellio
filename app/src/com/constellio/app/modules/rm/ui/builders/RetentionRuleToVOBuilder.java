@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.builders;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -154,7 +155,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getFormMetadataCodes());
 
 		return new MetadataVO((short) 0, label, MetadataVO.getCodeWithoutPrefix(label), MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
-				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP, MetadataDisplayType.VERTICAL,
+				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP, MetadataDisplayType.VERTICAL, MetadataSortingType.ENTRY_ORDER,
 				new AllowedReferences(referencedSchemaType, references), groupLabel, null, false, new HashSet<String>(), false, null,
 				new HashMap<String, Object>(), schema.getCollectionInfoVO(), false, true, false, null, null, null);
 	}

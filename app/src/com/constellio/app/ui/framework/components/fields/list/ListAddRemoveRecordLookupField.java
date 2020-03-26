@@ -4,6 +4,7 @@ import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionCo
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
+import com.vaadin.data.util.ItemSorter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -14,12 +15,17 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 	private String schemaTypeCode;
 	private String schemaCode;
 	protected boolean ignoreLinkability;
+	private boolean sortByCaption;
 	private boolean itemInformation;
 	protected List<ValueChangeListener> lookupFieldListenerList;
 	protected RecordTextInputDataProvider recordTextInputDataProvider;
 
 	public ListAddRemoveRecordLookupField(String schemaTypeCode) {
-		this(schemaTypeCode, null);
+		this(schemaTypeCode, null, null, false);
+	}
+
+	public ListAddRemoveRecordLookupField(String schemaTypeCode, boolean sortByCaption) {
+		this(schemaTypeCode, null, null, sortByCaption);
 	}
 
 	public ListAddRemoveRecordLookupField(String schemaTypeCode, String schemaCode) {
@@ -28,12 +34,19 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 
 	public ListAddRemoveRecordLookupField(String schemaTypeCode, String schemaCode,
 										  RecordTextInputDataProvider recordTextInputDataProvider) {
+		this(schemaTypeCode, schemaCode, recordTextInputDataProvider, false);
+	}
+
+	public ListAddRemoveRecordLookupField(String schemaTypeCode, String schemaCode,
+										  RecordTextInputDataProvider recordTextInputDataProvider,
+										  boolean sortByCaption) {
 		super();
 		this.schemaTypeCode = schemaTypeCode;
 		this.schemaCode = schemaCode;
 		this.recordTextInputDataProvider = recordTextInputDataProvider;
 		setItemConverter(new RecordIdToCaptionConverter());
 		ignoreLinkability = false;
+		this.sortByCaption = sortByCaption;
 		lookupFieldListenerList = new ArrayList<>();
 	}
 
@@ -120,5 +133,13 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 			return ((LookupRecordField) addEditField).getValue();
 		}
 		return null;
+	}
+
+	@Override
+	protected ItemSorter getItemSorter() {
+		if (sortByCaption) {
+			return buildDefaultItemSorter();
+		}
+		return super.getItemSorter();
 	}
 }

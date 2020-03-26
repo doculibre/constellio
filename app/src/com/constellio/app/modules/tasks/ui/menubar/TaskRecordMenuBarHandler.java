@@ -43,7 +43,7 @@ public class TaskRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 		} else {
 			String schemaTypeCode = recordVO.getSchema().getTypeCode();
 			if (Task.SCHEMA_TYPE.equals(schemaTypeCode)) {
-				return new RecordVOMenuBar(recordVO, Collections.emptyList());
+				return new RecordVOMenuBar(recordVO, Collections.emptyList(), appLayerFactory);
 			} else {
 				return null;
 			}

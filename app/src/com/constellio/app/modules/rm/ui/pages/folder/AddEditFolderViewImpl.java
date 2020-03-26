@@ -90,11 +90,31 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 		return true;
 	}
 
+	protected boolean isSaveConfirmationMessage() {
+		return true;
+	}
+
 	protected FolderFormImpl newForm() {
 		recordForm = new FolderFormImpl(recordVO, getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject) {
 				presenter.saveButtonClicked();
+			}
+
+			@Override
+			public void forceCancelSaveOfForm(ForceCancelSaveOfFormParams forceCancelSaveOfFormParams) {
+				if (presenter.isMainCategoryEnteredAutomaticlyAssigned(forceCancelSaveOfFormParams.getRecord())) {
+					forceCancelSaveOfFormParams.doNotShowConfirmationMessage();
+				}
+			}
+
+			@Override
+			public SaveAction showConfirmationMessage() {
+				if (isSaveConfirmationMessage()) {
+					return super.showConfirmationMessage();
+				} else {
+					return SaveAction.undefined;
+				}
 			}
 
 			@Override
@@ -173,6 +193,7 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 
 		return recordForm;
 	}
+
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {

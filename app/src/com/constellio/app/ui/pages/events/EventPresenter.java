@@ -487,10 +487,10 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				Metadata borrowedMetadata = folderSchema.getMetadata(Folder.BORROWED);
 				LocalDateTime borrowDateValue = record.get(borrowDateMetadata);
 
-				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().folder.schema())
+				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().folder.schemaType())
 						.where(borrowedMetadata).isTrue()
-						.andWhere(borrowDateMetadata).isEqualTo(
-								borrowDateValue).andWhere(recordIdMetadata).isEqualTo(recordId);
+						.andWhere(borrowDateMetadata).isEqualTo(borrowDateValue)
+						.andWhere(recordIdMetadata).isEqualTo(recordId);
 
 				SearchServices searchServices = modelLayerFactory.newSearchServices();
 				Record eventRecord = searchServices.searchSingleResult(logicalSearchCondition);

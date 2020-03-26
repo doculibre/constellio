@@ -1,11 +1,15 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -13,6 +17,7 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.EditButton;
@@ -29,22 +34,31 @@ import com.constellio.app.ui.framework.components.search.FacetsPanel;
 import com.constellio.app.ui.framework.components.search.FacetsSliderPanel;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TaskVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
+import com.constellio.app.ui.framework.containers.ButtonsContainer;
+import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.NavigationParams;
+import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.AuthorizationSource;
+import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.Authorizations;
+import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.EditAuthorizationButton;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.dev.Toggle;
+import com.vaadin.data.Container;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -71,10 +85,10 @@ import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.sliderpanel.client.SliderPanelListener;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,7 +97,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.DisplayMode.PRINCIPALS;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler, BrowserWindowResizeListener, NavigationParams {
 
@@ -102,7 +118,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private ViewableRecordVOTablePanel viewerPanel;
 	private Component tasksComponent;
 	private Component eventsComponent;
+	private Component sharesComponent;
 	private DisplayFolderPresenter presenter;
+	private RMModuleExtensions rmModuleExtensions;
 	private boolean dragNDropAllowed;
 	private Button displayFolderButton, editFolderButton, addDocumentButton;
 	private Label borrowedLabel;
@@ -114,6 +132,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private RecordVODataProvider folderContentDataProvider;
 	private RecordVODataProvider tasksDataProvider;
 	private RecordVODataProvider eventsDataProvider;
+	private RecordVODataProvider sharesDataProvider;
 
 	private FacetsPanel facetsPanel;
 	private boolean facetsPanelLoaded;
@@ -135,6 +154,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		presenter = Stats.compilerFor(getClass().getSimpleName()).log(() -> {
 			return new DisplayFolderPresenter(this, recordVO, nestedView, inWindow);
 		});
+		rmModuleExtensions = getConstellioFactories().getAppLayerFactory()
+				.getExtensions().forCollection(getCollection()).forModule(ConstellioRMModule.ID);
 	}
 
 	@Override
@@ -211,9 +232,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		});
 
-		recordDisplay = new CustomComponent();
+		recordDisplay = new RecordDisplay(presenter.getRecordVOForDisplay(), new RMMetadataDisplayFactory(), Toggle.SEARCH_RESULTS_VIEWER.isEnabled());
 		folderContentComponent = new CustomComponent();
 		tasksComponent = new CustomComponent();
+		sharesComponent = new CustomComponent();
 
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName(STYLE_NAME);
@@ -221,6 +243,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				$("DisplayFolderView.tabs.folderContent", presenter.getFolderContentCount()));
 		tabSheet.addTab(recordDisplay, $("DisplayFolderView.tabs.metadata"));
 		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks", presenter.getTaskCount()));
+		tabSheet.addTab(sharesComponent, $("DisplayFolderView.tabs.shares"));
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayFolderView.tabs.logs"));
@@ -242,6 +265,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					setFacetsPanelVisible(facetsSliderPanel != null);
 				} else if (selectedTab == tasksComponent) {
 					presenter.tasksTabSelected();
+					setFacetsPanelVisible(false);
+				} else if (selectedTab == sharesComponent) {
+					presenter.sharesTabSelected();
 					setFacetsPanelVisible(false);
 				} else if (selectedTab == eventsComponent) {
 					presenter.eventsTabSelected();
@@ -341,10 +367,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			editFolderButton = newEditFolderButton();
 		}
 
-		List<String> excludedActionTypes = Arrays.asList(
-				FolderMenuItemActionType.FOLDER_DISPLAY.name(),
-				FolderMenuItemActionType.FOLDER_EDIT.name(),
-				FolderMenuItemActionType.FOLDER_ADD_DOCUMENT.name());
+		List<String> excludedActionTypes = new ArrayList<String>() {{
+			add(FolderMenuItemActionType.FOLDER_DISPLAY.name());
+			add(FolderMenuItemActionType.FOLDER_EDIT.name());
+			add(FolderMenuItemActionType.FOLDER_ADD_DOCUMENT.name());
+		}};
+
+		excludedActionTypes.addAll(rmModuleExtensions.getFilteredActionsForFolders());
 		return new RecordVOActionButtonFactory(summaryRecordVO, excludedActionTypes).build();
 	}
 
@@ -681,6 +710,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		dragNDropAllowed = state.isEnabled();
 	}
 
+
 	//@Override
 	//public void setStartWorkflowButtonState(ComponentState state) {
 	//startWorkflowButton.setVisible(state.isVisible());
@@ -700,7 +730,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			uploadField.drop(event);
 		}
 	}
-
 	@Override
 	public void showVersionUpdateWindow(final RecordVO recordVO, ContentVersionVO contentVersionVO) {
 		final Map<RecordVO, MetadataVO> record = new HashMap<>();
@@ -740,6 +769,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		documentVersionWindow.close();
 	}
 
+
 	//	@Override
 	//	public void openAgentURL(String agentURL) {
 	//		Page.getCurrent().open(agentURL, null);
@@ -752,7 +782,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
 		Page.getCurrent().open(downloadedResource, null, false);
 	}
-
 	@Override
 	public void setTaxonomyCode(String taxonomyCode) {
 		this.taxonomyCode = taxonomyCode;
@@ -794,6 +823,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	public void refreshFolderContent() {
 	}
 
+
 	//	@Override
 	public void refreshFacets(RecordVODataProvider dataProvider) {
 		List<FacetVO> facets = presenter.getFacets(dataProvider);
@@ -814,7 +844,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}
 		return scrolledIntoView;
 	}
-
 	@Override
 	public Integer getReturnIndex() {
 		return presenter.getReturnIndex();
@@ -833,5 +862,81 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public Map<String, String> getNavigationParams() {
 		return presenter.getParams();
+	}
+
+	@Override
+	public void selectSharesTab() {
+		Table table = buildAuthorizationTable(presenter.getSharedAuthorizations(), AuthorizationSource.OWN);
+		tabSheet.replaceComponent(sharesComponent, table);
+		sharesComponent = table;
+		tabSheet.setSelectedTab(sharesComponent);
+	}
+
+	@Override
+	public void removeAuthorization(AuthorizationVO authorizationVO) {
+		if (sharesComponent instanceof Table) {
+			((Table) sharesComponent).removeItem(authorizationVO);
+		}
+	}
+
+	private Table buildAuthorizationTable(List<AuthorizationVO> authorizationVOs, AuthorizationSource source) {
+		Container container = buildAuthorizationContainer(authorizationVOs, source);
+		String tableCaption = "";
+		Table table = new BaseTable(getClass().getName(), tableCaption, container);
+		table.setPageLength(container.size());
+		new Authorizations(source, PRINCIPALS, false, true, true, false, getSessionContext().getCurrentLocale()).attachTo(table, false);
+		return table;
+	}
+
+	private Container buildAuthorizationContainer(List<AuthorizationVO> authorizationVOs, AuthorizationSource source) {
+		BeanItemContainer<AuthorizationVO> authorizations = new BeanItemContainer<>(AuthorizationVO.class, authorizationVOs);
+		return source == AuthorizationSource.OWN || source == AuthorizationSource.SHARED ?
+			   addButtons(authorizations, source == AuthorizationSource.INHERITED) :
+			   authorizations;
+	}
+
+	private Container addButtons(BeanItemContainer<AuthorizationVO> authorizations, final boolean inherited) {
+		ButtonsContainer container = new ButtonsContainer<>(authorizations, Authorizations.BUTTONS);
+		container.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
+				final AuthorizationVO authorization = (AuthorizationVO) itemId;
+				EditAuthorizationButton button = new EditAuthorizationButton(authorization) {
+					@Override
+					protected void onSaveButtonClicked(AuthorizationVO authorizationVO) {
+						presenter.onAutorizationModified(authorization);
+					}
+
+					@Override
+					public boolean isVisible() {
+						return super.isVisible() && presenter.getUser().getId().equals(authorization.getSharedBy());
+					}
+				};
+				button.setVisible(inherited || !authorization.isSynched());
+				return button;
+			}
+		});
+		container.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				final AuthorizationVO authorization = (AuthorizationVO) itemId;
+				DeleteButton deleteButton = new DeleteButton() {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.deleteAutorizationButtonClicked(authorization);
+					}
+
+					@Override
+					public boolean isVisible() {
+						return super.isVisible() &&
+							   (presenter.getUser().getId().equals(authorization.getSharedBy()) ||
+								presenter.getUser().hasAny(RMPermissionsTo.MANAGE_SHARE, MANAGE_FOLDER_AUTHORIZATIONS).on(getSummaryRecord().getRecord()));
+					}
+				};
+				deleteButton.setVisible(inherited || !authorization.isSynched());
+				return deleteButton;
+			}
+		});
+		return container;
 	}
 }

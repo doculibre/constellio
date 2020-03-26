@@ -59,19 +59,36 @@ public class ShareContentViewImpl extends BaseViewImpl implements ShareContentVi
 		buildAccessField();
 		buildRolesField();
 		buildDateFields();
-		return new BaseForm<AuthorizationVO>(
-				AuthorizationVO.forContent(record.getId()), this, users, groups, accessRoles, userRoles, startDate, endDate) {
-			@Override
-			protected void saveButtonClick(AuthorizationVO authorization)
-					throws ValidationException {
-				presenter.authorizationCreationRequested(authorization);
-			}
+		AuthorizationVO shareVO = presenter.getShareAuthorization(record.getRecord());
+		if (shareVO != null) {
+			return new BaseForm<AuthorizationVO>(
+					shareVO, this, users, groups, accessRoles, userRoles, startDate, endDate) {
+				@Override
+				protected void saveButtonClick(AuthorizationVO authorization)
+						throws ValidationException {
+					presenter.authorizationModifyRequested(authorization);
+				}
 
-			@Override
-			protected void cancelButtonClick(AuthorizationVO authorization) {
-				returnFromPage();
-			}
-		};
+				@Override
+				protected void cancelButtonClick(AuthorizationVO authorization) {
+					returnFromPage();
+				}
+			};
+		} else {
+			return new BaseForm<AuthorizationVO>(
+					AuthorizationVO.forContent(record.getId()), this, users, groups, accessRoles, userRoles, startDate, endDate) {
+				@Override
+				protected void saveButtonClick(AuthorizationVO authorization)
+						throws ValidationException {
+					presenter.authorizationCreationRequested(authorization);
+				}
+
+				@Override
+				protected void cancelButtonClick(AuthorizationVO authorization) {
+					returnFromPage();
+				}
+			};
+		}
 	}
 
 	@Override

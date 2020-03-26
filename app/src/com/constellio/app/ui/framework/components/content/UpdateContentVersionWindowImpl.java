@@ -291,6 +291,15 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		UI.getCurrent().addWindow(this);
 	}
 
+	public void saveWithSameVersion() {
+		presenter.contentVersionSaved(null, null);
+	}
+
+	@Override
+	public void showMessage(String message) {
+
+	}
+
 	@Override
 	public void close() {
 		if (newVersionVO != null && newVersionVO.getInputStreamProvider() != null) {

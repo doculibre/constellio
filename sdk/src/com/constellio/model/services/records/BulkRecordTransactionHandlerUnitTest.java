@@ -99,6 +99,7 @@ public class BulkRecordTransactionHandlerUnitTest extends ConstellioTest {
 	@Test
 	public void whenAddingARecordToANonEmptyCurrentListThenAdded()
 			throws RecordServicesException {
+		handler.options.maxRecordsTotalSizePerBatch = 10;
 		handler.append(record1);
 
 		handler.append(record2);

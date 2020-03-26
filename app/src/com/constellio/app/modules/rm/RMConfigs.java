@@ -4,6 +4,12 @@ import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsMan
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableTypeRestrictionInFolderScript;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
+import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
+import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
+import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
+import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.app.modules.rm.model.enums.ReportsSortingMetadata;
 import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
 import com.constellio.app.modules.rm.wrappers.RMDecommissioningTypeRequiredScript;
@@ -78,6 +84,7 @@ public class RMConfigs {
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
 			NEED_REASON_BEFORE_DELETING_FOLDERS,
 			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
+			SORTING_METADATA_FOR_LABELS_AND_METADATA_REPORTS,
 			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE,
 			DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS,
 			NUMBER_OF_DAYS_BEFORE_PREDICTED_DECOMMISSIONING_DATE,
@@ -265,7 +272,7 @@ public class RMConfigs {
 
 		add(FOLDER_BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
 
-		add(DOCUMENT_BORROWING_DURATION_IN_DAYS = others.createInteger("documentBorrowingDurationDays").withDefaultValue(7));
+		add(DOCUMENT_BORROWING_DURATION_IN_DAYS = others.createInteger("documentBorrowingDurationDays").withDefaultValue(-1));
 
 		add(OPEN_HOLDER = others.createBooleanFalseByDefault("openHolder"));
 
@@ -320,6 +327,8 @@ public class RMConfigs {
 		add(ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE = decommissioning
 				.createBooleanFalseByDefault("allowTransferDateFieldWhenCopyRuleHasNoSemiActiveState"));
 
+		SystemConfigurationGroup reports = new SystemConfigurationGroup(null, "reports");
+		add(SORTING_METADATA_FOR_LABELS_AND_METADATA_REPORTS = reports.createEnum("sortingMetadataForLabelsAndMetadataReports", ReportsSortingMetadata.class).withDefaultValue(ReportsSortingMetadata.TITLE));
 
 		add(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE = decommissioning
 				.createBooleanTrueByDefault("depositAndDestructionDatesBasedOnActualTransferDate").withReIndexationRequired());
@@ -338,7 +347,7 @@ public class RMConfigs {
 				.whichIsHidden());
 
 		add(DOCUMENT_SUMMARY_CACHE_ENABLED = others.createBooleanTrueByDefault("documentSummaryCacheEnabled")
-				.whichIsHidden().scriptedBy(RMDocumentSummaryCacheEnabledScript.class));
+				.whichIsHidden().whichRequiresReboot().scriptedBy(RMDocumentSummaryCacheEnabledScript.class));
 
 	}
 
@@ -599,6 +608,10 @@ public class RMConfigs {
 
 	public boolean isDecommissioningTypeRequiredInContainers() {
 		return manager.getValue(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS);
+	}
+
+	public ReportsSortingMetadata getSortingMetadataForLabelsAndMetadataReports() {
+		return manager.getValue(SORTING_METADATA_FOR_LABELS_AND_METADATA_REPORTS);
 	}
 
 	public boolean isNeedingAReasonBeforeDeletingFolders() {

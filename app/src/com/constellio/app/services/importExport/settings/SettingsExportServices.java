@@ -2,6 +2,7 @@ package com.constellio.app.services.importExport.settings;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.es.constants.ESTaxonomies;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.ValueListServices;
@@ -303,6 +304,9 @@ public class SettingsExportServices {
 
 			if (MetadataValueType.REFERENCE.equals(metadata.getType())) {
 				importedMetadata.setReferencedType(metadata.getReferencedSchemaTypeCode());
+				if (metadata.isMultivalue() && displayConfig.getSortingType() == MetadataSortingType.ALPHANUMERICAL_ORDER) {
+					importedMetadata.setSortingType(MetadataSortingType.ALPHANUMERICAL_ORDER.getCode());
+				}
 			}
 
 			importedMetadata.setUnique(metadata.isUniqueValue());

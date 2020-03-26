@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType;
 import com.constellio.app.modules.rm.ui.breadcrumb.ContainerByAdministrativeUnitBreadcrumbTrail;
@@ -57,6 +59,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	private boolean isNested = false;
 	private Button consultButton = null;
 	private Button editButton = null;
+	private RMModuleExtensions rmModuleExtensions;
 	public DisplayContainerViewImpl() {
 		this(null, false, false);
 	}
@@ -66,6 +69,8 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		presenter = new DisplayContainerPresenter(this, recordVO, popup);
 		this.isNested = isNested;
 		this.popup = popup;
+		rmModuleExtensions = getConstellioFactories().getAppLayerFactory()
+				.getExtensions().forCollection(getCollection()).forModule(ConstellioRMModule.ID);
 	}
 
 	@Override
@@ -191,7 +196,8 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> buttonList = new RecordVOActionButtonFactory(presenter.getContainer(), Collections.emptyList()).build();
+		List<Button> buttonList = new RecordVOActionButtonFactory(presenter.getContainer(),
+				rmModuleExtensions.getFilteredActionsForContainers()).build();
 
 		consultButton = getConsultButton(buttonList);
 

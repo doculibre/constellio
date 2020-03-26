@@ -558,22 +558,6 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenMetadataLengthIsBiggerThenMaxLengthThenSingleError() throws Exception {
-		defineSchemasManager().using(schemas.withAStringMetadata(whichMaxLengthIs7));
-		record = recordServices.newRecordWithSchema(zeSchema.instance());
-
-		record.set(zeSchema.stringMetadata(), "12345678");
-
-		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-				.getValidationErrors();
-		// valider code erreur avec message en francais
-		assertThat(errors).hasSize(1);
-		assertThat(errors.get(0)).has(
-				codeBasedOn(ValueRequirementValidator.class, ValueRequirementValidator.METADATA_VALUE_DOESNT_RESPECT_MAX_LENGTH)
-		);
-	}
-
-	@Test
 	public void givenAllowedReferencesValidatorFailingWhenValidatingThenErrorInList()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAReferenceMetadata(whichAllowsAnotherDefaultSchema));

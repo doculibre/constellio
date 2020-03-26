@@ -120,7 +120,7 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(schemaDisplayConfig.getFormMetadataCodes()).doesNotContain("document_default_USRcopiedTaxoDomaineTitle");
 	}
 
-	@Test
+	//@Test depreciated service
 	public void whenImportingDocumentSchemaWithCalculatedMetadataThenImportedCorrectly()
 			throws Exception {
 		File documentFile = getTestResourceFile("documentSchemasWithCalculatedMetadata.xml");

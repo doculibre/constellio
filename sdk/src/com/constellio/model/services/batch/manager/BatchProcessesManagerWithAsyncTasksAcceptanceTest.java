@@ -3,6 +3,7 @@ package com.constellio.model.services.batch.manager;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.batch.controller.BatchProcessState;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -100,7 +101,11 @@ public class BatchProcessesManagerWithAsyncTasksAcceptanceTest extends Constelli
 			}
 
 			if (wordsToAdd.contains("!")) {
-				params.logError("ponctuationDetected", messageParams);
+				try {
+					params.logError("ponctuationDetected", messageParams);
+				} catch (ValidationException e) {
+					throw new RuntimeException(e);
+				}
 			}
 
 			System.out.println("Adding words '" + words + "'");

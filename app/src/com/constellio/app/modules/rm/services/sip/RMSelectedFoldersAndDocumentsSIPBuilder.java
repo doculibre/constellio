@@ -9,6 +9,7 @@ import com.constellio.app.services.sip.record.RecordSIPWriter;
 import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
@@ -24,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static com.constellio.app.modules.rm.services.sip.RMSIPUtils.buildCategoryDivisionInfos;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -78,7 +80,8 @@ public class RMSelectedFoldersAndDocumentsSIPBuilder {
 	 * Create an SIP Archive using given folders and document ids
 	 */
 	public ValidationErrors buildWithFoldersAndDocuments(SIPZipWriter sipZipWriter, List<String> folderIds,
-														 List<String> documentIds, ProgressInfo progressInfo)
+														 List<String> documentIds, ProgressInfo progressInfo,
+														 Predicate<Metadata> metadataFilter)
 			throws IOException {
 
 		sipZipWriter.addDivisionsInfoMap(buildCategoryDivisionInfos(rm));
@@ -91,7 +94,7 @@ public class RMSelectedFoldersAndDocumentsSIPBuilder {
 		progressInfo.setEnd(ids.size());
 
 		ValidationErrors errors = new ValidationErrors();
-		RecordSIPWriter writer = new RecordSIPWriter(appLayerFactory, sipZipWriter, new RMZipPathProvider(appLayerFactory), locale);
+		RecordSIPWriter writer = new RecordSIPWriter(appLayerFactory, sipZipWriter, new RMZipPathProvider(appLayerFactory), locale, metadataFilter);
 		try {
 			int recordsHandled = 0;
 
@@ -123,6 +126,12 @@ public class RMSelectedFoldersAndDocumentsSIPBuilder {
 		}
 
 		return errors;
+	}
+
+	public ValidationErrors buildWithFoldersAndDocuments(SIPZipWriter sipZipWriter, List<String> folderIds,
+														 List<String> documentIds, ProgressInfo progressInfo)
+			throws IOException {
+		return buildWithFoldersAndDocuments(sipZipWriter, folderIds, documentIds, progressInfo, null);
 	}
 
 	@NotNull

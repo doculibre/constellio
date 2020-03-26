@@ -17,9 +17,10 @@ import org.joda.time.LocalDateTime;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public abstract class PageItem implements CodedItem, Serializable {
-	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, RECORD_TREE, CUSTOM_ITEM}
+	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, SHARED_ITEMS_TABLES, RECORD_TREE, CUSTOM_ITEM}
 
 	private final String code;
 	private final Type type;
@@ -54,23 +55,23 @@ public abstract class PageItem implements CodedItem, Serializable {
 		public abstract List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext);
 
 		public static class RecentItem implements Serializable {
-			public static final String CAPTION = "caption";
+			public static final String CAPTION = "title";
 			public static final String LAST_ACCESS = "lastAccess";
 
 			private final RecordVO record;
-			private final String caption;
+			private final String title;
 
 			public RecentItem(RecordVO record, String caption) {
 				this.record = record;
-				this.caption = caption;
+				this.title = caption;
 			}
 
 			public RecordVO getRecord() {
 				return record;
 			}
 
-			public String getCaption() {
-				return caption;
+			public String getTitle() {
+				return title;
 			}
 
 			public String getId() {
@@ -89,6 +90,16 @@ public abstract class PageItem implements CodedItem, Serializable {
 		}
 
 		public abstract RecordVODataProvider getDataProvider(
+				AppLayerFactory appLayerFactory, SessionContext sessionContext);
+	}
+
+	public static abstract class SharedItemsTables extends PageItem {
+
+		public SharedItemsTables(String code) {
+			super(code, Type.SHARED_ITEMS_TABLES);
+		}
+
+		public abstract Map<String, RecordVODataProvider> getDataProvider(
 				AppLayerFactory appLayerFactory, SessionContext sessionContext);
 	}
 

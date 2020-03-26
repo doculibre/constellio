@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.document;
 
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
@@ -18,11 +19,13 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.services.migrations.VersionsComparator;
 import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
@@ -38,22 +41,30 @@ import com.constellio.app.ui.framework.components.content.UpdateContentVersionWi
 import com.constellio.app.ui.framework.components.diff.DiffPanel;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TaskVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
+import com.constellio.app.ui.framework.containers.ButtonsContainer;
+import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.AuthorizationSource;
+import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.Authorizations;
+import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.EditAuthorizationButton;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.dev.Toggle;
+import com.vaadin.data.Container;
+import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -92,7 +103,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.DisplayMode.PRINCIPALS;
 
 @Slf4j
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler, ProvideSecurityWithNoUrlParamSupport {
@@ -109,6 +122,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private ContentVersionVOTable versionTable;
 	private Component tasksComponent;
 	private Component eventsComponent;
+	private Component sharesComponent;
 	private UpdateContentVersionWindowImpl uploadWindow;
 	private DisplayButton displayDocumentButton;
 	private LinkButton openDocumentButton;
@@ -324,6 +338,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 		tasksComponent = new CustomComponent();
+		sharesComponent = new CustomComponent();
 		versionTable.setSizeFull();
 
 		Panel recordDisplayPanel = new Panel(recordDisplay);
@@ -341,6 +356,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		tabSheet.addTab(recordDisplayPanel, $("DisplayDocumentView.tabs.metadata"));
 		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
 		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks"));
+		tabSheet.addTab(sharesComponent, $("DisplayDocumentView.tabs.shares"));
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayDocumentView.tabs.logs"));
@@ -358,6 +374,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 				} else if (event.getTabSheet().getSelectedTab() == tasksComponent) {
 					presenter.tasksTabSelected();
+
+				} else if (event.getTabSheet().getSelectedTab() == sharesComponent) {
+					sharesTabSelected();
 
 				} else if (event.getTabSheet().getSelectedTab() == contentViewer) {
 					contentViewer.refresh();
@@ -829,6 +848,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
+	public void setUnshareDocumentButtonState(ComponentState state) {
+
+	}
+
+	@Override
 	public void setCreatePDFAButtonState(ComponentState state) {
 	}
 
@@ -953,7 +977,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void addEditWindowCloseListener(Window.CloseListener closeListener) {
 		this.editWindowCloseListeners.add(closeListener);
 	}
-
 	public void removeEditWindowCloseListener(Window.CloseListener closeListener) {
 		this.editWindowCloseListeners.add(closeListener);
 	}
@@ -965,5 +988,81 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public SecurityWithNoUrlParamSupport getSecurityWithNoUrlParamSupport() {
 		return presenter;
+	}
+
+	@Override
+	public void sharesTabSelected() {
+		Table table = buildAuthorizationTable(presenter.getSharedAuthorizations(), AuthorizationSource.OWN);
+		tabSheet.replaceComponent(sharesComponent, table);
+		sharesComponent = table;
+		tabSheet.setSelectedTab(sharesComponent);
+	}
+
+	@Override
+	public void removeAuthorization(AuthorizationVO authorizationVO) {
+		if (sharesComponent instanceof Table) {
+			((Table) sharesComponent).removeItem(authorizationVO);
+		}
+	}
+
+	private Table buildAuthorizationTable(List<AuthorizationVO> authorizationVOs, AuthorizationSource source) {
+		Container container = buildAuthorizationContainer(authorizationVOs, source);
+		String tableCaption = "";
+		Table table = new BaseTable(getClass().getName(), tableCaption, container);
+		table.setPageLength(container.size());
+		new Authorizations(source, PRINCIPALS, false, true, true, false, getSessionContext().getCurrentLocale()).attachTo(table, false);
+		return table;
+	}
+
+	private Container buildAuthorizationContainer(List<AuthorizationVO> authorizationVOs, AuthorizationSource source) {
+		BeanItemContainer<AuthorizationVO> authorizations = new BeanItemContainer<>(AuthorizationVO.class, authorizationVOs);
+		return source == AuthorizationSource.OWN || source == AuthorizationSource.SHARED ?
+			   addButtons(authorizations, source == AuthorizationSource.INHERITED) :
+			   authorizations;
+	}
+
+	private Container addButtons(BeanItemContainer<AuthorizationVO> authorizations, final boolean inherited) {
+		ButtonsContainer container = new ButtonsContainer<>(authorizations, Authorizations.BUTTONS);
+		container.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
+				final AuthorizationVO authorization = (AuthorizationVO) itemId;
+				EditAuthorizationButton button = new EditAuthorizationButton(authorization) {
+					@Override
+					protected void onSaveButtonClicked(AuthorizationVO authorizationVO) {
+						presenter.onAutorizationModified(authorization);
+					}
+
+					@Override
+					public boolean isVisible() {
+						return super.isVisible() && getSessionContext().getCurrentUser().getId().equals(authorization.getSharedBy());
+					}
+				};
+				button.setVisible(inherited || !authorization.isSynched());
+				return button;
+			}
+		});
+		container.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				final AuthorizationVO authorization = (AuthorizationVO) itemId;
+				DeleteButton deleteButton = new DeleteButton() {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.deleteAutorizationButtonClicked(authorization);
+					}
+
+					@Override
+					public boolean isVisible() {
+						return super.isVisible() &&
+							   (presenter.getUser().getId().equals(authorization.getSharedBy()) ||
+								presenter.getUser().hasAny(RMPermissionsTo.MANAGE_SHARE, MANAGE_DOCUMENT_AUTHORIZATIONS).on(getRecordVO().getRecord()));
+					}
+				};
+				deleteButton.setVisible(inherited || !authorization.isSynched());
+				return deleteButton;
+			}
+		});
+		return container;
 	}
 }

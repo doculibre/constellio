@@ -4,6 +4,7 @@ import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.entities.batchProcess.ChangeValueOfMetadataBatchAsyncTask;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
@@ -229,6 +230,7 @@ public class BatchProcessingPresenterService {
 													   String[] taxonomyCodes,
 													   String schemaTypeCode, MetadataInputType metadataInputType,
 													   MetadataDisplayType metadataDisplayType,
+													   MetadataSortingType metadataSortingType,
 													   AllowedReferences allowedReferences,
 													   boolean enabled, StructureFactory structureFactory,
 													   String metadataGroup,
@@ -254,6 +256,7 @@ public class BatchProcessingPresenterService {
 									   readOnly,
 									   unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									   metadataDisplayType,
+									   metadataSortingType,
 									   allowedReferences,
 									   enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, maxLength, measurementUnit, helpMessages) :
 							   null;
@@ -361,6 +364,7 @@ public class BatchProcessingPresenterService {
 													   String[] taxonomyCodes,
 													   String schemaTypeCode, MetadataInputType metadataInputType,
 													   MetadataDisplayType metadataDisplayType,
+													   MetadataSortingType metadataSortingType,
 													   AllowedReferences allowedReferences,
 													   boolean enabled, StructureFactory structureFactory,
 													   String metadataGroup,
@@ -400,6 +404,7 @@ public class BatchProcessingPresenterService {
 								readOnly,
 								unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 								metadataDisplayType,
+								metadataSortingType,
 								allowedReferences,
 								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, maxLength, measurementUnit, helpMessages);
 					}

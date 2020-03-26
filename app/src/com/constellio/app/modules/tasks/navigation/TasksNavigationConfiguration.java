@@ -30,6 +30,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class TasksNavigationConfiguration implements Serializable {
 	public static final String TASK_MANAGEMENT = "taskManagement";
@@ -72,11 +73,11 @@ public class TasksNavigationConfiguration implements Serializable {
 				if (currentView instanceof DisplayFolderView) {
 					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
 					String folderId = displayFolderView.getSummaryRecord().getId();
-					navigate.to(TaskViews.class).addTaskToFolder(folderId);
+					navigate.to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(folderId));
 				} else if (currentView instanceof DisplayDocumentView) {
 					DisplayDocumentView displayFolderView = (DisplayDocumentView) currentView;
 					String documentId = displayFolderView.getRecordVO().getId();
-					navigate.to(TaskViews.class).addTaskToDocument(documentId);
+					navigate.to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(documentId));
 				} else {
 					navigate.to(TaskViews.class).addTask();
 				}

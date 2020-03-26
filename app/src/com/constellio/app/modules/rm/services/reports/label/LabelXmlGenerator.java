@@ -2,6 +2,9 @@ package com.constellio.app.modules.rm.services.reports.label;
 
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
+import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.model.enums.ReportsSortingMetadata;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.AbstractXmlGeneratorParameters;
@@ -10,7 +13,9 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.EnumWithSmallCode;
@@ -23,6 +28,8 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.lang.StringUtils;
 import org.jdom2.CDATA;
 import org.jdom2.Document;
@@ -40,6 +47,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 
 /**
@@ -67,7 +75,13 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 
 	private RecordServices recordServices;
 
+	private SearchServices searchServices;
+
 	private MetadataSchemasManager metadataSchemasManager;
+
+	private SchemasDisplayManager displayManager;
+
+	private RMConfigs rmConfigs;
 
 	private int startingPosition, numberOfCopies = 1;
 
@@ -80,7 +94,10 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 		this.collection = collection;
 		this.factory = appLayerFactory;
 		this.recordServices = factory.getModelLayerFactory().newRecordServices();
+		this.searchServices = factory.getModelLayerFactory().newSearchServices();
 		this.metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+		this.displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		this.rmConfigs = new RMConfigs(this.factory);
 		this.user = userVO == null ? null :
 					appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(userVO.getUsername(), collection);
 	}
@@ -299,14 +316,28 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 		List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ?
 													 recordElement.<String>getList(metadata) :
 													 Collections.singletonList(recordElement.<String>get(metadata));
-		List<Record> listOfRecordReferencedByMetadata = recordServices
-				.getRecordsById(this.collection, listOfIdsReferencedByMetadata);
+		//		List<Record> listOfRecordReferencedByMetadata = recordServices
+		//				.getRecordsById(this.collection, listOfIdsReferencedByMetadata);
+		ReportsSortingMetadata sortingMetadata = rmConfigs.getSortingMetadataForLabelsAndMetadataReports();
+		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(collection).where(Schemas.IDENTIFIER).isIn(listOfIdsReferencedByMetadata));
+		if (displayManager.getMetadata(collection, metadata.getCode()).getSortingType() == MetadataSortingType.ALPHANUMERICAL_ORDER) {
+			switch (sortingMetadata) {
+				case TITLE:
+					query = query.sortAsc(Schemas.TITLE).sortAsc(Schemas.CODE);
+					break;
+				default:
+					query = query.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE);
+			}
+		}
+
+		SearchResponseIterator<Record> listOfRecordReferencedByMetadata = searchServices.recordsIterator(query);
 		List<Element> listOfMetadataTags = new ArrayList<>();
 		StringBuilder codeBuilder = new StringBuilder();
 		StringBuilder titleBuilder = new StringBuilder();
 		StringBuilder codeParentBuilder = new StringBuilder();
 		StringBuilder titleParentBuilder = new StringBuilder();
-		for (Record recordReferenced : listOfRecordReferencedByMetadata) {
+		while (listOfRecordReferencedByMetadata.hasNext()) {
+			Record recordReferenced = listOfRecordReferencedByMetadata.next();
 			if (titleBuilder.length() > 0) {
 				titleBuilder.append(", ");
 			}

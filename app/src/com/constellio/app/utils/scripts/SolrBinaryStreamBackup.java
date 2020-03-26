@@ -37,12 +37,12 @@ import java.util.zip.GZIPOutputStream;
 /**
  * Binary format :
  * int(size)bytes[](xml)int(size)bytes[](xml)....
- *
+ * <p>
  * The order of the fields in the XML can vary.
  */
 public class SolrBinaryStreamBackup {
 
-	private static final String[] COLLECTIONS = new String[] { "records", "events", "notifications" };
+	private static final String[] COLLECTIONS = new String[]{"records", "events", "notifications"};
 	private static final int THREADS = 1;
 	private static final int BATCH_SIZE = 1000;
 
@@ -64,13 +64,14 @@ public class SolrBinaryStreamBackup {
 
 		if (argv[0].equals("--export")) {
 			for (String collection : COLLECTIONS) {
-				SolrClient solrClient = buildClient(argv[2], collection);
-				File collectionOutputFile = new File(localDir, collection + ".output");
-				if (collectionOutputFile.exists()) {
-					System.err.println("export file: " + collectionOutputFile + " exits");
-					System.exit(-1);
+				try (SolrClient solrClient = buildClient(argv[2], collection)) {
+					File collectionOutputFile = new File(localDir, collection + ".output");
+					if (collectionOutputFile.exists()) {
+						System.err.println("export file: " + collectionOutputFile + " exits");
+						System.exit(-1);
+					}
+					exportIndex(solrClient, collectionOutputFile);
 				}
-				exportIndex(solrClient, collectionOutputFile);
 			}
 		} else if (argv[0].equals("--import")) {
 			importCollectionsIndex(argv[2], localDir);
@@ -102,7 +103,7 @@ public class SolrBinaryStreamBackup {
 	private static void exportIndex(SolrClient client, final File collectionOuputFile)
 			throws IOException, SolrServerException {
 		try (OutputStream fos = new FileOutputStream(collectionOuputFile);
-			 BufferedOutputStream bos = new BufferedOutputStream(fos, 128*1024);
+			 BufferedOutputStream bos = new BufferedOutputStream(fos, 128 * 1024);
 			 GZIPOutputStream gzipOutputStream = new GZIPOutputStream(bos);
 			 DataOutputStream dos = new DataOutputStream(gzipOutputStream)) {
 
@@ -156,13 +157,14 @@ public class SolrBinaryStreamBackup {
 	public static void importCollectionsIndex(final String solrParam, final File localDir)
 			throws IOException, SolrServerException, InterruptedException, XMLStreamException {
 		for (String collection : COLLECTIONS) {
-			SolrClient client = buildClient(solrParam, collection);
-			if (isEmpty(client)) {
-				File recordsFolder = new File(localDir,  collection + ".output");
-				importCollectionIndex(client, recordsFolder);
-				client.commit();
-			} else {
-				throw new RuntimeException("Destination index is not empty");
+			try (SolrClient client = buildClient(solrParam, collection)) {
+				if (isEmpty(client)) {
+					File recordsFolder = new File(localDir, collection + ".output");
+					importCollectionIndex(client, recordsFolder);
+					client.commit();
+				} else {
+					throw new RuntimeException("Destination index is not empty");
+				}
 			}
 		}
 	}
@@ -176,9 +178,9 @@ public class SolrBinaryStreamBackup {
 		XMLLoader loader = new XMLLoader();
 		XMLInputFactory inputFactory = XMLInputFactory.newInstance();
 		try (FileInputStream fis = new FileInputStream(collectionOuputFile);
-			BufferedInputStream bis = new BufferedInputStream(fis, 128*1024);
-			GZIPInputStream gzipInputStream = new GZIPInputStream(bis);
-			DataInputStream dis = new DataInputStream(gzipInputStream)) {
+			 BufferedInputStream bis = new BufferedInputStream(fis, 128 * 1024);
+			 GZIPInputStream gzipInputStream = new GZIPInputStream(bis);
+			 DataInputStream dis = new DataInputStream(gzipInputStream)) {
 			List<SolrInputDocument> solrInputDocuments = new ArrayList<>();
 			for (int xmlLength = dis.readInt(); xmlLength > 0; xmlLength = dis.readInt()) {
 				byte[] xmlBytes = new byte[xmlLength];
@@ -208,7 +210,8 @@ public class SolrBinaryStreamBackup {
 
 	}
 
-	private static void addToSolr(final SolrClient client, final List<SolrInputDocument> buffer, final AtomicLong counter, ThreadPoolExecutor executor) {
+	private static void addToSolr(final SolrClient client, final List<SolrInputDocument> buffer,
+								  final AtomicLong counter, ThreadPoolExecutor executor) {
 		Runnable writeDocs = new Runnable() {
 			@Override
 			public void run() {

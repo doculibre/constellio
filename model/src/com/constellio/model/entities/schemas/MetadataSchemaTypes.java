@@ -127,7 +127,7 @@ public class MetadataSchemaTypes implements Serializable {
 		return collectionInfo;
 	}
 
-	private MetadataList getSearchableMetadatas(List<MetadataSchemaType> schemaTypes) {
+	public static MetadataList getSearchableMetadatas(List<MetadataSchemaType> schemaTypes) {
 		MetadataList searchableMetadatas = new MetadataList();
 		Set<String> searchableMetadatasDataStoreCodes = new HashSet<>();
 		for (MetadataSchemaType schemaType : schemaTypes) {
@@ -444,7 +444,7 @@ public class MetadataSchemaTypes implements Serializable {
 	}
 
 	public boolean isRecordTypeMetadata(Metadata metadata) {
-		if ("type".equals(metadata.getCode()) || metadata.getType() == REFERENCE) {
+		if ("type".equals(metadata.getCode()) || (metadata.getType() == REFERENCE && !metadata.isMultivalue())) {
 			MetadataSchema referencedSchema = getDefaultSchema(metadata.getReferencedSchemaTypeCode());
 			return referencedSchema.hasMetadataWithCode("linkedSchema");
 		}

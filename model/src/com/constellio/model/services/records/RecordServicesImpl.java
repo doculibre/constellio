@@ -1906,6 +1906,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 			if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 				eventsDao.flush();
 			}
+			if (searchDao != null) {
+				searchDao.flush();
+			}
 			notificationsDao.flush();
 
 		} catch (RecordDaoRuntimeException_RecordsFlushingFailed e) {

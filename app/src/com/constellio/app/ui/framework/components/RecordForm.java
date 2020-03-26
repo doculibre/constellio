@@ -24,8 +24,15 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
+import lombok.Getter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -130,7 +137,11 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 			Record record = recordVO.getRecord().getCopyOfOriginalRecord();
 			schemaPresenterUtils.fillRecordUsingRecordVO(record, recordVO, true);
 
-			if (record.isDirty()) {
+
+			ForceCancelSaveOfFormParams forceCancelSaveOfFormParams = new ForceCancelSaveOfFormParams(record);
+			forceCancelSaveOfForm(forceCancelSaveOfFormParams);
+
+			if (!forceCancelSaveOfFormParams.isForceCancelSave() && record.isDirty()) {
 				return SaveAction.save;
 			} else {
 				return SaveAction.cancelSave;
@@ -138,6 +149,25 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		}
 
 		return SaveAction.undefined;
+	}
+
+	public void forceCancelSaveOfForm(ForceCancelSaveOfFormParams forceCancelSaveOfFormParams) {
+
+	}
+
+	@Getter
+	public class ForceCancelSaveOfFormParams {
+		private Record record;
+		private boolean forceCancelSave;
+
+		public ForceCancelSaveOfFormParams(Record record) {
+			this.record = record;
+			this.forceCancelSave = false;
+		}
+
+		public void doNotShowConfirmationMessage() {
+			this.forceCancelSave = true;
+		}
 	}
 
 	public void extraActionBeforeComparingOldAndNewRecord(RecordVO recordVO) {

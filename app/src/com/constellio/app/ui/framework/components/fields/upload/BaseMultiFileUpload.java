@@ -14,6 +14,7 @@ import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
+import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamVariable;
@@ -364,7 +365,10 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 			prepareNoDropZone();
 		}
 
-		UI.getCurrent().getNavigator().addViewChangeListener(this);
+		Navigator navigator = UI.getCurrent().getNavigator();
+		if (navigator != null) {
+			navigator.addViewChangeListener(this);
+		}
 		uiPollIntervalBefore = UI.getCurrent().getPollInterval();
 		UI.getCurrent().addPollListener(this);
 		UI.getCurrent().setPollInterval(getPollinInterval());

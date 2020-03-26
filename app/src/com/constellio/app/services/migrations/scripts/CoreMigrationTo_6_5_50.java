@@ -35,7 +35,7 @@ public class CoreMigrationTo_6_5_50 implements MigrationScript {
 		SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		schemasDisplayManager
 				.saveMetadata(new MetadataDisplayConfig(collection, Event.DEFAULT_SCHEMA + "_" + Event.RECORD_VERSION, true,
-						MetadataInputType.FIELD, true, "default", null, null));
+						MetadataInputType.FIELD, true, "default", null, null, null));
 	}
 
 	private class CoreSchemaAlterationFor6_5_50 extends MetadataSchemasAlterationHelper {
