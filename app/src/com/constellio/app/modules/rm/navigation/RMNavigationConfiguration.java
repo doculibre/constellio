@@ -330,20 +330,13 @@ public class RMNavigationConfiguration implements Serializable {
 						String recordPath = (String) event.getItemId();
 
 						String openRecordId = null;
-						try {
-							TreeNode treeNode = DefaultLazyTreeDataProvider.toTreeNode(recordPath);
-							if (LegacyTreeNodesDataProviderAdapter.PROVIDER_ID.equals(treeNode.getProviderType())
-								&& Document.SCHEMA_TYPE.equals(treeNode.getNodeType())) {
-								openRecordId = treeNode.getId();
-
-							}
-
-						} catch (Exception e) {
-							//This print stacktrace could eventually be considered an exception, when the new tree api
-							// will be used everywhere
-							e.printStackTrace();
+						TreeNode treeNode = DefaultLazyTreeDataProvider.toTreeNodeSupportingLegacyProviders(recordPath);
+						if (LegacyTreeNodesDataProviderAdapter.PROVIDER_ID.equals(treeNode.getProviderType())
+							&& Document.SCHEMA_TYPE.equals(treeNode.getNodeType())) {
+							openRecordId = treeNode.getId();
 
 						}
+
 						menu.openFor(openRecordId);
 					}
 				});
