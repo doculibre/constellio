@@ -41,6 +41,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
@@ -217,6 +218,14 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			buttonLayout2.addComponent(editAnnotationBtn);
 		}
 		setMessageIfAnOtherUserOrAnOtherPageIsEditing(false);
+
+		Button finalizeButton = new BaseButton("Finalize") {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				com.vaadin.ui.JavaScript.eval("finalizeDocument()");
+			}
+		};
+		buttonLayout2.addComponent(finalizeButton);
 
 		buttonLayout2.addComponent(enableDisableAnnotation);
 
@@ -551,27 +560,13 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			boolean handled;
 			String key = request.getParameter("resourceKey");
 			if (bpmnResourceKey.equals(key)) {
-				try {
-					pdfTronPresenter.handleNewXml(request.getParameter("data"), userHasRightToEditOtherUserAnnotation, user.getId());
-				} catch (PdfTronXMLException_CannotEditOtherUsersAnnoations pdfTronXMLException_cannotEditOtherUsersAnnoations) {
-					log.error("do not have permission to edit other user annotation parsing error", pdfTronXMLException_cannotEditOtherUsersAnnoations);
-					response.getWriter().write(
-							createErrorJSONResponse("Could not update. Some modifications are " +
-													"invalid"));
-
-				} catch (PdfTronXMLException_XMLParsingException e) {
-					log.error("unexpected xml parsing error", e);
-					response.getWriter().write(
-							createErrorJSONResponse("Invalid xml"));
-
-				} catch (PdfTronXMLException_IOExeption pdfTronXMLException_ioExeption) {
-					log.error("unexpected io error", pdfTronXMLException_ioExeption);
-					response.getWriter().write(
-							createErrorJSONResponse("Unexpected IO error"));
-				} catch (PdfTronXMLException_CannotEditAnnotationWithoutLock pdfTronXMLException_cannotEditAnnotationWithoutLock) {
-					log.error("cannot edit while not having the page lock");
-					response.getWriter().write(
-							createErrorJSONResponse("cannot edit while not having the page lock"));
+				if (StringUtils.isNotBlank(request.getParameter("data"))) {
+					handleNewXml(user, request, response);
+				} else if (StringUtils.isNotBlank(request.getParameter("blob"))) {
+					handleFinalDocument(request);
+				} else {
+					log.error("Invalid parameters!");
+					response.getWriter().write(createErrorJSONResponse("Invalid parameters!"));
 				}
 				handled = true;
 			} else {
@@ -579,6 +574,35 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			}
 
 			return handled;
+		}
+
+		private void handleFinalDocument(VaadinRequest request) {
+			pdfTronPresenter.handleFinalDocument(request.getParameter("blob"));
+		}
+
+		private void handleNewXml(User user, VaadinRequest request, final VaadinResponse response) throws IOException {
+			try {
+				pdfTronPresenter.handleNewXml(request.getParameter("data"), userHasRightToEditOtherUserAnnotation, user.getId());
+			} catch (PdfTronXMLException_CannotEditOtherUsersAnnoations pdfTronXMLException_cannotEditOtherUsersAnnoations) {
+				log.error("do not have permission to edit other user annotation parsing error", pdfTronXMLException_cannotEditOtherUsersAnnoations);
+				response.getWriter().write(
+						createErrorJSONResponse("Could not update. Some modifications are " +
+												"invalid"));
+
+			} catch (PdfTronXMLException_XMLParsingException e) {
+				log.error("unexpected xml parsing error", e);
+				response.getWriter().write(
+						createErrorJSONResponse("Invalid xml"));
+
+			} catch (PdfTronXMLException_IOExeption pdfTronXMLException_ioExeption) {
+				log.error("unexpected io error", pdfTronXMLException_ioExeption);
+				response.getWriter().write(
+						createErrorJSONResponse("Unexpected IO error"));
+			} catch (PdfTronXMLException_CannotEditAnnotationWithoutLock pdfTronXMLException_cannotEditAnnotationWithoutLock) {
+				log.error("cannot edit while not having the page lock");
+				response.getWriter().write(
+						createErrorJSONResponse("cannot edit while not having the page lock"));
+			}
 		}
 
 		private String createErrorJSONResponse(String errorMessage) {

@@ -51,6 +51,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration FILE_EXTENSIONS_EXCLUDED_FROM_PARSING;
 	public static final SystemConfiguration BACKGROUND_RECORDS_REINDEXING_MODE;
 	public static final SystemConfiguration PDFTRON_LICENSE;
+	public static final SystemConfiguration SIGNING_CERTIFICATE;
 
 	public static final SystemConfiguration METADATA_POPULATE_PRIORITY, TITLE_METADATA_POPULATE_PRIORITY;
 	public static final SystemConfiguration LOGO;
@@ -213,6 +214,7 @@ public class ConstellioEIMConfigs {
 		add(BACKGROUND_RECORDS_REINDEXING_MODE = advanced.createEnum("backgroundRecordsReindexingMode", BackgroundRecordsReindexingMode.class)
 				.withDefaultValue(BackgroundRecordsReindexingMode.SLOW).whichIsHidden());
 		add(PDFTRON_LICENSE = advanced.createString("pdftronLicense"));
+		add(SIGNING_CERTIFICATE = advanced.createBinary("signingCertificate"));
 
 		add(CLEAN_DURING_INSTALL = advanced.createBooleanFalseByDefault("cleanDuringInstall"));
 

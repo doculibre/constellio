@@ -9,7 +9,11 @@ const FitWidth = "FitWidth";
 })
 
 (window.isSignatureAnnotation = function(subject) {
-    return subject.localeCompare("ConstellioSignature") == 0 || subject.localeCompare("ConstellioInitials") == 0;
+    return subject.localeCompare("ConstellioSignature") == 0;
+});
+
+(window.isSignatureOrInitialsAnnotation = function(subject) {
+    return isSignatureAnnotation(subject) || subject.localeCompare("ConstellioInitials") == 0;
 });
 
 (window.isEmpty = function(data) {
@@ -36,7 +40,7 @@ const FitWidth = "FitWidth";
         var annotations = annotManager.getAnnotationsList();
 
         for (var i = 0; i < annotations.length; i++) {
-            if (enableAnnotations || isSignatureAnnotation(annotations[i].Subject)) {
+            if (enableAnnotations || isSignatureOrInitialsAnnotation(annotations[i].Subject)) {
                 annotManager.showAnnotation(annotations[i]);
             } else {
                 annotManager.hideAnnotation(annotations[i]);
@@ -47,16 +51,63 @@ const FitWidth = "FitWidth";
     }
 });
 
+(window.setEnableSignatureAnnotations = function(enableAnnotations) {
+    if(isWebViewerInstanceSet()) {
+        const {docViewer} = window.webViewerInstance;
+        const annotManager = docViewer.getAnnotationManager();
+        var annotations = annotManager.getAnnotationsList();
+
+        for (var i = 0; i < annotations.length; i++) {
+            if (isSignatureAnnotation(annotations[i].Subject)) {
+                if (enableAnnotations) {
+                    annotManager.showAnnotation(annotations[i]);
+                } else {
+                    annotManager.hideAnnotation(annotations[i]);
+                }
+            }
+        }
+    }
+});
+
 (window.rePullAnnotations = function() {
     if(isWebViewerInstanceSet()) {
-            $.get(documentAnnotationUrl, (data) => {
+        $.get(documentAnnotationUrl, (data) => {
+            ignoreAnnotationChange = true;
+            if(data) {
+                window.webViewerInstance.docViewer.getAnnotationManager().importAnnotations(data);
+            }
+            ignoreAnnotationChange = false;
+        });
+    }
+});
 
-                ignoreAnnotationChange = true;
-                if(data) {
-                    window.webViewerInstance.docViewer.getAnnotationManager().importAnnotations(data);
-                }
-                ignoreAnnotationChange = false;
+(window.finalizeDocument = async function() {
+    if(isWebViewerInstanceSet()) {
+        const { docViewer, annotManager } = window.webViewerInstance;
+
+        setEnableSignatureAnnotations(false);
+        const xfdfString = await annotManager.exportAnnotations({links: false, widgets: false});
+        setEnableSignatureAnnotations(true);
+
+        const doc = docViewer.getDocument();
+        const data = await doc.getFileData({
+            // saves the document with annotations in it
+            xfdfString
+        });
+        const arr = new Uint8Array(data);
+        const blob = new Blob([arr], { type: 'application/pdf' });
+
+        var reader = new FileReader();
+        var base64data;
+        reader.readAsDataURL(blob);
+        reader.onloadend = function() {
+            base64data = reader.result;
+            debugger
+            $.post(documentAnnotationCallBack, {
+                'resourceKey': documentAnnotationRK,
+                'blob': base64data
             });
+        }
     }
 });
 
