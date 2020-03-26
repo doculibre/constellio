@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.data;
 
+import com.constellio.app.ui.framework.data.trees.LegacyTreeNodesDataProviderAdapter;
 import com.constellio.data.utils.LangUtils;
 import com.vaadin.server.Resource;
 import lombok.Getter;
@@ -71,6 +72,10 @@ public class TreeNode implements Serializable {
 
 	public boolean isType(String providerType, String providerNodeType) {
 		return LangUtils.isEqual(this.providerType, providerType) && LangUtils.isEqual(this.nodeType, providerNodeType);
+	}
+
+	public boolean isRecord() {
+		return LegacyTreeNodesDataProviderAdapter.PROVIDER_ID.endsWith(providerType);
 	}
 
 	public boolean isProviderType(String providerType) {

@@ -24,6 +24,7 @@ import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.data.TreeNode;
 import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -57,8 +58,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.app.ui.framework.data.trees.DefaultLazyTreeDataProvider.toTreeNodeSupportingLegacyProviders;
 import static com.constellio.app.ui.i18n.i18n.$;
-import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
@@ -255,9 +256,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			@Override
 			public void itemClick(ItemClickEvent event) {
 				if (event.getButton() == MouseButton.LEFT) {
-					String recordPath = (String) event.getItemId();
-					String recordId = recordPath.contains("|") ? substringAfterLast(recordPath, "|") : recordPath;
-					clickNavigating = presenter.recordClicked(recordId, provider.getTaxonomyCode(), false);
+					TreeNode treeNode = toTreeNodeSupportingLegacyProviders((String) event.getItemId());
+
+					if (treeNode.isRecord()) {
+						clickNavigating = presenter.recordClicked(treeNode.getId(), provider.getTaxonomyCode(), false);
+					}
 				} else {
 					clickNavigating = true;
 				}

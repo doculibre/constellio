@@ -107,6 +107,14 @@ public class DefaultLazyTreeDataProvider extends AbstractDataProvider implements
 		}
 	}
 
+	public static TreeNode toTreeNodeSupportingLegacyProviders(String nodePath) {
+		if (nodePath.contains(":")) {
+			return toTreeNode(nodePath);
+		} else {
+			return TreeNode.namelessNode(nodePath, LegacyTreeNodesDataProviderAdapter.PROVIDER_ID, null);
+		}
+	}
+
 	public static TreeNode toTreeNode(String nodePath) {
 		String[] nodeParts;
 		if (nodePath.contains("|")) {

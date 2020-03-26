@@ -57,31 +57,38 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 		updateSearchResultClicked();
 	}
 
+
 	public boolean openForRequested(String recordId) {
-		boolean showContextMenu;
-		Record record = presenterUtils.getRecord(recordId);
-		String recordSchemaCode = record.getSchemaCode();
-		String recordSchemaTypeCode = SchemaUtils.getSchemaTypeCode(recordSchemaCode);
+		if (recordId != null) {
+			boolean showContextMenu;
+			Record record = presenterUtils.getRecord(recordId);
+			String recordSchemaCode = record.getSchemaCode();
+			String recordSchemaTypeCode = SchemaUtils.getSchemaTypeCode(recordSchemaCode);
 
-		if (Event.SCHEMA_TYPE.equals(recordSchemaTypeCode)) {
-			Event event = new Event(record, presenterUtils.types());
-			recordSchemaCode = event.getType().split("_")[1];
-			recordSchemaTypeCode = SchemaUtils.getSchemaTypeCode(recordSchemaCode);
-			String linkedRecordId = event.getRecordId();
-			record = presenterUtils.getRecord(linkedRecordId);
-		}
+			if (Event.SCHEMA_TYPE.equals(recordSchemaTypeCode)) {
+				Event event = new Event(record, presenterUtils.types());
+				recordSchemaCode = event.getType().split("_")[1];
+				recordSchemaTypeCode = SchemaUtils.getSchemaTypeCode(recordSchemaCode);
+				String linkedRecordId = event.getRecordId();
+				record = presenterUtils.getRecord(linkedRecordId);
+			}
 
-		if (Document.SCHEMA_TYPE.equals(recordSchemaTypeCode)) {
-			this.documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, contextMenu.getSessionContext());
-			setRecordVO(documentVO);
-			contextMenu.setRecordVO(documentVO);
-			updateActionsComponent();
-			showContextMenu = true;
+			if (Document.SCHEMA_TYPE.equals(recordSchemaTypeCode)) {
+				this.documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, contextMenu.getSessionContext());
+				setRecordVO(documentVO);
+				contextMenu.setRecordVO(documentVO);
+				updateActionsComponent();
+				showContextMenu = true;
+			} else {
+				showContextMenu = false;
+			}
+			contextMenu.setVisible(showContextMenu);
+			return showContextMenu;
 		} else {
-			showContextMenu = false;
+			contextMenu.setVisible(false);
+			return false;
 		}
-		contextMenu.setVisible(showContextMenu);
-		return showContextMenu;
+
 	}
 
 	public boolean openForRequested(RecordVO recordVO) {

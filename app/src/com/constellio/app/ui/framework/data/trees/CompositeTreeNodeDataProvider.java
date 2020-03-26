@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  *
@@ -20,26 +21,28 @@ public class CompositeTreeNodeDataProvider implements TreeNodesProvider<Composit
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CompositeTreeNodeDataProvider.class);
 
-	private List<TreeNodesProvider> childTreeNodesProviders;
+	private Function<TreeNode, List<TreeNodesProvider<?>>> childTreeNodesProvidersFunction;
 
 	private static boolean DEBUG = true;
 
 	public CompositeTreeNodeDataProvider(
-			List<TreeNodesProvider<?>> childTreeNodesProviders) {
-		this.childTreeNodesProviders = (List) childTreeNodesProviders;
+			Function<TreeNode, List<TreeNodesProvider<?>>> childTreeNodesProvidersFunction) {
+		this.childTreeNodesProvidersFunction = childTreeNodesProvidersFunction;
 	}
 
 	public static TreeNodesProvider forNodesProvider(List<TreeNodesProvider<?>> nodesProvider) {
 		if (nodesProvider.size() == 1) {
 			return nodesProvider.get(0);
 		} else {
-			return new CompositeTreeNodeDataProvider(nodesProvider);
+			return new CompositeTreeNodeDataProvider((parentNode) -> nodesProvider);
 		}
 	}
 
+
 	@Override
 	public boolean areNodesPossibleIn(TreeNode optionalParentTreeNode) {
-		return childTreeNodesProviders.stream().anyMatch((p) -> p.areNodesPossibleIn(optionalParentTreeNode));
+		List<TreeNodesProvider<?>> treeNodesProviders = childTreeNodesProvidersFunction.apply(optionalParentTreeNode);
+		return treeNodesProviders.stream().anyMatch((p) -> p.areNodesPossibleIn(optionalParentTreeNode));
 	}
 
 	@Override
@@ -47,6 +50,7 @@ public class CompositeTreeNodeDataProvider implements TreeNodesProvider<Composit
 			TreeNode optionalParent, int start, int maxSize,
 			CompositeTreeNodeDataProviderFastContinuationInfos fastContinuationInfos) {
 
+		List<TreeNodesProvider<?>> childTreeNodesProviders = childTreeNodesProvidersFunction.apply(optionalParent);
 		int continueAtProvider = 0;
 		int continueAtProviderIndex = 0;
 		Serializable currentFastContinuationInfos = null;
@@ -129,12 +133,5 @@ public class CompositeTreeNodeDataProvider implements TreeNodesProvider<Composit
 		}
 	}
 
-	public TreeNodesProvider<?> compositeOf(List<TreeNodesProvider<?>> dataProviders) {
-		if (dataProviders.size() == 1) {
-			return dataProviders.get(0);
-		} else {
-			return new CompositeTreeNodeDataProvider(dataProviders);
-		}
-	}
 
 }

@@ -63,6 +63,8 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.data.TreeNode;
+import com.constellio.app.ui.framework.data.trees.DefaultLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.trees.LegacyTreeNodesDataProviderAdapter;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
@@ -318,22 +320,22 @@ public class RMNavigationConfiguration implements Serializable {
 					public void onContextMenuOpenFromTreeItem(ContextMenuOpenedOnTreeItemEvent event) {
 						String recordPath = (String) event.getItemId();
 
-						if (recordPath.contains("|")) {
+						String openRecordId = null;
+						try {
+							TreeNode treeNode = DefaultLazyTreeDataProvider.toTreeNode(recordPath);
+							if (LegacyTreeNodesDataProviderAdapter.PROVIDER_ID.equals(treeNode.getProviderType())
+								&& Document.SCHEMA_TYPE.equals(treeNode.getNodeType())) {
+								openRecordId = treeNode.getId();
 
-							String parts[] = recordPath.split("\\|");
-							String providerId = parts[0];
-							String nodetype = parts[1];
-							String last = parts[parts.length - 1];
-
-							if (LegacyTreeNodesDataProviderAdapter.PROVIDER_ID.equals(providerId)
-								&& Document.SCHEMA_TYPE.equals(nodetype)) {
-								menu.openFor(last);
 							}
-						} else {
-							//TODO Francis, j'ai laissé ce open, il faudrait valider si ce cas est possible
-							menu.openFor(recordPath);
-						}
 
+						} catch (Exception e) {
+							//This print stacktrace could eventually be considered an exception, when the new tree api
+							// will be used everywhere
+							e.printStackTrace();
+
+						}
+						menu.openFor(openRecordId);
 					}
 				});
 				menu.addContextMenuTableListener(new TableListener() {
