@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListFolderTableExtension;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListPresenterExtension;
+import com.constellio.app.modules.rm.extensions.api.DecommissioningListPresenterExtension.ImportExternalLinksParams;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListPresenterExtension.ValidateDecommissioningListProcessableParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
@@ -247,6 +248,12 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void processButtonClicked() {
+		if (rmModuleExtensions != null) {
+			for (DecommissioningListPresenterExtension extension : rmModuleExtensions.getDecommissioningListPresenterExtensions()) {
+				ImportExternalLinksParams params = new ImportExternalLinksParams(decommissioningList().getFolders(), getCurrentUser().getUsername(), appLayerFactory, collection);
+				extension.importExternalLinks(params);
+			}
+		}
 		HashMap<String, Double> sizeToBePlacedPerContainer = new HashMap<>();
 		RMSchemasRecordsServices rm = rmRecordsServices();
 		for (FolderDetailVO folder : getFoldersToValidate()) {
