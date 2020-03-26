@@ -38,7 +38,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 @UiTest
 @MainTest
-public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
+public class StartDemoRMConstellioWithoutPluginsAcceptTest extends ConstellioTest {
 
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
