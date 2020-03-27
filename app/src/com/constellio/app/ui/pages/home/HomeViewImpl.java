@@ -435,11 +435,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 			return Arrays.asList(schemaVO);
 		}
 
-		@Override
-		public Map<String, List<String>> getHighlights(Object itemId) {
-			return new HashMap<>();
-		}
-
 	}
 
 	private class ViewableRecordItemTablePanel extends HomeViewViewableItemTablePanel {

@@ -24,7 +24,12 @@ import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBui
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.ExternalLink;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -91,7 +96,12 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
-import com.constellio.model.services.search.query.logical.*;
+import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryFacetFilters;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
@@ -106,8 +116,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS;
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS;
@@ -1307,11 +1323,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				String userSearchExpression = filterSolrOperators(value);
 				if (!StringUtils.isBlank(value)) {
 					LogicalSearchQuery logicalSearchQuery;
-					if (includeTree) {
-						logicalSearchQuery = getFolderContentQuery(summaryFolderVO.getId(), true).setFreeTextQuery(userSearchExpression);
-					} else {
-						logicalSearchQuery = getFolderContentQuery(summaryFolderVO.getId(), false).setFreeTextQuery(userSearchExpression);
-					}
+					logicalSearchQuery = getFolderContentQuery(summaryFolderVO.getId(), includeTree).setFreeTextQuery(userSearchExpression);
 					if (!"*".equals(value)) {
 						logicalSearchQuery.setHighlighting(true);
 					}
