@@ -157,7 +157,10 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 				view.showErrorMessage(MessageUtils.toMessage(e));
 			}
 
-			enableLinkedSchema(record);
+			try {
+				enableLinkedSchema(record);
+			} catch (IllegalArgumentException ignored) {
+			}
 			view.refreshTables();
 		}
 
