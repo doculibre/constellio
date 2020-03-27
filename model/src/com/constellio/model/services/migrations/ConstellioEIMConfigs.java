@@ -95,7 +95,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ADD_COMMENTS_WHEN_READ_AUTHORIZATION;
 
 	public static final SystemConfiguration SEARCH_RESULTS_HIGHLIGHTING_ENABLED;
-	;
 
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
 																 "  { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat' ] },\r\n" +
@@ -176,6 +175,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration SEARCH_USING_TERMS_IN_BQ;
 
 	public static final SystemConfiguration ASK_FOR_CONFIRMATION_BEFORE_EDIT_OR_DELETE;
+	public static final SystemConfiguration ENABLE_ILLEGAL_CHARACTERS_VALIDATION;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -339,6 +339,8 @@ public class ConstellioEIMConfigs {
 		add(NO_LINKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
 		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
 		add(SEARCH_RESULTS_HIGHLIGHTING_ENABLED = search.createBooleanTrueByDefault("searchResultsHighlightingEnabled").whichIsHidden());
+
+		add(ENABLE_ILLEGAL_CHARACTERS_VALIDATION = others.createBooleanTrueByDefault("enabledIllegalCharactersValidation"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 
@@ -706,4 +708,7 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(ASK_FOR_CONFIRMATION_BEFORE_EDIT_OR_DELETE);
 	}
 
+	public boolean isIllegalCharactersValidationEnabled() {
+		return manager.getValue(ENABLE_ILLEGAL_CHARACTERS_VALIDATION);
+	}
 }

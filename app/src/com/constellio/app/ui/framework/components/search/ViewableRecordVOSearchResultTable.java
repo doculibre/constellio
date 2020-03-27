@@ -14,11 +14,7 @@ import com.constellio.app.ui.pages.search.RecordSelectionObserver;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -29,7 +25,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 
 	private Set<Object> selectedItemIds = new HashSet<>();
 	// Optimisation parce que sinon sa prend beaucoup de temps quand on a beaucoup d'élément de sélectionner.
-	private Set<String> selectedItemRecordId = new HashSet<>();
+	private Set<String> selectedRecordIds = new HashSet<>();
 	private Set<Object> deselectedItemIds = new HashSet<>();
 	private boolean allItemsSelected;
 	private BaseViewImpl searchView;
@@ -81,7 +77,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 					for (Object selectedItemId : selectedItemIds) {
 						ViewableRecordVOSearchResultTable.this.selectedItemIds.add(selectedItemId);
 						ViewableRecordVOSearchResultTable.this.deselectedItemIds.remove(selectedItemId);
-						ViewableRecordVOSearchResultTable.this.selectedItemRecordId.add(getRecordVO(selectedItemId).getId());
+						ViewableRecordVOSearchResultTable.this.selectedRecordIds.add(getRecordVO(selectedItemId).getId());
 					}
 					recordSelectionObserver.fireSomeRecordsSelected();
 				} else if (event.getDeselectedItemIds() != null) {
@@ -93,7 +89,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 
 					for (Object deselectedItemId : deselectedItemIds) {
 						ViewableRecordVOSearchResultTable.this.selectedItemIds.remove(deselectedItemId);
-						ViewableRecordVOSearchResultTable.this.selectedItemRecordId.remove(getRecordVO(deselectedItemId).getId());
+						ViewableRecordVOSearchResultTable.this.selectedRecordIds.remove(getRecordVO(deselectedItemId).getId());
 						ViewableRecordVOSearchResultTable.this.deselectedItemIds.add(deselectedItemId);
 					}
 					if (selectedItemIds.isEmpty()) {
@@ -102,21 +98,21 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 						recordSelectionObserver.fireSomeRecordsSelected();
 					}
 				} else if (event.isAllItemsSelected()) {
-
 					if (recordVOContainer instanceof PreLoader) {
 						((PreLoader) recordVOContainer).loadAll();
 					}
 
-					List lRecordIdList = recordVOContainer.getItemIds().stream().map(itemId -> getRecordVO(itemId).getId()).collect(Collectors.toList());
+					List<String> recordIdList = recordVOContainer.getItemIds().stream().map(itemId -> getRecordVO(itemId).getId()).collect(Collectors.toList());
 
 					ViewableRecordVOSearchResultTable.this.allItemsSelected = true;
 					ViewableRecordVOSearchResultTable.this.selectedItemIds.addAll(recordVOContainer.getItemIds());
-					ViewableRecordVOSearchResultTable.this.selectedItemRecordId.addAll(lRecordIdList);
+					ViewableRecordVOSearchResultTable.this.selectedRecordIds.addAll(recordIdList);
 					ViewableRecordVOSearchResultTable.this.deselectedItemIds.clear();
 					recordSelectionObserver.fireSomeRecordsSelected();
 				} else if (event.isAllItemsDeselected()) {
 					ViewableRecordVOSearchResultTable.this.allItemsSelected = false;
 					ViewableRecordVOSearchResultTable.this.selectedItemIds.clear();
+					ViewableRecordVOSearchResultTable.this.selectedRecordIds.clear();
 					ViewableRecordVOSearchResultTable.this.deselectedItemIds.clear();
 					recordSelectionObserver.fireNoRecordSelected();
 				}
@@ -151,7 +147,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 					return false;
 				}
 				String recordId = recordVO.getId();
-				return ViewableRecordVOSearchResultTable.this.isSelectAll() || selectedItemRecordId.contains(recordId);
+				return ViewableRecordVOSearchResultTable.this.isSelectAll() || selectedRecordIds.contains(recordId);
 			}
 		};
 	}

@@ -30,8 +30,6 @@ import com.constellio.app.ui.framework.components.table.BaseTable.DeselectAllBut
 import com.constellio.app.ui.framework.components.table.BaseTable.PagingControls;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable.RecordVOSelectionManager;
-import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEvent;
-import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.PreLoader;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
@@ -393,6 +391,17 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			@Override
 			public void selectionChanged(SelectionChangeEvent event) {
 				selectionActionsMenuBar.buildMenuItems();
+
+				int selectedCount;
+				SelectionManager selectionManager = table.getSelectionManager();
+				if (selectionManager.isAllItemsSelected()) {
+					selectedCount = recordVOContainer.size();
+				} else if (selectionManager.isAllItemsDeselected()) {
+					selectedCount = 0;
+				} else {
+					selectedCount = selectionManager.getAllSelectedItemIds().size();
+				}
+				setSelectedCountCaption(selectedCount);
 			}
 		});
 	}
@@ -780,19 +789,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 		//resultsTable.setAlwaysRecalculateColumnWidths(true);
 
-		resultsTable.addRefreshRenderedCellsEventListener(new RefreshRenderedCellsEvent() {
-			@Override
-			public void refreshRenderedCellsEvent(RefreshRenderedCellsEventParams refreshRenderedCellsEventParams) {
-
-				SelectionChangeEvent selectionChangeEvent = new SelectionChangeEvent();
-				selectionChangeEvent.setSelectedItemIds(refreshRenderedCellsEventParams.getSelectedIds());
-				selectionChangeEvent.setAllItemsSelected(refreshRenderedCellsEventParams.isAreAllItemSelected());
-
-				resultsTable.getSelectionManager().selectionChanged(selectionChangeEvent);
-				setSelectedCountCaption(getSelectedSize());
-			}
-		});
-
 		return resultsTable;
 	}
 
@@ -864,9 +860,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			SelectDeselectAllButton selectDeselectAllToggleButtonBefore = selectDeselectAllToggleButton;
 			selectDeselectAllToggleButton = newSelectDeselectAllToggleButton();
 			selectDeselectAllToggleButton.addStyleName(ValoTheme.BUTTON_LINK);
-			if (selectDeselectAllToggleButtonBefore != null && selectDeselectAllToggleButtonBefore.isSelectAllMode() != selectDeselectAllToggleButton.isSelectAllMode()) {
-				selectDeselectAllToggleButton.setSelectAllMode(selectDeselectAllToggleButtonBefore.isSelectAllMode());
-			}
+			//			if (selectDeselectAllToggleButtonBefore != null && selectDeselectAllToggleButtonBefore.isSelectAllMode() != selectDeselectAllToggleButton.isSelectAllMode()) {
+			//				selectDeselectAllToggleButton.setSelectAllMode(selectDeselectAllToggleButtonBefore.isSelectAllMode());
+			//			}
 			selectionButtonsLayout.replaceComponent(selectDeselectAllToggleButtonBefore, selectDeselectAllToggleButton);
 		}
 	}

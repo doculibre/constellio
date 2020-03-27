@@ -19,6 +19,8 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_InvalidParent;
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_ParentNotFound;
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_RecordException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +31,9 @@ import static com.constellio.data.utils.LangUtils.valueOrDefault;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class SolrGlobalGroupsManager implements StatefulService {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SolrGlobalGroupsManager.class);
+	
 	private final ModelLayerFactory modelLayerFactory;
 	private final SearchServices searchServices;
 	private final SchemasRecordsServices schemas;
@@ -61,8 +66,8 @@ public class SolrGlobalGroupsManager implements StatefulService {
 		try {
 			modelLayerFactory.newRecordServices().add(groupRecord);
 		} catch (RecordServicesException e) {
-			// TODO: Exception
-			e.printStackTrace();
+			String groupInfo = group != null ? group.toString() : "Null group";
+			LOGGER.warn("Error while trying to save global group: " + groupInfo);
 		}
 	}
 
@@ -76,8 +81,8 @@ public class SolrGlobalGroupsManager implements StatefulService {
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);
 		} catch (RecordServicesException e) {
-			// TODO: Exception
-			e.printStackTrace();
+			String groupInfo = group != null ? group.toString() : "Null group";
+			LOGGER.warn("Error while trying to remove global group: " + groupInfo);
 		}
 	}
 
@@ -89,8 +94,8 @@ public class SolrGlobalGroupsManager implements StatefulService {
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);
 		} catch (RecordServicesException e) {
-			// TODO: Exception
-			e.printStackTrace();
+			String groupInfo = group != null ? group.toString() : "Null group";
+			LOGGER.warn("Error while trying to activate global group hierarchy: " + groupInfo);
 		}
 	}
 

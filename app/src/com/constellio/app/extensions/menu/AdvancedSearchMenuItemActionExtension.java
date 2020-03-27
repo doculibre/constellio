@@ -89,18 +89,6 @@ public abstract class AdvancedSearchMenuItemActionExtension extends MenuItemActi
 		}
 
 		MenuItemAction menuItemAction = MenuItemAction.builder()
-				.type(RECORDS_GENERATE_REPORT)
-				.state(getActionStateForReportInternal(params.getQuery(), params.isReturnedResults()))
-				.caption($("SearchView.metadataReportTitle"))
-				.icon(null)
-				.group(-1)
-				.priority(1000)
-				.recordsLimit(-1)
-				.command((ids) -> generateReport(params.getQuery(), params.getBehaviorParams()))
-				.build();
-		params.getMenuItemActions().add(menuItemAction);
-
-		MenuItemAction menuItemAction2 = MenuItemAction.builder()
 				.type(RECORDS_BATCH)
 				.state(getActionStateForBatchProcessingInternal(params.getQuery(), params.getBehaviorParams().getUser(), params.isReturnedResults()))
 				.caption($("AdvancedSearchView.batchProcessing"))
@@ -110,7 +98,7 @@ public abstract class AdvancedSearchMenuItemActionExtension extends MenuItemActi
 				.recordsLimit(-1)
 				.command((ids) -> batchProcess(params.getQuery(), params.getBehaviorParams()))
 				.build();
-		params.getMenuItemActions().add(menuItemAction2);
+		params.getMenuItemActions().add(menuItemAction);
 
 	}
 

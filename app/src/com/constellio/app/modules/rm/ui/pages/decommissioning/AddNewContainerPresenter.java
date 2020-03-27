@@ -1,12 +1,10 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.entities.RecordVO;
@@ -82,9 +80,9 @@ public class AddNewContainerPresenter extends AddEditContainerPresenter {
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
 		DecommissioningList decommissioningList = rmRecordsServices().wrapDecommissioningList(restrictedRecord);
-		AdministrativeUnit administrativeUnit = rmRecordsServices().getAdministrativeUnit(decommissioningList.getAdministrativeUnit());
 		DecommissioningSecurityService decommissioningSecurityService = new DecommissioningSecurityService(view.getCollection(), appLayerFactory);
-		return user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).on(administrativeUnit) || decommissioningSecurityService.hasPermissionToCreateTransferOnList(decommissioningList, user);
+		return decommissioningSecurityService.canCreateContainers(user) &&
+			   decommissioningSecurityService.hasAccessToDecommissioningListPage(decommissioningList, user);
 	}
 
 	private RMSchemasRecordsServices rmRecordsServices() {
