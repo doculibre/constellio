@@ -24,11 +24,7 @@ import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBui
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -95,12 +91,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
-import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryFacetFilters;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
-import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
+import com.constellio.model.services.search.query.logical.*;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
@@ -115,14 +106,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS;
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS;
@@ -149,6 +134,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
 	private DocumentToVOBuilder documentVOBuilder;
+	//	private ExternalLinkToVOBuilder externalLinkVOBuilder;
 	private List<String> documentTitles = new ArrayList<>();
 
 	private FolderVO summaryFolderVO;
@@ -290,14 +276,17 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		setSchemaCode(summaryRecord.getSchemaCode());
 		view.setSummaryRecord(summaryFolderVO);
 
-		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		MetadataSchema documentsSchema = getDocumentsSchema();
-		MetadataSchemaVO documentsSchemaVO = schemaVOBuilder.build(documentsSchema, VIEW_MODE.TABLE, view.getSessionContext());
+		MetadataSchemaVO folderSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		MetadataSchema documentSchema = getDocumentsSchema();
+		MetadataSchemaVO documentSchemaVO = schemaVOBuilder.build(documentSchema, VIEW_MODE.TABLE, view.getSessionContext());
+		MetadataSchema externalLinkSchema = getExternalLinksSchema();
+		MetadataSchemaVO externalLinkSchemaVO = schemaVOBuilder.build(externalLinkSchema, VIEW_MODE.TABLE, view.getSessionContext());
 
 		Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
-		voBuilders.put(foldersSchemaVO.getCode(), folderVOBuilder);
-		voBuilders.put(documentsSchemaVO.getCode(), documentVOBuilder);
-		folderContentDataProvider = new RecordVODataProvider(Arrays.asList(foldersSchemaVO, documentsSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
+		voBuilders.put(folderSchemaVO.getCode(), folderVOBuilder);
+		voBuilders.put(documentSchemaVO.getCode(), documentVOBuilder);
+		voBuilders.put(externalLinkSchemaVO.getCode(), new RecordToVOBuilder());
+		folderContentDataProvider = new RecordVODataProvider(Arrays.asList(folderSchemaVO, documentSchemaVO, externalLinkSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			public LogicalSearchQuery getQuery() {
 				return getFolderContentQuery(summaryFolderVO.getId(), false);
@@ -378,25 +367,32 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Folder folder = rm.getFolderSummary(folderId);
 
-		List<String> referencedDocuments = new ArrayList<>();
+		List<String> referencedRecordIds = new ArrayList<>();
 		for (Metadata folderMetadata : folder.getSchema().getMetadatas().onlyReferencesToType(Document.SCHEMA_TYPE)) {
-			referencedDocuments.addAll(folder.getWrappedRecord().<String>getValues(folderMetadata));
+			referencedRecordIds.addAll(folder.getWrappedRecord().<String>getValues(folderMetadata));
 		}
 
-		MetadataSchemaType foldersSchemaType = getFoldersSchemaType();
-		MetadataSchemaType documentsSchemaType = getDocumentsSchemaType();
+		referencedRecordIds.addAll(folder.getExternalLinks());
+
+		MetadataSchemaType folderSchemaType = getFoldersSchemaType();
+		MetadataSchemaType documentSchemaType = getDocumentsSchemaType();
+		MetadataSchemaType externalLinkSchemaType = getExternalLinksSchemaType();
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 
 		LogicalSearchCondition condition;
 		if (includeContentInHierarchy) {
-			condition = from(foldersSchemaType, documentsSchemaType).where(Schemas.PATH_PARTS).isContaining(asList(folder.getId()));
+			condition = from(folderSchemaType, documentSchemaType)
+					.where(Schemas.PATH_PARTS).isContaining(asList(folder.getId()));
 		} else {
-			condition = from(foldersSchemaType, documentsSchemaType).where(rm.folder.parentFolder()).is(folder).orWhere(rm.document.folder()).is(folder);
+			condition = from(folderSchemaType, documentSchemaType)
+					.where(rm.folder.parentFolder()).is(folder)
+					.orWhere(rm.document.folder()).is(folder)
+					.orWhere(rm.document.schema().getMetadata(Document.LINKED_TO)).is(folder);
 		}
 
-		if (!referencedDocuments.isEmpty()) {
-			condition = condition.orWhere(Schemas.IDENTIFIER).isIn(referencedDocuments);
+		if (!referencedRecordIds.isEmpty()) {
+			condition = condition.orWhere(Schemas.IDENTIFIER).isIn(referencedRecordIds);
 		}
 		query.setCondition(condition);
 
@@ -429,17 +425,17 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		addSortCriteriaForFolderContentQuery(query);
 
 		if (eimConfigs.isOnlySummaryMetadatasDisplayedInTables()) {
-			LogicalSearchQuery folderCacheableQuery = new LogicalSearchQuery(from(foldersSchemaType)
+			LogicalSearchQuery folderCacheableQuery = new LogicalSearchQuery(from(folderSchemaType)
 					.where(rm.folder.parentFolder()).is(folder))
 					.filteredWithUser(getCurrentUser())
 					.filteredByStatus(StatusFilter.ACTIVES)
 					.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
-			LogicalSearchQuery documentCacheableQuery = new LogicalSearchQuery(from(documentsSchemaType)
+			LogicalSearchQuery documentCacheableQuery = new LogicalSearchQuery(from(documentSchemaType)
 					.where(rm.document.folder()).is(folder))
 					.filteredWithUser(getCurrentUser())
 					.filteredByStatus(StatusFilter.ACTIVES)
 					.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
-			LogicalSearchQuery linkedDocumentsCacheableQuery = new LogicalSearchQuery(from(documentsSchemaType)
+			LogicalSearchQuery linkedDocumentsCacheableQuery = new LogicalSearchQuery(from(documentSchemaType)
 					.where(rm.document.schema().getMetadata("linkedTo")).is(folder))
 					.filteredWithUser(getCurrentUser())
 					.filteredByStatus(StatusFilter.ACTIVES)
@@ -692,8 +688,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return schema(Document.DEFAULT_SCHEMA);
 	}
 
+	private MetadataSchema getExternalLinksSchema() {
+		return schema(ExternalLink.DEFAULT_SCHEMA);
+	}
+
 	private MetadataSchema getTasksSchema() {
 		return schema(Task.DEFAULT_SCHEMA);
+	}
+
+	private MetadataSchemaType getExternalLinksSchemaType() {
+		return schemaType(ExternalLink.SCHEMA_TYPE);
 	}
 
 	public void viewAssembled() {

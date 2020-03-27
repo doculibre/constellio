@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.extensions.api.CartExtensions.CartExtension
 import com.constellio.app.modules.rm.extensions.api.ContainerRecordExtension.ContainerRecordExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
+import com.constellio.app.modules.rm.extensions.api.RMExternalLinkVOExtension.RMExternalLinkVOExtensionParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -19,6 +20,7 @@ import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtens
 import com.constellio.app.modules.tasks.extensions.TaskPreCompletionExtention;
 import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
@@ -48,6 +50,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<TaskPreCompletionExtention> taskPreCompletionExetention;
 	private VaultBehaviorsList<CartExtensions> cartExtensions;
 	private VaultBehaviorsList<FilteredActionsExtension> filteredActionsExtension;
+	private VaultBehaviorsList<RMExternalLinkVOExtension> externalLinkVOExtensions;
 
 	private ModelLayerExtensions modelLayerExtensions;
 
@@ -66,6 +69,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		this.cartExtensions = new VaultBehaviorsList<>();
 		this.modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
 		this.containerRecordExtensions = new VaultBehaviorsList<>();
+		this.externalLinkVOExtensions = new VaultBehaviorsList<>();
 		this.filteredActionsExtension = new VaultBehaviorsList<>();
 	}
 
@@ -148,6 +152,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public VaultBehaviorsList<DocumentFolderBreadCrumbExtention> getDocumentBreadcrumExtentions() {
 		return documentBreadcrumExtentions;
+	}
+
+	public VaultBehaviorsList<RMExternalLinkVOExtension> getExternalLinkVOExtensions() {
+		return externalLinkVOExtensions;
 	}
 
 	public boolean isCopyActionPossibleOnFolder(final Folder folder, final User user) {
@@ -656,5 +664,16 @@ public class RMModuleExtensions implements ModuleExtensions {
 		}
 
 		return false;
+	}
+
+	public RecordVO buildExternalLinkVO(RMExternalLinkVOExtensionParams params) {
+		RecordVO result = null;
+		for (RMExternalLinkVOExtension extension : externalLinkVOExtensions) {
+			result = extension.buildExternalLinkVO(params);
+			if (result != null) {
+				break;
+			}
+		}
+		return result;
 	}
 }

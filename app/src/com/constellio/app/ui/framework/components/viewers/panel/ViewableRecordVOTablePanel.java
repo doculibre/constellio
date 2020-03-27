@@ -1,16 +1,10 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
 import com.constellio.app.api.extensions.params.SchemaDisplayParams;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension.ViewableRecordVOTablePanelExtensionParams;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
-import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
-import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
-import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentWindow;
-import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskViewImpl;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -63,20 +57,10 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.JavaScript;
-import com.vaadin.ui.JavaScriptFunction;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
@@ -85,13 +69,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -925,17 +903,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		String schemaTypeCode = recordVO.getSchema().getTypeCode();
 
 		try {
-			if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-				viewWindow = new DisplayDocumentWindow(recordVO);
+			ViewWindow viewWindowFromExt = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory().getExtensions().getSystemWideExtensions().getWindowDisplay(new SchemaDisplayParams(schemaTypeCode, recordVO, searchTerm, ViewableRecordVOTablePanel.this));
+			if (viewWindowFromExt != null) {
+				viewWindow = viewWindowFromExt;
 			} else {
-
-				ViewWindow viewWindowFromExt = ViewableRecordVOTablePanel.this.getMainView()
-						.getConstellioFactories().getAppLayerFactory().getExtensions().getSystemWideExtensions().getWindowDisplay(new SchemaDisplayParams(schemaTypeCode, recordVO));
-				if (viewWindowFromExt != null) {
-					viewWindow = viewWindowFromExt;
-				} else {
-					viewWindow = new DisplaySchemaRecordWindow(recordVO);
-				}
+				viewWindow = new DisplaySchemaRecordWindow(recordVO);
 			}
 
 			viewWindow.addCloseListener(new Window.CloseListener() {
@@ -971,13 +943,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	protected boolean isDisplayInWindowOnSelection(RecordVO recordVO) {
-		boolean displayInWindowOnSelection;
-		String schemaTypeCode = recordVO.getSchema().getTypeCode();
-		if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			displayInWindowOnSelection = false;
-		} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			displayInWindowOnSelection = true;
-		} else {
+		Boolean displayInWindowOnSelection;
+
+		AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(recordVO.getRecord().getCollection());
+		displayInWindowOnSelection = extensions.isDisplayInWindowOnSelection(new ViewableRecordVOTablePanelExtensionParams(recordVO, searchTerm, this));
+
+		if (displayInWindowOnSelection == null) {
 			displayInWindowOnSelection = !ResponsiveUtils.isDesktop();
 		}
 		return displayInWindowOnSelection;
@@ -1119,7 +1091,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return closeViewerButton;
 	}
 
-	private void refreshMetadata() {
+	public void refreshMetadata() {
 		RecordServices recordServices = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory().newRecordServices();
 		Record selectedRecord = recordServices.getDocumentById(selectedRecordVO.getId());
 		selectedRecordVO = new RecordToVOBuilder().build(selectedRecord, VIEW_MODE.DISPLAY, ConstellioUI.getCurrentSessionContext());
@@ -1331,39 +1303,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 			if (recordVO != null) {
 				String schemaTypeCode = recordVO.getSchema().getTypeCode();
-				if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, true, false);
-					view.setSearchTerm(searchTerm);
-					view.enter(null);
-					view.addEditWindowCloseListener(new Window.CloseListener() {
-						@Override
-						public void windowClose(CloseEvent e) {
-							refreshMetadata();
-						}
-					});
-					panelContent = view;
-				} else if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					DisplayFolderViewImpl view = new DisplayFolderViewImpl(recordVO, true, false);
-					view.enter(null);
-					panelContent = view;
-				} else if (Task.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					DisplayTaskViewImpl view = new DisplayTaskViewImpl(recordVO, true, false);
-					view.enter(null);
-					panelContent = view;
-				} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					DisplayContainerViewImpl view = new DisplayContainerViewImpl(recordVO, false, true);
-					view.enter(null);
-					panelContent = view;
+				Component displayComponent = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory().getExtensions().getSystemWideExtensions().getSchemaDisplay(new SchemaDisplayParams(schemaTypeCode, recordVO, searchTerm, ViewableRecordVOTablePanel.this));
+				if (displayComponent != null) {
+					panelContent = displayComponent;
 				} else {
-					Component displayComponent = ViewableRecordVOTablePanel.this.getMainView()
-							.getConstellioFactories().getAppLayerFactory().getExtensions().getSystemWideExtensions().getSchemaDisplay(new SchemaDisplayParams(schemaTypeCode, recordVO));
-					if (displayComponent != null) {
-						panelContent = displayComponent;
-					} else {
-						UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
-						panelContent = new RecordDisplayFactory(currentUser).build(recordVO, true);
-						this.addStyleName("nested-view");
-					}
+					UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
+					panelContent = new RecordDisplayFactory(currentUser).build(recordVO, true);
+					this.addStyleName("nested-view");
 				}
 				mainLayout.addComponent(panelContent);
 				Label spacer = new Label("");
