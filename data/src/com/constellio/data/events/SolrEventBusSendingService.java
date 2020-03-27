@@ -354,9 +354,10 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		eventReadyToSend.event = event;
 		eventReadyToSend.serializedData = serializedData;
 
-		synchronized (sendQueue) {
-
-			sendQueue.add(eventReadyToSend);
+		if (!paused) {
+			synchronized (sendQueue) {
+				sendQueue.add(eventReadyToSend);
+			}
 		}
 	}
 

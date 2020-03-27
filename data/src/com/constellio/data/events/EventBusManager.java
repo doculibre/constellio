@@ -68,18 +68,19 @@ public class EventBusManager implements EventReceiver, StatefulService {
 	}
 
 	public void send(Event event, EventBusEventsExecutionStrategy executionStrategy) {
-		extensions.onEventSent(event);
-		if (executionStrategy == EXECUTED_LOCALLY_THEN_SENT_REMOTELY) {
-			eventDataSerializer.validateData(event.getData());
-			receive(event, false);
-			eventBusSendingService.sendRemotely(event);
+		if (!paused) {
+			extensions.onEventSent(event);
+			if (executionStrategy == EXECUTED_LOCALLY_THEN_SENT_REMOTELY) {
+				eventDataSerializer.validateData(event.getData());
+				receive(event, false);
+				eventBusSendingService.sendRemotely(event);
 
-		} else if (executionStrategy == ONLY_SENT_REMOTELY) {
-			eventDataSerializer.validateData(event.getData());
-			eventBusSendingService.sendRemotely(event);
+			} else if (executionStrategy == ONLY_SENT_REMOTELY) {
+				eventDataSerializer.validateData(event.getData());
+				eventBusSendingService.sendRemotely(event);
 
+			}
 		}
-
 	}
 
 	public void receive(Event event) {

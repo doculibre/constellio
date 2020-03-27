@@ -14,6 +14,7 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
+import com.constellio.model.services.records.cache.PersistedSortValuesServices.SortValue;
 import com.constellio.model.services.records.cache.locks.SimpleReadLockMechanism;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapByteArrayList2;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapByteList;
@@ -32,6 +33,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.schemas.MetadataSchemaTypes.LIMIT_OF_TYPES_IN_COLLECTION;
@@ -889,14 +892,13 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		LOGGER.info("finished structuring cache using id iterator");
 	}
 
-	public void setRecordsMainSortValue(List<RecordId> recordIds) {
-
-
+	public void setRecordsMainSortValue(List<?> recordIds) {
 		mechanism.obtainSystemWideWritingPermit();
 		try {
 			synchronized (this) {
 				for (int i = 0; i < recordIds.size(); i++) {
-					RecordId recordId = recordIds.get(i);
+					Object o = recordIds.get(i);
+					RecordId recordId = (o instanceof RecordId) ? (RecordId) o : ((Supplier<RecordId>) o).get();
 					if (recordId.isInteger()) {
 						int index = ids.binarySearch(recordId.intValue());
 						mainSortValues.set(index, i * 2 + 1);
@@ -907,6 +909,40 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			mechanism.releaseSystemWideWritingPermit();
 		}
 	}
+
+	public void setRecordsMainSortValueComparingValues(List<SortValue> sortValues,
+													   ToIntFunction<RecordDTO> valueHascodeFunction) {
+
+		List<RecordId> unchangedRecordIds = new ArrayList<>(sortValues.size());
+
+		mechanism.obtainSystemWideReadingPermit();
+		try {
+			for (int i = 0; i < sortValues.size(); i++) {
+				SortValue sortValue = sortValues.get(i);
+				RecordId recordId = sortValue.recordId();
+
+				if (recordId.isInteger()) {
+					int index = ids.binarySearch(recordId.intValue());
+
+					RecordDTO recordDTO = null;
+					if (index != -1) {
+						recordDTO = get(recordId.intValue(), index);
+					}
+
+					if (recordDTO != null) {
+						if (sortValue.valueHash() == valueHascodeFunction.applyAsInt(recordDTO)) {
+							unchangedRecordIds.add(recordId);
+						}
+					}
+				}
+			}
+
+		} finally {
+			mechanism.releaseSystemWideReadingPermit();
+		}
+		setRecordsMainSortValue(unchangedRecordIds);
+	}
+
 
 	public int getMainSortValue(RecordId recordId) {
 		mechanism.obtainSystemWideReadingPermit();

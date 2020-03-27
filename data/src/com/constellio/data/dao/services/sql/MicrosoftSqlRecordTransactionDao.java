@@ -21,6 +21,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	public static final String SCHEMA_NAME = "constellio";
 	private static final String DBO = "dbo";
 	private static String fullTableName = SCHEMA_NAME + "." + DBO + "." + TABLE_NAME;
+	private static String fullVersionTableName = SCHEMA_NAME + "." + DBO + ".versions";
 	private final QueryRunner queryRunner;
 	private ScalarHandler<Integer> defaultHandler = new ScalarHandler<>();
 
@@ -44,11 +45,11 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	public void insert(RecordTransactionSqlDTO dto) throws SQLException {
 
 		String insertQuery = "INSERT INTO " + fullTableName
-							 + " (id, recordId, solrVersion, content) WITH (TABLOCK) "
-							 + "VALUES ( default , ?, ?, ?)";
+							 + " (id, recordId, logVersion, solrVersion, content) "
+							 + "VALUES ( default ,?, ?, ?, ?)";
 
 		queryRunner.insert(connector.getConnection(),
-				insertQuery, defaultHandler, dto.getRecordId(),
+				insertQuery, defaultHandler, dto.getRecordId(), dto.getLogVersion(),
 				dto.getSolrVersion(), dto.getContent());
 
 		//dto.setId(newId);
@@ -57,8 +58,8 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	@Override
 	public void insertBulk(List<RecordTransactionSqlDTO> dtos) throws SQLException {
 
-		String insertQuery = "INSERT INTO " + fullTableName + " WITH (TABLOCK) "
-							 + "(id, recordId, logVersion, solrVersion, content) "
+		String insertQuery = "INSERT INTO " + fullTableName
+							 + " (id, recordId, logVersion, solrVersion, content) "
 							 + "VALUES ( default ,?, ?, ?, ?)";
 
 		Connection connection = connector.getConnection();
@@ -85,8 +86,8 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	@Override
 	public void updateBulk(List<RecordTransactionSqlDTO> dtos) throws SQLException {
 
-		String updateQuery = "UPDATE " + fullTableName + " WITH (TABLOCK) "
-							 + "SET logVersion = ?, solrVersion= ?, content= JSON_MODIFY(content,'append $', JSON_QUERY(?)) "
+		String updateQuery = "UPDATE " + fullTableName
+							 + " SET logVersion = ?, solrVersion= ?, content= JSON_MODIFY(content,'append $', JSON_QUERY(?)) "
 							 + "WHERE recordId = ? ";
 
 		Connection connection = connector.getConnection();
@@ -154,15 +155,31 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	}
 
 	@Override
-	public List<RecordTransactionSqlDTO> getAll(int top) throws SQLException {
+	public List<RecordTransactionSqlDTO> getAll(int top, boolean sortByTimestamp) throws SQLException {
 
 		if (top < 1) {
 			return getAll();
 		}
 		ResultSetHandler<List<RecordTransactionSqlDTO>> handler = new BeanListHandler<>(RecordTransactionSqlDTO.class);
 
-		List<RecordTransactionSqlDTO> dto = queryRunner.query(connector.getConnection(),
-				"SELECT TOP(" + top + ") * FROM records", handler);
+		String fecthQuery;
+		if (sortByTimestamp) {
+			fecthQuery = "SELECT TOP(" + top + ") * FROM " + fullTableName + " ORDER BY timestamp";
+		} else {
+			fecthQuery = "SELECT TOP(" + top + ") * FROM " + fullTableName;
+		}
+
+
+		List<RecordTransactionSqlDTO> dto;
+
+		if (sortByTimestamp) {
+			dto = queryRunner.query(connector.getConnection(),
+					"SELECT TOP(" + top + ") * FROM records ORDER BY timestamp", handler);
+		} else {
+			dto = queryRunner.query(connector.getConnection(),
+					"SELECT TOP(" + top + ") * FROM records", handler);
+		}
+
 
 		if (dto == null) {
 			return new ArrayList<>();
@@ -228,7 +245,7 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 	@Override
 	public int increaseVersion() throws SQLException {
 
-		String updateQuery = "UPDATE versions SET version = version + 1 WHERE name = 'transactionLog' ";
+		String updateQuery = "UPDATE " + fullVersionTableName + " SET version = version + 1 WHERE name = 'transactionLog' ";
 		queryRunner.update(connector.getConnection(),
 				updateQuery);
 		return getCurrentVersion();
@@ -243,13 +260,17 @@ public class MicrosoftSqlRecordTransactionDao implements SqlRecordDao<RecordTran
 				"SELECT version FROM versions WHERE name = 'transactionLog' ", scalarHandler);
 
 		if (version == null) {
-			String insertQuery = "INSERT INTO versions "
-								 + "(name, version) "
-								 + "VALUES ('transactionLog', 1)";
+			try {
+				String insertQuery = "INSERT INTO " + fullVersionTableName
+									 + " (name, version) "
+									 + "VALUES ('transactionLog', 1)";
 
-			queryRunner.insert(connector.getConnection(),
-					insertQuery, defaultHandler);
-			return 1;
+				queryRunner.insert(connector.getConnection(),
+						insertQuery, defaultHandler);
+			} finally {
+
+				return 1;
+			}
 		}
 
 		return version;

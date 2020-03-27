@@ -125,4 +125,8 @@ public interface DataLayerConfiguration {
 
 	int getMicrosoftSqlServerloginTimeout();
 
+	boolean isAsyncSQLSecondTransactionLogInsertion();
+
+	boolean isReplaySQLSecondTransactionLogDuringOfficeHours();
+
 }

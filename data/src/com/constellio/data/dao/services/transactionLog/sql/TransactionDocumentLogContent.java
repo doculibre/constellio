@@ -38,6 +38,9 @@ public class TransactionDocumentLogContent {
 	}
 
 	public Map<String, String> getFields() {
+		if (fields == null) {
+			return new HashMap<>();
+		}
 		return fields;
 	}
 

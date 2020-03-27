@@ -12,25 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
-import javax.mail.AuthenticationFailedException;
-import javax.mail.Authenticator;
-import javax.mail.BodyPart;
-import javax.mail.FolderNotFoundException;
-import javax.mail.MessageRemovedException;
-import javax.mail.MessagingException;
-import javax.mail.MethodNotSupportedException;
-import javax.mail.Multipart;
-import javax.mail.NoSuchProviderException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.ReadOnlyFolderException;
-import javax.mail.SendFailedException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.internet.MimeUtility;
+import javax.mail.*;
+import javax.mail.internet.*;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -96,6 +79,16 @@ public class EmailServices {
 	}
 
 	public void closeSession(Session session) {
+	}
+
+	public MimeMessage parseMimeMessage(InputStream inputStream) {
+		MimeMessage message;
+		try {
+			message = new MimeMessage(Session.getInstance(System.getProperties()), inputStream);
+		} catch (MessagingException e) {
+			message = null;
+		}
+		return message;
 	}
 
 	public MimeMessage createMimeMessage(String from, String subject, String body, List<MessageAttachment> attachments,

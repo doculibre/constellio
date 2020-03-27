@@ -28,37 +28,51 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadsManager;
+import com.constellio.data.utils.AsyncTaskRegrouper;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.TimeProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import lombok.AllArgsConstructor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.BatchUpdateException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import static com.constellio.data.threads.BackgroundThreadExceptionHandling.STOP;
+import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
+import static com.constellio.data.utils.LangUtils.executeInParallelUntilSupplierReturnsNull;
+import static com.constellio.data.utils.LangUtils.newBatchSupplier;
+import static org.joda.time.Duration.standardSeconds;
 
 public class SqlServerTransactionLogManager implements SecondTransactionLogManager {
 
@@ -108,6 +122,10 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 	private Integer currentLogVersion = null;
 
+	private AsyncTaskRegrouper<TransactionToSend> asyncTaskRegrouper;
+
+	private AtomicLong loggedOperationsCount = new AtomicLong();
+
 	public SqlServerTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices,
 										  RecordDao recordDao, SqlRecordDaoFactory sqlRecordDaoFactory,
 										  ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager,
@@ -137,6 +155,12 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 			throw new SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized();
 		}
 
+		if (configuration.isAsyncSQLSecondTransactionLogInsertion()) {
+			this.asyncTaskRegrouper = new AsyncTaskRegrouper<>(standardSeconds(10), this::bulkLogInsert);
+			this.asyncTaskRegrouper.setQueueCapacity(1000);
+			this.asyncTaskRegrouper.start();
+		}
+
 		getUnflushedFolder().mkdirs();
 		//idSequence = newIdSequence();
 		started = true;
@@ -150,7 +174,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 		backgroundThreadsManager.configure(
 				BackgroundThreadConfiguration.repeatingAction(MERGE_LOGS_ACTION, newRegroupAndMoveInVaultRunnable())
-						.handlingExceptionWith(STOP).executedEvery(configuration.getSecondTransactionLogMergeFrequency()));
+						.handlingExceptionWith(CONTINUE).executedEvery(configuration.getSecondTransactionLogMergeFrequency()));
 
 		//		if (bigVaultServer.countDocuments() == 0) {
 		//			regroupAndMove();
@@ -158,17 +182,26 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		//		}
 	}
 
+
 	@Override
 	public void prepare(String transactionId, BigVaultServerTransaction transaction) {
 		ensureStarted();
 		ensureNoExceptionOccured();
 		File file = new File(getUnflushedFolder(), transactionId);
-		try {
-			String contentUnflushed = newReadWriteServices().toLogEntry(transaction);
-			ioServices.replaceFileContent(file, contentUnflushed);
-			String content = newReadWriteSqlServices().toLogEntry(transaction);
 
+		String contentUnflushed = newReadWriteServices().toLogEntry(transaction);
+		writeBuffered(file, contentUnflushed);
+		String content = newReadWriteSqlServices().toLogEntry(transaction);
+
+		synchronized (transactionContentMap) {
 			transactionContentMap.put(transactionId, content);
+		}
+
+	}
+
+	private void writeBuffered(File file, String content) {
+		try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
+			bufferedWriter.write(content);
 		} catch (IOException e) {
 			exceptionOccured = true;
 			throw new RuntimeException(e);
@@ -191,26 +224,71 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 
 		Path source = FileSystems.getDefault().getPath(getUnflushedFolder().getAbsolutePath(), transactionId);
 
-		String content = transactionContentMap.remove(transactionId);
+		String content = null;
+		synchronized (transactionContentMap) {
+			content = transactionContentMap.remove(transactionId);
+		}
+		if (asyncTaskRegrouper == null) {
+			final String finalContent = content;
+			tryThreeTimes(() -> {
 
-		tryThreeTimes(() -> {
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).insert(
+						createTransactionSqlDto(transactionId, transactionInfo, finalContent, getLogVersion())
+				);
+				return true;
+			});
 
-			sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).insert(createTransactionSqlDto(transactionId, transactionInfo, content, getLogVersion()));
-			return true;
-		});
+			if (!source.toFile().exists()) {
+				throw new RuntimeException("Source does not exist");
+			}
+			loggedOperationsCount.incrementAndGet();
+			Files.delete(source);
+		} else {
+			asyncTaskRegrouper.addAsync(new TransactionToSend(transactionId, content, transactionInfo), () -> {
+				try {
+					Files.delete(source);
+				} catch (IOException e) {
+					e.printStackTrace();
+					exceptionOccured = true;
+				}
+			});
+		}
+	}
 
-		if (!source.toFile().exists()) {
-			throw new RuntimeException("Source does not exist");
+	@AllArgsConstructor
+	private static class TransactionToSend {
+		String transactionId;
+		String content;
+		TransactionResponseDTO response;
+
+	}
+
+	private void bulkLogInsert(List<TransactionToSend> transactionToSends) {
+		try {
+			int logVersion = getLogVersion();
+			List<TransactionSqlDTO> dtos = transactionToSends.stream()
+					.map(tx -> createTransactionSqlDto(tx.transactionId, tx.response, tx.content, logVersion))
+					.collect(Collectors.toList());
+			tryThreeTimes(() -> {
+				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).insertBulk(dtos);
+				return true;
+			});
+			loggedOperationsCount.addAndGet(dtos.size());
+		} catch (SQLException e) {
+			e.printStackTrace();
+			exceptionOccured = true;
 		}
 
-		Files.delete(source);
 	}
 
 	@Override
 	public void cancel(String transactionId) {
 		File transactionFile = new File(getUnflushedFolder().getAbsolutePath(), transactionId);
 		transactionFile.delete();
-		transactionContentMap.remove(transactionId);
+
+		synchronized (transactionContentMap) {
+			transactionContentMap.remove(transactionId);
+		}
 	}
 
 	@Override
@@ -240,54 +318,130 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	@Override
 	public synchronized String regroupAndMove() {
 
-		//build record on json
-		try {
+		int converted = 0;
+		if (configuration.isReplaySQLSecondTransactionLogDuringOfficeHours() || !isOfficeHours()) {
 
-			//get transactions
-			List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
-					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll(1000));
+			//build record on json
 
-			if (transactionsToConvert.size() == 0) {
-				//end
-				return "";
+			try {
+
+				LOGGER.info("Retrieving next batch...");
+				//get transactions
+				List<TransactionSqlDTO> transactionsToConvert = tryThreeTimesReturnList(() ->
+						sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).getAll(1000, true));
+
+				converted = transactionsToConvert.size();
+				if (transactionsToConvert.size() == 0) {
+					//end
+					return "" + converted;
+				}
+
+				final List<RecordTransactionSqlDTO> recordsToinsert = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), false);
+				final List<RecordTransactionSqlDTO> recordsToUpdate = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), true);
+				final List<String> recordsToDelete = extractRemoveRecordsFromTransaction(transactionsToConvert);
+				final List<RecordTransactionSqlDTO> victims = new ArrayList<>();
+				LOGGER.info("Replay of " + transactionsToConvert.size() + " transactions...");
+
+				//save new records
+				if (!recordsToinsert.isEmpty()) {
+					if (recordsToinsert.size() < 100) {
+						LOGGER.info("Inserting " + recordsToinsert.size() + " records");
+						tryThreeTimes(() -> {
+							sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk((List) recordsToinsert);
+							return true;
+						});
+					} else {
+						LOGGER.info("Inserting " + recordsToinsert.size() + " records in parallel");
+						executeInParallelUntilSupplierReturnsNull(4, newBatchSupplier(recordsToinsert, 100), (batch) -> {
+							tryThreeTimes(() -> {
+								sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk((List) batch);
+
+								return true;
+							});
+						});
+					}
+				}
+
+				//save update records
+				if (!recordsToUpdate.isEmpty()) {
+					if (hasSameRecordTwice(recordsToUpdate) || recordsToUpdate.size() < 100) {
+						LOGGER.info("Updating " + recordsToUpdate.size() + " records");
+						tryThreeTimes(() -> {
+							try {
+								sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).updateBulk(recordsToUpdate);
+							} catch (SQLException sqlEx) {
+								LOGGER.warn("Error while updating records", sqlEx);
+								if (sqlEx instanceof BatchUpdateException) {
+									victims.addAll(recordsToUpdate);
+								}
+							}
+							return true;
+						});
+					} else {
+						LOGGER.info("Updating " + recordsToUpdate.size() + " records in parallel");
+						executeInParallelUntilSupplierReturnsNull(4, newBatchSupplier(recordsToUpdate, 100), (batch) -> {
+							tryThreeTimes(() -> {
+								try {
+									sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).updateBulk(batch);
+								} catch (SQLException sqlEx) {
+									LOGGER.warn("Error while updating records", sqlEx);
+									if (sqlEx instanceof BatchUpdateException) {
+										victims.addAll(batch);
+									}
+								}
+								return true;
+							});
+						});
+					}
+
+				}
+
+				//remove deleted records
+				if (!recordsToDelete.isEmpty()) {
+					LOGGER.info("Deleting " + recordsToDelete.size() + " records in parallel");
+					tryThreeTimes(() -> {
+						sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(recordsToDelete);
+						return true;
+					});
+				}
+
+
+				//Remove transactions
+				for (RecordTransactionSqlDTO victim : victims) {
+					transactionsToConvert.removeIf(tr -> tr.getId().equals(victim.getId()));
+				}
+
+				final String[] transactionsToRemove = transactionsToConvert.stream().map(x -> x.getId()).toArray(String[]::new);
+
+				tryThreeTimes(() -> {
+					sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll(transactionsToRemove);
+					return true;
+				});
+				LOGGER.info("Replay of " + transactionsToConvert.size() + " transactions done!");
+			} catch (Exception ex) {
+				//exceptionOccured = true;
+				throw new RuntimeException(ex);
 			}
-
-			final List<RecordTransactionSqlDTO> recordsToinsert = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), false);
-			final List<RecordTransactionSqlDTO> recordsToUpdate = extractRecordsFromTransaction(transactionsToConvert, getLogVersion(), true);
-			final List<String> updateTransactionIds = recordsToUpdate.stream().map(x -> x.getRecordId()).collect(Collectors.toList());
-			final List<String> recordsToDelete = extractRemoveRecordsFromTransaction(transactionsToConvert);
-
-			//save new records
-			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insertBulk(recordsToinsert);
-				return true;
-			});
-
-			//save update records
-			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).updateBulk(recordsToUpdate);
-				return true;
-			});
-
-			//remove deleted records
-			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).deleteAll(recordsToDelete);
-				return true;
-			});
-
-			//Remove transactions
-			final String[] transactionsToRemove = transactionsToConvert.stream().map(x -> x.getId()).toArray(String[]::new);
-
-			tryThreeTimes(() -> {
-				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll(transactionsToRemove);
-				return true;
-			});
-
-		} catch (Exception ex) {
-			exceptionOccured = true;
-			throw new RuntimeException(ex);
 		}
-		return "";
+		return "" + converted;
+	}
+
+	private boolean hasSameRecordTwice(List<RecordTransactionSqlDTO> recordsToUpdate) {
+		Set<String> ids = new HashSet<>();
+
+		for (RecordTransactionSqlDTO dto : recordsToUpdate) {
+			if (!ids.add(dto.getId())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isOfficeHours() {
+		LocalDateTime time = TimeProvider.getLocalDateTime();
+		return time.getHourOfDay() < 18 && time.getHourOfDay() > 7
+			   && time.getDayOfWeek() != DateTimeConstants.SATURDAY
+			   && time.getDayOfWeek() != DateTimeConstants.SUNDAY;
 	}
 
 	private List<String> extractRemoveRecordsFromTransaction(List<TransactionSqlDTO> transactions) {
@@ -311,12 +465,11 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 																		int logVersion, boolean isUpdate)
 			throws IOException, SQLException {
 		List<RecordTransactionSqlDTO> records = new ArrayList<>();
-		ObjectMapper objectMapper = new ObjectMapper();
 
 		for (TransactionSqlDTO transactionSql : transactions) {
 			String jsonContent = transactionSql.getContent();
 			if (jsonContent != null && !"".equals(jsonContent)) {
-				TransactionLogContent transaction = objectMapper.readValue(jsonContent, TransactionLogContent.class);
+				TransactionLogContent transaction = new JsonTransactionLogParser().parse(jsonContent);
 
 				if (isUpdate) {
 					records.addAll(mapUpdateBigVaultTransactionToRecordTransaction(transaction, logVersion));
@@ -373,7 +526,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		try {
 			long recordsCount = this.sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).getTableCount();
 			for (long i = 0; i < recordsCount; i = i + 1000) {
-				List<RecordTransactionSqlDTO> tRecords = this.sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).getAll(1000);
+				List<RecordTransactionSqlDTO> tRecords = this.sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).getAll(1000, true);
 				if (!tRecords.isEmpty()) {
 					clearSolrCollection();
 					new SqlTransactionLogReplayServices(newReadWriteSqlServices(), bigVaultServer, dataLayerLogger)
@@ -416,7 +569,7 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAllByLogVersion(version);
 				sqlRecordDaoFactory.getRecordDao(SqlRecordDaoType.RECORDS).insert(
 						new RecordTransactionSqlDTO("reindexation_v" + version + "_solrv_" + solrVersion,
-								version, this.recordDao.getBigVaultServer().getVersion(), "Reindexation end")
+								version, solrVersion, "Reindexation end")
 				);
 				return true;
 			});
@@ -459,8 +612,20 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	@Override
-	public void close() {
+	public boolean isAlive() {
+		return !this.exceptionOccured && started;
+	}
 
+	@Override
+	public long getLoggedTransactionCount() {
+		return loggedOperationsCount.get();
+	}
+
+	@Override
+	public void close() {
+		if (asyncTaskRegrouper != null) {
+			asyncTaskRegrouper.close();
+		}
 		started = false;
 	}
 
@@ -560,8 +725,11 @@ public class SqlServerTransactionLogManager implements SecondTransactionLogManag
 		return new Runnable() {
 			@Override
 			public void run() {
-				if (isAutomaticRegroup() && isCurrentNodeLeader()) {
-					regroupAndMove();
+
+				boolean finished = false;
+				while (!finished && isAutomaticRegroup() && isCurrentNodeLeader()) {
+					String regrouped = regroupAndMove();
+					finished = !"1000".equals(regrouped);
 				}
 			}
 		};

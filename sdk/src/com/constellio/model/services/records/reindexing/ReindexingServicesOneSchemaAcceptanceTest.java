@@ -5,6 +5,9 @@ import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.events.EventBusManagerExtension;
+import com.constellio.data.events.ReceivedEventParams;
+import com.constellio.data.events.SentEventParams;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -35,6 +38,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
@@ -84,6 +88,30 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
 		byte[] keyAfter = EncryptionKeyFactory.getApplicationKey(getModelLayerFactory()).getEncoded();
 		assertThat(keyAfter).isEqualTo(keyBefore);
+
+	}
+
+
+	@Test
+	public void whenReindexingThenDoNotSendEvents()
+			throws Exception {
+
+		AtomicInteger received = new AtomicInteger();
+		AtomicInteger sent = new AtomicInteger();
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().eventBusManagerExtensions.add(new EventBusManagerExtension() {
+			@Override
+			public void onEventReceived(ReceivedEventParams params) {
+				received.incrementAndGet();
+			}
+
+			@Override
+			public void onEventSent(SentEventParams params) {
+				sent.incrementAndGet();
+			}
+		});
+		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
+		assertThat(received.get()).isEqualTo(0);
+		assertThat(sent.get()).isEqualTo(0);
 
 	}
 

@@ -86,7 +86,8 @@ public class RMConfigs {
 			SUB_FOLDER_DECOMMISSIONING,
 			DOCUMENT_SUMMARY_CACHE_ENABLED,
 			IGNORE_VALIDATIONS_IN_BATCH_PROCESSING,
-			ENABLE_TYPE_RESTRICTION_IN_FOLDER;
+			ENABLE_TYPE_RESTRICTION_IN_FOLDER,
+			DESTRUCTION_DECOMMISSIONING_LIST_INCLUDES_SORT;
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
 
@@ -322,6 +323,9 @@ public class RMConfigs {
 
 		add(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE = decommissioning
 				.createBooleanTrueByDefault("depositAndDestructionDatesBasedOnActualTransferDate").withReIndexationRequired());
+
+		add(DESTRUCTION_DECOMMISSIONING_LIST_INCLUDES_SORT = decommissioning
+				.createBooleanFalseByDefault("destructionDecommissioningListIncludesSort"));
 
 		add(NEED_REASON_BEFORE_DELETING_FOLDERS = others.createBooleanTrueByDefault("needReasonBeforeDeletingFolders"));
 
@@ -624,4 +628,9 @@ public class RMConfigs {
 	public boolean isTypeRestrictionEnabledInFolder() {
 		return manager.getValue(ENABLE_TYPE_RESTRICTION_IN_FOLDER);
 	}
+
+	public boolean isDestructionDecommissioningListIncludesSort() {
+		return manager.getValue(DESTRUCTION_DECOMMISSIONING_LIST_INCLUDES_SORT);
+	}
+	
 }

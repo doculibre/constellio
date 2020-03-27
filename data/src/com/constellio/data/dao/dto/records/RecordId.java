@@ -5,12 +5,13 @@ import com.constellio.data.utils.LangUtils;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * The Main advantage of this interface is to delay as longer as possible the transformation of integer ids to String,
  * which are then less efficient for comparison
  */
-public interface RecordId extends Comparable, Serializable {
+public interface RecordId extends Comparable, Serializable, Supplier<RecordId> {
 
 	String stringValue();
 
@@ -25,6 +26,10 @@ public interface RecordId extends Comparable, Serializable {
 	boolean greaterThan(RecordId anotherRecordId);
 
 	boolean greaterOrEqual(RecordId anotherRecordId);
+
+	default RecordId get() {
+		return this;
+	}
 
 	static RecordId id(String stringValue) {
 		return toId(stringValue);

@@ -325,7 +325,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		for (long i = 0; i < dataLayerFactory.
 				getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).getTableCount(); i = i + 1000) {
 			List<RecordTransactionSqlDTO> sqlRecords = dataLayerFactory.
-					getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).getAll(1000);
+					getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).getAll(1000, true);
 			TransactionLogSqlReadWriteServices readWriteServices = new TransactionLogSqlReadWriteServices(
 					dataLayerConfiguration, dataLayerSystemExtensions);
 			new SqlTransactionLogReplayServices(readWriteServices, bigVaultServer, new DataLayerLogger())
