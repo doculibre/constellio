@@ -304,7 +304,7 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(currentUser);
 		RecordVO recordVO = recordVOContainer.getRecordVO(itemId);
-		SearchResultVO searchResultVO = new SearchResultVO(index, recordVO, recordVOContainer.getHighlights(itemId));
+		SearchResultVO searchResultVO = new SearchResultVO(index, recordVO, getHighlights(itemId));
 		SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, null, null, null, null);
 		return searchResultDisplay;
 	}

@@ -235,6 +235,11 @@ public class SDKPasswords {
 	}
 
 	// SSL
+	public static String sslPort() {
+		loadCorrectIfRequired();
+		return sdkPasswords.get("ssl.port");
+	}
+
 	public static String sslKeystorePassword() {
 		loadCorrectIfRequired();
 		return sdkPasswords.get("sslKeystore.password");

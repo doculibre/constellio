@@ -21,6 +21,7 @@ import com.constellio.app.ui.pages.base.BaseView.ViewEnterListener;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -298,6 +299,10 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 			config = manager.getNavigationConfig(view.getCollection());
 		}
 		return config;
+	}
+
+	protected ConfigProvider configProvider() {
+		return presenterUtils.configProvider();
 	}
 
 	public RMReportBuilderFactories getRmReportBuilderFactories() {

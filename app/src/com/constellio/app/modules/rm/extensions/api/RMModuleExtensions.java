@@ -51,6 +51,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<CartExtensions> cartExtensions;
 	private VaultBehaviorsList<FilteredActionsExtension> filteredActionsExtension;
 	private VaultBehaviorsList<RMExternalLinkVOExtension> externalLinkVOExtensions;
+	private AgentExtension agentExtensions;
 
 	private ModelLayerExtensions modelLayerExtensions;
 
@@ -63,14 +64,15 @@ public class RMModuleExtensions implements ModuleExtensions {
 		documentExtensions = new VaultBehaviorsList<>();
 		folderExtensions = new VaultBehaviorsList<>();
 		advancedSearchPresenterExtensions = new VaultBehaviorsList<>();
-		this.documentBreadcrumExtentions = new VaultBehaviorsList<>();
-		this.navigateToFromAPageExtensions = new VaultBehaviorsList<>();
-		this.taskPreCompletionExetention = new VaultBehaviorsList<>();
-		this.cartExtensions = new VaultBehaviorsList<>();
-		this.modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
-		this.containerRecordExtensions = new VaultBehaviorsList<>();
-		this.externalLinkVOExtensions = new VaultBehaviorsList<>();
-		this.filteredActionsExtension = new VaultBehaviorsList<>();
+		documentBreadcrumExtentions = new VaultBehaviorsList<>();
+		navigateToFromAPageExtensions = new VaultBehaviorsList<>();
+		taskPreCompletionExetention = new VaultBehaviorsList<>();
+		cartExtensions = new VaultBehaviorsList<>();
+		modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
+		containerRecordExtensions = new VaultBehaviorsList<>();
+		filteredActionsExtension = new VaultBehaviorsList<>();
+		agentExtensions = new AgentExtension();
+		externalLinkVOExtensions = new VaultBehaviorsList<>();
 	}
 
 	public List<String> getFilteredActionsForContainers() {
@@ -156,6 +158,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public VaultBehaviorsList<RMExternalLinkVOExtension> getExternalLinkVOExtensions() {
 		return externalLinkVOExtensions;
+	}
+
+	public AgentExtension getAgentExtensions() {
+		return agentExtensions;
 	}
 
 	public boolean isCopyActionPossibleOnFolder(final Folder folder, final User user) {

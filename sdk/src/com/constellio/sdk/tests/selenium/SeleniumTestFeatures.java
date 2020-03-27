@@ -411,7 +411,7 @@ public class SeleniumTestFeatures {
 		assertThat(cmis11).exists().isDirectory();
 		assertThat(cmis11.listFiles()).isNotEmpty();
 
-		ApplicationStarter.startApplication(keepAlive, webContent, portSSL, SDKPasswords.sslKeystorePassword());
+		ApplicationStarter.startApplication(keepAlive, webContent, Integer.valueOf(SDKPasswords.sslPort()), SDKPasswords.sslKeystorePassword());
 
 		applicationStarted = true;
 		System.out.println("Application started in " + (new Date().getTime() - time) + "ms");

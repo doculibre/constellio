@@ -6,6 +6,8 @@ import com.constellio.app.extensions.api.GlobalGroupExtension;
 import com.constellio.app.extensions.api.GlobalGroupExtension.GlobalGroupExtensionActionPossibleParams;
 import com.constellio.app.extensions.api.UserCredentialExtension;
 import com.constellio.app.extensions.api.UserCredentialExtension.UserCredentialExtensionActionPossibleParams;
+import com.constellio.app.extensions.core.InstallableModuleExtension;
+import com.constellio.app.extensions.core.InstallableModuleExtension.ModuleStartedEvent;
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForSystemParams;
 import com.constellio.app.extensions.sequence.SystemSequenceExtension;
@@ -42,6 +44,14 @@ public class AppLayerSystemExtensions {
 	public VaultBehaviorsList<ConstellioUIExtention> constellioUIExtentions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<SchemaDisplayExtension> schemaDisplayExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<InstallableModuleExtension> installableSystemModuleExtensions = new VaultBehaviorsList<>();
+
+	public void callModuleStarted(ModuleStartedEvent event) {
+		for (InstallableModuleExtension extension : installableSystemModuleExtensions) {
+			extension.moduleStarted(event);
+		}
+	}
 
 	public List<AvailableSequence> getAvailableSequences() {
 

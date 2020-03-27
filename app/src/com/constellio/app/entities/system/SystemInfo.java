@@ -9,6 +9,7 @@ import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.model.conf.FoldersLocatorRuntimeException;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.io.FileUtils;
@@ -202,8 +203,7 @@ public class SystemInfo {
 		return validationErrors;
 	}
 
-	private void analyzeSystemAndFindValidationErrors(
-			ConstellioEIMConfigs configs) {
+	private void analyzeSystemAndFindValidationErrors(ConstellioEIMConfigs configs) {
 		validationErrors.clearAll();
 
 		//		FOR TEST PURPOSE
@@ -233,7 +233,7 @@ public class SystemInfo {
 			validationErrors.add(SystemInfo.class, SYSTEM_ERROR_ERROR);
 		}
 		if (isLogContainingSystemError("WARN")) {
-			validationErrors.add(SystemInfo.class, SYSTEM_ERROR_WARNING);
+			validationErrors.addWarning(SystemInfo.class, SYSTEM_ERROR_WARNING);
 		}
 	}
 
@@ -241,16 +241,16 @@ public class SystemInfo {
 
 		boolean isLogContainingSystemError = false;
 
-		File systemLogFile = getSystemLogFile();
-		if (systemLogFile.exists()) {
-			Path path = Paths.get(systemLogFile.getPath());
-			try {
+		try {
+			File systemLogFile = getSystemLogFile();
+			if (systemLogFile.exists()) {
+				Path path = Paths.get(systemLogFile.getPath());
 				isLogContainingSystemError = Files.lines(path).anyMatch(line -> line.contains(errorType));
-			} catch (IOException e) {
-				HashMap<String, Object> i18nParameters = buildSingleValueParameters(fileNameParameterKey, SYSTEM_LOG_FILE_NAME);
-				validationErrors.addWarning(SystemInfo.class, FILE_READING_FAILED, i18nParameters);
-				e.printStackTrace();
 			}
+		} catch (FoldersLocatorRuntimeException | IOException e) {
+			HashMap<String, Object> i18nParameters = buildSingleValueParameters(fileNameParameterKey, SYSTEM_LOG_FILE_NAME);
+			validationErrors.addWarning(SystemInfo.class, FILE_READING_FAILED, i18nParameters);
+			e.printStackTrace();
 		}
 
 		return isLogContainingSystemError;
@@ -260,9 +260,7 @@ public class SystemInfo {
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		File systemLogFile = null;
 
-		File logsFolder = new File(appLayerFactory.getModelLayerFactory().getFoldersLocator().getWrapperInstallationFolder(),
-				"logs");
-
+		File logsFolder = appLayerFactory.getModelLayerFactory().getFoldersLocator().getLogsFolder();
 		if (logsFolder.exists()) {
 			systemLogFile = new File(logsFolder, SYSTEM_LOG_FILE_NAME);
 		} else {

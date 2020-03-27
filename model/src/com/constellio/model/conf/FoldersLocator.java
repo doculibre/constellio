@@ -187,6 +187,10 @@ public class FoldersLocator {
 		return new File(getWrapperInstallationFolder(), "bin");
 	}
 
+	public File getLogsFolder() {
+		return new File(getWrapperInstallationFolder(), "logs");
+	}
+
 	public File getBatFolder() {
 		return new File(getWrapperInstallationFolder(), "bat");
 	}

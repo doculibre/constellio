@@ -256,6 +256,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		} else {
 			staticFooterContent = null;
 		}
+		updateStaticFooterState();
 	}
 
 	private boolean isStaticFooterEmpty() {
