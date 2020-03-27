@@ -94,8 +94,9 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK.name(), MenuItemActionStateStatus.VISIBLE),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_CHECKIN.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK.name(), MenuItemActionStateStatus.VISIBLE),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE, MenuItemActionStateStatus.HIDDEN),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH, MenuItemActionStateStatus.DISABLED)
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.DISABLED)
 		));
 
 	}

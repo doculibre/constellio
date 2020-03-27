@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.fields.lookup.PathLookupField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -32,7 +33,8 @@ public class RMDocumentPathCriterionExtension extends SearchCriterionExtension {
 	public Component getComponentForCriterion(Criterion criterion) {
 		Component component = null;
 
-		if (criterion.getSchemaType().equals(Document.SCHEMA_TYPE)) {
+		if (criterion.getSchemaType().equals(Document.SCHEMA_TYPE)
+			&& criterion.getMetadataCode().endsWith(Schemas.PATH.getCode())) {
 			component = buildComponentForDocumentPath(criterion);
 		}
 

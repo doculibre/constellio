@@ -72,7 +72,18 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 			resultReportModel.addTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
 		}
 		Iterator<Record> recordsIterator;
-		if (searchQuery != null) {
+		if (selectedRecords != null && !selectedRecords.isEmpty()) {
+			List<Record> selectedRecordObjects = new ArrayList<>(modelLayerFactory.newRecordServices().getRecordsById(collection, selectedRecords));
+			Collections.sort(selectedRecordObjects, new Comparator<Record>() {
+				@Override
+				public int compare(Record o1, Record o2) {
+					Integer indexOfO1 = new Integer(selectedRecords.indexOf(o1.getId()));
+					Integer indexOfO2 = new Integer(selectedRecords.indexOf(o2.getId()));
+					return indexOfO1.compareTo(indexOfO2);
+				}
+			});
+			recordsIterator = selectedRecordObjects.iterator();
+		} else if (searchQuery != null) {
 			if (orderedEnabledReportedMetadataList.stream().allMatch((m)->m.isStoredInSummaryCache())) {
 				recordsIterator = modelLayerFactory.newSearchServices().recordsIteratorKeepingOrder(
 						new LogicalSearchQuery(searchQuery).setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields()), 2000);
@@ -80,8 +91,6 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 				recordsIterator = modelLayerFactory.newSearchServices().recordsIteratorKeepingOrder(
 						new LogicalSearchQuery(searchQuery).setReturnedMetadatas(ReturnedMetadatasFilter.all()), 200);
 			}
-
-
 		}
 		//TODO DO Not use searchQuery
 		else if (selectedRecords == null || selectedRecords.isEmpty()) {

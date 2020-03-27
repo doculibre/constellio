@@ -1209,7 +1209,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			for (String field : byteArrayRecordDTO.getFields().keySet()) {
 				//System.out.println(field + ":" + byteArrayRecordDTO.getFields().get(field));
 				Object value = byteArrayRecordDTO.getFields().get(field);
-				if (value == null || ((value instanceof List) && ((List) value).isEmpty())) {
+				if (value == null
+					|| ((value instanceof List) && ((List) value).isEmpty())
+					|| ((value instanceof String) && ((String) value).isEmpty())) {
 					byteArrayFields.remove(field);
 				}
 			}
@@ -1217,7 +1219,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			for (String field : comparisonRecordDTO.getFields().keySet()) {
 				//	System.out.println(field + ":" + comparisonRecordDTO.getFields().get(field));
 				Object value = comparisonRecordDTO.getFields().get(field);
-				if (value == null || ((value instanceof List) && ((List) value).isEmpty())) {
+				if (value == null
+					|| ((value instanceof List) && ((List) value).isEmpty())
+					|| ((value instanceof String) && ((String) value).isEmpty())) {
 					comparisonFields.remove(field);
 				}
 			}

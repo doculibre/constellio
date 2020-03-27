@@ -6,6 +6,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.search.SearchServicesRuntimeException.TooManyElementsInCriterion;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.TestedQueryRecord;
+import lombok.Getter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -15,6 +16,7 @@ import java.util.List;
 public class IsInCriterion extends LogicalSearchValueCondition {
 
 	private final List<Object> values;
+	@Getter
 	private final List<Object> memoryQueryValues;
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
