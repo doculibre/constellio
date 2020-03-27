@@ -10,6 +10,7 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.validators.metadatas.IllegalCharactersValidator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,9 +47,7 @@ public class ValueListItemSchemaTypeBuilder {
 		typeBuilder.setLabels(labels);
 		typeBuilder.setSecurity(false);
 
-
 		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema().setLabels(labels);
-
 
 		defaultSchemaBuilder.create(ValueListItem.COMMENTS).setMultivalue(true)
 				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
@@ -70,9 +69,9 @@ public class ValueListItemSchemaTypeBuilder {
 		defaultSchemaBuilder.getMetadata(Schemas.TITLE_CODE).setUniqueValue(options.titleUnique)
 				.setDefaultRequirement(true).setMultiLingual(options.isMultilingual());
 
-		MetadataBuilder codeMetadata = defaultSchemaBuilder.create(ValueListItem.CODE).setType(
-				MetadataValueType.STRING).setSearchable(true).setUndeletable(true).setSchemaAutocomplete(true);
-
+		MetadataBuilder codeMetadata = defaultSchemaBuilder.create(ValueListItem.CODE)
+				.setType(MetadataValueType.STRING).setSearchable(true).setUndeletable(true)
+				.setSchemaAutocomplete(true).addValidator(IllegalCharactersValidator.class);
 
 		for (Language language : languages) {
 			codeMetadata.addLabel(language, $("init.valuelist.default.code", language.getLocale()));
@@ -98,13 +97,15 @@ public class ValueListItemSchemaTypeBuilder {
 		MetadataBuilder abbreviationMetadata = defaultSchemaBuilder.create(ValueListItem.ABBREVIATION)
 				.setType(MetadataValueType.STRING).setSearchable(true)
 				.setUndeletable(true)
-				.setMultiLingual(options.isMultilingual());
+				.setMultiLingual(options.isMultilingual())
+				.addValidator(IllegalCharactersValidator.class);
 
 		for (Language language : languages) {
 			abbreviationMetadata.addLabel(language, $("init.valuelist.default.abbreviation", language.getLocale()));
 		}
 
-		MetadataBuilder titleMetadata = defaultSchemaBuilder.getMetadata(Schemas.TITLE.getLocalCode()).setSearchable(true);
+		MetadataBuilder titleMetadata = defaultSchemaBuilder.getMetadata(Schemas.TITLE.getLocalCode())
+				.setSearchable(true).addValidator(IllegalCharactersValidator.class);
 		for (Language language : languages) {
 			if (labels.containsKey(language)) {
 				titleMetadata.addLabel(language, $("init.valuelist.default.title", language.getLocale()));
