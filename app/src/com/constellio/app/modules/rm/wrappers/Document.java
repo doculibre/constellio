@@ -25,6 +25,7 @@ public class Document extends RMObject {
 	public static final String KEYWORDS = "keywords";
 	public static final String DESCRIPTION = "description";
 	public static final String CONTENT = "content";
+	public static final String FILENAME = "filename";
 	public static final String CONTENT_CHECKED_OUT_BY = "contentCheckedOutBy";
 	public static final String CONTENT_CHECKED_OUT_DATE = "contentCheckedOutDate";
 	public static final String IS_CHECKOUT_ALERT_SENT = "isCheckoutAlertSent";
