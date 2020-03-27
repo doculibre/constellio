@@ -19,9 +19,12 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.validators.metadatas.IllegalCharactersValidator;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import com.jgoodies.common.base.Strings;
+import com.vaadin.data.Validator;
+import com.vaadin.data.Validator.InvalidValueException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -299,4 +302,11 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		}
 	}
 
+	public Validator newIllegalCharactersValidator(String caption) {
+		return (value) -> {
+			if (value != null && !IllegalCharactersValidator.isValid((String) value, configProvider())) {
+				throw new InvalidValueException($("AddEditTaxonomyView.illegalCharactersNotAllowed", caption));
+			}
+		};
+	}
 }
