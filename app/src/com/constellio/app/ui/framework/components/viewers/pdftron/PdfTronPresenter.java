@@ -6,6 +6,14 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotCreateTempFileException;
+import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotReadKeystoreFileException;
+import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotReadSignatureFileException;
+import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotReadSignedFileException;
+import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotReadSourceFileException;
+import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotSaveNewVersionException;
+import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotSignDocumentException;
+import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_NotingToSignException;
 import com.constellio.app.ui.framework.components.viewers.pdftron.signature.CreateVisibleSignature;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
@@ -38,6 +46,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserServices;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
@@ -46,7 +55,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -74,6 +82,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	private boolean doesCurrentPageHaveLock;
 	private AnnotationLockManager annotationLockManager;
 	private User currentUser;
+	private RMSchemasRecordsServices rm;
 
 	public PdfTronPresenter(PdfTronViewer pdfTronViewer, String recordId, String metadataCode,
 							ContentVersionVO contentVersion) {
@@ -94,6 +103,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		this.annotationLockManager = appLayerFactory.getModelLayerFactory().getAnnotationLockManager();
 		this.currentUser = appLayerFactory.getModelLayerFactory().newUserServices()
 				.getUserInCollection(getUserVO().getUsername(), collection);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
 		initialize();
 	}
@@ -296,6 +306,17 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		}
 	}
 
+	public boolean canSignDocument() {
+		return hasWriteAccessToDocument() && canEditContent();
+	}
+
+	private boolean canEditContent() {
+		Document document = rm.getDocument(recordId);
+		Content content = document.getContent();
+		return content != null &&
+			   (content.getCheckoutUserId() == null || content.getCheckoutUserId().equals(getCurrentUser().getId()));
+	}
+
 	public String getSignatureImageData() {
 		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		UserCredential userCredentials = userServices.getUser(currentUser.getUsername());
@@ -334,45 +355,49 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	public void handleFinalDocument(String fileAsStr)
-			throws PdfTronXMLException_XMLParsingException, PdfTronXMLException_IOExeption {
+			throws PdfTronSignatureException, PdfTronXMLException_XMLParsingException, PdfTronXMLException_IOExeption {
 
 		String filePath = createTempFileFromBase64("docToSign.pdf", fileAsStr);
+		if (StringUtils.isBlank(filePath)) {
+			throw new PdfTronSignatureException_CannotReadSourceFileException();
+		}
 
 		List<PdfTronSignatureAnnotation> signatures = pdfTronParser.getSignatureAnnotations(xmlCurrentAnnotations);
 		if (signatures.size() < 1) {
-			return;
+			throw new PdfTronSignatureException_NotingToSignException();
 		}
 
 		String signaturePath = createTempFileFromBase64("signature", signatures.get(0).getImageData());
+		if (StringUtils.isBlank(signaturePath)) {
+			throw new PdfTronSignatureException_CannotReadSignatureFileException();
+		}
 
 		String keystorePath = createTempKeystoreFile("keystore");
 		String keystorePass = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE_PASSWORD);
 
+		// TODO::JOLA (P3) --> Handle more than 1 signature
 		try {
-			File ksFile = new File(keystorePath);
-			KeyStore keystore = KeyStore.getInstance("JKS");
-			char[] pin = keystorePass.toCharArray();
-			keystore.load(new FileInputStream(ksFile), pin);
-
-			CreateVisibleSignature signatureHelper = new CreateVisibleSignature(keystore, pin);
-			// TODO::JOLA (P3) --> Handle more than 1 signature
-			File signedDocument = signatureHelper.signDocument(keystorePath, keystorePass, filePath, signaturePath, signatures.get(0));
+			File signedDocument = CreateVisibleSignature.signDocument(keystorePath, keystorePass, filePath, signaturePath, signatures.get(0));
 			uploadNewVersion(signedDocument);
 		} catch (Exception e) {
-			// TODO::JOLA (P4) --> Handle errors
-			log.error(MessageUtils.toMessage(e));
+			throw new PdfTronSignatureException_CannotSignDocumentException(e);
 		}
 	}
 
-	private void uploadNewVersion(File signedPdf) throws IOException {
+	private void uploadNewVersion(File signedPdf) throws PdfTronSignatureException {
 		String oldFilename = contentVersionVO.getFileName();
 		String substring = oldFilename.substring(0, oldFilename.lastIndexOf('.'));
 		String newFilename = substring + ".pdf";
-		InputStream signedStream = new FileInputStream(signedPdf);
-		ContentVersionDataSummary version = contentManager.upload(signedStream, new ContentManager.UploadOptions(newFilename)).getContentVersionDataSummary();
 
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		ContentVersionDataSummary version;
+		try {
+			InputStream signedStream = new FileInputStream(signedPdf);
+			version = contentManager.upload(signedStream, new ContentManager.UploadOptions(newFilename)).getContentVersionDataSummary();
+		} catch (IOException e) {
+			throw new PdfTronSignatureException_CannotReadSignedFileException(e);
+		}
+
 		Document document = rm.getDocument(recordId);
 		document.getContent().updateContentWithName(getCurrentUser(), version, true, newFilename);
 
@@ -380,39 +405,54 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 			recordServices.update(document);
 		} catch (RecordServicesException e) {
-			log.error(MessageUtils.toMessage(e));
+			throw new PdfTronSignatureException_CannotSaveNewVersionException(e);
 		}
 
 		// TODO::JOLA (P1) --> Refresh UI
 	}
 
-	private String createTempKeystoreFile(String filename) throws PdfTronXMLException_IOExeption {
+	private String createTempKeystoreFile(String filename) throws PdfTronSignatureException {
 		FileService fileService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService();
-
 		File tempFile = fileService.newTemporaryFile(filename);
+
 		StreamFactory keystore = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
+		if (keystore == null) {
+			throw new PdfTronSignatureException_CannotReadKeystoreFileException();
+		}
 
+		byte[] data;
 		try {
 			InputStream inputStream = (InputStream) keystore.create("keystore-stream");
-			byte[] data = new byte[inputStream.available()];
+			data = new byte[inputStream.available()];
 			inputStream.read(data);
+		} catch (IOException e) {
+			throw new PdfTronSignatureException_CannotReadKeystoreFileException(e);
+		}
 
+		try {
 			OutputStream outputStream = new FileOutputStream(tempFile);
 			outputStream.write(data);
 			outputStream.close();
 		} catch (IOException e) {
-			throw new PdfTronXMLException_IOExeption(e);
+			throw new PdfTronSignatureException_CannotCreateTempFileException(e);
 		}
 
 		return tempFile.getPath();
 	}
 
-	private String createTempFileFromBase64(String filename, String fileAsBase64Str)
-			throws PdfTronXMLException_IOExeption {
-		FileService fileService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService();
-		byte[] data = Base64.getDecoder().decode(fileAsBase64Str.split(",")[1]);
+	private String createTempFileFromBase64(String filename, String fileAsBase64Str) throws PdfTronSignatureException {
+		if (StringUtils.isBlank(fileAsBase64Str)) {
+			return null;
+		}
 
+		String[] parts = fileAsBase64Str.split(",");
+		if (parts.length != 2) {
+			return null;
+		}
+
+		byte[] data = Base64.getDecoder().decode(parts[1]);
+		FileService fileService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService();
 		File tempFile = fileService.newTemporaryFile(filename);
 
 		try {
@@ -420,7 +460,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 			outputStream.write(data);
 			outputStream.close();
 		} catch (IOException e) {
-			throw new PdfTronXMLException_IOExeption(e);
+			throw new PdfTronSignatureException_CannotCreateTempFileException(e);
 		}
 
 		return tempFile.getPath();

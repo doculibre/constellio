@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.components.resource.ConstellioResourceHan
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler.ResourceType;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.JavascriptUtils;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -188,8 +189,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					this.setCaption($("pdfTronViewer.showAnnotation"));
 					editAnnotationBtn.setEnabled(false);
 					editAnnotationBtn.setImmediate(true);
-					finalizeBtn.addStyleName("disabled-link");
-					finalizeBtn.setEnabled(false);
 					annotationEnabled = false;
 					releaseLockAndSetReadOnly();
 				} else {
@@ -200,9 +199,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					disableAnnotationSignatureTool();
 					editAnnotationBtn.setImmediate(true);
 					editAnnotationBtn.removeStyleName("disabled-link");
-					finalizeBtn.setEnabled(pdfTronPresenter.getUserIdThatHaveAnnotationLock() == null
-										   || pdfTronPresenter.doesCurrentPageHaveLock());
-					finalizeBtn.removeStyleName("disabled-link");
 					this.setCaption($("pdfTronViewer.hideAnnotation"));
 					annotationEnabled = true;
 				}
@@ -237,9 +233,10 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		}
 		setMessageIfAnOtherUserOrAnOtherPageIsEditing(false);
 
-		// TODO::JOLA (P4) --> Validate permission for this action
-		buttonLayout2.addComponent(finalizeBtn);
-		buttonLayout2.setComponentAlignment(finalizeBtn, Alignment.MIDDLE_CENTER);
+		if (pdfTronPresenter.canSignDocument()) {
+			buttonLayout2.addComponent(finalizeBtn);
+			buttonLayout2.setComponentAlignment(finalizeBtn, Alignment.MIDDLE_CENTER);
+		}
 
 		buttonLayout2.addComponent(enableDisableAnnotation);
 		buttonLayout2.setComponentAlignment(enableDisableAnnotation, Alignment.MIDDLE_RIGHT);
@@ -439,7 +436,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			}
 
 			editAnnotationBtn.setEnabled(false);
-			finalizeBtn.setEnabled(false);
 		} else if (pdfTronPresenter.doesUserHaveLock() && !pdfTronPresenter.doesCurrentPageHaveLock()) {
 			if (errorMsgLabel == null) {
 				errorMsgLabel = new BaseLabel($("pdfTronViewer.anOtherPageIsEditting"));
@@ -448,7 +444,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 				errorMsgLabel.setValue($("pdfTronViewer.anOtherPageIsEditting"));
 			}
 			editAnnotationBtn.setEnabled(false);
-			finalizeBtn.setEnabled(false);
 
 			if (showNotification) {
 				Notification.show($("pdfTronViewer.errorAnOtherPageHaveAnnotationLock"), Type.WARNING_MESSAGE);
@@ -605,6 +600,10 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					log.error("cannot edit while not having the page lock");
 					response.getWriter().write(
 							createErrorJSONResponse("cannot edit while not having the page lock"));
+				} catch (PdfTronSignatureException e) {
+					log.error(MessageUtils.toMessage(e));
+					response.getWriter().write(
+							createErrorJSONResponse(e.getMessage()));
 				}
 				handled = true;
 			} else {
