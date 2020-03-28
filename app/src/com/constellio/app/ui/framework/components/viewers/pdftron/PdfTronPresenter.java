@@ -383,6 +383,9 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		} catch (RecordServicesException e) {
 			log.error(MessageUtils.toMessage(e));
 		}
+
+		// TODO::JOLA (P1) --> Fix history
+		// TODO::JOLA (P1) --> Refresh UI
 	}
 
 	private String createTempKeystoreFile(String filename) throws PdfTronXMLException_IOExeption {

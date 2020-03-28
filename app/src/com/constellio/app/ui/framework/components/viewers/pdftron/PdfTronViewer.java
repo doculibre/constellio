@@ -237,6 +237,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		}
 		setMessageIfAnOtherUserOrAnOtherPageIsEditing(false);
 
+		// TODO::JOLA (P4) --> Validate permission for this action
 		buttonLayout2.addComponent(finalizeBtn);
 		buttonLayout2.setComponentAlignment(finalizeBtn, Alignment.MIDDLE_CENTER);
 
