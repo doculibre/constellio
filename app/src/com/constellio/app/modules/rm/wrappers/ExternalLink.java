@@ -13,6 +13,7 @@ public class ExternalLink extends RecordWrapper {
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
 
 	public static final String TYPE = "type";
+	public static final String IMPORTED_ON = "importedOn";
 
 	public ExternalLink(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);

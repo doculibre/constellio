@@ -1472,6 +1472,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		public Metadata type() {
 			return metadata("type");
 		}
+
+		public Metadata importedOn() {
+			return metadata("importedOn");
+		}
 	}
 	public ExternalLinkType wrapExternalLinkType(Record record) {
 		return record == null ? null : new ExternalLinkType(record, getTypes());

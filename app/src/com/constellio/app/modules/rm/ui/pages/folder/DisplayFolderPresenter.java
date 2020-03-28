@@ -408,7 +408,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 
 		if (!referencedRecordIds.isEmpty()) {
-			condition = condition.orWhere(Schemas.IDENTIFIER).isIn(referencedRecordIds);
+			condition = condition.orWhere(Schemas.IDENTIFIER).isIn(referencedRecordIds).andWhere(rm.externalLink.importedOn()).isNull();
 		}
 		query.setCondition(condition);
 
