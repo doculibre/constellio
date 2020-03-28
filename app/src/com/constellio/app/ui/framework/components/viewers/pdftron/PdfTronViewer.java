@@ -581,6 +581,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 						pdfTronPresenter.handleNewXml(request.getParameter("data"), userHasRightToEditOtherUserAnnotation, user.getId());
 					} else if (StringUtils.isNotBlank(request.getParameter("blob"))) {
 						pdfTronPresenter.handleFinalDocument(request.getParameter("blob"));
+						// TODO::JOLA (P1) --> Remove processing!
 					} else {
 						log.error("Invalid parameters!");
 						response.getWriter().write(createErrorJSONResponse("Invalid parameters!"));

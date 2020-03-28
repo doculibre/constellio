@@ -371,11 +371,10 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		String newFilename = substring + ".pdf";
 		InputStream signedStream = new FileInputStream(signedPdf);
 		ContentVersionDataSummary version = contentManager.upload(signedStream, new ContentManager.UploadOptions(newFilename)).getContentVersionDataSummary();
-		Content content = contentManager.createMajor(getCurrentUser(), newFilename, version);
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Document document = rm.getDocument(recordId);
-		document.setContent(content);
+		document.getContent().updateContentWithName(getCurrentUser(), version, true, newFilename);
 
 		try {
 			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
@@ -384,7 +383,6 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 			log.error(MessageUtils.toMessage(e));
 		}
 
-		// TODO::JOLA (P1) --> Fix history
 		// TODO::JOLA (P1) --> Refresh UI
 	}
 
