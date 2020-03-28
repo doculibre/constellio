@@ -100,7 +100,6 @@ const FitWidth = "FitWidth";
 
         var reader = new FileReader();
         var base64data;
-        reader.readAsDataURL(blob);
         reader.onloadend = function() {
             base64data = reader.result;
 
@@ -109,6 +108,7 @@ const FitWidth = "FitWidth";
                 'blob': base64data
             });
         }
+        reader.readAsDataURL(blob);
     }
 });
 
@@ -235,7 +235,7 @@ const FitWidth = "FitWidth";
     // Create custom annotation
     const ConstellioInitialsAnnotation = function() {
         Annotations.StampAnnotation.call(this);
-        this.Subject = "ConstellioInitials";
+        this.Subject = 'ConstellioInitials';
         this.ImageData  = initialsImage;
     };
 

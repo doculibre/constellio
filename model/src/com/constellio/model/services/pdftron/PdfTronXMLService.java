@@ -22,11 +22,31 @@ import java.util.UUID;
 public class PdfTronXMLService {
 	public static final String ANNOTATION_ELEMENT_NAME = "annots";
 	public static final String USER_NAME = "title";
+	public static final String SUBJECT = "subject";
+	public static final String SIGNATURE_TYPE = "ConstellioSignature";
 	public static final String ELEMENT_NAME = "name";
 	public static final String USER_ID = "userId";
 
 	public PdfTronXMLService() {
 
+	}
+
+	public List<PdfTronSignatureAnnotation> getSignatureAnnotations(String currentAnnotationAsStr)
+			throws PdfTronXMLException_XMLParsingException, PdfTronXMLException_IOExeption {
+		Document currentAnnotationDocument = getDocumentFromStr(currentAnnotationAsStr);
+		Element currentAnnotsElement = getAnnotationElementList(currentAnnotationDocument);
+
+		Map<String, Element> currentAnnotationsById = currentAnnotsElement != null
+													  ? getElementInMapById(currentAnnotsElement.getChildren()) : new HashMap<>();
+
+		List<PdfTronSignatureAnnotation> signatures = new ArrayList<>();
+		for (Element element : currentAnnotationsById.values()) {
+			if (element.getAttributeValue(SUBJECT).equals(SIGNATURE_TYPE)) {
+				signatures.add(new PdfTronSignatureAnnotation(element));
+			}
+		}
+
+		return signatures;
 	}
 
 	public Map<String, Element> getElementInMapById(List<Element> elementList) {

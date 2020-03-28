@@ -16,6 +16,7 @@
  */
 package com.constellio.app.ui.framework.components.viewers.pdftron.signature;
 
+import com.constellio.model.services.pdftron.PdfTronSignatureAnnotation;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -29,15 +30,14 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 import org.apache.pdfbox.util.Hex;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.net.URL;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
@@ -47,7 +47,6 @@ import java.util.Calendar;
  * This is an example for visual signing a pdf.
  *
  * @author Vakhtang Koroghlishvili
- * @see CreateSignature
  */
 public class CreateVisibleSignature extends CreateSignatureBase {
 	private SignatureOptions signatureOptions;
@@ -74,18 +73,15 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 	 * Set visible signature designer for a new signature field.
 	 *
 	 * @param filename
-	 * @param x           position of the signature field
-	 * @param y           position of the signature field
-	 * @param zoomPercent
+	 * @param position    signature field rectangle
 	 * @param imageStream
 	 * @param page        the signature should be placed on
 	 * @throws IOException
 	 */
-	public void setVisibleSignDesigner(String filename, int x, int y, int zoomPercent,
-									   FileInputStream imageStream, int page)
+	public void setVisibleSignDesigner(String filename, Rectangle position, FileInputStream imageStream, int page)
 			throws IOException {
 		visibleSignDesigner = new PDVisibleSignDesigner(filename, imageStream, page);
-		visibleSignDesigner.xAxis(x).yAxis(y).zoom(zoomPercent).adjustForRotation();
+		visibleSignDesigner.xAxis(position.x).yAxis(position.y).width(position.width).height(position.height).adjustForRotation();
 	}
 
 	/**
@@ -327,6 +323,47 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 	}
 
 	/**
+	 * @param keystorePath        key store
+	 * @param keystorePin         pin
+	 * @param docToSignPath       document that will be signed
+	 * @param visualSignaturePath image of visible signature
+	 * @param signature           info from PDFTron
+	 * @throws java.security.KeyStoreException
+	 * @throws java.security.cert.CertificateException
+	 * @throws java.io.IOException
+	 * @throws java.security.NoSuchAlgorithmException
+	 * @throws java.security.UnrecoverableKeyException
+	 */
+	public void signDocument(String keystorePath, String keystorePin, String docToSignPath, String visualSignaturePath,
+							 PdfTronSignatureAnnotation signature)
+			throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
+		// TODO::JOLA (P3) --> Visually add "Certified by Constellio" and "username"
+
+		File ksFile = new File(keystorePath);
+		KeyStore keystore = KeyStore.getInstance("JKS");
+		char[] pin = keystorePin.toCharArray();
+		keystore.load(new FileInputStream(ksFile), pin);
+
+		File documentFile = new File(docToSignPath);
+
+		CreateVisibleSignature signing = new CreateVisibleSignature(keystore, pin.clone());
+
+		File signedDocumentFile;
+		int page = signature.getPage() + 1;
+		File imageFile = new File(visualSignaturePath);
+		try (FileInputStream imageStream = new FileInputStream(imageFile)) {
+			String name = documentFile.getName();
+			String substring = name.substring(0, name.lastIndexOf('.'));
+			signedDocumentFile = new File(documentFile.getParent(), substring + "_signed.pdf");
+			// page is 1-based here
+			signing.setVisibleSignDesigner(docToSignPath, signature.getPosition(), imageStream, page);
+		}
+		signing.setVisibleSignatureProperties(signature.getUsername(), null, null, 0, page, true);
+		signing.setExternalSigning(false);
+		signing.signPDF(documentFile, signedDocumentFile, null);
+	}
+
+	/**
 	 * Arguments are
 	 * [0] key store
 	 * [1] pin
@@ -340,7 +377,7 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 	 * @throws java.security.NoSuchAlgorithmException
 	 * @throws java.security.UnrecoverableKeyException
 	 */
-	public void signDocument(String[] args) throws KeyStoreException, CertificateException,
+	/*public static void main(String[] args) throws KeyStoreException, CertificateException,
 												   IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
 		// generate with
 		// keytool -storepass 123456 -storetype PKCS12 -keystore file.p12 -genkey -alias client -keyalg RSA
@@ -396,7 +433,7 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 		signing.setVisibleSignatureProperties("name", "location", "Security", 0, page, true);
 		signing.setExternalSigning(externalSig);
 		signing.signPDF(documentFile, signedDocumentFile, tsaClient);
-	}
+	}*/
 
 	/**
 	 * This will print the usage for this program.
@@ -408,5 +445,4 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 						   "  -tsa <url>    sign timestamp using the given TSA server\n" +
 						   "  -e            sign using external signature creation scenario");
 	}
-
 }

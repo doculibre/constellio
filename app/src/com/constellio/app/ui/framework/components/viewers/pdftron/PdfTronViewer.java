@@ -83,6 +83,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private GetAnnotationsOfOtherVersionWindowButton getAnnotationOfOtherVersionWindowButton;
 	private HorizontalLayout getAnnotationOfOtherVersionLayout;
 	private Button editAnnotationBtn;
+	private Button finalizeBtn;
 	private Label errorMsgLabel;
 
 	private VerticalLayout mainLayout;
@@ -187,6 +188,8 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					this.setCaption($("pdfTronViewer.showAnnotation"));
 					editAnnotationBtn.setEnabled(false);
 					editAnnotationBtn.setImmediate(true);
+					finalizeBtn.addStyleName("disabled-link");
+					finalizeBtn.setEnabled(false);
 					annotationEnabled = false;
 					releaseLockAndSetReadOnly();
 				} else {
@@ -197,11 +200,25 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					disableAnnotationSignatureTool();
 					editAnnotationBtn.setImmediate(true);
 					editAnnotationBtn.removeStyleName("disabled-link");
+					finalizeBtn.setEnabled(pdfTronPresenter.getUserIdThatHaveAnnotationLock() == null
+										   || pdfTronPresenter.doesCurrentPageHaveLock());
+					finalizeBtn.removeStyleName("disabled-link");
 					this.setCaption($("pdfTronViewer.hideAnnotation"));
 					annotationEnabled = true;
 				}
 			}
 		};
+
+		finalizeBtn = new BaseButton($("pdfTronViewer.finalize")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				// TODO::JOLA (P4) --> Ask to relog before signing
+				// TODO::JOLA (P4) --> Add a processing!
+				com.vaadin.ui.JavaScript.eval("finalizeDocument()");
+			}
+		};
+		finalizeBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		finalizeBtn.addStyleName(ValoTheme.BUTTON_LINK);
 
 		boolean userHasWriteAccess = pdfTronPresenter.hasWriteAccessToDocument() && !readOnlyMode;
 
@@ -219,17 +236,12 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		}
 		setMessageIfAnOtherUserOrAnOtherPageIsEditing(false);
 
-		Button finalizeButton = new BaseButton("Finalize") {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				com.vaadin.ui.JavaScript.eval("finalizeDocument()");
-			}
-		};
-		buttonLayout2.addComponent(finalizeButton);
+		buttonLayout2.addComponent(finalizeBtn);
+		buttonLayout2.setComponentAlignment(finalizeBtn, Alignment.MIDDLE_CENTER);
 
 		buttonLayout2.addComponent(enableDisableAnnotation);
-
 		buttonLayout2.setComponentAlignment(enableDisableAnnotation, Alignment.MIDDLE_RIGHT);
+
 		mainLayout.setSizeFull();
 
 		canvas = new Label();
@@ -425,6 +437,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			}
 
 			editAnnotationBtn.setEnabled(false);
+			finalizeBtn.setEnabled(false);
 		} else if (pdfTronPresenter.doesUserHaveLock() && !pdfTronPresenter.doesCurrentPageHaveLock()) {
 			if (errorMsgLabel == null) {
 				errorMsgLabel = new BaseLabel($("pdfTronViewer.anOtherPageIsEditting"));
@@ -433,6 +446,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 				errorMsgLabel.setValue($("pdfTronViewer.anOtherPageIsEditting"));
 			}
 			editAnnotationBtn.setEnabled(false);
+			finalizeBtn.setEnabled(false);
 
 			if (showNotification) {
 				Notification.show($("pdfTronViewer.errorAnOtherPageHaveAnnotationLock"), Type.WARNING_MESSAGE);
@@ -560,13 +574,34 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			boolean handled;
 			String key = request.getParameter("resourceKey");
 			if (bpmnResourceKey.equals(key)) {
-				if (StringUtils.isNotBlank(request.getParameter("data"))) {
-					handleNewXml(user, request, response);
-				} else if (StringUtils.isNotBlank(request.getParameter("blob"))) {
-					handleFinalDocument(request);
-				} else {
-					log.error("Invalid parameters!");
-					response.getWriter().write(createErrorJSONResponse("Invalid parameters!"));
+				try {
+					if (StringUtils.isNotBlank(request.getParameter("data"))) {
+						pdfTronPresenter.handleNewXml(request.getParameter("data"), userHasRightToEditOtherUserAnnotation, user.getId());
+					} else if (StringUtils.isNotBlank(request.getParameter("blob"))) {
+						pdfTronPresenter.handleFinalDocument(request.getParameter("blob"));
+					} else {
+						log.error("Invalid parameters!");
+						response.getWriter().write(createErrorJSONResponse("Invalid parameters!"));
+					}
+				} catch (PdfTronXMLException_CannotEditOtherUsersAnnoations pdfTronXMLException_cannotEditOtherUsersAnnoations) {
+					log.error("do not have permission to edit other user annotation parsing error", pdfTronXMLException_cannotEditOtherUsersAnnoations);
+					response.getWriter().write(
+							createErrorJSONResponse("Could not update. Some modifications are " +
+													"invalid"));
+
+				} catch (PdfTronXMLException_XMLParsingException e) {
+					log.error("unexpected xml parsing error", e);
+					response.getWriter().write(
+							createErrorJSONResponse("Invalid xml"));
+
+				} catch (PdfTronXMLException_IOExeption pdfTronXMLException_ioExeption) {
+					log.error("unexpected io error", pdfTronXMLException_ioExeption);
+					response.getWriter().write(
+							createErrorJSONResponse("Unexpected IO error"));
+				} catch (PdfTronXMLException_CannotEditAnnotationWithoutLock pdfTronXMLException_cannotEditAnnotationWithoutLock) {
+					log.error("cannot edit while not having the page lock");
+					response.getWriter().write(
+							createErrorJSONResponse("cannot edit while not having the page lock"));
 				}
 				handled = true;
 			} else {
@@ -574,35 +609,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			}
 
 			return handled;
-		}
-
-		private void handleFinalDocument(VaadinRequest request) {
-			pdfTronPresenter.handleFinalDocument(request.getParameter("blob"));
-		}
-
-		private void handleNewXml(User user, VaadinRequest request, final VaadinResponse response) throws IOException {
-			try {
-				pdfTronPresenter.handleNewXml(request.getParameter("data"), userHasRightToEditOtherUserAnnotation, user.getId());
-			} catch (PdfTronXMLException_CannotEditOtherUsersAnnoations pdfTronXMLException_cannotEditOtherUsersAnnoations) {
-				log.error("do not have permission to edit other user annotation parsing error", pdfTronXMLException_cannotEditOtherUsersAnnoations);
-				response.getWriter().write(
-						createErrorJSONResponse("Could not update. Some modifications are " +
-												"invalid"));
-
-			} catch (PdfTronXMLException_XMLParsingException e) {
-				log.error("unexpected xml parsing error", e);
-				response.getWriter().write(
-						createErrorJSONResponse("Invalid xml"));
-
-			} catch (PdfTronXMLException_IOExeption pdfTronXMLException_ioExeption) {
-				log.error("unexpected io error", pdfTronXMLException_ioExeption);
-				response.getWriter().write(
-						createErrorJSONResponse("Unexpected IO error"));
-			} catch (PdfTronXMLException_CannotEditAnnotationWithoutLock pdfTronXMLException_cannotEditAnnotationWithoutLock) {
-				log.error("cannot edit while not having the page lock");
-				response.getWriter().write(
-						createErrorJSONResponse("cannot edit while not having the page lock"));
-			}
 		}
 
 		private String createErrorJSONResponse(String errorMessage) {
