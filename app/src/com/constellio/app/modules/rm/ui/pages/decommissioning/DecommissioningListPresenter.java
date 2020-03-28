@@ -61,6 +61,7 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -248,12 +249,6 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void processButtonClicked() {
-		if (rmModuleExtensions != null) {
-			for (DecommissioningListPresenterExtension extension : rmModuleExtensions.getDecommissioningListPresenterExtensions()) {
-				ImportExternalLinksParams params = new ImportExternalLinksParams(decommissioningList().getFolders(), getCurrentUser().getUsername(), appLayerFactory, collection);
-				extension.importExternalLinks(params);
-			}
-		}
 		HashMap<String, Double> sizeToBePlacedPerContainer = new HashMap<>();
 		RMSchemasRecordsServices rm = rmRecordsServices();
 		for (FolderDetailVO folder : getFoldersToValidate()) {
@@ -321,9 +316,16 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 		//TODO show error message if exception is thrown
 		try {
+			List<String> processableFoldersIds = getProcessableFoldersIds();
 			decommissioningService().decommission(decommissioningList(), getCurrentUser());
 			view.showMessage($(mayContainAnalogicalMedia() ?
 							   "DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
+			if (rmModuleExtensions != null) {
+				for (DecommissioningListPresenterExtension extension : rmModuleExtensions.getDecommissioningListPresenterExtensions()) {
+					ImportExternalLinksParams params = new ImportExternalLinksParams(processableFoldersIds, getCurrentUser().getUsername(), appLayerFactory, collection);
+					extension.importExternalLinks(params);
+				}
+			}
 			view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
 		} catch (RecordServicesWrapperRuntimeException e) {
 			RecordServicesException wrappedException = e.getWrappedException();
@@ -342,9 +344,9 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public boolean isListReadyToBeProcessed() {
-		return !(searchServices().getResultsCount(
+		return !(searchServices().getResultsCount(new LogicalSearchQuery().setCondition(
 				from(rmRecordsServices().folder.schemaType()).where(rmRecordsServices().folder.borrowed()).isTrue()
-						.andWhere(Schemas.IDENTIFIER).isIn(decommissioningList().getFolders())) > 0);
+						.andWhere(Schemas.IDENTIFIER).isIn(decommissioningList().getFolders())).setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR)) > 0);
 	}
 
 	public void validateButtonClicked() {

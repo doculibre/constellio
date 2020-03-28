@@ -16,6 +16,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,7 +87,7 @@ public class ListExternalLinksPresenter extends BasePresenter<ListExternalLinksV
 		Folder folder = rm.getFolder(folderId);
 		return new LogicalSearchQuery(from(rm.externalLink.schemaType())
 				.where(Schemas.IDENTIFIER).isIn(folder.getExternalLinks())
-				.andWhere(rm.externalLink.type()).isIn(types));
+				.andWhere(rm.externalLink.type()).isIn(types)).setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR);
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
