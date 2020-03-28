@@ -1,5 +1,7 @@
 package com.constellio.app.ui.framework.components.viewers.pdftron;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.UserVO;
@@ -9,7 +11,7 @@ import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.streams.factories.StreamsServices;
+import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
@@ -20,6 +22,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.pdftron.AnnotationLockManager;
 import com.constellio.model.services.pdftron.PdfTronSignatureAnnotation;
@@ -28,6 +31,8 @@ import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLExcep
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
 import com.constellio.model.services.pdftron.PdfTronXMLService;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserServices;
@@ -50,6 +55,7 @@ import java.util.UUID;
 @Slf4j
 public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter {
 
+	private String collection;
 	private AppLayerFactory appLayerFactory;
 	private ContentManager contentManager;
 	private ContentDao contentDao;
@@ -72,13 +78,13 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	public PdfTronPresenter(PdfTronViewer pdfTronViewer, String recordId, String metadataCode,
 							ContentVersionVO contentVersion) {
 		this.appLayerFactory = pdfTronViewer.getAppLayerFactory();
+		this.collection = pdfTronViewer.getCurrentSessionContext().getCurrentCollection();
 		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 		this.contentDao = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getContentsDao();
 		this.contentVersionVO = contentVersion;
 		this.pdfTronViewer = pdfTronViewer;
 		this.recordId = recordId;
-		this.schemasRecordsServices = new SchemasRecordsServices(pdfTronViewer.getCurrentSessionContext().getCurrentCollection(),
-				appLayerFactory.getModelLayerFactory());
+		this.schemasRecordsServices = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		this.record = this.schemasRecordsServices.get(recordId);
 		this.pdfTronParser = new PdfTronXMLService();
 		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
@@ -87,8 +93,8 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		this.pageRandomId = UUID.randomUUID().toString();
 		this.annotationLockManager = appLayerFactory.getModelLayerFactory().getAnnotationLockManager();
 		this.currentUser = appLayerFactory.getModelLayerFactory().newUserServices()
-				.getUserInCollection(getUserVO().getUsername(),
-						pdfTronViewer.getCurrentSessionContext().getCurrentCollection());
+				.getUserInCollection(getUserVO().getUsername(), collection);
+
 		initialize();
 	}
 
@@ -351,24 +357,43 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 
 			CreateVisibleSignature signatureHelper = new CreateVisibleSignature(keystore, pin);
 			// TODO::JOLA (P3) --> Handle more than 1 signature
-			signatureHelper.signDocument(keystorePath, keystorePass, filePath, signaturePath, signatures.get(0));
+			File signedDocument = signatureHelper.signDocument(keystorePath, keystorePass, filePath, signaturePath, signatures.get(0));
+			uploadNewVersion(signedDocument);
 		} catch (Exception e) {
 			// TODO::JOLA (P4) --> Handle errors
 			log.error(MessageUtils.toMessage(e));
 		}
+	}
 
-		// TODO::JOLA (P1) --> Upload signed document as new version
+	private void uploadNewVersion(File signedPdf) throws IOException {
+		String oldFilename = contentVersionVO.getFileName();
+		String substring = oldFilename.substring(0, oldFilename.lastIndexOf('.'));
+		String newFilename = substring + ".pdf";
+		InputStream signedStream = new FileInputStream(signedPdf);
+		ContentVersionDataSummary version = contentManager.upload(signedStream, new ContentManager.UploadOptions(newFilename)).getContentVersionDataSummary();
+		Content content = contentManager.createMajor(getCurrentUser(), newFilename, version);
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		Document document = rm.getDocument(recordId);
+		document.setContent(content);
+
+		try {
+			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+			recordServices.update(document);
+		} catch (RecordServicesException e) {
+			log.error(MessageUtils.toMessage(e));
+		}
 	}
 
 	private String createTempKeystoreFile(String filename) throws PdfTronXMLException_IOExeption {
 		FileService fileService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService();
 
 		File tempFile = fileService.newTemporaryFile(filename);
-		StreamsServices.ByteArrayStreamFactory keystore = appLayerFactory.getModelLayerFactory()
+		StreamFactory keystore = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
 
 		try {
-			InputStream inputStream = keystore.create("keystore-stream");
+			InputStream inputStream = (InputStream) keystore.create("keystore-stream");
 			byte[] data = new byte[inputStream.available()];
 			inputStream.read(data);
 

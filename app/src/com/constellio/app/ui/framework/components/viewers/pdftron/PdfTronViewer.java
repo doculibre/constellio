@@ -213,7 +213,8 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				// TODO::JOLA (P4) --> Ask to relog before signing
-				// TODO::JOLA (P4) --> Add a processing!
+				// TODO::JOLA (P1) --> Add a processing!
+				// TODO::JOLA (P2) --> Fix 2+ stamp & initials
 				com.vaadin.ui.JavaScript.eval("finalizeDocument()");
 			}
 		};

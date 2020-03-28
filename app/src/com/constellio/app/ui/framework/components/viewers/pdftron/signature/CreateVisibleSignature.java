@@ -334,7 +334,7 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 	 * @throws java.security.NoSuchAlgorithmException
 	 * @throws java.security.UnrecoverableKeyException
 	 */
-	public void signDocument(String keystorePath, String keystorePin, String docToSignPath, String visualSignaturePath,
+	public File signDocument(String keystorePath, String keystorePin, String docToSignPath, String visualSignaturePath,
 							 PdfTronSignatureAnnotation signature)
 			throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
 		// TODO::JOLA (P3) --> Visually add "Certified by Constellio" and "username"
@@ -361,6 +361,8 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 		signing.setVisibleSignatureProperties(signature.getUsername(), null, null, 0, page, true);
 		signing.setExternalSigning(false);
 		signing.signPDF(documentFile, signedDocumentFile, null);
+
+		return signedDocumentFile;
 	}
 
 	/**
