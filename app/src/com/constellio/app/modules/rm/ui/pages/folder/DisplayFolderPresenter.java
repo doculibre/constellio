@@ -398,10 +398,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		LogicalSearchCondition condition;
 		if (includeContentInHierarchy) {
-			condition = from(folderSchemaType, documentSchemaType)
+			condition = from(folderSchemaType, documentSchemaType, externalLinkSchemaType)
 					.where(Schemas.PATH_PARTS).isContaining(asList(folder.getId()));
 		} else {
-			condition = from(folderSchemaType, documentSchemaType)
+			condition = from(folderSchemaType, documentSchemaType, externalLinkSchemaType)
 					.where(rm.folder.parentFolder()).is(folder)
 					.orWhere(rm.document.folder()).is(folder)
 					.orWhere(rm.document.schema().getMetadata(Document.LINKED_TO)).is(folder);

@@ -44,8 +44,10 @@ public class CoreMigrationTo_9_0_2_11 implements MigrationScript {
 			taxonomies.forEach(taxonomy -> {
 				taxonomy.getSchemaTypes().forEach(schemaType -> {
 					MetadataSchemaBuilder defaultSchemaBuilder = typesBuilder.getDefaultSchema(schemaType);
+					if(defaultSchemaBuilder.hasMetadata(ValueListItem.CODE)) {
+						defaultSchemaBuilder.get(ValueListItem.CODE).addValidator(IllegalCharactersValidator.class);
+					}
 
-					defaultSchemaBuilder.get(ValueListItem.CODE).addValidator(IllegalCharactersValidator.class);
 					defaultSchemaBuilder.get(ValueListItem.TITLE).addValidator(IllegalCharactersValidator.class);
 
 					if (defaultSchemaBuilder.hasMetadata(ValueListItem.ABBREVIATION)) {
