@@ -7,7 +7,7 @@ import org.jdom2.Element;
 import java.awt.*;
 import java.util.List;
 
-public class PdfTronSignatureAnnotation {
+public class PdfTronSignatureAnnotation implements Comparable<PdfTronSignatureAnnotation> {
 
 	// TODO::JOLA (P2) --> Get this value from pdftron
 	private static final int PDFTRON_VIEWER_HEIGHT = 795;
@@ -69,5 +69,30 @@ public class PdfTronSignatureAnnotation {
 
 	public String getImageData() {
 		return imageData;
+	}
+
+	@Override
+	public int compareTo(PdfTronSignatureAnnotation other) {
+		int result;
+
+		result = compare(page, other.getPage());
+		if (result != 0) {
+			return result;
+		}
+
+		result = compare(position.y, other.getPosition().y);
+		if (result != 0) {
+			return result;
+		}
+
+		result = compare(position.x, other.getPosition().x);
+		return result;
+	}
+
+	private int compare(int thisValue, int otherValue) {
+		if (thisValue != otherValue) {
+			return thisValue < otherValue ? -1 : 1;
+		}
+		return 0;
 	}
 }

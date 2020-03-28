@@ -57,6 +57,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -362,27 +363,32 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 			throw new PdfTronSignatureException_CannotReadSourceFileException();
 		}
 
-		List<PdfTronSignatureAnnotation> signatures = pdfTronParser.getSignatureAnnotations(xmlCurrentAnnotations);
-		if (signatures.size() < 1) {
-			throw new PdfTronSignatureException_NotingToSignException();
-		}
-
-		String signaturePath = createTempFileFromBase64("signature", signatures.get(0).getImageData());
-		if (StringUtils.isBlank(signaturePath)) {
-			throw new PdfTronSignatureException_CannotReadSignatureFileException();
-		}
-
 		String keystorePath = createTempKeystoreFile("keystore");
 		String keystorePass = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE_PASSWORD);
 
-		// TODO::JOLA (P3) --> Handle more than 1 signature
-		try {
-			File signedDocument = CreateVisibleSignature.signDocument(keystorePath, keystorePass, filePath, signaturePath, signatures.get(0));
-			uploadNewVersion(signedDocument);
-		} catch (Exception e) {
-			throw new PdfTronSignatureException_CannotSignDocumentException(e);
+		List<PdfTronSignatureAnnotation> signatures = pdfTronParser.getSignatureAnnotations(xmlCurrentAnnotations);
+		if (signatures.size() < 1) {
+			throw new PdfTronSignatureException_NotingToSignException();
 		}
+		Collections.sort(signatures);
+
+		File signedDocument = null;
+		for (PdfTronSignatureAnnotation signature : signatures) {
+			String signaturePath = createTempFileFromBase64("signature", signature.getImageData());
+			if (StringUtils.isBlank(signaturePath)) {
+				throw new PdfTronSignatureException_CannotReadSignatureFileException();
+			}
+
+			try {
+				signedDocument = CreateVisibleSignature.signDocument(keystorePath, keystorePass, filePath, signaturePath, signature);
+				filePath = signedDocument.getPath();
+			} catch (Exception e) {
+				throw new PdfTronSignatureException_CannotSignDocumentException(e);
+			}
+		}
+
+		uploadNewVersion(signedDocument);
 	}
 
 	private void uploadNewVersion(File signedPdf) throws PdfTronSignatureException {
