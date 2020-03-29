@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components.viewers.panel;
 
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.ExternalLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -165,6 +166,9 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 			image.setSource(thumbnailResource);
 		} else if (schemaTypeCode.toLowerCase().contains("task")) {
 			Resource thumbnailResource = new ThemeResource("images/icons/64/task_64.png");
+			image.setSource(thumbnailResource);
+		} else if (ExternalLink.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			Resource thumbnailResource = new ThemeResource("images/icons/64/external-link_64.png");
 			image.setSource(thumbnailResource);
 		} else {
 			Resource thumbnailResource = new ThemeResource("images/icons/64/default_64.png");

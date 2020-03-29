@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.ExternalLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -259,7 +260,8 @@ public class RMRecordAppExtension extends RecordAppExtension {
 
 	public Resource getIconFromContent(GetIconPathParams params) {
 		RecordVO recordVO = params.getRecordVO();
-		if (Document.SCHEMA_TYPE.equals(recordVO.getSchema().getTypeCode())) {
+		String schemaTypeCode = recordVO.getSchema().getTypeCode();
+		if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			String fileName = appLayerFactory.getExtensions().forCollection(collection).getIconForRecordVO(new GetIconPathParams(recordVO, false));
 			if (fileName == null) {
 				for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
@@ -272,6 +274,11 @@ public class RMRecordAppExtension extends RecordAppExtension {
 			}
 			if (fileName != null) {
 				return getIcon(fileName);
+			}
+		} else if (ExternalLink.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			String title = recordVO.getTitle();
+			if (title.indexOf(".") != -1) {
+				return getIcon(title);
 			}
 		}
 		return null;
