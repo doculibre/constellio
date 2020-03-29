@@ -2793,6 +2793,10 @@ $popup-view-z-index: 3;
 				}
 			}
 			
+			.search-result-title.v-disabled {
+				opacity: 1.0;
+			}
+			
 			.search-result-title:hover {
 				background-color: transparent;
 			}

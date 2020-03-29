@@ -12792,32 +12792,6 @@ div.v-layout.v-horizontal.v-widget {
 	left: 20px;
 }
 
-.constellio .v-table-cell-content-file-icon-dot {
-	background-image: url('images/icons/ext/mantis/dot.gif');
-	background-repeat: no-repeat;
-	background-position: 10px 10px;
-	background-position-y: center;
-}
-
-.constellio .v-table-cell-content-file-icon-dot .v-table-cell-wrapper {
-	position: relative;
-	text-align: left;
-	left: 20px;
-}
-
-.constellio .v-table-cell-content-file-icon-dotx {
-	background-image: url('images/icons/ext/mantis/dotx.gif');
-	background-repeat: no-repeat;
-	background-position: 10px 10px;
-	background-position-y: center;
-}
-
-.constellio .v-table-cell-content-file-icon-dotx .v-table-cell-wrapper {
-	position: relative;
-	text-align: left;
-	left: 20px;
-}
-
 .constellio .v-table-cell-content-file-icon-eml {
 	background-image: url('images/icons/ext/mantis/eml.gif');
 	background-repeat: no-repeat;
@@ -12831,32 +12805,6 @@ div.v-layout.v-horizontal.v-widget {
 	left: 20px;
 }
 
-.constellio .v-table-cell-content-file-icon-eps {
-	background-image: url('images/icons/ext/mantis/eps.gif');
-	background-repeat: no-repeat;
-	background-position: 10px 10px;
-	background-position-y: center;
-}
-
-.constellio .v-table-cell-content-file-icon-eps .v-table-cell-wrapper {
-	position: relative;
-	text-align: left;
-	left: 20px;
-}
-
-.constellio .v-table-cell-content-file-icon-flv {
-	background-image: url('images/icons/ext/mantis/flv.gif');
-	background-repeat: no-repeat;
-	background-position: 10px 10px;
-	background-position-y: center;
-}
-
-.constellio .v-table-cell-content-file-icon-flv .v-table-cell-wrapper {
-	position: relative;
-	text-align: left;
-	left: 20px;
-}
-
 .constellio .v-table-cell-content-file-icon-gif {
 	background-image: url('images/icons/ext/mantis/gif.gif');
 	background-repeat: no-repeat;
@@ -12865,19 +12813,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table-cell-content-file-icon-gif .v-table-cell-wrapper {
-	position: relative;
-	text-align: left;
-	left: 20px;
-}
-
-.constellio .v-table-cell-content-file-icon-htm {
-	background-image: url('images/icons/ext/mantis/htm.gif');
-	background-repeat: no-repeat;
-	background-position: 10px 10px;
-	background-position-y: center;
-}
-
-.constellio .v-table-cell-content-file-icon-htm .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;
@@ -12935,19 +12870,6 @@ div.v-layout.v-horizontal.v-widget {
 	left: 20px;
 }
 
-.constellio .v-table-cell-content-file-icon-mmp {
-	background-image: url('images/icons/ext/mantis/mmp.gif');
-	background-repeat: no-repeat;
-	background-position: 10px 10px;
-	background-position-y: center;
-}
-
-.constellio .v-table-cell-content-file-icon-mmp .v-table-cell-wrapper {
-	position: relative;
-	text-align: left;
-	left: 20px;
-}
-
 .constellio .v-table-cell-content-file-icon-mov {
 	background-image: url('images/icons/ext/mantis/mov.gif');
 	background-repeat: no-repeat;
@@ -12956,32 +12878,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table-cell-content-file-icon-mov .v-table-cell-wrapper {
-	position: relative;
-	text-align: left;
-	left: 20px;
-}
-
-.constellio .v-table-cell-content-file-icon-mp3 {
-	background-image: url('images/icons/ext/mantis/mp3.gif');
-	background-repeat: no-repeat;
-	background-position: 10px 10px;
-	background-position-y: center;
-}
-
-.constellio .v-table-cell-content-file-icon-mp3 .v-table-cell-wrapper {
-	position: relative;
-	text-align: left;
-	left: 20px;
-}
-
-.constellio .v-table-cell-content-file-icon-mp4 {
-	background-image: url('images/icons/ext/mantis/mp4.gif');
-	background-repeat: no-repeat;
-	background-position: 10px 10px;
-	background-position-y: center;
-}
-
-.constellio .v-table-cell-content-file-icon-mp4 .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;
@@ -13138,19 +13034,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table-cell-content-file-icon-pot .v-table-cell-wrapper {
-	position: relative;
-	text-align: left;
-	left: 20px;
-}
-
-.constellio .v-table-cell-content-file-icon-pp {
-	background-image: url('images/icons/ext/mantis/pp.gif');
-	background-repeat: no-repeat;
-	background-position: 10px 10px;
-	background-position-y: center;
-}
-
-.constellio .v-table-cell-content-file-icon-pp .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;
@@ -13416,14 +13299,40 @@ div.v-layout.v-horizontal.v-widget {
 	left: 20px;
 }
 
-.constellio .v-table-cell-content-file-icon-vsdx {
-	background-image: url('images/icons/ext/mantis/vsdx.gif');
+.constellio .v-table-cell-content-file-icon-zip {
+	background-image: url('images/icons/ext/mantis/zip.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
 	background-position-y: center;
 }
 
-.constellio .v-table-cell-content-file-icon-vsdx .v-table-cell-wrapper {
+.constellio .v-table-cell-content-file-icon-zip .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
+.constellio .v-table-cell-content-file-icon-mp3 {
+	background-image: url('images/icons/ext/mantis/mp3.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+	background-position-y: center;
+}
+
+.constellio .v-table-cell-content-file-icon-mp3 .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
+.constellio .v-table-cell-content-file-icon-mp4 {
+	background-image: url('images/icons/ext/mantis/mp4.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+	background-position-y: center;
+}
+
+.constellio .v-table-cell-content-file-icon-mp4 .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;
@@ -13442,14 +13351,14 @@ div.v-layout.v-horizontal.v-widget {
 	left: 20px;
 }
 
-.constellio .v-table-cell-content-file-icon-zip {
-	background-image: url('images/icons/ext/mantis/zip.gif');
+.constellio .v-table-cell-content-file-icon-flv {
+	background-image: url('images/icons/ext/mantis/flv.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
 	background-position-y: center;
 }
 
-.constellio .v-table-cell-content-file-icon-zip .v-table-cell-wrapper {
+.constellio .v-table-cell-content-file-icon-flv .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;
@@ -15628,6 +15537,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-title .v-button {
 	height: auto;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-title.v-disabled {
+	opacity: 1;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-title:hover {
