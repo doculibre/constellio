@@ -547,12 +547,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 	}
 
-	private void closeSignatureWindow() {
-		if (finalizeBtn.getWindow() != null) {
-			finalizeBtn.getWindow().close();
-		}
-	}
-
 	public class PdfTronViewerRequestHandler extends BaseRequestHandler {
 
 		private String bpmnResourceKey;
@@ -581,7 +575,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 						pdfTronPresenter.handleNewXml(request.getParameter("data"), userHasRightToEditOtherUserAnnotation, user.getId());
 					} else if (StringUtils.isNotBlank(request.getParameter("blob"))) {
 						pdfTronPresenter.handleFinalDocument(request.getParameter("blob"));
-						closeSignatureWindow();
 					} else {
 						log.error("Invalid parameters!");
 						response.getWriter().write(createErrorJSONResponse("Invalid parameters!"));
@@ -609,7 +602,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					log.error(MessageUtils.toMessage(e));
 					response.getWriter().write(
 							createErrorJSONResponse(e.getMessage()));
-					closeSignatureWindow();
 					// TODO::JOLA (P2) --> Show error message to user
 				}
 				handled = true;

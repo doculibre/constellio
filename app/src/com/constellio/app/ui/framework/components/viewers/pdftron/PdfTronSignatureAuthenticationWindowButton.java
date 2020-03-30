@@ -113,6 +113,7 @@ public class PdfTronSignatureAuthenticationWindowButton extends WindowButton {
 		if (authenticationService.authenticate(user.getUsername(), password)) {
 			signInButton.setEnabled(false);
 			onAuthenticated();
+			getWindow().close();
 		} else {
 			errorLabel.setVisible(true);
 		}
