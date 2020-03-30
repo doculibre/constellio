@@ -1,6 +1,7 @@
 package com.constellio.app.api.search;
 
 import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
+import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
@@ -219,7 +220,8 @@ public class SearchWebService extends AbstractSearchServlet {
 					Map<String, String> valueLabels = new HashMap<>();
 					switch (facetMetadata.getType()) {
 						case REFERENCE:
-							valueLabels = facetField.getValues().stream().map(value -> recordServices.getDocumentById(value.getName())).collect(Collectors.toMap(Record::getId, record -> record.get(Schemas.TITLE, locale)));
+							valueLabels = facetField.getValues().stream().map(value -> recordServices.getDocumentById(value.getName())).collect(Collectors.toMap(Record::getId,
+									record -> StringUtils.defaultIfBlank(SchemaCaptionUtils.getShortCaptionForRecord(record, locale), "").replaceAll("\\P{Print}", "".trim())));
 							break;
 						case ENUM:
 							Class<? extends EnumWithSmallCode> enumClass = (Class<? extends EnumWithSmallCode>) facetMetadata.getEnumClass();
