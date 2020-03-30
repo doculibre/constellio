@@ -271,7 +271,9 @@ public class LogicalSearchQueryExecutorInCache {
 					values.add(isEqualCriterion.getMemoryQueryValue());
 				} else if (logicalSearchValueCondition instanceof IsInCriterion) {
 					IsInCriterion isInCriterion = (IsInCriterion) logicalSearchValueCondition;
-					values.addAll(isInCriterion.getMemoryQueryValues());
+					if (!Schemas.IDENTIFIER.getLocalCode().equals(dataStoreFields.get(0).getLocalCode())) {
+						values.addAll(isInCriterion.getMemoryQueryValues());
+					}
 				}
 
 				if (!values.isEmpty()) {

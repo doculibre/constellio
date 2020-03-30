@@ -345,7 +345,7 @@ public class ConstellioEIMConfigs {
 		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
 		add(SEARCH_RESULTS_HIGHLIGHTING_ENABLED = search.createBooleanTrueByDefault("searchResultsHighlightingEnabled").whichIsHidden());
 
-		add(ENABLE_ILLEGAL_CHARACTERS_VALIDATION = others.createBooleanTrueByDefault("enabledIllegalCharactersValidation"));
+		add(ENABLE_ILLEGAL_CHARACTERS_VALIDATION = others.createBooleanFalseByDefault("enabledIllegalCharactersValidation"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 
