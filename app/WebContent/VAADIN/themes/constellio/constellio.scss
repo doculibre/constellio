@@ -1246,6 +1246,10 @@ $popup-view-z-index: 3;
 	.reference-display, .agent-link {
 		height: auto;
 	}
+	
+	.reference-display.v-disabled {
+		opacity: 1.0;
+	}
 
 	.base-display {
 		

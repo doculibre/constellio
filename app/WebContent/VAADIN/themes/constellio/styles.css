@@ -14215,6 +14215,10 @@ div.v-layout.v-horizontal.v-widget {
 	height: auto;
 }
 
+.constellio .reference-display.v-disabled {
+	opacity: 1;
+}
+
 .constellio .base-display .base-display-main-layout {
 	width: 100%;
 }
