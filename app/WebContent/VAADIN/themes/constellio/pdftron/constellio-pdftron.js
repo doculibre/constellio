@@ -81,7 +81,7 @@ const FitWidth = "FitWidth";
     }
 });
 
-(window.finalizeDocument = async function() {
+(window.getFinalDocument = async function() {
     if(isWebViewerInstanceSet()) {
         const { docViewer, annotManager } = window.webViewerInstance;
 
@@ -102,11 +102,7 @@ const FitWidth = "FitWidth";
         var base64data;
         reader.onloadend = function() {
             base64data = reader.result;
-
-            $.post(documentAnnotationCallBack, {
-                'resourceKey': documentAnnotationRK,
-                'blob': base64data
-            });
+            com.constellio.app.ui.framework.components.viewers.pdftron.setFinalDocument(base64data);
         }
         reader.readAsDataURL(blob);
     }
