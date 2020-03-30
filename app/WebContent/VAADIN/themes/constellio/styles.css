@@ -15643,6 +15643,10 @@ div.v-layout.v-horizontal.v-widget {
 	color: inherit;
 }
 
+.constellio .viewable-record-table-panel .viewable-record-table-compressed .v-table-body-wrapper {
+	overflow-x: hidden;
+}
+
 .constellio .viewable-record-table-panel .viewable-record-table-compressed .search-result-title {
 	width: 350px;
 }
@@ -16282,6 +16286,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .folder-content-table .v-scrollable {
 	overflow-x: auto;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .folder-content-table .viewable-record-table-compressed .v-scrollable {
+	overflow-x: hidden;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .batch-processes .v-table .v-scrollable {

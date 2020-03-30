@@ -2909,6 +2909,10 @@ $popup-view-z-index: 3;
 		}
 
 		.viewable-record-table-compressed {
+			.v-table-body-wrapper {
+				overflow-x: hidden;
+			}			
+			
 			.search-result-title {
 				width: 350px;
 			}
@@ -3644,8 +3648,14 @@ $popup-view-z-index: 3;
 	    	.v-scrollable {
 	    		overflow-x: auto;
 	    	}
+	    	
+	    	.viewable-record-table-compressed {
+		    	.v-scrollable {
+		    		overflow-x: hidden;
+		    	}
+		    }	
     	}
-
+    	
 		.batch-processes {
 	    	.v-table {
 		    	.v-scrollable {
