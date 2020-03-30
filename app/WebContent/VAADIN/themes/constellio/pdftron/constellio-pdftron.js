@@ -180,20 +180,9 @@ const FitWidth = "FitWidth";
 (window.createConstellioSignatureTool = function(instance, signatureCaption, signatureImage) {
     const { Annotations, Tools, annotManager, docViewer } = instance;
 
-    // Create custom annotation
-    const ConstellioSignatureAnnotation = function() {
-        Annotations.StampAnnotation.call(this);
-        this.Subject = 'ConstellioSignature';
-        this.ImageData  = signatureImage;
-    };
-
-    ConstellioSignatureAnnotation.prototype = new Annotations.StampAnnotation();
-    ConstellioSignatureAnnotation.prototype.elementName = 'stamp';
-
-
     // Create custom tool
     const ConstellioSignatureCreateTool = function(docViewer) {
-        Tools.GenericAnnotationCreateTool.call(this, docViewer, ConstellioSignatureAnnotation);
+        Tools.GenericAnnotationCreateTool.call(this, docViewer, Annotations.StampAnnotation);
     };
 
     ConstellioSignatureCreateTool.prototype = new Tools.GenericAnnotationCreateTool();
@@ -202,8 +191,6 @@ const FitWidth = "FitWidth";
     // Register custom tool
     const constellioSignatureToolName = 'AnnotationCreateConstellioSignature';
 
-    //annotManager.registerAnnotationType(ConstellioSignatureAnnotation.prototype.elementName, ConstellioSignatureAnnotation);
-
     const constellioSignatureTool = new ConstellioSignatureCreateTool(docViewer);
     instance.registerTool({
         toolName: constellioSignatureToolName,
@@ -211,7 +198,7 @@ const FitWidth = "FitWidth";
         buttonImage: '/constellio/VAADIN/themes/constellio/pdftron/lib/ui/assets/hand-outline-gesture.png',
         buttonName: 'constellioSignatureButton',
         tooltip: signatureCaption
-    }, ConstellioSignatureAnnotation);
+    }, Annotations.StampAnnotation);
 
     instance.setHeaderItems(header => {
         const constellioSignatureButton = {
@@ -226,26 +213,21 @@ const FitWidth = "FitWidth";
     docViewer.on('documentLoaded', () => {
         // set the tool mode to our tool so that we can start using it right away
         instance.setToolMode(constellioSignatureToolName);
+
+        const tool = docViewer.getTool(constellioSignatureToolName);
+        tool.on('annotationCreated', (event, annotations) => {
+            annotations.Subject = 'ConstellioSignature';
+            annotations.ImageData  = signatureImage;
+        });
     });
 });
 
 (window.createConstellioInitialsTool = function(instance, initialsCaption, initialsImage) {
     const { Annotations, Tools, annotManager, docViewer } = instance;
 
-    // Create custom annotation
-    const ConstellioInitialsAnnotation = function() {
-        Annotations.StampAnnotation.call(this);
-        this.Subject = 'ConstellioInitials';
-        this.ImageData  = initialsImage;
-    };
-
-    ConstellioInitialsAnnotation.prototype = new Annotations.StampAnnotation();
-    ConstellioInitialsAnnotation.prototype.elementName = 'stamp';
-
-
     // Create custom tool
     const ConstellioInitialsCreateTool = function(docViewer) {
-        Tools.GenericAnnotationCreateTool.call(this, docViewer, ConstellioInitialsAnnotation);
+        Tools.GenericAnnotationCreateTool.call(this, docViewer, Annotations.StampAnnotation);
     };
 
     ConstellioInitialsCreateTool.prototype = new Tools.GenericAnnotationCreateTool();
@@ -254,8 +236,6 @@ const FitWidth = "FitWidth";
     // Register custom tool
     const constellioInitialsToolName = 'AnnotationCreateConstellioInitials';
 
-    //annotManager.registerAnnotationType(ConstellioInitialsAnnotation.prototype.elementName, ConstellioInitialsAnnotation);
-
     const constellioInitialsTool = new ConstellioInitialsCreateTool(docViewer);
     instance.registerTool({
         toolName: constellioInitialsToolName,
@@ -263,7 +243,7 @@ const FitWidth = "FitWidth";
         buttonImage: '/constellio/VAADIN/themes/constellio/pdftron/lib/ui/assets/ic_annotation_signature_black_24px.svg',
         buttonName: 'constellioInitialsButton',
         tooltip: initialsCaption
-    }, ConstellioInitialsAnnotation);
+    }, Annotations.StampAnnotation);
 
     instance.setHeaderItems(header => {
         const constellioInitialsButton = {
@@ -278,6 +258,12 @@ const FitWidth = "FitWidth";
     docViewer.on('documentLoaded', () => {
         // set the tool mode to our tool so that we can start using it right away
         instance.setToolMode(constellioInitialsToolName);
+
+        const tool = docViewer.getTool(constellioInitialsToolName);
+        tool.on('annotationCreated', (event, annotations) => {
+            annotations.Subject = 'ConstellioInitials';
+            annotations.ImageData  = initialsImage;
+        });
     });
 });
 

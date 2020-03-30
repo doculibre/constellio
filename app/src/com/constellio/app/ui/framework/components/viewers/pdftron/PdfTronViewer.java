@@ -84,7 +84,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private GetAnnotationsOfOtherVersionWindowButton getAnnotationOfOtherVersionWindowButton;
 	private HorizontalLayout getAnnotationOfOtherVersionLayout;
 	private Button editAnnotationBtn;
-	private Button finalizeBtn;
+	private PdfTronSignatureAuthenticationWindowButton finalizeBtn;
 	private Label errorMsgLabel;
 
 	private VerticalLayout mainLayout;
@@ -205,12 +205,11 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			}
 		};
 
-		finalizeBtn = new BaseButton($("pdfTronViewer.finalize")) {
+		finalizeBtn = new PdfTronSignatureAuthenticationWindowButton(getAppLayerFactory().getModelLayerFactory(),
+				pdfTronPresenter.getCurrentUser()) {
 			@Override
-			protected void buttonClick(ClickEvent event) {
-				// TODO::JOLA (P4) --> Ask to relog before signing
-				// TODO::JOLA (P1) --> Add a processing!
-				// TODO::JOLA (P2) --> Fix 2+ stamp & initials
+			public void onAuthenticated() {
+				// TODO::JOLA (P2) --> Fix document size problem.
 				com.vaadin.ui.JavaScript.eval("finalizeDocument()");
 			}
 		};
@@ -576,7 +575,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 						pdfTronPresenter.handleNewXml(request.getParameter("data"), userHasRightToEditOtherUserAnnotation, user.getId());
 					} else if (StringUtils.isNotBlank(request.getParameter("blob"))) {
 						pdfTronPresenter.handleFinalDocument(request.getParameter("blob"));
-						// TODO::JOLA (P1) --> Remove processing!
 					} else {
 						log.error("Invalid parameters!");
 						response.getWriter().write(createErrorJSONResponse("Invalid parameters!"));
@@ -604,6 +602,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					log.error(MessageUtils.toMessage(e));
 					response.getWriter().write(
 							createErrorJSONResponse(e.getMessage()));
+					// TODO::JOLA (P2) --> Show error message to user
 				}
 				handled = true;
 			} else {

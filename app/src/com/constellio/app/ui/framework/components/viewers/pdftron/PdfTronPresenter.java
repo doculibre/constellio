@@ -34,6 +34,7 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.pdftron.AnnotationLockManager;
 import com.constellio.model.services.pdftron.PdfTronSignatureAnnotation;
+import com.constellio.model.services.pdftron.PdfTronXMLException;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
@@ -356,7 +357,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	public void handleFinalDocument(String fileAsStr)
-			throws PdfTronSignatureException, PdfTronXMLException_XMLParsingException, PdfTronXMLException_IOExeption {
+			throws PdfTronSignatureException {
 
 		String filePath = createTempFileFromBase64("docToSign.pdf", fileAsStr);
 		if (StringUtils.isBlank(filePath)) {
@@ -367,7 +368,13 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		String keystorePass = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE_PASSWORD);
 
-		List<PdfTronSignatureAnnotation> signatures = pdfTronParser.getSignatureAnnotations(xmlCurrentAnnotations);
+		List<PdfTronSignatureAnnotation> signatures = new ArrayList<>();
+		try {
+			signatures = pdfTronParser.getSignatureAnnotations(xmlCurrentAnnotations);
+		} catch (PdfTronXMLException e) {
+			throw new PdfTronSignatureException_CannotReadSourceFileException();
+		}
+
 		if (signatures.size() < 1) {
 			throw new PdfTronSignatureException_NotingToSignException();
 		}

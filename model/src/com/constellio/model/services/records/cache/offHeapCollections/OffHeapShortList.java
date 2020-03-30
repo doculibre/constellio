@@ -11,7 +11,6 @@ import static com.constellio.model.services.records.cache.offHeapCollections.Off
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.allocateMemory;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.freeMemory;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.getShort;
-import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.getUnsafe;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.putShort;
 
 public class OffHeapShortList {
@@ -74,7 +73,7 @@ public class OffHeapShortList {
 		for (int i = 0; i <= lastIndex; i++) {
 			short v = get(i);
 			long newAddress = readAddressOfIndex(newAddressesOfBatches, i < index ? i : (i + 1));
-			getUnsafe().putShort(newAddress, v);
+			OffHeapMemoryAllocator.putShort(newAddress, v);
 		}
 		clear();
 		adressesOfBatches = newAddressesOfBatches;
