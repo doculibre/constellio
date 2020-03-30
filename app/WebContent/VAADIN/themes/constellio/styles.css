@@ -14215,6 +14215,10 @@ div.v-layout.v-horizontal.v-widget {
 	height: auto;
 }
 
+.constellio .reference-display.v-disabled {
+	opacity: 1;
+}
+
 .constellio .base-display .base-display-main-layout {
 	width: 100%;
 }
@@ -15639,6 +15643,10 @@ div.v-layout.v-horizontal.v-widget {
 	color: inherit;
 }
 
+.constellio .viewable-record-table-panel .viewable-record-table-compressed .v-table-body-wrapper {
+	overflow-x: hidden;
+}
+
 .constellio .viewable-record-table-panel .viewable-record-table-compressed .search-result-title {
 	width: 350px;
 }
@@ -16144,6 +16152,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .viewer-metadata-panel .v-slot-main-component {
 	position: relative;
 	top: 44px;
+	overflow-x: hidden;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .nested-view.viewer-metadata-panel {
@@ -16277,6 +16286,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .folder-content-table .v-scrollable {
 	overflow-x: auto;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .folder-content-table .viewable-record-table-compressed .v-scrollable {
+	overflow-x: hidden;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .batch-processes .v-table .v-scrollable {

@@ -1,5 +1,6 @@
 package com.constellio.app.services.migrations;
 
+import com.constellio.app.api.content.GetRecordContentServlet;
 import com.constellio.app.api.search.CachedSearchWebService;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
@@ -208,6 +209,7 @@ public class ConstellioEIM {
 
 	static public void start(AppLayerFactory appLayerFactory) {
 		ApplicationStarter.registerServlet("/cachedSelect", new CachedSearchWebService());
+		ApplicationStarter.registerServlet("/getRecordContent", new GetRecordContentServlet());
 	}
 
 	static public void start(AppLayerFactory appLayerFactory, String collection) {

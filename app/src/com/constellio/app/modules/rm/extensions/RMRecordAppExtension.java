@@ -7,12 +7,13 @@ import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.ExternalLink;
+import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.ThemeUtils;
 import com.constellio.model.entities.records.Content;
@@ -24,6 +25,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -275,13 +277,44 @@ public class RMRecordAppExtension extends RecordAppExtension {
 			if (fileName != null) {
 				return getIcon(fileName);
 			}
-		} else if (ExternalLink.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			String title = recordVO.getTitle();
-			if (title.indexOf(".") != -1) {
-				return getIcon(title);
-			}
 		}
 		return null;
+	}
+
+	@Override
+	public Resource getThumbnailResourceForRecordVO(GetIconPathParams params) {
+		Resource result;
+		RecordVO recordVO = params.getRecordVO();
+		String schemaCode = recordVO.getSchemaCode();
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
+
+		if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			final ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
+			if (contentVersionVO != null) {
+				String filename = contentVersionVO.getFileName();
+				String recordId = recordVO.getId();
+				String metadataCode = recordVO.getMetadata(Document.CONTENT).getLocalCode();
+				String version = contentVersionVO.getVersion();
+
+				if (ConstellioResourceHandler.hasContentThumbnail(recordId, metadataCode, version)) {
+					result = ConstellioResourceHandler.createThumbnailResource(recordId, metadataCode, version, filename);
+				} else if (Email.SCHEMA.equals(schemaCode)) {
+					result = new ThemeResource("images/icons/64/mail_64.png");
+				} else {
+					result = new ThemeResource("images/icons/64/document_64.png");
+				}
+			} else {
+				result = new ThemeResource("images/icons/64/document_64.png");
+			}
+		} else if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			ThemeResource iconResource = (ThemeResource) FileIconUtils.getIconForRecordVO(recordVO);
+			String resourceId = iconResource.getResourceId();
+			resourceId = resourceId.replace(".png", "_64.png");
+			result = new ThemeResource(resourceId);
+		} else {
+			result = null;
+		}
+		return result;
 	}
 
 }

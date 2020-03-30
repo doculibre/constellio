@@ -10,6 +10,8 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
 
 public class TaskRecordAppExtension extends RecordAppExtension {
 
@@ -70,4 +72,18 @@ public class TaskRecordAppExtension extends RecordAppExtension {
 	private String getTaskIconPath() {
 		return IMAGES_DIR + "/icons/task/task.png";
 	}
+
+	@Override
+	public Resource getThumbnailResourceForRecordVO(GetIconPathParams params) {
+		Resource result;
+		RecordVO recordVO = params.getRecordVO();
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(recordVO.getSchemaCode());
+		if (schemaTypeCode.toLowerCase().contains("task")) {
+			result = new ThemeResource("images/icons/64/task_64.png");
+		} else {
+			result = null;
+		}
+		return result;
+	}
+	
 }

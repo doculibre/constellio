@@ -2,10 +2,15 @@ package com.constellio.app.extensions.ui;
 
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
+import com.vaadin.server.Resource;
 
 public class ViewableRecordVOTablePanelExtension {
 
 	public Boolean isDisplayInWindowOnSelection(ViewableRecordVOTablePanelExtensionParams params) {
+		return null;
+	}
+
+	public Resource getThumbnail(ViewableRecordVOTablePanelExtensionParams params) {
 		return null;
 	}
 

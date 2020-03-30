@@ -1,9 +1,12 @@
 package com.constellio.app.extensions;
 
-import com.constellio.app.api.extensions.*;
+import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
+import com.constellio.app.api.extensions.DocumentViewButtonExtension;
+import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
+import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention;
 import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.ExtraTabInfo;
 import com.constellio.app.api.extensions.FieldBindingExtention;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
@@ -86,7 +89,12 @@ import com.constellio.app.extensions.menu.MenuItemActionsExtension;
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.UserHavePermissionOnRecordExtension;
-import com.constellio.app.extensions.records.params.*;
+import com.constellio.app.extensions.records.params.BuildRecordVOParams;
+import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
+import com.constellio.app.extensions.records.params.GetIconPathParams;
+import com.constellio.app.extensions.records.params.HasUserReadAccessParams;
+import com.constellio.app.extensions.records.params.IsMetadataSpecialCaseToNotBeShownParams;
+import com.constellio.app.extensions.records.params.IsMetadataVisibleInRecordFormParams;
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
 import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
@@ -118,7 +126,13 @@ import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.AllowedReferences;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataFilter;
+import com.constellio.model.entities.schemas.MetadataFilterFactory;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.server.Resource;
@@ -127,7 +141,13 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
 
@@ -299,6 +319,16 @@ public class AppLayerCollectionExtensions {
 			String icon = recordAppExtension.getIconPathForRecordVO(params);
 			if (icon != null) {
 				return icon;
+			}
+		}
+		return null;
+	}
+
+	public Resource getThumbnailResourceForRecordVO(GetIconPathParams params) {
+		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
+			Resource thumbnailResource = recordAppExtension.getThumbnailResourceForRecordVO(params);
+			if (thumbnailResource != null) {
+				return thumbnailResource;
 			}
 		}
 		return null;
