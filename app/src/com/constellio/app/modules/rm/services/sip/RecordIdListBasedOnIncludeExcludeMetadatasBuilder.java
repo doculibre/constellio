@@ -73,7 +73,7 @@ public class RecordIdListBasedOnIncludeExcludeMetadatasBuilder {
 			for (String pathPart : pathParts) {
 				if (!pathPart.startsWith("_LAST_")) {
 					Record pathPartRecord = rm.get(pathPart);
-					if (Folder.DEFAULT_SCHEMA.equals(pathPartRecord.getSchemaCode())) {
+					if (pathPartRecord.isOfSchemaType(Folder.SCHEMA_TYPE)) {
 						includedRecordIds.add(pathPartRecord.getId());
 					}
 				}
