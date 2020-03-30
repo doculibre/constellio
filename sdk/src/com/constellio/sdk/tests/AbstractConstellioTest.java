@@ -1337,6 +1337,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 					givenInstalledModule(pluginClass);
 				}
 
+				getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
+
 			}
 			if (mode.isEnabled()) {
 				while (!getModelLayerFactory().getRecordsCaches().areSummaryCachesInitialized()) {
