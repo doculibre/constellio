@@ -68,13 +68,13 @@ public class BaseHtmlFrame extends BrowserFrame {
 			}
 
 			int maxWidth = Page.getCurrent().getBrowserWindowWidth();
-			if (width > maxWidth) {
+			if (widthUnits == Unit.PIXELS && width > maxWidth) {
 				width = maxWidth;
 			}
 			String widthStr = "" + width + widthUnits;
 			String heightStr = "" + height + heightUnits;
 			setWidth(widthStr);
-			setWidth(heightStr);
+			setHeight(heightStr);
 		} catch (Throwable t) {
 			LOGGER.error(ExceptionUtils.getStackTrace(t));
 			setVisible(false);
