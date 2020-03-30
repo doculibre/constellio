@@ -48,7 +48,9 @@ public class CoreMigrationTo_9_0_2_11 implements MigrationScript {
 					if (defaultSchemaBuilder.hasMetadata(ValueListItem.CODE)) {
 						defaultSchemaBuilder.get(ValueListItem.CODE).addValidator(IllegalCharactersValidator.class);
 					}
-					defaultSchemaBuilder.get(ValueListItem.TITLE).addValidator(IllegalCharactersValidator.class);
+					if (defaultSchemaBuilder.hasMetadata(ValueListItem.TITLE)) {
+						defaultSchemaBuilder.get(ValueListItem.TITLE).addValidator(IllegalCharactersValidator.class);
+					}
 
 					if (defaultSchemaBuilder.hasMetadata(ValueListItem.ABBREVIATION)) {
 						defaultSchemaBuilder.get(ValueListItem.ABBREVIATION)
