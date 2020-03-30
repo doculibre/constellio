@@ -901,7 +901,9 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 					RecordId recordId = (o instanceof RecordId) ? (RecordId) o : ((Supplier<RecordId>) o).get();
 					if (recordId.isInteger()) {
 						int index = ids.binarySearch(recordId.intValue());
-						mainSortValues.set(index, i * 2 + 1);
+						if (index != -1) {
+							mainSortValues.set(index, i * 2 + 1);
+						}
 					}
 				}
 			}
