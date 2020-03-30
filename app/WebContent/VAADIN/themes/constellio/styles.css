@@ -16144,6 +16144,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .viewer-metadata-panel .v-slot-main-component {
 	position: relative;
 	top: 44px;
+	overflow-x: hidden;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .nested-view.viewer-metadata-panel {

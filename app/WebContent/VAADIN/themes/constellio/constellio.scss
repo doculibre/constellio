@@ -3470,6 +3470,7 @@ $popup-view-z-index: 3;
 							.v-slot-main-component {
 								position: relative;
 								top: 44px;
+								overflow-x: hidden;
 							}
 						}
 

@@ -8,7 +8,6 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.ExternalLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -277,11 +276,6 @@ public class RMRecordAppExtension extends RecordAppExtension {
 			}
 			if (fileName != null) {
 				return getIcon(fileName);
-			}
-		} else if (ExternalLink.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			String title = recordVO.getTitle();
-			if (title.indexOf(".") != -1) {
-				return getIcon(title);
 			}
 		}
 		return null;
