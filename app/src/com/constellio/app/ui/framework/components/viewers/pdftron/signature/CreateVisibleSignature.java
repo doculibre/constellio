@@ -20,6 +20,7 @@ import com.constellio.model.services.pdftron.PdfTronSignatureAnnotation;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.ExternalSigningSupport;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureInterface;
@@ -187,6 +188,15 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 			// Note that PDFBox has a bug that visual signing on certified files with permission 2
 			// doesn't work properly, see PDFBOX-3699. As long as this issue is open, you may want to
 			// be careful with such files.
+
+			PDPage page = doc.getPage(0);
+			float pageHeight = 792; // 792 is the default PDFTron value in case we aren't able to recover it in the PDPage.
+			if (page != null) {
+				pageHeight = page.getMediaBox().getHeight();
+			}
+
+			// Offset the signature because PDFTron has the zero value at the bottom instead of the top
+			visibleSignDesigner.yAxis(pageHeight - visibleSignDesigner.getyAxis());
 
 			PDSignature signature;
 
