@@ -47,8 +47,14 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 
 import static com.constellio.data.utils.LangUtils.isNotEmptyValue;
+import static com.constellio.model.entities.schemas.Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.CREATED_ON_CODE;
 import static com.constellio.model.entities.schemas.Schemas.DESCRIPTION_TEXT;
+import static com.constellio.model.entities.schemas.Schemas.DETACHED_PRINCIPAL_ANCESTORS_INT_IDS;
+import static com.constellio.model.entities.schemas.Schemas.ESTIMATED_SIZE;
+import static com.constellio.model.entities.schemas.Schemas.PRINCIPALS_ANCESTORS_INT_IDS;
+import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_CONCEPTS_INT_IDS;
+import static com.constellio.model.entities.schemas.Schemas.SECONDARY_CONCEPTS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.TITLE_CODE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
@@ -326,7 +332,7 @@ public class RecordEADBuilder {
 		if (includeRelatedMaterials) {
 			Iterator<Record> recordsIterator = appLayerFactory.getModelLayerFactory().newSearchServices()
 					.recordsIterator(fromAllSchemasIn(record.getCollection())
-							.where(Schemas.PRINCIPALS_ANCESTORS_INT_IDS).isEqualTo(record.getRecordId().intValue())
+							.where(PRINCIPALS_ANCESTORS_INT_IDS).isEqualTo(record.getRecordId().intValue())
 							.orWhere(Schemas.SECONDARY_CONCEPTS_INT_IDS).isEqualTo(record.getRecordId().intValue()));
 
 			while (recordsIterator.hasNext()) {
@@ -365,6 +371,10 @@ public class RecordEADBuilder {
 	}
 
 	private boolean isMetadataIncludedInEAD(Metadata metadata) {
+		if (metadata.isSameLocalCodeThanAny(ESTIMATED_SIZE, PRINCIPALS_ANCESTORS_INT_IDS, PRINCIPAL_CONCEPTS_INT_IDS,
+				SECONDARY_CONCEPTS_INT_IDS, ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS, DETACHED_PRINCIPAL_ANCESTORS_INT_IDS)) {
+			return false;
+		}
 		return (includeArchiveDescriptionMetadatasFromODDs
 				|| !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode())) && metadataIgnore.test(metadata);
 	}

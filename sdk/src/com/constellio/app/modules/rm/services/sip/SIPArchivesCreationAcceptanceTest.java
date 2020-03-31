@@ -369,8 +369,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		});
 
 		File tempFolder1 = new File(tempFolder, "events.zip");
-
-		assertThat(tempFolder1).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("events1.zip")));
+		System.out.println(tempFolder1.getAbsolutePath());
+		assertThat(tempFolder1).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("events1.zip"), "bag-info.txt", "manifest-sha256.txt", "tagmanifest-sha256.txt"));
 	}
 
 
@@ -514,7 +514,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		System.out.println(tempFolder.getAbsolutePath());
 		File zipFile = new File(tempFolder, "warehouse.zip");
 
-		assertThat(zipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("warehouse1.zip")));
+		assertThat(zipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("warehouse1.zip"), "bag-info.txt", "manifest-sha256.txt", "tagmanifest-sha256.txt"));
 	}
 
 	@Test
@@ -564,7 +564,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		File sipFile = new File(tempFolder, "warehouse.zip");
 
-		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("multipleStoragewarehouse.zip")));
+		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("multipleStoragewarehouse.zip"), "bag-info.txt", "manifest-sha256.txt", "tagmanifest-sha256.txt"));
 	}
 
 	@Test
@@ -590,7 +590,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 				.isEqualTo("bac11, bac11_Orphan, bac11extra1, bac11extra2, bac12, bac12_Orphan, bac13");
 
 		File zipFile = new File(tempFolder, "warehouse.zip");
-		assertThat(zipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("warehouseSipOrphan.zip")));
+		System.out.println(zipFile.getAbsolutePath());
+		assertThat(zipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("warehouseSipOrphan.zip"), "bag-info.txt", "manifest-sha256.txt", "tagmanifest-sha256.txt"));
 	}
 
 
