@@ -79,10 +79,7 @@ public class ContentVersionVOTable extends BaseTable {
 		this.canEditAnnotationOnOldVersion = canEditAnnotationOnOldVersion;
 		this.currentVersion = currentVersion;
 
-		if (isSelectionColumn()) {
-			addContainerProperty(CHECK_BOX, CheckBox.class, null);
-		}
-
+		addContainerProperty(CHECK_BOX, CheckBox.class, null);
 		addContainerProperty(FILE_NAME, DownloadContentVersionLink.class, null);
 
 		addContainerProperty(VERSION, String.class, null);
@@ -195,9 +192,7 @@ public class ContentVersionVOTable extends BaseTable {
 			});
 			checkBox.setValue(selectedContentVersions.contains(contentVersion));
 
-			if (isSelectionColumn()) {
-				item.getItemProperty(CHECK_BOX).setValue(checkBox);
-			}
+			item.getItemProperty(CHECK_BOX).setValue(checkBox);
 
 			boolean canEditVersions = ((contentVersion.getVersion().equals(currentVersion) || canEditAnnotationOnOldVersion));
 			item.getItemProperty(FILE_NAME).setValue(new DownloadContentVersionLink(contentVersion, fileName, recordId, metadataCode, canEditVersions));

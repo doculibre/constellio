@@ -129,8 +129,6 @@ public class Toggle {
 
 	public static AvailableToggle IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS = newToggle(false);
 
-	public static AvailableToggle TIFF_VIEWER = newToggle(false);
-
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

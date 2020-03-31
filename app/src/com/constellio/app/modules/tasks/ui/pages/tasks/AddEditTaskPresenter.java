@@ -888,7 +888,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 						.isIn(asList(BorrowRequest.SCHEMA_NAME, ReturnRequest.SCHEMA_NAME, ExtensionRequest.SCHEMA_NAME, ReactivationRequest.SCHEMA_NAME))) : null;
 	}
 
-	private boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator() {
+	public boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator(TaskVO taskVO) {
 		boolean isModel = false;
 		if (taskVO.get(RMTask.IS_MODEL) != null) {
 			isModel = taskVO.get(RMTask.IS_MODEL);
@@ -906,7 +906,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private void adjustFieldsForCollaborators() {
-		boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator = currentUserHasWriteAuthorizationWithoutBeingCollaborator();
+		boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator = currentUserHasWriteAuthorizationWithoutBeingCollaborator(taskVO);
 
 		TaskAssignationListRecordLookupField assigneeGroupCandidatesField = (TaskAssignationListRecordLookupField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
 		if (assigneeGroupCandidatesField != null) {

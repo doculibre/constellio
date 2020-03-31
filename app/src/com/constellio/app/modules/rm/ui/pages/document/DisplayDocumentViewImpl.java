@@ -305,16 +305,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				Document.CONTENT,
 				presenter.canEditOldVersion() && presenter.hasWritePermission(), contentVersionVO != null ? contentVersionVO.getVersion() : null) {
 			@Override
-			protected boolean isSelectionColumn() {
-				return isDeleteColumn();
-			}
-
-			@Override
-			protected boolean isSelectionPossible(ContentVersionVO contentVersionVO) {
-				return true;
-			}
-
-			@Override
 			protected boolean isDeleteColumn() {
 				return presenter.isDeleteContentVersionPossible();
 			}
