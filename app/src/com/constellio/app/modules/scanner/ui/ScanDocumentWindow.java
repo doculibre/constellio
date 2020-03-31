@@ -141,7 +141,7 @@ public class ScanDocumentWindow extends BaseWindow {
 								View currentView = ConstellioUI.getCurrent().getCurrentView();
 								if (currentView instanceof DisplayFolderView) {
 									DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
-									folderId = displayFolderView.getRecord().getId();
+									folderId = displayFolderView.getSummaryRecord().getId();
 								} else {
 									folderId = null;
 								}
