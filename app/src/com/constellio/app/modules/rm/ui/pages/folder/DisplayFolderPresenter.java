@@ -525,7 +525,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		String searchTypeAsString = null;
 		String favoritesId = null;
 
-
 		if (params != null) {
 			if (params.get("decommissioningSearchId") != null) {
 				saveSearchDecommissioningId = params.get("decommissioningSearchId");

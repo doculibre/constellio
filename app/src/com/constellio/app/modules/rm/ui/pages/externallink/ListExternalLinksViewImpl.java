@@ -5,6 +5,7 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -33,6 +34,7 @@ import java.util.Map.Entry;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListExternalLinksViewImpl extends BaseViewImpl implements ListExternalLinksView {
+
 	private final ListExternalLinksPresenter presenter;
 
 	private TabSheet tabSheet;
@@ -216,4 +218,15 @@ public class ListExternalLinksViewImpl extends BaseViewImpl implements ListExter
 			}
 		}
 	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return presenter.getBreadCrumbTrail();
+	}
+
+	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return true;
+	}
+	
 }
