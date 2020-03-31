@@ -6,6 +6,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
@@ -101,8 +102,16 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 					.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
 			//conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(ctx.getTaxonomy().getCollection(), options));
 			query.setNumberOfRows(0);
+
+			boolean codeMetadataRequired = false;
+
+			if (ctx.taxonomy.getSchemaTypes().size() == 1) {
+				MetadataSchema schema = metadataSchemasManager.getSchemaTypes(ctx.taxonomy.getCollection())
+						.getSchemaType(ctx.taxonomy.getSchemaTypes().get(0)).getDefaultSchema();
+				codeMetadataRequired = schema.hasMetadataWithCode("code") && schema.get("code").isDefaultRequirement();
+			}
 			ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(ctx.getTaxonomy());
-			Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(ctx.getTaxonomy());
+			Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(ctx.getTaxonomy(), codeMetadataRequired);
 			if (sortMetadatas != null) {
 				for (Metadata sortMetadata : sortMetadatas) {
 					query.sortAsc(sortMetadata);
@@ -231,8 +240,15 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 					.setName("getRootConcepts")
 					.setReturnedMetadatas(returnedMetadatasForRecordsIn(ctx));
 
+			boolean codeMetadataRequired = false;
+
+			if (ctx.taxonomy.getSchemaTypes().size() == 1) {
+				MetadataSchema schema = metadataSchemasManager.getSchemaTypes(ctx.taxonomy.getCollection())
+						.getSchemaType(ctx.taxonomy.getSchemaTypes().get(0)).getDefaultSchema();
+				codeMetadataRequired = schema.hasMetadataWithCode("code") && schema.get("code").isDefaultRequirement();
+			}
 			ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(ctx.taxonomy);
-			Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(ctx.taxonomy);
+			Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(ctx.taxonomy, codeMetadataRequired);
 			if (sortMetadatas != null) {
 				for (Metadata sortMetadata : sortMetadatas) {
 					mainQuery.sortAsc(sortMetadata);

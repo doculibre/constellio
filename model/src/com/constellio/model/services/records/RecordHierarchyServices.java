@@ -119,7 +119,15 @@ public class RecordHierarchyServices {
 		}
 
 		ModelLayerCollectionExtensions collectionExtensions = extensions.forCollection(collection);
-		Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(taxonomy);
+
+		boolean codeMetadataRequired = false;
+
+		if (taxonomy.getSchemaTypes().size() == 1) {
+			MetadataSchema schema = metadataSchemasManager.getSchemaTypes(taxonomy.getCollection())
+					.getSchemaType(taxonomy.getSchemaTypes().get(0)).getDefaultSchema();
+			codeMetadataRequired = schema.hasMetadataWithCode("code") && schema.get("code").isDefaultRequirement();
+		}
+		Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(taxonomy, codeMetadataRequired);
 		if (sortMetadatas != null) {
 			for (Metadata sortMetadata : sortMetadatas) {
 				query.sortAsc(sortMetadata);
@@ -221,7 +229,14 @@ public class RecordHierarchyServices {
 				.setName("TaxonomySearchServices:getChildConcepts(" + taxonomy + ", " + record + ")");
 
 		ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(record);
-		Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(taxonomy);
+		boolean codeMetadataRequired = false;
+
+		if (taxonomy.getSchemaTypes().size() == 1) {
+			MetadataSchema schema = metadataSchemasManager.getSchemaTypes(taxonomy.getCollection())
+					.getSchemaType(taxonomy.getSchemaTypes().get(0)).getDefaultSchema();
+			codeMetadataRequired = schema.hasMetadataWithCode("code") && schema.get("code").isDefaultRequirement();
+		}
+		Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(taxonomy, codeMetadataRequired);
 		if (sortMetadatas != null) {
 			for (Metadata sortMetadata : sortMetadatas) {
 				query.sortAsc(sortMetadata);

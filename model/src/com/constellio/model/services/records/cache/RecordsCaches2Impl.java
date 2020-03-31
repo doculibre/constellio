@@ -872,8 +872,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		fullyPermanentInitialized = true;
 	}
 
-	public void updateRecordsMainSortValue() {
-		if (modelLayerFactory.getConfiguration().isForcingCacheSortValuesLoadingFromSolr()) {
+	public void updateRecordsMainSortValue(boolean forceLoadingFromSolr) {
+		if (forceLoadingFromSolr || modelLayerFactory.getConfiguration().isForcingCacheSortValuesLoadingFromSolr()) {
 			memoryDataStore.setRecordsMainSortValue(recordsIdSortedByTheirDefaultSort());
 		} else {
 			memoryDataStore.setRecordsMainSortValue(new PersistedSortValuesServices(modelLayerFactory).readSortValues(), (recordDTO) -> {

@@ -361,10 +361,11 @@ public class ModelLayerCollectionExtensions {
 		return metadataChangeOnRecord;
 	}
 
-	public Metadata[] getSortMetadatas(Taxonomy taxonomy) {
-		Metadata[] sortMetadatas = new TaxonomyExtension().getSortMetadatas(taxonomy);
+	public Metadata[] getSortMetadatas(Taxonomy taxonomy, boolean codeMetadataRequired) {
+		Metadata[] sortMetadatas = new TaxonomyExtension().getSortMetadatas(taxonomy, codeMetadataRequired);
+
 		for (TaxonomyExtension extension : taxonomyExtensions) {
-			sortMetadatas = extension.getSortMetadatas(taxonomy);
+			sortMetadatas = extension.getSortMetadatas(taxonomy, codeMetadataRequired);
 		}
 		return sortMetadatas;
 	}

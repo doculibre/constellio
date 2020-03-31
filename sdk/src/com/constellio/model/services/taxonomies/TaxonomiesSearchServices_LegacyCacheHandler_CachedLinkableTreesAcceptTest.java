@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
@@ -34,7 +35,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
@@ -1928,7 +1928,7 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedLinkableTreesAcce
 					.setOpenDate(new LocalDate(2014, 11, 1)));
 		}
 		getModelLayerFactory().newRecordServices().execute(transaction);
-		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
+		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue(true);
 
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryDebuggingMode(true);
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(0).setRows(20).setFastContinueInfos(null))
@@ -2036,7 +2036,7 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedLinkableTreesAcce
 		}
 		transaction.add(rootCategory);
 		getModelLayerFactory().newRecordServices().execute(transaction);
-		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
+		getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue(true);
 
 		User alice = users.aliceIn(zeCollection);
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root",

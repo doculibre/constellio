@@ -143,6 +143,10 @@ public interface RecordsCaches {
 	RecordsCachesDataStore getRecordsCachesDataStore();
 
 	default void updateRecordsMainSortValue() {
+		updateRecordsMainSortValue(false);
+	}
+
+	default void updateRecordsMainSortValue(boolean forceLoadingFromSolr) {
 
 	}
 
