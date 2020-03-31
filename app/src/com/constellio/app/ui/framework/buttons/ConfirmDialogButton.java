@@ -6,6 +6,7 @@ import com.vaadin.ui.UI;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 @SuppressWarnings("serial")
 public abstract class ConfirmDialogButton extends IconButton {
@@ -101,8 +102,9 @@ public abstract class ConfirmDialogButton extends IconButton {
 			message = html.toString();
 		}
 
+		ConfirmDialog confirmDialog;
 		if (notOkCaption != null) {
-			ConfirmDialog.show(
+			confirmDialog = ConfirmDialog.show(
 					UI.getCurrent(),
 					title,
 					message,
@@ -111,13 +113,16 @@ public abstract class ConfirmDialogButton extends IconButton {
 					notOkCaption,
 					closeListener);
 		} else {
-			ConfirmDialog.show(
+			confirmDialog = ConfirmDialog.show(
 					UI.getCurrent(),
 					title,
 					message,
 					okCaption,
 					cancelCaption,
 					closeListener);
+		}
+		if (isRightToLeft()) {
+			confirmDialog.addStyleName("right-to-left");
 		}
 	}
 

@@ -140,14 +140,6 @@ public class ContentVersionVOTable extends BaseTable {
 		return false;
 	}
 
-	protected boolean isSelectionColumn() {
-		return false;
-	}
-
-	protected boolean isSelectionPossible(ContentVersionVO contentVersionVO) {
-		return isDeletePossible(contentVersionVO);
-	}
-
 	protected boolean isDeletePossible(ContentVersionVO contentVersionVO) {
 		return false;
 	}
@@ -189,12 +181,7 @@ public class ContentVersionVOTable extends BaseTable {
 
 			final Object itemId = addItem();
 			Item item = getItem(itemId);
-			final CheckBox checkBox = new CheckBox() {
-				@Override
-				public boolean isVisible() {
-					return isSelectionPossible(contentVersion);
-				}
-			};
+			final CheckBox checkBox = new CheckBox();
 			checkBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {

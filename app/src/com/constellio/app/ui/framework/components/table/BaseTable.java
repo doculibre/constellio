@@ -418,13 +418,19 @@ public class BaseTable extends Table implements SelectionComponent {
 	public void setVisibleColumns(Object... visibleColumns) {
 		if ((isSelectColumn() || isIndexColumn()) && columnGeneratorsAdded) {
 			List<Object> visibleColumnsList = new ArrayList<>(Arrays.asList(visibleColumns));
-			if (isIndexColumn() && (!visibleColumnsList.contains(INDEX_PROPERTY_ID) || visibleColumnsList.get(0) != INDEX_PROPERTY_ID)) {
+			if (isIndexColumn() && visibleColumnsList.contains(INDEX_PROPERTY_ID)) {
+				int columnIndex = isRightToLeft() ? columnIndex = visibleColumnsList.size() - 1 : 0;
 				visibleColumnsList.remove(INDEX_PROPERTY_ID);
-				visibleColumnsList.add(0, INDEX_PROPERTY_ID);
+				visibleColumnsList.add(columnIndex, INDEX_PROPERTY_ID);
 			}
-			if (isSelectColumn() && (!visibleColumnsList.contains(SELECT_PROPERTY_ID) || visibleColumnsList.get(0) != SELECT_PROPERTY_ID)) {
+			if (isSelectColumn() && visibleColumnsList.contains(SELECT_PROPERTY_ID)) {
+				int columnIndex = isRightToLeft() ? columnIndex = visibleColumnsList.size() - 1 : 0;
 				visibleColumnsList.remove(SELECT_PROPERTY_ID);
-				visibleColumnsList.add(0, SELECT_PROPERTY_ID);
+				visibleColumnsList.add(columnIndex, SELECT_PROPERTY_ID);
+			}
+			if (isMenuBarColumn() && isRightToLeft() && visibleColumnsList.contains(MENUBAR_PROPERTY_ID)) {
+				visibleColumnsList.remove(MENUBAR_PROPERTY_ID);
+				visibleColumnsList.add(0, MENUBAR_PROPERTY_ID);
 			}
 			super.setVisibleColumns(visibleColumnsList.toArray(new Object[0]));
 		} else {

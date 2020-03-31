@@ -18,6 +18,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.EnableThumbnailsScript;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.workflows.model.enums.CalendarCountry;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -178,6 +179,7 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ASK_FOR_CONFIRMATION_BEFORE_EDIT_OR_DELETE;
 	public static final SystemConfiguration ENABLE_ILLEGAL_CHARACTERS_VALIDATION;
+	public static final SystemConfiguration CALENDAR_COUNTRY;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -338,6 +340,7 @@ public class ConstellioEIMConfigs {
 		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanTrueByDefault("enableThumbnailGeneration")
 				.scriptedBy(EnableThumbnailsScript.class));
 		add(ADD_COMMENTS_WHEN_READ_AUTHORIZATION = others.createBooleanTrueByDefault("addCommentsWhenReadAuthorization"));
+		add(CALENDAR_COUNTRY = others.createEnum("calendarCountry", CalendarCountry.class).whichIsHidden().withDefaultValue(CalendarCountry.CAQC));
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
@@ -715,5 +718,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isIllegalCharactersValidationEnabled() {
 		return manager.getValue(ENABLE_ILLEGAL_CHARACTERS_VALIDATION);
+	}
+
+	public CalendarCountry getCalendarCountry() {
+		return manager.getValue(CALENDAR_COUNTRY);
 	}
 }

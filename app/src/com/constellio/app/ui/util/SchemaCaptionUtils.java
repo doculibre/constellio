@@ -57,11 +57,11 @@ public class SchemaCaptionUtils implements Serializable {
 				caption = applyPattern(captionFormat, record, locale);
 
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
-					if (isRightToLeft()) {
-						caption = caption + " " + captionForSchemaTypeCode;
-					} else {
+					//					if (isRightToLeft()) {
+					//						caption = caption + " " + captionForSchemaTypeCode;
+					//					} else {
 						caption = captionForSchemaTypeCode + " " + caption;
-					}
+					//					}
 				}
 			} catch (NoSuchRecordWithId e) {
 				caption = "";
@@ -132,11 +132,11 @@ public class SchemaCaptionUtils implements Serializable {
 
 				caption = applyPattern(captionFormat, record, locale);
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
-					if (isRightToLeft()) {
-						caption = caption + " " + captionForSchemaTypeCode;
-					} else {
+					//					if (isRightToLeft()) {
+					//						caption = caption + " " + captionForSchemaTypeCode;
+					//					} else {
 						caption = captionForSchemaTypeCode + " " + caption;
-					}
+					//					}
 				}
 			} catch (NoSuchRecordWithId e) {
 				caption = "";

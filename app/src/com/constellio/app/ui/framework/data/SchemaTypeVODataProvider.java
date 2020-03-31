@@ -110,7 +110,11 @@ public class SchemaTypeVODataProvider implements Serializable {
 				visible = true;
 			}
 
-			visible = extensions.isSchemaTypeConfigurable(visible, type);
+			if (isExcludedIfNotConfigurable()) {
+				visible = extensions.isSchemaTypeConfigurable(visible, type);
+			} else {
+				visible = true;
+			}
 
 			if (visible && isAccepted(type)) {
 				result.add(voBuilder.build(type));
@@ -118,6 +122,10 @@ public class SchemaTypeVODataProvider implements Serializable {
 		}
 
 		return result;
+	}
+
+	protected boolean isExcludedIfNotConfigurable() {
+		return true;
 	}
 
 	protected boolean isAccepted(MetadataSchemaType type) {

@@ -25,6 +25,8 @@ import com.vaadin.server.VaadinResponse;
 import com.vaadin.server.VaadinServletRequest;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.util.FileTypeResolver;
+
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -124,12 +126,16 @@ public class ConstellioResourceHandler implements RequestHandler {
 								}
 							} else if ("true".equals(thumbnail)) {
 								if (contentManager.hasContentThumbnail(hash)) {
+									String extension = FilenameUtils.getExtension(filename);
+									filename = StringUtils.substringBeforeLast(filename, extension) + "jpg";
 									in = contentManager.getContentThumbnailInputStream(hash, getClass().getSimpleName() + ".handleRequest");
 								} else {
 									in = null;
 								}
 							} else if ("true".equals(jpegConversion)) {
 								if (contentManager.hasContentJpegConversion(hash)) {
+									String extension = FilenameUtils.getExtension(filename);
+									filename = StringUtils.substringBeforeLast(filename, extension) + "jpg";
 									in = contentManager.getContentJpegConversionInputStream(hash, getClass().getSimpleName() + ".handleRequest");
 								} else {
 									in = null;
@@ -219,6 +225,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
 										  ResourceType resourceType, boolean useBrowserCache, String contentId) {
+		boolean jpg = resourceType == ResourceType.THUMBNAIL || resourceType == ResourceType.JPEG_CONVERSION;
 		Map<String, String> params = new LinkedHashMap<>();
 		params.put("recordId", recordId);
 		params.put("metadataCode", metadataCode);
@@ -230,6 +237,10 @@ public class ConstellioResourceHandler implements RequestHandler {
 			params.put("contentId", contentId);
 		}
 		params.put("version", version);
+		if (jpg) {
+			String extension = FilenameUtils.getExtension(filename);
+			filename = StringUtils.substringBeforeLast(filename, extension) + "jpg";
+		}
 		params.put("z-filename", filename);
 		if (!useBrowserCache) {
 			Random random = new Random();

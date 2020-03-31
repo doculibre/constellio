@@ -8,6 +8,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
@@ -65,6 +66,7 @@ public class GroupTextInputDataProvider extends RecordTextInputDataProvider {
 				query.filteredWithUser(user);
 			}
 		}
+		query.filteredByStatus(StatusFilter.ACTIVES);
 		return getModelLayerFactory().newSearchServices().query(query);
 	}
 }

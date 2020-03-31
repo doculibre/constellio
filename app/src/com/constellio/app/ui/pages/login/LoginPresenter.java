@@ -58,7 +58,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		String mainDataLanguage = appLayerFactory.getModelLayerFactory().getConfiguration().getMainDataLanguage();
-		if (mainDataLanguage != null) {
+		if (i18n.getLocale() == null && mainDataLanguage != null) {
 			Locale mainDataLocale = Language.withCode(mainDataLanguage).getLocale();
 			i18n.setLocale(mainDataLocale);
 			view.getSessionContext().setCurrentLocale(mainDataLocale);

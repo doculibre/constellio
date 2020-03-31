@@ -60,7 +60,11 @@ public class DeleteInactiveGroupsScript extends ScriptWithLogOutput {
 			}
 
 			if (!used) {
-				deleteInactiveGlobalGroup(globalGroup, collections);
+				try {
+					deleteInactiveGlobalGroup(globalGroup, collections);
+				} catch (Exception e) {
+					outputLogger.warn(String.format("Global group '%s' skipped", globalGroup.getCode()));
+				}
 			}
 		}
 	}

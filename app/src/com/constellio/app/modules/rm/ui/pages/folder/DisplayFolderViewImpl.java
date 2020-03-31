@@ -644,16 +644,16 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				searchLayout.setSpacing(true);
 				searchLayout.setWidth("50%");
 				searchLayout.setVisible(false);
-				
+
 				I18NHorizontalLayout searchFieldAndButtonLayout = new I18NHorizontalLayout(searchField, searchButton);
 				searchFieldAndButtonLayout.addStyleName("folder-search-field-and-button-layout");
 				searchFieldAndButtonLayout.setWidth("100%");
 				searchFieldAndButtonLayout.setExpandRatio(searchField, 1);
-				
+
 				I18NHorizontalLayout extraFieldsSearchLayout = new I18NHorizontalLayout(includeTreeCheckBox, clearSearchButton);
 				extraFieldsSearchLayout.addStyleName("folder-search-extra-fields-layout");
 				extraFieldsSearchLayout.setSpacing(true);
-				
+
 				searchLayout.addComponents(searchFieldAndButtonLayout, extraFieldsSearchLayout);
 			}
 

@@ -27,6 +27,9 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
+;
 
 @SuppressWarnings("serial")
 public class BaseDisplay extends CustomComponent implements BrowserWindowResizeListener {
@@ -199,7 +202,11 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent, VerticalLayout layout) {
 		if (displayComponent.isVisible()) {
-			layout.addComponents(captionLabel, displayComponent);
+			if (!isRightToLeft()) {
+				layout.addComponents(captionLabel, displayComponent);
+			} else {
+				layout.addComponents(displayComponent, captionLabel);
+			}
 		}
 	}
 

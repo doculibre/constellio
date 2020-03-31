@@ -288,8 +288,7 @@ public class CartWindowButton extends WindowButton {
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(params.getUser());
-
-		recordServices.add(cart);
+		recordServices.add(cart, params.getUser());
 
 		for (Record record : records) {
 			addToFavorite(cart.getId(), record);

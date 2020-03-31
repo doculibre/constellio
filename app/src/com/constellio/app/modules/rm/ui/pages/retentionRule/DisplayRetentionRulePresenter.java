@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -109,8 +110,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 		List<Record> records = searchServices().search(new LogicalSearchQuery(condition));
 		for (Record record : records) {
 			VariableRetentionPeriodVO variableRetentionPeriodVO = new VariableRetentionPeriodVO().setRecordId(record.getId())
-					.setTitle((String) record.get(
-							Schemas.TITLE)).setCode((String) record.get(Schemas.CODE));
+					.setTitle((String) record.get(Schemas.TITLE, ConstellioUI.getCurrentSessionContext().getCurrentLocale())).setCode((String) record.get(Schemas.CODE));
 			returnList.add(variableRetentionPeriodVO);
 		}
 		return returnList;

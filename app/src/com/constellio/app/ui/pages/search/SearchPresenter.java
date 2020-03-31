@@ -104,6 +104,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.getLocale;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -906,6 +907,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	protected boolean saveSearch(String title, boolean publicAccess, List<String> sharedUsers,
 								 List<String> sharedGroups) {
+		if (StringUtils.isBlank(title)) {
+			view.showErrorMessage($("SearchView.errorSearchTitleEmpty"));
+			return false;
+		}
+
 		Record record = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		SavedSearch search = new SavedSearch(record, types())
 				.setTitle(title)
@@ -1020,17 +1026,18 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
 			SearchEvent searchEvent = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			if (searchEvent != null) {
+				searchEventServices.incrementClickCounter(searchEvent.getId());
 
-			searchEventServices.incrementClickCounter(searchEvent.getId());
+				String url = null;
+				try {
+					url = recordVO.get("url");
 
-			String url = null;
-			try {
-				url = recordVO.get("url");
-
-				String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
-				searchEventServices.updateClicks(searchEvent, clicks);
-			} catch (RecordVORuntimeException_NoSuchMetadata e) {
-				//			LOGGER.warn(e.getMessage(), e);
+					String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
+					searchEventServices.updateClicks(searchEvent, clicks);
+				} catch (RecordVORuntimeException_NoSuchMetadata e) {
+					//			LOGGER.warn(e.getMessage(), e);
+				}
 			}
 		}
 	}

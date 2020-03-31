@@ -55,7 +55,9 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
-import com.vaadin.ui.*;
+import com.vaadin.server.Resource;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Table.CellStyleGenerator;
@@ -70,6 +72,7 @@ import java.io.Serializable;
 import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 //@com.vaadin.annotations.JavaScript({ "theme://jquery/jquery-2.1.4.min.js" })
 @Slf4j
@@ -1041,7 +1044,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	private BaseButton buildPreviousButton() {
 		String caption = $("ViewableRecordVOTablePanel.previous");
-		BaseButton previousButton = new IconButton(FontAwesome.CHEVRON_LEFT, caption) {
+		Resource icon;
+		if (isRightToLeft()) {
+			icon = FontAwesome.CHEVRON_RIGHT;
+		} else {
+			icon = FontAwesome.CHEVRON_LEFT;
+		}
+		BaseButton previousButton = new IconButton(icon, caption) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				if (previousItemId != null) {
@@ -1059,7 +1068,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	private BaseButton buildNextButton() {
 		String caption = $("ViewableRecordVOTablePanel.next");
-		BaseButton nextButton = new IconButton(FontAwesome.CHEVRON_RIGHT, caption) {
+		Resource icon;
+		if (isRightToLeft()) {
+			icon = FontAwesome.CHEVRON_LEFT;
+		} else {
+			icon = FontAwesome.CHEVRON_RIGHT;
+		}
+		BaseButton nextButton = new IconButton(icon, caption) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				if (nextItemId != null) {

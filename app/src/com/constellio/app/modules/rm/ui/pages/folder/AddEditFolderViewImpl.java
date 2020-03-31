@@ -13,6 +13,7 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Layout;
+import com.vaadin.ui.VerticalLayout;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -23,6 +24,8 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 	private FolderFormImpl recordForm;
 
 	private AddEditFolderPresenter presenter;
+
+	private VerticalLayout mainComponent;
 
 	public AddEditFolderViewImpl() {
 		this(null);
@@ -197,7 +200,13 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		return newForm();
+		mainComponent = new VerticalLayout();
+		mainComponent.addStyleName("add-edit-folder-main-component");
+		mainComponent.setWidth("100%");
+
+		recordForm = newForm();
+		mainComponent.addComponent(recordForm);
+		return mainComponent;
 	}
 
 	@Override

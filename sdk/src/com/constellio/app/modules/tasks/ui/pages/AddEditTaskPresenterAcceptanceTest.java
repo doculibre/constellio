@@ -12,6 +12,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
@@ -19,6 +20,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
+import com.constellio.workflows.model.enums.CalendarCountry;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -171,6 +173,34 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(reloadedTask.getAssignedOn()).isEqualTo(shishDate);
 		assertThat(reloadedTask.getAssigner()).isEqualTo(getSessionCurrentUserId());
 
+	}
+
+	@Test
+	public void givenQCCalendarConfigAndTaskWithAssignationDateIsTuesdayWithOneDayInRelativeDueDateWhenSavedThenDueDateIsFriday() {
+		givenConfig(ConstellioEIMConfigs.CALENDAR_COUNTRY, CalendarCountry.CAQC);
+		Task zeTask = tasksSchemas.newTask().setTitle("zeTask").setAssignee(users.aliceIn(zeCollection).getId())
+				.setAssignationDate(new LocalDate(2020, 01, 23)).setRelativeDueDate(1);
+
+		RecordVO taskVO = new RecordToVOBuilder().build(zeTask.getWrappedRecord(), FORM, sessionContext);
+		presenter.saveButtonClicked(taskVO);
+
+		Task reloadedTask = tasksSchemas
+				.wrapTask(searchServices.searchSingleResult(from(tasksSchemas.userTask.schema()).returnAll()));
+		assertThat(reloadedTask.getDueDate()).isEqualTo(new LocalDate(2020, 01, 24));
+	}
+
+	@Test
+	public void givenAECalendarConfigAndTaskWithAssignationDateIsTuesdayWithOneDayInRelativeDueDateWhenSavedThenDueDateIsSunday() {
+		givenConfig(ConstellioEIMConfigs.CALENDAR_COUNTRY, CalendarCountry.AE);
+		Task zeTask = tasksSchemas.newTask().setTitle("zeTask").setAssignee(users.aliceIn(zeCollection).getId())
+				.setAssignationDate(new LocalDate(2020, 01, 23)).setRelativeDueDate(1);
+
+		RecordVO taskVO = new RecordToVOBuilder().build(zeTask.getWrappedRecord(), FORM, sessionContext);
+		presenter.saveButtonClicked(taskVO);
+
+		Task reloadedTask = tasksSchemas
+				.wrapTask(searchServices.searchSingleResult(from(tasksSchemas.userTask.schema()).returnAll()));
+		assertThat(reloadedTask.getDueDate()).isEqualTo(new LocalDate(2020, 01, 26));
 	}
 
 	@Test

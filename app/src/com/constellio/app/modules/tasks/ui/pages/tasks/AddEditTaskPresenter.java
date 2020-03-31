@@ -13,6 +13,7 @@ import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormParams;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormRetValue;
 import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
+import com.constellio.app.modules.tasks.model.utils.DateUtils;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -71,6 +72,7 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordUtils;
@@ -82,6 +84,7 @@ import com.vaadin.ui.OptionGroup;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -295,7 +298,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			}
 
 			if (!task.isModel() && task.getDueDate() == null && task.getRelativeDueDate() != null && task.getAssignedOn() != null) {
-				task.setDueDate(task.getAssignedOn().plusDays(task.getRelativeDueDate()));
+				ConstellioEIMConfigs constellioEIMConfigs = appLayerFactory.getModelLayerFactory().getSystemConfigs();
+				LocalDate dueDate = DateUtils.addWorkingDays(task.getAssignedOn(), task.getRelativeDueDate(), constellioEIMConfigs.getCalendarCountry());
+				task.setDueDate(dueDate);
 			}
 
 			TaskModuleExtensions taskModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
@@ -500,6 +505,15 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustFollowersField();
 		adjustRequiredUSRMetadatasFields();
 		adjustFieldsForCollaborators();
+		adjustDisabledFields();
+	}
+
+	private void adjustDisabledFields() {
+		if (rmModuleExtensions != null) {
+			for (TaskAddEditTaskPresenterExtension extension : rmModuleExtensions.getTaskAddEditTaskPresenterExtension()) {
+				extension.adjustDisabledFields(view, taskVO);
+			}
+		}
 	}
 
 	private void adjustRequiredUSRMetadatasFields() {
@@ -719,6 +733,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustInclusiveDecisionField();
 		adjustRelativeDueDate();
 		adjustReasonField();
+		adjustDisabledFields();
 		adjustRequiredUSRMetadatasFields();
 		adjustFieldsForCollaborators();
 	}
@@ -873,7 +888,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 						.isIn(asList(BorrowRequest.SCHEMA_NAME, ReturnRequest.SCHEMA_NAME, ExtensionRequest.SCHEMA_NAME, ReactivationRequest.SCHEMA_NAME))) : null;
 	}
 
-	public boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator(TaskVO taskVO) {
+	private boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator() {
 		boolean isModel = false;
 		if (taskVO.get(RMTask.IS_MODEL) != null) {
 			isModel = taskVO.get(RMTask.IS_MODEL);
@@ -891,7 +906,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private void adjustFieldsForCollaborators() {
-		boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator = currentUserHasWriteAuthorizationWithoutBeingCollaborator(taskVO);
+		boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator = currentUserHasWriteAuthorizationWithoutBeingCollaborator();
 
 		TaskAssignationListRecordLookupField assigneeGroupCandidatesField = (TaskAssignationListRecordLookupField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
 		if (assigneeGroupCandidatesField != null) {

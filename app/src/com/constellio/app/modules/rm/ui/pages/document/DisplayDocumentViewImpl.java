@@ -445,7 +445,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					public int compare(ContentVersionVO o1, ContentVersionVO o2) {
 						return new VersionsComparator().compare(o1.getVersion(), o2.getVersion());
 					}
-
 				});
 				ContentVersionVO contentVersionVO1 = selectedContentVersions.get(0);
 				ContentVersionVO contentVersionVO2 = selectedContentVersions.get(1);

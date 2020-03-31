@@ -180,10 +180,13 @@ public class ConstellioMenuPresenter implements Serializable {
 		}
 	}
 
-	public List<String> getCollectionLanguages(String collection) {
+	public List<String> getCollectionLanguagesExceptCurrent(String collection) {
 		List<String> returnList = new ArrayList<>();
+		String language = constellioMenu.getSessionContext().getCurrentLocale().getLanguage();
 		for (String code : getCollectionLanguagesOrderedByCode(collection)) {
-			returnList.add($("Language." + code));
+			if (!code.equals(language)) {
+				returnList.add($("Language." + code));
+			}
 		}
 		return returnList;
 	}
