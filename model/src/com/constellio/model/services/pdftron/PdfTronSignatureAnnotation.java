@@ -9,8 +9,6 @@ import java.util.List;
 
 public class PdfTronSignatureAnnotation implements Comparable<PdfTronSignatureAnnotation> {
 
-	// TODO::JOLA (P2) --> Get this value from pdftron
-	private static final int PDFTRON_VIEWER_HEIGHT = 795;
 	private static final String PAGE_ELEMENT_NAME = "page";
 	private static final String POSITION_ELEMENT_NAME = "rect";
 	private static final String USER_ELEMENT_NAME = "userId";
@@ -37,7 +35,7 @@ public class PdfTronSignatureAnnotation implements Comparable<PdfTronSignatureAn
 		int bottom = (int) Math.round(Double.parseDouble(parts[1]));
 		int right = (int) Math.round(Double.parseDouble(parts[2]));
 		int top = (int) Math.round(Double.parseDouble(parts[3]));
-		return new Rectangle(left, PDFTRON_VIEWER_HEIGHT - top, right - left, top - bottom);
+		return new Rectangle(left, top, right - left, top - bottom);
 	}
 
 	private String fetchImageData(Element signature) throws PdfTronXMLException_XMLParsingException {

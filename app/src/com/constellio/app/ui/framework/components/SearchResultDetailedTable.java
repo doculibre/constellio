@@ -119,7 +119,12 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		List<Object> visibleColumns = new ArrayList<>(Arrays.asList(getVisibleColumns()));
 		visibleColumns.remove(CHECKBOX_PROPERTY);
 		visibleColumns.add(0, CHECKBOX_PROPERTY);
-		setVisibleColumns(visibleColumns.toArray(new Object[0]));
+		try {
+			setVisibleColumns(visibleColumns.toArray(new Object[0]));
+		} catch (Exception e) {
+			e.printStackTrace();
+			// FIXME
+		}
 		return super.newColumnsManager();
 	}
 

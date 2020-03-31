@@ -21,6 +21,7 @@ import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLExcep
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ResourceReference;
 import com.vaadin.server.VaadinRequest;
@@ -42,7 +43,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
@@ -209,8 +209,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 				pdfTronPresenter.getCurrentUser()) {
 			@Override
 			public void onAuthenticated() {
-				// TODO::JOLA (P2) --> Fix document size problem.
-				com.vaadin.ui.JavaScript.eval("finalizeDocument()");
+				finalizeDocument();
 			}
 		};
 		finalizeBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
@@ -407,6 +406,39 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		com.vaadin.ui.JavaScript.eval("disableAnnotationSignatureTool()");
 	}
 
+	private void finalizeDocument() {
+		String funcName = "com.constellio.app.ui.framework.components.viewers.pdftron.setFinalDocument";
+		com.vaadin.ui.JavaScript.getCurrent().addFunction(funcName, new JavaScriptFunction() {
+			@Override
+			public void call(JsonArray arguments) {
+				try {
+					String fileAsStr = arguments.getString(0);
+					handleFinalDocument(fileAsStr);
+				} catch (Exception e) {
+					log.error(MessageUtils.toMessage(e));
+					showErrorMessage($("pdfTronViewer.cannotReadSourceFileException"));
+				}
+			}
+		});
+		com.vaadin.ui.JavaScript.eval("getFinalDocument()");
+	}
+
+	private void handleFinalDocument(String fileAsStr) {
+		try {
+			pdfTronPresenter.handleFinalDocument(fileAsStr);
+		} catch (PdfTronSignatureException e) {
+			log.error(MessageUtils.toMessage(e));
+			showErrorMessage(e.getMessage());
+		}
+	}
+
+	private void showErrorMessage(String errorMessage) {
+		Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"),
+				Type.WARNING_MESSAGE);
+		notification.setHtmlContentAllowed(true);
+		notification.show(Page.getCurrent());
+	}
+
 	private void setMessageIfAnOtherUserOrAnOtherPageIsEditing(boolean showNotification) {
 		// We reuse the same label to not trigger a Pdftron view reset (generally cause by a remove component in a layout).
 		if (errorMsgLabel != null) {
@@ -571,14 +603,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 			String key = request.getParameter("resourceKey");
 			if (bpmnResourceKey.equals(key)) {
 				try {
-					if (StringUtils.isNotBlank(request.getParameter("data"))) {
-						pdfTronPresenter.handleNewXml(request.getParameter("data"), userHasRightToEditOtherUserAnnotation, user.getId());
-					} else if (StringUtils.isNotBlank(request.getParameter("blob"))) {
-						pdfTronPresenter.handleFinalDocument(request.getParameter("blob"));
-					} else {
-						log.error("Invalid parameters!");
-						response.getWriter().write(createErrorJSONResponse("Invalid parameters!"));
-					}
+					pdfTronPresenter.handleNewXml(request.getParameter("data"), userHasRightToEditOtherUserAnnotation, user.getId());
 				} catch (PdfTronXMLException_CannotEditOtherUsersAnnoations pdfTronXMLException_cannotEditOtherUsersAnnoations) {
 					log.error("do not have permission to edit other user annotation parsing error", pdfTronXMLException_cannotEditOtherUsersAnnoations);
 					response.getWriter().write(
@@ -598,11 +623,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 					log.error("cannot edit while not having the page lock");
 					response.getWriter().write(
 							createErrorJSONResponse("cannot edit while not having the page lock"));
-				} catch (PdfTronSignatureException e) {
-					log.error(MessageUtils.toMessage(e));
-					response.getWriter().write(
-							createErrorJSONResponse(e.getMessage()));
-					// TODO::JOLA (P2) --> Show error message to user
 				}
 				handled = true;
 			} else {

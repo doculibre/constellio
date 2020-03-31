@@ -108,6 +108,7 @@ public class ApplicationStarter {
 		} else {
 			QueuedThreadPool threadPool = new QueuedThreadPool(5000, 10);
 			Server server = new Server(threadPool);
+			server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", 1000000000);
 
 			HttpConfiguration http_config = new HttpConfiguration();
 			http_config.setOutputBufferSize(32768);
