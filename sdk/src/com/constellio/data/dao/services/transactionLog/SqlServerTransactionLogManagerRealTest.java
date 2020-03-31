@@ -372,8 +372,8 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 		transactions.add(dto1);
 		transactions.add(dto2);
 
-		when(sqlTransactionDao.getAll(1000)).thenReturn(transactions);
-		when(sqlTransactionDao.getAll(1000)).thenReturn(transactions);
+		when(sqlTransactionDao.getAll(1000, true)).thenReturn(transactions);
+		when(sqlTransactionDao.getAll(1000, true)).thenReturn(transactions);
 
 		when(sqlRecordDaoFactoryMock.getRecordDao(SqlRecordDaoType.RECORDS)).thenReturn(sqlRecordDaoMock);
 		when(sqlRecordDaoFactoryMock.getRecordDao(SqlRecordDaoType.TRANSACTIONS)).thenReturn(sqlTransactionDao);

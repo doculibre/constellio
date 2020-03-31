@@ -46,6 +46,7 @@ import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
+import com.constellio.app.api.extensions.params.IsRecordExportableParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
 import com.constellio.app.api.extensions.params.MetadataDisplayCustomValueExtentionParams;
@@ -962,6 +963,16 @@ public class AppLayerCollectionExtensions {
 			}
 		});
 	}
+
+	public boolean isSchemaTypeExportable(final MetadataSchemaType schemaType, final String collection) {
+		return recordExportExtensions.getBooleanValue(true, new BooleanCaller<RecordExportExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordExportExtension extension) {
+				return extension.isExportable(new IsRecordExportableParams(schemaType));
+			}
+		});
+	}
+
 	public void postRecordFieldFactoryBuild(RecordFieldFactoryPostBuildExtensionParams params) {
 		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
 			extension.postBuild(params);

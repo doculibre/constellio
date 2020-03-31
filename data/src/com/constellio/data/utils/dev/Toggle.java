@@ -125,6 +125,7 @@ public class Toggle {
 	public static AvailableToggle COUNT_CACHE_FILESYSTEM_METADATA_USAGE = newToggle(false);
 
 	public static AvailableToggle TIFF_VIEWER = newToggle(false);
+	public static AvailableToggle SDK_PANEL_LOG_CALLS = newToggle(false);
 
 	public static AvailableToggle IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS = newToggle(false);
 

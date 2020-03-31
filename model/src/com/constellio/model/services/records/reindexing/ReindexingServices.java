@@ -148,6 +148,8 @@ public class ReindexingServices {
 
 		} else {
 			try {
+				modelLayerFactory.getDataLayerFactory().getRecordsVaultServer().setResilienceModeToHigh();
+				modelLayerFactory.getDataLayerFactory().getEventBusManager().pause();
 				modelLayerFactory.getRecordsCaches().disableVolatileCache();
 				dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(false);
 				int waitedCounter = 0;
@@ -226,6 +228,8 @@ public class ReindexingServices {
 
 				dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(true);
 				modelLayerFactory.getRecordsCaches().enableVolatileCache();
+				modelLayerFactory.getDataLayerFactory().getEventBusManager().resume();
+				modelLayerFactory.getDataLayerFactory().getRecordsVaultServer().setResilienceModeToNormal();
 			}
 		}
 
