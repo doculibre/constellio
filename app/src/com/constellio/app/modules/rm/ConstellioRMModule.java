@@ -92,6 +92,8 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.servlet.ConstellioImportRecordsServlet;
+import com.constellio.app.start.ApplicationStarter;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
@@ -381,6 +383,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		AppLayerSystemExtensions extensions = appLayerFactory.getExtensions().getSystemWideExtensions();
 		extensions.constellioUIExtentions.add(new RMConstellioUIExtention(appLayerFactory));
 		extensions.schemaDisplayExtensions.add(new RMSchemaDisplayExtension());
+
+		ApplicationStarter.registerServlet("/rm/uploadRecords", new ConstellioImportRecordsServlet());
 	}
 
 	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {

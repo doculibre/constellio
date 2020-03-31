@@ -10,6 +10,7 @@ public class ExcelDataType {
 	private String structure;
 	private int item;
 	private boolean multiline = false;
+	private boolean filenameHashImport;
 
 	public String getTypeName() {
 		return typeName;
@@ -17,6 +18,15 @@ public class ExcelDataType {
 
 	public void setTypeName(String typeName) {
 		this.typeName = typeName;
+	}
+
+	public boolean isFilenameHashImport() {
+		return filenameHashImport;
+	}
+
+	public ExcelDataType setFilenameHashImport(boolean filenameHashImport) {
+		this.filenameHashImport = filenameHashImport;
+		return this;
 	}
 
 	public String getSeparator() {
