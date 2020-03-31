@@ -239,8 +239,7 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 			signature.setSubFilter(PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED);
 
 			if (visibleSignatureProperties != null) {
-				// this builds the signature structures in a separate document
-				visibleSignatureProperties.buildSignature();
+				buildSignature();
 
 				signature.setName(visibleSignatureProperties.getSignerName());
 				signature.setLocation(visibleSignatureProperties.getSignerLocation());
@@ -308,6 +307,16 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 		IOUtils.closeQuietly(signatureOptions);
 	}
 
+	// this builds the signature structures in a separate document
+	private void buildSignature() throws IOException {
+		visibleSignatureProperties.buildSignature();
+
+		// TODO::JOLA --> Override visual signature here
+		//PDFTemplateBuilder builder = new PDVisibleSigBuilderExtension(visibleSignatureProperties.getSignerName());
+		//PDFTemplateCreator creator = new PDFTemplateCreator(builder);
+		//visibleSignatureProperties.setVisibleSignature(creator.buildPDF(visibleSignatureProperties.getPdVisibleSignature()));
+	}
+
 	// Find an existing signature (assumed to be empty). You will usually not need this.
 	private PDSignature findExistingSignature(PDDocument doc, String sigFieldName) {
 		PDSignature signature = null;
@@ -348,8 +357,6 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 									String visualSignaturePath,
 									PdfTronSignatureAnnotation signature)
 			throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
-		// TODO::JOLA (P3) --> Visually add "Certified by Constellio" and "username"
-
 		File ksFile = new File(keystorePath);
 		KeyStore keystore = KeyStore.getInstance("JKS");
 		char[] pin = keystorePin.toCharArray();
