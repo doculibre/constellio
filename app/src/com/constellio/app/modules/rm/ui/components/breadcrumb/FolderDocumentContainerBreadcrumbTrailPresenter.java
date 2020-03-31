@@ -190,7 +190,6 @@ public class FolderDocumentContainerBreadcrumbTrailPresenter implements Serializ
 
 			String title = favoritesId.equals(breadcrumbTrail.getView().getSessionContext().getCurrentUser().getId()) ? i18n.$("CartView.defaultFavorites") : rmSchemasRecordsServices.getCart(favoritesId).getTitle();
 
-
 			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId, title));
 		}
 		else if (searchId != null) {

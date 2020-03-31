@@ -11,11 +11,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
 import org.apache.commons.lang3.StringUtils;
 
 public class ESRecordAppExtension extends RecordAppExtension {
-
-	private static final String IMAGES_DIR = "images";
 
 	private final String collection;
 	private final MetadataSchemasManager manager;
@@ -34,7 +34,6 @@ public class ESRecordAppExtension extends RecordAppExtension {
 			String resourceKey = getIconPath(schemaTypeCode);
 			if (resourceKey != null) {
 				recordVO.setResourceKey(resourceKey);
-
 			}
 		}
 	}
@@ -64,11 +63,42 @@ public class ESRecordAppExtension extends RecordAppExtension {
 	}
 
 	private String getIconPath(String schemaTypeCode) {
-		return IMAGES_DIR + "/icons/connectors/" + schemaTypeCode + ".png";
+		return "images/icons/connectors/" + schemaTypeCode + ".png";
 	}
 
 	private MetadataSchemaTypes types() {
 		return manager.getSchemaTypes(collection);
+	}
+
+	@Override
+	public Resource getIconFromContent(GetIconPathParams params) {
+		Resource result;
+		RecordVO recordVO = params.getRecordVO();
+		Record record = params.getRecord();
+		if (record == null) {
+			record = recordVO.getRecord();
+		}
+		String iconPath = getIconPathForRecord(new GetIconPathParams(record, params.isExpanded()));
+		if (iconPath != null) {
+			result = new ThemeResource(iconPath);
+		} else {
+			result = null;
+		}
+		return result;
+	}
+
+	@Override
+	public Resource getThumbnailResourceForRecordVO(GetIconPathParams params) {
+		Resource result;
+		RecordVO recordVO = params.getRecordVO();
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(recordVO.getSchema().getCode());
+
+		if (schemaTypeCode.startsWith("connector") && !schemaTypeCode.startsWith("connectorType")) {
+			result = new ThemeResource("images/icons/64/document_network_64.png");
+		} else {
+			result = null;
+		}
+		return result;
 	}
 
 }

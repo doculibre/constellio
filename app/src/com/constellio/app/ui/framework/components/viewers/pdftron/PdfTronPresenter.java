@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components.viewers.pdftron;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
@@ -16,6 +17,7 @@ import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatu
 import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_NotingToSignException;
 import com.constellio.app.ui.framework.components.viewers.pdftron.signature.CreateVisibleSignature;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
@@ -25,6 +27,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -416,12 +419,13 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 
 		try {
 			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-			recordServices.update(document);
+			RecordUpdateOptions options = new RecordUpdateOptions().setRecordsFlushing(RecordsFlushing.NOW());
+			recordServices.update(document, options);
 		} catch (RecordServicesException e) {
 			throw new PdfTronSignatureException_CannotSaveNewVersionException(e);
 		}
 
-		// TODO::JOLA (P1) --> Refresh UI
+		ConstellioUI.getCurrent().updateContent();
 	}
 
 	private String createTempKeystoreFile(String filename) throws PdfTronSignatureException {
