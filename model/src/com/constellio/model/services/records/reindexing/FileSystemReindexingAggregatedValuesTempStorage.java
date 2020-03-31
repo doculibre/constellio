@@ -1,8 +1,8 @@
 package com.constellio.model.services.records.reindexing;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.KeyIntMap;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.reindexing.SystemReindexingConsumptionInfos.SystemReindexingConsumptionHeapInfo;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -213,6 +213,9 @@ public class FileSystemReindexingAggregatedValuesTempStorage implements Reindexi
 		if (intIdsWithFile.contains(RecordId.toIntId(recordIdAggregatingValues))) {
 
 			File file = new File(baseFolder, recordIdAggregatingValues);
+			if (!file.exists()) {
+				return Collections.emptyMap();
+			}
 			try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file));) {
 
 				String line;

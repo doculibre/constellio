@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.ExternalLink;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
@@ -14,6 +15,11 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.triggers.Trigger;
+import com.constellio.app.modules.rm.wrappers.triggers.TriggerAction;
+import com.constellio.app.modules.rm.wrappers.triggers.TriggerActionType;
+import com.constellio.app.modules.rm.wrappers.triggers.TriggerType;
+import com.constellio.app.modules.rm.wrappers.triggers.actions.MoveInFolderTriggerAction;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -60,12 +66,18 @@ public class RMTypes {
 		codesList.add(Cart.SCHEMA_TYPE);
 		codesList.add(FilingSpace.SCHEMA_TYPE);
 		codesList.add(BagInfo.SCHEMA_TYPE);
+		codesList.add(Trigger.SCHEMA_TYPE);
+		codesList.add(TriggerAction.SCHEMA_TYPE);
+		codesList.add(TriggerActionType.SCHEMA_TYPE);
+		codesList.add(TriggerType.SCHEMA_TYPE);
+		codesList.add(ExternalLink.SCHEMA_TYPE);
 
 		schemaTypesCodes = Collections.unmodifiableList(codesList);
 
 		List<String> rmCustomSchemasList = new ArrayList<>();
 		rmCustomSchemasList.add(PrintableLabel.SCHEMA_NAME);
 		rmCustomSchemasList.add(SIParchive.SCHEMA);
+		rmCustomSchemasList.add(MoveInFolderTriggerAction.SCHEMA);
 
 		rmCustomSchemas = Collections.unmodifiableList(rmCustomSchemasList);
 	}

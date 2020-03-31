@@ -253,6 +253,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 		User bob = users.bobIn(zeCollection);
 		bob.setCollectionReadAccess(true);
 		bob.setUserGroups(asList(group.getId()));
+		recordServices.update(bob);
 
 		addAuthorizationWithoutDetaching(asList("zeRole"), asList(group.getId()), records.taxo1_category1().getId());
 		waitForBatchProcess();

@@ -89,18 +89,18 @@ public class RMMigrationTo_9_2 extends MigrationHelper implements MigrationScrip
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 
-			MetadataSchemaTypeBuilder triggerActionTypeSchemaType = typesBuilder.createNewSchemaType(TriggerActionType.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder triggerActionTypeSchemaType = typesBuilder.createNewSchemaType(TriggerActionType.SCHEMA_TYPE).setSecurity(false);
 			MetadataSchemaBuilder triggerActionTypeSchema = triggerActionTypeSchemaType.getDefaultSchema();
 			triggerActionTypeSchema.createUndeletable(TriggerActionType.LINKED_SCHEMA).setType(STRING)
 					.setDefaultRequirement(true);
 			triggerActionTypeSchema.createUndeletable(TriggerActionType.CODE).setType(STRING).setSystemReserved(true).setDefaultRequirement(true);
 
-			MetadataSchemaTypeBuilder triggerTypeSchemaType = typesBuilder.createNewSchemaType(TriggerType.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder triggerTypeSchemaType = typesBuilder.createNewSchemaType(TriggerType.SCHEMA_TYPE).setSecurity(false);
 			MetadataSchemaBuilder triggerTypeSchema = triggerTypeSchemaType.getDefaultSchema();
 			triggerTypeSchema.createUndeletable(TriggerType.CODE).setType(STRING).setSystemReserved(true).setDefaultRequirement(true);
 
 
-			MetadataSchemaTypeBuilder triggerActionSchemaType = typesBuilder.createNewSchemaType(TriggerAction.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder triggerActionSchemaType = typesBuilder.createNewSchemaType(TriggerAction.SCHEMA_TYPE).setSecurity(false);
 			MetadataSchemaBuilder triggerActionSchema = triggerActionSchemaType.getDefaultSchema();
 			triggerActionSchema.getMetadata(TriggerAction.TITLE).required();
 			triggerActionSchema.createUndeletable(TriggerAction.TYPE).setType(REFERENCE).defineReferencesTo(triggerActionTypeSchemaType).required();
@@ -108,7 +108,7 @@ public class RMMigrationTo_9_2 extends MigrationHelper implements MigrationScrip
 			triggerActionSchemaType.createCustomSchema(MoveInFolderTriggerAction.SCHEMA_LOCAL_CODE);
 			triggerActionSchemaType.getCustomSchema(MoveInFolderTriggerAction.SCHEMA_LOCAL_CODE).createUndeletable(MoveInFolderTriggerAction.DATE).setType(MetadataValueType.DATE);
 
-			MetadataSchemaTypeBuilder triggerSchemaType = typesBuilder.createNewSchemaType(Trigger.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder triggerSchemaType = typesBuilder.createNewSchemaType(Trigger.SCHEMA_TYPE).setSecurity(false);
 			MetadataSchemaBuilder triggerSchema = triggerSchemaType.getDefaultSchema();
 
 			triggerSchema.getMetadata(Trigger.TITLE).required();

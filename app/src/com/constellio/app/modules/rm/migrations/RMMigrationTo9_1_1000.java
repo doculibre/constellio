@@ -50,7 +50,7 @@ public class RMMigrationTo9_1_1000 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder externalLinkTypeSchema = setupExternalLinkTypeSchema().getDefaultSchema();
 
-			MetadataSchemaTypeBuilder externalLinkSchemaType = typesBuilder.createNewSchemaType(ExternalLink.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder externalLinkSchemaType = typesBuilder.createNewSchemaType(ExternalLink.SCHEMA_TYPE).setSecurity(false);
 			MetadataSchemaBuilder externalLinkSchema = externalLinkSchemaType.getDefaultSchema();
 
 			externalLinkSchema.createUndeletable(ExternalLink.TYPE)

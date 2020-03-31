@@ -29,7 +29,7 @@ public class RecordUsageCounterHookRetriever implements StatefulService {
 
 	public int countRecordsReferencing(Record record) {
 		RecordCacheType cacheType = schemasManager.getSchemaTypeOf(record).getCacheType();
-		if (cacheType == null || !cacheType.hasVolatileCache()) {
+		if (cacheType == null || !cacheType.isSummaryCache()) {
 			throw new IllegalArgumentException("Hook only compatible for records stored in summary cache");
 		}
 

@@ -39,6 +39,7 @@ import java.util.List;
 
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static java.util.Arrays.asList;
+import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordHierarchyServicesAcceptanceTest extends ConstellioTest {
@@ -235,7 +236,7 @@ public class RecordHierarchyServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
 				options);
 
-		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem2);
+		assertThat(taxonomy1RootRecords).usingElementComparator(comparing(Record::getId)).containsOnly(records.taxo1_firstTypeItem2);
 
 	}
 
@@ -253,7 +254,7 @@ public class RecordHierarchyServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
 				options);
 
-		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem1);
+		assertThat(taxonomy1RootRecords).usingElementComparator(comparing(Record::getId)).containsOnly(records.taxo1_firstTypeItem1);
 
 	}
 
@@ -271,7 +272,7 @@ public class RecordHierarchyServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
 				options);
 
-		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem1,
+		assertThat(taxonomy1RootRecords).usingElementComparator(comparing(Record::getId)).containsOnly(records.taxo1_firstTypeItem1,
 				records.taxo1_firstTypeItem2);
 
 	}
@@ -284,7 +285,7 @@ public class RecordHierarchyServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
 				options);
 
-		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem2);
+		assertThat(taxonomy1RootRecords).usingElementComparator(comparing(Record::getId)).containsOnly(records.taxo1_firstTypeItem2);
 
 	}
 
@@ -296,7 +297,7 @@ public class RecordHierarchyServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
 				options);
 
-		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem1);
+		assertThat(taxonomy1RootRecords).usingElementComparator(comparing(Record::getId)).containsOnly(records.taxo1_firstTypeItem1);
 
 	}
 
@@ -313,7 +314,7 @@ public class RecordHierarchyServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1FirstTypeItem2RecordChildren = services.getChildConcept(records.taxo1_firstTypeItem2,
 				options);
 
-		assertThat(taxonomy1FirstTypeItem2RecordChildren).usingElementComparatorOnFields("id")
+		assertThat(taxonomy1FirstTypeItem2RecordChildren).usingElementComparator(comparing(Record::getId))
 				.containsOnly(records.taxo1_firstTypeItem2_firstTypeItem1,
 						records.taxo1_firstTypeItem2_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem2);
 	}
@@ -332,7 +333,7 @@ public class RecordHierarchyServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1FirstTypeItem2RecordChildren = services.getChildConcept(records.taxo1_firstTypeItem2,
 				options);
 
-		assertThat(taxonomy1FirstTypeItem2RecordChildren).usingElementComparatorOnFields("id")
+		assertThat(taxonomy1FirstTypeItem2RecordChildren).usingElementComparator(comparing(Record::getId))
 				.containsOnly(records.taxo1_firstTypeItem2_firstTypeItem1,
 						recordToDelete, records.taxo1_firstTypeItem2_firstTypeItem2,
 						records.taxo1_firstTypeItem2_secondTypeItem2);
@@ -352,8 +353,8 @@ public class RecordHierarchyServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1FirstTypeItem2RecordChildren = services.getChildConcept(records.taxo1_firstTypeItem2,
 				options);
 
-		assertThat(taxonomy1FirstTypeItem2RecordChildren).usingElementComparatorOnFields("id")
-				.usingElementComparatorOnFields("id").containsOnly(recordToDelete);
+		assertThat(taxonomy1FirstTypeItem2RecordChildren).usingElementComparator(comparing(Record::getId))
+				.usingElementComparator(comparing(Record::getId)).containsOnly(recordToDelete);
 	}
 
 	@Test
@@ -373,7 +374,7 @@ public class RecordHierarchyServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(taxonomy1FirstTypeItem2RecordChildren).hasSize(4);
 		assertThat(taxonomy1FirstTypeItem2RecordChildren)
-				.usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem2_firstTypeItem2,
+				.usingElementComparator(comparing(Record::getId)).containsOnly(records.taxo1_firstTypeItem2_firstTypeItem2,
 				records.taxo1_firstTypeItem2_firstTypeItem1,
 				records.taxo1_firstTypeItem2_secondTypeItem1, recordToDelete);
 	}
