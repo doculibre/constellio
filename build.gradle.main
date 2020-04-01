@@ -75,6 +75,7 @@ allprojects {
         exclude group: 'com.sun.jersey'
 
         resolutionStrategy {
+
             force 'org.apache.hadoop:hadoop-common:3.0.3'
             force 'org.apache.httpcomponents:httpcore:4.4.9'
         }
@@ -86,6 +87,20 @@ allprojects {
                 }
             }
         }
+           resolutionStrategy {
+                eachDependency { DependencyResolveDetails details ->
+                    if (details.requested.group == 'com.google.gwt') {
+                        details.useVersion "2.8.2"
+                    }
+                }
+           }
+           resolutionStrategy {
+                eachDependency { DependencyResolveDetails details ->
+                    if (details.requested.group == 'com.google.gwt') {
+                        details.useVersion "2.8.2"
+                    }
+                }
+           }
     }
 
     configurations {

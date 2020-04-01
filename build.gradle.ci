@@ -16,8 +16,8 @@ subprojects {
     }
 
     configurations.all {
-    exclude group: 'com.google.gwt', module: 'gwt-dev'
-    exclude group: 'com.google.gwt', module: 'gwt-user'
+    //exclude group: 'com.google.gwt', module: 'gwt-dev'
+    //exclude group: 'com.google.gwt', module: 'gwt-user'
     exclude group: 'com.vaadin.external.gwt', module: 'gwt-elemental'
     exclude group: 'com.vaadin.external.gwt', module: 'gwt-dev'
         resolutionStrategy {

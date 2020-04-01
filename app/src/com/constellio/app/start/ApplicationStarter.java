@@ -1,16 +1,6 @@
 package com.constellio.app.start;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
-import javax.servlet.Servlet;
-
+import com.constellio.model.conf.FoldersLocator;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -33,7 +23,15 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.webapp.WebInfConfiguration;
 import org.eclipse.jetty.webapp.WebXmlConfiguration;
 
-import com.constellio.model.conf.FoldersLocator;
+import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
+import javax.servlet.Servlet;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ApplicationStarter {
 
@@ -76,7 +74,7 @@ public class ApplicationStarter {
 		handler.setClassLoader(Thread.currentThread().getContextClassLoader());
 
 		handler.getSessionHandler().getSessionCookieConfig().setHttpOnly(true);
-		if(params.isSSL() || params.isForceSecuredCookies()) {
+		if (params.isSSL() || params.isForceSecuredCookies()) {
 			handler.getSessionHandler().getSessionCookieConfig().setSecure(true);
 		}
 
@@ -117,18 +115,13 @@ public class ApplicationStarter {
 			Server server = new Server(threadPool);
 			server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", 1000000000);
 
-//MAx
-//			QueuedThreadPool threadPool = new QueuedThreadPool(5000);
-//			Server server = new Server();
-//			server.setThreadPool(threadPool);
-
 			HttpConfiguration http_config = new HttpConfiguration();
 			http_config.setOutputBufferSize(32768);
 			http_config.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
 			ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(http_config));
 			http.setPort(params.getPort());
-			http.setMaxIdleTime(30000);
+			http.setIdleTimeout(30000);
 
 			server.setConnectors(new Connector[]{http});
 			return server;
@@ -190,7 +183,7 @@ public class ApplicationStarter {
 				new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
 				new HttpConnectionFactory(https_config));
 		https.setPort(params.getPort());
-		https.setMaxIdleTime(30000);
+		https.setIdleTimeout(30000);
 
 
 		sslServer.setConnectors(new Connector[]{https});
