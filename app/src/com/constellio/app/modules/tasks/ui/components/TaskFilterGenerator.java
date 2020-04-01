@@ -63,13 +63,13 @@ public class TaskFilterGenerator implements FilterGenerator {
 			} else {
 				MetadataFieldFactory factory = new TaskFieldFactory(false) {
 					@Override
-					public Field<?> build(MetadataVO metadata, Locale locale) {
+					public Field<?> build(MetadataVO metadata, String recordId, Locale locale) {
 						Field<?> field;
 						if (DATE_TIME.equals(metadata.getType())) {
 							field = new JodaDateField();
 							return field;
 						}
-						return super.build(metadata, locale);
+						return super.build(metadata, recordId, locale);
 					}
 				};
 				final Field<?> field = factory.build(metadataVO, null);

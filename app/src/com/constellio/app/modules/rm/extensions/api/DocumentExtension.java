@@ -94,9 +94,6 @@ public abstract class DocumentExtension {
 		return user.hasWriteAccess().on(document);
 	}
 
-	public void addMenuItems(DocumentExtensionAddMenuItemParams params) {
-	}
-
 	public ExtensionBooleanResult isAddAuthorizationActionPossible(
 			DocumentExtensionActionPossibleParams documentExtensionActionPossibleParams) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;

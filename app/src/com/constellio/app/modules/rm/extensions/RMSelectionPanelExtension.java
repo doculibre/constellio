@@ -14,7 +14,12 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryF
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -23,8 +28,6 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.BaseLink;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
@@ -59,17 +62,13 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.search.zipContents.ZipContentsService;
-import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -78,22 +77,21 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
-import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.IOUtils;
 import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.vaadin.dialogs.ConfirmDialog;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -101,11 +99,6 @@ import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class RMSelectionPanelExtension extends SelectionPanelExtension {
-
-	private static Logger LOGGER = LoggerFactory.getLogger(RMSelectionPanelExtension.class);
-
-	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
-
 	AppLayerFactory appLayerFactory;
 	String collection;
 	IOServices ioServices;
@@ -125,8 +118,6 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		boolean hasAccessToSIP = userServices.getUserInCollection(param.getUser().getUsername(), collection)
 				.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
-		addZipButton(param);
-		addDeleteButton(param);
 		addMoveButton(param);
 		addDuplicateButton(param);
 		addClassifyButton(param);
@@ -137,55 +128,6 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 		if (hasAccessToSIP) {
 			addSIPbutton(param);
 		}
-	}
-
-	public void addZipButton(final AvailableActionsParam param) {
-		final String zippedContentsFilename = $("SearchView.contentZip");
-		StreamSource zippedContents = new StreamSource() {
-			@Override
-			public InputStream getStream() {
-				ModelLayerFactory modelLayerFactory = param.getView().getConstellioFactories().getModelLayerFactory();
-				File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
-						.newTemporaryFolder(ZIP_CONTENT_RESOURCE);
-				File file = new File(folder, zippedContentsFilename);
-				try {
-					new ZipContentsService(modelLayerFactory, collection)
-							.zipContentsOfRecords(param.getIds(), file);
-					return new FileInputStream(file);
-				} catch (NoContentToZipRuntimeException e) {
-					LOGGER.error("Error while zipping", e);
-					showErrorMessage($("SearchView.noContentInSelectedRecords"));
-					return null;
-				} catch (Exception e) {
-					LOGGER.error("Error while zipping", e);
-					showErrorMessage($("SearchView.zipContentsError"));
-					return null;
-				}
-			}
-		};
-
-		Component zipButton = new BaseLink($("ReportViewer.download", "(zip)"),
-				new DownloadStreamResource(zippedContents, zippedContentsFilename));
-		zipButton.setIcon(FontAwesome.FILE_ARCHIVE_O);
-		zipButton.setPrimaryStyleName("v-button");
-		zipButton.removeStyleName("link");
-		zipButton.addStyleName(ValoTheme.BUTTON_LINK);
-		zipButton.setEnabled(!param.getIds().isEmpty() && containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
-		zipButton.setVisible(!param.getIds().isEmpty() && containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
-		((VerticalLayout) param.getComponent()).addComponent(zipButton);
-	}
-
-	public void addDeleteButton(final AvailableActionsParam param) {
-		Button deleteButton = new DeleteButton(FontAwesome.TRASH_O, $("delete"), false) {
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-			}
-		};
-		deleteButton.addStyleName(ValoTheme.BUTTON_LINK);
-		// FIXME
-		deleteButton.setEnabled(!param.getIds().isEmpty());
-		deleteButton.setVisible(!param.getIds().isEmpty());
-		((VerticalLayout) param.getComponent()).addComponent(deleteButton);
 	}
 
 	public void addPdfButton(final AvailableActionsParam param) {
@@ -598,22 +540,27 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 			RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 			for (String id : recordIds) {
 				Record record = recordServices.getDocumentById(id);
+				boolean isMovePossible = true;
 				try {
 					switch (record.getTypeCode()) {
 						case Folder.SCHEMA_TYPE:
 							Folder folder = rmSchemas.getFolder(id);
 							if (!rmModuleExtensions.isMoveActionPossibleOnFolder(folder, param.getUser())) {
+								isMovePossible = false;
 								couldNotMove.add(record.getTitle());
 								break;
-							} else if (isMovePossible)
+							}
+							if (isMovePossible) {
 								recordServices.update(folder.setParentFolder(parentId), param.getUser());
 							}
 							break;
 						case Document.SCHEMA_TYPE:
 							if (!rmModuleExtensions.isMoveActionPossibleOnDocument(rm.wrapDocument(record), param.getUser())) {
+								isMovePossible = false;
 								couldNotMove.add(record.getTitle());
 								break;
-							} else if (isMovePossible) {
+							}
+							if (isMovePossible) {
 								recordServices.update(rmSchemas.getDocument(id).setFolder(parentId), param.getUser());
 							}
 							break;
@@ -692,7 +639,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 								Content newContent = contentManager.createMajor(user, filename, contentVersionDataSummary);
 								newDocument.setContent(newContent);
 							}
-							if (Boolean.TRUE.equals(newDocument.getBorrowed())) {
+							if (Boolean.TRUE == newDocument.getBorrowed()) {
 								newDocument.setBorrowed(false);
 							}
 							String title = record.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")";
@@ -821,7 +768,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 	private EmailMessage createEmail(AvailableActionsParam param) {
 		File newTempFile = null;
 		try {
-			newTempFile = ioServices.newTemporaryFile("RMSelectionPanelExtension-emailFile-" + System.currentTimeMillis());
+			newTempFile = ioServices.newTemporaryFile("RMSelectionPanelExtension-emailFile");
 			return createEmail(param, newTempFile);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
