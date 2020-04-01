@@ -41,7 +41,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 	public static final String STYLE_FIELD = "metadata-field";
 
-	private RecordVO recordVO;
+	protected RecordVO recordVO;
 	private RecordFieldFactory formFieldFactory;
 	private Map<Field<?>, Layout> fieldLayoutMap;
 	private Map<Field<?>, Object> fieldValue;
@@ -51,7 +51,8 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		this(record, new MetadataFieldFactory(), constellioFactories);
 	}
 
-	public RecordForm(final RecordVO recordVO, MetadataFieldFactory metadataFieldFactory, ConstellioFactories constellioFactories) {
+	public RecordForm(final RecordVO recordVO, MetadataFieldFactory metadataFieldFactory,
+					  ConstellioFactories constellioFactories) {
 		this(recordVO, new RecordFieldFactory(metadataFieldFactory), constellioFactories);
 	}
 
