@@ -60,34 +60,31 @@ allprojects {
 */
 
     dependencies {
-    	String gwtVersion = '2.7.0' // 2.7.0 or 2.8.2
         implementation('org.apache.hadoop:hadoop-common:3.0.3') {
             force = true
         }
         implementation('org.apache.httpcomponents:httpcore:4.4.9') {
             force = true
         }
-        implementation('com.google.gwt:gwt-elemental:' + gwtVersion) {
-            force = true
-        }
-        implementation('com.google.gwt:gwt-dev:' + gwtVersion) {
-            force = true
-        }
-        implementation('com.google.gwt:gwt-user:' + gwtVersion) {
-            force = true
-        }
+
     }
 
     configurations.all {
-        exclude group: 'com.google.gwt', module: 'gwt-dev'
-        exclude group: 'com.google.gwt', module: 'gwt-user'
-        exclude group: 'com.vaadin.external.gwt', module: 'gwt-elemental'
-        exclude group: 'com.vaadin.external.gwt', module: 'gwt-dev'
+        //exclude group: 'com.vaadin.external.gwt', module: 'gwt-elemental'
+        //exclude group: 'com.vaadin.external.gwt', module: 'gwt-dev'
         exclude group: 'com.sun.jersey'
 
         resolutionStrategy {
             force 'org.apache.hadoop:hadoop-common:3.0.3'
             force 'org.apache.httpcomponents:httpcore:4.4.9'
+        }
+
+        resolutionStrategy {
+            eachDependency { DependencyResolveDetails details ->
+                if (details.requested.group == 'com.google.gwt') {
+                    details.useVersion "2.8.2"
+                }
+            }
         }
     }
 

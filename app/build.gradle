@@ -1,6 +1,12 @@
 apply plugin: 'war'
+apply plugin: 'com.devsoap.plugin.vaadin'
 
-/*
+// Custom blocker for tasks
+//test.jacoco.enabled = project.hasProperty('buildserver')
+vaadinUpdateWidgetset.enabled = project.hasProperty('themeCompile')
+vaadinThemeCompile.enabled = project.hasProperty('themeCompile')
+vaadinCompile.enabled = project.hasProperty('themeCompile')
+
 vaadin {
     version '7.7.17'
 
@@ -12,29 +18,26 @@ vaadin {
     logToConsole true
 }
 
+vaadinCompile {
+    logEnabled true
+    logLevel 'DEBUG'
+    localWorkers 2
+    strict true 
+    sourcePaths ":constellio:app"
+    gwtSdkFirstInClasspath true
+    outputDirectory 'WebContent/'
+    manageWidgetset false
+    widgetset 'com.constellio.app.ui.application.widgetset.AppWidgetset'
+}
+
+vaadinThemeCompile {
+    themesDirectory project(":constellio:app").projectDir.getAbsolutePath() + '/WebContent/VAADIN/themes/'
+}
+
 vaadinAddon {
     author 'constellio'
     title 'constellio'
 }
-
-vaadinCompile {
-    widgetset 'com.constellio.app.ui.application.widgetset.AppWidgetset'
-    manageWidgetset false
-    profiler true
-}
-
-vaadinThemeCompile {
-    themesDirectory project(":constellio:app").projectDir.getAbsolutePath() + '/WebContent/VAADIN/themes/constellio'
-}
-
-vaadinRun {
-    debug true
-    debugPort 8000
-    serverPort 8080
-    jvmArgs()
-    themeAutoRecompile true
-}
-*/
 
 dependencies {
     compile project(":constellio:data")
@@ -92,9 +95,6 @@ dependencies {
     compile "org.asi.ui:custommenubar:1.2"
     compile "org.imgscalr:imgscalr-lib:4.2"
 
-    compile 'com.google.gwt:gwt-elemental:2.8.2'
-    compile 'com.google.gwt:gwt-dev:2.8.2'
-
     runtime 'org.projectlombok:lombok:1.18.2'
 
     compile "com.googlecode.java-diff-utils:diffutils:1.3.0"
@@ -145,8 +145,6 @@ configurations.all {
     //exclude group: 'com.vaadin.external.gwt', module: 'gwt-elemental'
     //exclude group: 'com.vaadin.external.gwt', module: 'gwt-dev'
     resolutionStrategy {
-//    	force "com.vaadin.external.gwt:gwt-elemental:2.7.0"
-//    	force "com.vaadin.external.gwt:gwt-dev:2.7.0"
         force "javax.validation:validation-api:1.0.0.GA"
     }
 }
