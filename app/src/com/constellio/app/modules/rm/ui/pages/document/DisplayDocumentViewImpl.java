@@ -586,7 +586,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					protected String toColumnId(Object propertyId) {
 						if (propertyId instanceof MetadataVO) {
 							if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-								setColumnHeader(propertyId, "");
 								setColumnWidth(propertyId, 60);
 							}
 						}
