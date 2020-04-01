@@ -165,15 +165,13 @@ const FitWidth = "FitWidth";
     const {docViewer} = instance;
     const annotManager = docViewer.getAnnotationManager();
 
-     registerAnnotationChange(annotManager);
+    registerAnnotationChange(annotManager);
 
-            const annotationsFile = await annotManager.exportAnnotations({links: false, widgets: false});
+    const annotationsFile = await annotManager.exportAnnotations({links: false, widgets: false});
 
-            $.post(documentAnnotationCallBack, {
-                'resourceKey': documentAnnotationRK,
-                'data': annotationsFile
-            });
-        }
+    $.post(documentAnnotationCallBack, {
+        'resourceKey': documentAnnotationRK,
+        'data': annotationsFile
     });
 });
 
