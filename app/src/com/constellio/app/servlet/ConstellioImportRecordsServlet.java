@@ -74,7 +74,7 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 					importErrors = respond(tempFile, dataType, user);
 
 					if (!importErrors.isEmpty()) {
-						response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 						for (ValidationError error : importErrors.getValidationErrors()) {
 							String message = i18n.$(error, Locale.FRENCH);
 							System.out.println(message);

@@ -93,6 +93,11 @@ import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.servlet.ConstellioImportRecordsServlet;
+import com.constellio.app.servlet.ConstellioUploadContentInVaultServlet;
+import com.constellio.app.start.ApplicationStarter;
+import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.app.servlet.ConstellioImportRecordsServlet;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
@@ -392,6 +397,12 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+
+		ApplicationStarter.registerServlet("/" + ConstellioRMModule.ID + "/uploadContentInVault",
+				new ConstellioUploadContentInVaultServlet());
+		ApplicationStarter.registerServlet("/" + ConstellioRMModule.ID + "/uploadRecords",
+				new ConstellioImportRecordsServlet());
+
 
 		extensions.schemaTypeAccessExtensions.add(new RMGenericRecordPageExtension());
 		extensions.schemaTypeAccessExtensions.add(new LabelSchemaRestrictionPageExtension());
