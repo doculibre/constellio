@@ -13,6 +13,8 @@ import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDVisibleS
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class PDVisibleSigBuilderExtension extends PDVisibleSigBuilder {
 
 	private String username;
@@ -29,7 +31,7 @@ public class PDVisibleSigBuilderExtension extends PDVisibleSigBuilder {
 			throws IOException {
 		super.createImageForm(imageFormResources, innerFormResource, imageFormStream, formrect, affineTransform, img);
 
-		PDFont font = PDType1Font.HELVETICA;
+		PDFont font = PDType1Font.TIMES_ROMAN;
 		fontName = getStructure().getImageForm().getResources().add(font).getName();
 	}
 
@@ -38,24 +40,26 @@ public class PDVisibleSigBuilderExtension extends PDVisibleSigBuilder {
 										COSName imageFormName, COSName imageName, COSName innerFormName,
 										PDVisibleSignDesigner properties)
 			throws IOException {
+		super.injectAppearanceStreams(holderFormStream, innerFormStream, imageFormStream, imageFormName, imageName, innerFormName, properties);
+
 		// Use width and height of BBox as values for transformation matrix.
 		int width = (int) this.getStructure().getFormatterRectangle().getWidth();
 		int height = (int) this.getStructure().getFormatterRectangle().getHeight();
 
-		String imgFormContent = "q " + width + " 0 0 " + height + " 0 0 cm /" + imageName.getName() + " Do Q\n";
+		/*String imgFormContent = "q " + width + " 0 0 " + height + " 0 0 cm /" + imageName.getName() + " Do Q\n";
 		String holderFormContent = "q 1 0 0 1 0 0 cm /" + innerFormName.getName() + " Do Q\n";
 		String innerFormContent = "q 1 0 0 1 0 0 cm /n0 Do Q q 1 0 0 1 0 0 cm /" + imageFormName.getName() + " Do Q\n";
 
 		appendRawCommands(this.getStructure().getHolderFormStream().createOutputStream(), holderFormContent);
 		appendRawCommands(this.getStructure().getInnerFormStream().createOutputStream(), innerFormContent);
-		appendRawCommands(this.getStructure().getImageFormStream().createOutputStream(), imgFormContent);
+		appendRawCommands(this.getStructure().getImageFormStream().createOutputStream(), imgFormContent);*/
 
 
-		/*String signedBy = $("pdfTronViewer.signedByEntity");
+		String signedBy = $("pdfTronViewer.signedByEntity");
 
+		//String topText = "BT /" + fontName + " 10 Tf (" + signedBy + ") Tj ET\n";
 		String imgFormComment = "q " + width + " 0 0 " + height + " 0 0 cm /" + imageName.getName() + " Do Q\n";
-		String topText = "BT /" + fontName + " 10 Tf (" + signedBy + ") Tj ET\n";
-		String botText = "BT /" + fontName + " 10 Tf (" + username + ") Tj ET\n";
-		appendRawCommands(getStructure().getImageFormStream().createOutputStream(), imgFormComment);*/
+		String botText = "BT /" + fontName + " 10 Tf (" + signedBy + ") Tj ET\n";
+		appendRawCommands(getStructure().getImageFormStream().createOutputStream(), imgFormComment + botText);
 	}
 }
