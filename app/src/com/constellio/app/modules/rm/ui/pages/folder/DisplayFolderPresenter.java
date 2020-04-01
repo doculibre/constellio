@@ -1309,6 +1309,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		authorizationsServices.execute(authorizationDeleteRequest(authorization).setExecutedBy(getCurrentUser()));
 		view.removeAuthorization(authorizationVO);
 	}
+
 	public void changeFolderContentDataProvider(String value, Boolean includeTree) {
 		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		MetadataSchema documentsSchema = getDocumentsSchema();
@@ -1322,7 +1323,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				String userSearchExpression = filterSolrOperators(value);
 				if (!StringUtils.isBlank(value)) {
 					LogicalSearchQuery logicalSearchQuery;
-					logicalSearchQuery = getFolderContentQuery(folderVO.getId(), includeTree).setFreeTextQuery(userSearchExpression);
+					logicalSearchQuery = getFolderContentQuery(summaryFolderVO.getId(), includeTree).setFreeTextQuery(userSearchExpression);
 					if (!"*".equals(value)) {
 						logicalSearchQuery.setHighlighting(true);
 					}
