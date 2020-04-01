@@ -40,7 +40,7 @@ public abstract class DocumentExtension {
 	}
 
 	public ExtensionBooleanResult isCreatePDFAActionPossible(DocumentExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isAddSelectionActionPossible(DocumentExtensionActionPossibleParams params) {
@@ -56,11 +56,11 @@ public abstract class DocumentExtension {
 	}
 
 	public ExtensionBooleanResult isFinalizeActionPossible(DocumentExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isMoveActionPossible(DocumentExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isPrintLabelActionPossible(DocumentExtensionActionPossibleParams params) {
@@ -68,7 +68,7 @@ public abstract class DocumentExtension {
 	}
 
 	public ExtensionBooleanResult isPublishActionPossible(DocumentExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isGetPublicLinkActionPossible(DocumentExtensionActionPossibleParams params) {
@@ -85,6 +85,16 @@ public abstract class DocumentExtension {
 
 	public ExtensionBooleanResult isDeleteActionPossible(DocumentExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+
+	protected boolean hasWriteAccess(DocumentExtensionActionPossibleParams params) {
+		Document document = params.getDocument();
+		User user = params.getUser();
+		return user.hasWriteAccess().on(document);
+	}
+
+	public void addMenuItems(DocumentExtensionAddMenuItemParams params) {
 	}
 
 	public ExtensionBooleanResult isAddAuthorizationActionPossible(

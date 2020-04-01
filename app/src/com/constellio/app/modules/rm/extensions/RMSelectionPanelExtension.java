@@ -14,12 +14,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryF
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -83,6 +78,7 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.IOUtils;
 import org.joda.time.LocalDateTime;
@@ -97,11 +93,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -613,7 +605,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 							if (!rmModuleExtensions.isMoveActionPossibleOnFolder(folder, param.getUser())) {
 								couldNotMove.add(record.getTitle());
 								break;
-							} else {
+							} else if (isMovePossible)
 								recordServices.update(folder.setParentFolder(parentId), param.getUser());
 							}
 							break;
@@ -621,7 +613,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 							if (!rmModuleExtensions.isMoveActionPossibleOnDocument(rm.wrapDocument(record), param.getUser())) {
 								couldNotMove.add(record.getTitle());
 								break;
-							} else {
+							} else if (isMovePossible) {
 								recordServices.update(rmSchemas.getDocument(id).setFolder(parentId), param.getUser());
 							}
 							break;
