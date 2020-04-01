@@ -16,7 +16,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
-import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
@@ -75,10 +75,10 @@ public class HomePresenter extends BasePresenter<HomeView> {
 				for (PageItem tabItem : tabItems) {
 					if ((tabItem instanceof RecordTree) && currentTab.equals(tabItem.getCode())) {
 						RecordTree recordTree = (RecordTree) tabItem;
-						List<RecordLazyTreeDataProvider> dataProviders = recordTree
+						List<LazyTreeDataProvider<String>> dataProviders = recordTree
 								.getDataProviders(appLayerFactory, sessionContext);
 						for (int i = 0; i < dataProviders.size(); i++) {
-							RecordLazyTreeDataProvider dataProvider = dataProviders.get(i);
+							LazyTreeDataProvider<String> dataProvider = dataProviders.get(i);
 							String dataProviderTaxonomyCode = dataProvider.getTaxonomyCode();
 							if (taxonomyCodeParam.equals(dataProviderTaxonomyCode)) {
 								recordTree.setDefaultDataProvider(i);

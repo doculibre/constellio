@@ -16,6 +16,7 @@ public interface LazyTreeDataProvider<T extends Serializable> extends DataProvid
 
 	boolean isLeaf(T object);
 
+	@Deprecated
 	String getTaxonomyCode();
 
 	String getCaption(T id);

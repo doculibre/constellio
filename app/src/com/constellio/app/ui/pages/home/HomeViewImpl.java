@@ -24,8 +24,9 @@ import com.constellio.app.ui.framework.components.tree.TreeItemClickListener;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
-import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.data.TreeNode;
 import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -59,6 +60,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import static com.constellio.app.ui.framework.data.trees.DefaultLazyTreeDataProvider.toTreeNodeSupportingLegacyProviders;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefresh {
@@ -236,7 +238,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 	}
 
 	private Component buildRecordTreeOrRecordMultiTree(RecordTree recordTree) {
-		List<RecordLazyTreeDataProvider> providers = recordTree.getDataProviders(
+		List<LazyTreeDataProvider<String>> providers = recordTree.getDataProviders(
 				getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		return providers.size() > 1 ?
 			   buildRecordMultiTree(recordTree, providers) :
@@ -244,10 +246,10 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 	}
 
 	private RecordLazyTreeTabSheet buildRecordMultiTree(final RecordTree recordTree,
-														List<RecordLazyTreeDataProvider> providers) {
+														List<LazyTreeDataProvider<String>> providers) {
 		final RecordLazyTreeTabSheet subTabSheet = new RecordLazyTreeTabSheet(providers) {
 			@Override
-			protected RecordLazyTree newLazyTree(RecordLazyTreeDataProvider dataProvider, int bufferSize) {
+			protected RecordLazyTree newLazyTree(LazyTreeDataProvider<String> dataProvider, int bufferSize) {
 				return buildRecordTree(recordTree, dataProvider);
 			}
 		};
@@ -262,7 +264,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 		return modelLayerFactory.getSystemConfigs().getLazyTreeBufferSize();
 	}
 
-	private RecordLazyTree buildRecordTree(RecordTree recordTree, final RecordLazyTreeDataProvider provider) {
+	private RecordLazyTree buildRecordTree(RecordTree recordTree, final LazyTreeDataProvider<String> provider) {
 		RecordLazyTree tree = new RecordLazyTree(provider, getBufferSizeFromConfig());
 		tree.addItemClickListener(new TreeItemClickListener() {
 
@@ -276,8 +278,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 			@Override
 			public void itemClick(ItemClickEvent event) {
 				if (event.getButton() == MouseButton.LEFT) {
-					String recordId = (String) event.getItemId();
-					clickNavigating = presenter.recordClicked(recordId, provider.getTaxonomyCode(), false);
+					TreeNode treeNode = toTreeNodeSupportingLegacyProviders((String) event.getItemId());
+
+					if (treeNode.isRecord()) {
+						clickNavigating = presenter.recordClicked(treeNode.getId(), provider.getTaxonomyCode(), false);
+					}
 				} else {
 					clickNavigating = true;
 				}

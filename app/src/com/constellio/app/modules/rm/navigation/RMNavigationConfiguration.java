@@ -64,8 +64,11 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
-import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.data.TreeNode;
+import com.constellio.app.ui.framework.data.trees.DefaultLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.trees.LegacyTreeNodesDataProviderAdapter;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
@@ -99,6 +102,7 @@ import java.util.Map;
 
 import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
 import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 
 public class RMNavigationConfiguration implements Serializable {
 
@@ -307,8 +311,8 @@ public class RMNavigationConfiguration implements Serializable {
 	private static void configureHomeFragments(NavigationConfig config) {
 		RecordTree taxonomyTree = new RecordTree(TAXONOMIES) {
 			@Override
-			public List<RecordLazyTreeDataProvider> getDataProviders(AppLayerFactory appLayerFactory,
-																	 SessionContext sessionContext) {
+			public List<LazyTreeDataProvider<String>> getDataProviders(AppLayerFactory appLayerFactory,
+																	   SessionContext sessionContext) {
 				TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
 				if (getDefaultDataProvider() == -1) {
 					int defaultTab = tabSheet.getDefaultTab();
@@ -323,14 +327,24 @@ public class RMNavigationConfiguration implements Serializable {
 				menu.addContextMenuTreeListener(new TreeListener() {
 					@Override
 					public void onContextMenuOpenFromTreeItem(ContextMenuOpenedOnTreeItemEvent event) {
-						String recordId = (String) event.getItemId();
-						menu.openFor(recordId);
+						String recordPath = (String) event.getItemId();
+
+						String openRecordId = null;
+						TreeNode treeNode = DefaultLazyTreeDataProvider.toTreeNodeSupportingLegacyProviders(recordPath);
+						if (LegacyTreeNodesDataProviderAdapter.PROVIDER_ID.equals(treeNode.getProviderType())
+							&& Document.SCHEMA_TYPE.equals(treeNode.getNodeType())) {
+							openRecordId = treeNode.getId();
+
+						}
+
+						menu.openFor(openRecordId);
 					}
 				});
 				menu.addContextMenuTableListener(new TableListener() {
 					@Override
 					public void onContextMenuOpenFromRow(ContextMenuOpenedOnTableRowEvent event) {
-						String recordId = (String) event.getItemId();
+						String recordPath = (String) event.getItemId();
+						String recordId = recordPath.contains("|") ? substringAfterLast(recordPath, "|") : recordPath;
 						menu.openFor(recordId);
 					}
 

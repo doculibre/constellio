@@ -1,5 +1,7 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
+import com.constellio.app.extensions.treenode.TreeNodeExtension;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
@@ -8,6 +10,8 @@ import com.constellio.app.ui.framework.components.converters.TaxonomyCodeToCapti
 import com.constellio.app.ui.framework.components.tree.LazyTree;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.trees.RecordTreeNodesDataProvider;
+import com.constellio.app.ui.framework.data.trees.VisibleRecordTreeNodesDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -217,8 +221,7 @@ public class PathLookupField extends LookupField<String> {
 		String schemaType;
 
 		public PathLookupTreeDataProvider(String taxonomyCode, String collection, String schemaType) {
-			super(taxonomyCode, collection);
-			this.schemaType = schemaType;
+			super(getTreeDataProvider(taxonomyCode, collection));
 		}
 
 		@Override
@@ -236,6 +239,26 @@ public class PathLookupField extends LookupField<String> {
 		@Override
 		public boolean isSelectable(String selection) {
 			return true;
+		}
+
+		public static RecordTreeNodesDataProvider getTreeDataProvider(String taxnomieCode, String collection) {
+			AppLayerFactory appLayerFactory = getInstance().getAppLayerFactory();
+
+			RecordTreeNodesDataProvider recordTreeNodesDataProvider = null;
+
+			for (TreeNodeExtension treeNodeAppExtension : appLayerFactory.getExtensions()
+					.forCollection(collection).treeNodeAppExtension) {
+				recordTreeNodesDataProvider = treeNodeAppExtension.getTreeNodeFor(taxnomieCode, appLayerFactory);
+				if (recordTreeNodesDataProvider != null) {
+					break;
+				}
+			}
+
+			if (recordTreeNodesDataProvider == null) {
+				recordTreeNodesDataProvider = new VisibleRecordTreeNodesDataProvider(taxnomieCode);
+			}
+
+			return recordTreeNodesDataProvider;
 		}
 	}
 
