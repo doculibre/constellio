@@ -17,6 +17,8 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -28,6 +30,9 @@ public class DocumentRecordActionsServices {
 	private String collection;
 	private RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions modelLayerCollectionExtensions;
+
+	public static final String MSG_FILE_EXT = "msg";
+	public static final String EML_FILE_EXT = "eml";
 
 	public DocumentRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -268,6 +273,19 @@ public class DocumentRecordActionsServices {
 			return true;
 		}
 		return false;
+	}
+
+	public boolean isExtractingÀttachementsActionPossible(Record record) {
+		Document document = rm.wrapDocument(record);
+
+		if (document.getContent() != null) {
+			String fileName = document.getContent().getCurrentVersion().getFilename();
+			String ext = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+
+			return (ext.equals(MSG_FILE_EXT) || ext.equals(EML_FILE_EXT));
+		} else {
+			return false;
+		}
 	}
 
 	public boolean isCheckInActionPossible(Record record, User user) {

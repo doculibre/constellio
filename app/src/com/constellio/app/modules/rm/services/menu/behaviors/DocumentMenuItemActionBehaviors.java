@@ -4,6 +4,7 @@ import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -55,12 +56,14 @@ import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.PublishDocumentViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
@@ -71,6 +74,8 @@ import com.constellio.model.entities.security.global.AuthorizationModificationRe
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentConversionManager;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.logging.SearchEventServices;
@@ -92,8 +97,16 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.simplejavamail.converter.EmailConverter;
+import org.simplejavamail.email.AttachmentResource;
+import org.simplejavamail.email.Email;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import javax.activation.DataSource;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -124,19 +137,23 @@ public class DocumentMenuItemActionBehaviors {
 	private DecommissioningLoggingService decommissioningLoggingService;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 	private AuthorizationsServices authorizationsServices;
+	private ContentManager contentManager;
+	private IOServices ioServices;
 
 	public DocumentMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
-		recordServices = modelLayerFactory.newRecordServices();
-		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		loggingServices = modelLayerFactory.newLoggingServices();
-		decommissioningLoggingService = new DecommissioningLoggingService(appLayerFactory.getModelLayerFactory());
-		extensions = modelLayerFactory.getExtensions().forCollection(collection);
-		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
-		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		this.recordServices = modelLayerFactory.newRecordServices();
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.loggingServices = modelLayerFactory.newLoggingServices();
+		this.decommissioningLoggingService = new DecommissioningLoggingService(appLayerFactory.getModelLayerFactory());
+		this.extensions = modelLayerFactory.getExtensions().forCollection(collection);
+		this.documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
+		this.ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+		this.authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 	}
 
 	public void getConsultationLink(Document document, MenuItemActionBehaviorParams params) {
@@ -679,6 +696,88 @@ public class DocumentMenuItemActionBehaviors {
 
 		reportGeneratorButton.setRecordVoList(getDocumentVO(params, document));
 		reportGeneratorButton.click();
+	}
+
+	public void extractFileAttachements(Document document, MenuItemActionBehaviorParams params) {
+
+		InputStream inputStream = null;
+
+		String fileName = document.getContent().getCurrentVersion().getFilename();
+		String ext = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+
+		boolean isEML = ext.equals(DocumentRecordActionsServices.EML_FILE_EXT);
+		boolean isMsg = ext.equals(DocumentRecordActionsServices.MSG_FILE_EXT);
+
+		Email email = null;
+		try {
+			inputStream = contentManager.getContentInputStream(document.getContent()
+					.getCurrentVersion().getHash(), this.getClass().getSimpleName());
+
+			if (isEML) {
+				String emailStr = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
+				email = EmailConverter.emlToEmail(emailStr);
+			} else if (isMsg) {
+				email = EmailConverter.outlookMsgToEmail(inputStream);
+			} else {
+				params.getView().showErrorMessage($("DocumentMenuItemActionBehaviors.errorWhileExtractingAttachements"));
+				return;
+			}
+
+			rm.getFolder(document.getFolder());
+
+			Transaction transaction = new Transaction();
+
+			List<AttachmentResource> attachments = email.getAttachments();
+
+			if (attachments == null || attachments.size() == 0) {
+				params.getView().showErrorMessage($("DocumentMenuItemActionBehaviors.emailHasNoAttachment"));
+				return;
+			}
+
+			for (AttachmentResource attachmentResource : attachments) {
+				DataSource dataSource = attachmentResource.getDataSource();
+				if (dataSource != null) {
+					createNewDocument(document.getFolder(), params.getUser(), dataSource.getName(), dataSource.getInputStream(), transaction);
+				}
+			}
+
+			recordServices.execute(transaction);
+
+			params.getView().updateUI();
+		} catch (Exception e) {
+			params.getView().showErrorMessage($("DocumentMenuItemActionBehaviors.errorWhileExtractingAttachements"));
+		} finally {
+			ioServices.closeQuietly(inputStream);
+		}
+
+	}
+
+	public void createNewDocument(String folderId, User user, String newFileName, InputStream documentInputStream,
+								  Transaction transaction) {
+		Document document = rm.newDocument();
+		document.setFolder(folderId);
+		document.setTitle(newFileName);
+
+		document.setFormCreatedOn(TimeProvider.getLocalDateTime());
+		document.setFormCreatedBy(user);
+		document.setFormModifiedOn(TimeProvider.getLocalDateTime());
+		document.setFormModifiedBy(user);
+
+		document.setCreatedOn(TimeProvider.getLocalDateTime());
+		document.setCreatedBy(user);
+		document.setModifiedOn(TimeProvider.getLocalDateTime());
+		document.setModifiedBy(user.getId());
+
+		ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
+		ContentVersionDataSummary contentVersion = contentManager.upload(documentInputStream);
+		Content content;
+		if (new RMConfigs(appLayerFactory).isMajorVersionForNewFile()) {
+			content = contentManager.createEmptyMajor(user, newFileName, contentVersion);
+		} else {
+			content = contentManager.createEmptyMinor(user, newFileName, contentVersion);
+		}
+		document.setContent(content);
+		transaction.add(document);
 	}
 
 	public void upload(Document document, MenuItemActionBehaviorParams params) {
