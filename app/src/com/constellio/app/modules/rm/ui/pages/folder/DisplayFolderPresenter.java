@@ -409,7 +409,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			//If a folder have both condition, it will still be given the sort value 1 because of the min function
 			//Other records will be given the sort value 0,
 			String sortReturningFoldersFirst = "min(sum(termfreq('schema_s', 'folder_default'),if(exists(folderType_s),1,0)),1)";
-			query.sortOn(new FunctionLogicalSearchQuerySort(sortReturningFoldersFirst, false));
+			query.sortOn(new FunctionLogicalSearchQuerySort(sortReturningFoldersFirst, false)).sortAsc(Schemas.TITLE);
 		}
 
 

@@ -249,7 +249,7 @@ public class RecordUtils {
 			keyListMap.add(schemaUtils.getSchemaTypeCode(record.getSchemaCode()), record);
 		}
 
-		List<String> typesSortedByDependency = schemaTypes.getSchemaTypesSortedByDependency();
+		List<String> typesSortedByDependency = schemaTypes.getSchemaTypesCodesSortedByDependency();
 		for (String schemaTypeCode : typesSortedByDependency) {
 			MetadataSchemaType type = schemaTypes.getSchemaType(schemaTypeCode);
 			List<Record> records = keyListMap.get(schemaTypeCode);
