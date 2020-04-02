@@ -363,7 +363,7 @@ public class ReindexingServices {
 				ReindexingLogger logger = new ReindexingLogger(collection, LOGGER);
 				try {
 
-					List<String> typesSortedByDependency = types.getSchemaTypesSortedByDependency();
+					List<String> typesSortedByDependency = types.getSchemaTypesCodesSortedByDependency();
 
 					if (level % 2 == 1) {
 						List<String> reversedTypesSortedByDependency = new ArrayList<>(typesSortedByDependency);

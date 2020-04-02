@@ -6,10 +6,6 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
-import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -35,28 +31,16 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 	@Override
 	public void updateActionsComponent() {
 		super.updateActionsComponent();
-		contextMenu.setDisplayDocumentButtonState(ComponentState.ENABLED);
 		Content content = getContent();
 		if (content != null) {
 			ContentVersionVO contentVersionVO = contentVersionVOBuilder.build(content);
 			contextMenu.setContentVersionVO(contentVersionVO);
-			contextMenu.setDownloadDocumentButtonState(ComponentState.ENABLED);
 			String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
-			contextMenu.setOpenDocumentButtonState(agentURL != null ? ComponentState.ENABLED : ComponentState.INVISIBLE);
 		} else {
 			contextMenu.setContentVersionVO(null);
-			contextMenu.setDownloadDocumentButtonState(ComponentState.INVISIBLE);
-			contextMenu.setOpenDocumentButtonState(ComponentState.INVISIBLE);
 		}
 		contextMenu.buildMenuItems();
 	}
-
-	public void displayDocumentButtonClicked() {
-
-		documentActionPresenterUtils.navigateToDisplayDocument(documentVO.getId(), ParamUtils.getCurrentParams());
-		updateSearchResultClicked();
-	}
-
 
 	public boolean openForRequested(String recordId) {
 		if (recordId != null) {
@@ -94,13 +78,4 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 	public boolean openForRequested(RecordVO recordVO) {
 		return openForRequested(recordVO.getId());
 	}
-
-	public boolean hasMetadataReport() {
-		return !ReportGeneratorUtils.getPrintableReportTemplate(presenterUtils.appLayerFactory(), presenterUtils.getCollection(), getRecordVO().getSchema().getCode(), PrintableReportListPossibleType.DOCUMENT).isEmpty();
-	}
-
-	public void logOpenAgentUrl(RecordVO recordVO) {
-		presenterUtils.loggingServices().openDocument(presenterUtils.getRecord(recordVO.getId()), presenterUtils.getCurrentUser());
-	}
-
 }

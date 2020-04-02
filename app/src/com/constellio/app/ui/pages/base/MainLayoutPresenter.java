@@ -126,6 +126,6 @@ public class MainLayoutPresenter implements Serializable {
 	}
 
 	public boolean hasGuideConfigurationPermission() {
-		return getUser().has(CorePermissions.SYSTEM_MANAGEMENT).globally();
+		return getUser().has(CorePermissions.MANAGE_SYSTEM_CONFIGURATION).globally();
 	}
 }

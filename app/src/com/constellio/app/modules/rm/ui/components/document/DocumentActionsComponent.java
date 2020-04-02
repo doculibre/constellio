@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.ViewComponent;
 
+@Deprecated
 public interface DocumentActionsComponent extends ViewComponent {
 
 	@Deprecated
@@ -30,45 +31,14 @@ public interface DocumentActionsComponent extends ViewComponent {
 
 	void openUploadWindow(boolean checkingIn);
 
-	void setDisplayDocumentButtonState(ComponentState state);
+	default void setDisplayDocumentButtonState(ComponentState state) {
+	}
 
-	void setOpenDocumentButtonState(ComponentState state);
+	default void setOpenDocumentButtonState(ComponentState state) {
+	}
 
-	void setDownloadDocumentButtonState(ComponentState state);
-
-	void setCopyDocumentButtonState(ComponentState state);
-
-	void setEditDocumentButtonState(ComponentState state);
-
-	void setAddDocumentButtonState(ComponentState state);
-
-	void setDeleteDocumentButtonState(ComponentState state);
-
-	void setViewAuthorizationButtonState(ComponentState state);
-
-	void setCreatePDFAButtonState(ComponentState state);
-
-	void setShareDocumentButtonState(ComponentState state);
-
-	void setUnshareDocumentButtonState(ComponentState state);
-
-	void setUploadButtonState(ComponentState state);
-
-	void setCheckInButtonState(ComponentState state);
-
-	void setAlertWhenAvailableButtonState(ComponentState state);
-
-	void setCheckOutButtonState(ComponentState state);
-
-	void setCartButtonState(ComponentState state);
-
-	void setAddToOrRemoveFromSelectionButtonState(ComponentState state);
-
-	void setGenerateMetadataButtonState(ComponentState state);
-
-	void setPublishButtonState(ComponentState state);
-
-	void setFinalizeButtonState(ComponentState state);
+	default void setDownloadDocumentButtonState(ComponentState state) {
+	}
 
 	void setBorrowedMessage(String borrowedMessageKey, String... args);
 

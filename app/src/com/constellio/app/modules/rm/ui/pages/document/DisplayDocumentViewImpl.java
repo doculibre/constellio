@@ -586,7 +586,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					protected String toColumnId(Object propertyId) {
 						if (propertyId instanceof MetadataVO) {
 							if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-								setColumnHeader(propertyId, "");
 								setColumnWidth(propertyId, 60);
 							}
 						}
@@ -691,9 +690,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				DocumentMenuItemActionType.DOCUMENT_DISPLAY.name(),
 				DocumentMenuItemActionType.DOCUMENT_OPEN.name(),
 				DocumentMenuItemActionType.DOCUMENT_EDIT.name());
-		List<Button> actionMenuButtons = new RecordVOActionButtonFactory(documentVO, this, excludedActionTypes).build();
-
-		return actionMenuButtons;
+		return new RecordVOActionButtonFactory(documentVO, this, excludedActionTypes).build();
 	}
 
 	@Override
@@ -703,6 +700,31 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			actionMenuBarLayout.addStyleName("not-nested-action-menu-bar-layout");
 		}
 		return actionMenu;
+	}
+
+	public void setDisplayDocumentButtonState(ComponentState state) {
+		displayDocumentButton.setVisible(state.isVisible());
+		displayDocumentButton.setEnabled(state.isVisible());
+		actionButtonStateChanged(displayDocumentButton);
+	}
+
+	public void setOpenDocumentButtonState(ComponentState state) {
+		openDocumentButton.setVisible(state.isVisible());
+		openDocumentButton.setEnabled(state.isVisible());
+		actionButtonStateChanged(openDocumentButton);
+	}
+
+	public void setDownloadDocumentButtonState(ComponentState state) {
+		if (downloadDocumentButton != null) {
+			downloadDocumentButton.setVisible(state.isVisible());
+			downloadDocumentButton.setEnabled(state.isVisible());
+		}
+	}
+
+	public void setEditDocumentButtonState(ComponentState state) {
+		editDocumentButton.setVisible(state.isVisible());
+		editDocumentButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(editDocumentButton);
 	}
 
 	public void navigateToSelf() {
@@ -752,100 +774,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public void setCopyDocumentButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setUploadButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setCheckInButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setAlertWhenAvailableButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setCheckOutButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setCartButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setAddToOrRemoveFromSelectionButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setGenerateMetadataButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setPublishButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setFinalizeButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setDisplayDocumentButtonState(ComponentState state) {
-		displayDocumentButton.setVisible(state.isVisible());
-		displayDocumentButton.setEnabled(state.isVisible());
-		actionButtonStateChanged(displayDocumentButton);
-	}
-
-	@Override
-	public void setOpenDocumentButtonState(ComponentState state) {
-		openDocumentButton.setVisible(state.isVisible());
-		openDocumentButton.setEnabled(state.isVisible());
-		actionButtonStateChanged(openDocumentButton);
-	}
-
-	@Override
-	public void setDownloadDocumentButtonState(ComponentState state) {
-		if (downloadDocumentButton != null) {
-			downloadDocumentButton.setVisible(state.isVisible());
-			downloadDocumentButton.setEnabled(state.isVisible());
-		}
-	}
-
-	@Override
-	public void setEditDocumentButtonState(ComponentState state) {
-		editDocumentButton.setVisible(state.isVisible());
-		editDocumentButton.setEnabled(state.isEnabled());
-		actionButtonStateChanged(editDocumentButton);
-	}
-
-	@Override
-	public void setAddDocumentButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setDeleteDocumentButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setViewAuthorizationButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setShareDocumentButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setUnshareDocumentButtonState(ComponentState state) {
-
-	}
-
-	@Override
-	public void setCreatePDFAButtonState(ComponentState state) {
-	}
-
-	@Override
 	public void setBorrowedMessage(String borrowedMessageKey, String... args) {
 		if (StringUtils.isNotBlank(borrowedMessageKey)) {
 			borrowedLabel.setVisible(true);
@@ -854,10 +782,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			borrowedLabel.setVisible(false);
 			borrowedLabel.setValue(null);
 		}
-	}
-
-	@Override
-	public void setPublishButtons(boolean published) {
 	}
 
 	@Override

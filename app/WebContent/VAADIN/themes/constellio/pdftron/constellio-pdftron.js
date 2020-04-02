@@ -33,8 +33,8 @@ const FitWidth = "FitWidth";
     }
 });
 
-(window.setEnableAnnotations = function(enableAnnotations) {
-    if(isWebViewerInstanceSet()) {
+(window.setEnableAnnotations = function (enableAnnotations) {
+    if (isWebViewerInstanceSet()) {
         const {docViewer} = window.webViewerInstance;
         const annotManager = docViewer.getAnnotationManager();
         var annotations = annotManager.getAnnotationsList();
@@ -69,17 +69,51 @@ const FitWidth = "FitWidth";
     }
 });
 
-(window.rePullAnnotations = function() {
-    if(isWebViewerInstanceSet()) {
+(window.refreshReference = function () {
+    let foundWebViewerInstance = document.getElementById(canvasId).childNodes[0].contentWindow.readerControl;
+
+    if (foundWebViewerInstance != webViewerInstance) {
+        webViewerInstance = foundWebViewerInstance;
+
+        webViewerInstance.setAnnotationUser(name);
+        webViewerInstance.setAdminUser(admin);
+        webViewerInstance.setReadOnly(isReadOnly);
+        webViewerInstance.setLanguage(language);
+        debugger
+        registerAnnotationChange(webViewerInstance.getBBAnnotManager());
+        rePullAnnotations();
+    }
+});
+
+(window.rePullAnnotations = function () {
+    if (isWebViewerInstanceSet()) {
         $.get(documentAnnotationUrl, (data) => {
             ignoreAnnotationChange = true;
-            if(data) {
+            if(data) {webViewerInstance.setReadOnly(true);
                 window.webViewerInstance.docViewer.getAnnotationManager().importAnnotations(data);
             }
             ignoreAnnotationChange = false;
         });
     }
 });
+
+(window.registerAnnotationChange = function (annotManager) {
+    annotManager.on('annotationChanged', async (event, annotations, action) => {
+        if (action === 'add' || action === 'modify' || action === 'delete') {
+            if (ignoreAnnotationChange) {
+                return;
+            }
+
+            const annotationsFile = await annotManager.exportAnnotations({links: false, widgets: false});
+
+            $.post(documentAnnotationCallBack, {
+                'resourceKey': documentAnnotationRK,
+                'data': annotationsFile
+            })
+        }
+    });
+});
+
 
 (window.getFinalDocument = async function() {
     if(isWebViewerInstanceSet()) {
@@ -126,24 +160,18 @@ const FitWidth = "FitWidth";
     }
 });
 
-(window.registerAnnotationChanged = function(instance) {
+(window.registerAnnotationChanged = async function(instance) {
 
     const {docViewer} = instance;
     const annotManager = docViewer.getAnnotationManager();
 
-     annotManager.on('annotationChanged', async (event, annotations, action) => {
-        if (action === 'add' || action === 'modify' || action === 'delete') {
-             if(ignoreAnnotationChange) {
-                return;
-             }
+    registerAnnotationChange(annotManager);
 
-            const annotationsFile = await annotManager.exportAnnotations({links: false, widgets: false});
+    const annotationsFile = await annotManager.exportAnnotations({links: false, widgets: false});
 
-            $.post(documentAnnotationCallBack, {
-                'resourceKey': documentAnnotationRK,
-                'data': annotationsFile
-            });
-        }
+    $.post(documentAnnotationCallBack, {
+        'resourceKey': documentAnnotationRK,
+        'data': annotationsFile
     });
 });
 
