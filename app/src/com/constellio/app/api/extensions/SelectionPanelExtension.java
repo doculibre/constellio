@@ -6,9 +6,7 @@ import com.constellio.app.ui.framework.components.BaseWindow;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
 
-/**
- * Created by Constellio on 2017-02-14.
- */
+@Deprecated
 public class SelectionPanelExtension {
 
 	public static final String BUTTON_STYLE = "header-selection-panel-action-button";

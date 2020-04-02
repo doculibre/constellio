@@ -32,8 +32,6 @@ import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvi
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -496,44 +494,6 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.backButtonClicked();
 			}
 		};
-	}
-
-	public class BatchProcessingViewImpl implements BatchProcessingView {
-		private final String schemaType;
-
-		public BatchProcessingViewImpl(String schemaType) {
-			this.schemaType = schemaType;
-		}
-
-		@Override
-		public List<String> getSelectedRecordIds() {
-			return presenter.getNotDeletedRecordsIds(schemaType);
-		}
-
-		@Override
-		public List<String> getUnselectedRecordIds() {
-			return null;
-		}
-
-		@Override
-		public String getSchemaType() {
-			return schemaType;
-		}
-
-		@Override
-		public SessionContext getSessionContext() {
-			return CartViewImpl.this.getSessionContext();
-		}
-
-		@Override
-		public void showErrorMessage(String error) {
-			CartViewImpl.this.showErrorMessage(error);
-		}
-
-		@Override
-		public void showMessage(String message) {
-			CartViewImpl.this.showMessage(message);
-		}
 	}
 
 	private class FireableTabSheet extends TabSheet {

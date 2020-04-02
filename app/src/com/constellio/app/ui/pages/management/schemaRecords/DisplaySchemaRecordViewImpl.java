@@ -7,7 +7,6 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.ListSequencesButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
@@ -63,10 +62,6 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	private boolean isViewRecordMode;
 
-
-	public DisplaySchemaRecordViewImpl() {
-		this(null, false, false, false);
-	}
 
 	public DisplaySchemaRecordViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow,
 									   boolean isViewRecordMode) {
@@ -205,33 +200,6 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<Button>();
-		if (presenter.isEditButtonVisible()) {
-			editButton = new EditButton(false) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.editButtonClicked();
-				}
-			};
-			if (!nestedView) {
-				actionMenuButtons.add(editButton);
-			}
-		}
-		if (presenter.isDeleteButtonVisible()) {
-			deleteButton = new DeleteButton(false) {
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.deleteButtonClicked();
-				}
-			};
-			actionMenuButtons.add(deleteButton);
-		}
-		if (presenter.isSequenceTable()) {
-			actionMenuButtons.add(new ListSequencesButton(recordVO.getId(), $("DisplaySchemaRecordView.sequences")));
-		}
-
-
-		//		return actionMenuButtons;
 		return new RecordVOActionButtonFactory(recordVO, this, Collections.emptyList()).build();
 	}
 

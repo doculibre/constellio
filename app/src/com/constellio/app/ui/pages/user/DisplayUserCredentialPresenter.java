@@ -59,12 +59,6 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 		view.navigate().to().url(backPage + parameters);
 	}
 
-	public void editButtonClicked(UserCredentialVO entity) {
-		paramsMap.put("username", entity.getUsername());
-		String parameters = getParameters(NavigatorConfigurationService.USER_DISPLAY);
-		view.navigate().to().editUserCredential(parameters);
-	}
-
 	public GlobalGroupVODataProvider getGlobalGroupVODataProvider() {
 		GlobalGroupToVOBuilder voBuilder = newGlobalGroupVOBuilder();
 		return newGlobalGroupVODataProvider(voBuilder);
@@ -158,27 +152,12 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS);
 	}
 
-	public boolean canModifyPassword(String usernameInEdition) {
-		UserCredential userInEdition = userServices.getUserCredential(usernameInEdition);
-		UserCredential currentUser = userServices.getUserCredential(view.getSessionContext().getCurrentUser().getUsername());
-		return userServices.canModifyPassword(userInEdition, currentUser);
-	}
-
 	public String getServiceKey(String username) {
 		String serviceKey = userServices.getUser(username).getServiceKey();
 		if (serviceKey == null) {
 			serviceKey = userServices.giveNewServiceToken(userServices.getUser(username));
 		}
 		return serviceKey;
-	}
-
-	public String generateToken(String username, String unitTime, int duration) {
-		return userServices.generateToken(username, unitTime, duration);
-	}
-
-	public boolean userNotLDAPSynced(String username) {
-		UserCredential userCredential = userServices.getUserCredential(username);
-		return userCredential.getDn() == null && userServices.has(userCredential).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 
 	public String getConstellioUrl() {
