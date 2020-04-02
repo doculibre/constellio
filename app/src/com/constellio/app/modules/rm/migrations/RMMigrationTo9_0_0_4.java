@@ -10,6 +10,7 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+//9.0
 public class RMMigrationTo9_0_0_4 extends MigrationHelper implements MigrationScript {
 
 	@Override

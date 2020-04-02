@@ -258,26 +258,14 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo9_0_0_44());
 		scripts.add(new RMMigrationTo9_0_0_33());
 		scripts.add(new RMMigrationTo9_0_0_42());
-		scripts.add(new RMMigrationTo9_0_47());
-		scripts.add(new RMMigrationTo9_0_54());
-		scripts.add(new RMMigrationTo9_0_1_11());
 		scripts.add(new RMMigrationTo9_0_0_45());
 		scripts.add(new RMMigrationTo9_0_0_47());
 		scripts.add(new RMMigrationTo9_1_0_12());
 		scripts.add(new RMMigrationTo9_1_0_13());
-		scripts.add(new RMMigrationTo9_1_12());
-		scripts.add(new RMMigrationTo9_1_13());
 		scripts.add(new RMMigrationTo9_0_0_60_1());
 		scripts.add(new RMMigrationTo9_0_3_11());
 		scripts.add(new RMMigrationTo9_0_3_12());
-		scripts.add(new RMMigrationTo_9_2());
-		scripts.add(new RMMigrationTo9_1_1000());
-		scripts.add(new RMMigrationTo9_2_0_1());
-		scripts.add(new RMMigrationTo9_2_0_2());
-		scripts.add(new RMMigrationTo9_0_3());
-		scripts.add(new RMMigrationTo9_1());
-		scripts.add(new RMMigrationTo9_1_0_1());
-		//scripts.add(new RMMigrationTo9_0_666());
+		scripts.add(new RMMigrationTo9_1_0());
 
 		return scripts;
 	}
