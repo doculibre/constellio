@@ -125,7 +125,7 @@ public class PartialSystemStateExporter {
 
 			for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
 				MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
-				for (String typeCode : types.getSchemaTypesSortedByDependency()) {
+				for (String typeCode : types.getSchemaTypesCodesSortedByDependency()) {
 					MetadataSchemaType type = types.getSchemaType(typeCode);
 					if (!filteredSchemaTypes.contains(typeCode)) {
 						Iterator<List<Record>> it = searchServices.recordsBatchIterator(5000, query(from(type).returnAll()));
