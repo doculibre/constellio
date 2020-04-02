@@ -1275,7 +1275,7 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private boolean isReferenceInReversedOrder(Metadata metadata) {
-		List<String> schemaTypes = schemasManager.getSchemaTypes(metadata.getCollection()).getSchemaTypesSortedByDependency();
+		List<String> schemaTypes = schemasManager.getSchemaTypes(metadata.getCollection()).getSchemaTypesCodesSortedByDependency();
 		int schemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getSchemaTypeCode());
 		int targettingSchemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getReferencedSchemaTypeCode());
 		return schemaTypeDependencyIndex < targettingSchemaTypeDependencyIndex;
@@ -1324,7 +1324,7 @@ public class RecordsImportServicesExecutor {
 
 		validateAvailableSchemaTypes(availableSchemaTypes);
 
-		for (String schemaType : types.getSchemaTypesSortedByDependency()) {
+		for (String schemaType : types.getSchemaTypesCodesSortedByDependency()) {
 			if (availableSchemaTypes.contains(schemaType)) {
 				importedSchemaTypes.add(schemaType);
 			}
