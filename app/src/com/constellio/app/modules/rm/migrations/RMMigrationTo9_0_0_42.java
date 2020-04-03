@@ -21,6 +21,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 
 import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
 
+//9.0
 public class RMMigrationTo9_0_0_42 implements MigrationScript {
 	@Override
 	public String getVersion() {

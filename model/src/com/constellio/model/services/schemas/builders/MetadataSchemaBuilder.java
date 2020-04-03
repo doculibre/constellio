@@ -46,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
@@ -345,6 +346,17 @@ public class MetadataSchemaBuilder {
 
 	public MetadataBuilder createUndeletable(String code) {
 		return this.create(code).setUndeletable(true);
+	}
+
+	public MetadataBuilder createIfInexisting(String code, Consumer<MetadataBuilder> metadataConsumer) {
+		if (!hasMetadata(code)) {
+			MetadataBuilder metadataBuilder = create(code);
+			metadataConsumer.accept(metadataBuilder);
+			return metadataBuilder;
+		} else {
+			return get(code);
+		}
+
 	}
 
 	public MetadataBuilder create(String metadataLocaleCode) {
