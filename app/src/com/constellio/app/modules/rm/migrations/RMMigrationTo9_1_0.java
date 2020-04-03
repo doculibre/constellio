@@ -41,6 +41,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator2;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
 import java.util.Locale;
 import java.util.Map;
@@ -91,9 +92,10 @@ public class RMMigrationTo9_1_0 implements MigrationScript {
 		triggerActionType.setTitle(Locale.ENGLISH, "Move into folder");
 		triggerActionType.setLinkedSchema(MoveInFolderTriggerAction.SCHEMA);
 
-
-		transaction.add(triggerType.getWrappedRecord());
-		transaction.add(triggerActionType.getWrappedRecord());
+		if (rm.searchTriggerActionTypes(LogicalSearchQueryOperators.returnAll()).isEmpty()) {
+			transaction.add(triggerType);
+			transaction.add(triggerActionType);
+		}
 	}
 
 	private String getDefaultTriggerMetadataCode(String metadataCode) {
@@ -173,67 +175,69 @@ public class RMMigrationTo9_1_0 implements MigrationScript {
 						.asCopied(documentSchema.get(Document.FOLDER), folderSchema.get(Folder.EXPECTED_DESTRUCTION_DATE));
 			}
 
-			if (!documentSchema.hasMetadata(Document.IS_CHECKOUT_ALERT_SENT)) {
-				documentSchema.createUndeletable(Document.IS_CHECKOUT_ALERT_SENT).setType(MetadataValueType.BOOLEAN)
-						.setDefaultValue(false).setSystemReserved(true);
+			documentSchema.createIfInexisting(Document.IS_CHECKOUT_ALERT_SENT, (m) -> m
+					.setType(MetadataValueType.BOOLEAN)
+					.setDefaultValue(false).setSystemReserved(true));
 
-			}
+			documentSchema.createIfInexisting(Document.CONTENT_CHECKED_OUT_DATE, (m) -> m
+					.setType(MetadataValueType.DATE_TIME)
+					.defineDataEntry().asCalculated(DocumentCheckedOutDateCalculator.class));
 
-			if (!documentSchema.hasMetadata(Document.CONTENT_CHECKED_OUT_DATE)) {
-				documentSchema.createUndeletable(Document.CONTENT_CHECKED_OUT_DATE)
-						.setType(MetadataValueType.DATE_TIME)
-						.defineDataEntry().asCalculated(DocumentCheckedOutDateCalculator.class);
-			}
-
-			documentSchema.create(Document.LINKED_TO)
+			documentSchema.createIfInexisting(Document.LINKED_TO, (m) -> m
 					.setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(types().getDefaultSchema(Folder.SCHEMA_TYPE))
 					.setMultivalue(true)
-					.setCacheIndex(true);
+					.setCacheIndex(true));
 
-			MetadataSchemaBuilder externalLinkTypeSchema = setupExternalLinkTypeSchema().getDefaultSchema();
-			MetadataSchemaTypeBuilder externalLinkSchemaType = typesBuilder.createNewSchemaType(ExternalLink.SCHEMA_TYPE).setSecurity(false);
-			MetadataSchemaBuilder externalLinkSchema = externalLinkSchemaType.getDefaultSchema();
+			if (!typesBuilder.hasSchemaType(ExternalLink.SCHEMA_TYPE)) {
+				MetadataSchemaBuilder externalLinkTypeSchema = setupExternalLinkTypeSchema().getDefaultSchema();
+				MetadataSchemaTypeBuilder externalLinkSchemaType = typesBuilder.createNewSchemaType(ExternalLink.SCHEMA_TYPE).setSecurity(false);
+				MetadataSchemaBuilder externalLinkSchema = externalLinkSchemaType.getDefaultSchema();
 
-			externalLinkSchema.createUndeletable(ExternalLink.TYPE)
-					.setType(MetadataValueType.REFERENCE)
-					.defineReferencesTo(externalLinkTypeSchema);
-			externalLinkSchema.createUndeletable(ExternalLink.IMPORTED_ON).setType(MetadataValueType.DATE_TIME);
+				externalLinkSchema.createUndeletable(ExternalLink.TYPE)
+						.setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(externalLinkTypeSchema);
+				externalLinkSchema.createUndeletable(ExternalLink.IMPORTED_ON).setType(MetadataValueType.DATE_TIME);
 
-			folderSchema.createUndeletable(Folder.EXTERNAL_LINKS).setType(MetadataValueType.REFERENCE)
-					.defineReferencesTo(externalLinkSchemaType).setMultivalue(true);
+				folderSchema.createUndeletable(Folder.EXTERNAL_LINKS).setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(externalLinkSchemaType).setMultivalue(true);
 
-			documentSchema.createUndeletable(Document.FILENAME).setType(STRING)
-					.defineDataEntry().asCalculated(new DocumentFilenameCalculator());
+				documentSchema.createUndeletable(Document.FILENAME).setType(STRING)
+						.defineDataEntry().asCalculated(new DocumentFilenameCalculator());
 
-			MetadataSchemaTypeBuilder triggerActionTypeSchemaType = typesBuilder.createNewSchemaType(TriggerActionType.SCHEMA_TYPE).setSecurity(false);
-			MetadataSchemaBuilder triggerActionTypeSchema = triggerActionTypeSchemaType.getDefaultSchema();
-			triggerActionTypeSchema.createUndeletable(TriggerActionType.LINKED_SCHEMA).setType(STRING)
-					.setDefaultRequirement(true);
-			triggerActionTypeSchema.createUndeletable(TriggerActionType.CODE).setType(STRING).setSystemReserved(true).setDefaultRequirement(true);
+				MetadataSchemaTypeBuilder triggerActionTypeSchemaType = typesBuilder.createNewSchemaType(TriggerActionType.SCHEMA_TYPE).setSecurity(false);
+				MetadataSchemaBuilder triggerActionTypeSchema = triggerActionTypeSchemaType.getDefaultSchema();
+				triggerActionTypeSchema.createUndeletable(TriggerActionType.LINKED_SCHEMA).setType(STRING)
+						.setDefaultRequirement(true);
+				triggerActionTypeSchema.createUndeletable(TriggerActionType.CODE).setType(STRING).setSystemReserved(true).setDefaultRequirement(true);
 
-			MetadataSchemaTypeBuilder triggerTypeSchemaType = typesBuilder.createNewSchemaType(TriggerType.SCHEMA_TYPE).setSecurity(false);
-			MetadataSchemaBuilder triggerTypeSchema = triggerTypeSchemaType.getDefaultSchema();
-			triggerTypeSchema.createUndeletable(TriggerType.CODE).setType(STRING).setSystemReserved(true).setDefaultRequirement(true);
+				MetadataSchemaTypeBuilder triggerTypeSchemaType = typesBuilder.createNewSchemaType(TriggerType.SCHEMA_TYPE).setSecurity(false);
+				MetadataSchemaBuilder triggerTypeSchema = triggerTypeSchemaType.getDefaultSchema();
+				triggerTypeSchema.createUndeletable(TriggerType.CODE).setType(STRING).setSystemReserved(true).setDefaultRequirement(true);
 
 
-			MetadataSchemaTypeBuilder triggerActionSchemaType = typesBuilder.createNewSchemaType(TriggerAction.SCHEMA_TYPE).setSecurity(false);
-			MetadataSchemaBuilder triggerActionSchema = triggerActionSchemaType.getDefaultSchema();
-			triggerActionSchema.getMetadata(TriggerAction.TITLE).required();
-			triggerActionSchema.createUndeletable(TriggerAction.TYPE).setType(REFERENCE).defineReferencesTo(triggerActionTypeSchemaType).required();
+				MetadataSchemaTypeBuilder triggerActionSchemaType = typesBuilder.createNewSchemaType(TriggerAction.SCHEMA_TYPE).setSecurity(false);
+				MetadataSchemaBuilder triggerActionSchema = triggerActionSchemaType.getDefaultSchema();
+				triggerActionSchema.getMetadata(TriggerAction.TITLE).required();
+				triggerActionSchema.createUndeletable(TriggerAction.TYPE).setType(REFERENCE).defineReferencesTo(triggerActionTypeSchemaType).required();
 
-			triggerActionSchemaType.createCustomSchema(MoveInFolderTriggerAction.SCHEMA_LOCAL_CODE);
-			triggerActionSchemaType.getCustomSchema(MoveInFolderTriggerAction.SCHEMA_LOCAL_CODE).createUndeletable(MoveInFolderTriggerAction.DATE).setType(MetadataValueType.DATE);
+				triggerActionSchemaType.createCustomSchema(MoveInFolderTriggerAction.SCHEMA_LOCAL_CODE);
+				triggerActionSchemaType.getCustomSchema(MoveInFolderTriggerAction.SCHEMA_LOCAL_CODE).createUndeletable(MoveInFolderTriggerAction.DATE).setType(MetadataValueType.DATE);
 
-			MetadataSchemaTypeBuilder triggerSchemaType = typesBuilder.createNewSchemaType(Trigger.SCHEMA_TYPE).setSecurity(false);
-			MetadataSchemaBuilder triggerSchema = triggerSchemaType.getDefaultSchema();
+				MetadataSchemaTypeBuilder triggerSchemaType = typesBuilder.createNewSchemaType(Trigger.SCHEMA_TYPE).setSecurity(false);
+				MetadataSchemaBuilder triggerSchema = triggerSchemaType.getDefaultSchema();
 
-			triggerSchema.getMetadata(Trigger.TITLE).required();
-			triggerSchema.createUndeletable(Trigger.DESCRIPTION).setType(TEXT);
-			triggerSchema.createUndeletable(Trigger.TYPE).setType(REFERENCE).defineReferencesTo(triggerTypeSchema).required();
-			triggerSchema.createUndeletable(Trigger.ACTIONS).setType(REFERENCE).defineReferencesTo(triggerActionSchemaType).setMultivalue(true).required();
-			triggerSchema.createUndeletable(Trigger.CRITERIA).setType(STRUCTURE).defineStructureFactory(CriterionFactory.class).setMultivalue(true).required();
-			triggerSchema.createUndeletable(Trigger.TARGET).setType(REFERENCE).setMultivalue(true).defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE)).setSystemReserved(true);
+				triggerSchema.getMetadata(Trigger.TITLE).required();
+				triggerSchema.createUndeletable(Trigger.DESCRIPTION).setType(TEXT);
+				triggerSchema.createUndeletable(Trigger.TYPE).setType(REFERENCE).defineReferencesTo(triggerTypeSchema).required();
+				triggerSchema.createUndeletable(Trigger.ACTIONS).setType(REFERENCE).defineReferencesTo(triggerActionSchemaType).setMultivalue(true).required();
+				triggerSchema.createUndeletable(Trigger.CRITERIA).setType(STRUCTURE).defineStructureFactory(CriterionFactory.class).setMultivalue(true).required();
+				triggerSchema.createUndeletable(Trigger.TARGET).setType(REFERENCE).setMultivalue(true).defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE)).setSystemReserved(true);
+			}
+			typesBuilder.getDefaultSchema(ExternalLinkType.SCHEMA_TYPE).getMetadata(ExternalLinkType.CODE).setUniqueValue(true);
+			typesBuilder.getDefaultSchema(TriggerType.SCHEMA_TYPE).getMetadata(TriggerType.CODE).setUniqueValue(true);
+			typesBuilder.getDefaultSchema(TriggerActionType.SCHEMA_TYPE).getMetadata(TriggerActionType.CODE).setUniqueValue(true);
+
 		}
 
 
