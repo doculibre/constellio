@@ -23,7 +23,6 @@ import com.vaadin.ui.Table.ColumnResizeEvent;
 import com.vaadin.ui.Table.ColumnResizeListener;
 import com.vaadin.ui.Table.HeaderClickEvent;
 import com.vaadin.ui.Table.HeaderClickListener;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -141,7 +140,7 @@ public class TableColumnsManager implements Serializable {
 
 				String columnId = toColumnId(propertyId);
 				boolean collapsed = !visibleColumnIdsForUser.contains(columnId);
-				if (!collapsed || table.isColumnCollapsible(columnId)) {
+				if (!collapsed && table.isColumnCollapsible(columnId)) {
 					table.setColumnCollapsed(propertyId, collapsed);
 				}
 
