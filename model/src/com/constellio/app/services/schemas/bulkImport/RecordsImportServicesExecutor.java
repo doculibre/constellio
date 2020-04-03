@@ -555,6 +555,7 @@ public class RecordsImportServicesExecutor {
 							  ImportData toImport, DecoratedValidationsErrors errors)
 			throws ValidationException, PostponedRecordException {
 
+		toImport.unescapeFieldNames();
 		String legacyId = toImport.getLegacyId();
 		if (typeImportContext.secondPhaseImport || resolverCache.getNotYetImportedLegacyIds(
 				typeImportContext.schemaType, typeBatchImportContext.options.isImportAsLegacyId()).contains(legacyId)) {
