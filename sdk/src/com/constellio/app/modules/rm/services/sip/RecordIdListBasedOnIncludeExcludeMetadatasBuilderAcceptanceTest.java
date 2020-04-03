@@ -13,6 +13,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -141,6 +142,7 @@ public class RecordIdListBasedOnIncludeExcludeMetadatasBuilderAcceptanceTest ext
 		});
 	}
 
+	@IntermittentFailureTest
 	@Test
 	public void givenAFolderIncludedInSIPExportWithDocumentNotExcludedFromSIPExportAndFolderExcludedFromSIPExportWhenExportAllFoldersAndDocumentThenExporParentFolderAndDocument()
 			throws IOException, RecordServicesException {

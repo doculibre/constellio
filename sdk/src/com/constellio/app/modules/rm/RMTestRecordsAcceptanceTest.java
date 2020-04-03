@@ -20,6 +20,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.assertj.core.api.Condition;
@@ -101,6 +102,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@IntermittentFailureTest
 	public void givenTestRecordsWithFoldersThenUsersHaveAuthorizationToTheirFilingSpacesFolders()
 			throws Exception {
 

@@ -9,6 +9,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +50,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@IntermittentFailureTest
 	public void whenProcessIsFinishedAndHistoryLimitIsExceededThenOldestProcessIsDeletedFromXml()
 			throws InterruptedException {
 		givenConfig(ConstellioEIMConfigs.BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE, 3);
