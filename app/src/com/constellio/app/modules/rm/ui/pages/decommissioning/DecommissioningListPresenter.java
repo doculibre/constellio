@@ -51,7 +51,6 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServicesException;
@@ -335,8 +334,6 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 				view.showErrorMessage(wrappedException.getMessage());
 				e.printStackTrace();
 			}
-		} catch (ValidationException e) {
-			view.showMessage($(e));
 		} catch (Exception ex) {
 			view.showErrorMessage(ex.getMessage());
 			ex.printStackTrace();

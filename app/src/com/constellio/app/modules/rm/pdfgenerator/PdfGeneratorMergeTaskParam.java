@@ -25,10 +25,8 @@ public class PdfGeneratorMergeTaskParam implements AsyncTaskExecutionParams {
 	}
 
 	@Override
-	public void logError(String code, Map<String, Object> parameters) throws ValidationException {
-		ValidationErrors errors = new ValidationErrors();
-		errors.add(PdfGeneratorAsyncTask.class, code, parameters);
-		errors.throwIfNonEmpty();
+	public void logError(String code, Map<String, Object> parameters) {
+
 	}
 
 	@Override
@@ -44,6 +42,12 @@ public class PdfGeneratorMergeTaskParam implements AsyncTaskExecutionParams {
 	@Override
 	public AsyncTaskBatchProcess getBatchProcess() {
 		return null;
+	}
+
+	public void throwError(String code, Map<String, Object> parameters) throws ValidationException {
+		ValidationErrors errors = new ValidationErrors();
+		errors.add(PdfGeneratorAsyncTask.class, code, parameters);
+		errors.throwIfNonEmpty();
 	}
 }
 

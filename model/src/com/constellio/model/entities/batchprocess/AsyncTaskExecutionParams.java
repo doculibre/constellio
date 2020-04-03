@@ -1,7 +1,5 @@
 package com.constellio.model.entities.batchprocess;
 
-import com.constellio.model.frameworks.validation.ValidationException;
-
 import java.util.Map;
 
 public interface AsyncTaskExecutionParams {
@@ -10,7 +8,7 @@ public interface AsyncTaskExecutionParams {
 
 	void logWarning(String code, Map<String, Object> parameters);
 
-	void logError(String code, Map<String, Object> parameters) throws ValidationException;
+	void logError(String code, Map<String, Object> parameters);
 
 	void incrementProgression(int numberToAdd);
 
