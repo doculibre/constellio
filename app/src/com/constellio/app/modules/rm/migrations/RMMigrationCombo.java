@@ -20,6 +20,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.model.entities.modules.EmailTemplateConstants;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Report;
@@ -176,6 +177,13 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		scripts.add(new RMMigrationTo9_0_0_4());
 		scripts.add(new RMMigrationTo9_0_0_33());
 		scripts.add(new RMMigrationTo9_0_0_42());
+
+		scripts.add(new RMMigrationTo9_0_0_44());
+		scripts.add(new RMMigrationTo9_0_0_45());
+		scripts.add(new RMMigrationTo9_0_0_45_1());
+		scripts.add(new RMMigrationTo9_0_0_47());
+		scripts.add(new RMMigrationTo9_0_0_60());
+		scripts.add(new RMMigrationTo9_0_0_60_1());
 
 		return scripts;
 	}
@@ -478,6 +486,8 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection,
 				"alertWhenDecommissioningListCreatedTemplate.html",
 				RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
+		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection, "alertBorrowingPeriodEndedTemplate.html",
+				RMEmailTemplateConstants.ALERT_BORROWING_PERIOD_ENDED);
 
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
 				.equals("fr")) {
@@ -489,6 +499,16 @@ public class RMMigrationCombo implements ComboMigrationScript {
 					collection, "approvalRequestDeniedForDecomListTemplate_en.html",
 					RMEmailTemplateConstants.APPROVAL_REQUEST_DENIED_TEMPLATE_ID);
 
+		}
+
+		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
+				.equals("en")) {
+			addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection,
+					"alertShareTemplate_en.html", EmailTemplateConstants.ALERT_SHARE);
+
+		} else {
+			addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection,
+					"alertShareTemplate.html", EmailTemplateConstants.ALERT_SHARE);
 		}
 	}
 
