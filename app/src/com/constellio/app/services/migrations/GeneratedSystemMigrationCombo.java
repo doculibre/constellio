@@ -34,7 +34,6 @@ import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.EmailAddressFactory;
-import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.entities.structures.MapStringStringStructureFactory;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -1441,6 +1440,8 @@ public final class GeneratedSystemMigrationCombo {
     authorizationDetails_shareTokens.setUndeletable(true);
     authorizationDetails_shareTokens.setMultiLingual(false);
     authorizationDetails_shareTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder authorizationDetails_sharedBy = authorizationDetailsSchema.create("sharedBy").setType(MetadataValueType.STRING);
+    authorizationDetails_sharedBy.setCacheIndex(true);
     MetadataBuilder authorizationDetails_startDate = authorizationDetailsSchema.create("startDate").setType(MetadataValueType.DATE);
     authorizationDetails_startDate.setUndeletable(true);
     MetadataBuilder authorizationDetails_synced = authorizationDetailsSchema.create("synced").setType(MetadataValueType.BOOLEAN);
@@ -2714,11 +2715,16 @@ public final class GeneratedSystemMigrationCombo {
     event_autocomplete.setUndeletable(true);
     event_autocomplete.setEssential(true);
     event_autocomplete.setMultiLingual(true);
+    MetadataBuilder event_batchProcessIdentifier = eventSchema.create("batchProcessIdentifier").setType(MetadataValueType.TEXT);
+    event_batchProcessIdentifier.setUndeletable(true);
     MetadataBuilder event_caption = eventSchema.create("caption").setType(MetadataValueType.STRING);
     event_caption.setSystemReserved(true);
     event_caption.setUndeletable(true);
     event_caption.setMultiLingual(false);
     event_caption.setSortable(true);
+    MetadataBuilder event_content = eventSchema.create("content").setType(MetadataValueType.CONTENT);
+    event_content.setUndeletable(true);
+    event_content.defineStructureFactory(ContentFactory.class);
     MetadataBuilder event_createdBy = eventSchema.create("createdBy").setType(MetadataValueType.REFERENCE);
     event_createdBy.setSystemReserved(true);
     event_createdBy.setUndeletable(true);
@@ -2864,6 +2870,7 @@ public final class GeneratedSystemMigrationCombo {
     event_shareTokens.setUndeletable(true);
     event_shareTokens.setMultiLingual(false);
     event_shareTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder event_sharedBy = eventSchema.create("sharedBy").setType(MetadataValueType.STRING);
     MetadataBuilder event_title = eventSchema.create("title").setType(MetadataValueType.STRING);
     event_title.setUndeletable(true);
     event_title.setMultiLingual(false);
@@ -2879,6 +2886,8 @@ public final class GeneratedSystemMigrationCombo {
     event_tokensHierarchy.setSystemReserved(true);
     event_tokensHierarchy.setUndeletable(true);
     event_tokensHierarchy.setMultiLingual(false);
+    MetadataBuilder event_totalModifiedRecord = eventSchema.create("totalModifiedRecord").setType(MetadataValueType.NUMBER);
+    event_totalModifiedRecord.setUndeletable(true);
     MetadataBuilder event_type = eventSchema.create("type").setType(MetadataValueType.STRING);
     event_type.setUndeletable(true);
     MetadataBuilder event_userRoles = eventSchema.create("userRoles").setType(MetadataValueType.STRING);
@@ -3512,6 +3521,9 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder user_email = userSchema.create("email").setType(MetadataValueType.STRING);
     user_email.setUndeletable(true);
     user_email.defineValidators().add(EmailValidator.class);
+    MetadataBuilder user_enableFacetsApplyButton = userSchema.create("enableFacetsApplyButton").setType(MetadataValueType.BOOLEAN);
+    user_enableFacetsApplyButton.setUndeletable(true);
+    user_enableFacetsApplyButton.setDefaultValue(false);
     MetadataBuilder user_errorOnPhysicalDeletion = userSchema.create("errorOnPhysicalDeletion").setType(MetadataValueType.BOOLEAN);
     user_errorOnPhysicalDeletion.setSystemReserved(true);
     user_errorOnPhysicalDeletion.setUndeletable(true);
@@ -3677,8 +3689,6 @@ public final class GeneratedSystemMigrationCombo {
     user_visibleInTrees.setSystemReserved(true);
     user_visibleInTrees.setUndeletable(true);
     user_visibleInTrees.setMultiLingual(false);
-    MetadataBuilder user_visibleTableColumns = userSchema.create("visibleTableColumns").setType(MetadataValueType.STRUCTURE);
-    user_visibleTableColumns.defineStructureFactory(MapStringListStringStructureFactory.class);
   }
 
   private void createFacetSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder facetSchemaType, MetadataSchemaBuilder facet_fieldSchema, MetadataSchemaBuilder facet_querySchema, MetadataSchemaBuilder facetSchema) {
@@ -4437,6 +4447,6 @@ public final class GeneratedSystemMigrationCombo {
 
   public void applyGeneratedRoles() {
     RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();;
-    rolesManager.addRole(new Role(collection, "ADM", "Administrateur", asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.useExternalAPIS", "core.viewEvents", "core.viewLoginNotificationAlert", "core.viewSystemBatchProcesses", "core.manageShare", "core.manageGlobalLinks", "core.viewSystemState")));
+    rolesManager.addRole(new Role(collection, "ADM", "Administrateur", asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageGlobalLinks", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.unlimitedBatchProcess", "core.useExternalAPIS", "core.viewEvents", "core.viewLoginNotificationAlert", "core.viewSystemBatchProcesses", "core.viewSystemState")));
   }
 }
