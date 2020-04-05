@@ -53,7 +53,7 @@ public class DecommissioningAsyncTask implements AsyncTask {
 		}
 
 		if (attempt == 0) {
-			params.setProgressionUpperLimit(recordCount + 1);
+			params.setProgressionUpperLimit(recordCount);
 		}
 
 		try {
