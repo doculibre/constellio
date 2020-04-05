@@ -15,6 +15,8 @@ import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_CannotDecommission;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_DecommissioningListAlreadyInProcess;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -33,6 +35,10 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
+import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -48,7 +54,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
-import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.EmailRecipientServices;
@@ -94,6 +100,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class DecommissioningService {
+	public final static String BATCH_PROCESS_NAME = "decommissionBatchProcess";
+
 	private static Logger LOGGER = LoggerFactory.getLogger(DecommissioningService.class);
 	private final AppLayerFactory appLayerFactory;
 	private final ModelLayerFactory modelLayerFactory;
@@ -455,32 +463,29 @@ public class DecommissioningService {
 	}
 
 	public void decommission(DecommissioningList decommissioningList, User user)
-			throws DecommissioningServiceException, ValidationException {
+			throws DecommissioningServiceException {
+		final BatchProcessesManager batchProcessesManager = appLayerFactory.getModelLayerFactory().getBatchProcessesManager();
 
-		decommission(decommissioningList, user, 0);
-	}
-
-	public void decommission(DecommissioningList decommissioningList, User user, int attempt)
-			throws DecommissioningServiceException, ValidationException {
-
-		try {
-			decommissioner(decommissioningList).process(decommissioningList, user, TimeProvider.getLocalDate());
-
-		} catch (RecordServicesException.OptimisticLocking e) {
-			modelLayerFactory.getRecordsCaches().getCache(decommissioningList.getCollection())
-					.reloadSchemaType(Folder.SCHEMA_TYPE, true);
-
-			modelLayerFactory.getRecordsCaches().getCache(decommissioningList.getCollection())
-					.reloadSchemaType(ContainerRecord.SCHEMA_TYPE, true);
-
-			if (attempt < 3) {
-				LOGGER.warn("Decommission failed, retrying...", e);
-				decommission(rm.getDecommissioningList(decommissioningList.getId()), user, attempt + 1);
-			} else {
-				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
+		if (StringUtils.isNotBlank(decommissioningList.getCurrentBatchProcessId())) {
+			BatchProcess currentProcess = batchProcessesManager.get(decommissioningList.getCurrentBatchProcessId());
+			if (currentProcess != null && currentProcess.getStatus() != BatchProcessStatus.FINISHED) {
+				throw new DecommissioningServiceException_DecommissioningListAlreadyInProcess();
 			}
 		}
 
+		DecommissioningAsyncTask asyncTask = new DecommissioningAsyncTask(collection, user.getUsername(), decommissioningList.getId());
+		AsyncTaskCreationRequest request = new AsyncTaskCreationRequest(asyncTask, collection, BATCH_PROCESS_NAME);
+		request.setUsername(user.getUsername());
+
+		AsyncTaskBatchProcess batchProcess = batchProcessesManager.addAsyncTask(request);
+		decommissioningList.setCurrentBatchProcessId(batchProcess.getId());
+
+		try {
+			recordServices.update(decommissioningList);
+		} catch (RecordServicesException e) {
+			batchProcessesManager.cancelBatchProcessNoMatterItStatus(batchProcess);
+			throw new DecommissioningServiceException_CannotDecommission();
+		}
 	}
 
 	public void recycleContainer(ContainerRecord container, User user) {

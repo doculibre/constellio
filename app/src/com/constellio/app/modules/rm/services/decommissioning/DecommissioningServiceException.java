@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class DecommissioningServiceException extends Exception {
 
 
@@ -19,10 +21,23 @@ public class DecommissioningServiceException extends Exception {
 			extends DecommissioningServiceException {
 
 		public DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission() {
-			super("Too much optimistic locking while attempting to decommission");
+			super($("DecommissioningListView.tooMuchOptimisticLocking"));
 		}
-
-
 	}
 
+	public static class DecommissioningServiceException_DecommissioningListAlreadyInProcess
+			extends DecommissioningServiceException {
+
+		public DecommissioningServiceException_DecommissioningListAlreadyInProcess() {
+			super($("DecommissioningListView.alreadyInProcess"));
+		}
+	}
+
+	public static class DecommissioningServiceException_CannotDecommission
+			extends DecommissioningServiceException {
+
+		public DecommissioningServiceException_CannotDecommission() {
+			super($("DecommissioningListView.cannotDecommission"));
+		}
+	}
 }

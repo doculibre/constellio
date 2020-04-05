@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -103,9 +104,13 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 	}
 
 	public void processButtonClicked() {
-		decommissioningService().decommission(decommissioningList(), getCurrentUser());
-		view.showMessage($("DecommissioningListView.processed"));
-		view.navigate().to(RMViews.class).displayDocumentDecommissioningList(recordId);
+		try {
+			decommissioningService().decommission(decommissioningList(), getCurrentUser());
+			view.showMessage($("DecommissioningListView.processed"));
+			view.navigate().to(RMViews.class).displayDocumentDecommissioningList(recordId);
+		} catch (DecommissioningServiceException e) {
+			view.showErrorMessage(e.getMessage());
+		}
 	}
 
 	public boolean isDocumentsCertificateButtonVisible() {

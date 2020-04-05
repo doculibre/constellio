@@ -317,8 +317,9 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		try {
 			List<String> processableFoldersIds = getProcessableFoldersIds();
 			decommissioningService().decommission(decommissioningList(), getCurrentUser());
-			view.showMessage($(mayContainAnalogicalMedia() ?
-							   "DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
+			view.showMessage($("BatchProcessing.endedNormally"));
+			//view.showMessage($(mayContainAnalogicalMedia() ?
+			//				   "DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
 			if (rmModuleExtensions != null) {
 				for (DecommissioningListPresenterExtension extension : rmModuleExtensions.getDecommissioningListPresenterExtensions()) {
 					ImportExternalLinksParams params = new ImportExternalLinksParams(processableFoldersIds, getCurrentUser().getUsername(), appLayerFactory, collection);
@@ -334,6 +335,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 				view.showErrorMessage(wrappedException.getMessage());
 				e.printStackTrace();
 			}
+		} catch (DecommissioningServiceException e) {
+			view.showErrorMessage(e.getMessage());
 		} catch (Exception ex) {
 			view.showErrorMessage(ex.getMessage());
 			ex.printStackTrace();
