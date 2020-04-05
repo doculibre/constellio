@@ -58,8 +58,7 @@ public class DecommissioningList extends RecordWrapper {
 	public static final String DOCUMENTS_REPORT_CONTENT = "documentsReportContent";
 	public static final String FOLDERS_REPORT_CONTENT = "foldersReportContent";
 	public static final String CONTENTS = "contents";
-	// TODO::JOLA --> Need migration and localization
-	public static final String CURRENT_BATCH_PROCESS_ID = "currentBatchProcessId";
+	public static final String CURRENT_BATCH_PROCESS_ID = "currentBatchProcess";
 
 	// Disabled fields
 	public static final String VALIDATION_DATE = "validationDate";    // never used, disabled in 5.1.0
