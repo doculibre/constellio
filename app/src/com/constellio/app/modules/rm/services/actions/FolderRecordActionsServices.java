@@ -194,7 +194,7 @@ public class FolderRecordActionsServices {
 
 	public boolean isShareActionPossible(Record record, User user) {
 		Folder folder = rm.wrapFolder(record);
-		if (!hasUserWriteAccess(record, user) || !user.has(RMPermissionsTo.SHARE_FOLDER).on(folder) ||
+		if (!hasUserReadAccess(record, user) || !user.has(RMPermissionsTo.SHARE_FOLDER).on(folder) ||
 			(folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder)) ||
 			(folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder)) ||
 			(record.isLogicallyDeleted()) ||
