@@ -44,6 +44,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -95,6 +96,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		Map.Entry<MetadataVO, Field> decisionField = buildDecisionField(recordVO, taskFieldFactory, mainLayout);
 		Field acceptedField = buildAcceptedField(recordVO, taskFieldFactory, mainLayout);
 		Field reasonField = buildReasonField(recordVO, taskFieldFactory, mainLayout);
+		Field descriptionField = buildDescriptionField(recordVO, taskFieldFactory, mainLayout);
 		Field commentField = buildCommentField(decisionField, recordVO, taskFieldFactory, mainLayout);
 
 		Map<MetadataVO, Field> uncompletedRequiredFields = buildUncompletedRequiredFields(recordVO, taskFieldFactory, mainLayout);
@@ -102,21 +104,22 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.setSpacing(true);
 		buttonsLayout.addComponents(buildCancelButton(),
-				buildQuickCompleteButton(mainLayout, decisionField, acceptedField, reasonField, commentField, uncompletedRequiredFields));
+				buildQuickCompleteButton(mainLayout, decisionField, acceptedField, reasonField, descriptionField, commentField, uncompletedRequiredFields));
 
 		mainLayout.addComponent(buttonsLayout);
 		mainLayout.setExpandRatio(buttonsLayout, 1);
 		mainLayout.setComponentAlignment(buttonsLayout, Alignment.MIDDLE_CENTER);
 
 
-		setWindowHeight(mainLayout, decisionField, acceptedField, reasonField, commentField, uncompletedRequiredFields);
-		setWindowWidth(mainLayout, decisionField, acceptedField, reasonField, commentField, uncompletedRequiredFields);
+		setWindowHeight(mainLayout, decisionField, acceptedField, reasonField, descriptionField, commentField, uncompletedRequiredFields);
+		setWindowWidth(mainLayout, decisionField, acceptedField, reasonField, descriptionField, commentField, uncompletedRequiredFields);
 
 		return mainLayout;
 	}
 
 	private void setWindowHeight(VerticalLayout mainLayout, Entry<MetadataVO, Field> decisionField, Field acceptedField, Field reasonField,
-								 Field commentField, Map<MetadataVO, Field> uncompletedRequiredFields) {
+								 Field descriptionField, Field commentField,
+								 Map<MetadataVO, Field> uncompletedRequiredFields) {
 		double height = 200;
 
 		if (uncompletedRequiredFields != null) {
@@ -132,6 +135,9 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		if (reasonField != null) {
 			height += 150;
 		}
+		if (descriptionField != null) {
+			height += 300;
+		}
 		if (commentField != null) {
 			height += 200;
 		}
@@ -139,7 +145,9 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		getWindow().setHeight(height + "px");
 	}
 
-	private void setWindowWidth(VerticalLayout mainLayout, Entry<MetadataVO, Field> decisionField, Field acceptedField, Field reasonField, Field commentField, Map<MetadataVO, Field> uncompletedRequiredFields) {
+	private void setWindowWidth(VerticalLayout mainLayout, Entry<MetadataVO, Field> decisionField, Field acceptedField,
+								Field reasonField, Field descriptionField, Field commentField,
+								Map<MetadataVO, Field> uncompletedRequiredFields) {
 		if(commentField != null) {
 			mainLayout.setWidth(1000 + "px");
 			getWindow().setWidth(1000 + "px");
@@ -160,6 +168,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 	private Button buildQuickCompleteButton(final VerticalLayout fieldLayout,
 											final Map.Entry<MetadataVO, Field> decisionMetadataAndField,
 											final Field decisionField, final Field reasonField,
+											final Field descriptionField,
 											final Field commentField,
 											final Map<MetadataVO, Field> uncompletedRequiredFields) {
 		final Button saveButton = new Button(getQuickCaption());
@@ -192,6 +201,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 							decisionMetadataAndField == null ? null : decisionMetadataAndField.getKey().getLocalCode(),
 							decisionField == null ? null : (Boolean) decisionField.getValue(),
 							reasonField == null ? null : (String) reasonField.getValue(),
+							descriptionField == null ? null : (String) descriptionField.getValue(),
 							commentField == null ? null : (Comment) commentField.getValue());
 					if (completed) {
 						getWindow().close();
@@ -215,7 +225,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 	private boolean completeQuicklyButtonClicked(final Object decision, final String decisionCode,
 												 final Boolean accepted,
-												 final String reason, final Comment comment) {
+												 final String reason, final String description, final Comment comment) {
 		boolean userPromted = false;
 		boolean exception = false;
 
@@ -223,7 +233,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			userPromted = rmModuleExtensions.isPromptUser(new PromptUserParam(task, new Action() {
 				@Override
 				public void doAction() {
-					quickCompleteTask(task, decision, decisionCode, accepted, reason, comment);
+					quickCompleteTask(task, decision, decisionCode, accepted, reason, description, comment);
 				}
 			}));
 		} catch (ValidationException e) {
@@ -232,7 +242,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		}
 
 		if (!userPromted) {
-			exception = !quickCompleteTask(task, decision, decisionCode, accepted, reason, comment);
+			exception = !quickCompleteTask(task, decision, decisionCode, accepted, reason, description, comment);
 		}
 
 
@@ -240,11 +250,11 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 	}
 
 	private boolean quickCompleteTask(Task task, Object decision, String decisionCode, Boolean accepted,
-									  String reason, Comment comment) {
+									  String reason, String description, Comment comment) {
 		boolean validationException = false;
 		try {
 			presenter.beforeCompletionActions(task);
-			quickCompleteTask(appLayerFactory, task, decision, decisionCode, accepted, reason, comment,
+			quickCompleteTask(appLayerFactory, task, decision, decisionCode, accepted, reason, description, comment,
 					view.getSessionContext().getCurrentUser().getId());
 		} catch (RecordServicesException.ValidationException e) {
 			ErrorDisplayUtil.showBackendValidationException(e.getErrors());
@@ -261,7 +271,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 	static public void quickCompleteTask(AppLayerFactory appLayerFactory, Task task,
 										 Object decision, String decisionCode, Boolean accepted, String reason,
-										 Comment comment, String respondantId)
+										 String description, Comment comment, String respondantId)
 			throws RecordServicesException {
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(task.getCollection(), appLayerFactory);
 		TasksSearchServices tasksSearchServices = new TasksSearchServices(tasksSchemas);
@@ -276,6 +286,9 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		}
 		if (decisionCode != null) {
 			task.set(decisionCode, decision);
+		}
+		if (StringUtils.isNotBlank(description)) {
+			task.setDescription(description);
 		}
 		if (comment != null) {
 			List<Comment> comments = new ArrayList<>(task.getComments());
@@ -411,6 +424,21 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			fieldLayout.addComponent(reasonField);
 		}
 		return reasonField;
+	}
+
+	private Field buildDescriptionField(RecordVO recordVO, TaskFieldFactory taskFieldFactory,
+										VerticalLayout fieldLayout) {
+		Field descriptionField;
+		String description = recordVO.get(Task.DESCRIPTION);
+		if (task.getModelTask() != null && StringUtils.isNotBlank(description)) {
+			descriptionField = taskFieldFactory.build(recordVO.getMetadata(RequestTask.DESCRIPTION), recordVO.getId());
+			descriptionField.setCaption(recordVO.getMetadata(Task.DESCRIPTION).getLabel());
+			descriptionField.setValue(description);
+			fieldLayout.addComponent(descriptionField);
+		} else {
+			descriptionField = null;
+		}
+		return descriptionField;
 	}
 
 	protected Field buildCommentField(final Map.Entry<MetadataVO, Field> decisionField, final RecordVO recordVO, final TaskFieldFactory fieldFactory,
