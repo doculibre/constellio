@@ -98,8 +98,9 @@ public class LoggingServices {
 		executeTransaction(event);
 	}
 
-	public void deletePermission(Authorization authorization, User user) {
-		Event event = eventFactory.eventPermission(authorization, null, user, null, EventType.DELETE_PERMISSION);
+	public void deletePermission(Authorization authorization, User user, boolean isShared) {
+		Event event = eventFactory.eventPermission(authorization, null, user,
+				null, isShared ? EventType.DELETE_SHARE : EventType.DELETE_PERMISSION);
 		executeTransaction(event);
 	}
 
