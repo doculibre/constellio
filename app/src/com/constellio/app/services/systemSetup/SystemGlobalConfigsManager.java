@@ -5,10 +5,14 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
 public class SystemGlobalConfigsManager implements StatefulService {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SystemGlobalConfigsManager.class);
 
 	public final static String SYSTEM_GLOBAL_PROPERTIES = "/globalProperties";
 	final static String REINDEXING_REQUIRED = "reindexingRequired";
@@ -57,6 +61,11 @@ public class SystemGlobalConfigsManager implements StatefulService {
 	}
 
 	public void setReindexingRequired(boolean value) {
+		if (value) {
+			Throwable t = new Throwable();
+			LOGGER.info("System was marked for reindexing", t);
+
+		}
 		setProperty(REINDEXING_REQUIRED, value ? "true" : "false");
 	}
 
