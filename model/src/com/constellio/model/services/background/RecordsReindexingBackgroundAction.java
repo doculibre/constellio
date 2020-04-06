@@ -4,6 +4,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.model.entities.enums.BackgroundRecordsReindexingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
@@ -33,6 +34,9 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 	private RecordServices recordServices;
 	private CollectionsListManager collectionsListManager;
 
+	private float sleepTime;
+	private int recordsPerMinute;
+
 	public RecordsReindexingBackgroundAction(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.searchServices = modelLayerFactory.newSearchServices();
@@ -42,6 +46,7 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 
 	@Override
 	public synchronized void run() {
+		checkConfigRecordsAndIntervalForReindexation();
 
 		boolean officeHours = TimeProvider.getLocalDateTime().getHourOfDay() >= 7
 							  && TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
@@ -51,7 +56,7 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				query.setCondition(LogicalSearchQueryOperators.fromAllSchemasInExceptEvents(collection)
 						.where(Schemas.MARKED_FOR_REINDEXING).isTrue());
-				query.setNumberOfRows(officeHours ? 10 : 100);
+				query.setNumberOfRows(officeHours ? recordsPerMinute : 100 > recordsPerMinute ? 100 : recordsPerMinute);
 				query.setName("BackgroundThread:RecordsReindexingBackgroundAction:getMarkedForReindexing()");
 				List<Record> records = searchServices.search(query);
 
@@ -69,12 +74,37 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 				if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER
 					|| Toggle.PERFORMANCE_TESTING.isEnabled()) {
 					try {
-						Thread.sleep(5 * 60 * 1000);
+						Thread.sleep((long) (sleepTime * 60 * 1000));
 					} catch (InterruptedException e) {
 						throw new RuntimeException(e);
 					}
 				}
 			}
+		}
+	}
+
+	private void checkConfigRecordsAndIntervalForReindexation() {
+		BackgroundRecordsReindexingMode backgroundRecordsReindexingMode =
+				modelLayerFactory.getSystemConfigs().getBackgroundRecordsReindexingMode();
+
+		switch (backgroundRecordsReindexingMode) {
+			case AS_FAST_AS_POSSIBLE:
+				sleepTime = 0.5f;
+				recordsPerMinute = 125;
+				break;
+			case FAST:
+				sleepTime = 1f;
+				recordsPerMinute = 50;
+				break;
+			case NORMAL:
+				sleepTime = 2f;
+				recordsPerMinute = 20;
+				break;
+			case SLOW:
+			default:
+				sleepTime = 5f;
+				recordsPerMinute = 10;
+				break;
 		}
 	}
 
