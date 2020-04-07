@@ -104,7 +104,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.getLocale;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -311,7 +310,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		view.setLazyLoadedSearchResults(configs.isLazyLoadedSearchResults());
 
-		if (sessionContext.getCurrentUser() == null) {
+		if (sessionContext.getCurrentUser() != null) {
 			view.setApplyMultipleFacets(getCurrentUser().isApplyFacetsEnabled());
 		}
 	}
