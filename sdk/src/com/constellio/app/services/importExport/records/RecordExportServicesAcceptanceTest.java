@@ -40,6 +40,7 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -1627,6 +1628,37 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				.extractingMetadatas(Schemas.SCHEMA.getLocalCode(), Document.TYPE + ".code", Email.EMAIL_CC_TO).containsOnly(
 				tuple(Email.SCHEMA, DocumentType.EMAIL_DOCUMENT_TYPE, asList("jeff"))
 		);
+	}
+
+
+	@Test
+	public void whenExportingAuthorizationsThenCanBeImportedInOtherSystem() {
+		final String ANOTHER_COLLECTION = "anotherCollection";
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
+				withCollection(ANOTHER_COLLECTION).withConstellioRMModule().withAllTest(users));
+		RMSchemasRecordsServices rmSchemasRecordsServicesSourceCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		RMSchemasRecordsServices rmSchemasRecordsServicesTargetCollection = new RMSchemasRecordsServices(ANOTHER_COLLECTION, getAppLayerFactory());
+
+		RecordExportOptions recordExportOptions = options
+				.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(),
+						zeCollection,
+						asList(Authorization.SCHEMA_TYPE)));
+		File file = exportToZip(recordExportOptions);
+
+		List<Authorization> sourceAuthorizationsList = rmSchemasRecordsServicesSourceCollection.searchSolrAuthorizationDetailss(returnAll());
+		List<Authorization> targetAuthorizationsListsBeforeImport = rmSchemasRecordsServicesTargetCollection.searchSolrAuthorizationDetailss(returnAll());
+
+		importFromZip(file, ANOTHER_COLLECTION);
+
+		List<Authorization> targetAuthorizationsListsAfterImport = rmSchemasRecordsServicesTargetCollection.searchSolrAuthorizationDetailss(returnAll());
+
+		//todo: vérifier si false positive (à cause de ids plutôt que code)
+
+		assertThat(targetAuthorizationsListsBeforeImport.isEmpty());
+		assertThat(targetAuthorizationsListsAfterImport.size()).isEqualTo(sourceAuthorizationsList.size());
+
 	}
 
 	private CopyRetentionRule getPrimaryCopyRetentionRule() {

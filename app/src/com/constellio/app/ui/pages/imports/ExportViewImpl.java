@@ -18,6 +18,7 @@ import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
@@ -318,25 +319,28 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		administrativeUnitLayout.setSizeFull();
 		administrativeUnitLayout.setSpacing(true);
 		final ListAddRemoveRecordLookupField administrativeUnitField = new ListAddRemoveRecordLookupField(AdministrativeUnit.SCHEMA_TYPE);
+		final CheckBox exportAuthorizationsCheckbox = new CheckBox($("ExportView.exportAuthorizationsCheckbox"));
 		administrativeUnitField.setCaption($("ExportView.administrativeUnit"));
 		BaseButton exportButton = new BaseButton($("ExportView.exportNoContents")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				boolean includeAuthorizations = exportAuthorizationsCheckbox.getValue();
 				if (SAME_COLLECTION.equals(collectionOptions.getValue())) {
 					ConfirmDialog.show(ConstellioUI.getCurrent(), $("ExportView.confirmTitle"), buildConfirmMessage(), $("Ok"), $("cancel"), new ConfirmDialog.Listener() {
 						@Override
 						public void onClose(ConfirmDialog dialog) {
 							if (dialog.isConfirmed()) {
-								presenter.exportAdministrativeUnitXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), administrativeUnitField.getValue());
+								presenter.exportAdministrativeUnitXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), administrativeUnitField.getValue(), includeAuthorizations);
 							}
 						}
 					});
 				} else {
-					presenter.exportAdministrativeUnitXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), administrativeUnitField.getValue());
+					presenter.exportAdministrativeUnitXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), administrativeUnitField.getValue(), includeAuthorizations);
 				}
 			}
 		};
 		administrativeUnitLayout.addComponents(administrativeUnitField, exportButton);
+		administrativeUnitLayout.addComponents(exportAuthorizationsCheckbox, exportButton);
 		return administrativeUnitLayout;
 	}
 
