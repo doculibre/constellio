@@ -28,7 +28,7 @@ public abstract class FolderExtension {
 	}
 
 	public ExtensionBooleanResult isShareActionPossible(FolderExtensionActionPossibleParams params) {
-		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
+		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
 	public ExtensionBooleanResult isDecommissioningActionPossible(FolderExtensionActionPossibleParams params) {
