@@ -1705,7 +1705,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		//Then
 		List<Authorization> targetAuthorizationsListsAfterImport = rmOfTargetCollection.searchSolrAuthorizationDetailss(returnAll());
-		assertThatRecords(targetAuthorizationsListsAfterImport).extractingMetadatas("roles", "principals.title", "target").containsOnly(
+		assertThatRecords(targetAuthorizationsListsAfterImport).extractingMetadatas("roles", "principals.title", "target.legacyIdentifier").containsOnly(
 
 				tuple(asList("READ", "WRITE"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
 				tuple(asList("U"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
@@ -1716,6 +1716,14 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				tuple(asList("READ", "WRITE"), asList("Big Foot"), "C01"),
 				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c")
 		);
+
+		for (Authorization authorization : targetAuthorizationsListsAfterImport) {
+			for (String principalId : authorization.getPrincipals()) {
+				Record record = getModelLayerFactory().newRecordServices().realtimeGetRecordSummaryById(principalId);
+				assertThat(record).isNull();
+				assertThat(record.getCollection()).isEqualTo("anotherCollection");
+			}
+		}
 
 	}
 
