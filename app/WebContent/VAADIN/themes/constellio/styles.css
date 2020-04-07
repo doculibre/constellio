@@ -14498,7 +14498,6 @@ div.v-layout.v-horizontal.v-widget {
 	height: auto;
 	white-space: normal;
 	opacity: 1;
-
 }
 
 .constellio .xbreadcrumbs .xbreadcrumbbutton .v-button-caption {
@@ -15103,20 +15102,6 @@ div.v-layout.v-horizontal.v-widget {
 	box-shadow: none;
 }
 
-/*
-.constellio .v-tabsheet-content {
-	margin-top: 7px;
-}
-
-.constellio .v-button.v-disabled, .constellio .v-button-link.v-disabled {
-	color: black;
-}
-
-.constellio .v-button.v-disabled:hover, .constellio .v-button-link.v-disabled:hover {
-	text-decoration: none;
-}
-Removed changes frommaster-mailExtraction-rm-4*/
-
 .constellio .clickable-row .v-table-body tr, .constellio .clickable-row .v-table-body .reference-display {
 	cursor: pointer !important;
 	color: #696969;
@@ -15124,9 +15109,6 @@ Removed changes frommaster-mailExtraction-rm-4*/
 
 .constellio .clickable-row .v-table-body tr:hover, .constellio .clickable-row .v-table-body .reference-display:hover {
 	background-color: #e6e6e6;
-	/*color: white !important;
-	background-color: #197de1;
-	Removed changes frommaster-mailExtraction-rm-4*/
 	text-decoration: none;
 }
 
@@ -17202,7 +17184,7 @@ Removed changes frommaster-mailExtraction-rm-4*/
 	margin-right: 25px;
 }
 
-.constellio .right-to-left .v-slot-search-result-facets .facet-box .facet-apply {
+.constellio .right-to-left .search-result-facets .facet-box-viewer .facet-apply, .constellio .right-to-left .search-result-facets .sort-box-viewer .facet-apply {
 	padding-left: 20px;
 	background-color: #474747;
 }

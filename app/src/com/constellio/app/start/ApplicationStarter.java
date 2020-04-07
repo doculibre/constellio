@@ -1,6 +1,16 @@
 package com.constellio.app.start;
 
-import com.constellio.model.conf.FoldersLocator;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
+import javax.servlet.Servlet;
+
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -23,15 +33,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.webapp.WebInfConfiguration;
 import org.eclipse.jetty.webapp.WebXmlConfiguration;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
-import javax.servlet.Servlet;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.constellio.model.conf.FoldersLocator;
 
 public class ApplicationStarter {
 
@@ -73,11 +75,6 @@ public class ApplicationStarter {
 		handler.setParentLoaderPriority(true);
 		handler.setClassLoader(Thread.currentThread().getContextClassLoader());
 
-		handler.getSessionHandler().getSessionCookieConfig().setHttpOnly(true);
-		if (params.isSSL() || params.isForceSecuredCookies()) {
-			handler.getSessionHandler().getSessionCookieConfig().setSecure(true);
-		}
-
 		server.setHandler(handler);
 
 		try {
@@ -111,9 +108,9 @@ public class ApplicationStarter {
 		if (params.isSSL()) {
 			return getSslServer(params);
 		} else {
-			QueuedThreadPool threadPool = new QueuedThreadPool(5000, 10);
-			Server server = new Server(threadPool);
-			server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", 1000000000);
+        	QueuedThreadPool threadPool = new QueuedThreadPool(5000);
+			Server server = new Server();
+			server.setThreadPool(threadPool);
 
 			HttpConfiguration http_config = new HttpConfiguration();
 			http_config.setOutputBufferSize(32768);
@@ -121,7 +118,7 @@ public class ApplicationStarter {
 
 			ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(http_config));
 			http.setPort(params.getPort());
-			http.setIdleTimeout(30000);
+			http.setMaxIdleTime(30000);
 
 			server.setConnectors(new Connector[]{http});
 			return server;
@@ -183,7 +180,7 @@ public class ApplicationStarter {
 				new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
 				new HttpConnectionFactory(https_config));
 		https.setPort(params.getPort());
-		https.setIdleTimeout(30000);
+		https.setMaxIdleTime(30000);
 
 
 		sslServer.setConnectors(new Connector[]{https});
@@ -216,22 +213,6 @@ public class ApplicationStarter {
 			filterMappings.get(pathRelativeToConstellioContext).add(filterHolder);
 		} else {
 			handler.addFilter(filterHolder, pathRelativeToConstellioContext, EnumSet.allOf(DispatcherType.class));
-		}
-	}
-
-	public static void replaceServlet(String pathRelativeToConstellioContext, Servlet servlet) {
-		replaceServlet(pathRelativeToConstellioContext, new ServletHolder(servlet));
-	}
-
-	public static void replaceServlet(String pathRelativeToConstellioContext, ServletHolder servletHolder) {
-		ServletHolder oldServletHolder = servletMappings.get(pathRelativeToConstellioContext);
-		servletMappings.put(pathRelativeToConstellioContext, servletHolder);
-		if (handler != null) {
-			for (int i = 0; i < handler.getServletHandler().getServlets().length; i++) {
-				if (handler.getServletHandler().getServlets()[i].getName().equals(oldServletHolder.getName())) {
-					handler.getServletHandler().getServlets()[i] = servletHolder;
-				}
-			}
 		}
 	}
 
