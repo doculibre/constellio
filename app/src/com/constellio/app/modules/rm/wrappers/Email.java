@@ -4,11 +4,15 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.joda.time.LocalDateTime;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class Email extends Document {
 
-	public static final String SCHEMA = SCHEMA_TYPE + "_email";
+	public static final String SCHEMA_LOCAL_CODE = "email";
+	public static final String SCHEMA = SCHEMA_TYPE + "_" + SCHEMA_LOCAL_CODE;
 
 	public static final String EMAIL_TO = "emailTo";
 	public static final String EMAIL_FROM = "emailFrom";
@@ -22,6 +26,7 @@ public class Email extends Document {
 	public static final String EMAIL_SENT_ON = "emailSentOn";
 	public static final String EMAIL_RECEIVED_ON = "emailReceivedOn";
 	public static final String SUBJECT_TO_BROADCAST_RULE = "subjectToBroadcastRule";
+	public static final String EMAIL_VERSIONS = "emailVersions";
 	@Deprecated
 	public static final String EMAIL_CONTENT = "emailContent";
 
@@ -43,6 +48,41 @@ public class Email extends Document {
 	public Email setFolder(String folder) {
 		super.setFolder(folder);
 		return this;
+	}
+
+	public List<String> getEmailVersions() {
+		return get(EMAIL_VERSIONS);
+	}
+
+	public Email setEmailVersions(List<String> ids) {
+		set(EMAIL_VERSIONS, ids);
+		return this;
+	}
+
+	public Email removeEmailVersion(String versionToRemove) {
+		return removeEmailVersions(asList(versionToRemove));
+	}
+
+	public Email removeEmailVersions(List<String> versionsToRemove) {
+		List<String> versions = new ArrayList<>();
+		versions.addAll(getEmailVersions());
+		versions.removeAll(versionsToRemove);
+		return setEmailVersions(versions);
+	}
+
+	public Email addEmailVersion(String versionToAdd) {
+		return addEmailVersions(asList(versionToAdd));
+	}
+
+	public Email addEmailVersions(List<String> versionsToAdd) {
+		List<String> versions = new ArrayList<>();
+		versions.addAll(getEmailVersions());
+		for (String version : versionsToAdd) {
+			if (!versions.contains(version)) {
+				versions.add(version);
+			}
+		}
+		return setEmailVersions(versions);
 	}
 
 	public List<String> getEmailTo() {

@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.ExternalLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
@@ -153,6 +154,9 @@ public class RMMigrationTo9_1_0 implements MigrationScript {
 			documentSchema.get(Document.FOLDER_ADMINISTRATIVE_UNIT).setTaxonomyRelationship(false);
 			documentSchema.get(Schemas.ALL_REMOVED_AUTHS).setEnabled(true).setEssentialInSummary(true);
 			documentSchema.get(Document.TITLE).setCacheIndex(false);
+
+			MetadataSchemaBuilder emailSchema = typesBuilder.getSchemaType(Email.SCHEMA_TYPE).getCustomSchema(Email.SCHEMA_LOCAL_CODE);
+			emailSchema.createSystemReserved(Email.EMAIL_VERSIONS).setType(STRING).setMultivalue(true);
 
 			for (MetadataSchemaTypeBuilder typeBuilder : typesBuilder.getTypes()) {
 				if (typeBuilder.getDefaultSchema().hasMetadata(CommonMetadataBuilder.ATTACHED_ANCESTORS)) {

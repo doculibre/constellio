@@ -410,6 +410,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		try {
 			InputStream signedStream = new FileInputStream(signedPdf);
 			version = contentManager.upload(signedStream, new ContentManager.UploadOptions(newFilename)).getContentVersionDataSummary();
+			contentManager.createMajor(getCurrentUser(), newFilename, version);
 		} catch (IOException e) {
 			throw new PdfTronSignatureException_CannotReadSignedFileException(e);
 		}
