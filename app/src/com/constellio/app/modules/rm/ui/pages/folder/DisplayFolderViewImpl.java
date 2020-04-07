@@ -709,7 +709,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						protected String toColumnId(Object propertyId) {
 							if (propertyId instanceof MetadataVO) {
 								if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-									setColumnHeader(propertyId, "");
+									setColumnHeader(propertyId, " ");
 									setColumnWidth(propertyId, 60);
 								}
 							}
@@ -835,6 +835,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			uploadField.drop(event);
 		}
 	}
+
 	@Override
 	public void showVersionUpdateWindow(final RecordVO recordVO, ContentVersionVO contentVersionVO) {
 		final Map<RecordVO, MetadataVO> record = new HashMap<>();
@@ -887,6 +888,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
 		Page.getCurrent().open(downloadedResource, null, false);
 	}
+
 	@Override
 	public void setTaxonomyCode(String taxonomyCode) {
 		this.taxonomyCode = taxonomyCode;
@@ -949,6 +951,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}
 		return scrolledIntoView;
 	}
+
 	@Override
 	public Integer getReturnIndex() {
 		return presenter.getReturnIndex();

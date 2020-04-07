@@ -16,6 +16,7 @@ import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import java.io.IOException;
 import java.io.InputStream;
 
+//9.0
 public class RMMigrationTo9_0_0_47 implements MigrationScript {
 	@Override
 	public String getVersion() {

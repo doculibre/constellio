@@ -315,7 +315,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	// TODO adapt to use lambda
 
 	public boolean isShareActionPossibleOnFolder(final Folder folder, final User user) {
-		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
+		return user.hasReadAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isShareActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 

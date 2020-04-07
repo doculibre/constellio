@@ -5,14 +5,13 @@ import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
 import com.constellio.sdk.dev.tools.CompareI18nKeys;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +30,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageFilesHaveSameKeys()
 			throws Exception {
-		//		assumeArabicLabelsValidated();
+		assumeArabicLabelsValidated();
 		ListComparisonResults<String> results = CompareI18nKeys.compare(Language.Arabic);
 
 		if (!results.getNewItems().isEmpty() || !results.getRemovedItems().isEmpty()) {
@@ -44,7 +43,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageCoreFilesHaveSameKeys()
 			throws Exception {
-		//		assumeArabicLabelsValidated();
+		assumeArabicLabelsValidated();
 
 		StringBuilder stringBuilder = new StringBuilder();
 		FoldersLocator foldersLocator = new FoldersLocator();
@@ -71,7 +70,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageEsFilesHaveSameKeys()
 			throws Exception {
-		//		assumeArabicLabelsValidated();
+		assumeArabicLabelsValidated();
 
 		StringBuilder stringBuilder = new StringBuilder();
 		FoldersLocator foldersLocator = new FoldersLocator();
@@ -88,7 +87,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageRmFilesHaveSameKeys()
 			throws Exception {
-		//		assumeArabicLabelsValidated();
+		assumeArabicLabelsValidated();
 
 		StringBuilder stringBuilder = new StringBuilder();
 		FoldersLocator foldersLocator = new FoldersLocator();
@@ -114,7 +113,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageRobotsFilesHaveSameKeys()
 			throws Exception {
-		//		assumeArabicLabelsValidated();
+		assumeArabicLabelsValidated();
 
 		StringBuilder stringBuilder = new StringBuilder();
 		FoldersLocator foldersLocator = new FoldersLocator();
@@ -132,7 +131,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageTasksFilesHaveSameKeys()
 			throws Exception {
-		//		assumeArabicLabels#Validated();
+		assumeArabicLabelsValidated();
 
 		StringBuilder stringBuilder = new StringBuilder();
 		FoldersLocator foldersLocator = new FoldersLocator();
@@ -150,23 +149,17 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void ensureArabicAndFrenchLanguageTasksMigrationFilesHaveSameKeys()
+	public void ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys()
 			throws Exception {
 		assumeArabicLabelsValidated();
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("################################################\n");
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("core", stringBuilder);
-		stringBuilder.append("################################################\n");
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("es", stringBuilder);
-		stringBuilder.append("################################################\n");
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("es_rm_robots", stringBuilder);
-		stringBuilder.append("################################################\n");
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("rm", stringBuilder);
-		stringBuilder.append("################################################\n");
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("robots", stringBuilder);
-		stringBuilder.append("################################################\n");
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("tasks", stringBuilder);
-		stringBuilder.append("################################################\n");
+		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("sharepointGraphAPI", stringBuilder);
 
 		String finalComparisonMessage = stringBuilder.toString();
 		if (!finalComparisonMessage.isEmpty()) {
@@ -182,51 +175,44 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 		File[] tasksMigrationFiles = new File(new File(i18nFolder, "migrations"), module).listFiles();
 
 		File folder = newTempFolder();
-		File arabicFile = newTempFileWithContentInFolder(folder, "arabicTempFile", "");
-		File frenchFile = newTempFileWithContentInFolder(folder, "frenchTempFile", "");
-		FileOutputStream frenchFileOutputStream = new FileOutputStream(frenchFile);
-		OutputStream arabicFileOutputStream = new FileOutputStream(arabicFile);
-		try {
-			for (File file : tasksMigrationFiles) {
-				String keysFileName = module + "_" + file.getName();
+		File arabicDestinationFile = newTempFileWithContentInFolder(folder, "arabicTempFile", "");
+		File frenchDestinationFile = newTempFileWithContentInFolder(folder, "frenchTempFile", "");
 
-				InputStream arabicFileInputStream = null;
-				FileInputStream frenchFileInputStream = null;
-				try {
-					if (Arrays.asList(file.list()).contains(keysFileName + ".properties")) {
-						String frenchFilename = keysFileName + ".properties";
-						frenchFileInputStream = new FileInputStream(file.getAbsolutePath() + "/" + frenchFilename);
-						IOUtils.copy(frenchFileInputStream, frenchFileOutputStream);
-					}
-					if (Arrays.asList(file.list()).contains(keysFileName + "_ar.properties")) {
-						String arabicFilename = keysFileName + "_ar.properties";
-						arabicFileInputStream = new FileInputStream(file.getAbsolutePath() + "/" + arabicFilename);
-						IOUtils.copy(arabicFileInputStream, arabicFileOutputStream);
-					}
-				} finally {
-					if (arabicFileInputStream != null) {
-						arabicFileInputStream.close();
-					}
-					if (frenchFileInputStream != null) {
-						frenchFileInputStream.close();
-					}
-				}
+		for (File file : tasksMigrationFiles) {
+			String keysFileName = module + "_" + file.getName();
 
-
-				//			else if(!Arrays.asList(file.list()).contains(keysFileName + "_ar.properties")){
-				//				stringBuilder.append("Missing arabic file in: "  + keysFileName + ".properties");
-				//				stringBuilder.append("\n");
-				//			}
+			if (Arrays.asList(file.list()).contains(keysFileName + ".properties")) {
+				String frenchFilename = keysFileName + ".properties";
+				File frenchI18n = new File(file.getAbsolutePath() + "\\" + frenchFilename);
+				appendFile(frenchI18n, frenchDestinationFile);
 			}
-		} finally {
-			frenchFileOutputStream.close();
-			arabicFileOutputStream.close();
+			if (Arrays.asList(file.list()).contains(keysFileName + "_ar.properties")) {
+				String arabicFilename = keysFileName + "_ar.properties";
+
+				File arabicI18n = new File(file.getAbsolutePath() + "\\" + arabicFilename);
+				appendFile(arabicI18n, arabicDestinationFile);
+			}
 		}
 
+		addComparisonMessage(arabicDestinationFile, frenchDestinationFile, module, stringBuilder);
 
-		addComparisonMessage(arabicFile, frenchFile, module, stringBuilder);
+	}
 
-
+	private void appendFile(File sourceFile, File destinationFile) throws IOException {
+		BufferedReader bufferedReader = null;
+		FileWriter fileWriter = null;
+		try {
+			bufferedReader = new BufferedReader(new FileReader(sourceFile));
+			fileWriter = new FileWriter(destinationFile, true);
+			String line;
+			while ((line = bufferedReader.readLine()) != null) {
+				fileWriter.append(line);
+				fileWriter.append("\n");
+			}
+		} finally {
+			bufferedReader.close();
+			fileWriter.close();
+		}
 	}
 
 	private void addComparisonMessage(File i18nArabicFolder, File i18nFrenchFolder, String keysFileName,

@@ -477,7 +477,7 @@ public class AuthorizationsServices {
 
 		if (request.getExecutedBy() != null) {
 			try {
-				loggingServices.deletePermission(auth, request.getExecutedBy());
+				loggingServices.deletePermission(auth, request.getExecutedBy(), auth.getSharedBy() != null);
 			} catch (NoSuchAuthorizationWithId e) {
 				//No problemo
 			}

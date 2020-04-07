@@ -349,7 +349,7 @@ public class TaskTable extends VerticalLayout {
 			protected String toColumnId(Object propertyId) {
 				if (propertyId instanceof MetadataVO) {
 					if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-						table.setColumnHeader(propertyId, "");
+						table.setColumnHeader(propertyId, " ");
 						table.setColumnWidth(propertyId, 60);
 					}
 				}
@@ -495,23 +495,23 @@ public class TaskTable extends VerticalLayout {
 				}
 			});
 
-				if (presenter.isAutoAssignButtonEnabled(taskVO)) {
-					rootItem.addItem($("TaskTable.autoAssignTask"), FontAwesome.HAND_O_RIGHT, new Command() {
-						@Override
-						public void menuSelected(MenuItem selectedItem) {
-							presenter.autoAssignButtonClicked(taskVO);
-						}
-					});
-				}
+			if (presenter.isAutoAssignButtonEnabled(taskVO)) {
+				rootItem.addItem($("TaskTable.autoAssignTask"), FontAwesome.HAND_O_RIGHT, new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						presenter.autoAssignButtonClicked(taskVO);
+					}
+				});
+			}
 
-				if (presenter.isCloseButtonEnabled(taskVO)) {
-					rootItem.addItem($("TaskTable.close"), FontAwesome.TIMES_CIRCLE_O, new Command() {
-						@Override
-						public void menuSelected(MenuItem selectedItem) {
-							presenter.closeButtonClicked(taskVO);
-						}
-					});
-				}
+			if (presenter.isCloseButtonEnabled(taskVO)) {
+				rootItem.addItem($("TaskTable.close"), FontAwesome.TIMES_CIRCLE_O, new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						presenter.closeButtonClicked(taskVO);
+					}
+				});
+			}
 
 			if (presenter.isDeleteButtonVisible(taskVO)) {
 				rootItem.addItem($("delete"), FontAwesome.TRASH_O, new ConfirmDialogMenuBarItemCommand() {

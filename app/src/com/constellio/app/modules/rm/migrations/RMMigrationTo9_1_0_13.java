@@ -1,13 +1,11 @@
 package com.constellio.app.modules.rm.migrations;
 
-import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -33,7 +31,6 @@ public class RMMigrationTo9_1_0_13 extends MigrationHelper implements MigrationS
 		this.migrationResourcesProvider = migrationResourcesProvider;
 		this.appLayerFactory = appLayerFactory;
 
-		new SchemaAlterationFor9_1_0_13(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		reloadEmailTemplates();
 	}
 
@@ -61,16 +58,4 @@ public class RMMigrationTo9_1_0_13 extends MigrationHelper implements MigrationS
 		}
 	}
 
-	class SchemaAlterationFor9_1_0_13 extends MetadataSchemasAlterationHelper {
-
-		protected SchemaAlterationFor9_1_0_13(String collection, MigrationResourcesProvider migrationResourcesProvider,
-											  AppLayerFactory appLayerFactory) {
-			super(collection, migrationResourcesProvider, appLayerFactory);
-		}
-
-		@Override
-		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-
-		}
-	}
 }

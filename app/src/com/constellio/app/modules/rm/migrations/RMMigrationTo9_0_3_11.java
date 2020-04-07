@@ -13,6 +13,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.metadatas.IllegalCharactersValidator;
 
+//9.0
 public class RMMigrationTo9_0_3_11 implements MigrationScript {
 
 	@Override
