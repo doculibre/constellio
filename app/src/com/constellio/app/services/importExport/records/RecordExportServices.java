@@ -23,6 +23,7 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -32,6 +33,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.entities.structures.EmailAddressFactory;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
@@ -168,6 +170,9 @@ public class RecordExportServices {
 					id, metadataSchema.getLocalCode());
 
 			writeRecord(record, modifiableImportRecord, options, contentPaths);
+			if (options.isIncludeAuthorizations()) {
+				writeRecordAuthorizations(record.getId(), collection, options, contentPaths, writer);
+			}
 
 			appLayerFactory.getExtensions().forCollection(collection)
 					.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord, options.isForSameSystem()));
@@ -180,6 +185,17 @@ public class RecordExportServices {
 		}
 	}
 
+	private void writeRecordAuthorizations(String recordId, String collection, RecordExportOptions options,
+										   StringBuilder contentPaths, ImportRecordOfSameCollectionWriter writer) {
+		List<SecurityModelAuthorization> authorizationsList = recordServices.getSecurityModel(collection).getAuthorizationsOnTarget(recordId);
+		for (SecurityModelAuthorization authorization : authorizationsList) {
+			Record authorizationRecord = authorization.getDetails().get();
+			ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, Authorization.SCHEMA_TYPE, authorization.getDetails().getId());
+			writeRecord(authorizationRecord, modifiableImportRecord, options, contentPaths);
+			writer.write(modifiableImportRecord);
+		}
+
+	}
 
 	private static List<String> preferedMetadatas = asList(Schemas.CODE.getLocalCode(), User.USERNAME);
 

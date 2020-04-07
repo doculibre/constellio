@@ -1635,7 +1635,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 
 	@Test
-	public void whenExportingAuthorizationsThenCanBeImportedInOtherSystem() throws Exception {
+	public void whenExportingAdministrativeUnitAuthorizationsThenCanBeImportedInOtherSystem() throws Exception {
 		final String ANOTHER_COLLECTION = "anotherCollection";
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
