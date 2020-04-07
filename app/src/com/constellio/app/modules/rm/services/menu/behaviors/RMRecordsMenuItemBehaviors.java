@@ -42,8 +42,12 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.BaseLink;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
@@ -54,7 +58,11 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Factory;
-import com.constellio.model.entities.records.*;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -80,7 +88,11 @@ import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -90,7 +102,11 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -763,7 +779,7 @@ public class RMRecordsMenuItemBehaviors {
 								MenuItemActionBehaviorParams params) {
 		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
 				params.getView().getConstellioFactories(), params.getView().getSessionContext());
-		presenterUtils.delete(record, null, true, 1);
+		presenterUtils.delete(record, reason, physically, 1);
 	}
 
 	//
