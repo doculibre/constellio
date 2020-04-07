@@ -36,6 +36,7 @@ import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.app.ui.i18n.i18n;
+import com.constellio.app.ui.pages.imports.ExportPresenterServices;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -68,6 +69,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.RecordsOfSchemaTypesIterator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -85,6 +87,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
@@ -1632,32 +1635,87 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 
 	@Test
-	public void whenExportingAuthorizationsThenCanBeImportedInOtherSystem() {
+	public void whenExportingAuthorizationsThenCanBeImportedInOtherSystem() throws Exception {
 		final String ANOTHER_COLLECTION = "anotherCollection";
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
 				withCollection(ANOTHER_COLLECTION).withConstellioRMModule().withAllTest(users));
 		RMSchemasRecordsServices rmSchemasRecordsServicesSourceCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		RMSchemasRecordsServices rmSchemasRecordsServicesTargetCollection = new RMSchemasRecordsServices(ANOTHER_COLLECTION, getAppLayerFactory());
+		RMSchemasRecordsServices rmOfTargetCollection = new RMSchemasRecordsServices(ANOTHER_COLLECTION, getAppLayerFactory());
 
-		RecordExportOptions recordExportOptions = options
-				.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(),
-						zeCollection,
-						asList(Authorization.SCHEMA_TYPE)));
-		File file = exportToZip(recordExportOptions);
+		AuthorizationsServices authorizationsServices = getAppLayerFactory().getModelLayerFactory().newAuthorizationsServices();
+		authorizationsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadWriteAccess());
+		authorizationsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C02).givingNegativeReadAccess());
+		authorizationsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C03).giving("M"));
+		authorizationsServices.add(authorizationForUsers(users.edouardLechatIn(zeCollection)).on(records.unitId_30c).givingNegativeReadWriteAccess());
+		//TODO Add on documents
 
+		//		Transaction tx = new Transaction();
+		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01").setTitle("S01"));
+		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01-01").setTitle("S01-01"));
+		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01-02").setTitle("S01-02"));
+		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02").setTitle("S02"));
+		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02-01").setTitle("S02-01"));
+		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02-02").setTitle("S02-02"));
+		//		tx.add(rmOfTargetCollection.newContainerRecordType().setCode("B22x22").setTitle("B22x22"));
+		//		getModelLayerFactory().newRecordServices().execute(tx);
+
+		exportThenImportInAnotherCollection(
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(
+						AdministrativeUnit.SCHEMA_TYPE,
+						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
+						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
+						DocumentType.SCHEMA_TYPE)))));
+
+		//Given
 		List<Authorization> sourceAuthorizationsList = rmSchemasRecordsServicesSourceCollection.searchSolrAuthorizationDetailss(returnAll());
-		List<Authorization> targetAuthorizationsListsBeforeImport = rmSchemasRecordsServicesTargetCollection.searchSolrAuthorizationDetailss(returnAll());
+		assertThatRecords(sourceAuthorizationsList).extractingMetadatas("roles", "principals.title", "target").containsOnly(
+				tuple(asList("READ", "WRITE", "DELETE"), asList("Dakota L'Indien", "Gandalf Leblanc"), "unitId_10"),
+				tuple(asList("READ", "WRITE"), asList("Bob 'Elvis' Gratton", "Charles-François Xavier", "System Admin"), "unitId_10"),
+				tuple(asList("U"), asList("Dakota L'Indien", "System Admin"), "unitId_11"),
+				tuple(asList("M"), asList("Dakota L'Indien", "Gandalf Leblanc"), "unitId_10"),
+				tuple(asList("U"), asList("Bob 'Elvis' Gratton", "Charles-François Xavier", "System Admin"), "unitId_10"),
+				tuple(asList("READ", "WRITE", "DELETE"), asList("Edouard Lechat", "Gandalf Leblanc"), "unitId_11"),
+				tuple(asList("READ", "WRITE"), asList("Dakota L'Indien", "System Admin"), "unitId_11"),
+				tuple(asList("M"), asList("Edouard Lechat", "Gandalf Leblanc"), "unitId_11"),
+				tuple(asList("READ", "WRITE", "DELETE"), asList("Edouard Lechat", "Gandalf Leblanc"), "unitId_12"),
+				tuple(asList("U"), asList("Dakota L'Indien", "System Admin", "Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_12"),
+				tuple(asList("READ", "WRITE"), asList("Dakota L'Indien", "System Admin", "Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_12"),
+				tuple(asList("M"), asList("Edouard Lechat", "Gandalf Leblanc"), "unitId_12"),
+				tuple(asList("READ", "WRITE"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
+				tuple(asList("U"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
+				tuple(asList("READ", "WRITE", "DELETE"), asList("Gandalf Leblanc"), "unitId_30"),
+				tuple(asList("M"), asList("Gandalf Leblanc"), "unitId_30"),
+				tuple(asList("M"), asList("Big Foot"), "C03"),
+				tuple(asList("READ"), asList("Big Foot"), "C02"),
+				tuple(asList("READ", "WRITE"), asList("Big Foot"), "C01"),
+				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c")
+		);
 
+		List<Authorization> targetAuthorizationsListsBeforeImport = rmOfTargetCollection.searchSolrAuthorizationDetailss(returnAll());
+		assertThat(targetAuthorizationsListsBeforeImport.isEmpty());
+
+		//When
+		RecordExportOptions options = new ExportPresenterServices(zeCollection, getAppLayerFactory())
+				.buildOptionsForExportingAdministrativeUnitsAndItsContent(false, asList("unitId_30"), true);
+		File file = exportToZip(options);
 		importFromZip(file, ANOTHER_COLLECTION);
 
-		List<Authorization> targetAuthorizationsListsAfterImport = rmSchemasRecordsServicesTargetCollection.searchSolrAuthorizationDetailss(returnAll());
 
-		//todo: vérifier si false positive (à cause de ids plutôt que code)
+		//Then
+		List<Authorization> targetAuthorizationsListsAfterImport = rmOfTargetCollection.searchSolrAuthorizationDetailss(returnAll());
+		assertThatRecords(targetAuthorizationsListsAfterImport).extractingMetadatas("roles", "principals.title", "target").containsOnly(
 
-		assertThat(targetAuthorizationsListsBeforeImport.isEmpty());
-		assertThat(targetAuthorizationsListsAfterImport.size()).isEqualTo(sourceAuthorizationsList.size());
+				tuple(asList("READ", "WRITE"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
+				tuple(asList("U"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
+				tuple(asList("READ", "WRITE", "DELETE"), asList("Gandalf Leblanc"), "unitId_30"),
+				tuple(asList("M"), asList("Gandalf Leblanc"), "unitId_30"),
+				tuple(asList("M"), asList("Big Foot"), "C03"),
+				tuple(asList("READ"), asList("Big Foot"), "C02"),
+				tuple(asList("READ", "WRITE"), asList("Big Foot"), "C01"),
+				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c")
+		);
 
 	}
 
@@ -1727,7 +1785,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(copyRetentionRule.isIgnoreActivePeriod()).isFalse();
 	}
 
-	private File exportToZip(RecordExportOptions optios) {
+	private File exportToZip(RecordExportOptions options) {
 		return new RecordExportServices(getAppLayerFactory()).exportRecordsAndZip(SDK_STREAM, options);
 	}
 

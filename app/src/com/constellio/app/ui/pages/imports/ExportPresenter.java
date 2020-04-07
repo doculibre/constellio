@@ -3,7 +3,6 @@ package com.constellio.app.ui.pages.imports;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.importExport.records.RecordExportOptions;
@@ -20,7 +19,6 @@ import com.constellio.app.services.importExport.systemStateExport.SystemStateExp
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.dao.dto.records.RecordId;
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.utils.LazyIterator;
@@ -35,7 +33,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -208,35 +205,11 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 	void exportAdministrativeUnitXMLButtonClicked(boolean isSameCollection, List<String> unitIds,
 												  boolean includeAuthorizations) {
-		RecordExportOptions options = new RecordExportOptions();
-		options.setForSameSystem(isSameCollection);
-
-		List<String> paths = new ArrayList<>();
-		for (String unit : unitIds) {
-			paths.add((String) ((List) recordServices().getDocumentById(unit).get(Schemas.PATH)).get(0));
-		}
-
-		MetadataSchemaType decommissioningListSchemaType = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(collection).getSchemaType(DecommissioningList.SCHEMA_TYPE);
-
-
-		List<List<SecurityModelAuthorization>> authorizationsList = new ArrayList<>();
-		if (includeAuthorizations) {
-			unitIds.stream().forEach(id -> authorizationsList.add(recordServices().getSecurityModel(collection).getAuthorizationsOnTarget(id)));
-		}
-
-		SearchResponseIterator<Record> recordsIterator = searchServices().recordsIterator(
-				fromAllSchemasIn(collection)
-						.where(Schemas.PATH).isStartingWithTextFromAny(paths)
-						.orWhere(decommissioningListSchemaType.getDefaultSchema().get(DecommissioningList.ADMINISTRATIVE_UNIT)).isIn(unitIds)
-				//.orWhere()
-		);
-		//todo -> result de la requete + la liste des authorizationdetails qu'on a rempli ou non dependemment de includeAuthorizations
-
-
-		options.setRecordsToExportIterator(recordsIterator);
+		RecordExportOptions options = new ExportPresenterServices(collection, appLayerFactory)
+				.buildOptionsForExportingAdministrativeUnitsAndItsContent(isSameCollection, unitIds, includeAuthorizations);
 		exportToXML(options);
 	}
+
 
 	public void exportToolsToXMLButtonClicked(boolean isSameCollection) {
 		RecordExportOptions options = new RecordExportOptions();
