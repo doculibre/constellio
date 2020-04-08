@@ -17,7 +17,6 @@ import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatu
 import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_NotingToSignException;
 import com.constellio.app.ui.framework.components.viewers.pdftron.signature.CreateVisibleSignature;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
@@ -27,7 +26,6 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -420,8 +418,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 
 		try {
 			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-			RecordUpdateOptions options = new RecordUpdateOptions().setRecordsFlushing(RecordsFlushing.NOW());
-			recordServices.update(document, options);
+			recordServices.update(document);
 		} catch (RecordServicesException e) {
 			throw new PdfTronSignatureException_CannotSaveNewVersionException(e);
 		}

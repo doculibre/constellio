@@ -90,28 +90,6 @@ public class Transaction {
 		this.recordUpdateOptions = new RecordUpdateOptions(transaction.recordUpdateOptions);
 	}
 
-	public void reset() {
-		this.id = UUIDV1Generator.newRandomId();
-
-		updatedRecordsMap = new HashMap<>();
-		records = new ArrayList<>();
-		recordUpdateOptions = new RecordUpdateOptions();
-
-		referencedRecords = new HashMap<>();
-
-		idsToReindex = new HashSet<>();
-
-		aggregatedMetadataIncrementations = new ArrayList<>();
-
-		title = null;
-
-		user = null;
-		collection = null;
-		parsedContentCache = new HashMap<>();
-
-		isOnlyBeingPrepared = true;
-	}
-
 	public boolean isContainingUpdatedRecord(Record record) {
 		return updatedRecordsMap.containsKey(record.getId());
 	}
