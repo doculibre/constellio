@@ -27,6 +27,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -873,18 +874,37 @@ public class RecordsImportServicesExecutor {
 						//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
 					}
 
-					record.set(LEGACY_ID, id);
+					record.set(defaultSchema.get(Authorization.TARGET), id);
 				}
 			}
 
 			if (principals != null) {
+				UserServices userServices = modelLayerFactory.newUserServices();
 				List<String> convertedPrincipals = new ArrayList<>();
 
 				for (String principal : principals) {
+					String principalSchemaType = StringUtils.substringBefore(principal, ":");
+					String principalValue = StringUtils.substringAfter(principal, ":");
+
+					if (User.SCHEMA_TYPE.equals(principalSchemaType)) {
+						User principalUser = userServices.getUserInCollection(principalValue, collection);
+						if (principalUser == null) {
+							//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
+						}
+						convertedPrincipals.add(principalUser.getId());
+					}
+
+					if (Group.SCHEMA_TYPE.equals(principalSchemaType)) {
+						Group principalGroup = userServices.getGroupInCollection(principalValue, collection);
+						if (principalGroup == null) {
+							//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
+						}
+						convertedPrincipals.add(principalGroup.getId());
+					}
 
 				}
 
-
+				record.set(defaultSchema.get(Authorization.PRINCIPALS), convertedPrincipals);
 			}
 
 
@@ -1323,6 +1343,11 @@ public class RecordsImportServicesExecutor {
 		if (importedSchemaTypes.contains(Event.SCHEMA_TYPE)) {
 			importedSchemaTypes.remove(Event.SCHEMA_TYPE);
 			importedSchemaTypes.add(Event.SCHEMA_TYPE);
+		}
+
+		if (importedSchemaTypes.contains(Authorization.SCHEMA_TYPE)) {
+			importedSchemaTypes.remove(Authorization.SCHEMA_TYPE);
+			importedSchemaTypes.add(Authorization.SCHEMA_TYPE);
 		}
 
 		return importedSchemaTypes;
