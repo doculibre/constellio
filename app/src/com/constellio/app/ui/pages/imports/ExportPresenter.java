@@ -1,10 +1,6 @@
 package com.constellio.app.ui.pages.imports;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.importExport.records.RecordExportOptions;
 import com.constellio.app.services.importExport.records.RecordExportServices;
 import com.constellio.app.services.importExport.settings.SettingsExportOptions;
@@ -23,15 +19,12 @@ import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueId
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ExportAudit;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -40,7 +33,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.search.RecordsOfSchemaTypesIterator;
 import com.constellio.model.services.search.SearchServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -71,8 +63,6 @@ import static java.util.Arrays.asList;
 public class ExportPresenter extends BasePresenter<ExportView> {
 
 	private static final Logger LOGGER = Logger.getLogger(ExportPresenter.class);
-
-	public static final String RECORDS_EXPORT_TEMP_DDV = "ddv";
 
 	public static final String EXPORT_FOLDER_RESOURCE = "ExportPresenterFolder";
 
@@ -212,66 +202,12 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 
 	public void exportToolsToXMLButtonClicked(boolean isSameCollection, boolean includeAuthorizations) {
-		RecordExportOptions options = new RecordExportOptions();
-		options.setForSameSystem(isSameCollection);
-		List<Taxonomy> enabledTaxonomies = new ArrayList<>(modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection));
-		removeUnwantedTaxonomiesForExportation(enabledTaxonomies);
-		List<String> exportedSchemaTypes = new ArrayList<>(
-				asList(AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
-						StorageSpace.SCHEMA_TYPE));
-		for (Taxonomy taxonomy : enabledTaxonomies) {
-			List<String> linkedSchemaTypes = taxonomy.getSchemaTypes();
-			for (String schemaType : linkedSchemaTypes) {
-				if (!exportedSchemaTypes.contains(schemaType)) {
-					exportedSchemaTypes.add(schemaType);
-				}
-			}
-		}
-
-		addValueListsSchemaTypes(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection), exportedSchemaTypes);
-
-		options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(modelLayerFactory, collection, exportedSchemaTypes));
-		options.setIncludeAuthorizations(includeAuthorizations);
+		RecordExportOptions options = new ExportPresenterServices(collection, appLayerFactory)
+				.buildOptionsForExportingTools(isSameCollection, includeAuthorizations, appCollectionExtentions);
 		exportToXML(options);
 	}
 
-	private void addValueListsSchemaTypes(MetadataSchemaTypes metadataSchemaTypes, List<String> schemaTypeList) {
-		// Code
-		// Itération sur les type de schema.
-		for (MetadataSchemaType metadata : metadataSchemaTypes.getSchemaTypes()) {
-			if (metadata.getCode().toLowerCase().startsWith(RECORDS_EXPORT_TEMP_DDV)) {
-				if (!isSchemaCodePresent(schemaTypeList, metadata.getCode())) {
-					schemaTypeList.add(metadata.getCode());
-				}
-			}
-		}
-	}
 
-
-	private static boolean isSchemaCodePresent(List<String> schemaCodeList, String schemaCode) {
-		boolean isSchemaCodePresent = false;
-
-		for (String currentSchemaCode : schemaCodeList) {
-			isSchemaCodePresent = schemaCode.equals(currentSchemaCode);
-			if (isSchemaCodePresent) {
-				break;
-			}
-		}
-
-		return isSchemaCodePresent;
-	}
-
-	private void removeUnwantedTaxonomiesForExportation(List<Taxonomy> taxonomies) {
-		if (taxonomies != null) {
-			List<String> unwantedTaxonomies = appCollectionExtentions.getUnwantedTaxonomiesForExportation();
-			Iterator<Taxonomy> iterator = taxonomies.iterator();
-			while (iterator.hasNext()) {
-				if (unwantedTaxonomies.contains(iterator.next().getCode())) {
-					iterator.remove();
-				}
-			}
-		}
-	}
 
 
 	private void exportToXML(RecordExportOptions options) {
