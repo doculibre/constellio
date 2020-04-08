@@ -47,9 +47,6 @@ public class MultilingualRichTextField extends CustomField<Map<String, String>> 
 	@Override
 	protected void setInternalValue(Map<String, String> newFieldValue) {
 		value.putAll(newFieldValue);
-		if (layout != null) {
-			prepareEntryFields();
-		}
 	}
 
 	@Override
