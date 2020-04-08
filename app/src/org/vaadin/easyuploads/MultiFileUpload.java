@@ -20,7 +20,6 @@ import com.vaadin.ui.ProgressIndicator;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
-
 import org.vaadin.easyuploads.MultiUpload.FileDetail;
 import org.vaadin.easyuploads.UploadField.FieldType;
 
@@ -60,9 +59,9 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 	private CssLayout progressBars = new CssLayout();
 	private CssLayout uploads = new CssLayout();
 	private String uploadButtonCaption = "...";
-	
+
 	private Window uploadWindow;
-	
+
 	private VerticalLayout uploadWindowContent;
 
 	public MultiFileUpload() {
@@ -71,11 +70,11 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 			uploadWindowContent.addComponents(progressBars);
 		}
 		uploadWindowContent.setWidth("100%");
-		
+
 		uploadWindow = new Window();
 		uploadWindow.setVisible(false);
 		uploadWindow.setContent(uploadWindowContent);
-		
+
 		setWidth("200px");
 		uploadWindowContent.addComponent(progressBars);
 		uploads.setStyleName("v-multifileupload-uploads");
@@ -114,7 +113,7 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 			public void streamingFailed(StreamingErrorEvent event) {
 				Logger.getLogger(getClass().getName()).log(Level.FINE,
 						"Streaming failed", event.getException());
-
+				displayStreamingFailedMessage();
 				for (ProgressIndicator progressIndicator : indicators) {
 					progressBars.removeComponent(progressIndicator);
 				}
@@ -161,6 +160,15 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 		upload.setHandler(handler);
 		upload.setButtonCaption(getUploadButtonCaption());
 		uploads.addComponent(upload);
+	}
+
+	protected void displayStreamingFailedMessage() {
+	}
+
+	;
+
+	protected boolean isSpaceLimitReached(StreamingStartEvent event) {
+		return false;
 	}
 
 	private ProgressIndicator createProgressIndicator() {
@@ -267,7 +275,7 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 	 * A helper method to set DirectoryFileFactory with given pathname as
 	 * directory.
 	 *
-	 * @param file
+	 * @param directoryWhereToUpload
 	 */
 	public void setRootDirectory(String directoryWhereToUpload) {
 		setFileFactory(new DirectoryFileFactory(
@@ -282,10 +290,10 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 	}
 
 	public void drop(DragAndDropEvent event) {
-		DragAndDropWrapper.WrapperTransferable transferable = (WrapperTransferable) event
+		final DragAndDropWrapper.WrapperTransferable transferable = (WrapperTransferable) event
 				.getTransferable();
 		Html5File[] files = transferable.getFiles();
-		if(files != null) {
+		if (files != null) {
 			for (final Html5File html5File : files) {
 				final ProgressIndicator pi = new ProgressIndicator();
 				pi.setCaption(html5File.getFileName());
@@ -306,14 +314,13 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 
 					public void onProgress(StreamingProgressEvent event) {
 						float p = (float) event.getBytesReceived()
-								/ (float) event.getContentLength();
+								  / (float) event.getContentLength();
 						pi.setValue(p);
 					}
 
 					public void streamingStarted(StreamingStartEvent event) {
 						name = event.getFileName();
 						mime = event.getMimeType();
-
 					}
 
 					public void streamingFinished(StreamingEndEvent event) {
