@@ -691,10 +691,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	protected abstract LogicalSearchCondition getSearchCondition();
 
 	protected LogicalSearchQuery getSearchQuery() {
-		String userSearchExpression = filterSolrOperators();
 		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition())
 				.setOverridedQueryParams(extraSolrParams)
-				.setFreeTextQuery(userSearchExpression)
+				.setFreeTextQuery(filteredSolrOperatorsInUserSearchExpression())
 				.filteredWithUser(getCurrentUser())
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
@@ -739,10 +738,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 	}
 
-	protected String filterSolrOperators() {
+	protected String filteredSolrOperatorsInUserSearchExpression() {
 		String userSearchExpression = getUserSearchExpression();
 
 		if (StringUtils.isNotBlank(userSearchExpression) && userSearchExpression.startsWith("\"") && userSearchExpression.endsWith("\"")) {
+			userSearchExpression = userSearchExpression.substring(1, userSearchExpression.length() - 2);
 			userSearchExpression = ClientUtils.escapeQueryChars(userSearchExpression);
 			userSearchExpression = "\"" + userSearchExpression + "\"";
 		}
