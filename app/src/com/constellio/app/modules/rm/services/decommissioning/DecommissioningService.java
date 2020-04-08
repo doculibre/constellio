@@ -31,7 +31,6 @@ import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
@@ -481,7 +480,7 @@ public class DecommissioningService {
 		AsyncTaskBatchProcess batchProcess = batchProcessesManager.addAsyncTask(request);
 		decommissioningList.setCurrentBatchProcessId(batchProcess.getId());
 		try {
-			recordServices.update(decommissioningList, new RecordUpdateOptions().setRecordsFlushing(RecordsFlushing.NOW()));
+			recordServices.update(decommissioningList);
 		} catch (RecordServicesException e) {
 			batchProcessesManager.cancelBatchProcessNoMatterItStatus(batchProcess);
 			throw new DecommissioningServiceException_CannotDecommission();

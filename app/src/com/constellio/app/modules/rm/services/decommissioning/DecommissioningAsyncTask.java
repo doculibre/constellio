@@ -2,13 +2,10 @@ package com.constellio.app.modules.rm.services.decommissioning;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.batchprocess.AsyncTask;
@@ -44,8 +41,6 @@ public class DecommissioningAsyncTask implements AsyncTask {
 	private static final Logger LOGGER = Logger.getLogger(DecommissioningService.class);
 
 	private AppLayerFactory appLayerFactory;
-	private File txtReport = null;
-	private OutputStream txtOuputStream = null;
 
 	private String collection;
 	private String username;
@@ -96,12 +91,6 @@ public class DecommissioningAsyncTask implements AsyncTask {
 			decommissioner.process(decommissioningList, user, TimeProvider.getLocalDate());
 			params.incrementProgression(recordCount);
 		} catch (RecordServicesException.OptimisticLocking e) {
-			appLayerFactory.getModelLayerFactory().getRecordsCaches().getCache(decommissioningList.getCollection())
-					.reloadSchemaType(Folder.SCHEMA_TYPE, true);
-
-			appLayerFactory.getModelLayerFactory().getRecordsCaches().getCache(decommissioningList.getCollection())
-					.reloadSchemaType(ContainerRecord.SCHEMA_TYPE, true);
-
 			if (attempt < 3) {
 				LOGGER.warn("Decommission failed, retrying...", e);
 				process(params, attempt + 1);
@@ -115,20 +104,24 @@ public class DecommissioningAsyncTask implements AsyncTask {
 		ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 		User user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(username, collection);
 
+		File txtReport = null;
+		OutputStream txtOuputStream = null;
 		try {
-			ensureTxtOutputStreamIsInitialized(params);
+			txtReport = new File(new FoldersLocator().getWorkFolder(),
+					params.getBatchProcess().getId() + File.separator + "batchProcessReport.txt");
+			txtOuputStream = FileUtils.openOutputStream(txtReport, true);
 
 			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(txtOuputStream));
 			writer.write(message);
 			writer.flush();
 
-			InputStream txtInputStream = new FileInputStream(createOrGetTempFile(params));
+			InputStream txtInputStream = new FileInputStream(txtReport);
 			ContentVersionDataSummary contentVersion = contentManager.upload(txtInputStream, txtReport.getName()).getContentVersionDataSummary();
 			Content content = contentManager.createMajor(user, txtReport.getName(), contentVersion);
 
 			BatchProcessReport report = getLinkedBatchProcessReport(params.getBatchProcess(), appLayerFactory);
 			report.setContent(content);
-			updateBatchProcessReport(report, RecordsFlushing.NOW());
+			updateBatchProcessReport(report);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -137,11 +130,10 @@ public class DecommissioningAsyncTask implements AsyncTask {
 		}
 	}
 
-	private void updateBatchProcessReport(BatchProcessReport report, RecordsFlushing recordsFlushing) {
+	private void updateBatchProcessReport(BatchProcessReport report) {
 		try {
 			Transaction transaction = new Transaction();
 			transaction.addUpdate(report.getWrappedRecord());
-			transaction.setRecordFlushing(recordsFlushing);
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -177,23 +169,5 @@ public class DecommissioningAsyncTask implements AsyncTask {
 			}
 		}
 		return report;
-	}
-
-	private OutputStream ensureTxtOutputStreamIsInitialized(AsyncTaskExecutionParams params)
-			throws IOException {
-		if (txtOuputStream == null) {
-			return txtOuputStream = FileUtils.openOutputStream(createOrGetTempFile(params), true);
-		} else {
-			return txtOuputStream;
-		}
-	}
-
-	private File createOrGetTempFile(AsyncTaskExecutionParams params) {
-		if (txtReport == null) {
-			return txtReport = new File(new FoldersLocator().getWorkFolder(),
-					params.getBatchProcess().getId() + File.separator + "batchProcessReport.txt");
-		} else {
-			return txtReport;
-		}
 	}
 }
