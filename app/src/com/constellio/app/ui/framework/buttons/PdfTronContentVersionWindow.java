@@ -29,10 +29,10 @@ public class PdfTronContentVersionWindow extends BaseWindow {
 		this.contentVersion = contentVersion;
 		this.recordId = recordId;
 		this.pdfTronKey = pdfTronKey;
+		this.isReadonly = isReadonly;
 
 		this.setContent(buildWindowContent());
 
-		this.isReadonly = isReadonly;
 		addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		addStyleName(ValoTheme.BUTTON_LINK);
 	}

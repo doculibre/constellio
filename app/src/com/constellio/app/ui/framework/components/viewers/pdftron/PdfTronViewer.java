@@ -22,9 +22,20 @@ import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLExcep
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
-import com.vaadin.server.*;
-import com.vaadin.ui.*;
+import com.vaadin.server.Resource;
+import com.vaadin.server.ResourceReference;
+import com.vaadin.server.VaadinRequest;
+import com.vaadin.server.VaadinResponse;
+import com.vaadin.server.VaadinSession;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.JavaScriptFunction;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
@@ -203,9 +214,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		};
 		finalizeBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		finalizeBtn.addStyleName(ValoTheme.BUTTON_LINK);
-
-		boolean userHasWriteAccess = pdfTronPresenter.hasWriteAccessToDocument() && !readOnlyMode;
-
 		disableGetAnnotationFromPreviousVersion(false);
 
 		enableDisableAnnotation.addStyleName(ValoTheme.BUTTON_BORDERLESS);
@@ -215,7 +223,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		HorizontalLayout buttonLayout2 = new HorizontalLayout();
 		buttonLayout2.setWidth("100%");
 
-		if (userHasWriteAccess) {
+		if (!readOnlyMode) {
 			buttonLayout2.addComponent(editAnnotationBtn);
 		}
 		setMessageIfAnOtherUserOrAnOtherPageIsEditing(false);

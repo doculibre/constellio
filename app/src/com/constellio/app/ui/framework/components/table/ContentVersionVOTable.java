@@ -195,7 +195,7 @@ public class ContentVersionVOTable extends BaseTable {
 			item.getItemProperty(CHECK_BOX).setValue(checkBox);
 
 			boolean canEditVersions = ((contentVersion.getVersion().equals(currentVersion) || canEditAnnotationOnOldVersion));
-			item.getItemProperty(FILE_NAME).setValue(new DownloadContentVersionLink(contentVersion, fileName, recordId, metadataCode, canEditVersions));
+			item.getItemProperty(FILE_NAME).setValue(new DownloadContentVersionLink(contentVersion, fileName, recordId, metadataCode, !canEditVersions));
 			item.getItemProperty(VERSION).setValue(version);
 			item.getItemProperty(LENGTH).setValue(lengthCaption);
 			item.getItemProperty(LAST_MODIFICATION_DATE_TIME).setValue(lastModificationDateTimeCaption);
