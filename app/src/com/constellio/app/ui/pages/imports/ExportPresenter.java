@@ -211,7 +211,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	}
 
 
-	public void exportToolsToXMLButtonClicked(boolean isSameCollection) {
+	public void exportToolsToXMLButtonClicked(boolean isSameCollection, boolean includeAuthorizations) {
 		RecordExportOptions options = new RecordExportOptions();
 		options.setForSameSystem(isSameCollection);
 		List<Taxonomy> enabledTaxonomies = new ArrayList<>(modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection));
@@ -231,6 +231,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		addValueListsSchemaTypes(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection), exportedSchemaTypes);
 
 		options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(modelLayerFactory, collection, exportedSchemaTypes));
+		options.setIncludeAuthorizations(includeAuthorizations);
 		exportToXML(options);
 	}
 

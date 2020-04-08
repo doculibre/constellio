@@ -229,24 +229,27 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		toolLayout = new VerticalLayout();
 		toolLayout.setSizeFull();
 		toolLayout.setSpacing(true);
+		final CheckBox exportAuthorizationsCheckbox = new CheckBox($("ExportView.exportAuthorizationsCheckbox"));
 		BaseButton exportTools = new BaseButton($("ExportView.exportTools")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				boolean includeAuthorizations = exportAuthorizationsCheckbox.getValue();
 				if (SAME_COLLECTION.equals(collectionOptions.getValue())) {
 					ConfirmDialog.show(ConstellioUI.getCurrent(), $("ExportView.confirmTitle"), buildConfirmMessage(), $("Ok"), $("cancel"), new ConfirmDialog.Listener() {
 						@Override
 						public void onClose(ConfirmDialog dialog) {
 							if (dialog.isConfirmed()) {
-								presenter.exportToolsToXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()));
+								presenter.exportToolsToXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), includeAuthorizations);
 							}
 						}
 					});
 				} else {
-					presenter.exportToolsToXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()));
+					presenter.exportToolsToXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), includeAuthorizations);
 				}
 			}
 		};
 		toolLayout.addComponent(exportTools);
+		toolLayout.addComponent(exportAuthorizationsCheckbox);
 		return toolLayout;
 	}
 
