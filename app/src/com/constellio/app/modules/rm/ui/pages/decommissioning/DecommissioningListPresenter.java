@@ -51,7 +51,6 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServicesException;
@@ -318,8 +317,9 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		try {
 			List<String> processableFoldersIds = getProcessableFoldersIds();
 			decommissioningService().decommission(decommissioningList(), getCurrentUser());
-			view.showMessage($(mayContainAnalogicalMedia() ?
-							   "DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
+			view.showMessage($("BatchProcessing.endedNormally"));
+			//view.showMessage($(mayContainAnalogicalMedia() ?
+			//				   "DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
 			if (rmModuleExtensions != null) {
 				for (DecommissioningListPresenterExtension extension : rmModuleExtensions.getDecommissioningListPresenterExtensions()) {
 					ImportExternalLinksParams params = new ImportExternalLinksParams(processableFoldersIds, getCurrentUser().getUsername(), appLayerFactory, collection);
@@ -335,8 +335,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 				view.showErrorMessage(wrappedException.getMessage());
 				e.printStackTrace();
 			}
-		} catch (ValidationException e) {
-			view.showMessage($(e));
+		} catch (DecommissioningServiceException e) {
+			view.showErrorMessage(e.getMessage());
 		} catch (Exception ex) {
 			view.showErrorMessage(ex.getMessage());
 			ex.printStackTrace();

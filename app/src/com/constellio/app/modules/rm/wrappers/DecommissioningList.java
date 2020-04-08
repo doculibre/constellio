@@ -58,6 +58,7 @@ public class DecommissioningList extends RecordWrapper {
 	public static final String DOCUMENTS_REPORT_CONTENT = "documentsReportContent";
 	public static final String FOLDERS_REPORT_CONTENT = "foldersReportContent";
 	public static final String CONTENTS = "contents";
+	public static final String CURRENT_BATCH_PROCESS_ID = "currentBatchProcess";
 
 	// Disabled fields
 	public static final String VALIDATION_DATE = "validationDate";    // never used, disabled in 5.1.0
@@ -225,6 +226,15 @@ public class DecommissioningList extends RecordWrapper {
 
 	public DecommissioningList setApprovalUser(User approvalUser) {
 		set(APPROVAL_USER, approvalUser);
+		return this;
+	}
+
+	public String getCurrentBatchProcessId() {
+		return get(CURRENT_BATCH_PROCESS_ID);
+	}
+
+	public DecommissioningList setCurrentBatchProcessId(String batchProcessId) {
+		set(CURRENT_BATCH_PROCESS_ID, batchProcessId);
 		return this;
 	}
 

@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -151,7 +152,7 @@ public class FolderRecordActionsServices {
 	}
 
 	public boolean isEditRecordTriggerPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user);
+		return Toggle.ENABLE_OFFICE365_EXCLUSIVE.isEnabled() && hasUserWriteAccess(record, user);
 	}
 
 	public boolean isCopyActionPossible(Record record, User user) {
@@ -307,7 +308,7 @@ public class FolderRecordActionsServices {
 	}
 
 	public boolean isListExternalLinksActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user);
+		return Toggle.ENABLE_OFFICE365_EXCLUSIVE.isEnabled() && hasUserWriteAccess(record, user);
 	}
 
 	/*

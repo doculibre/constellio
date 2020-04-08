@@ -11,7 +11,9 @@ import com.constellio.app.modules.rm.model.calculators.document.DocumentFilename
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.ExternalLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
@@ -115,6 +117,9 @@ public class RMMigrationTo9_1_0 implements MigrationScript {
 			MetadataSchemaBuilder taskSchema = typesBuilder.getSchemaType(RMTask.SCHEMA_TYPE).getDefaultSchema();
 			taskSchema.get(RMTask.LINKED_DOCUMENTS).setEssentialInSummary(true).setCacheIndex(true);
 
+			MetadataSchemaBuilder decomListSchema = typesBuilder.getSchemaType(DecommissioningList.SCHEMA_TYPE).getDefaultSchema();
+			decomListSchema.createSystemReserved(DecommissioningList.CURRENT_BATCH_PROCESS_ID).setType(STRING);
+
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
 			folderSchema.get(Schemas.ATTACHED_ANCESTORS).setEssentialInSummary(false);
 			folderSchema.get(Schemas.DESCRIPTION_TEXT).setEssentialInSummary(false);
@@ -153,6 +158,9 @@ public class RMMigrationTo9_1_0 implements MigrationScript {
 			documentSchema.get(Document.FOLDER_ADMINISTRATIVE_UNIT).setTaxonomyRelationship(false);
 			documentSchema.get(Schemas.ALL_REMOVED_AUTHS).setEnabled(true).setEssentialInSummary(true);
 			documentSchema.get(Document.TITLE).setCacheIndex(false);
+
+			MetadataSchemaBuilder emailSchema = typesBuilder.getSchemaType(Email.SCHEMA_TYPE).getCustomSchema(Email.SCHEMA_LOCAL_CODE);
+			emailSchema.createSystemReserved(Email.EMAIL_VERSIONS).setType(STRING).setMultivalue(true);
 
 			for (MetadataSchemaTypeBuilder typeBuilder : typesBuilder.getTypes()) {
 				if (typeBuilder.getDefaultSchema().hasMetadata(CommonMetadataBuilder.ATTACHED_ANCESTORS)) {

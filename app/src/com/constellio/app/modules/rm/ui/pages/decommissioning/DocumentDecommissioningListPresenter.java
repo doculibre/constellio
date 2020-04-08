@@ -7,7 +7,6 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -21,7 +20,6 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -106,19 +104,13 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 	}
 
 	public void processButtonClicked() {
-
 		try {
 			decommissioningService().decommission(decommissioningList(), getCurrentUser());
 			view.showMessage($("DecommissioningListView.processed"));
 			view.navigate().to(RMViews.class).displayDocumentDecommissioningList(recordId);
-		} catch (DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission e) {
-			view.showMessage($("DecommissioningListView.tooMuchOptimisticLocking"));
 		} catch (DecommissioningServiceException e) {
-			view.showMessage($(e));
-		} catch (ValidationException e) {
-			view.showErrorMessage($(e));
+			view.showErrorMessage(e.getMessage());
 		}
-
 	}
 
 	public boolean isDocumentsCertificateButtonVisible() {

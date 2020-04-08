@@ -47,8 +47,16 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlin
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class PdfGeneratorAsyncTask implements AsyncTask {
 
@@ -290,14 +298,24 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 		Map<String, Object> messageParams = new HashMap<>();
 		messageParams.put("id", document.getId());
 		messageParams.put("messageKey", message);
-		params.logError(document.getId(), messageParams);
+
+		if (params instanceof PdfGeneratorMergeTaskParam) {
+			((PdfGeneratorMergeTaskParam) params).throwError(document.getId(), messageParams);
+		} else {
+			params.logError(document.getId(), messageParams);
+		}
 	}
 
 	private void logGlobalError(AsyncTaskExecutionParams params, String message) throws ValidationException {
 		Map<String, Object> messageParams = new HashMap<>();
 		messageParams.put("id", GLOBAL_ERROR_KEY);
 		messageParams.put("messageKey", message);
-		params.logError(GLOBAL_ERROR_KEY, messageParams);
+
+		if (params instanceof PdfGeneratorMergeTaskParam) {
+			((PdfGeneratorMergeTaskParam) params).throwError(GLOBAL_ERROR_KEY, messageParams);
+		} else {
+			params.logError(GLOBAL_ERROR_KEY, messageParams);
+		}
 	}
 
 	@Override
