@@ -76,7 +76,7 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 				.setLinkableFlagCalculated(false);
 
 		List<Record> childRecords;
-		if (collection.equals(folderId)) {
+		if (collection.equals(folderId) || "@root@".equals(folderId)) {
 			List<Taxonomy> taxonomies = taxonomiesManager.getEnabledTaxonomies(collection);
 			for (Taxonomy taxonomy : taxonomies) {
 				ObjectData object = newTaxonomyObjectBuilder().build(taxonomy, objectInfo, Language.withCode(modelLayerFactory.getCollectionsListManager().getMainDataLanguage()));
