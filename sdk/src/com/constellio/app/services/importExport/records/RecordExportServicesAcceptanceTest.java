@@ -1635,7 +1635,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 
 	@Test
-	public void whenExportingAdministrativeUnitAuthorizationsThenCanBeImportedInOtherSystem() throws Exception {
+	public void whenExportingAdministrativeUnitContentWithAuthorizationsThenIncludeThem() throws Exception {
 		final String ANOTHER_COLLECTION = "anotherCollection";
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
@@ -1662,11 +1662,12 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		//		getModelLayerFactory().newRecordServices().execute(tx);
 
 		exportThenImportInAnotherCollection(
-				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(
+				options.setIncludeAuthorizations(false).setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(
 						AdministrativeUnit.SCHEMA_TYPE,
 						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
 						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
-						DocumentType.SCHEMA_TYPE)))));
+						DocumentType.SCHEMA_TYPE))))
+		);
 
 		//Given
 		List<Authorization> sourceAuthorizationsList = rmSchemasRecordsServicesSourceCollection.searchSolrAuthorizationDetailss(returnAll());
@@ -1706,7 +1707,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		//Then
 		List<Authorization> targetAuthorizationsListsAfterImport = rmOfTargetCollection.searchSolrAuthorizationDetailss(returnAll());
 		assertThatRecords(targetAuthorizationsListsAfterImport).extractingMetadatas("roles", "principals.title", "target.legacyIdentifier").containsOnly(
-
 				tuple(asList("READ", "WRITE"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
 				tuple(asList("U"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
 				tuple(asList("READ", "WRITE", "DELETE"), asList("Gandalf Leblanc"), "unitId_30"),
@@ -1720,15 +1720,20 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		for (Authorization authorization : targetAuthorizationsListsAfterImport) {
 			for (String principalId : authorization.getPrincipals()) {
 				Record record = getModelLayerFactory().newRecordServices().realtimeGetRecordSummaryById(principalId);
-				assertThat(record).isNull();
+				assertThat(record).isNotNull();
 				assertThat(record.getCollection()).isEqualTo("anotherCollection");
 			}
+
+			Record record = getModelLayerFactory().newRecordServices().realtimeGetRecordSummaryById(authorization.getTarget());
+			assertThat(record).isNotNull();
+			assertThat(record.getCollection()).isEqualTo("anotherCollection");
+			assertThat(record.getTypeCode()).isEqualTo(authorization.getTargetSchemaType());
 		}
 
 	}
 
 	@Test
-	public void whenExportingAnAdministrativeIncludingItsAuthorizationsThenIncludeThem() throws Exception {
+	public void whenExportingAdministrativeUnitsIncludingItsAuthorizationsThenIncludeThem() throws Exception {
 		final String ANOTHER_COLLECTION = "anotherCollection";
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
@@ -1758,6 +1763,22 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		//Given
 		List<Authorization> sourceAuthorizationsList = rmSchemasRecordsServicesSourceCollection.searchSolrAuthorizationDetailss(returnAll());
 		assertThatRecords(sourceAuthorizationsList).extractingMetadatas("roles", "principals.title", "target").containsOnly(
+				tuple(asList("READ", "WRITE", "DELETE"), asList("Dakota L'Indien", "Gandalf Leblanc"), "unitId_10"),
+				tuple(asList("READ", "WRITE"), asList("Bob 'Elvis' Gratton", "Charles-François Xavier", "System Admin"), "unitId_10"),
+				tuple(asList("U"), asList("Dakota L'Indien", "System Admin"), "unitId_11"),
+				tuple(asList("M"), asList("Dakota L'Indien", "Gandalf Leblanc"), "unitId_10"),
+				tuple(asList("U"), asList("Bob 'Elvis' Gratton", "Charles-François Xavier", "System Admin"), "unitId_10"),
+				tuple(asList("READ", "WRITE", "DELETE"), asList("Edouard Lechat", "Gandalf Leblanc"), "unitId_11"),
+				tuple(asList("READ", "WRITE"), asList("Dakota L'Indien", "System Admin"), "unitId_11"),
+				tuple(asList("M"), asList("Edouard Lechat", "Gandalf Leblanc"), "unitId_11"),
+				tuple(asList("READ", "WRITE", "DELETE"), asList("Edouard Lechat", "Gandalf Leblanc"), "unitId_12"),
+				tuple(asList("U"), asList("Dakota L'Indien", "System Admin", "Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_12"),
+				tuple(asList("READ", "WRITE"), asList("Dakota L'Indien", "System Admin", "Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_12"),
+				tuple(asList("M"), asList("Edouard Lechat", "Gandalf Leblanc"), "unitId_12"),
+				tuple(asList("READ", "WRITE"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
+				tuple(asList("U"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
+				tuple(asList("READ", "WRITE", "DELETE"), asList("Gandalf Leblanc"), "unitId_30"),
+				tuple(asList("M"), asList("Gandalf Leblanc"), "unitId_30"),
 				tuple(asList("M"), asList("Big Foot"), "C03"),
 				tuple(asList("READ"), asList("Big Foot"), "C02"),
 				tuple(asList("READ", "WRITE"), asList("Big Foot"), "C01"),
@@ -1780,6 +1801,19 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		List<Authorization> targetAuthorizationsListsAfterImport = rmOfTargetCollection.searchSolrAuthorizationDetailss(returnAll());
 		assertThatRecords(targetAuthorizationsListsAfterImport).extractingMetadatas("roles", "principals.title", "target.legacyIdentifier").containsOnly(
 
+				tuple(asList("READ", "WRITE", "DELETE"), asList("Dakota L'Indien", "Gandalf Leblanc"), "unitId_10"),
+				tuple(asList("READ", "WRITE"), asList("Bob 'Elvis' Gratton", "Charles-François Xavier", "System Admin"), "unitId_10"),
+				tuple(asList("U"), asList("Dakota L'Indien", "System Admin"), "unitId_11"),
+				tuple(asList("M"), asList("Dakota L'Indien", "Gandalf Leblanc"), "unitId_10"),
+				tuple(asList("U"), asList("Bob 'Elvis' Gratton", "Charles-François Xavier", "System Admin"), "unitId_10"),
+				tuple(asList("READ", "WRITE", "DELETE"), asList("Edouard Lechat", "Gandalf Leblanc"), "unitId_11"),
+				tuple(asList("READ", "WRITE"), asList("Dakota L'Indien", "System Admin"), "unitId_11"),
+				tuple(asList("M"), asList("Edouard Lechat", "Gandalf Leblanc"), "unitId_11"),
+				tuple(asList("READ", "WRITE", "DELETE"), asList("Edouard Lechat", "Gandalf Leblanc"), "unitId_12"),
+				tuple(asList("U"), asList("Dakota L'Indien", "System Admin", "Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_12"),
+				tuple(asList("READ", "WRITE"), asList("Dakota L'Indien", "System Admin", "Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_12"),
+				tuple(asList("M"), asList("Edouard Lechat", "Gandalf Leblanc"), "unitId_12"),
+				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c"),
 				tuple(asList("READ", "WRITE"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
 				tuple(asList("U"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
 				tuple(asList("READ", "WRITE", "DELETE"), asList("Gandalf Leblanc"), "unitId_30"),
@@ -1789,9 +1823,14 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		for (Authorization authorization : targetAuthorizationsListsAfterImport) {
 			for (String principalId : authorization.getPrincipals()) {
 				Record record = getModelLayerFactory().newRecordServices().realtimeGetRecordSummaryById(principalId);
-				assertThat(record).isNull();
+				assertThat(record).isNotNull();
 				assertThat(record.getCollection()).isEqualTo("anotherCollection");
 			}
+
+			Record record = getModelLayerFactory().newRecordServices().realtimeGetRecordSummaryById(authorization.getTarget());
+			assertThat(record).isNotNull();
+			assertThat(record.getCollection()).isEqualTo("anotherCollection");
+			assertThat(record.getTypeCode()).isEqualTo(authorization.getTargetSchemaType());
 		}
 
 	}
