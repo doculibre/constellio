@@ -15,8 +15,9 @@ public class RecordExportOptions {
 		return includeAuthorizations;
 	}
 
-	public void setIncludeAuthorizations(boolean includeAuthorizations) {
+	public RecordExportOptions setIncludeAuthorizations(boolean includeAuthorizations) {
 		this.includeAuthorizations = includeAuthorizations;
+		return this;
 	}
 
 	public boolean isForSameSystem() {

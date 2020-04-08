@@ -25,6 +25,7 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
@@ -858,6 +859,35 @@ public class RecordsImportServicesExecutor {
 					manageEmailAddressFactory(record, metadata, field);
 				}
 			}
+		}
+
+		if (Authorization.SCHEMA_TYPE.equals(typeImportContext.schemaType)) {
+			String target = toImport.getValue(Authorization.TARGET);
+			List<String> principals = toImport.getValue(Authorization.PRINCIPALS);
+
+			if (target != null) {
+				if (typeBatchImportContext.options.isImportAsLegacyId()) {
+					String targetSchemaType = toImport.getValue(Authorization.TARGET_SCHEMA_TYPE);
+					String id = resolverCache.resolve(targetSchemaType, target);
+					if (id == null) {
+						//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
+					}
+
+					record.set(LEGACY_ID, id);
+				}
+			}
+
+			if (principals != null) {
+				List<String> convertedPrincipals = new ArrayList<>();
+
+				for (String principal : principals) {
+
+				}
+
+
+			}
+
+
 		}
 
 		extensions.callRecordImportBuild(typeImportContext.schemaType,

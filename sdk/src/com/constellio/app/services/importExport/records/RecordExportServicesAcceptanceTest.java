@@ -1727,6 +1727,75 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void whenExportingAnAdministrativeIncludingItsAuthorizationsThenIncludeThem() throws Exception {
+		final String ANOTHER_COLLECTION = "anotherCollection";
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
+				withCollection(ANOTHER_COLLECTION).withConstellioRMModule().withAllTest(users));
+		RMSchemasRecordsServices rmSchemasRecordsServicesSourceCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		RMSchemasRecordsServices rmOfTargetCollection = new RMSchemasRecordsServices(ANOTHER_COLLECTION, getAppLayerFactory());
+
+		AuthorizationsServices authorizationsServices = getAppLayerFactory().getModelLayerFactory().newAuthorizationsServices();
+		authorizationsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadWriteAccess());
+		authorizationsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C02).givingNegativeReadAccess());
+		authorizationsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C03).giving("M"));
+		authorizationsServices.add(authorizationForUsers(users.edouardLechatIn(zeCollection)).on(records.unitId_30c).givingNegativeReadWriteAccess());
+		//TODO Add on documents
+
+		//		Transaction tx = new Transaction();
+		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01").setTitle("S01"));
+		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01-01").setTitle("S01-01"));
+		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01-02").setTitle("S01-02"));
+		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02").setTitle("S02"));
+		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02-01").setTitle("S02-01"));
+		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02-02").setTitle("S02-02"));
+		//		tx.add(rmOfTargetCollection.newContainerRecordType().setCode("B22x22").setTitle("B22x22"));
+		//		getModelLayerFactory().newRecordServices().execute(tx);
+
+
+		//Given
+		List<Authorization> sourceAuthorizationsList = rmSchemasRecordsServicesSourceCollection.searchSolrAuthorizationDetailss(returnAll());
+		assertThatRecords(sourceAuthorizationsList).extractingMetadatas("roles", "principals.title", "target").containsOnly(
+				tuple(asList("M"), asList("Big Foot"), "C03"),
+				tuple(asList("READ"), asList("Big Foot"), "C02"),
+				tuple(asList("READ", "WRITE"), asList("Big Foot"), "C01"),
+				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c")
+		);
+
+		List<Authorization> targetAuthorizationsListsBeforeImport = rmOfTargetCollection.searchSolrAuthorizationDetailss(returnAll());
+		assertThat(targetAuthorizationsListsBeforeImport.isEmpty());
+
+		//When
+
+
+		exportThenImportInAnotherCollection(
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(
+						AdministrativeUnit.SCHEMA_TYPE))))
+						.setIncludeAuthorizations(true));
+
+
+		//Then
+		List<Authorization> targetAuthorizationsListsAfterImport = rmOfTargetCollection.searchSolrAuthorizationDetailss(returnAll());
+		assertThatRecords(targetAuthorizationsListsAfterImport).extractingMetadatas("roles", "principals.title", "target.legacyIdentifier").containsOnly(
+
+				tuple(asList("READ", "WRITE"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
+				tuple(asList("U"), asList("Edouard Lechat", "Bob 'Elvis' Gratton", "System Admin"), "unitId_30"),
+				tuple(asList("READ", "WRITE", "DELETE"), asList("Gandalf Leblanc"), "unitId_30"),
+				tuple(asList("M"), asList("Gandalf Leblanc"), "unitId_30")
+		);
+
+		for (Authorization authorization : targetAuthorizationsListsAfterImport) {
+			for (String principalId : authorization.getPrincipals()) {
+				Record record = getModelLayerFactory().newRecordServices().realtimeGetRecordSummaryById(principalId);
+				assertThat(record).isNull();
+				assertThat(record.getCollection()).isEqualTo("anotherCollection");
+			}
+		}
+
+	}
+
 	private CopyRetentionRule getPrimaryCopyRetentionRule() {
 		return new CopyRetentionRule().setCopyType(CopyType.PRINCIPAL).setCode(CODE)
 				.setTitle(TITLE)
