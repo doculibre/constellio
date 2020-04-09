@@ -58,10 +58,19 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.JavaScriptFunction;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
@@ -70,7 +79,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -253,9 +268,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		tableLayout.addComponent(tableButtonsLayout);
 		tableLayout.addComponent(table);
 		if (table.isPaged()) {
-			//			ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
-			tableLayout.addComponent(pagingControls = table.createPagingControls());
-			tableLayout.setComponentAlignment(pagingControls, Alignment.BOTTOM_CENTER);
+			ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
 		}
 		Label spacer = new Label("");
 		spacer.setHeight("50px");
@@ -682,7 +695,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			}
 			if (allItemsVisible) {
 				resultsTable.setPageLength(resultsTable.size());
-			} 
+			}
 		}
 
 		final CellStyleGenerator cellStyleGenerator = resultsTable.getCellStyleGenerator();
@@ -753,13 +766,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 				tableLayout.replaceComponent(tableBefore, table);
 				if (pagingControls != null) {
-					//					ConstellioUI.getCurrent().setStaticFooterContent(null);
-					tableLayout.removeComponent(pagingControls);
+					ConstellioUI.getCurrent().setStaticFooterContent(null);
 				}
 				if (table.isPaged()) {
-					//			ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
-					tableLayout.addComponent(pagingControls = table.createPagingControls());
-					tableLayout.setComponentAlignment(pagingControls, Alignment.BOTTOM_CENTER);
+					ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
 				}
 				adjustTableExpansion();
 
