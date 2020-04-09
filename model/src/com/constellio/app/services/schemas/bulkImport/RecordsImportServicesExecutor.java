@@ -880,9 +880,9 @@ public class RecordsImportServicesExecutor {
 						parameters.put("target", target);
 						errors.add(RecordsImportServices.class, AUTHORIZATION_TARGET_ID_CANNOT_BE_NULL, parameters);
 						//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
+					} else {
+						record.set(defaultSchema.get(Authorization.TARGET), id);
 					}
-
-					record.set(defaultSchema.get(Authorization.TARGET), id);
 				}
 			}
 
@@ -898,22 +898,24 @@ public class RecordsImportServicesExecutor {
 						User principalUser = userServices.getUserInCollection(principalValue, collection);
 						if (principalUser == null) {
 							Map<String, Object> parameters = new HashMap<>();
-							parameters.put("principals", principal);
+							parameters.put("principal", principal);
 							errors.add(RecordsImportServices.class, PRINCIPALS_USER_CANNOT_BE_NULL, parameters);
 							//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
+						} else {
+							convertedPrincipals.add(principalUser.getId());
 						}
-						convertedPrincipals.add(principalUser.getId());
 					}
 
 					if (Group.SCHEMA_TYPE.equals(principalSchemaType)) {
 						Group principalGroup = userServices.getGroupInCollection(principalValue, collection);
 						if (principalGroup == null) {
 							Map<String, Object> parameters = new HashMap<>();
-							parameters.put("principals", principal);
+							parameters.put("principal", principal);
 							errors.add(RecordsImportServices.class, PRINCIPALS_GROUP_CANNOT_BE_NULL, parameters);
 							//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
+						} else {
+							convertedPrincipals.add(principalGroup.getId());
 						}
-						convertedPrincipals.add(principalGroup.getId());
 					}
 
 				}
