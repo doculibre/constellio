@@ -1,5 +1,6 @@
 package com.constellio.app.services.schemas.bulkImport;
 
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportValidationErrorsBehavior;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
@@ -19,6 +20,8 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -277,7 +280,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		prepareSystem(
-				withZeCollection().withAllTest(users)
+				withZeCollection()
+						.withAllTest(users)
 		);
 		givenConfig(ConstellioEIMConfigs.LEGACY_IDENTIFIER_INDEXED_IN_MEMORY, true);
 		admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
@@ -285,6 +289,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		data.put(zeSchema.typeCode(), zeSchemaTypeRecords);
 		data.put(anotherSchema.typeCode(), anotherSchemaTypeRecords);
 		data.put(thirdSchema.typeCode(), thirdSchemaTypeRecords);
+
 		importDataProvider = new DummyImportDataProvider(data);
 
 		contentManager = getModelLayerFactory().getContentManager();
@@ -808,6 +813,96 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					"Ze type de schéma 5 : La métadonnée «parentReferenceFromZeSchemaToZeSchema» utilise une métadonnée «otherInvalidMetadata» qui n'existe pas ou qui n'est pas acceptée pour obtenir un enregistrement référencé");
 		}
 	}
+
+
+	@Test    //todo
+	public void givenAnImportedAuthorizationRecordWithInvalidTargetIdThenValidationErrorThrown()
+			throws Exception {
+		final String INVALID_TARGET_ID = "invalid_target_id";
+		final String VALID_TARGET_ID = "valid_target_id";
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata(whichIsUnique)
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+		);
+
+		ImportDataBuilder authorizationWithValidTarget = defaultSchemaData().setId("1")
+				.addField("roles", Arrays.asList("U"))
+				.addField("target", INVALID_TARGET_ID);
+
+		ImportDataBuilder authorizationWithInvalidTarget = defaultSchemaData().setId("1")
+				.addField("roles", Arrays.asList("U"))
+				.addField("target", INVALID_TARGET_ID);
+
+
+		ImportDataBuilder targetRecord = new ImportDataBuilder()
+				.setSchema(Category.SCHEMA_TYPE)
+				.setId(VALID_TARGET_ID);
+		importDataProvider.add(Category.SCHEMA_TYPE, targetRecord);
+
+		importDataProvider.add(Authorization.SCHEMA_TYPE, authorizationWithValidTarget);
+		importDataProvider.add(Authorization.SCHEMA_TYPE, authorizationWithInvalidTarget);
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+			fail("An exception was expected");
+		} catch (ValidationException e) {
+			assertThat(frenchMessages(e))
+					.containsOnly("Autorisation 1 : La cible «invalid_target_id» de l'autorisation «1» n'existe pas.");
+		}
+
+	}
+
+
+	@Test    //todo
+	public void givenAnImportedAuthorizationRecordWithInvalidUserPrincipalThenValidationErrorThrown() throws Exception {
+		String INVALID_USER_PRINCIPAL = "invalidUserPrincipal";
+		String VALID_USER_PRINCIPAL = users.chuckNorris().getId();
+
+		TestRecord target = new TestRecord(Group.SCHEMA_TYPE, zeCollection);
+		recordServices.add(target);
+
+		defineSchemasManager().using(schemas
+				.withAStringMetadata(whichIsUnique)
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema());
+
+		String VALID_TARGET_ID = target.getId();//records.unitId_20d;
+
+
+		ImportDataBuilder targetRecord = defaultSchemaData().setId(VALID_TARGET_ID);
+
+		ImportDataBuilder validTargetAuthorization = defaultSchemaData().setId("1")
+				.addField("roles", Arrays.asList("U"))
+				.addField("principals", Arrays.asList(VALID_USER_PRINCIPAL));
+		//.addField("target",VALID_TARGET_ID);
+
+		ImportDataBuilder invalidTargetAuthorization = defaultSchemaData().setId("2")
+				.addField("roles", Arrays.asList("U"))
+				.addField("principals", Arrays.asList(INVALID_USER_PRINCIPAL));
+		//.addField("target",VALID_TARGET_ID);
+
+		//importDataProvider.add(AdministrativeUnit.SCHEMA_TYPE,targetRecord);
+		importDataProvider.add(Authorization.SCHEMA_TYPE, validTargetAuthorization);
+		importDataProvider.add(Authorization.SCHEMA_TYPE, invalidTargetAuthorization);
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+			fail("An exception was expected");
+		} catch (ValidationException e) {
+			assertThat(frenchMessages(e))
+					.containsOnly("Autorisation 1 : La cible «invalid_target_id» de l'autorisation «1» n'existe pas.");
+		}
+
+	}
+
+	@Test    //todo même chose que l'autre mais avec group au leu de user
+	public void givenAnImportedAuthorizationRecordWithInvalidGroupPrincipalThenValidationErrorThrown()
+			throws Exception {
+
+	}
+
 
 	@Test
 	public void givenPermisiveModeWhenImportRecordWithMissingValuesThenOnlyWarningsForUSR()

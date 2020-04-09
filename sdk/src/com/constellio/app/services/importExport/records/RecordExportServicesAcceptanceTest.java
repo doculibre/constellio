@@ -1649,17 +1649,9 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		authorizationsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C02).givingNegativeReadAccess());
 		authorizationsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C03).giving("M"));
 		authorizationsServices.add(authorizationForUsers(users.edouardLechatIn(zeCollection)).on(records.unitId_30c).givingNegativeReadWriteAccess());
-		//TODO Add on documents
+		authorizationsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(records.document_B30).giving("M"));
 
-		//		Transaction tx = new Transaction();
-		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01").setTitle("S01"));
-		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01-01").setTitle("S01-01"));
-		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01-02").setTitle("S01-02"));
-		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02").setTitle("S02"));
-		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02-01").setTitle("S02-01"));
-		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02-02").setTitle("S02-02"));
-		//		tx.add(rmOfTargetCollection.newContainerRecordType().setCode("B22x22").setTitle("B22x22"));
-		//		getModelLayerFactory().newRecordServices().execute(tx);
+		//TODO Add on documents
 
 		exportThenImportInAnotherCollection(
 				options.setIncludeAuthorizations(false).setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(
@@ -1691,7 +1683,9 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				tuple(asList("M"), asList("Big Foot"), "C03"),
 				tuple(asList("READ"), asList("Big Foot"), "C02"),
 				tuple(asList("READ", "WRITE"), asList("Big Foot"), "C01"),
-				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c")
+				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c"),
+				tuple(asList("READ"), asList("Bob 'Elvis' Gratton"), "docA19")
+
 		);
 
 		List<Authorization> targetAuthorizationsListsBeforeImport = rmOfTargetCollection.searchSolrAuthorizationDetailss(returnAll());
@@ -1714,7 +1708,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				tuple(asList("M"), asList("Big Foot"), "C03"),
 				tuple(asList("READ"), asList("Big Foot"), "C02"),
 				tuple(asList("READ", "WRITE"), asList("Big Foot"), "C01"),
-				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c")
+				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c"),
+				tuple(asList("READ"), asList("Bob 'Elvis' Gratton"), "docA19")
 		);
 
 		for (Authorization authorization : targetAuthorizationsListsAfterImport) {
@@ -1735,6 +1730,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenExportingAdministrativeUnitsIncludingItsAuthorizationsThenIncludeThem() throws Exception {
 		final String ANOTHER_COLLECTION = "anotherCollection";
+
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
@@ -1747,17 +1743,19 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		authorizationsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C02).givingNegativeReadAccess());
 		authorizationsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C03).giving("M"));
 		authorizationsServices.add(authorizationForUsers(users.edouardLechatIn(zeCollection)).on(records.unitId_30c).givingNegativeReadWriteAccess());
+		authorizationsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.document_B30).giving("M"));
+
 		//TODO Add on documents
 
-		//		Transaction tx = new Transaction();
-		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01").setTitle("S01"));
-		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01-01").setTitle("S01-01"));
-		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01-02").setTitle("S01-02"));
-		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02").setTitle("S02"));
-		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02-01").setTitle("S02-01"));
-		//		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02-02").setTitle("S02-02"));
-		//		tx.add(rmOfTargetCollection.newContainerRecordType().setCode("B22x22").setTitle("B22x22"));
-		//		getModelLayerFactory().newRecordServices().execute(tx);
+		Transaction tx = new Transaction();
+		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01").setTitle("S01"));
+		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01-01").setTitle("S01-01"));
+		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S01-02").setTitle("S01-02"));
+		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02").setTitle("S02"));
+		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02-01").setTitle("S02-01"));
+		tx.add(rmOfTargetCollection.newStorageSpace().setCode("S02-02").setTitle("S02-02"));
+		tx.add(rmOfTargetCollection.newContainerRecordType().setCode("B22x22").setTitle("B22x22"));
+		getModelLayerFactory().newRecordServices().execute(tx);
 
 
 		//Given

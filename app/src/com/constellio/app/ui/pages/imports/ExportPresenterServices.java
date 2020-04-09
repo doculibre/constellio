@@ -70,7 +70,7 @@ public class ExportPresenterServices {
 		options.setRecordsToExportIterator(recordsIterator);
 		options.setIncludeAuthorizations(includeAuthorizations);
 		return options;
-	}//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
+	}
 
 
 	public RecordExportOptions buildOptionsForExportingTools(boolean isSameCollection, boolean includeAuthorizations,

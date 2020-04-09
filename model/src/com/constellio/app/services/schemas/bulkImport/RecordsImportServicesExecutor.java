@@ -137,6 +137,11 @@ public class RecordsImportServicesExecutor {
 	private static final String ID_ALREADY_USED_BY_RECORD_OF_OTHER_TYPE = "idAlreadyUsedByRecordsOfOtherType";
 	private static final String ID_ALREADY_USED_BY_RECORD_OF_OTHER_COLLECTION = "idAlreadyUsedByRecordsOfOtherCollection";
 
+	private static final String AUTHORIZATION_TARGET_ID_CANNOT_BE_NULL = "authorizationTargetIdCannotBeNull";
+	private static final String PRINCIPALS_USER_CANNOT_BE_NULL = "principalsUserCannotBeNull";
+	private static final String PRINCIPALS_GROUP_CANNOT_BE_NULL = "principalsGroupCannotBeNull";
+
+
 	public static final String RECORD_SERVICE_EXEPTION = "recordServiceException";
 
 	public static final String COMMENT_MESSAGE = "message";
@@ -871,6 +876,9 @@ public class RecordsImportServicesExecutor {
 					String targetSchemaType = toImport.getValue(Authorization.TARGET_SCHEMA_TYPE);
 					String id = resolverCache.resolve(targetSchemaType, target);
 					if (id == null) {
+						Map<String, Object> parameters = new HashMap<>();
+						parameters.put("target", target);
+						errors.add(RecordsImportServices.class, AUTHORIZATION_TARGET_ID_CANNOT_BE_NULL, parameters);
 						//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
 					}
 
@@ -889,6 +897,9 @@ public class RecordsImportServicesExecutor {
 					if (User.SCHEMA_TYPE.equals(principalSchemaType)) {
 						User principalUser = userServices.getUserInCollection(principalValue, collection);
 						if (principalUser == null) {
+							Map<String, Object> parameters = new HashMap<>();
+							parameters.put("principals", principal);
+							errors.add(RecordsImportServices.class, PRINCIPALS_USER_CANNOT_BE_NULL, parameters);
 							//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
 						}
 						convertedPrincipals.add(principalUser.getId());
@@ -897,6 +908,9 @@ public class RecordsImportServicesExecutor {
 					if (Group.SCHEMA_TYPE.equals(principalSchemaType)) {
 						Group principalGroup = userServices.getGroupInCollection(principalValue, collection);
 						if (principalGroup == null) {
+							Map<String, Object> parameters = new HashMap<>();
+							parameters.put("principals", principal);
+							errors.add(RecordsImportServices.class, PRINCIPALS_GROUP_CANNOT_BE_NULL, parameters);
 							//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
 						}
 						convertedPrincipals.add(principalGroup.getId());
