@@ -1,6 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportValidationErrorsBehavior;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
@@ -829,18 +828,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		ImportDataBuilder authorizationWithValidTarget = defaultSchemaData().setId("1")
 				.addField("roles", Arrays.asList("U"))
-				.addField("target", INVALID_TARGET_ID);
+				.addField(Authorization.TARGET_SCHEMA_TYPE, zeSchema.typeCode())
+				.addField("target", VALID_TARGET_ID);
 
-		ImportDataBuilder authorizationWithInvalidTarget = defaultSchemaData().setId("1")
+		ImportDataBuilder authorizationWithInvalidTarget = defaultSchemaData().setId("2")
 				.addField("roles", Arrays.asList("U"))
+				.addField(Authorization.TARGET_SCHEMA_TYPE, zeSchema.typeCode())
 				.addField("target", INVALID_TARGET_ID);
 
+		ImportDataBuilder targetRecord = defaultSchemaData().setId(VALID_TARGET_ID);
 
-		ImportDataBuilder targetRecord = new ImportDataBuilder()
-				.setSchema(Category.SCHEMA_TYPE)
-				.setId(VALID_TARGET_ID);
-		importDataProvider.add(Category.SCHEMA_TYPE, targetRecord);
-
+		importDataProvider.add(zeSchema.typeCode(), targetRecord);
 		importDataProvider.add(Authorization.SCHEMA_TYPE, authorizationWithValidTarget);
 		importDataProvider.add(Authorization.SCHEMA_TYPE, authorizationWithInvalidTarget);
 
@@ -849,7 +847,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			fail("An exception was expected");
 		} catch (ValidationException e) {
 			assertThat(frenchMessages(e))
-					.containsOnly("Autorisation 1 : La cible «invalid_target_id» de l'autorisation «1» n'existe pas.");
+					.containsOnly("Autorisation 2 : L'enregistrement avec l'ancien identfiant «invalid_target_id» ciblé par l'autorisation n'existe pas.");
 		}
 
 	}
