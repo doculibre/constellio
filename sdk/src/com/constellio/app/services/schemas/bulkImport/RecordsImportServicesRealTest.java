@@ -850,6 +850,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					.containsOnly("Autorisation 2 : L'enregistrement avec l'ancien identfiant «invalid_target_id» ciblé par l'autorisation n'existe pas.");
 		}
 
+		//TODO Valider que autorisation 1 pas ajoutée!
 	}
 
 
