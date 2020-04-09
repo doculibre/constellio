@@ -742,7 +742,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		String userSearchExpression = getUserSearchExpression();
 
 		if (StringUtils.isNotBlank(userSearchExpression) && userSearchExpression.startsWith("\"") && userSearchExpression.endsWith("\"")) {
-			userSearchExpression = userSearchExpression.substring(1, userSearchExpression.length() - 2);
+			userSearchExpression = userSearchExpression.substring(1, userSearchExpression.length() - 1);
 			userSearchExpression = ClientUtils.escapeQueryChars(userSearchExpression);
 			userSearchExpression = "\"" + userSearchExpression + "\"";
 		}
