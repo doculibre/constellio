@@ -170,7 +170,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
 
 	public static final SystemConfiguration LEGACY_IDENTIFIER_INDEXED_IN_MEMORY;
-	public static final SystemConfiguration ENABLE_FACETS_APPLY_BUTTON;
 
 	public static final SystemConfiguration DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES;
 
@@ -362,8 +361,6 @@ public class ConstellioEIMConfigs {
 
 		add(ALWAYS_SEARCH_USING_EDISMAX = search.createBooleanFalseByDefault("alwaysSearchUsingEDismax").whichIsHidden());
 		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanTrueByDefault("searchUsingBQ").whichIsHidden());
-
-		add(ENABLE_FACETS_APPLY_BUTTON = search.createBooleanFalseByDefault("applyMultipleFacets"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -674,10 +671,6 @@ public class ConstellioEIMConfigs {
 
 	public boolean isSystemStateSolrDiskUsageValidationEnabled() {
 		return manager.getValue(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE);
-	}
-
-	public boolean isApplyMultipleFacetButtonEnabled() {
-		return manager != null && manager.<Boolean>getValue(ENABLE_FACETS_APPLY_BUTTON);
 	}
 
 	public boolean isUpdateServerConnectionEnabled() {
