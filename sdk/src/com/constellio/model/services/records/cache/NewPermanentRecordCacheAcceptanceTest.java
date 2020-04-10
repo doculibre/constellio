@@ -1,5 +1,7 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -7,6 +9,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -41,6 +44,7 @@ import static com.constellio.sdk.tests.TestUtils.englishMessages;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static org.apache.ignite.internal.util.lang.GridFunc.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -168,6 +172,98 @@ public class NewPermanentRecordCacheAcceptanceTest extends ConstellioTest {
 	//
 	//	}
 
+	@Test
+	public void whenExecutingATransactionWhichFailDueToAnOptimisticLockingThenUpdateVersionsInSolr()
+			throws Exception {
+
+		Record r1, outdatedR2, r3;
+		recordServices.add(r1 = newZeCollectionType1Record(1234).set(TITLE, "record1 with a boring title"));
+		recordServices.add(outdatedR2 = newZeCollectionType1Record(2345).set(TITLE, "record2 with a boring title"));
+		recordServices.add(r3 = newZeCollectionType1Record(3456).set(TITLE, "record3 with a boring title"));
+		recordServices.update(recordServices.getDocumentById(id(2345)).set(TITLE, "record2 with a brand new title"));
+
+		queryCounter.reset();
+
+		long initialRecord1Version = recordsCaches.getRecordSummary(id(1234)).getVersion();
+		long initialRecord2Version = recordsCaches.getRecordSummary(id(2345)).getVersion();
+		long initialRecord3Version = recordsCaches.getRecordSummary(id(3456)).getVersion();
+
+		assertThat(outdatedR2.getVersion()).isNotEqualTo(initialRecord2Version);
+
+		Transaction tx = new Transaction();
+		tx.add(r1.set(TITLE, "record1 with an awesome title"));
+		tx.add(outdatedR2.set(zeCollectionSchemaType1.stringMetadata(), "aStringMetadata"));
+		tx.add(r3.set(TITLE, "record3 with an awesome title"));
+		tx.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+
+		try {
+			recordServices.execute(tx);
+			fail("Exception expected");
+		} catch (RecordServicesException.OptimisticLocking ignored) {
+
+		}
+
+		BigVaultServer server = getModelLayerFactory().getDataLayerFactory().getRecordsVaultServer();
+		long currentSolrVersionOfR1 = (long) server.realtimeGet(id(1234), false).getFirstValue("_version_");
+		long currentSolrVersionOfR2 = (long) server.realtimeGet(id(2345), false).getFirstValue("_version_");
+		long currentSolrVersionOfR3 = (long) server.realtimeGet(id(3456), false).getFirstValue("_version_");
+
+		assertThat(currentSolrVersionOfR1).isNotEqualTo(initialRecord1Version);
+		assertThat(currentSolrVersionOfR2).isEqualTo(initialRecord2Version);
+		assertThat(currentSolrVersionOfR3).isEqualTo(initialRecord3Version);
+
+		assertThat(recordsCaches.getRecordSummary(id(1234)).getVersion()).isEqualTo(currentSolrVersionOfR1);
+		assertThat(recordsCaches.getRecordSummary(id(2345)).getVersion()).isEqualTo(currentSolrVersionOfR2);
+		assertThat(recordsCaches.getRecordSummary(id(3456)).getVersion()).isEqualTo(currentSolrVersionOfR3);
+
+
+	}
+
+	@Test
+	public void whenExecutingATransactionWhichFailDueToAnUnresolvableOptimisticLockingThenUpdateVersionsInSolr()
+			throws Exception {
+
+		Record r1, outdatedR2, r3;
+		recordServices.add(r1 = newZeCollectionType1Record(1234).set(TITLE, "record1 with a boring title"));
+		recordServices.add(outdatedR2 = newZeCollectionType1Record(2345).set(TITLE, "record2 with a boring title"));
+		recordServices.add(r3 = newZeCollectionType1Record(3456).set(TITLE, "record3 with a boring title"));
+		recordServices.update(recordServices.getDocumentById(id(2345)).set(TITLE, "record2 with a brand new title"));
+
+		queryCounter.reset();
+
+		long initialRecord1Version = recordsCaches.getRecordSummary(id(1234)).getVersion();
+		long initialRecord2Version = recordsCaches.getRecordSummary(id(2345)).getVersion();
+		long initialRecord3Version = recordsCaches.getRecordSummary(id(3456)).getVersion();
+
+		assertThat(outdatedR2.getVersion()).isNotEqualTo(initialRecord2Version);
+
+		Transaction tx = new Transaction();
+		tx.add(r1.set(TITLE, "record1 with an awesome title"));
+		tx.add(outdatedR2.set(TITLE, "record2 with an awesome title"));
+		tx.add(r3.set(TITLE, "record3 with an awesome title"));
+
+		try {
+			recordServices.execute(tx);
+			fail("Exception expected");
+		} catch (RecordServicesException.UnresolvableOptimisticLockingConflict ignored) {
+
+		}
+
+		BigVaultServer server = getModelLayerFactory().getDataLayerFactory().getRecordsVaultServer();
+		long currentSolrVersionOfR1 = (long) server.realtimeGet(id(1234), false).getFirstValue("_version_");
+		long currentSolrVersionOfR2 = (long) server.realtimeGet(id(2345), false).getFirstValue("_version_");
+		long currentSolrVersionOfR3 = (long) server.realtimeGet(id(3456), false).getFirstValue("_version_");
+
+		assertThat(currentSolrVersionOfR1).isNotEqualTo(initialRecord1Version);
+		assertThat(currentSolrVersionOfR2).isEqualTo(initialRecord2Version);
+		assertThat(currentSolrVersionOfR3).isEqualTo(initialRecord3Version);
+
+		assertThat(recordsCaches.getRecordSummary(id(1234)).getVersion()).isEqualTo(currentSolrVersionOfR1);
+		assertThat(recordsCaches.getRecordSummary(id(2345)).getVersion()).isEqualTo(currentSolrVersionOfR2);
+		assertThat(recordsCaches.getRecordSummary(id(3456)).getVersion()).isEqualTo(currentSolrVersionOfR3);
+
+
+	}
 
 	@Test
 	public void whenInsertingFullyCachedRecordsThenFullVersionObtainedEvenIfAskedForSummary()

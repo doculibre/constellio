@@ -145,7 +145,7 @@ public class BigVaultRecordDao implements RecordDao {
 				if (secondTransactionLogManager != null) {
 					secondTransactionLogManager.cancel(transaction.getTransactionId());
 				}
-				throw new RecordDaoException.OptimisticLocking(e.getId(), e.getVersion(), e);
+				throw new RecordDaoException.OptimisticLocking(e.getId(), e.getVersion(), e.getRecordsWithNewVersion(), e);
 			} catch (BigVaultException e) {
 				if (secondTransactionLogManager != null) {
 					secondTransactionLogManager.cancel(transaction.getTransactionId());
