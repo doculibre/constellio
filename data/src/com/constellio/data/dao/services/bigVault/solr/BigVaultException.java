@@ -4,6 +4,8 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.SolrParams;
 
+import java.util.List;
+
 @SuppressWarnings("serial")
 public class BigVaultException extends Exception {
 
@@ -62,18 +64,21 @@ public class BigVaultException extends Exception {
 
 		final long version;
 
-		public OptimisticLocking(Throwable t) {
-			this(retreiveId(t.getMessage()), retreiveVersion(t.getMessage()), t);
-		}
+		private List<String> recordsWithNewVersion;
 
-		public OptimisticLocking(String id, Long version, Throwable t) {
+		public OptimisticLocking(String id, Long version, List<String> recordsWithNewVersion, Throwable t) {
 			super(getMessage(id, version), t);
 			this.id = id;
 			this.version = version;
+			this.recordsWithNewVersion = recordsWithNewVersion;
 		}
 
 		private static String getMessage(String id, Long version) {
 			return "Optimistic locking while saving solr document with id '" + id + "' in version '" + version + "'";
+		}
+
+		public List<String> getRecordsWithNewVersion() {
+			return recordsWithNewVersion;
 		}
 
 		public static Long retreiveVersion(String solrMessage) {

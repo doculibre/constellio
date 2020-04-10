@@ -418,10 +418,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 		OptimisticLockingResolution resolution = transaction.getRecordUpdateOptions().getOptimisticLockingResolution();
 
 		if (resolution == OptimisticLockingResolution.EXCEPTION || transaction.getModifiedRecords().isEmpty()) {
+			updateRecordVersions(transaction, e.getRecordsWithNewVersion());
 			throw new RecordServicesException.OptimisticLocking(transactionDTO, e);
 		} else if (resolution == OptimisticLockingResolution.TRY_MERGE) {
 
-			mergeRecords(transaction, e.getId());
+			mergeRecords(transaction, e);
 			if (handler == null) {
 				execute(transaction, attempt + 1);
 			} else {
@@ -430,7 +431,28 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
-	void mergeRecordsUsingRealtimeGet(Transaction transaction, String failedId)
+	private void updateRecordVersions(Transaction transaction, List<String> recordsWithNewVersion) {
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(transaction.getCollection());
+
+		recordsWithNewVersion.forEach((id) -> {
+			Record record = transaction.getRecord(id);
+			RecordCacheType cacheType = types.getSchemaOf(record).getSchemaType().getCacheType();
+			if (cacheType.hasPermanentCache()) {
+				try {
+					Record newRecordVersion = toRecord(recordDao.realGet(id), true);
+					recordsCaches.insert(newRecordVersion, WAS_MODIFIED);
+				} catch (NoSuchRecordWithId ignored) {
+
+				}
+
+			} else if (cacheType.hasVolatileCache()) {
+				recordsCaches.getCache(record.getCollection()).removeFromAllCaches(record.getId());
+			}
+		});
+
+	}
+
+	void mergeRecordsUsingRealtimeGet(Transaction transaction, OptimisticLocking exception)
 			throws RecordServicesException.UnresolvableOptimisticLockingConflict {
 
 		List<String> ids = new ArrayList<>();
@@ -485,12 +507,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 						}
 					}
 					if (newRecordVersion == null) {
+						updateRecordVersions(transaction, exception.getRecordsWithNewVersion());
 						throw new RecordServicesException.UnresolvableOptimisticLockingConflict(record.getId());
 					}
-				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-					MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager()
-							.getSchemaTypes(transaction.getCollection());
-					MetadataSchema metadataSchema = types.getSchemaOf(record);
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId ignored) {
 				}
 			} else {
 				try {
@@ -503,11 +523,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
-	void mergeRecords(Transaction transaction, String failedId)
+	void mergeRecords(Transaction transaction, OptimisticLocking exception)
 			throws RecordServicesException.UnresolvableOptimisticLockingConflict {
 		//mergeRecordsUsingRealtimeGet is interesting, but it make this test fail
 		//com.constellio.model.services.records.RecordServicesOptimisticLockingHandlingAcceptanceTest
-		mergeRecordsUsingRealtimeGet(transaction, failedId);
+		mergeRecordsUsingRealtimeGet(transaction, exception);
 		//mergeRecordsUsingQuery(transaction, failedId);
 	}
 
