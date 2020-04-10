@@ -25,7 +25,9 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -139,6 +141,11 @@ public class RecordsImportServicesExecutor {
 	private static final String ID_MUST_BE_LOWER_THAN_SEQUENCE_TABLE = "idMustBeLowerThanSequenceTable";
 	private static final String ID_ALREADY_USED_BY_RECORD_OF_OTHER_TYPE = "idAlreadyUsedByRecordsOfOtherType";
 	private static final String ID_ALREADY_USED_BY_RECORD_OF_OTHER_COLLECTION = "idAlreadyUsedByRecordsOfOtherCollection";
+
+	private static final String AUTHORIZATION_TARGET_ID_CANNOT_BE_NULL = "authorizationTargetIdCannotBeNull";
+	private static final String PRINCIPALS_USER_CANNOT_BE_NULL = "principalsUserCannotBeNull";
+	private static final String PRINCIPALS_GROUP_CANNOT_BE_NULL = "principalsGroupCannotBeNull";
+
 
 	public static final String RECORD_SERVICE_EXEPTION = "recordServiceException";
 
@@ -888,6 +895,65 @@ public class RecordsImportServicesExecutor {
 			}
 		}
 
+		if (Authorization.SCHEMA_TYPE.equals(typeImportContext.schemaType)) {
+			String target = toImport.getValue(Authorization.TARGET);
+			List<String> principals = toImport.getValue(Authorization.PRINCIPALS);
+
+			if (target != null) {
+				if (typeBatchImportContext.options.isImportAsLegacyId()) {
+					String targetSchemaType = toImport.getValue(Authorization.TARGET_SCHEMA_TYPE);
+					String id = resolverCache.resolve(targetSchemaType, target);
+					if (id == null) {
+						Map<String, Object> parameters = new HashMap<>();
+						parameters.put("target", target);
+						errors.add(RecordsImportServices.class, AUTHORIZATION_TARGET_ID_CANNOT_BE_NULL, parameters);
+						//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
+					} else {
+						record.set(defaultSchema.get(Authorization.TARGET), id);
+					}
+				}
+			}
+
+			if (principals != null) {
+				UserServices userServices = modelLayerFactory.newUserServices();
+				List<String> convertedPrincipals = new ArrayList<>();
+
+				for (String principal : principals) {
+					String principalSchemaType = StringUtils.substringBefore(principal, ":");
+					String principalValue = StringUtils.substringAfter(principal, ":");
+
+					if (User.SCHEMA_TYPE.equals(principalSchemaType)) {
+						User principalUser = userServices.getUserInCollection(principalValue, collection);
+						if (principalUser == null) {
+							Map<String, Object> parameters = new HashMap<>();
+							parameters.put("principal", principal);
+							errors.add(RecordsImportServices.class, PRINCIPALS_USER_CANNOT_BE_NULL, parameters);
+							//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
+						} else {
+							convertedPrincipals.add(principalUser.getId());
+						}
+					}
+
+					if (Group.SCHEMA_TYPE.equals(principalSchemaType)) {
+						Group principalGroup = userServices.getGroupInCollection(principalValue, collection);
+						if (principalGroup == null) {
+							Map<String, Object> parameters = new HashMap<>();
+							parameters.put("principal", principal);
+							errors.add(RecordsImportServices.class, PRINCIPALS_GROUP_CANNOT_BE_NULL, parameters);
+							//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
+						} else {
+							convertedPrincipals.add(principalGroup.getId());
+						}
+					}
+
+				}
+
+				record.set(defaultSchema.get(Authorization.PRINCIPALS), convertedPrincipals);
+			}
+
+
+		}
+
 		extensions.callRecordImportBuild(typeImportContext.schemaType,
 				new BuildParams(record, types, toImport, typeBatchImportContext.options,
 						params.isAllowingReferencesToNonExistingUsers()));
@@ -1333,6 +1399,11 @@ public class RecordsImportServicesExecutor {
 		if (importedSchemaTypes.contains(Event.SCHEMA_TYPE)) {
 			importedSchemaTypes.remove(Event.SCHEMA_TYPE);
 			importedSchemaTypes.add(Event.SCHEMA_TYPE);
+		}
+
+		if (importedSchemaTypes.contains(Authorization.SCHEMA_TYPE)) {
+			importedSchemaTypes.remove(Authorization.SCHEMA_TYPE);
+			importedSchemaTypes.add(Authorization.SCHEMA_TYPE);
 		}
 
 		return importedSchemaTypes;
