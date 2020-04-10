@@ -104,7 +104,7 @@ public class MetadataFieldFactory implements Serializable {
 
 		String caption = metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale(), true, true);
 
-		addMaxLenghtValidator(field, metadata);
+		addMaxLengthValidator(field, metadata);
 
 		field.setId(metadata.getCode());
 		field.setCaption(caption);
@@ -115,7 +115,7 @@ public class MetadataFieldFactory implements Serializable {
 		}
 	}
 
-	private void addMaxLenghtValidator(Field<?> field, MetadataVO metadata) {
+	private void addMaxLengthValidator(Field<?> field, MetadataVO metadata) {
 		if (metadata.getMaxLength() != null && metadata.isMaxLenghtSupported()) {
 			if (!isToManyCharactersValidatorPresent(field)) {
 				field.addValidator(new ToManyCharactersValidator(metadata));
