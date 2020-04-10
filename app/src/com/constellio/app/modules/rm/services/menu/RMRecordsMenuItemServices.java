@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.services.actions.TaskRecordActionsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.menu.ActionDisplayOption;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -306,7 +307,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						$("RMRecordsMenuItemServices.actionImpossible"));
+						$("RMRecordsMenuItemServices.actionImpossible"), ActionDisplayOption.REQUIRE_VISIBLE_FOR_ONE_RECORD);
 			case RMRECORDS_ADD_SELECTION:
 				return new MenuItemActionState(VISIBLE);
 			case RMRECORDS_DOWNLOAD_ZIP:
@@ -345,7 +346,12 @@ public class RMRecordsMenuItemServices {
 	}
 
 	private MenuItemActionState calculateCorrectActionState(int possibleCount, int notPossibleCount, String reason) {
-		if (possibleCount > 0 && notPossibleCount == 0) {
+		return calculateCorrectActionState(possibleCount, notPossibleCount, reason, ActionDisplayOption.REQUIRE_VISIBLE_FOR_ALL_RECORDS);
+	}
+
+	private MenuItemActionState calculateCorrectActionState(int possibleCount, int notPossibleCount, String reason,
+															ActionDisplayOption displayOption) {
+		if (possibleCount > 0 && (displayOption == ActionDisplayOption.REQUIRE_VISIBLE_FOR_ONE_RECORD || notPossibleCount == 0)) {
 			return new MenuItemActionState(VISIBLE);
 		} else if (possibleCount == 0 && notPossibleCount > 0) {
 			return new MenuItemActionState(HIDDEN, reason);

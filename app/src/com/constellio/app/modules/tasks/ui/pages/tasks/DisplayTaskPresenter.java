@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -89,7 +90,14 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		return user.hasReadAccess().on(restrictedRecord);
+		boolean isModelTaskAndUserIsWorkflowManager = false;
+
+		if (restrictedRecord.getSchemaCode().startsWith(Task.SCHEMA_TYPE + "_")) {
+			Task task = tasksSchemas.wrapTask(restrictedRecord);
+			isModelTaskAndUserIsWorkflowManager = getCurrentUser().has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally()
+												  && task.isModel();
+		}
+		return isModelTaskAndUserIsWorkflowManager || user.hasReadAccess().on(restrictedRecord);
 	}
 
 	@Override

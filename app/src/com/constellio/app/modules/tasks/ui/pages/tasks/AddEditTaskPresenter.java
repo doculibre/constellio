@@ -15,7 +15,11 @@ import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
-import com.constellio.app.modules.tasks.model.wrappers.request.*;
+import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -24,7 +28,17 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
-import com.constellio.app.modules.tasks.ui.components.fields.*;
+import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationEnumField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListCollaboratorsField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListCollaboratorsGoupsField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListRecordLookupField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskFormImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskProgressPercentageField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskQuestionFieldImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskRelativeDueDateField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsGroupsField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
@@ -337,7 +351,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 
 		if (task.isModel()) {
-			recordUpdateOptions = RecordUpdateOptions.userModificationsSafeOptions();
+			recordUpdateOptions = RecordUpdateOptions.userModificationsSafeOptions().setSkipUserAccessValidation(true);
 		}
 
 		if (withRequiredValidation) {
