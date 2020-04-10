@@ -513,7 +513,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 			@Override
 			protected void facetValuesChanged(KeySetMap<String, String> facets) {
-
 				presenter.facetValuesChanged(facets);
 			}
 

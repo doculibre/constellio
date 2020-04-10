@@ -18,8 +18,6 @@ public class SearchCriteriaPresenterUtils extends BasePresenterUtils {
 	}
 
 	public final Map<String, String> getMetadataSchemasList(String schemaTypeCode) {
-
-
 		Map<String, String> metadataSchemasMap = new HashMap<>();
 		String collection = sessionContext.getCurrentCollection();
 		String language = sessionContext.getCurrentLocale().getLanguage();

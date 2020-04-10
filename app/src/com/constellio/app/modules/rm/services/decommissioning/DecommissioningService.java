@@ -38,7 +38,6 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -467,9 +466,11 @@ public class DecommissioningService {
 		final BatchProcessesManager batchProcessesManager = appLayerFactory.getModelLayerFactory().getBatchProcessesManager();
 
 		if (StringUtils.isNotBlank(decommissioningList.getCurrentBatchProcessId())) {
-			BatchProcess currentProcess = batchProcessesManager.get(decommissioningList.getCurrentBatchProcessId());
-			if (currentProcess != null && currentProcess.getStatus() != BatchProcessStatus.FINISHED) {
-				throw new DecommissioningServiceException_DecommissioningListAlreadyInProcess();
+			List<BatchProcess> processes = batchProcessesManager.getAllNonFinishedBatchProcesses();
+			for (BatchProcess process : processes) {
+				if (process.getId().equals(decommissioningList.getCurrentBatchProcessId())) {
+					throw new DecommissioningServiceException_DecommissioningListAlreadyInProcess();
+				}
 			}
 		}
 
