@@ -438,10 +438,9 @@ public class BigVaultServer implements Cloneable {
 
 		for (SolrInputDocument updatedDoc : transaction.getUpdatedDocuments()) {
 			String updatedDocId = (String) updatedDoc.getFieldValue("id");
+			recordsWithNewVersion.add(updatedDocId);
 			if (id.equals(updatedDocId)) {
 				break;
-			} else {
-				recordsWithNewVersion.add(updatedDocId);
 			}
 		}
 
