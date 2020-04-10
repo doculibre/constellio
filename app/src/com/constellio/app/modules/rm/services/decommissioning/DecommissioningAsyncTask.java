@@ -2,9 +2,7 @@ package com.constellio.app.modules.rm.services.decommissioning;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.util.MessageUtils;
@@ -94,11 +92,6 @@ public class DecommissioningAsyncTask implements AsyncTask {
 			params.incrementProgression(recordCount);
 		} catch (RecordServicesException.OptimisticLocking e) {
 			// TODO --> Make sure to remove these 2 reload when the optimistic locking version issue will be fixed.
-			appLayerFactory.getModelLayerFactory().getRecordsCaches().getCache(decommissioningList.getCollection())
-					.reloadSchemaType(Folder.SCHEMA_TYPE, true);
-
-			appLayerFactory.getModelLayerFactory().getRecordsCaches().getCache(decommissioningList.getCollection())
-					.reloadSchemaType(ContainerRecord.SCHEMA_TYPE, true);
 
 			if (attempt < 3) {
 				LOGGER.warn("Decommission failed, retrying...", e);
