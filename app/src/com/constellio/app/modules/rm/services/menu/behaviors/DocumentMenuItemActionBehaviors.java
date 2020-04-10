@@ -4,7 +4,6 @@ import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -549,7 +548,7 @@ public class DocumentMenuItemActionBehaviors {
 				content.checkOut(params.getUser());
 				modelLayerFactory.newLoggingServices().borrowRecord(document.getWrappedRecord(), params.getUser(), TimeProvider.getLocalDateTime());
 				try {
-					recordServices.update(document.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+					recordServices.update(document.getWrappedRecord(), new RecordUpdateOptions().validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
 					params.getView().refreshActionMenu();
 
 					checkedOutDocuments++;
