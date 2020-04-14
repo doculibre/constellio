@@ -81,14 +81,16 @@ public class ImportData {
 	public void unescapeFieldNames() {
 		Iterator<Entry<String, Object>> entryIterator = fields.entrySet().iterator();
 
+		Map<String, Object> newEntries = new HashMap<>();
 		while (entryIterator.hasNext()) {
 			Entry<String, Object> entry = entryIterator.next();
 			String key = entry.getKey();
 			String decodedKey = XmlUtils.unescapeAttributeName(key);
 			if (!key.equals(decodedKey)) {
-				fields.put(decodedKey, entry.getValue());
+				newEntries.put(decodedKey, entry.getValue());
 				entryIterator.remove();
 			}
 		}
+		fields.putAll(newEntries);
 	}
 }
