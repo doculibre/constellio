@@ -423,7 +423,7 @@ public class AuthorizationsServices {
 				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
 			} catch (AuthServices_RecordServicesException e) {
 				if (e.getCause() instanceof RecordServicesException.OptimisticLocking) {
-					LOGGER.info(String.format("Failed to exectute AuthorizationDeleteRequest for user %s retrying...",
+					LOGGER.info(String.format("Failed to execute AuthorizationDeleteRequest for user %s retrying...",
 							request.getExecutedBy(), attempt), e);
 
 					recordServices.flush();

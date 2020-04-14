@@ -50,7 +50,7 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 
 	protected boolean isOfficeHours() {
 		return TimeProvider.getLocalDateTime().getHourOfDay() >= 7
-		&& TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
+			   && TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
 	}
 
 	public synchronized void run(boolean waitDuringOfficeHours) {
@@ -82,7 +82,8 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 			}
 
 			if ((officeHours || !found)
-				&& new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+				&& (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER
+				|| Toggle.PERFORMANCE_TESTING.isEnabled())) {
 				try {
 					Thread.sleep((long) (sleepTime * 60 * 1000));
 				} catch (InterruptedException e) {
