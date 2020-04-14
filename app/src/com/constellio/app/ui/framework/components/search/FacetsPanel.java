@@ -35,7 +35,7 @@ import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public abstract class FacetsPanel extends VerticalLayout {
 
-	private final static KeySetMap<String, String> facetValuesSelectedMap = new KeySetMap<>();
+	private final KeySetMap<String, String> facetValuesSelectedMap = new KeySetMap<>();
 	private final boolean applyButtonEnabled;
 
 	public FacetsPanel(boolean applyButtonEnabled) {
@@ -161,7 +161,6 @@ public abstract class FacetsPanel extends VerticalLayout {
 		apply.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-
 				facetValuesChanged(facetValuesSelectedMap);
 			}
 		});
@@ -179,7 +178,6 @@ public abstract class FacetsPanel extends VerticalLayout {
 					public void valueChange(ValueChangeEvent event) {
 						if (checkBox.getValue()) {
 							facetValuesSelectedMap.add(facetValue.getFacetId(), facetValue.getValue());
-
 						} else {
 							facetValuesSelectedMap.remove(facetValue.getFacetId(), facetValue.getValue());
 						}
