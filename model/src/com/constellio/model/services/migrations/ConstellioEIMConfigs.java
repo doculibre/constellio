@@ -7,6 +7,8 @@ import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
 import com.constellio.model.entities.enums.AutocompleteSplitCriteria;
 import com.constellio.model.entities.enums.BackgroundRecordsReindexingMode;
+import com.constellio.model.entities.enums.BackgroundRecordsReindexingMode;
+import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.enums.EmailTextFormat;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.enums.MemoryConsumptionLevel;
