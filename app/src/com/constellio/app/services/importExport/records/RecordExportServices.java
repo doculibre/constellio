@@ -12,6 +12,7 @@ import com.constellio.app.services.importExport.records.writers.ImportRecordOfSa
 import com.constellio.app.services.importExport.records.writers.ModifiableImportRecord;
 import com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
+import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.Authorizations;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
@@ -69,7 +70,6 @@ public class RecordExportServices {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(RecordExportServices.class);
 	public static final String RECORDS_EXPORT_TEMP_FOLDER = "RecordsExportServices_recordsExportTempFolder";
-
 	AppLayerFactory appLayerFactory;
 	ModelLayerFactory modelLayerFactory;
 	ZipService zipService;
@@ -202,6 +202,12 @@ public class RecordExportServices {
 			Record authorizationRecord = authorization.getDetails().get();
 			ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, Authorization.SCHEMA_TYPE, authorization.getDetails().getId());
 			writeRecord(authorizationRecord, modifiableImportRecord, options, contentPaths);
+
+			String sharedById = authorization.getDetails().getSharedBy();
+			if (sharedById != null) {
+				String sharedByUsername = schemas.getUser(sharedById).getUsername();
+				modifiableImportRecord.with(Authorizations.SHARED_BY, "user:" + sharedByUsername);
+			}
 
 			List<String> principals = new ArrayList<>();
 
