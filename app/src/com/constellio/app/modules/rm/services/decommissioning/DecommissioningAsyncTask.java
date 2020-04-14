@@ -1,8 +1,10 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import com.constellio.app.modules.rm.services.ExternalLinkServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.util.MessageUtils;
@@ -35,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -42,6 +45,8 @@ public class DecommissioningAsyncTask implements AsyncTask {
 	private static final Logger LOGGER = Logger.getLogger(DecommissioningService.class);
 
 	private AppLayerFactory appLayerFactory;
+	private ExternalLinkServices externalLinkServices;
+	private RMSchemasRecordsServices rm;
 
 	private String collection;
 	private String username;
@@ -53,6 +58,8 @@ public class DecommissioningAsyncTask implements AsyncTask {
 		this.decommissioningListId = decommissioningListId;
 
 		appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		externalLinkServices = new ExternalLinkServices(collection, appLayerFactory);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	@Override
@@ -63,6 +70,7 @@ public class DecommissioningAsyncTask implements AsyncTask {
 	@Override
 	public void execute(AsyncTaskExecutionParams params) {
 		try {
+			externalLinkServices.prepareForImport(username);
 			process(params, 0);
 		} catch (Exception e) {
 			writeErrorToReport(params, MessageUtils.toMessage(e) + "\n\n" + ExceptionUtils.getStackTrace(e));
@@ -79,9 +87,6 @@ public class DecommissioningAsyncTask implements AsyncTask {
 		int recordCount = 1;
 		if (decommissioningList.getDecommissioningListType().isFolderList()) {
 			recordCount += decommissioningList.getFolders().size();
-			recordCount += decommissioningList.getContainers().size();
-		} else {
-			recordCount += decommissioningList.getDocuments().size();
 		}
 
 		if (attempt == 0) {
@@ -89,8 +94,11 @@ public class DecommissioningAsyncTask implements AsyncTask {
 		}
 
 		try {
+			if (decommissioningList.getDecommissioningListType().isFolderList()) {
+				importExternalLinks(params, decommissioningList);
+			}
 			decommissioner.process(decommissioningList, user, TimeProvider.getLocalDate());
-			params.incrementProgression(recordCount);
+			params.incrementProgression(1);
 		} catch (RecordServicesException.OptimisticLocking e) {
 			if (attempt < 3) {
 				LOGGER.warn("Decommission failed, retrying...", e);
@@ -98,6 +106,18 @@ public class DecommissioningAsyncTask implements AsyncTask {
 			} else {
 				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
 			}
+		}
+	}
+
+	private void importExternalLinks(AsyncTaskExecutionParams params, DecommissioningList decommissioningList)
+			throws Exception {
+		for (String folderId : decommissioningList.getFolders()) {
+			Folder folder = rm.getFolder(folderId);
+			List<String> externalLinks = folder.getExternalLinks();
+			for (String externalLinkId : externalLinks) {
+				externalLinkServices.importExternalLink(externalLinkId, folderId);
+			}
+			params.incrementProgression(1);
 		}
 	}
 

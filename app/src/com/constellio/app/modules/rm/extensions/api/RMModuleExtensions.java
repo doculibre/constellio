@@ -5,6 +5,7 @@ import com.constellio.app.api.extensions.NavigateToFromAPageImportExtension;
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.extensions.ModuleExtensions;
+import com.constellio.app.modules.rm.extensions.ExternalLinkServicesExtension;
 import com.constellio.app.modules.rm.extensions.api.CartExtensions.CartExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.ContainerRecordExtension.ContainerRecordExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
@@ -39,6 +40,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<DecommissioningBuilderPresenterExtension> decommissioningBuilderPresenterExtensions;
 	private DecommissioningListFolderTableExtension decommissioningListFolderTableExtension;
 	private VaultBehaviorsList<DecommissioningListPresenterExtension> decommissioningListPresenterExtensions;
+	private VaultBehaviorsList<ExternalLinkServicesExtension> externalLinkServicesExtensions;
 	private VaultBehaviorsList<TaskManagementPresenterExtension> taskManagementPresenterExtensions;
 	private VaultBehaviorsList<TaskAddEditTaskPresenterExtension> taskAddEditTaskPresenterExtension;
 	private VaultBehaviorsList<DocumentExtension> documentExtensions;
@@ -59,6 +61,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		rmReportBuilderFactories = new RMReportBuilderFactories(appLayerFactory);
 		decommissioningBuilderPresenterExtensions = new VaultBehaviorsList<>();
 		decommissioningListPresenterExtensions = new VaultBehaviorsList<>();
+		externalLinkServicesExtensions = new VaultBehaviorsList<>();
 		taskManagementPresenterExtensions = new VaultBehaviorsList<>();
 		taskAddEditTaskPresenterExtension = new VaultBehaviorsList<>();
 		documentExtensions = new VaultBehaviorsList<>();
@@ -126,6 +129,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public VaultBehaviorsList<DecommissioningListPresenterExtension> getDecommissioningListPresenterExtensions() {
 		return decommissioningListPresenterExtensions;
+	}
+
+	public VaultBehaviorsList<ExternalLinkServicesExtension> getExternalLinkServicesExtensions() {
+		return externalLinkServicesExtensions;
 	}
 
 	public VaultBehaviorsList<TaskManagementPresenterExtension> getTaskManagementPresenterExtensions() {
