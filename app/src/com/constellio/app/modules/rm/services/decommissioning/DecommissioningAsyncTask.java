@@ -25,6 +25,7 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedWriter;
@@ -64,7 +65,7 @@ public class DecommissioningAsyncTask implements AsyncTask {
 		try {
 			process(params, 0);
 		} catch (Exception e) {
-			writeErrorToReport(params, MessageUtils.toMessage(e));
+			writeErrorToReport(params, MessageUtils.toMessage(e) + "\n\n" + ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -91,8 +92,6 @@ public class DecommissioningAsyncTask implements AsyncTask {
 			decommissioner.process(decommissioningList, user, TimeProvider.getLocalDate());
 			params.incrementProgression(recordCount);
 		} catch (RecordServicesException.OptimisticLocking e) {
-			// TODO --> Make sure to remove these 2 reload when the optimistic locking version issue will be fixed.
-
 			if (attempt < 3) {
 				LOGGER.warn("Decommission failed, retrying...", e);
 				process(params, attempt + 1);
