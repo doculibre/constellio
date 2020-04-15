@@ -23,4 +23,5 @@ public class RMEmailTemplateConstants {
 	public static final String ALERT_SHARE = "alertShareTemplate";
 	public static final String ACCEPTED = "Accepted";
 	public static final String DENIED = "Denied";
+	public static final String ALERT_DECOMMISSIONING_ENDED = "alertDecommissioningEnded";
 }
