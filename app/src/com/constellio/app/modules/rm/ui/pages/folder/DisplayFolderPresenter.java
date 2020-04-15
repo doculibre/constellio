@@ -54,6 +54,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -89,6 +90,7 @@ import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -908,6 +910,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				}
 			} catch (final IcapException e) {
 				view.showErrorMessage(e.getMessage());
+			} catch (ValidationException e) {
+				List<String> errorMessages = i18n.asListOfMessages(e.getErrors().getValidationErrors());
+				for (String msg : errorMessages) {
+					view.showErrorMessage(msg);
+				}
+				LOGGER.error(e.getMessage(), e);
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 			} finally {
