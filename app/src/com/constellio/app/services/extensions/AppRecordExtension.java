@@ -56,7 +56,7 @@ public class AppRecordExtension extends RecordExtension {
 		MetadataSchema metadataSchema = metadataSchemasManager.getSchemaTypes(collection).getSchema(recordToValidate.getSchemaCode());
 
 		for (Metadata currentMetadata : metadataSchema.getMetadatas()) {
-			if (currentMetadata.getMaxLength() != null) {
+			if (currentMetadata.getMaxLength() != null && recordToValidate.isModified(currentMetadata)) {
 				MetadataDisplayConfig metadataDisplayConfig = schemasDisplayManager.getMetadata(collection, currentMetadata.getCode());
 				if (metadataDisplayConfig.getInputType() != MetadataInputType.RICHTEXT) {
 					Object value = recordToValidate.get(currentMetadata);
