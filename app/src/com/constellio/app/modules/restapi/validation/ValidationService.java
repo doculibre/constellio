@@ -98,6 +98,12 @@ public class ValidationService extends BaseService {
 		}
 	}
 
+	public void validateUserDeleteAccessOnHierarchy(User user, Record record) {
+		if (!validationDao.userHasDeleteAccessOnHierarchy(user, record)) {
+			throw new UnauthorizedAccessException();
+		}
+	}
+
 	public void validateAuthentication(String token, String serviceKey) {
 		if (!validationDao.isUserAuthenticated(token, serviceKey)) {
 			throw new UnauthenticatedUserException();
