@@ -626,7 +626,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 
 	@Override
-	public void markForCacheRebuild() {
+	public void markLocalCachesAsRequiringRebuild() {
 		markForCacheRebuild.run();
 	}
 }

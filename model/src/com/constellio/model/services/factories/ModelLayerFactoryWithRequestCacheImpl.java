@@ -377,8 +377,8 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	}
 
 	@Override
-	public void markForCacheRebuild() {
-		modelLayerFactory.markForCacheRebuild();
+	public void markLocalCachesAsRequiringRebuild() {
+		modelLayerFactory.markLocalCachesAsRequiringRebuild();
 	}
 
 	@Override
