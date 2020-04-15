@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.ExternalLinkServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
@@ -198,7 +199,8 @@ public class DecommissioningAsyncTask implements AsyncTask {
 
 		String constellioUrl = eimConfigs.getConstellioUrl();
 		params.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
-		params.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!batchProcesses");
+		String viewPath = error == null ? getDecommissioningListDisplayPath() : "batchProcesses";
+		params.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + viewPath);
 
 		return params;
 	}
@@ -215,6 +217,21 @@ public class DecommissioningAsyncTask implements AsyncTask {
 		String subject = success ? $("DecommissionningServices.decomMailMessageSuccess", decomList.getTitle(), decomList.getId())
 								 : $("DecommissionningServices.decomMailMessageFailure", decomList.getTitle(), decomList.getId());
 		return subject;
+	}
+
+	private String getDecommissioningListDisplayPath() {
+		StringBuilder displayPath = new StringBuilder();
+
+		DecommissioningList decommissioningList = rm.getDecommissioningList(decommissioningListId);
+		if (decommissioningList.getDecommissioningListType().isFolderList()) {
+			displayPath.append(RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY);
+		} else {
+			displayPath.append(RMNavigationConfiguration.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY);
+		}
+
+		displayPath.append("/");
+		displayPath.append(decommissioningListId);
+		return displayPath.toString();
 	}
 
 	private void writeErrorToReport(AsyncTaskExecutionParams params, String message) {
