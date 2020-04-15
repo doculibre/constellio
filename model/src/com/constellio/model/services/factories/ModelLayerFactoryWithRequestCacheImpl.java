@@ -377,6 +377,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	}
 
 	@Override
+	public void markForCacheRebuild() {
+		modelLayerFactory.markForCacheRebuild();
+	}
+
+	@Override
 	public SearchConfigurationsManager getSearchConfigurationsManager() {
 		return modelLayerFactory.getSearchConfigurationsManager();
 	}
