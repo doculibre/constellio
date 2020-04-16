@@ -12,19 +12,18 @@ import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.conf.FoldersLocatorRuntimeException;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@Slf4j
 public class SystemInfo {
 
 	private static final String MISSING_INFORMATION_ON_CONSTELLIO_MEMORY_CONFIGURATION = "missingInformationOnConstellioMemoryConfiguration";
@@ -244,13 +243,13 @@ public class SystemInfo {
 		try {
 			File systemLogFile = getSystemLogFile();
 			if (systemLogFile.exists()) {
-				Path path = Paths.get(systemLogFile.getPath());
-				isLogContainingSystemError = Files.lines(path).anyMatch(line -> line.contains(errorType));
+				List<String> systemLogLines = FileUtils.readLines(systemLogFile, "UTF-8");
+				isLogContainingSystemError = systemLogLines.stream().anyMatch(line -> line.contains(errorType));
 			}
 		} catch (FoldersLocatorRuntimeException | IOException e) {
 			HashMap<String, Object> i18nParameters = buildSingleValueParameters(fileNameParameterKey, SYSTEM_LOG_FILE_NAME);
 			validationErrors.addWarning(SystemInfo.class, FILE_READING_FAILED, i18nParameters);
-			e.printStackTrace();
+			log.warn("Exception while checking for system errors", e);
 		}
 
 		return isLogContainingSystemError;
