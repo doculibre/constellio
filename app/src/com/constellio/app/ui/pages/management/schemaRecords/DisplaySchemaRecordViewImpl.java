@@ -71,6 +71,10 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 		this.isViewRecordMode = isViewRecordMode;
 	}
 
+	//KEEP
+	public DisplaySchemaRecordViewImpl() {
+		this(null, false, false, false);
+	}
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		if (event != null) {
