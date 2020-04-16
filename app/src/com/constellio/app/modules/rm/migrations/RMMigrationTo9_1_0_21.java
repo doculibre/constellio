@@ -6,7 +6,6 @@ import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.model.services.emails.EmailTemplatesManager;
-import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,15 +38,13 @@ public class RMMigrationTo9_1_0_21 implements MigrationScript {
 	}
 
 	private void addEmailTemplates(String templateFileName, String templateId) {
-		InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
 				.getEmailTemplatesManager();
 		try {
+			InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 			emailTemplateManager.addCollectionTemplateIfInexistent(templateId, collection, templateInputStream);
 		} catch (IOException | OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
-		} finally {
-			IOUtils.closeQuietly(templateInputStream);
 		}
 	}
 }

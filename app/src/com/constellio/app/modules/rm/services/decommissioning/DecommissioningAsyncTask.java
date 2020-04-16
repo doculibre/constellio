@@ -115,10 +115,10 @@ public class DecommissioningAsyncTask implements AsyncTask {
 		try {
 			externalLinkServices.beforeExternalLinkImport(username);
 			process(params, 0);
-			sendEndMail(null);
+			sendEndMail(null, 0);
 		} catch (Exception e) {
 			writeErrorToReport(params, MessageUtils.toMessage(e) + "\n\n" + ExceptionUtils.getStackTrace(e));
-			sendEndMail(MessageUtils.toMessage(e));
+			sendEndMail(MessageUtils.toMessage(e), 0);
 		}
 	}
 
@@ -163,7 +163,7 @@ public class DecommissioningAsyncTask implements AsyncTask {
 		}
 	}
 
-	private void sendEndMail(String error) {
+	private void sendEndMail(String error, int attempt) {
 		try {
 			EmailToSend emailToSend = newEmailToSend();
 
@@ -176,7 +176,12 @@ public class DecommissioningAsyncTask implements AsyncTask {
 
 			recordServices.add(emailToSend);
 		} catch (RecordServicesException e) {
-			log.error("DecommissioningAsyncTask.cannotSendEmail", e);
+			if (attempt < 3) {
+				LOGGER.warn("Failed to send email, retrying...", e);
+				sendEndMail(error, attempt + 1);
+			} else {
+				LOGGER.error("Failed to send email.", e);
+			}
 		}
 	}
 
@@ -207,16 +212,16 @@ public class DecommissioningAsyncTask implements AsyncTask {
 
 	private String getMailTitle(boolean success) {
 		String recordTitle = recordServices.getDocumentById(decommissioningListId).getTitle();
-		String subject = success ? $("DecommissionningServices.decomMailTitleSuccess", recordTitle)
-								 : $("DecommissionningServices.decomMailTitleFailure", recordTitle);
-		return subject;
+		String title = success ? $("DecommissionningServices.decomMailTitleSuccess", recordTitle)
+							   : $("DecommissionningServices.decomMailTitleFailure", recordTitle);
+		return title;
 	}
 
 	private String getMailMessage(boolean success) {
 		Record decomList = recordServices.getDocumentById(decommissioningListId);
-		String subject = success ? $("DecommissionningServices.decomMailMessageSuccess", decomList.getTitle(), decomList.getId())
+		String message = success ? $("DecommissionningServices.decomMailMessageSuccess", decomList.getTitle(), decomList.getId())
 								 : $("DecommissionningServices.decomMailMessageFailure", decomList.getTitle(), decomList.getId());
-		return subject;
+		return message;
 	}
 
 	private String getDecommissioningListDisplayPath() {
