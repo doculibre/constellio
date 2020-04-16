@@ -70,7 +70,7 @@ public class DecommissioningAsyncTask implements AsyncTask {
 	@Override
 	public void execute(AsyncTaskExecutionParams params) {
 		try {
-			externalLinkServices.prepareForImport(username);
+			externalLinkServices.beforeExternalLinkImport(username);
 			process(params, 0);
 		} catch (Exception e) {
 			writeErrorToReport(params, MessageUtils.toMessage(e) + "\n\n" + ExceptionUtils.getStackTrace(e));
