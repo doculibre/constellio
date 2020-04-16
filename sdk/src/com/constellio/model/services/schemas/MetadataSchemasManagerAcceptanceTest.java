@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas;
 
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.systemSetup.SystemLocalConfigsManager;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.Delayed;
@@ -121,6 +122,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabledInCustomSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultilingual;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsNotAvailableInSummary;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsProvidingSecurity;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsTaxonomyRelationship;
@@ -1924,6 +1926,36 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(zeSchema.type().getDataStore()).isEqualTo("records");
 		assertThat(anotherSchema.type().getDataStore()).isEqualTo("events");
 	}
+
+	@Test
+	public void givenNonEssentialStatusModifiedWhenModifyingSchemaThenIsNotMarkedForCacheRebuild() throws Exception {
+		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		defineSchemasManager().using(defaultSchema.withAStringMetadata());
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setMaxLength(20);
+			}
+		});
+		assertThat(localConfigsManager.isMarkedForCacheRebuild()).isFalse();
+	}
+
+	@Test
+	public void givenStringMetadataWhenModifyingAvailableInSummaryStatusThenSchemaMarkedForCacheRebuild()
+			throws Exception {
+		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
+		assertThat(localConfigsManager.isMarkedForCacheRebuild()).isFalse();
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsNotAvailableInSummary));
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setAvailableInSummary(true);
+			}
+		});
+		assertThat(localConfigsManager.isMarkedForCacheRebuild()).isTrue();
+	}
+
 
 	private MetadataSchemaTypes createTwoSchemas()
 			throws Exception {
