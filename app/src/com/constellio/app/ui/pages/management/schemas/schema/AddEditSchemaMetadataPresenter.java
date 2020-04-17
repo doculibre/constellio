@@ -149,7 +149,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 	}
 
 	private boolean isNotAHiddenSystemReserved(Metadata metadata) {
-		return !metadata.isSystemReserved() || !metadata.isSameLocalCodeThanAny(
+		return !metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(
 				IDENTIFIER, CREATED_BY, MODIFIED_BY, CREATED_ON, MODIFIED_ON, LEGACY_ID, PATH);
 	}
 
