@@ -40,8 +40,7 @@ public class RMMigrationTo9_1_0_21 implements MigrationScript {
 	private void addEmailTemplates(String templateFileName, String templateId) {
 		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
 				.getEmailTemplatesManager();
-		try {
-			InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
+		try (InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName)) {
 			emailTemplateManager.addCollectionTemplateIfInexistent(templateId, collection, templateInputStream);
 		} catch (IOException | OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
