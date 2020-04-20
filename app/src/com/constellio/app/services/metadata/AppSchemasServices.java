@@ -277,12 +277,7 @@ public class AppSchemasServices {
 		for (Metadata metadata : schemasManager.getSchemaTypes(collection).getAllMetadatas().onlyReferencesToType(schemaType)) {
 			Set<String> allowedSchemas = metadata.getAllowedReferences().getAllowedSchemas();
 			if (allowedSchemas != null && !allowedSchemas.isEmpty()) {
-				for (String allowedSchema : allowedSchemas) {
-					if (allowedSchema.equals(schemaCode)) {
-						references.add(metadata.getCode());
-						continue;
-					}
-				}
+				references.add(metadata.getCode());
 			}
 		}
 
