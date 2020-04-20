@@ -14,12 +14,12 @@ import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.cache.LocalCacheConfigs;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.cacheIndexConditions.MetadataValueIndexCacheIdsStreamer;
 import com.constellio.model.services.records.cache.cacheIndexConditions.SortedIdsStreamer;
 import com.constellio.model.services.records.cache.cacheIndexConditions.UnionSortedIdsStreamer;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
@@ -78,12 +78,14 @@ public class LogicalSearchQueryExecutorInCache {
 	String mainDataLanguage;
 	SearchConfigurationsManager searchConfigurationsManager;
 	ConstellioEIMConfigs constellioEIMConfigs;
+	LocalCacheConfigs localCacheConfigs;
 
 	public LogicalSearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
 											 MetadataSchemasManager schemasManager,
 											 SearchConfigurationsManager searchConfigurationsManager,
 											 ModelLayerSystemExtensions modelLayerExtensions,
 											 ConstellioEIMConfigs constellioEIMConfigs,
+											 LocalCacheConfigs localCacheConfigs,
 											 String mainDataLanguage) {
 		this.constellioEIMConfigs = constellioEIMConfigs;
 		this.searchServices = searchServices;
@@ -92,6 +94,7 @@ public class LogicalSearchQueryExecutorInCache {
 		this.modelLayerExtensions = modelLayerExtensions;
 		this.mainDataLanguage = mainDataLanguage;
 		this.searchConfigurationsManager = searchConfigurationsManager;
+		this.localCacheConfigs = localCacheConfigs;
 	}
 
 	public Stream<Record> stream(LogicalSearchQuery query)
@@ -541,7 +544,7 @@ public class LogicalSearchQueryExecutorInCache {
 				if (fieldSort.getField() instanceof Metadata) {
 					MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
 					if (schemaType != null && schemaType.getCacheType().isSummaryCache() &&
-						!SchemaUtils.isSummary((Metadata) fieldSort.getField())) {
+						!localCacheConfigs.isAvailableInLocalCache((Metadata) fieldSort.getField())) {
 						return false;
 					}
 				}
@@ -549,6 +552,7 @@ public class LogicalSearchQueryExecutorInCache {
 		}
 		return true;
 	}
+
 
 	private static boolean areAllFiltersExecutableInCache(List<UserFilter> userFilters) {
 		if (userFilters == null || userFilters.isEmpty()) {

@@ -181,9 +181,13 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	public void whenSearchingUsingCacheAndLegacyIdThenOK() throws Exception {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 
-		recordServices.add(rm.newFolder().setAdministrativeUnitEntered(records.unitId_10a).setTitle("iamZeFolder")
+		Folder folder = rm.newFolder().setAdministrativeUnitEntered(records.unitId_10a).setTitle("iamZeFolder")
 				.setCategoryEntered(records.categoryId_X110).setRetentionRuleEntered(records.ruleId_1)
-				.setCopyStatusEntered(PRINCIPAL).setOpenDate(LocalDate.now()).setLegacyId("iamZeFolder"));
+				.setCopyStatusEntered(PRINCIPAL).setOpenDate(LocalDate.now());
+		folder.setLegacyId("iamZeFolder");
+		recordServices.add(folder);
+
+		assertThat(recordServices.realtimeGetRecordSummaryById(folder.getId()).<String>get(Schemas.LEGACY_ID)).isNull();
 
 		LogicalSearchCondition condition = from(rm.folderSchemaType())
 				.where(rm.folder.category()).isEqualTo(records.categoryId_X110)
