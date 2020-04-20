@@ -462,6 +462,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 
 				@Override
+				public void setQuickActionButtonsVisible(boolean visible) {
+					super.setQuickActionButtonsVisible(visible);
+					DisplayFolderViewImpl.this.setQuickActionButtonsVisible(visible);
+				}
+
+				@Override
 				protected SelectionManager newSelectionManager() {
 					return new SelectionManager() {
 
