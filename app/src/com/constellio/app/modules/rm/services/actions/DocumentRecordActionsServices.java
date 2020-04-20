@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -19,6 +20,8 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.io.FilenameUtils;
 
 import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentRecordActionsServices {
 
@@ -36,6 +39,26 @@ public class DocumentRecordActionsServices {
 		this.authorizationService = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 		this.modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+	}
+
+	public String getBorrowedMessage(Record record, User user) {
+		String borrowedMessage;
+		Document document = rm.wrapDocument(record);
+		Content content = document.getContent();
+		if (content != null && content.getCheckoutUserId() != null) {
+			String borrowDate = DateFormatUtils.format(content.getCheckoutDateTime());
+			if (!user.getId().equals(content.getCheckoutUserId())) {
+				String borrowerCaption = user.getTitle();
+				String borrowedMessageKey = "DocumentActionsComponent.borrowedByOtherUser";
+				borrowedMessage = $(borrowedMessageKey, borrowerCaption, borrowDate);
+			} else {
+				String borrowedMessageKey = "DocumentActionsComponent.borrowedByCurrentUser";
+				borrowedMessage = $(borrowedMessageKey, borrowDate);
+			}
+		} else {
+			borrowedMessage = null;
+		}
+		return borrowedMessage;
 	}
 
 	public boolean isMoveActionPossible(Record record, User user) {

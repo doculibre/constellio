@@ -659,6 +659,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		editDocumentButton.setCaptionVisibleOnMobile(false);
 
 		List<String> excludedActionTypes = Arrays.asList(
+				DocumentMenuItemActionType.DOCUMENT_BORROWED_MESSAGE.name(),
 				DocumentMenuItemActionType.DOCUMENT_DISPLAY.name(),
 				DocumentMenuItemActionType.DOCUMENT_OPEN.name(),
 				DocumentMenuItemActionType.DOCUMENT_EDIT.name());

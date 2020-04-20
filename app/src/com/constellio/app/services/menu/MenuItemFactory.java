@@ -33,10 +33,12 @@ public class MenuItemFactory {
 
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
-						menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
+						if (menuItemAction.getCommand() != null) {
+							menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
+						}
 					}
 				});
-			} else {
+			} else if (menuItemAction.getCommand() != null) {
 				menuItem.addItemClickListener((event) -> {
 					menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
 				});
@@ -48,14 +50,19 @@ public class MenuItemFactory {
 	public void buildMenuBar(final MenuItem rootItem, final List<MenuItemAction> menuItemActions,
 							 final MenuItemRecordProvider recordProvider, final CommandCallback callback) {
 		for (final MenuItemAction menuItemAction : menuItemActions) {
-			MenuItem menuItem = rootItem.addItem(menuItemAction.getCaption(), menuItemAction.getIcon(),
-					new Command() {
-						@Override
-						public void menuSelected(MenuItem selectedItem) {
-							menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
-							callback.actionExecuted(menuItemAction, selectedItem);
-						}
-					});
+			Command menuItemCommand;
+			if (menuItemAction.getCommand() != null) {
+				menuItemCommand = new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
+						callback.actionExecuted(menuItemAction, selectedItem);
+					}
+				};
+			} else {
+				menuItemCommand = null;
+			}
+			MenuItem menuItem = rootItem.addItem(menuItemAction.getCaption(), menuItemAction.getIcon(), menuItemCommand);
 			menuItem.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);
 			menuItem.setVisible(menuItemAction.getState().getStatus() != HIDDEN);
 			menuItem.setDescription(menuItemAction.getState().getReason());
@@ -70,8 +77,10 @@ public class MenuItemFactory {
 			final BaseButton actionButton = new BaseButton(menuItemAction.getCaption(), menuItemAction.getIcon()) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
-					callback.actionExecuted(menuItemAction, event.getComponent());
+					if (menuItemAction.getCommand() != null) {
+						menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
+						callback.actionExecuted(menuItemAction, event.getComponent());
+					}
 				}
 			};
 			actionButton.setId(menuItemAction.getType());
