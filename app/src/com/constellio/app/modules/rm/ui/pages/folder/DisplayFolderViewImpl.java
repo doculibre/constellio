@@ -832,6 +832,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}
 		return scrolledIntoView;
 	}
+
 	@Override
 	public Integer getReturnIndex() {
 		return presenter.getReturnIndex();

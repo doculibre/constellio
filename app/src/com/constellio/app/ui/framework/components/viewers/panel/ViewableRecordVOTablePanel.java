@@ -64,6 +64,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.JavaScriptFunction;
@@ -1282,7 +1283,21 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					panelContent = new RecordDisplayFactory(currentUser).build(recordVO, true);
 					this.addStyleName("nested-view");
 				}
-				mainLayout.addComponent(panelContent);
+				if (panelContent instanceof DropHandler) {
+					DragAndDropWrapper dragAndDropWrapper = new DragAndDropWrapper(panelContent) {
+						@Override
+						public void setDropHandler(DropHandler dropHandler) {
+							if (ResponsiveUtils.isDesktop()) {
+								super.setDropHandler(dropHandler);
+							}
+						}
+					};
+					dragAndDropWrapper.setSizeFull();
+					dragAndDropWrapper.setDropHandler((DropHandler) panelContent);
+					mainLayout.addComponent(dragAndDropWrapper);
+				} else {
+					mainLayout.addComponent(panelContent);
+				}
 				Label spacer = new Label("");
 				spacer.setHeight("100px");
 				mainLayout.addComponent(spacer);
