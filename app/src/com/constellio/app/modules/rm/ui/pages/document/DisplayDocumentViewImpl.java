@@ -231,12 +231,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			JavaScript.getCurrent().execute(js.toString());
 		}
 
-		if (inWindow) {
-			contentViewer.setSpecialCaseHeight("100%");
-			contentViewer.setHeight("100%");
-			mainLayout.setHeight("100%");
-		}
-
 		return contentViewer;
 	}
 

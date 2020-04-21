@@ -5,7 +5,6 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListFolderTableExtension;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListPresenterExtension;
-import com.constellio.app.modules.rm.extensions.api.DecommissioningListPresenterExtension.ImportExternalLinksParams;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListPresenterExtension.ValidateDecommissioningListProcessableParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
@@ -320,12 +319,6 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			view.showMessage($("BatchProcessing.endedNormally"));
 			//view.showMessage($(mayContainAnalogicalMedia() ?
 			//				   "DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
-			if (rmModuleExtensions != null) {
-				for (DecommissioningListPresenterExtension extension : rmModuleExtensions.getDecommissioningListPresenterExtensions()) {
-					ImportExternalLinksParams params = new ImportExternalLinksParams(processableFoldersIds, getCurrentUser().getUsername(), appLayerFactory, collection);
-					extension.importExternalLinks(params);
-				}
-			}
 			view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
 		} catch (RecordServicesWrapperRuntimeException e) {
 			RecordServicesException wrappedException = e.getWrappedException();

@@ -105,10 +105,9 @@ public class BulkRecordTransactionHandler {
 
 		if (currentRecords.size() + records.size() > options.recordsPerBatch) {
 			pushCurrent();
-
-		} else if (currentRecordsEstimatedSize + receivedEstimatedSize > options.maxRecordsTotalSizePerBatch) {
+		} else if (options.maxRecordsTotalSizePerBatch >= 0 &&
+				   currentRecordsEstimatedSize + receivedEstimatedSize > options.maxRecordsTotalSizePerBatch) {
 			pushCurrent();
-
 		}
 
 		total.addAndGet(records.size());

@@ -44,6 +44,9 @@ import com.constellio.model.services.records.RecordServicesException.ValidationE
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.GetByIdCounter;
@@ -70,11 +73,12 @@ import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DE
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
 import static com.constellio.app.modules.rm.model.validators.FolderValidator.CATEGORY_CODE;
 import static com.constellio.app.modules.rm.model.validators.FolderValidator.RULE_CODE;
+import static com.constellio.data.dao.dto.records.RecordId.toStringIds;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.data.dao.dto.records.RecordId.toStringIds;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
@@ -170,6 +174,25 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		MV = records.MV;
 		MD = records.MD;
 
+	}
+
+	@Test
+	//TODO Francis : Failing test
+	public void whenSearchingUsingCacheAndLegacyIdThenOK() throws Exception {
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+
+		recordServices.add(rm.newFolder().setAdministrativeUnitEntered(records.unitId_10a).setTitle("iamZeFolder")
+				.setCategoryEntered(records.categoryId_X110).setRetentionRuleEntered(records.ruleId_1)
+				.setCopyStatusEntered(PRINCIPAL).setOpenDate(LocalDate.now()).setLegacyId("iamZeFolder"));
+
+		LogicalSearchCondition condition = from(rm.folderSchemaType())
+				.where(rm.folder.category()).isEqualTo(records.categoryId_X110)
+				.andWhere(Schemas.LEGACY_ID).isNotNull();
+
+		List<Folder> parentFolders = rm.wrapFolders(searchServices.search(new LogicalSearchQuery(condition)));
+		assertThat(parentFolders).extracting("title").containsOnly("iamZeFolder");
+
+		assertThat(rm.wrapFolder(searchServices.searchSingleResult(condition))).isNotNull();
 	}
 
 	@Test
