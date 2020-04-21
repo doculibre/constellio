@@ -2,7 +2,7 @@ var webViewerInstance = false;
 var annotationEnabled = true;
 var isViewerReadOnly = true;
 
-const FitWidth = "FitWidth";
+var FitWidth = "FitWidth";
 
 (window.isWebViewerInstanceSet = function() {
     return window.webViewerInstance && true;
@@ -29,19 +29,19 @@ const FitWidth = "FitWidth";
 
 (window.rePullAnnotations = function() {
     if(isWebViewerInstanceSet()) {
-            $.get(documentAnnotationUrl, (data) => {
+        $.get(documentAnnotationUrl, function (data) {
 
-                ignoreAnnotationChange = true;
-                if(data) {
-                    window.webViewerInstance.docViewer.getAnnotationManager().importAnnotations(data);
-                }
-                ignoreAnnotationChange = false;
-            });
+            ignoreAnnotationChange = true;
+            if (data) {
+                window.webViewerInstance.docViewer.getAnnotationManager().importAnnotations(data);
+            }
+            ignoreAnnotationChange = false;
+        });
     }
 });
 
 (window.resetToCurrentValues = function() {
-    let viewerControl = document.getElementById(canvasId).childNodes[0].contentWindow.readerControl;
+    var viewerControl = document.getElementById(canvasId).childNodes[0].contentWindow.readerControl;
 
     if(isWebViewerInstanceSet() && window.webViewerInstance != viewerControl) {
         window.webViewerInstance = viewerControl;
@@ -60,16 +60,16 @@ const FitWidth = "FitWidth";
 
 (window.registerAnnotationChanged = function(instance) {
 
-    const {docViewer} = instance;
-    const annotManager = docViewer.getAnnotationManager();
+    var docViewer = instance.docViewer;
+    var annotManager = docViewer.getAnnotationManager();
 
-     annotManager.on('annotationChanged', async (event, annotations, action) => {
+    annotManager.on('annotationChanged', function (event, annotations, action) {
         if (action === 'add' || action === 'modify' || action === 'delete') {
-             if(ignoreAnnotationChange) {
+            if (ignoreAnnotationChange) {
                 return;
-             }
-
-            const annotationsFile = await annotManager.exportAnnotations({links: false, widgets: false});
+            }
+            debugger
+            var annotationsFile = annotManager.exportAnnotations({links: false, widgets: false});
 
             $.post(documentAnnotationCallBack, {
                 'resourceKey': documentAnnotationRK,
@@ -81,22 +81,22 @@ const FitWidth = "FitWidth";
 
 (window.registerAnnotationLoaded = function(instance) {
 
-    const {docViewer} = instance;
+    var docViewer = instance.docViewer;
 
-    docViewer.on('annotationsLoaded', () => {
+    docViewer.on('annotationsLoaded', function () {
         instance.setFitMode(FitWidth);
-        $.get(documentAnnotationUrl, (data) => {
-            const annotManager = docViewer.getAnnotationManager();
+        $.get(documentAnnotationUrl, function (data) {
+            var annotManager = docViewer.getAnnotationManager();
 
             ignoreAnnotationChange = true;
-            if(data) {
+            if (data) {
                 annotManager.importAnnotations(data);
             }
             ignoreAnnotationChange = false;
 
             setEnableAnnotations(annotationEnabled)
 
-            if(searchTerm) {
+            if (searchTerm) {
                 instance.searchTextFull(searchTerm);
             }
 
@@ -105,35 +105,35 @@ const FitWidth = "FitWidth";
     });
 });
 
-$(() => {
-    let mapParams;
-
-     if(license) {
-         mapParams = {
-                licenseKey: license,
-                path: '/constellio/VAADIN/themes/constellio/pdftron/lib',
-                initialDoc: documentContent,
+$(function () {
+    var mapParams;
+    debugger
+    if (license) {
+        mapParams = {
+            licenseKey: license,
+            path: '/constellio/VAADIN/themes/constellio/pdftron/lib',
+            initialDoc: documentContent,
         }
     } else {
-         mapParams = {
-                path: '/constellio/VAADIN/themes/constellio/pdftron/lib',
-                initialDoc: documentContent,
+        mapParams = {
+            path: '/constellio/VAADIN/themes/constellio/pdftron/lib',
+            initialDoc: documentContent,
         }
     }
 
     WebViewer(mapParams,
-        document.getElementById(canvasId)).then(instance => {
+        document.getElementById(canvasId)).then(function (instance) {
+        debugger
+        window.webViewerInstance = instance;
 
-            window.webViewerInstance = instance;
+        instance.setAnnotationUser(name);
+        instance.setAdminUser(admin);
+        instance.setReadOnly(isReadOnly);
+        instance.setLanguage(language);
+        annotationEnabled = true;
+        isViewerReadOnly = isReadOnly;
 
-            instance.setAnnotationUser(name);
-            instance.setAdminUser(admin);
-            instance.setReadOnly(isReadOnly);
-            instance.setLanguage(language);
-            annotationEnabled=true;
-            isViewerReadOnly = isReadOnly;
-
-            registerAnnotationChanged(instance);
+        registerAnnotationChanged(instance);
             registerAnnotationLoaded(instance);
         });
 })
