@@ -1,7 +1,6 @@
 package com.constellio.model.services.schemas;
 
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.app.services.systemSetup.SystemLocalConfigsManager;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
@@ -1930,8 +1929,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenNonEssentialStatusModifiedWhenModifyingSchemaThenIsNotMarkedForCacheRebuild() throws Exception {
-		SystemGlobalConfigsManager configsManager = getAppLayerFactory().getSystemGlobalConfigsManager();
-		assertThat(configsManager.isReindexingRequired()).isFalse();
+		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
 		defineSchemasManager().using(defaultSchema.withAStringMetadata());
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -1939,14 +1938,14 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 				types.getMetadata(zeSchema.stringMetadata().getCode()).setMaxLength(20);
 			}
 		});
-		assertThat(configsManager.isReindexingRequired()).isFalse();
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
 	}
 
 	@Test
 	public void givenStringMetadataWhenModifyingAvailableInSummaryStatusThenSchemaMarkedForCacheRebuild()
 			throws Exception {
 		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
-		assertThat(localConfigsManager.isMarkedForCacheRebuild()).isFalse();
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
 		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsNotAvailableInSummary));
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -1954,7 +1953,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 				types.getMetadata(zeSchema.stringMetadata().getCode()).setAvailableInSummary(true);
 			}
 		});
-		assertThat(localConfigsManager.isMarkedForCacheRebuild()).isTrue();
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isTrue();
 	}
 
 
