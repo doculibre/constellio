@@ -4,14 +4,21 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_CannotDecommission;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
+import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +34,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
@@ -34,6 +42,7 @@ public class DecommissionerAcceptanceTest extends ConstellioTest {
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices rm;
+	Users users = new Users();
 
 	@Before
 	public void setUp()
@@ -47,6 +56,56 @@ public class DecommissionerAcceptanceTest extends ConstellioTest {
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		users.setUp(getModelLayerFactory().newUserServices());
+	}
+
+	@Test
+	public void givenTwoDecommissionWithoutCacheReload() throws Exception {
+		givenConfig(RMConfigs.REQUIRE_APPROVAL_FOR_CLOSING, false);
+		givenConfig(RMConfigs.REQUIRE_APPROVAL_FOR_TRANSFER, false);
+		givenConfig(RMConfigs.REQUIRE_APPROVAL_FOR_DEPOSIT_OF_ACTIVE, false);
+		givenConfig(RMConfigs.REQUIRE_APPROVAL_FOR_DEPOSIT_OF_SEMIACTIVE, false);
+		givenConfig(RMConfigs.REQUIRE_APPROVAL_FOR_DESTRUCTION_OF_ACTIVE, false);
+		givenConfig(RMConfigs.REQUIRE_APPROVAL_FOR_DESTRUCTION_OF_SEMIACTIVE, false);
+
+		DecommissioningList decommissioningList = records.getList17();
+
+		DecommissioningAsyncTask asyncTask = new DecommissioningAsyncTask(zeCollection, users.adminIn(zeCollection).getUsername(), decommissioningList.getId());
+		AsyncTaskCreationRequest request = new AsyncTaskCreationRequest(asyncTask, zeCollection, "decommissionBatchProcess_17");
+		request.setUsername(users.adminIn(zeCollection).getUsername());
+
+		final BatchProcessesManager batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		AsyncTaskBatchProcess batchProcess = batchProcessesManager.addAsyncTask(request);
+		decommissioningList.setCurrentBatchProcessId(batchProcess.getId());
+		try {
+			recordServices.update(decommissioningList);
+		} catch (RecordServicesException e) {
+			fail(new DecommissioningServiceException_CannotDecommission().getMessage());
+		}
+
+		waitForBatchProcess();
+
+		assertThat(records.getList17().isProcessed()).isTrue();
+
+
+		decommissioningList = records.getList02();
+
+		asyncTask = new DecommissioningAsyncTask(zeCollection, users.adminIn(zeCollection).getUsername(), decommissioningList.getId());
+		request = new AsyncTaskCreationRequest(asyncTask, zeCollection, "decommissionBatchProcess_02");
+		request.setUsername(users.adminIn(zeCollection).getUsername());
+
+		batchProcess = batchProcessesManager.addAsyncTask(request);
+		decommissioningList.setCurrentBatchProcessId(batchProcess.getId());
+		try {
+			recordServices.update(decommissioningList);
+		} catch (RecordServicesException e) {
+			fail(new DecommissioningServiceException_CannotDecommission().getMessage());
+		}
+
+		waitForBatchProcess();
+
+		assertThat(records.getList02().isProcessed()).isTrue();
 	}
 
 	@Test

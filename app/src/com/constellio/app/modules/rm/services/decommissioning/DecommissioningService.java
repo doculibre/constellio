@@ -99,7 +99,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class DecommissioningService {
-	public final static String BATCH_PROCESS_NAME = "decommissionBatchProcess";
+	public final static String BATCH_PROCESS_NAME = "decommissionBatchProcess_";
 
 	private static Logger LOGGER = LoggerFactory.getLogger(DecommissioningService.class);
 	private final AppLayerFactory appLayerFactory;
@@ -475,7 +475,7 @@ public class DecommissioningService {
 		}
 
 		DecommissioningAsyncTask asyncTask = new DecommissioningAsyncTask(collection, user.getUsername(), decommissioningList.getId());
-		AsyncTaskCreationRequest request = new AsyncTaskCreationRequest(asyncTask, collection, BATCH_PROCESS_NAME);
+		AsyncTaskCreationRequest request = new AsyncTaskCreationRequest(asyncTask, collection, BATCH_PROCESS_NAME + decommissioningList.getId());
 		request.setUsername(user.getUsername());
 
 		AsyncTaskBatchProcess batchProcess = batchProcessesManager.addAsyncTask(request);

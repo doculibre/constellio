@@ -114,25 +114,28 @@ public class DecommissioningAsyncTask implements AsyncTask {
 	public void execute(AsyncTaskExecutionParams params) {
 		try {
 			externalLinkServices.beforeExternalLinkImport(username);
-			process(params, 0);
-			sendEndMail(null, 0);
+			process(params, 1);
+			sendEndMail(null, 1);
 		} catch (Exception e) {
 			writeErrorToReport(params, MessageUtils.toMessage(e) + "\n\n" + ExceptionUtils.getStackTrace(e));
-			sendEndMail(MessageUtils.toMessage(e), 0);
+			sendEndMail(MessageUtils.toMessage(e), 1);
 		}
 	}
 
 	private void process(AsyncTaskExecutionParams params, int attempt) throws Exception {
 		DecommissioningList decommissioningList = rm.getDecommissioningList(decommissioningListId);
 		Decommissioner decommissioner = Decommissioner.forList(decommissioningList, decommissioningService, appLayerFactory);
+		LOGGER.info("Decommission " + decommissioningListId);
 
 		int recordCount = 1;
 		if (decommissioningList.getDecommissioningListType().isFolderList()) {
 			recordCount += decommissioningList.getFolders().size();
 		}
 
-		if (attempt == 0) {
+		if (attempt == 1) {
 			params.setProgressionUpperLimit(recordCount);
+		} else {
+			params.resetProgression();
 		}
 
 		try {
@@ -142,11 +145,11 @@ public class DecommissioningAsyncTask implements AsyncTask {
 			decommissioner.process(decommissioningList, currentUser, TimeProvider.getLocalDate());
 			params.incrementProgression(1);
 		} catch (RecordServicesException.OptimisticLocking e) {
-			if (attempt < 3) {
-				LOGGER.warn("Decommission failed, retrying...", e);
-				process(params, attempt + 1);
-			} else {
+			if (attempt > 3) {
 				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
+			} else {
+				LOGGER.warn("Attempt #" + attempt + " to decommission failed, retrying...", e);
+				process(params, attempt + 1);
 			}
 		}
 	}
@@ -176,11 +179,11 @@ public class DecommissioningAsyncTask implements AsyncTask {
 
 			recordServices.add(emailToSend);
 		} catch (RecordServicesException e) {
-			if (attempt < 3) {
-				LOGGER.warn("Failed to send email, retrying...", e);
-				sendEndMail(error, attempt + 1);
-			} else {
+			if (attempt > 3) {
 				LOGGER.error("Failed to send email.", e);
+			} else {
+				LOGGER.warn("Attempt #" + attempt + " to send email failed, retrying...", e);
+				sendEndMail(error, attempt + 1);
 			}
 		}
 	}

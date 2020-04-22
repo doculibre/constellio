@@ -12,6 +12,8 @@ public interface AsyncTaskExecutionParams {
 
 	void incrementProgression(int numberToAdd);
 
+	void resetProgression();
+
 	void setProgressionUpperLimit(long progressionUpperLimit);
 
 	AsyncTaskBatchProcess getBatchProcess();
