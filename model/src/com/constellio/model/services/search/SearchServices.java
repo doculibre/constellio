@@ -1102,7 +1102,7 @@ public class SearchServices {
 		if (DataStore.RECORDS.equals(query.getDataStore()) || query.getDataStore() == null) {
 			if (query.isMoreLikeThis()) {
 				params.add(CommonParams.QT, "/mlt");
-			} else {
+			} else if (query.getFreeTextQuery() != null) {
 				params.add(CommonParams.QT, "/spell");
 				params.add(ShardParams.SHARDS_QT, "/spell");
 			}
