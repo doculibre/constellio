@@ -448,7 +448,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		SortOrder sortOrder = presenter.getSortOrder();
 		if (facetsOpened) {
 			facetsArea.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
-			//			facetsSliderPanel.setHeightUndefined();
+			facetsSliderPanel.setHeightUndefined();
 		}
 		presenter.setPageNumber(1);
 		facetsSliderPanel.setVisible(!hideFacette && (dataProvider.size() > 0 || !facetSelections.isEmpty()));
