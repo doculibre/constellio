@@ -185,7 +185,7 @@ public class RMMigrationTo9_1_0 implements MigrationScript {
 
 			documentSchema.createIfInexisting(Document.LINKED_TO, (m) -> m
 					.setType(MetadataValueType.REFERENCE)
-					.defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE))
+					.defineReferencesTo(types().getDefaultSchema(Folder.SCHEMA_TYPE))
 					.setMultivalue(true)
 					.setCacheIndex(true));
 
