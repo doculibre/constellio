@@ -1218,10 +1218,6 @@ public class MetadataBuilder {
 	public boolean isRequiringCacheReload() {
 		boolean requiringCacheReload = false;
 		if (originalMetadata != null) {
-			if (localCode.equals("stringMetadata")) {
-				System.out.println("test");
-			}
-
 			requiringCacheReload = (essentialInSummary && !originalMetadata.isEssentialInSummary()) ||
 								   (availableInSummary && !originalMetadata.isAvailableInSummary());
 		}
