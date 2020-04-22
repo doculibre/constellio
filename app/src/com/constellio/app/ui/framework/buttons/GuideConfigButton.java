@@ -5,6 +5,7 @@ import com.constellio.app.services.guide.GuideManager;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.vaadin.navigator.View;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -13,6 +14,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,10 +36,13 @@ public class GuideConfigButton extends WindowButton {
 
 	public GuideConfigButton(String caption, String windowCaption, WindowConfiguration configuration,
 							 AppLayerFactory appLayerFactory) {
-		super(caption, windowCaption, configuration);
+		super(new ThemeResource("images/icons/guide-config.png"), caption, windowCaption, false, configuration);
 		this.appLayerFactory = appLayerFactory;
 		this.collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		this.guideManager = new GuideManager(appLayerFactory.getModelLayerFactory().getDataLayerFactory());
+
+		addStyleName(ValoTheme.BUTTON_BORDERLESS_COLORED);
+		setCaptionVisibleOnMobile(false);
 	}
 
 	private String generateGuideKey(View view) {
