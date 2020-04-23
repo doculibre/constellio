@@ -363,14 +363,14 @@ public class BigVaultServer implements Cloneable {
 																			   int code)
 			throws BigVaultException.OptimisticLocking, BigVaultException.CouldNotExecuteQuery {
 		if (code == HTTP_ERROR_409_CONFLICT) {
-			return handleOptimisticLockingException(exception);
+			return handleOptimisticLockingException(transaction, exception);
 
 		} else if (code == HTTP_ERROR_400_BAD_REQUEST) {
 			throw new BigVaultRuntimeException.BadRequest(transaction, exception);
 
 			//Solrcloud return an error 500 for updates with conflicts
 		} else if (code == HTTP_ERROR_500_INTERNAL && isRouteExceptionVersionConflict(exception)) {
-			return handleOptimisticLockingException(exception);
+			return handleOptimisticLockingException(transaction, exception);
 
 		} else if (code == HTTP_ERROR_500_INTERNAL) {
 			throw new SolrInternalError(transaction, exception);
@@ -399,7 +399,8 @@ public class BigVaultServer implements Cloneable {
 		}
 	}
 
-	private TransactionResponseDTO handleOptimisticLockingException(Exception optimisticLockingException)
+	private TransactionResponseDTO handleOptimisticLockingException(BigVaultServerTransaction transaction,
+																	Exception optimisticLockingException)
 			throws BigVaultException.OptimisticLocking {
 		//		try {
 		//			softCommit();
@@ -409,7 +410,22 @@ public class BigVaultServer implements Cloneable {
 		//			throw new BigVaultRuntimeException("" + maxFailAttempt + " errors occured while committing records",
 		//					solrServerException);
 		//		}
-		throw new BigVaultException.OptimisticLocking(optimisticLockingException);
+
+		Map map = null;
+		String id = BigVaultException.OptimisticLocking.retreiveId(optimisticLockingException.getMessage());
+		Long version = BigVaultException.OptimisticLocking.retreiveVersion(optimisticLockingException.getMessage());
+		List<String> recordsWithNewVersion = new ArrayList<>();
+
+		for (SolrInputDocument updatedDoc : transaction.getUpdatedDocuments()) {
+			String updatedDocId = (String) updatedDoc.getFieldValue("id");
+			if (id.equals(updatedDocId)) {
+				break;
+			} else {
+				recordsWithNewVersion.add(updatedDocId);
+			}
+		}
+
+		throw new BigVaultException.OptimisticLocking(id, version, recordsWithNewVersion, optimisticLockingException);
 	}
 
 	TransactionResponseDTO addAndCommit(BigVaultServerTransaction transaction)
