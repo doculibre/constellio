@@ -446,7 +446,7 @@ public class DecommissioningService {
 			Comment comment = new Comment();
 			comment.setMessage(comments);
 			comment.setUser(sender);
-			comment.setDateTime(LocalDateTime.now());
+			comment.setCreationDateTime(LocalDateTime.now());
 			commentaires.add(comment);
 			list.setComments(commentaires);
 		}

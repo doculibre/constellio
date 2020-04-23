@@ -39,7 +39,7 @@ public class CommentTest extends ConstellioTest {
 		assertThat(comment.isDirty()).isTrue();
 
 		comment = new Comment();
-		comment.setDateTime(nowDateTime);
+		comment.setCreationDateTime(nowDateTime);
 		assertThat(comment.isDirty()).isTrue();
 
 		comment = new Comment();
@@ -53,7 +53,7 @@ public class CommentTest extends ConstellioTest {
 
 		Comment comment = new Comment();
 		comment.setUser(bob);
-		comment.setDateTime(nowDateTime);
+		comment.setCreationDateTime(nowDateTime);
 
 		comment.setMessage("Message");
 
@@ -73,7 +73,7 @@ public class CommentTest extends ConstellioTest {
 
 		Comment comment = new Comment();
 		comment.setUser(null);
-		comment.setDateTime(null);
+		comment.setCreationDateTime(null);
 		comment.setMessage(null);
 
 		String stringValue = factory.toString(comment);

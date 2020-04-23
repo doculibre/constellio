@@ -1092,7 +1092,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			Comment comment = new Comment();
 			comment.setMessage(commentString);
 			comment.setUser(getCurrentUser());
-			comment.setDateTime(LocalDateTime.now());
+			comment.setCreationDateTime(LocalDateTime.now());
 
 			List<Comment> comments = new ArrayList<>(decommissioningList().getComments());
 			comments.add(comment);

@@ -11,14 +11,15 @@ public class Comment implements ModifiableStructure {
 	String message;
 	String userId;
 	String username;
-	LocalDateTime dateTime;
+	LocalDateTime creationDateTime;
+	LocalDateTime modificationDateTime;
 	boolean dirty;
 
-	public Comment(String message, User user, LocalDateTime dateTime) {
+	public Comment(String message, User user, LocalDateTime creationDateTime) {
 		this.message = message;
 		this.userId = user.getId();
 		this.username = user.getUsername();
-		this.dateTime = dateTime;
+		this.creationDateTime = creationDateTime;
 	}
 
 	public Comment() {
@@ -49,13 +50,22 @@ public class Comment implements ModifiableStructure {
 		this.message = message;
 	}
 
-	public LocalDateTime getDateTime() {
-		return dateTime;
+	public LocalDateTime getCreationDateTime() {
+		return creationDateTime;
 	}
 
-	public void setDateTime(LocalDateTime dateTime) {
+	public void setCreationDateTime(LocalDateTime creationDateTime) {
 		dirty = true;
-		this.dateTime = dateTime;
+		this.creationDateTime = creationDateTime;
+	}
+
+	public LocalDateTime getModificationDateTime() {
+		return modificationDateTime;
+	}
+
+	public void setModificationDateTime(LocalDateTime modificationDateTime) {
+		dirty = true;
+		this.modificationDateTime = modificationDateTime;
 	}
 
 	@Override
@@ -69,7 +79,8 @@ public class Comment implements ModifiableStructure {
 			   "message='" + message + '\'' +
 			   ", borrowUserId='" + userId + '\'' +
 			   ", borrowerUsername='" + username + '\'' +
-			   ", dateTime=" + dateTime +
+			   ", creationDateTime=" + creationDateTime +
+			   ", modificationDateTime=" + modificationDateTime +
 			   ", dirty=" + dirty +
 			   '}';
 	}

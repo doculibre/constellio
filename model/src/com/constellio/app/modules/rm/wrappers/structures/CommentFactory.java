@@ -20,7 +20,8 @@ public class CommentFactory implements StructureFactory {
 		Comment comment = new Comment();
 		comment.userId = readString(stringTokenizer);
 		comment.username = readString(stringTokenizer);
-		comment.setDateTime(readLocalDateTime(stringTokenizer));
+		comment.setCreationDateTime(readLocalDateTime(stringTokenizer));
+		comment.setModificationDateTime(readLocalDateTime(stringTokenizer));
 		comment.setMessage(readString(stringTokenizer));
 		comment.dirty = false;
 		return comment;
@@ -37,8 +38,13 @@ public class CommentFactory implements StructureFactory {
 		writeString(stringBuilder, "" + comment.getUsername() == null ?
 								   "" :
 								   comment.getUsername());
-		if (comment.getDateTime() != null) {
-			writeString(stringBuilder, comment.getDateTime().toString(DATE_PATTERN));
+		if (comment.getCreationDateTime() != null) {
+			writeString(stringBuilder, comment.getCreationDateTime().toString(DATE_PATTERN));
+		} else {
+			writeString(stringBuilder, NULL);
+		}
+		if (comment.getModificationDateTime() != null) {
+			writeString(stringBuilder, comment.getModificationDateTime().toString(DATE_PATTERN));
 		} else {
 			writeString(stringBuilder, NULL);
 		}

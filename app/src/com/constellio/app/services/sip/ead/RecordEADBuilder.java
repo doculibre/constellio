@@ -243,7 +243,7 @@ public class RecordEADBuilder {
 				mappedStructure = new TreeMap<String, Object>();
 				mappedStructure.put("userId", comment.getUserId());
 				mappedStructure.put("username", comment.getUsername());
-				mappedStructure.put("dateTime", comment.getDateTime());
+				mappedStructure.put("dateTime", comment.getCreationDateTime());
 				mappedStructure.put("message", comment.getMessage());
 			}
 
