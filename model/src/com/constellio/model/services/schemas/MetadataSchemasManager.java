@@ -341,8 +341,8 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		}
 
 		RecordsCaches caches = modelLayerFactory.getRecordsCaches();
-		if (reloadCacheIfRequired) {
-			modelLayerFactory.markForReindexing();
+		if (reloadCacheIfRequired && !typesRequiringCacheReload.isEmpty()) {
+			modelLayerFactory.markLocalCachesAsRequiringRebuild();
 			//caches.getCache(schemaTypes.getCollection()).invalidateVolatileReloadPermanent(typesRequiringCacheReload);
 		}
 		newSchemaTypes.forEach((s) -> {

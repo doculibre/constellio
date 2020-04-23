@@ -181,6 +181,14 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	};
 
+	public static MetadataBuilderConfigurator whichIsNotAvailableInSummary = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setAvailableInSummary(false);
+		}
+
+	};
 
 	public static MetadataBuilderConfigurator whichIsEncrypted = new MetadataBuilderConfigurator() {
 
