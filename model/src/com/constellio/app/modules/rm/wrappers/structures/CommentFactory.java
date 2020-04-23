@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.wrappers.structures;
 
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
 import java.util.NoSuchElementException;
@@ -21,7 +22,9 @@ public class CommentFactory implements StructureFactory {
 		comment.userId = readString(stringTokenizer);
 		comment.username = readString(stringTokenizer);
 		comment.setCreationDateTime(readLocalDateTime(stringTokenizer));
-		comment.setModificationDateTime(readLocalDateTime(stringTokenizer));
+		if (StringUtils.countMatches(string, ":") == 4) {
+			comment.setModificationDateTime(readLocalDateTime(stringTokenizer));
+		}
 		comment.setMessage(readString(stringTokenizer));
 		comment.dirty = false;
 		return comment;
