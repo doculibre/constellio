@@ -449,7 +449,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				recordsCaches.getCache(record.getCollection()).removeFromAllCaches(record.getId());
 			}
 		});
-
+		flushRecords();
 	}
 
 	void mergeRecordsUsingRealtimeGet(Transaction transaction, OptimisticLocking exception)
