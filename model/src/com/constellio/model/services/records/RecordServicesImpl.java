@@ -440,7 +440,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 			if (cacheType.hasPermanentCache()) {
 				try {
 					Record newRecordVersion = toRecord(recordDao.realGet(id), true);
-					recordsCaches.insert(newRecordVersion, WAS_MODIFIED);
+					if (newRecordVersion != null) {
+						recordsCaches.insert(newRecordVersion, WAS_MODIFIED);
+					}
 				} catch (NoSuchRecordWithId ignored) {
 
 				}
