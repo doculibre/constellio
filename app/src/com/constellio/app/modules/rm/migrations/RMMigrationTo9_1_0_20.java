@@ -8,7 +8,6 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -41,12 +40,8 @@ public class RMMigrationTo9_1_0_20 implements MigrationScript {
 			emailSchema.createSystemReserved(Email.EMAIL_VERSIONS).setType(STRING).setMultivalue(true);
 
 			MetadataSchemaBuilder documentSchema = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
-			documentSchema.createIfInexisting(Document.LINKED_TO, (m) -> m
-					.setType(MetadataValueType.REFERENCE)
-					.defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE))
-					.setMultivalue(true)
-					.setCacheIndex(true));
-
+			documentSchema.get(Document.LINKED_TO).removeOldReferences();
+			documentSchema.get(Document.LINKED_TO).defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE));
 		}
 	}
 }
