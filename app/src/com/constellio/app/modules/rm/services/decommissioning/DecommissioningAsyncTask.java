@@ -85,7 +85,15 @@ public class DecommissioningAsyncTask implements AsyncTask {
 		this.collection = collection;
 		this.username = username;
 		this.decommissioningListId = decommissioningListId;
+	}
 
+	@Override
+	public Object[] getInstanceParameters() {
+		return new Object[]{collection, username, decommissioningListId};
+	}
+
+	@Override
+	public void execute(AsyncTaskExecutionParams params) {
 		appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
@@ -103,20 +111,13 @@ public class DecommissioningAsyncTask implements AsyncTask {
 		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		schemaTypes = schemasManager.getSchemaTypes(collection);
 		currentUser = userServices.getUserInCollection(username, collection);
-	}
 
-	@Override
-	public Object[] getInstanceParameters() {
-		return new Object[]{collection, username, decommissioningListId};
-	}
-
-	@Override
-	public void execute(AsyncTaskExecutionParams params) {
 		try {
 			externalLinkServices.beforeExternalLinkImport(username);
 			process(params, 1);
 			sendEndMail(null, 1);
 		} catch (Exception e) {
+			LOGGER.error(e);
 			writeErrorToReport(params, MessageUtils.toMessage(e) + "\n\n" + ExceptionUtils.getStackTrace(e));
 			sendEndMail(MessageUtils.toMessage(e), 1);
 		}
@@ -144,6 +145,7 @@ public class DecommissioningAsyncTask implements AsyncTask {
 			}
 			decommissioner.process(decommissioningList, currentUser, TimeProvider.getLocalDate());
 			params.incrementProgression(1);
+			LOGGER.info("Decommission completed!");
 		} catch (RecordServicesException.OptimisticLocking e) {
 			if (attempt > 3) {
 				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
