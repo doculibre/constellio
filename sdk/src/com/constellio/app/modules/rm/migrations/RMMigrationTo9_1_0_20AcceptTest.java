@@ -9,11 +9,9 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +23,6 @@ public class RMMigrationTo9_1_0_20AcceptTest extends ConstellioTest {
 	private AppSchemasServices appSchemasServices;
 	private SchemasDisplayManager schemasDisplayManager;
 	private MetadataSchemasManager schemasManager;
-	private TestsSchemasSetup schemas;
 	private final static String CUSTOM_SCHEMA_NAME = "USRcustomSchemaCode";
 
 
@@ -37,8 +34,6 @@ public class RMMigrationTo9_1_0_20AcceptTest extends ConstellioTest {
 		appSchemasServices = getAppLayerFactory().newSchemasServices();
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
-
-
 	}
 
 
@@ -53,6 +48,7 @@ public class RMMigrationTo9_1_0_20AcceptTest extends ConstellioTest {
 		schemasManager.saveUpdateSchemaTypes(types);
 		schemasDisplayManager.saveSchema(schemasDisplayManager.getSchema(zeCollection, schemaCode)
 				.withDisplayMetadataCodes(asList("title")));
+
 		//confirm exists
 		try {
 			schemasDisplayManager.getSchema(zeCollection, schemaCode);
@@ -63,11 +59,7 @@ public class RMMigrationTo9_1_0_20AcceptTest extends ConstellioTest {
 		//confirm can be deleted
 		ValidationErrors deleteValidationErrors = appSchemasServices.isSchemaDeletable(zeCollection, schemaCode);
 		assertThat(deleteValidationErrors).isNull();
-
-		//delete schema
 		appSchemasServices.deleteSchemaCode(zeCollection, schemaCode);
-
-		//confirm deleted
 		try {
 			schemasDisplayManager.getSchema(zeCollection, schemaCode);
 			fail("MetadataSchemasRuntimeException.NoSuchSchema expected");
@@ -75,21 +67,4 @@ public class RMMigrationTo9_1_0_20AcceptTest extends ConstellioTest {
 			//OK
 		}
 	}
-
-
-	@Test
-	public void givenCustomFolderSchemaCreatedInVersion9_0WithNoRecordsThenCanBeDeleted()
-			throws RecordServicesException {
-		//use savestate de avant le bugfix avec un custom folder schema
-		//&&  test que deletable
-	}
-
-
-	private void givenSystemAtVersion9_0() {
-		givenTransactionLogIsEnabled();
-		File state = getTestResourceFile("systemstate-version1_4.zip");
-
-		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
-	}
-
 }
