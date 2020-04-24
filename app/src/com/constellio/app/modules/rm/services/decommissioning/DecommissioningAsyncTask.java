@@ -126,7 +126,7 @@ public class DecommissioningAsyncTask implements AsyncTask {
 	private void process(AsyncTaskExecutionParams params, int attempt) throws Exception {
 		DecommissioningList decommissioningList = rm.getDecommissioningList(decommissioningListId);
 		Decommissioner decommissioner = Decommissioner.forList(decommissioningList, decommissioningService, appLayerFactory);
-		LOGGER.info("Decommission " + decommissioningListId);
+		LOGGER.debug("Decommission " + decommissioningListId);
 
 		int recordCount = 1;
 		if (decommissioningList.getDecommissioningListType().isFolderList()) {
@@ -145,7 +145,7 @@ public class DecommissioningAsyncTask implements AsyncTask {
 			}
 			decommissioner.process(decommissioningList, currentUser, TimeProvider.getLocalDate());
 			params.incrementProgression(1);
-			LOGGER.info("Decommission completed!");
+			LOGGER.debug("Decommission completed!");
 		} catch (RecordServicesException.OptimisticLocking e) {
 			if (attempt > 3) {
 				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
