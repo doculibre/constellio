@@ -958,7 +958,7 @@ public class TaskTable extends VerticalLayout {
 			if (comments == null) {
 				return new VerticalLayout();
 			}
-			CommentsLayout commentsLayout = new CommentsLayout(comments, caption) {
+			CommentsLayout commentsLayout = new CommentsLayout(comments, caption, true) {
 				@Override
 				protected Locale getLocal() {
 					return getLocale();

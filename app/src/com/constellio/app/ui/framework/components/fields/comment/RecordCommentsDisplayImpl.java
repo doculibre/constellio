@@ -98,7 +98,7 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 	}
 
 	protected VerticalLayout newCommentsLayout() {
-		CommentsLayout commentsLayout = new CommentsLayout(ensureComments(), recordVO.getMetadata(metadataCode).getLabel()) {
+		CommentsLayout commentsLayout = new CommentsLayout(ensureComments(), recordVO.getMetadata(metadataCode).getLabel(), false) {
 			@Override
 			protected Locale getLocal() {
 				return getLocale();

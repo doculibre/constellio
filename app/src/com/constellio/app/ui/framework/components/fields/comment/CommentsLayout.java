@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components.fields.comment;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -10,6 +11,7 @@ import com.constellio.app.ui.framework.components.BaseForm.FieldAndPropertyId;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.framework.components.user.UserDisplay;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
@@ -35,14 +37,21 @@ public abstract class CommentsLayout extends VerticalLayout {
 	private JodaDateTimeToStringConverter dateTimeConverter = new JodaDateTimeToStringConverter();
 
 	List<Comment> comments;
+	String caption;
+	boolean isTableMode;
 
-	public CommentsLayout(List<Comment> comments, String caption) {
+	public CommentsLayout(List<Comment> comments, String caption, boolean isTableMode) {
 		this.comments = comments;
-		setCaption(caption);
+		this.caption = caption;
+		this.isTableMode = isTableMode;
 		init();
 	}
 
 	private void init() {
+		if (isTableMode) {
+			setCaption(caption);
+			addStyleName("task-details-comments");
+		}
 		setWidth("100%");
 		setSpacing(true);
 		addStyleName("record-comments");
@@ -74,6 +83,21 @@ public abstract class CommentsLayout extends VerticalLayout {
 		Label commentDateTimeLabel = new Label(commentDateTimeStr);
 		commentDateTimeLabel.addStyleName("record-comment-date-time");
 
+		LinkButton modificationInformation = new LinkButton("Modifié") {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+
+			}
+		};
+		boolean commentModified = comment.getModificationDateTime() != null;
+		modificationInformation.setVisible(commentModified);
+		if (commentModified) {
+			modificationInformation.addExtension(new NiceTitle($("CommentsLayout.modifiedOn") + " " + dateTimeConverter.convertToPresentation(comment.getModificationDateTime(), String.class, getLocal())));
+		}
+
+		Component editCommentButton = newCommentComponent("", $("RecordCommentsDisplayImpl.editComment"), FontAwesome.EDIT, comment);
+		editCommentButton.setVisible(editButtonVisible(comment));
+
 		BaseButton deleteCommentButton = new DeleteButton(FontAwesome.TRASH_O, $("delete"), true) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -84,10 +108,7 @@ public abstract class CommentsLayout extends VerticalLayout {
 		deleteCommentButton.addStyleName(ValoTheme.BUTTON_LINK);
 		deleteCommentButton.setVisible(deleteButtonVisible(comment) && !isReadOnly());
 
-		Component editCommentButton = newCommentComponent("", $("RecordCommentsDisplayImpl.editComment"), FontAwesome.EDIT, comment);
-		editCommentButton.setVisible(editButtonVisible(comment));
-
-		I18NHorizontalLayout userTimeLayout = new I18NHorizontalLayout(commentUserComponent, commentDateTimeLabel, editCommentButton, deleteCommentButton);
+		I18NHorizontalLayout userTimeLayout = new I18NHorizontalLayout(commentUserComponent, commentDateTimeLabel, modificationInformation, editCommentButton, deleteCommentButton);
 		userTimeLayout.addStyleName("record-comment-user-date-time");
 		userTimeLayout.setSpacing(true);
 		userTimeLayout.setComponentAlignment(editCommentButton, Alignment.MIDDLE_CENTER);
