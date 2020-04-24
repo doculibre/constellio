@@ -825,7 +825,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	}
 
 	private DecommissioningList requestApproval(DecommissioningList list) {
-		return savedAndRefreshed(list.setApprovalRequestDate(new LocalDate()).setApprovalRequest(records.getChuckNorris()));
+		return savedAndRefreshed(list.setApprovalRequestDate(new LocalDate()).setApprovalRequester(records.getChuckNorris()));
 	}
 
 	private void assertThatRecordDoesNotExist(String id) {

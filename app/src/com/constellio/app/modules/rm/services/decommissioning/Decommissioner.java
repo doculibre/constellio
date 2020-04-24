@@ -159,7 +159,7 @@ public abstract class Decommissioner {
 	public void denyApproval(DecommissioningList decommissioningList, User denier, String comment)
 			throws RecordServicesException.OptimisticLocking {
 		prepare(decommissioningList, user, processingDate);
-		String approvalRequester = decommissioningList.getApprovalRequest();
+		String approvalRequester = decommissioningList.getApprovalRequester();
 		removeApprovalRequest();
 		execute(false);
 		alertDenyApproval(decommissioningList, approvalRequester, denier, comment);
@@ -251,7 +251,7 @@ public abstract class Decommissioner {
 	}
 
 	private void removeApprovalRequest() {
-		add(decommissioningList.setApprovalRequestDate(null).setApprovalRequest((User) null));
+		add(decommissioningList.setApprovalRequestDate(null).setApprovalRequester((User) null));
 	}
 
 	protected void removeManualArchivisticStatus(Folder folder) {

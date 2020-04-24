@@ -245,7 +245,7 @@ public class DecommissioningService {
 	public boolean isApprovalPossible(DecommissioningList decommissioningList, User user) {
 		return decommissioningList.getStatus() != DecomListStatus.IN_VALIDATION &&
 			   decommissioningList.getStatus() == DecomListStatus.IN_APPROVAL &&
-			   !decommissioningList.getApprovalRequest().equals(user.getId()) &&
+			   !decommissioningList.getApprovalRequester().equals(user.getId()) &&
 			   securityService().canApprove(decommissioningList, user);
 	}
 
@@ -344,7 +344,7 @@ public class DecommissioningService {
 
 		sendEmailForList(managerList, approvalUser, RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID, parameters);
 		try {
-			decommissioningList.setApprovalRequest(approvalUser);
+			decommissioningList.setApprovalRequester(approvalUser);
 			decommissioningList.setApprovalRequestDate(new LocalDate());
 
 			Transaction transaction = new Transaction().setUser(approvalUser);
@@ -450,6 +450,7 @@ public class DecommissioningService {
 			commentaires.add(comment);
 			list.setComments(commentaires);
 		}
+		list.setValidationRequester(sender);
 		try {
 			recordServices.update(list, sender);
 		} catch (RecordServicesException e) {

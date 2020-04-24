@@ -57,6 +57,7 @@ import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimedCache;
@@ -971,5 +972,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private void navigateToPreviousPage() {
 		URI location = ConstellioUI.getCurrent().getPage().getLocation();
 		view.navigate().to(CoreViews.class).navigateTo(location.getPath(), previousPage, false);
+		if (ConstellioUI.getCurrent().getCurrentView() instanceof HomeView) {
+			String previousPageName = previousPage.replace("/", "");
+			view.navigate().to(CoreViews.class).home(previousPageName);
+		}
 	}
 }
