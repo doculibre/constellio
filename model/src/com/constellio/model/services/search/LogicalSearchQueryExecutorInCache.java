@@ -85,7 +85,6 @@ public class LogicalSearchQueryExecutorInCache {
 											 SearchConfigurationsManager searchConfigurationsManager,
 											 ModelLayerSystemExtensions modelLayerExtensions,
 											 ConstellioEIMConfigs constellioEIMConfigs,
-											 LocalCacheConfigs localCacheConfigs,
 											 String mainDataLanguage) {
 		this.constellioEIMConfigs = constellioEIMConfigs;
 		this.searchServices = searchServices;
@@ -94,7 +93,7 @@ public class LogicalSearchQueryExecutorInCache {
 		this.modelLayerExtensions = modelLayerExtensions;
 		this.mainDataLanguage = mainDataLanguage;
 		this.searchConfigurationsManager = searchConfigurationsManager;
-		this.localCacheConfigs = localCacheConfigs;
+		this.localCacheConfigs = recordsCaches.getLocalCacheConfigs();
 	}
 
 	public Stream<Record> stream(LogicalSearchQuery query)
@@ -544,7 +543,7 @@ public class LogicalSearchQueryExecutorInCache {
 				if (fieldSort.getField() instanceof Metadata) {
 					MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
 					if (schemaType != null && schemaType.getCacheType().isSummaryCache() &&
-						!localCacheConfigs.isAvailableInLocalCache((Metadata) fieldSort.getField())) {
+						localCacheConfigs.excludedDuringLastCacheRebuild((Metadata) fieldSort.getField())) {
 						return false;
 					}
 				}

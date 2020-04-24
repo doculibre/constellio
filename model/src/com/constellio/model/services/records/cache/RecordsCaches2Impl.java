@@ -34,6 +34,7 @@ import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithStringId;
 import com.constellio.model.services.records.cache.CacheRecordDTOUtils.CacheRecordDTOBytesArray;
+import com.constellio.model.services.records.cache.LocalCacheConfigs.CollectionTypeLocalCacheConfigs;
 import com.constellio.model.services.records.cache.cacheIndexConditions.SortedIdsStreamer;
 import com.constellio.model.services.records.cache.cacheIndexHook.MetadataIndexCacheDataStoreHook;
 import com.constellio.model.services.records.cache.cacheIndexHook.RecordCountHookDataIndexRetriever;
@@ -77,9 +78,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -118,10 +117,11 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	protected VolatileCache volatileCache;
 	private MetadataIndexCacheDataStore metadataIndexCacheDataStore;
 	private boolean fullyPermanentInitialized;
-	private boolean summaryPermanentInitialized;
 	private Lazy<RecordServices> recordServices;
 	private CollectionSchemaTypeObjectHolder<Boolean> schemaTypeLoadedStatuses
 			= new CollectionSchemaTypeObjectHolder<>(() -> false);
+
+	private LocalCacheConfigsServicesManager localCacheConfigsServicesManager;
 
 	private boolean summaryCacheInitialized;
 
@@ -146,9 +146,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		this.memoryDiskDatabase = DBMaker.memoryDB().make();
 		this.hooks = new RecordsCachesHooks(modelLayerFactory);
 		this.metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(modelLayerFactory);
-
-		ScheduledExecutorService executor =
-				Executors.newScheduledThreadPool(2);
+		this.localCacheConfigsServicesManager = new LocalCacheConfigsServicesManager(fileSystemDataStore.getLocalCacheConfigs());
 
 		//Maximum 50K records or 100mo
 		volatileCache = new VolatileCache(memoryDiskDatabase
@@ -681,6 +679,13 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 			if (loadUsingSolr) {
 				LOGGER.info("Loading records of schema type " + type.getCode() + " from Solr");
+
+				if (type.getCacheType().isSummaryCache()) {
+					localCacheConfigsServicesManager.alter((c) -> {
+						c.clearTypeConfigs(type);
+					});
+				}
+
 				searchServices.streamFromSolr(type, type.getCacheType().isSummaryCache()).parallel().forEach((record) -> {
 					CacheInsertionResponse response = (insert(record, LOADING_CACHE));
 
@@ -696,6 +701,21 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 						LOGGER.warn("Could not load record '" + record.getId() + "' in cache : " + response.getStatus());
 					}
 				});
+
+				if (type.getCacheType().isSummaryCache()) {
+
+					localCacheConfigsServicesManager.alter((configs) -> {
+
+						type.getAllMetadatas().forEach((metadata) -> {
+							Set<String> unavailable = new HashSet<>();
+							if (!metadata.isStoredInSummaryCache()) {
+								unavailable.add(metadata.getNoInheritanceCode());
+							}
+							configs.setCollectionTypeConfigs(type, new CollectionTypeLocalCacheConfigs(unavailable));
+						});
+					});
+
+				}
 			}
 		}
 
@@ -884,6 +904,11 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		}
 
 		cacheLoadingProgression = null;
+	}
+
+	@Override
+	public LocalCacheConfigs getLocalCacheConfigs() {
+		return this.localCacheConfigsServicesManager.get();
 	}
 
 	public List<RecordId> recordsIdSortedByTheirDefaultSort() {

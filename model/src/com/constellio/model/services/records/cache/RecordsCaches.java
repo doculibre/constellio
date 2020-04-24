@@ -150,4 +150,6 @@ public interface RecordsCaches {
 
 	}
 
+	LocalCacheConfigs getLocalCacheConfigs();
+
 }
