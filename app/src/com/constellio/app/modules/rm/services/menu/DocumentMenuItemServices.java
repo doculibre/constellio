@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.services.menu;
 
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.menu.behaviors.DocumentMenuItemActionBehaviors;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemAction;
@@ -306,7 +307,8 @@ public class DocumentMenuItemServices {
 			case DOCUMENT_CONSULT_LINK:
 				return documentRecordActionsServices.isConsultLinkActionPossible(record, user);
 			case DOCUMENT_OPEN:
-				return documentRecordActionsServices.isOpenActionPossible(record, user);
+				return documentRecordActionsServices.isOpenActionPossible(record, user)
+					   && ConstellioAgentUtils.getAgentURL(params.getRecordVO(), params.getContentVersionVO()) != null;
 			case DOCUMENT_DOWNLOAD:
 				return documentRecordActionsServices.isDownloadActionPossible(record, user);
 			case DOCUMENT_DELETE:
