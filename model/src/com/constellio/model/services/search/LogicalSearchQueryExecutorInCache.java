@@ -93,7 +93,7 @@ public class LogicalSearchQueryExecutorInCache {
 		this.modelLayerExtensions = modelLayerExtensions;
 		this.mainDataLanguage = mainDataLanguage;
 		this.searchConfigurationsManager = searchConfigurationsManager;
-		this.localCacheConfigs = recordsCaches.getLocalCacheConfigs();
+		this.localCacheConfigs = recordsCaches == null ? null : recordsCaches.getLocalCacheConfigs();
 	}
 
 	public Stream<Record> stream(LogicalSearchQuery query)
