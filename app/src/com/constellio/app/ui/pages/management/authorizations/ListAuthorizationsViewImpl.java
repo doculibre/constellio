@@ -59,7 +59,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	public static final String AUTHORIZATIONS = "authorizations";
 	private static final String ENABLE = "AuthorizationsView.enable";
 	private static final String DISABLE = "AuthorizationsView.disable";
-	private static final String SHARED = "AuthorizationsView.shared";
+	private static final String SHARE = "AuthorizationsView.share";
 
 	public enum AuthorizationSource {
 		INHERITED, OWN, INHERITED_FROM_METADATA, SHARED
@@ -499,7 +499,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			negative.setRequired(presenter.hasManageSecurityPermission());
 			negative.setId("negative");
 			negative.setNullSelectionAllowed(false);
-			negative.addItems(asList($(ENABLE), $(DISABLE), $(SHARED)));
+			negative.addItems(asList($(ENABLE), $(DISABLE), $(SHARE)));
 		}
 
 		protected void buildDateFields() {
@@ -726,7 +726,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 		private Object buildShareAccessColumn(AuthorizationVO authorization) {
 			if (authorization.getSharedBy() != null) {
-				return new Label($("AuthorizationsView.shared"));
+				return new Label($("AuthorizationsView.share"));
 			} else {
 				return new Label($("AuthorizationsView.accessGiven"));
 			}
