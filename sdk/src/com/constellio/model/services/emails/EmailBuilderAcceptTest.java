@@ -233,10 +233,6 @@ public class EmailBuilderAcceptTest extends ConstellioTest {
 		parameters = new ArrayList<>();
 		String content = CONTENT + EmailToSend.PARAMETER_SEPARATOR + CONTENT_VALUE;
 		String signature = SIGNATURE + ":" + SIGNATURE_VALUE;
-		//String pathLogo = getTestResourceFile("logo_eim_203x30.png").getPath();
-		//String pathBackGroundImg = getTestResourceFile("back-const-1920x1358.jpg").getPath();
-		//String logo = "logo:'cid:" + pathLogo + "'";
-		//String backgroundImg = "backgroundImg:'cid:" + pathBackGroundImg + "'";
 		String inxestentParameter = "inxestent" + EmailToSend.PARAMETER_SEPARATOR + "Ze inxestent";
 		parameters.add(TEMPLATE_TITLE + EmailToSend.PARAMETER_SEPARATOR + TEMPLATE_TITLE_VALUE_WIHT_HTML_CODE);
 		parameters.add(content);
@@ -247,8 +243,6 @@ public class EmailBuilderAcceptTest extends ConstellioTest {
 		parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + chuckNorris);
 		parameters.add("borrowedRecordTitle" + EmailToSend.PARAMETER_SEPARATOR + "dossier école");
 		parameters.add("borrowedRecordType" + EmailToSend.PARAMETER_SEPARATOR + $("SendReturnReminderEmailButton.folder"));
-		//parameters.add(logo);
-		//parameters.add(backgroundImg);
 	}
 
 	public EmailToSend newEmailToSend()
