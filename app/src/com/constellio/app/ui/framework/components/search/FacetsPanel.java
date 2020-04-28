@@ -44,7 +44,6 @@ public abstract class FacetsPanel extends VerticalLayout {
 		setWidth("250px");
 		setSpacing(true);
 		this.applyButtonEnabled = applyButtonEnabled;
-		this.facetValuesSelectedMap = new KeySetMap<>();
 	}
 
 	public void refresh(List<FacetVO> facets, KeySetMap<String, String> facetSelections,
