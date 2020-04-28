@@ -148,7 +148,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	private final ModelLayerCachesManager modelLayerCachesManager;
 
-	private final Runnable markForReindexingRunnable;
+	private final Runnable markForReindexingRunnable, markForCacheRebuild;
 
 	private SearchServices searchServices;
 	private RecordServices recordServices;
@@ -160,11 +160,12 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 								 Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
 								 short instanceId,
 								 Factory<ModelLayerFactory> modelLayerFactoryFactory,
-								 Runnable markForReindexingRunnable) {
+								 Runnable markForReindexingRunnable, Runnable markForCacheRebuild) {
 
 		super(dataLayerFactory, statefullServiceDecorator, instanceName, instanceId);
 
 		this.markForReindexingRunnable = markForReindexingRunnable;
+		this.markForCacheRebuild = markForCacheRebuild;
 		dataLayerFactory.getEventBusManager().getEventDataSerializer().register(new RecordEventDataSerializerExtension(this));
 
 		this.modelLayerCachesManager = new ModelLayerCachesManager();
@@ -622,5 +623,11 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	@Override
 	public void markForReindexing() {
 		markForReindexingRunnable.run();
+	}
+
+
+	@Override
+	public void markLocalCachesAsRequiringRebuild() {
+		markForCacheRebuild.run();
 	}
 }

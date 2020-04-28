@@ -84,6 +84,11 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 			}
 
 			@Override
+			public void resetProgression() {
+
+			}
+
+			@Override
 			public void setProgressionUpperLimit(long progressionUpperLimit) {
 
 			}

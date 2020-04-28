@@ -38,6 +38,8 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 
+		resp.setHeader("Access-Control-Allow-Origin", "*");
+
 		String username = req.getParameter(USERNAME);
 		String azurename = req.getParameter(AZURENAME);
 		String password = req.getParameter(PASSWORD);
@@ -73,17 +75,21 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 		}
 
 		if (StringUtils.isBlank(username)) {
-			resp.getWriter().write(PARAM_USERNAME_REQUIRED);
+			resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, BAD_USERNAME_PASSWORD);
 			return;
 		}
 
 		if (StringUtils.isBlank(duration)) {
-			resp.getWriter().write(PARAM_DURATION_REQUIRED);
+			resp.sendError(422, PARAM_DURATION_REQUIRED);
 			return;
 		}
 
 		if (StringUtils.isBlank(password) && !grantType.equals("azure")) {
-			resp.getWriter().write(PARAM_PASSWORD_REQUIRED);
+			resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, BAD_USERNAME_PASSWORD);
+		}
+
+		if (StringUtils.isBlank(password)) {
+			resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, BAD_USERNAME_PASSWORD);
 			return;
 		}
 
@@ -96,7 +102,7 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 
 		int tokenDurationInHours = getTokenDurationInHours(duration);
 		if (tokenDurationInHours <= 0) {
-			resp.getWriter().write(BAD_DURATION);
+			resp.sendError(422, BAD_DURATION);
 			return;
 		}
 
@@ -111,16 +117,16 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 				userCredential = null;
 			}
 			if (userCredential == null) {
-				getResponseMessage(resp, null, null, NO_AZURE_USERNAME);
+				resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, BAD_USERNAME_PASSWORD);
 				return;
 			} else {
 				username = userCredential.getUsername();
 			}
 		} else if (grantType.equals("azure") && azurename == null) {
-			resp.getWriter().write(MISSING_AZURE_USERNAME);
+			resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, BAD_USERNAME_PASSWORD);
 			return;
 		} else if (!authService.authenticate(username, password)) {
-			resp.getWriter().write(BAD_USERNAME_PASSWORD);
+			resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, BAD_USERNAME_PASSWORD);
 			return;
 		}
 
@@ -135,11 +141,11 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 							throw new UserServicesRuntimeException_NoSuchUser(asUser);
 						}
 					} catch (UserServicesRuntimeException_NoSuchUser e) {
-						resp.getWriter().write(BAD_ASUSER);
+						resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, BAD_ASUSER);
 						return;
 					}
 				} else {
-					resp.getWriter().write(REQUIRE_ADMIN_RIGHTS);
+					resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, REQUIRE_ADMIN_RIGHTS);
 					return;
 				}
 			}
@@ -161,27 +167,15 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 
 	private void getResponseMessage(HttpServletResponse resp, UserCredential userCredential, String token)
 			throws IOException {
-		getResponseMessage(resp, userCredential, token, null);
-	}
-
-	private void getResponseMessage(HttpServletResponse resp, UserCredential userCredential, String token, String error)
-			throws IOException {
 		StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-		if (error != null) {
-			sb.append("<response><error>");
-			sb.append(error);
-			sb.append("</error></response>");
-		} else {
-			sb.append("<response><serviceKey>");
-			sb.append(userCredential.getServiceKey());
-			sb.append("</serviceKey>");
-			sb.append("<token>");
-			sb.append(token);
-			sb.append("</token></response>");
-		}
+		sb.append("<response><serviceKey>");
+		sb.append(userCredential.getServiceKey());
+		sb.append("</serviceKey>");
+		sb.append("<token>");
+		sb.append(token);
+		sb.append("</token></response>");
 
 		resp.setContentType(TEXT_XML_CHARSET_UTF_8);
-		resp.setHeader("Access-Control-Allow-Origin", "*");
 		resp.getWriter().write(sb.toString());
 	}
 

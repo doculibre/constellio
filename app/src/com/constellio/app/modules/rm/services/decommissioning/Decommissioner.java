@@ -2,11 +2,19 @@ package com.constellio.app.modules.rm.services.decommissioning;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
-import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.FolderMediaType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
@@ -17,7 +25,11 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.*;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -147,7 +159,7 @@ public abstract class Decommissioner {
 	public void denyApproval(DecommissioningList decommissioningList, User denier, String comment)
 			throws RecordServicesException.OptimisticLocking {
 		prepare(decommissioningList, user, processingDate);
-		String approvalRequester = decommissioningList.getApprovalRequest();
+		String approvalRequester = decommissioningList.getApprovalRequester();
 		removeApprovalRequest();
 		execute(false);
 		alertDenyApproval(decommissioningList, approvalRequester, denier, comment);
@@ -239,7 +251,7 @@ public abstract class Decommissioner {
 	}
 
 	private void removeApprovalRequest() {
-		add(decommissioningList.setApprovalRequestDate(null).setApprovalRequest((User) null));
+		add(decommissioningList.setApprovalRequestDate(null).setApprovalRequester((User) null));
 	}
 
 	protected void removeManualArchivisticStatus(Folder folder) {
@@ -398,6 +410,9 @@ public abstract class Decommissioner {
 			List<DocumentType> deletedDocumentTypes) {
 		List<Document> destroyedDocuments = new ArrayList<>();
 		for (Document document : documents) {
+			if (transaction.getRecord(document.getId()) != null) {
+				document = rm.wrapDocument(transaction.getRecord(document.getId()));
+			}
 			boolean deleteDocument;
 			String documentTypeId = document.getType();
 			if (deletedDocumentTypes != null && !deletedDocumentTypes.isEmpty() && StringUtils.isNotBlank(documentTypeId)) {

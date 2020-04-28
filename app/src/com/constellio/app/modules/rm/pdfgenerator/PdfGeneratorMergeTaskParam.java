@@ -35,6 +35,11 @@ public class PdfGeneratorMergeTaskParam implements AsyncTaskExecutionParams {
 	}
 
 	@Override
+	public void resetProgression() {
+
+	}
+
+	@Override
 	public void setProgressionUpperLimit(long progressionUpperLimit) {
 
 	}

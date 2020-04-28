@@ -2,14 +2,15 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListFolderTableExtension;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListPresenterExtension;
-import com.constellio.app.modules.rm.extensions.api.DecommissioningListPresenterExtension.ImportExternalLinksParams;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListPresenterExtension.ValidateDecommissioningListProcessableParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListXLSDetailedReportParameters;
@@ -48,11 +49,17 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesWrapperRuntimeException;
@@ -64,6 +71,8 @@ import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -87,6 +96,8 @@ import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
 		implements NewReportPresenter {
+	private final static Logger LOGGER = LoggerFactory.getLogger(DecommissioningListPresenter.class);
+
 	private final String PDF_REPORT = "Reports.DecommissioningList";
 	private final String EXCEL_REPORT = "Reports.DecommissioningListExcelFormat";
 
@@ -320,12 +331,6 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			view.showMessage($("BatchProcessing.endedNormally"));
 			//view.showMessage($(mayContainAnalogicalMedia() ?
 			//				   "DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
-			if (rmModuleExtensions != null) {
-				for (DecommissioningListPresenterExtension extension : rmModuleExtensions.getDecommissioningListPresenterExtensions()) {
-					ImportExternalLinksParams params = new ImportExternalLinksParams(processableFoldersIds, getCurrentUser().getUsername(), appLayerFactory, collection);
-					extension.importExternalLinks(params);
-				}
-			}
 			view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
 		} catch (RecordServicesWrapperRuntimeException e) {
 			RecordServicesException wrappedException = e.getWrappedException();
@@ -352,12 +357,16 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public void validateButtonClicked() {
 		decommissioningList().getValidationFor(getCurrentUser().getId()).setValidationDate(TimeProvider.getLocalDate());
 		addOrUpdate(decommissioningList().getWrappedRecord());
+		alertApproved(RMEmailTemplateConstants.VALIDATION_REQUEST_VALIDATED_TEMPLATE_ID, decommissioningList(),
+				getCurrentUser(), decommissioningList().getValidationRequester());
 		view.navigate().to(RMViews.class).decommissioning();
 	}
 
 	public void approvalButtonClicked() {
 		try {
 			decommissioningService().approveList(decommissioningList(), getCurrentUser());
+			alertApproved(RMEmailTemplateConstants.APPROVAL_REQUEST_APPROVED_TEMPLATE_ID, decommissioningList(),
+					getCurrentUser(), decommissioningList().getApprovalRequester());
 
 			// TODO: Do not hard-refresh the whole page
 			view.showMessage($("DecommissioningListView.approvalClicked"));
@@ -372,6 +381,76 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		} catch (Exception ex) {
 			view.showErrorMessage(ex.getMessage());
 		}
+	}
+
+	private void alertApproved(String emailTemplate, DecommissioningList decommissioningList, User approver,
+							   String requesterId) {
+		try {
+			String displayURL = "";
+			if (decommissioningList.getDecommissioningListType() != null) {
+				switch (decommissioningList.getDecommissioningListType()) {
+					case FOLDERS_TO_TRANSFER:
+					case FOLDERS_TO_DESTROY:
+					case FOLDERS_TO_DEPOSIT:
+					case FOLDERS_TO_CLOSE:
+						displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
+						break;
+					default:
+						displayURL = RMNavigationConfiguration.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY;
+						break;
+				}
+			}
+
+			Transaction transaction = new Transaction();
+			String collection = decommissioningList.getCollection();
+			EmailToSend emailToSend = newEmailToSend(collection);
+			List<EmailAddress> emailAddresses = new ArrayList<>();
+
+			User requester = rmRecordsServices.getUser(requesterId);
+			emailAddresses.add(new EmailAddress(requester.getTitle(), requester.getEmail()));
+			LocalDateTime creationDate = TimeProvider.getLocalDateTime();
+			emailToSend.setTo(emailAddresses);
+			emailToSend.setSendOn(creationDate);
+			final String subject = emailTemplate.equals(RMEmailTemplateConstants.APPROVAL_REQUEST_APPROVED_TEMPLATE_ID)
+								   ? $("RMObject.acceptedApproval", decommissioningList.getTitle())
+								   : $("RMObject.acceptedValidation", decommissioningList.getTitle());
+			emailToSend.setSubject(subject);
+			emailToSend.setTemplate(emailTemplate);
+			List<String> parameters = new ArrayList<>();
+			parameters.add("approvedDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(creationDate));
+			parameters.add("approver" + EmailToSend.PARAMETER_SEPARATOR + approver.getFirstName() + " " + approver.getLastName() +
+						   " (" + approver.getUsername() + ")");
+			String rmObjectTitle = decommissioningList.getTitle();
+			boolean isAddingRecordIdInEmails = new ConstellioEIMConfigs(modelLayerFactory).isAddingRecordIdInEmails();
+			if (isAddingRecordIdInEmails) {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle + " (" + decommissioningList.getId() + ")");
+			} else {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
+			}
+			String constellioUrl = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory()).getConstellioUrl();
+			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + decommissioningList.getId());
+			emailToSend.setParameters(parameters);
+			transaction.add(emailToSend);
+
+			appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
+		} catch (RecordServicesException e) {
+			LOGGER.error("Cannot alert users", e);
+		}
+	}
+
+	private String formatDateToParameter(LocalDateTime datetime) {
+		if (datetime == null) {
+			return "";
+		}
+		return datetime.toString("yyyy-MM-dd  HH:mm:ss");
+	}
+
+	private EmailToSend newEmailToSend(String collection) {
+		MetadataSchemaTypes types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+		MetadataSchema schema = types.getSchemaType(EmailToSend.SCHEMA_TYPE).getDefaultSchema();
+		Record emailToSendRecord = appLayerFactory.getModelLayerFactory().newRecordServices().newRecordWithSchema(schema);
+		return new EmailToSend(emailToSendRecord, types);
 	}
 
 	public void approvalRequestButtonClicked(List<User> managerList) {
