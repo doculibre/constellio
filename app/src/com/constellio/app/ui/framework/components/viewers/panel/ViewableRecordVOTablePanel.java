@@ -40,6 +40,7 @@ import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -159,8 +160,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	private Map<Object, Integer> tableModeColumnExpandRatios = new HashMap<>();
 
-	private Button quickActionButton;
-
 	private RecordListMenuBar selectionActionsMenuBar;
 
 	private RecordListMenuBar initialSelectionActionsMenuBar = null;
@@ -267,6 +266,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		selectionButtonsLayout.setSpacing(true);
 
 		actionButtonsLayout = new I18NHorizontalLayout();
+		actionButtonsLayout.addStyleName("action-buttons-layout");
 		actionButtonsLayout.setSpacing(true);
 
 		actionAndModeButtonsLayout = new I18NHorizontalLayout();
@@ -289,9 +289,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		tableLayout.addComponent(tableButtonsLayout);
 		tableLayout.addComponent(table);
 		if (table.isPaged()) {
-			//			ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
-			tableLayout.addComponent(pagingControls = table.createPagingControls());
-			tableLayout.setComponentAlignment(pagingControls, Alignment.BOTTOM_CENTER);
+			ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
 		}
 		Label spacer = new Label("");
 		spacer.setHeight("50px");
@@ -347,14 +345,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		selectedItemCountLabel.setVisible(numberOfSelected > 0);
 	}
 
-	public void setQuickActionButton(List<Button> button) {
-		for (Button baseButton : button) {
-			setQuickActionButton(baseButton);
+	public void setQuickActionButtons(List<Button> buttons) {
+		for (Button button : buttons) {
+			setQuickActionButton(button);
 		}
 	}
 
-	public void setQuickActionButton(Button button) {
-		this.quickActionButton = button;
+	public void setQuickActionButton(Button quickActionButton) {
 		quickActionButton.addStyleName(ValoTheme.BUTTON_LINK);
 		quickActionButton.addStyleName("quick-action-button");
 		if (quickActionButton instanceof BaseButton) {
@@ -362,6 +359,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 		actionButtonsLayout.addComponent(quickActionButton, 0);
 		actionButtonsLayout.setComponentAlignment(quickActionButton, Alignment.TOP_LEFT);
+	}
+
+	public void setQuickActionButtonsVisible(boolean visible) {
+		for (int i = 0; i < actionButtonsLayout.getComponentCount(); i++) {
+			Component actionButtonComponent = actionButtonsLayout.getComponent(i);
+			if (actionButtonComponent.getStyleName() != null && actionButtonComponent.getStyleName().contains("quick-action-button")) {
+				actionButtonComponent.setVisible(visible);
+			}
+		}
 	}
 
 	public void setSelectionActionButtons() {
@@ -375,6 +381,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 			addSelectionActionsMenuBarToView();
 		}
+	}
+
+	protected boolean isHideQuickActionButtonsOnSelection() {
+		return true;
 	}
 
 	protected List<String> excludedMenuItemInDefaultSelectionActionButtons() {
@@ -773,7 +783,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			}
 			if (allItemsVisible) {
 				resultsTable.setPageLength(resultsTable.size());
-			} 
+			}
 		}
 
 		final CellStyleGenerator cellStyleGenerator = resultsTable.getCellStyleGenerator();
@@ -849,13 +859,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 				tableLayout.replaceComponent(tableBefore, table);
 				if (pagingControls != null) {
-					//					ConstellioUI.getCurrent().setStaticFooterContent(null);
-					tableLayout.removeComponent(pagingControls);
+					ConstellioUI.getCurrent().setStaticFooterContent(null);
 				}
 				if (table.isPaged()) {
-					//			ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
-					tableLayout.addComponent(pagingControls = table.createPagingControls());
-					tableLayout.setComponentAlignment(pagingControls, Alignment.BOTTOM_CENTER);
+					ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
 				}
 				adjustTableExpansion();
 
@@ -891,6 +898,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			selectRecordVO(itemId, event, false);
 			previousButton.setVisible(itemId != null);
 			nextButton.setVisible(itemId != null);
+			if (isHideQuickActionButtonsOnSelection()) {
+				setQuickActionButtonsVisible(false);
+			}
 		} else {
 			RecordVO recordVO = getRecordVO(itemId);
 			displayInWindowOrNavigate(recordVO);
@@ -977,6 +987,17 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 	}
 
+	protected boolean isSelectionPossible(RecordVO recordVO) {
+		boolean selectionPossible;
+		if (recordVO != null) {
+			String schemaType = SchemaUtils.getSchemaTypeCode(recordVO.getSchema().getCode());
+			selectionPossible = !Folder.SCHEMA_TYPE.equals(schemaType);
+		} else {
+			selectionPossible = false;
+		}
+		return selectionPossible;
+	}
+
 	void selectRecordVO(Object itemId, ItemClickEvent event, boolean reload) {
 		Object newSelectedItemId = itemId;
 		table.setValue(newSelectedItemId);
@@ -1002,7 +1023,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			previousItemId = recordVOContainer.prevItemId(itemId);
 			nextItemId = recordVOContainer.nextItemId(itemId);
 
-			if (!isCompressionSupported() && selectedRecordVO != null) {
+			if ((!isCompressionSupported() && selectedRecordVO != null)
+				|| (selectedRecordVO != null && !isSelectionPossible(selectedRecordVO))) {
 				displayInWindowOrNavigate(selectedRecordVO);
 			} else {
 				previousButton.setEnabled(previousItemId != null);
@@ -1031,6 +1053,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		adjustTableExpansion();
 		previousButton.setVisible(false);
 		nextButton.setVisible(false);
+		if (isHideQuickActionButtonsOnSelection()) {
+			setQuickActionButtonsVisible(true);
+		}
 	}
 
 	protected boolean isSelectColumn() {
@@ -1337,7 +1362,21 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					panelContent = new RecordDisplayFactory(currentUser).build(recordVO, true);
 					this.addStyleName("nested-view");
 				}
-				mainLayout.addComponent(panelContent);
+				if (panelContent instanceof DropHandler) {
+					DragAndDropWrapper dragAndDropWrapper = new DragAndDropWrapper(panelContent) {
+						@Override
+						public void setDropHandler(DropHandler dropHandler) {
+							if (ResponsiveUtils.isDesktop()) {
+								super.setDropHandler(dropHandler);
+							}
+						}
+					};
+					dragAndDropWrapper.setSizeFull();
+					dragAndDropWrapper.setDropHandler((DropHandler) panelContent);
+					mainLayout.addComponent(dragAndDropWrapper);
+				} else {
+					mainLayout.addComponent(panelContent);
+				}
 				Label spacer = new Label("");
 				spacer.setHeight("100px");
 				mainLayout.addComponent(spacer);

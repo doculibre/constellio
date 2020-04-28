@@ -719,6 +719,13 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		} else {
 			deselectedRecordsWithSchema.put(recordId, schemaTypeCode);
 		}
+		List<String> selectedRecordIds = sessionContext.getSelectedRecordIds();
+		if (!selectedRecordIds.isEmpty() && deselectedRecordsWithSchema.isEmpty()) {
+			allItemsSelected = true;
+		} else if (!selectedRecordIds.isEmpty() && deselectedRecordsWithSchema.size() == selectedRecordIds.size()) {
+			allItemsDeselected = true;
+		}
+		header.refreshActionButtons();
 	}
 
 	public List<Record> getSelectedRecords() {

@@ -4,6 +4,10 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderFie
 
 public class DocumentFolderFieldImpl extends LookupFolderField implements DocumentFolderField {
 
+	public DocumentFolderFieldImpl(boolean writeAccess) {
+		super(writeAccess);
+	}
+
 	@Override
 	public String getFieldValue() {
 		return (String) getConvertedValue();

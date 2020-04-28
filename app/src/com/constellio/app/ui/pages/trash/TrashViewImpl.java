@@ -188,6 +188,14 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 	}
 
 	@Override
+	public void updateSelectDeselectAllToggle(boolean allItemsSelected) {
+		if (logicallyDeletedRecordsTable instanceof TrashRecordsTable) {
+			TrashRecordsTable trashRecordsTable = (TrashRecordsTable) logicallyDeletedRecordsTable;
+			trashRecordsTable.getToggleButton().setSelectAllMode(!allItemsSelected);
+		}
+	}
+
+	@Override
 	public void enableOrDisableActionButtons() {
 		boolean atLeastOneRecordSelected = presenter.atLeastOneRecordSelected();
 		this.restoreSelectionButton.setEnabled(atLeastOneRecordSelected);

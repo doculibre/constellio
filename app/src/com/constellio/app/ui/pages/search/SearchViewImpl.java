@@ -713,7 +713,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		});
 
-		viewerPanel.setQuickActionButton(getQuickActionMenuButtons());
+		viewerPanel.setQuickActionButtons(getQuickActionMenuButtons());
 		selectionChangeListenerStorage.forEach(viewerPanel::addSelectionChangeListener);
 
 

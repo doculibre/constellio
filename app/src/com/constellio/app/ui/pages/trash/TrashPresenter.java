@@ -26,6 +26,7 @@ import com.constellio.model.services.trash.TrashServices;
 import com.constellio.model.services.trash.TrashServices.RecordsIdsAndTitles;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Table;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	private RecordVODataProvider dataProvider;
 
 	private transient TrashServices trashServices;
+	private List<String> fetchedRecordIds;
 
 	public TrashPresenter(TrashView trashView) {
 		super(trashView);
@@ -64,14 +66,30 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	}
 
 	public void recordSelectionChanged(RecordVO record, boolean selected) {
+		boolean allItemsSelectedBefore = allItemsSelected;
+		boolean allItemsDeselectedBefore = allItemsDeselected;
 		allItemsSelected = false;
 		allItemsDeselected = false;
 
 		String recordId = record.getId();
 		if (!selected && selectedRecordIds.contains(recordId)) {
 			selectedRecordIds.remove(recordId);
+			if (selectedRecordIds.isEmpty()) {
+				allItemsDeselected = true;
+			}
+		} else if (!selected && !selectedRecordIds.contains(recordId)) {
+			selectedRecordIds.addAll(fetchRecordIds());
+			selectedRecordIds.remove(recordId);
+			allItemsSelected = false;
 		} else if (selected && !selectedRecordIds.contains(recordId)) {
 			selectedRecordIds.add(recordId);
+			if (CollectionUtils.isNotEmpty(fetchRecordIds()) && fetchRecordIds().size() == selectedRecordIds.size()) {
+				allItemsSelected = true;
+			}
+		}
+
+		if (allItemsSelectedBefore != allItemsSelected || allItemsDeselectedBefore != allItemsDeselected) {
+			view.updateSelectDeselectAllToggle(allItemsSelected);
 		}
 		view.enableOrDisableActionButtons();
 	}
@@ -188,13 +206,21 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	Set<String> computeSelection() {
 		Set<String> selection = new HashSet<>();
 		if (allItemsSelected) {
-			LogicalSearchQuery query = getQuery();
-			SearchServices searchServices = searchServices();
-			selection.addAll(searchServices.searchRecordIds(query));
+			selection.addAll(fetchRecordIds());
 		} else if (!allItemsDeselected) {
 			selection.addAll(selectedRecordIds);
 		}
 		return selection;
+	}
+
+	List<String> fetchRecordIds() {
+		if (CollectionUtils.isEmpty(fetchedRecordIds)) {
+			LogicalSearchQuery query = getQuery();
+			SearchServices searchServices = searchServices();
+			fetchedRecordIds = searchServices.searchRecordIds(query);
+		}
+
+		return fetchedRecordIds;
 	}
 
 	boolean isAllItemsSelected() {
@@ -208,12 +234,14 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	void selectAllClicked() {
 		allItemsSelected = true;
 		allItemsDeselected = false;
+		selectedRecordIds.clear();
 		view.enableOrDisableActionButtons();
 	}
 
 	void deselectAllClicked() {
 		allItemsSelected = false;
 		allItemsDeselected = true;
+		selectedRecordIds.clear();
 		view.enableOrDisableActionButtons();
 	}
 

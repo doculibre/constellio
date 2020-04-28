@@ -164,12 +164,18 @@ public class DocumentViewer extends CustomComponent {
 				String contentURL = contentResourceReference.getURL();
 
 				String localeStr = getLocale().getLanguage();
-				String contextPath = VaadinService.getCurrentRequest().getContextPath();
-				if (!StringUtils.endsWith(contextPath, "/")) {
-					contextPath += "/";
+				String contentPathPrefix;
+				if (VaadinService.getCurrentRequest() != null) {
+					String contextPath = VaadinService.getCurrentRequest().getContextPath();
+					if (!StringUtils.endsWith(contextPath, "/")) {
+						contextPath += "/";
+					}
+					contentPathPrefix = contextPath;
+				} else {
+					contentPathPrefix = "../../../../../";
 				}
 
-				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/pdfjs/web/viewer.html?locale=" + localeStr + "&file=" + contextPath + contentURL + "\" width=\"100%\" height=\"100%\" allowfullscreen webkitallowfullscreen></iframe>";
+				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/pdfjs/web/viewer.html?locale=" + localeStr + "&file=" + contentPathPrefix + contentURL + "\" width=\"100%\" height=\"100%\" allowfullscreen webkitallowfullscreen></iframe>";
 				compositionRoot = new Label(iframeHTML, ContentMode.HTML);
 				compositionRoot.setWidth(widthStr);
 				compositionRoot.setHeight(heightStr);
