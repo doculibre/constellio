@@ -59,7 +59,6 @@ import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
-import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
@@ -399,15 +398,15 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		List<MetadataVO> result = new ArrayList<>();
 		//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
-		MetadataList allMetadatas;
+		List<Metadata> allMetadatas;
 		if (StringUtils.isBlank(schemaCode)) {
-			allMetadatas = schemaType.getAllMetadatas();
+			allMetadatas = schemaType.getAllMetadataIncludingInheritedOnes();
 		} else {
 			allMetadatas = schemaType.getSchema(schemaCode).getMetadatas();
 		}
+		List<String> metadatasAddedToResults = new ArrayList<>();
 		for (Metadata metadata : allMetadatas) {
-			if (!schemaType.hasSecurity() || metadataCodes.contains(metadata.getLocalCode())) {
-
+			if ((!schemaType.hasSecurity() || metadataCodes.contains(metadata.getLocalCode())) && !metadatasAddedToResults.contains(metadata.getLocalCode())) {
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
@@ -419,6 +418,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 									ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
 									ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode());
 				if ((visibleForUserAndInAdvancedSearch && condition) || SCHEMA.getLocalCode().equals(metadata.getLocalCode())) {
+					metadatasAddedToResults.add(metadata.getLocalCode());
 					MetadataVO metadataVO = builder.build(metadata, header.getSessionContext());
 					result.add(metadataVO);
 				}

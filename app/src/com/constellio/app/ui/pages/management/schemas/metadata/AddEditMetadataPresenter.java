@@ -505,24 +505,15 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 		MetadataDisplayConfig displayConfig = displayManager.getMetadata(collection, code);
 		if (displayConfig == null) {
-			displayConfig = new MetadataDisplayConfig(collection, code,
-					!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch(),
+			displayConfig = new MetadataDisplayConfig(collection, code, formMetadataVO.isAdvancedSearch(),
 					inputType, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup(), displayType, sortingType);
 		} else {
 			displayConfig = displayConfig.withHighlightStatus(formMetadataVO.isHighlight())
-					.withVisibleInAdvancedSearchStatus(!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch())
+					.withVisibleInAdvancedSearchStatus(formMetadataVO.isAdvancedSearch())
 					.withInputType(inputType)
 					.withDisplayType(displayType).withSortingType(sortingType).withMetadataGroup(formMetadataVO.getMetadataGroup());
 		}
-
 		displayManager.saveMetadata(displayConfig);
-
-		if (formMetadataVO.isInheritance()) {
-			String codeInDefaultSchema = schemaTypeCode + "_default_" + new SchemaUtils().getLocalCodeFromMetadataCode(code);
-			displayConfig = displayManager.getMetadata(collection, codeInDefaultSchema)
-					.withVisibleInAdvancedSearchStatus(formMetadataVO.isAdvancedSearch());
-			displayManager.saveMetadata(displayConfig);
-		}
 
 		this.saveFacetDisplay(schemasManager, displayManager, code, formMetadataVO.isFacet());
 		if (!editMode) {
