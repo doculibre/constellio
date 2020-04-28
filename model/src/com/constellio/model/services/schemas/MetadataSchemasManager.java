@@ -350,6 +350,12 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 			}
 		}
 
+		for (String newType : newSchemaTypes) {
+			MetadataSchemaType schemaType = schemaTypes.getSchemaType(newType);
+			if (schemaType.getCacheType().isSummaryCache()) {
+				caches.markLocalCacheConfigsAsSynced(schemaType);
+			}
+		}
 
 		if (reloadCacheIfRequired && !typesRequiringCacheReload.isEmpty()) {
 			if (typesRequiringCacheReload.size() != typesWithoutRecords.size()

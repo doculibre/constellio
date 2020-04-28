@@ -333,8 +333,13 @@ public class LogicalSearchQueryExecutorInCache {
 						.map(value -> new MetadataValueIndexCacheIdsStreamer(schemaType, metadata, value,
 								recordsCaches.getMetadataIndexCacheDataStore()))
 						.collect(Collectors.toList());
-				stream = new UnionSortedIdsStreamer(streamers).stream()
-						.map(recordId -> recordsCaches.getRecord(recordId));
+				if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()) {
+					stream = new UnionSortedIdsStreamer(streamers).stream()
+							.map(recordId -> recordsCaches.getRecordSummary(recordId));
+				} else {
+					stream = new UnionSortedIdsStreamer(streamers).stream()
+							.map(recordId -> recordsCaches.getRecord(recordId));
+				}
 			} else {
 				Object value = ((IsEqualCriterion) requiredFieldEqualCondition.getValueCondition()).getMemoryQueryValue();
 				if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()) {
@@ -549,14 +554,21 @@ public class LogicalSearchQueryExecutorInCache {
 				if ((fieldSort.getField() instanceof Metadata) && fieldSort.getField() != null) {
 					MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
 
-					Metadata metadata = (Metadata) fieldSort.getField();
-					if (metadata.getSchema() == null && schemaType != null) {
-						metadata = schemaType.getDefaultSchema().getMetadata(metadata.getLocalCode());
-					}
+					if (schemaType != null && schemaType.getCacheType().isSummaryCache()) {
 
-					if (schemaType != null && schemaType.getCacheType().isSummaryCache()
-						&& localCacheConfigs.excludedDuringLastCacheRebuild(metadata)) {
-						return false;
+						Metadata metadata = (Metadata) fieldSort.getField();
+						if (metadata.getSchema() == null && schemaType != null) {
+							try {
+								metadata = schemaType.getDefaultSchema().getMetadata(metadata.getLocalCode());
+							} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+								return false;
+							}
+						}
+
+						if (localCacheConfigs.excludedDuringLastCacheRebuild(metadata)) {
+							return false;
+						}
+
 					}
 				}
 			}

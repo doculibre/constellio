@@ -579,7 +579,6 @@ public class RecordServicesTest extends ConstellioTest {
 		verify(recordServices)
 				.handleOptimisticLocking(any(TransactionDTO.class), eq(transaction), eq(recordModificationImpactHandler),
 						eq(optimisticLockingException), anyInt());
-		verifyZeroInteractions(recordDao);
 	}
 
 	@Test

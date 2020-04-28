@@ -28,6 +28,10 @@ public interface RecordsCaches {
 		return getRecordSummary(id, null, null);
 	}
 
+	default Record getRecordSummary(RecordId id) {
+		return getRecordSummary(id, null, null);
+	}
+
 	default Record getRecordSummary(String id, String optionnalCollection) {
 		return getRecordSummary(id, optionnalCollection, null);
 	}

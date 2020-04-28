@@ -1022,6 +1022,7 @@ public class LangUtils {
 		};
 	}
 
+
 	public static <T> void executeInParallelUntilSupplierReturnsNull(int threads, Supplier<T> supplier,
 																	 Consumer<T> consumer) {
 		AtomicReference<RuntimeException> firstException = new AtomicReference<>();
