@@ -85,7 +85,8 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 			}
 
 			if ((officeHours || !found)
-				&& new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+				&& (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER
+				|| Toggle.PERFORMANCE_TESTING.isEnabled())) {
 				try {
 					Thread.sleep((long) (sleepTime * 60 * 1000));
 				} catch (InterruptedException e) {
