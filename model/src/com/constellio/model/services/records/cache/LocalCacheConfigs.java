@@ -25,6 +25,9 @@ public class LocalCacheConfigs {
 	}
 
 	public boolean excludedDuringLastCacheRebuild(Metadata metadata) {
+		if (metadata.getSchema() == null) {
+			throw new IllegalArgumentException("Unsupported global metadata : " + metadata.getCode());
+		}
 		CollectionTypeLocalCacheConfigs typeConfigs = typesConfigs.get(metadata.getSchemaType().getUniqueTenantId());
 		if (typeConfigs == null) {
 			return true;

@@ -205,7 +205,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			memoryDataStore.invalidate(schemaType.getCollectionInfo().getCollectionId(), schemaType.getId(), (r) -> true);
 			metadataIndexCacheDataStore.clear(schemaType);
 
-			reloadSchemaType(collectionId, collection, schemaType.getCode(), true);
+			reloadSchemaType(schemaType, true);
 		}
 
 		if (clearVolatileCache) {
@@ -556,11 +556,21 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 	@Override
+	public void reloadSchemaType(MetadataSchemaType schemaType, boolean rebuild) {
+		if (schemaType.getCacheType().hasVolatileCache()) {
+			volatileCache.clear();
+		}
+
+		boolean usePersistedSummaryDatabase = !rebuild;
+		loadSchemaType(schemaType, usePersistedSummaryDatabase);
+	}
+
+	@Override
 	public void reloadAllSchemaTypes(String collection) {
 		MetadataSchemaTypes schemaTypes = this.metadataSchemasManager.getSchemaTypes(collection);
 		for (MetadataSchemaType schemaType : schemaTypes.getSchemaTypes()) {
 			if (schemaType.getCacheType() != RecordCacheType.NOT_CACHED) {
-				reloadSchemaType(schemaTypes.getCollectionInfo().getCollectionId(), collection, schemaType.getCode(), false);
+				reloadSchemaType(schemaType, true);
 			}
 		}
 	}
@@ -633,6 +643,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 						typesToLoadAsync.add(schemaType);
 					}
 				} else {
+					loadSchemaType(schemaType, true, count);
 					schemaTypeLoadedStatuses.set(schemaType, true);
 				}
 			}
@@ -654,12 +665,17 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	}
 
 	private void loadSchemaType(MetadataSchemaType type, boolean usePersistedSummaryDatabase) {
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		long count = searchServices.streamFromSolr(type, type.getCacheType().isSummaryCache()).count();
+		loadSchemaType(type, usePersistedSummaryDatabase, count);
+	}
+
+	private void loadSchemaType(MetadataSchemaType type, boolean usePersistedSummaryDatabase, long count) {
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 		AtomicInteger added = new AtomicInteger();
 
-		long count = searchServices.streamFromSolr(type, type.getCacheType().isSummaryCache()).count();
 		String stepName = "Loading '" + type.getCode() + "' of collection '" + type.getCollection() + "'";
 		cacheLoadingProgression = new CacheLoadingProgression(stepName, 0, count);
 		if (count > 0) {
@@ -680,11 +696,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			if (loadUsingSolr) {
 				LOGGER.info("Loading records of schema type " + type.getCode() + " from Solr");
 
-				if (type.getCacheType().isSummaryCache()) {
-					localCacheConfigsServicesManager.alter((c) -> {
-						c.clearTypeConfigs(type);
-					});
-				}
+				configureLocalCacheAsNonSupporting(type);
 
 				searchServices.streamFromSolr(type, type.getCacheType().isSummaryCache()).parallel().forEach((record) -> {
 					CacheInsertionResponse response = (insert(record, LOADING_CACHE));
@@ -702,24 +714,42 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 					}
 				});
 
-				if (type.getCacheType().isSummaryCache()) {
-
-					localCacheConfigsServicesManager.alter((configs) -> {
-
-						type.getAllMetadatas().forEach((metadata) -> {
-							Set<String> unavailable = new HashSet<>();
-							if (!metadata.isStoredInSummaryCache()) {
-								unavailable.add(metadata.getNoInheritanceCode());
-							}
-							configs.setCollectionTypeConfigs(type, new CollectionTypeLocalCacheConfigs(unavailable));
-						});
-					});
-
-				}
+				markLocalCacheConfigsAsSynced(type);
 			}
+		} else {
+			markLocalCacheConfigsAsSynced(type);
 		}
 
 		schemaTypeLoadedStatuses.set(type, true);
+	}
+
+	private void configureLocalCacheAsNonSupporting(MetadataSchemaType type) {
+		if (type.getCacheType().isSummaryCache()) {
+			localCacheConfigsServicesManager.alter((c) -> {
+				c.clearTypeConfigs(type);
+			});
+		}
+	}
+
+	public void markLocalCacheConfigsAsSynced(MetadataSchemaType type) {
+		if (type.getCacheType().isSummaryCache()) {
+			localCacheConfigsServicesManager.alter((configs) -> {
+
+				Set<String> unavailable = new HashSet<>();
+				type.getAllMetadatas().forEach((metadata) -> {
+
+					if (!metadata.isStoredInSummaryCache()) {
+						unavailable.add(metadata.getNoInheritanceCode());
+
+					} else if (metadata.isSameLocalCode(Schemas.LEGACY_ID)
+							   && !this.modelLayerFactory.getSystemConfigs().isLegacyIdentifierIndexedInMemory()) {
+						unavailable.add(metadata.getNoInheritanceCode());
+					}
+
+				});
+				configs.setCollectionTypeConfigs(type, new CollectionTypeLocalCacheConfigs(unavailable));
+			});
+		}
 	}
 
 	private void insertRecordsUsingMapDb(MetadataSchemaType type, AtomicInteger added, long count,
@@ -958,6 +988,18 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		return returnedIds;
 	}
 
+	public void rebuildCacheForCollection(String collection) {
+
+		if (modelLayerFactory.getConfiguration().isSummaryCacheEnabled()) {
+			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()) {
+				if (schemaType.getCacheType().hasPermanentCache()) {
+					loadSchemaType(schemaType, false);
+					schemaTypeLoadedStatuses.set(schemaType, true);
+				}
+			}
+		}
+	}
+
 	public void onPostLayerInitialization(ModelPostInitializationParams params) {
 
 		if (modelLayerFactory.getConfiguration().isSummaryCacheEnabled()) {
@@ -1022,23 +1064,6 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		for (String recordId : recordIds) {
 			volatileCache.remove(recordId);
 		}
-	}
-
-
-	private void reloadSchemaType(byte collectionId, String collection, String recordType, boolean onlyLocally) {
-		short typeId = metadataSchemasManager.getSchemaTypes(collectionId).getSchemaType(recordType).getId();
-		//memoryDataStore.stream(collectionId, typeId).filter((record) -> Boolean.TRUE).forEach(this::remove);
-		MetadataSchemaType type = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(recordType);
-
-		//		if (type.getCacheType().hasPermanentCache()) {
-		//			metadataIndexCacheDataStore.clear(type);
-		//		}
-
-		if (type.getCacheType().hasVolatileCache()) {
-			volatileCache.clear();
-		}
-
-		loadSchemaType(type, false);
 	}
 
 	protected Stream<Record> stream(byte collectionId, String schemaType) {

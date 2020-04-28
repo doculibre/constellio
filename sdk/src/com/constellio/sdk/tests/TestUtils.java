@@ -1345,4 +1345,5 @@ public class TestUtils {
 		long elapsedMs = end - start;
 		return ((double) (1000 * loopCount)) / elapsedMs;
 	}
+
 }

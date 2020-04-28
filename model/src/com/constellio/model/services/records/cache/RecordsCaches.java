@@ -101,6 +101,14 @@ public interface RecordsCaches {
 
 	boolean areSummaryCachesInitialized();
 
+	default void rebuild(MetadataSchemaType schemaType) {
+		reloadSchemaType(schemaType, true);
+	}
+
+	void markLocalCacheConfigsAsSynced(MetadataSchemaType schemaType);
+
+	void reloadSchemaType(MetadataSchemaType schemaType, boolean rebuild);
+
 	default void reloadAllSchemaTypes(String collection) {
 		throw new UnsupportedOperationException("Unsupported");
 	}
@@ -152,4 +160,5 @@ public interface RecordsCaches {
 
 	LocalCacheConfigs getLocalCacheConfigs();
 
+	void rebuildCacheForCollection(String collection);
 }

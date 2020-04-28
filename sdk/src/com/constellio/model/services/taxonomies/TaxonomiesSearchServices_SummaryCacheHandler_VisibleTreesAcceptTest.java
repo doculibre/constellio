@@ -155,7 +155,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 				.has(solrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.folder_A16)
-				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
+				.has(recordsInOrder(subFolderId, document1InA16, document2InA16, document3InA16))
 				.has(recordsWithChildren(subFolderId))
 				.has(numFoundAndListSize(4))
 				.has(solrQueryCounts(0, 0, 0));
@@ -517,15 +517,15 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 				.has(solrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 5)
-				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
+				.has(recordsInOrder(subFolderId, document1InA16, document2InA16, document3InA16))
 				.has(recordsWithChildren(subFolderId))
 				.has(listSize(4)).has(numFound(4))
 				.has(solrQueryCounts(0, 0, 0));
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 1)
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 1, 1)
 				.has(recordsInOrder(document1InA16))
 				.has(noRecordsWithChildren())
-				.has(listSize(1)).has(numFoundGreaterThan(1))
+				.has(listSize(1)).has(numFoundGreaterThan(2))
 				.has(solrQueryCounts(0, 0, 0));
 
 	}

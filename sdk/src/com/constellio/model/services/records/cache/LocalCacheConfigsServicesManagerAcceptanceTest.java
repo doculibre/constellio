@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.records.cache.LocalCacheConfigs.CollectionTypeLocalCacheConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -25,6 +26,7 @@ public class LocalCacheConfigsServicesManagerAcceptanceTest extends ConstellioTe
 		MetadataSchemaType collection1Type1 = mockMetadataSchemaType(1, "collection1", "type1");
 		MetadataSchemaType collection1Type2 = mockMetadataSchemaType(2, "collection1", "type2");
 		MetadataSchemaType collection2Type1 = mockMetadataSchemaType(3, "collection2", "type1");
+
 
 		Metadata collection1Type1_m1 = mockMetadata(collection1Type1, "m1");
 		Metadata collection1Type1_m2 = mockMetadata(collection1Type1, "m2");
@@ -99,13 +101,23 @@ public class LocalCacheConfigsServicesManagerAcceptanceTest extends ConstellioTe
 		return schemaType;
 	}
 
+	private MetadataSchema mockMetadataSchema(String collectionCode, String typeCode) {
+		MetadataSchema schema = mock(MetadataSchema.class);
+		when(schema.getCollection()).thenReturn(collectionCode);
+		when(schema.getCode()).thenReturn(typeCode);
+
+		return schema;
+	}
+
 	private Metadata mockMetadata(MetadataSchemaType schemaType, String localCode) {
+		MetadataSchema schema = mockMetadataSchema(schemaType.getCollection(), schemaType.getCode() + "_default");
 		String code = schemaType.getCode() + "_default_" + localCode;
 		Metadata metadata = Mockito.mock(Metadata.class);
 		when(metadata.getSchemaType()).thenReturn(schemaType);
 		when(metadata.getLocalCode()).thenReturn(localCode);
 		when(metadata.getCode()).thenReturn(code);
 		when(metadata.getNoInheritanceCode()).thenReturn(code);
+		when(metadata.getSchema()).thenReturn(schema);
 		return metadata;
 	}
 }

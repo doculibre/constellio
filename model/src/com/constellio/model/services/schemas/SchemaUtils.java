@@ -18,7 +18,6 @@ import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.cache.LocalCacheConfigs;
 import com.constellio.model.services.schemas.SchemaUtilsRuntimeException.SchemaUtilsRuntimeException_NoMetadataWithDatastoreCode;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.NoSuchMetadata;
@@ -44,9 +43,6 @@ import static com.constellio.model.entities.schemas.Schemas.TITLE;
 public class SchemaUtils {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaUtils.class);
-
-	//TODO Multitenancy : Move elsewhere
-	public static LocalCacheConfigs localCacheConfigs;
 
 	public static Map<String, String[]> underscoreSplitCache = new HashMap<>();
 
