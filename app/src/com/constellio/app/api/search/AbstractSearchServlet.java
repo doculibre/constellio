@@ -39,7 +39,11 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 
 	@Override
 	protected final void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		doGet(authenticate(req), req, resp);
+		try {
+			doGet(authenticate(req), req, resp);
+		} catch (isNotAuthenticatedException e) {
+			resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "invalid authentification information");
+		}
 	}
 
 	protected abstract void doGet(UserCredential user, HttpServletRequest req, HttpServletResponse resp)
@@ -99,7 +103,7 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
 		UserCredential user = authenticator.authenticate(request);
 		if (user == null) {
-			throw new RuntimeException("Invalid serviceKey/token");
+			throw new isNotAuthenticatedException();
 		}
 
 		return user;
