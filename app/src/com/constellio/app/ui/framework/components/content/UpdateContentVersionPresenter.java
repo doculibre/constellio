@@ -65,11 +65,7 @@ public class UpdateContentVersionPresenter implements Serializable {
 		while (iterator.hasNext()) {
 			RecordVO recordVO = iterator.next();
 			if (validateSavePossible(recordVO)) {
-				if (!checkingIn && isCurrentUserBorrower(recordVO)) {
-					window.addMajorMinorSameOptions();
-				} else {
-					window.addMajorMinorOptions();
-				}
+				window.addMajorMinorOptions();
 				boolean uploadFieldVisible = !checkingIn;
 				window.setUploadFieldVisible(uploadFieldVisible);
 			}

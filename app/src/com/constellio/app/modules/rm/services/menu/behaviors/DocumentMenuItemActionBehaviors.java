@@ -362,7 +362,6 @@ public class DocumentMenuItemActionBehaviors {
 			} else {
 				uploadWindow.saveWithSameVersion();
 			}
-
 			params.getView().refreshActionMenu();
 			params.getView().partialRefresh();
 		} else if (documentRecordActionsServices.isCancelCheckOutPossible(document)) {
