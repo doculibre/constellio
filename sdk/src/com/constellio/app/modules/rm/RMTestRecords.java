@@ -1161,7 +1161,7 @@ public class RMTestRecords {
 				.setAdministrativeUnit(unitId_10a)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_CLOSE).setAlreadyIncludedFolderDetailsForIds(folder_A01, folder_A02, folder_A03)
-				.setApprovalRequest(admin_userIdWithAllAccess).setApprovalRequestDate(new LocalDate());
+				.setApprovalRequester(admin_userIdWithAllAccess).setApprovalRequestDate(new LocalDate());
 
 		DecomListValidation validationDakota = new DecomListValidation(dakota_managerInA_userInB, new LocalDate().minusDays(1))
 				.setValidationDate(new LocalDate());
@@ -1171,7 +1171,7 @@ public class RMTestRecords {
 				.setAdministrativeUnit(unitId_10a)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_CLOSE).setAlreadyIncludedFolderDetailsForIds(folder_A01, folder_A02, folder_A03)
-				.setApprovalRequest(chuckNorris).setApprovalRequestDate(new LocalDate())
+				.setApprovalRequester(chuckNorris).setApprovalRequestDate(new LocalDate())
 				.setApprovalUser(getAdmin()).setApprovalDate(new LocalDate())
 				.setValidations(asList(validationDakota, validationBob));
 
@@ -1179,7 +1179,7 @@ public class RMTestRecords {
 				.setAdministrativeUnit(unitId_10a)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_CLOSE).setAlreadyIncludedFolderDetailsForIds(folder_A01, folder_A02, folder_A03)
-				.setApprovalRequest(chuckNorris).setApprovalRequestDate(new LocalDate())
+				.setApprovalRequester(chuckNorris).setApprovalRequestDate(new LocalDate())
 				.addValidationRequest(dakota_managerInA_userInB, new LocalDate())
 				.addValidationRequest(bob_userInAC, new LocalDate());
 	}

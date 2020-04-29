@@ -9,17 +9,18 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.cache.LocalCacheConfigs;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.cacheIndexConditions.MetadataValueIndexCacheIdsStreamer;
 import com.constellio.model.services.records.cache.cacheIndexConditions.SortedIdsStreamer;
 import com.constellio.model.services.records.cache.cacheIndexConditions.UnionSortedIdsStreamer;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
@@ -30,6 +31,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchValueCond
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.condition.IsSupportingMemoryExecutionParams;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.condition.TestedQueryRecord;
@@ -78,6 +80,7 @@ public class LogicalSearchQueryExecutorInCache {
 	String mainDataLanguage;
 	SearchConfigurationsManager searchConfigurationsManager;
 	ConstellioEIMConfigs constellioEIMConfigs;
+	LocalCacheConfigs localCacheConfigs;
 
 	public LogicalSearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
 											 MetadataSchemasManager schemasManager,
@@ -92,6 +95,7 @@ public class LogicalSearchQueryExecutorInCache {
 		this.modelLayerExtensions = modelLayerExtensions;
 		this.mainDataLanguage = mainDataLanguage;
 		this.searchConfigurationsManager = searchConfigurationsManager;
+		this.localCacheConfigs = recordsCaches == null ? null : recordsCaches.getLocalCacheConfigs();
 	}
 
 	public Stream<Record> stream(LogicalSearchQuery query)
@@ -279,7 +283,11 @@ public class LogicalSearchQueryExecutorInCache {
 				if (!values.isEmpty()) {
 					DataStoreField dataStoreField = dataStoreFields.get(0);
 					if (((Metadata) dataStoreField).getCode().startsWith("global")) {
-						dataStoreField = schemaType.getDefaultSchema().getMetadata(dataStoreField.getLocalCode());
+						try {
+							dataStoreField = schemaType.getDefaultSchema().getMetadata(dataStoreField.getLocalCode());
+						} catch (MetadataSchemasRuntimeException.NoSuchMetadata ignored) {
+							return null;
+						}
 					}
 					if (canDataGetByMetadata(dataStoreField, values)) {
 						return (DataStoreFieldLogicalSearchCondition) condition;
@@ -325,11 +333,16 @@ public class LogicalSearchQueryExecutorInCache {
 						.map(value -> new MetadataValueIndexCacheIdsStreamer(schemaType, metadata, value,
 								recordsCaches.getMetadataIndexCacheDataStore()))
 						.collect(Collectors.toList());
-				stream = new UnionSortedIdsStreamer(streamers).stream()
-						.map(recordId -> recordsCaches.getRecord(recordId));
+				if (schemaType.getCacheType().isSummaryCache()) {
+					stream = new UnionSortedIdsStreamer(streamers).stream()
+							.map(recordId -> recordsCaches.getRecordSummary(recordId));
+				} else {
+					stream = new UnionSortedIdsStreamer(streamers).stream()
+							.map(recordId -> recordsCaches.getRecord(recordId));
+				}
 			} else {
 				Object value = ((IsEqualCriterion) requiredFieldEqualCondition.getValueCondition()).getMemoryQueryValue();
-				if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()) {
+				if (schemaType.getCacheType().isSummaryCache()) {
 					stream = recordsCaches.getRecordsSummaryByIndexedMetadata(schemaType, metadata, (String) value);
 				} else {
 					stream = recordsCaches.getRecordsByIndexedMetadata(schemaType, metadata, (String) value);
@@ -538,17 +551,31 @@ public class LogicalSearchQueryExecutorInCache {
 		for (LogicalSearchQuerySort sort : query.getSortFields()) {
 			if (sort instanceof FieldLogicalSearchQuerySort) {
 				FieldLogicalSearchQuerySort fieldSort = (FieldLogicalSearchQuerySort) sort;
-				if (fieldSort.getField() instanceof Metadata) {
+				if ((fieldSort.getField() instanceof Metadata) && fieldSort.getField() != null) {
 					MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
-					if (schemaType != null && schemaType.getCacheType().isSummaryCache() &&
-						!SchemaUtils.isSummary((Metadata) fieldSort.getField())) {
-						return false;
+
+					if (schemaType != null && schemaType.getCacheType().isSummaryCache()) {
+
+						Metadata metadata = (Metadata) fieldSort.getField();
+						if (metadata.getSchema() == null && schemaType != null) {
+							try {
+								metadata = schemaType.getDefaultSchema().getMetadata(metadata.getLocalCode());
+							} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+								return false;
+							}
+						}
+
+						if (localCacheConfigs.excludedDuringLastCacheRebuild(metadata)) {
+							return false;
+						}
+
 					}
 				}
 			}
 		}
 		return true;
 	}
+
 
 	private static boolean areAllFiltersExecutableInCache(List<UserFilter> userFilters) {
 		if (userFilters == null || userFilters.isEmpty()) {
@@ -603,16 +630,17 @@ public class LogicalSearchQueryExecutorInCache {
 			return false;
 		}
 
+		boolean requiringCacheExecution = queryExecutionMethod == USE_CACHE;
 		if (schemaType == null || !Toggle.USE_CACHE_FOR_QUERY_EXECUTION.isEnabled()) {
 			return false;
 
 		} else if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			return condition.isSupportingMemoryExecution(false, queryExecutionMethod == USE_CACHE)
+			return condition.isSupportingMemoryExecution(new IsSupportingMemoryExecutionParams(false, requiringCacheExecution, localCacheConfigs, schemaType))
 				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
 		} else if (schemaType.getCacheType().hasPermanentCache()) {
 			//Verify that schemaType is loaded
 			return (returnedMetadatasFilter.isOnlySummary() || returnedMetadatasFilter.isOnlyId()) &&
-				   condition.isSupportingMemoryExecution(true, queryExecutionMethod == USE_CACHE)
+				   condition.isSupportingMemoryExecution(new IsSupportingMemoryExecutionParams(true, requiringCacheExecution, localCacheConfigs, schemaType))
 				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
 		} else {
 			return false;

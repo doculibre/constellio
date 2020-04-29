@@ -59,8 +59,11 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 
 	@Override
 	public MenuBar get(RecordVO recordVO) {
-		String schemaTypeCode = recordVO.getSchema().getTypeCode();
-		if (Document.SCHEMA_TYPE.equals(schemaTypeCode) || Folder.SCHEMA_TYPE.equals(schemaTypeCode) || ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
+		String schemaTypeCode = recordVO == null ? null : recordVO.getSchema().getTypeCode();
+		if (recordVO != null &&
+			(Document.SCHEMA_TYPE.equals(schemaTypeCode)
+			 || Folder.SCHEMA_TYPE.equals(schemaTypeCode)
+			 || ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode))) {
 			RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions()
 					.forCollection(recordVO.getRecord().getCollection())
 					.forModule(ConstellioRMModule.ID);

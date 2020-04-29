@@ -110,7 +110,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		decommissioningList.setFoldersReportContent(folderContent);
 		decommissioningList.setApprovalDate(november4);
 		decommissioningList.setDescription("zeDescription");
-		decommissioningList.setApprovalRequest(records.getUsers().dakotaLIndienIn(zeCollection).getId());
+		decommissioningList.setApprovalRequester(records.getUsers().dakotaLIndienIn(zeCollection).getId());
 		decommissioningList.setApprovalUser(records.getUsers().dakotaLIndienIn(zeCollection));
 		decommissioningList.setDecommissioningListType(DecommissioningListType.FOLDERS_TO_CLOSE);
 		decommissioningList.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE);
@@ -129,7 +129,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		assertThat(decommissioningList.getApprovalDate()).isEqualTo(november4);
 		assertThat(decommissioningList.getDescription()).isEqualTo("zeDescription");
 		assertThat(decommissioningList.getTitle()).isEqualTo("Ze list");
-		assertThat(decommissioningList.getApprovalRequest()).isEqualTo(records.getUsers().dakotaLIndienIn(zeCollection).getId());
+		assertThat(decommissioningList.getApprovalRequester()).isEqualTo(records.getUsers().dakotaLIndienIn(zeCollection).getId());
 		assertThat(decommissioningList.getApprovalUser()).isEqualTo(records.getUsers().dakotaLIndienIn(zeCollection).getId());
 		assertThat(decommissioningList.getFolders()).isEqualTo(asList(aFolder.getId(), anotherFolder.getId()));
 		assertThat(decommissioningList.getFolderDetails())

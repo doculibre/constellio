@@ -18,12 +18,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
@@ -96,7 +97,7 @@ public class RecordsModificationBuilderAcceptTest extends ConstellioTest {
 		aRecordOfType5WithoutModifiedMetadata = savedRecordWithModifiedMetadatas("type5_default",
 				"aRecordOfType5WithoutModifiedMetadata");
 
-		records = Arrays.asList(aRecordOfType1WithModifiedMetadataM1, aRecordOfType1WithModifiedMetadataM2,
+		records = asList(aRecordOfType1WithModifiedMetadataM1, aRecordOfType1WithModifiedMetadataM2,
 				aRecordOfType1WithModifiedCustom1MetadataM3, aRecordOfType1WithModifiedCustom2MetadataM3,
 				aRecordOfType2WithModifiedMetadataM1AndM2, aRecordOfType2WithModifiedMetadataM3,
 				aRecordOfType3WithModifiedMetadataM1, aRecordOfType3WithoutModifiedMetadata,
@@ -110,26 +111,16 @@ public class RecordsModificationBuilderAcceptTest extends ConstellioTest {
 
 		List<RecordsModification> recordsModifications = builder.build(new Transaction(records), types);
 
-		assertThat(recordsModifications).hasSize(4);
-		assertThat(recordsModifications.get(0).getMetadataSchemaType()).isEqualTo(type1);
-		assertThat(recordsModifications.get(0).getModifiedMetadatas())
-				.containsOnly(type1M1, type1M2, type1Custom1M3, type1Custom2M4);
-		assertThat(recordsModifications.get(0).getRecords()).containsOnly(aRecordOfType1WithModifiedMetadataM1,
-				aRecordOfType1WithModifiedMetadataM2, aRecordOfType1WithModifiedCustom1MetadataM3,
-				aRecordOfType1WithModifiedCustom2MetadataM3);
+		assertThat(recordsModifications).extracting("metadataSchemaType", "modifiedMetadatas", "records").containsOnly(
+				tuple(type1, asList(type1M2, type1Custom2M4, type1M1, type1Custom1M3),
+						asList(aRecordOfType1WithModifiedMetadataM1, aRecordOfType1WithModifiedMetadataM2, aRecordOfType1WithModifiedCustom1MetadataM3,
+								aRecordOfType1WithModifiedCustom2MetadataM3)),
+				tuple(type2, asList(type2M2, type2M1, type2M3),
+						asList(aRecordOfType2WithModifiedMetadataM1AndM2, aRecordOfType2WithModifiedMetadataM3)),
+				tuple(type3, asList(type3M1), asList(aRecordOfType3WithModifiedMetadataM1)),
+				tuple(type4, asList(type4M1), asList(aRecordOfType4WithModifiedMetadataM1))
+		);
 
-		assertThat(recordsModifications.get(1).getMetadataSchemaType()).isEqualTo(type3);
-		assertThat(recordsModifications.get(1).getModifiedMetadatas()).containsOnly(type3M1);
-		assertThat(recordsModifications.get(1).getRecords()).containsOnly(aRecordOfType3WithModifiedMetadataM1);
-
-		assertThat(recordsModifications.get(2).getMetadataSchemaType()).isEqualTo(type2);
-		assertThat(recordsModifications.get(2).getModifiedMetadatas()).containsOnly(type2M1, type2M2, type2M3);
-		assertThat(recordsModifications.get(2).getRecords()).containsOnly(aRecordOfType2WithModifiedMetadataM1AndM2,
-				aRecordOfType2WithModifiedMetadataM3);
-
-		assertThat(recordsModifications.get(3).getMetadataSchemaType()).isEqualTo(type4);
-		assertThat(recordsModifications.get(3).getModifiedMetadatas()).containsOnly(type4M1);
-		assertThat(recordsModifications.get(3).getRecords()).containsOnly(aRecordOfType4WithModifiedMetadataM1);
 	}
 
 	private RecordImpl savedRecordWithModifiedMetadatas(String schema, String id, Metadata... metadatas) {
@@ -153,7 +144,7 @@ public class RecordsModificationBuilderAcceptTest extends ConstellioTest {
 		define(metadataSchemasManager).using(setup);
 		types = metadataSchemasManager.getSchemaTypes("zeCollection");
 
-		doReturn(Arrays.asList("type5", "type1", "type3", "type2", "type4", "type6")).when(
+		doReturn(asList("type5", "type1", "type3", "type2", "type4", "type6")).when(
 				types).getSchemaTypesSortedByDependency();
 
 		type1 = metadataSchemasManager.getSchemaTypes("zeCollection").getSchemaType("type1");

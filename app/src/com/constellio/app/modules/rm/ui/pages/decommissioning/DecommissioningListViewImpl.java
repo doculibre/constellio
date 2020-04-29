@@ -856,7 +856,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	private void deselectAllFolders(BaseTable foldersTable) {
 		Collection<?> itemIds = foldersTable.getItemIds();
 		for (Object itemId : itemIds) {
-			((FolderDetailVO) itemId).setSelected(true);
+			((FolderDetailVO) itemId).setSelected(false);
 		}
 
 		Container container = foldersTable.getContainerDataSource();

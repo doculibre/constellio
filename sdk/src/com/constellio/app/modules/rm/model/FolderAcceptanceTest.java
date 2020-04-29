@@ -21,6 +21,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.data.utils.Builder;
+import com.constellio.data.utils.ThrowingRunnable;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
@@ -38,6 +39,7 @@ import com.constellio.model.extensions.events.records.RecordInCreationBeforeSave
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
@@ -176,24 +178,41 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	}
 
+
 	@Test
 	//TODO Francis : Failing test
 	public void whenSearchingUsingCacheAndLegacyIdThenOK() throws Exception {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 
-		recordServices.add(rm.newFolder().setAdministrativeUnitEntered(records.unitId_10a).setTitle("iamZeFolder")
+		Folder folder = rm.newFolder().setAdministrativeUnitEntered(records.unitId_10a).setTitle("iamZeFolder")
 				.setCategoryEntered(records.categoryId_X110).setRetentionRuleEntered(records.ruleId_1)
-				.setCopyStatusEntered(PRINCIPAL).setOpenDate(LocalDate.now()).setLegacyId("iamZeFolder"));
+				.setCopyStatusEntered(PRINCIPAL).setOpenDate(LocalDate.now());
+		folder.setLegacyId("iamZeFolder");
+		recordServices.add(folder);
 
-		LogicalSearchCondition condition = from(rm.folderSchemaType())
-				.where(rm.folder.category()).isEqualTo(records.categoryId_X110)
-				.andWhere(Schemas.LEGACY_ID).isNotNull();
+		ThrowingRunnable validation = () -> {
+			asList(rm.folder.legacyId(), Schemas.LEGACY_ID).forEach((metadata) -> {
+				LogicalSearchCondition condition = from(rm.folderSchemaType())
+						.where(rm.folder.category()).isEqualTo(records.categoryId_X110)
+						.andWhere(metadata).isNotNull();
+				assertThat(recordServices.realtimeGetRecordSummaryById(folder.getId()).<String>get(metadata)).isNull();
+				assertThat(rm.searchFolders(new LogicalSearchQuery(condition))).extracting("title").containsOnly("iamZeFolder");
+				assertThat(rm.wrapFolder(searchServices.searchSingleResult(condition))).isNotNull();
+			});
+		};
 
-		List<Folder> parentFolders = rm.wrapFolders(searchServices.search(new LogicalSearchQuery(condition)));
-		assertThat(parentFolders).extracting("title").containsOnly("iamZeFolder");
+		assertThat(recordServices.getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(rm.folder.legacyId())).isTrue();
+		validation.run();
 
-		assertThat(rm.wrapFolder(searchServices.searchSingleResult(condition))).isNotNull();
+		givenConfig(ConstellioEIMConfigs.LEGACY_IDENTIFIER_INDEXED_IN_MEMORY, true);
+		getModelLayerFactory().getRecordsCaches().rebuild(rm.folder.schemaType());
+
+		assertThat(recordServices.getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(rm.folder.legacyId())).isFalse();
+		validation.run();
 	}
+
 
 	@Test
 	public void givenEnforcedWhenCreateFolderWithIncompatibleRuleAndCategoryThenValidationException()

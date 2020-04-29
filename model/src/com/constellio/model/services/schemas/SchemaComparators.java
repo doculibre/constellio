@@ -39,8 +39,8 @@ public class SchemaComparators {
 				SchemaUtils schemaUtils = new SchemaUtils();
 				String schemaType1 = schemaUtils.getSchemaTypeCode(r1.getSchemaCode());
 				String schemaType2 = schemaUtils.getSchemaTypeCode(r2.getSchemaCode());
-				Integer index1 = schemaTypes.getSchemaTypesSortedByDependency().indexOf(schemaType1);
-				Integer index2 = schemaTypes.getSchemaTypesSortedByDependency().indexOf(schemaType2);
+				Integer index1 = schemaTypes.getSchemaTypesCodesSortedByDependency().indexOf(schemaType1);
+				Integer index2 = schemaTypes.getSchemaTypesCodesSortedByDependency().indexOf(schemaType2);
 				return index1.compareTo(index2);
 			}
 		};

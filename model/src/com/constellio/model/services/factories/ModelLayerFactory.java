@@ -191,6 +191,8 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	void markForReindexing();
 
+	void markLocalCachesAsRequiringRebuild();
+
 	default ConfigProvider newConfigProvider() {
 		return new ConfigProvider() {
 			@Override

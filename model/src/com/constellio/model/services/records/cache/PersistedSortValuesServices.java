@@ -77,7 +77,7 @@ public class PersistedSortValuesServices {
 
 	public SortValueList retreiveAndRewriteSortValuesFile() {
 		List<SortValue> sortValues = this.recordsIdSortedByTheirDefaultSort();
-		SortValueList sortValueListFromSolr = new SortValueList(sortValues, true, LocalDateTime.now());
+		SortValueList sortValueListFromSolr = new SortValueList(sortValues, true, TimeProvider.getLocalDateTime());
 		File tempSortValuesFiles = fileService.newTemporaryFile(TEMP_SORT_VALUES_FILE_RESOURCE_NAME);
 		try {
 

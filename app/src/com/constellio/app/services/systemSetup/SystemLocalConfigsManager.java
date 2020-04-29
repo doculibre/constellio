@@ -44,10 +44,6 @@ public class SystemLocalConfigsManager implements StatefulService {
 		setProperty(MARKED_FOR_REINDEXING, value ? "true" : "false");
 	}
 
-	public boolean isCacheRebuildRequired() {
-		return "true".equals(properties.get(LOCAL_CACHE_VERSION));
-	}
-
 	public boolean isMarkedForCacheRebuild() {
 		return "true".equals(properties.get(MARKED_FOR_CACHE_REBUILD));
 	}
@@ -56,7 +52,7 @@ public class SystemLocalConfigsManager implements StatefulService {
 		setProperty(LOCAL_CACHE_VERSION, version);
 	}
 
-	public boolean isLocalCacheRequiringRebuild() {
+	public boolean isCacheRebuildRequired() {
 		return systemGlobalConfigsManager.getExpectedLocalCacheVersion() != null
 			   && !systemGlobalConfigsManager.getExpectedLocalCacheVersion().equals(properties.get(LOCAL_CACHE_VERSION));
 	}

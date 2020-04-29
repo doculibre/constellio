@@ -269,7 +269,8 @@ public class RecordsImportValidator {
 				String uniqueValue = (String) importData.getFields().get(uniqueMetadata);
 
 				if (uniqueValue != null && !resolverCache.isNewUniqueValue(type.getCode(), uniqueMetadata, uniqueValue)) {
-					Metadata metadata = type.getSchema(importData.getSchema()).getMetadata(uniqueMetadata);
+					Metadata metadata = (StringUtils.isNotBlank(importData.getSchema()) ?
+										 type.getSchema(importData.getSchema()) : type.getDefaultSchema()).getMetadata(uniqueMetadata);
 					Map<String, Object> parameters = toMetadataParameters(metadata);
 					parameters.put("value", uniqueValue);
 					errors.add(RecordsImportServices.class, METADATA_NOT_UNIQUE, parameters);

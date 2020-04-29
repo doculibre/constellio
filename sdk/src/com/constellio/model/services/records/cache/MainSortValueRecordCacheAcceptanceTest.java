@@ -160,7 +160,7 @@ public class MainSortValueRecordCacheAcceptanceTest extends ConstellioTest {
 			assertThat(recordServices.getDocumentById(id).getRecordDTO().getMainSortValue()).isEqualTo(MAIN_SORT_UNDEFINED);
 		}
 
-		recordsCaches.updateRecordsMainSortValue();
+		recordsCaches.updateRecordsMainSortValue(true);
 		queryCounter.reset();
 
 		assertThat(recordServices.realtimeGetRecordSummaryById(id1).getRecordDTO().getMainSortValue())
@@ -184,11 +184,11 @@ public class MainSortValueRecordCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordServices.realtimeGetRecordSummaryById(id4).getRecordDTO().getMainSortValue()).isEqualTo(MAIN_SORT_UNDEFINED);
 
 		//Update is done on the list of main sort values stored in vault
-		recordsCaches.updateRecordsMainSortValue();
+		recordsCaches.updateRecordsMainSortValue(false);
 		assertThat(recordServices.realtimeGetRecordSummaryById(id4).getRecordDTO().getMainSortValue()).isEqualTo(MAIN_SORT_UNDEFINED);
 
 		new PersistedSortValuesServices(getModelLayerFactory()).retreiveAndRewriteSortValuesFile();
-		recordsCaches.updateRecordsMainSortValue();
+		recordsCaches.updateRecordsMainSortValue(true);
 		assertThat(recordServices.realtimeGetRecordSummaryById(id4).getRecordDTO().getMainSortValue()).isNotEqualTo(MAIN_SORT_UNDEFINED);
 	}
 
@@ -211,9 +211,10 @@ public class MainSortValueRecordCacheAcceptanceTest extends ConstellioTest {
 		}
 
 		recordServices.execute(tx);
-		recordsCaches.updateRecordsMainSortValue();
+		recordsCaches.updateRecordsMainSortValue(true);
 		queryCounter.reset();
 
+		getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(true);
 		System.out.println("querying...");
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(zeCollectionSchemaType1.type()).where(Schemas.TITLE).isNotNull());
@@ -226,6 +227,7 @@ public class MainSortValueRecordCacheAcceptanceTest extends ConstellioTest {
 		assertThat(results).isEqualTo(asList(expectedIds));
 		System.out.println("query took " + (end - start) + "ms");
 
+		getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(false);
 		//In this case, query execution time is an accurate indicator that the sort value was used. Otherwise, it would take ~25 sec instead of ~250ms
 		assertThat(end - start).isLessThan(1000);
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
@@ -257,7 +259,7 @@ public class MainSortValueRecordCacheAcceptanceTest extends ConstellioTest {
 		}
 
 		recordServices.execute(tx);
-		recordsCaches.updateRecordsMainSortValue();
+		recordsCaches.updateRecordsMainSortValue(true);
 		queryCounter.reset();
 
 		System.out.println("querying...");
@@ -305,7 +307,7 @@ public class MainSortValueRecordCacheAcceptanceTest extends ConstellioTest {
 		}
 
 		recordServices.execute(tx);
-		recordsCaches.updateRecordsMainSortValue();
+		recordsCaches.updateRecordsMainSortValue(true);
 		queryCounter.reset();
 
 		System.out.println("querying...");

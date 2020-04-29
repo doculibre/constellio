@@ -9,6 +9,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
@@ -152,12 +153,11 @@ public class BorrowWindowButton extends WindowButton {
 				getWindow().close();
 			}
 		};
-		cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		cancelButton.addStyleName(BaseForm.CANCEL_BUTTON);
 
 		HorizontalLayout horizontalLayout = new HorizontalLayout();
 		horizontalLayout.setSpacing(true);
-		horizontalLayout.addComponents(borrowButton, cancelButton);
-
+		horizontalLayout.addComponents(cancelButton, borrowButton);
 		VerticalLayout verticalLayout = new VerticalLayout();
 		verticalLayout
 				.addComponents(borrowDatefield, borrowingTypeField, lookupUser, previewReturnDatefield, returnDatefield,

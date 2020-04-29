@@ -1216,7 +1216,12 @@ public class MetadataBuilder {
 	}
 
 	public boolean isRequiringCacheReload() {
-		return originalMetadata != null && essentialInSummary != originalMetadata.isEssentialInSummary();
+		boolean requiringCacheReload = false;
+		if (originalMetadata != null) {
+			requiringCacheReload = (essentialInSummary && !originalMetadata.isEssentialInSummary()) ||
+								   (availableInSummary && !originalMetadata.isAvailableInSummary());
+		}
+		return requiringCacheReload;
 	}
 
 

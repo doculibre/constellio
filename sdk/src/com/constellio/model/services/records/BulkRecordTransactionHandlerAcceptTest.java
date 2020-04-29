@@ -66,6 +66,14 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 		when(anotherReferencedRecord.getCollection()).thenReturn(zeCollection);
 		when(aThirdReferencedRecord.getCollection()).thenReturn(zeCollection);
 
+		when(aRecord.get()).thenReturn(aRecord);
+		when(aCachedRecord.get()).thenReturn(aCachedRecord);
+		when(theRecordThrowingAnException.get()).thenReturn(theRecordThrowingAnException);
+		when(theNextRecord.get()).thenReturn(theNextRecord);
+		when(aReferencedRecord.get()).thenReturn(aReferencedRecord);
+		when(anotherReferencedRecord.get()).thenReturn(anotherReferencedRecord);
+		when(aThirdReferencedRecord.get()).thenReturn(aThirdReferencedRecord);
+
 		when(recordServices.getRecordsCaches()).thenReturn(recordsCaches);
 		when(recordsCaches.getCache(zeCollection)).thenReturn(zeCollectionRecordsCache);
 		when(zeCollectionRecordsCache.isConfigured("zeSchema")).thenReturn(false);
@@ -132,53 +140,6 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 
 	}
 
-	@Test
-	public void givenARecordIsCachedThenFlushingNow()
-			throws Exception {
-
-		ArgumentCaptor<Transaction> transactionArgumentCaptor = ArgumentCaptor.forClass(Transaction.class);
-
-		doAnswer(workUntilExceptionTriggered()).doAnswer(triggerException(new RecordServicesRuntimeException("")))
-				.when(recordServices).execute(any(Transaction.class));
-
-		handler = new BulkRecordTransactionHandler(recordServices, "BulkRecordTransactionHandlerAcceptTest-test", options);
-
-		handler.append(asList(aRecord), asList(aReferencedRecord));
-		handler.append(asList(aCachedRecord), asList(aReferencedRecord));
-
-		triggerAnExceptionInAThread();
-		Thread.sleep(100);
-
-		try {
-			handler.closeAndJoin();
-			fail("Exception expected");
-		} catch (BulkRecordTransactionHandlerRuntimeException_ExceptionExecutingTransaction e) {
-			//OK
-		}
-
-		verify(recordServices, times(2)).execute(transactionArgumentCaptor.capture());
-
-		Transaction transactionWithARecord = null;
-		Transaction transactionWithACachedRecord = null;
-
-		for (Transaction capturedTransaction : transactionArgumentCaptor.getAllValues()) {
-			if (capturedTransaction.getRecords().contains(aRecord)) {
-				transactionWithARecord = capturedTransaction;
-			} else if (capturedTransaction.getRecords().contains(aCachedRecord)) {
-				transactionWithACachedRecord = capturedTransaction;
-			}
-		}
-
-		assertThat(transactionWithARecord.getRecords()).containsOnly(aRecord);
-		assertThat(transactionWithARecord.getReferencedRecords()).hasSize(1).containsValue(aReferencedRecord);
-		assertThat(transactionWithARecord.getRecordUpdateOptions().getRecordsFlushing())
-				.isEqualTo(RecordsFlushing.WITHIN_MINUTES(5));
-
-		assertThat(transactionWithACachedRecord.getRecords()).containsOnly(aCachedRecord);
-		assertThat(transactionWithACachedRecord.getReferencedRecords()).hasSize(1).containsValue(aReferencedRecord);
-		assertThat(transactionWithACachedRecord.getRecordUpdateOptions().getRecordsFlushing()).isEqualTo(RecordsFlushing.NOW);
-
-	}
 
 	@Test
 	public void givenARecordServiceRuntimeExceptionOccurWhenResetExceptionThenHandlerRecovers()

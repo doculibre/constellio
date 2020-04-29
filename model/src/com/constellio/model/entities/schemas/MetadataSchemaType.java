@@ -33,6 +33,7 @@ public class MetadataSchemaType implements Serializable {
 	public static final String DEFAULT = "default";
 
 	private final short id;
+	private final int uniqueTenantId;
 
 	private final String code;
 
@@ -84,6 +85,7 @@ public class MetadataSchemaType implements Serializable {
 							  boolean readOnlyLocked, String dataStore) {
 		super();
 		this.id = id;
+		this.uniqueTenantId = (collectionInfo.getCollectionIndex() * 1_000_000) + id;
 		this.code = code;
 		this.smallCode = smallCode;
 		this.labels = Collections.unmodifiableMap(labels);
@@ -237,6 +239,10 @@ public class MetadataSchemaType implements Serializable {
 
 	public short getId() {
 		return id;
+	}
+
+	public int getUniqueTenantId() {
+		return uniqueTenantId;
 	}
 
 	public String getCode() {

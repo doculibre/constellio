@@ -331,7 +331,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public Record getTemporarySearchRecord() {
 		try {
-			return modelLayerFactory.getRecordsCaches().getCache(collection).get(searchID);
+			return recordServices().getDocumentById(searchID);
 		} catch (Exception e) {
 			//TODO exception
 			e.printStackTrace();

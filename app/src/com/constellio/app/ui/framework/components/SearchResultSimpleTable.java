@@ -36,6 +36,8 @@ import com.vaadin.ui.themes.ValoTheme;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -63,7 +65,13 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		this.recordVOContainer = container;
 		this.presenter = presenter;
 
-		adaptee = new RecordVOTable(container);
+		adaptee = new RecordVOTable(container) {
+			@Override
+			public void sort(Object[] propertyId, boolean[] ascending) throws UnsupportedOperationException {
+				super.sort(propertyId, ascending);
+				deselectAll();
+			}
+		};
 		adaptee.setWidth("100%");
 		adaptee.addStyleName(SEARCH_RESULT_TABLE_STYLE);
 		adaptee.setColumnCollapsingAllowed(true);
@@ -147,6 +155,12 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 			//			RecordVO record = getRecordVO((int) itemId);
 			result.add((String) itemId);
 		}
+		Collections.sort(result, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				return 0;
+			}
+		});
 		return result;
 	}
 

@@ -48,7 +48,6 @@ public class LogicalOrMetadaAggregationHandlerAcceptanceTest extends ConstellioT
 		final String anotherSchemaTypeCode = anotherSchema.typeCode();
 		final String thirdSchemaTypeCode = thirdSchema.typeCode();
 
-		prepareSystem(withZeCollection().withConstellioRMModule());
 		givenBackgroundThreadsEnabled();
 		defineSchemasManager().using(schemas.with(new MetadataSchemaTypesConfigurator() {
 			@Override

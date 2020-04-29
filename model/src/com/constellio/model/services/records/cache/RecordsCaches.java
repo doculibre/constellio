@@ -28,6 +28,10 @@ public interface RecordsCaches {
 		return getRecordSummary(id, null, null);
 	}
 
+	default Record getRecordSummary(RecordId id) {
+		return getRecordSummary(id, null, null);
+	}
+
 	default Record getRecordSummary(String id, String optionnalCollection) {
 		return getRecordSummary(id, optionnalCollection, null);
 	}
@@ -101,6 +105,14 @@ public interface RecordsCaches {
 
 	boolean areSummaryCachesInitialized();
 
+	default void rebuild(MetadataSchemaType schemaType) {
+		reloadSchemaType(schemaType, true);
+	}
+
+	void markLocalCacheConfigsAsSynced(MetadataSchemaType schemaType);
+
+	void reloadSchemaType(MetadataSchemaType schemaType, boolean rebuild);
+
 	default void reloadAllSchemaTypes(String collection) {
 		throw new UnsupportedOperationException("Unsupported");
 	}
@@ -150,4 +162,7 @@ public interface RecordsCaches {
 
 	}
 
+	LocalCacheConfigs getLocalCacheConfigs();
+
+	void rebuildCacheForCollection(String collection);
 }
