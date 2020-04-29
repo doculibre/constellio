@@ -85,7 +85,9 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 			"ddvCapsuleLanguage_default_description", "ddvCapsuleLanguage_default_abbreviation",
 			"ddvCapsuleLanguage_default_title",
 			"ddvUserFunction_default_description", "ddvUserFunction_default_abbreviation",
-			"ddvUserFunction_default_title"
+			"ddvUserFunction_default_title",
+			"externalLinkType_default_title", "externalLinkType_default_description",
+			"externalLinkType_default_abbreviation"
 
 	};
 
