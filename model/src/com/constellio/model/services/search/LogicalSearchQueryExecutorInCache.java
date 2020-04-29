@@ -333,7 +333,7 @@ public class LogicalSearchQueryExecutorInCache {
 						.map(value -> new MetadataValueIndexCacheIdsStreamer(schemaType, metadata, value,
 								recordsCaches.getMetadataIndexCacheDataStore()))
 						.collect(Collectors.toList());
-				if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()) {
+				if (schemaType.getCacheType().isSummaryCache()) {
 					stream = new UnionSortedIdsStreamer(streamers).stream()
 							.map(recordId -> recordsCaches.getRecordSummary(recordId));
 				} else {
@@ -342,7 +342,7 @@ public class LogicalSearchQueryExecutorInCache {
 				}
 			} else {
 				Object value = ((IsEqualCriterion) requiredFieldEqualCondition.getValueCondition()).getMemoryQueryValue();
-				if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()) {
+				if (schemaType.getCacheType().isSummaryCache()) {
 					stream = recordsCaches.getRecordsSummaryByIndexedMetadata(schemaType, metadata, (String) value);
 				} else {
 					stream = recordsCaches.getRecordsByIndexedMetadata(schemaType, metadata, (String) value);
