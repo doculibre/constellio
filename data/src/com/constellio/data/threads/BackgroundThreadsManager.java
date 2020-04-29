@@ -5,7 +5,6 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_ManagerMustBeStartedBeforeConfiguringThreads;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_RepeatInfosNotConfigured;
-import org.joda.time.Duration;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -65,7 +64,7 @@ public class BackgroundThreadsManager implements StatefulService {
 			throw new BackgroundThreadsManagerRuntimeException_ManagerMustBeStartedBeforeConfiguringThreads();
 		}
 		if (backgroundThreadConfiguration.getExecuteEvery() == null) {
-			backgroundThreadConfiguration.executedEvery(Duration.standardSeconds(5));
+			throw new BackgroundThreadsManagerRuntimeException_RepeatInfosNotConfigured();
 		}
 
 		long delayBeforeTheFirstCommandExecution = 0;

@@ -334,6 +334,9 @@ public class LogicalSearchQueryExecutorInCache {
 								recordsCaches.getMetadataIndexCacheDataStore()))
 						.collect(Collectors.toList());
 				if (schemaType.getCacheType().isSummaryCache()) {
+					if (query.getReturnedMetadatas() == null || !query.getReturnedMetadatas().isOnlySummary()) {
+						throw new IllegalArgumentException("Query is not executable");
+					}
 					stream = new UnionSortedIdsStreamer(streamers).stream()
 							.map(recordId -> recordsCaches.getRecordSummary(recordId));
 				} else {

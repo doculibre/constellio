@@ -24,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -50,7 +51,8 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 	@Mock SolrServerFactory solrServerFactory;
 	@Mock SolrInputDocument doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8, doc9, doc10, doc11;
 	@Mock List<String> deletedDocs1, deletedDocs2, deletedDocs3, deleteQueriesStrings;
-	@Mock List<SolrInputDocument> addedDocs, modifiedDocs;
+	List<SolrInputDocument> addedDocs = new ArrayList<>();
+	List<SolrInputDocument> modifiedDocs = new ArrayList<>();
 	@Mock List<SolrParams> deleteQueries;
 
 	BigVaultServer bigVaultServer;
