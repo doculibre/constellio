@@ -1,10 +1,14 @@
 package com.constellio.app.services.schemas.bulkImport.data;
 
+import com.constellio.data.utils.XmlUtils;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static org.apache.commons.lang3.StringUtils.substringAfter;
 
@@ -74,4 +78,19 @@ public class ImportData {
 		return values == null ? new ArrayList<V>() : values;
 	}
 
+	public void unescapeFieldNames() {
+		Iterator<Entry<String, Object>> entryIterator = fields.entrySet().iterator();
+
+		Map<String, Object> newEntries = new HashMap<>();
+		while (entryIterator.hasNext()) {
+			Entry<String, Object> entry = entryIterator.next();
+			String key = entry.getKey();
+			String decodedKey = XmlUtils.unescapeAttributeName(key);
+			if (!key.equals(decodedKey)) {
+				newEntries.put(decodedKey, entry.getValue());
+				entryIterator.remove();
+			}
+		}
+		fields.putAll(newEntries);
+	}
 }

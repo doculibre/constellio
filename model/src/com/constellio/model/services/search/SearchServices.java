@@ -1371,7 +1371,7 @@ public class SearchServices {
 		//			params.set(CommonParams.FL, "id");
 		//
 		//		} else
-		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().getAcceptedFields() != null && !query.getReturnedMetadatas().getAcceptedFields().isEmpty()) {
+		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().getAcceptedFields() != null) {
 			List<String> fields = new ArrayList<>();
 			fields.add("id");
 			fields.add("schema_s");

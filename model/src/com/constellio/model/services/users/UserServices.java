@@ -928,7 +928,10 @@ public class UserServices {
 		List<User> usersInCollection = new ArrayList<>();
 		for (UserCredential userCredential : getAllUserCredentials()) {
 			if (userCredential.getCollections().contains(collection)) {
-				usersInCollection.add(getUserInCollection(userCredential.getUsername(), collection));
+				User user = getUserInCollection(userCredential.getUsername(), collection);
+				if (user != null) {
+					usersInCollection.add(getUserInCollection(userCredential.getUsername(), collection));
+				}
 			}
 		}
 		return usersInCollection;

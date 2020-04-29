@@ -33,6 +33,7 @@ import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -1929,24 +1930,63 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenNonEssentialStatusModifiedWhenModifyingSchemaThenIsNotMarkedForCacheRebuild() throws Exception {
+
 		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
 		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
-		defineSchemasManager().using(defaultSchema.withAStringMetadata());
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsNotAvailableInSummary)
+				.with((c) -> c.getSchemaType("zeSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE)));
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isTrue();
+
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getMetadata(zeSchema.stringMetadata().getCode()).setMaxLength(20);
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setSortable(true);
 			}
 		});
 		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isTrue();
 	}
 
 	@Test
-	public void givenStringMetadataWhenModifyingAvailableInSummaryStatusThenSchemaMarkedForCacheRebuild()
+	public void givenStringMetadataOfSchemaTypeWithoutRecordsWhenModifyingAvailableInSummaryStatusThenCacheReconfiguredAndNotMarkedForRebuild()
 			throws Exception {
+
+
 		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
 		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
-		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsNotAvailableInSummary));
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsNotAvailableInSummary)
+				.with((c) -> c.getSchemaType("zeSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE)));
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setAvailableInSummary(true);
+			}
+		});
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isFalse();
+	}
+
+	@Test
+	public void givenStringMetadataOfSchemaTypeWithRecordsWhenModifyingAvailableInSummaryStatusThenSchemaMarkedForCacheRebuild()
+			throws Exception {
+
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsNotAvailableInSummary)
+				.with((c) -> c.getSchemaType("zeSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE)));
+		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
+		assertThat(zeSchema.stringMetadata().isStoredInSummaryCache()).isFalse();
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isTrue();
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		recordServices.add(recordServices.newRecordWithSchema(zeSchema.instance()));
+
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
@@ -1954,6 +1994,57 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			}
 		});
 		assertThat(localConfigsManager.isCacheRebuildRequired()).isTrue();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isTrue();
+	}
+
+
+	@Test
+	public void givenStringMetadataOfSchemaTypeWithoutRecordsWhenModifyingEssentialInSummaryThenCacheReconfiguredAndNotMarkedForRebuild()
+			throws Exception {
+
+
+		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsNotAvailableInSummary)
+				.with((c) -> c.getSchemaType("zeSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE)));
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setEssentialInSummary(true);
+			}
+		});
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isFalse();
+	}
+
+	@Test
+	public void givenStringMetadataOfSchemaTypeWithRecordsWhenModifyingEssentialInSummaryStatusThenSchemaMarkedForCacheRebuild()
+			throws Exception {
+
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsNotAvailableInSummary)
+				.with((c) -> c.getSchemaType("zeSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE)));
+		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
+		assertThat(zeSchema.stringMetadata().isStoredInSummaryCache()).isFalse();
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isTrue();
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		recordServices.add(recordServices.newRecordWithSchema(zeSchema.instance()));
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setEssentialInSummary(true);
+			}
+		});
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isTrue();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isTrue();
 	}
 
 

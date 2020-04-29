@@ -98,7 +98,7 @@ subprojects {
         compile 'com.sun.mail:javax.mail:1.6.2'
         compile 'com.microsoft.azure:adal4j:1.6.3'
         compile 'com.nimbusds:oauth2-oidc-sdk:4.5'
-        compile "com.microsoft.graph:microsoft-graph:1.5.0"
+        compile 'com.microsoft.graph:microsoft-graph-core:1.0.0'
         compile group: 'com.github.bbottema', name: 'emailaddress-rfc2822', version: '1.1.2'
         compile group: 'net.markenwerk', name: 'utils-mail-dkim', version: '1.1.10'
         compile group: 'org.mapdb', name: 'mapdb', version: '3.0.7'
@@ -107,7 +107,7 @@ subprojects {
         compile 'com.ithit.webdav:webdav-server:4.2.2812'
         compile 'com.ithit.webdav.integration:servlet-integration:4.2.2812'
         compile 'de.jollyday:jollyday:0.5.10'
-        
+        compile "msgraph-sdk-java:msgraph-sdk-java"
         
         testCompile 'nl.jqno.equalsverifier:equalsverifier:1.4.1'
     }

@@ -2,7 +2,6 @@ package com.constellio.model.services.search.query.logical.condition;
 
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchConditionRuntimeException;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
@@ -13,6 +12,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_PARSING;
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_PREVIEW_CONVERSION;
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
@@ -206,30 +206,42 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 	}
 
 	@Override
-	public boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache, boolean requiringExecutionMethod) {
+	public boolean isSupportingMemoryExecution(IsSupportingMemoryExecutionParams params) {
 
 		if (dataStoreFields == null) {
 			return true;
 		}
 
-		if (queryingTypesInSummaryCache) {
+		if (params.isQueryingTypesInSummaryCache()) {
 			for (int i = 0; i < dataStoreFields.size(); i++) {
 				DataStoreField queriedField = dataStoreFields.get(i);
 				Metadata metadata = (Metadata) queriedField;
-				if (!isSummary(metadata) && !metadata.isSameLocalCodeThanAny(MARKED_FOR_REINDEXING, MARKED_FOR_PREVIEW_CONVERSION, MARKED_FOR_PARSING) && !metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
-					if (requiringExecutionMethod) {
+				if (!isSummary(metadata)
+					&& !metadata.isSameLocalCodeThanAny(MARKED_FOR_REINDEXING, MARKED_FOR_PREVIEW_CONVERSION, MARKED_FOR_PARSING, IDENTIFIER)) {
+
+					if (params.isRequiringExecutionMethod()) {
 						throw new IllegalArgumentException("Query is using a metadata which is not supported with execution in cache : " + metadata.getCode());
 					} else {
 						return false;
 					}
 				}
 
+				//The metadata is configured to support this search condition, but is it fully available in cache?
+				//Since a cache rebuild is required for this, we don't throw exception
+
+				if (metadata.getSchema() == null) {
+					metadata = params.getSchemaType().getDefaultSchema().getMetadata(metadata.getLocalCode());
+				}
+
+				if (params.getLocalCacheConfigs().excludedDuringLastCacheRebuild(metadata)) {
+					return false;
+				}
 			}
 		}
 
 		boolean valueConditionSupportingExecution = valueCondition == null || valueCondition.isSupportingMemoryExecution();
 		if (!valueConditionSupportingExecution) {
-			if (requiringExecutionMethod) {
+			if (params.isRequiringExecutionMethod()) {
 				throw new IllegalArgumentException("Query is using a value condition which is not supported with execution in cache : " + valueCondition.getClass().getName());
 			} else {
 				return false;

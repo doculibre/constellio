@@ -1,10 +1,10 @@
 package com.constellio.model.services.records.cache.dataStore;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -57,16 +57,23 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	private File filesystemCacheFile;
 	private File rebootMemoryCacheFile;
+	private File localCacheConfigs;
 
 	private boolean busy = false;
 
-	public FileSystemRecordsValuesCacheDataStore(File filesystemCacheFile, File rebootMemoryCacheFile) {
+	public FileSystemRecordsValuesCacheDataStore(File filesystemCacheFile, File rebootMemoryCacheFile,
+												 File localCacheConfigs) {
 		this.filesystemCacheFile = filesystemCacheFile;
 		this.rebootMemoryCacheFile = rebootMemoryCacheFile;
+		this.localCacheConfigs = localCacheConfigs;
 
 		//Possibly enable mmap for faster loading
 		open(Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled());
 		onDiskFileSystemCacheStringKeyMap.clear();
+	}
+
+	public File getLocalCacheConfigs() {
+		return localCacheConfigs;
 	}
 
 	private void open(boolean useMmap) {

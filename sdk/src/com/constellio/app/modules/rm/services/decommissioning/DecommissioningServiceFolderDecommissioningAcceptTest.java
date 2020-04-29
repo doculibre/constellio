@@ -41,6 +41,8 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	@Before
 	public void setUp()
 			throws Exception {
+
+		givenBackgroundThreadsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
@@ -585,6 +587,8 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		givenTimeIs(processingDate);
 
 		service.decommission(approved(records.getList03()), processingUser);
+		waitForBatchProcess();
+
 		verifyProcessed(processingDate, processingUser, records.getList03());
 		verifyFoldersClosed(processingDate, records.getFolder_A01(), records.getFolder_A02(),
 				records.getFolder_A03());
@@ -597,6 +601,8 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		givenTimeIs(processingDate);
 
 		service.decommission(approved(records.getList16()), processingUser);
+		waitForBatchProcess();
+
 		verifyProcessed(processingDate, processingUser, records.getList16());
 		verifyFoldersTransferred(processingDate, records.containerId_bac14,
 				records.getFolder_A22(), records.getFolder_A23(), records.getFolder_A24());
@@ -608,6 +614,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		getConfigurationManager().setValue(RMConfigs.MINOR_VERSIONS_PURGED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(packed(records.getList05(), records.containerId_bac15)), records.getChuckNorris());
+		waitForBatchProcess();
 		assertThat(records.getDocumentWithContent_A19().getContent().getHistoryVersions()).isEmpty();
 	}
 
@@ -618,6 +625,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(packed(records.getList05(), records.containerId_bac15)), records.getChuckNorris());
+		waitForBatchProcess();
 		assertThat(records.getDocumentWithContent_A19().getContent().getCurrentVersion().getMimetype())
 				.isEqualTo("application/pdf");
 	}
@@ -629,6 +637,8 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		givenTimeIs(processingDate);
 
 		service.decommission(approved(records.getList17()), processingUser);
+		waitForBatchProcess();
+
 		verifyProcessed(processingDate, processingUser, records.getList17());
 		verifyFoldersDeposited(processingDate, records.containerId_bac11,
 				records.getFolder_A49(), records.getFolder_A50());
@@ -642,6 +652,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		getConfigurationManager().setValue(RMConfigs.MINOR_VERSIONS_PURGED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(packed(records.getList20(), records.containerId_bac16)), records.getChuckNorris());
+		waitForBatchProcess();
 		assertThat(records.getDocumentWithContent_A19().getContent().getHistoryVersions()).isEmpty();
 	}
 
@@ -650,6 +661,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		getConfigurationManager().setValue(RMConfigs.MINOR_VERSIONS_PURGED_ON, DecommissioningPhase.ON_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(records.getList17()), records.getChuckNorris());
+		waitForBatchProcess();
 		assertThat(records.getDocumentWithContent_A49().getContent().getHistoryVersions()).isEmpty();
 	}
 
@@ -660,6 +672,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(packed(records.getList20(), records.containerId_bac16)), records.getChuckNorris());
+		waitForBatchProcess();
 		assertThat(records.getDocumentWithContent_A19().getContent().getCurrentVersion().getMimetype())
 				.isEqualTo("application/pdf");
 	}
@@ -671,6 +684,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(records.getList17()), records.getChuckNorris());
+		waitForBatchProcess();
 		assertThat(records.getDocumentWithContent_A49().getContent().getCurrentVersion().getMimetype())
 				.isEqualTo("application/pdf");
 	}
@@ -682,6 +696,8 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		givenTimeIs(processingDate);
 
 		service.decommission(approved(records.getList02()), processingUser);
+		waitForBatchProcess();
+
 		verifyProcessed(processingDate, processingUser, records.getList02());
 		verifyFoldersDestroyed(processingDate,
 				records.getFolder_A54(), records.getFolder_A55(), records.getFolder_A56());
@@ -692,6 +708,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	public void givenListToDestroyThenDocumentsContentsAreDestroyed() throws Exception {
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(records.getList21()), records.getChuckNorris());
+		waitForBatchProcess();
 		assertThat(records.getDocumentWithContent_A19().getContent()).isNull();
 	}
 
@@ -700,6 +717,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		getConfigurationManager().setValue(RMConfigs.DELETE_DOCUMENT_RECORDS_WITH_DESTRUCTION, true);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(records.getList21()), records.getChuckNorris());
+		waitForBatchProcess();
 
 		assertThatRecordDoesNotExist(records.document_A19);
 
@@ -715,6 +733,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		getConfigurationManager().setValue(RMConfigs.DELETE_FOLDER_RECORDS_WITH_DESTRUCTION, true);
 
 		service.decommission(approved(records.getList02()), records.getChuckNorris());
+		waitForBatchProcess();
 		verifyProcessed(processingDate, processingUser, records.getList02());
 
 		assertThatRecordDoesNotExist(records.folder_A54);
@@ -730,6 +749,8 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		givenTimeIs(processingDate);
 
 		service.decommission(approved(records.getList18()), processingUser);
+		waitForBatchProcess();
+
 		verifyProcessed(processingDate, processingUser, records.getList18());
 		verifyFoldersDeposited(processingDate, records.containerId_bac08, records.getFolder_B30());
 		verifyFoldersDestroyed(processingDate, records.getFolder_B33());
@@ -744,6 +765,8 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		givenTimeIs(processingDate);
 
 		service.decommission(approved(records.getList19()), processingUser);
+		waitForBatchProcess();
+
 		verifyProcessed(processingDate, processingUser, records.getList19());
 		verifyFoldersDeposited(processingDate, records.containerId_bac09, records.getFolder_B33());
 		verifyFoldersDestroyed(processingDate, records.getFolder_B30());

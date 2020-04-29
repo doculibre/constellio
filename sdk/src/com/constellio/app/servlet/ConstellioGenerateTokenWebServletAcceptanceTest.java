@@ -19,13 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_ASUSER;
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_DURATION;
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_USERNAME_PASSWORD;
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_DURATION_REQUIRED;
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_PASSWORD_REQUIRED;
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_USERNAME_REQUIRED;
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.REQUIRE_ADMIN_RIGHTS;
+import static com.constellio.sdk.tests.TestUtils.assertThatException;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioTest {
@@ -75,13 +69,13 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 					.is(returningValidCredentialUntil(dateTime(2014, 1, 3, 5, 0, 3)))
 					.has(returnedServiceKey("agent_alice"));
 
-			assertThat(callWebservice("", "wololo", "12h", null, usingHeader)).isEqualTo(PARAM_USERNAME_REQUIRED);
-			assertThat(callWebservice("admin", "", "12h", null, usingHeader)).isEqualTo(PARAM_PASSWORD_REQUIRED);
-			assertThat(callWebservice("admin", "1qaz", "", null, usingHeader)).isEqualTo(PARAM_DURATION_REQUIRED);
-			assertThat(callWebservice("admin", "wololo", "12h", null, usingHeader)).isEqualTo(BAD_USERNAME_PASSWORD);
-			assertThat(callWebservice("dakota", "wololo", "12h", "alice", usingHeader)).isEqualTo(REQUIRE_ADMIN_RIGHTS);
-			assertThat(callWebservice("admin", "1qaz2wsx", "12h", "johny", usingHeader)).isEqualTo(BAD_ASUSER);
-			assertThat(callWebservice("admin", "1qaz2wsx", "12w", "alice", usingHeader)).isEqualTo(BAD_DURATION);
+			assertThatException(() -> callWebservice("", "wololo", "12h", null, usingHeader)).hasMessageContaining("401 Bad username/password");
+			assertThatException(() -> callWebservice("admin", "", "12h", null, usingHeader)).hasMessageContaining("401 Bad username/password");
+			assertThatException(() -> callWebservice("admin", "1qaz", "", null, usingHeader)).hasMessageContaining("422 Parameter 'duration' required");
+			assertThatException(() -> callWebservice("admin", "wololo", "12h", null, usingHeader)).hasMessageContaining("401 Bad username/password");
+			assertThatException(() -> callWebservice("dakota", "wololo", "12h", "alice", usingHeader)).hasMessageContaining("401 asUser requires system admin rights");
+			assertThatException(() -> callWebservice("admin", "1qaz2wsx", "12h", "johny", usingHeader)).hasMessageContaining("401 Bad asUser value");
+			assertThatException(() -> callWebservice("admin", "1qaz2wsx", "12w", "alice", usingHeader)).hasMessageContaining("422 Bad Duration. Example : 14d or 24h");
 		}
 	}
 
@@ -147,6 +141,7 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 			}
 		};
 	}
+
 
 	private String callWebservice(String username, String password, String duration, String asUser, boolean usingHeader)
 			throws Exception {

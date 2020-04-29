@@ -61,11 +61,11 @@ public class SystemGlobalConfigsManager implements StatefulService {
 	}
 
 	public void setReindexingRequired(boolean value) {
-		if (value) {
-			Throwable t = new Throwable();
-			LOGGER.info("System was marked for reindexing", t);
+		//if (value) {
+		//Throwable t = new Throwable();
+		//LOGGER.info("System was marked for reindexing", t);
 
-		}
+		//}
 		setProperty(REINDEXING_REQUIRED, value ? "true" : "false");
 	}
 

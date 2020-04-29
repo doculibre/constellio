@@ -12,6 +12,7 @@ import com.constellio.data.events.SDKEventBusSendingDelayedService;
 import com.constellio.data.events.SDKEventBusSendingService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.utils.ThrowingRunnable;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -45,6 +46,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.ObjectAssert;
+import org.assertj.core.api.ThrowableAssert;
 import org.assertj.core.groups.Tuple;
 import org.jdom2.Document;
 import org.jdom2.output.Format;
@@ -1344,5 +1346,16 @@ public class TestUtils {
 
 		long elapsedMs = end - start;
 		return ((double) (1000 * loopCount)) / elapsedMs;
+	}
+
+
+	public static ThrowableAssert assertThatException(ThrowingRunnable r) {
+
+		try {
+			r.run();
+			return assertThat((Throwable) null);
+		} catch (Exception e) {
+			return assertThat(e);
+		}
 	}
 }

@@ -463,7 +463,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				zipService.zip(zipFile, logFiles);
 				view.startDownload(filename, new FileInputStream(zipFile), "application/zip");
 			} catch (Throwable t) {
-				LOGGER.error("Error while generating zip of logss", t);
+				LOGGER.error("Error while generating zip of logs", t);
 				view.showErrorMessage($("ExportView.error"));
 			}
 		}

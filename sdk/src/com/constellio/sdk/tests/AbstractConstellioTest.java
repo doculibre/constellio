@@ -1252,6 +1252,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(stateFolder);
 
 			for (CollectionPreparator preparator : preparators) {
+				//getModelLayerFactory().getRecordsCaches().rebuildCacheForCollection(preparator.collection);
 				for (Class<? extends InstallableModule> pluginClass : preparator.preexistingPlugins) {
 					givenInstalledModule(pluginClass);
 				}
@@ -1267,7 +1268,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				for (Class<? extends InstallableModule> pluginClass : preparator.plugins) {
 					givenInstalledModule(pluginClass);
 				}
+
 			}
+
 
 		} else {
 
@@ -1302,6 +1305,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 						preparator.users.setUp(modelLayerFactory.newUserServices());
 					}
 				}
+
+				//getModelLayerFactory().getRecordsCaches().rebuildCacheForCollection(preparator.collection);
 
 				if (preparator.rmTestRecords) {
 					try {
@@ -1340,6 +1345,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				getModelLayerFactory().getRecordsCaches().updateRecordsMainSortValue();
 
 			}
+
 			if (mode.isEnabled()) {
 				while (!getModelLayerFactory().getRecordsCaches().areSummaryCachesInitialized()) {
 					try {

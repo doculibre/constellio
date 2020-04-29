@@ -11,7 +11,6 @@ import com.constellio.app.modules.rm.reports.model.administration.plan.Administr
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
@@ -51,18 +50,20 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 	private Locale locale;
 	private User currentUser = null;
 
-	public AdministrativeUnitReportPresenter(String collection, AppLayerFactory appLayerFactory, Locale locale) {
-		this(collection, appLayerFactory, true, locale);
+	public AdministrativeUnitReportPresenter(String collection, AppLayerFactory appLayerFactory, Locale locale,
+											 User currentUser) {
+		this(collection, appLayerFactory, true, locale, currentUser);
 	}
 
 	public AdministrativeUnitReportPresenter(String collection, AppLayerFactory appLayerFactory, boolean withUsers,
-											 Locale locale) {
+											 Locale locale, User currentUser) {
 		this.collection = collection;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appCollectionExtentions = appLayerFactory.getExtensions().forCollection(collection);
 		this.appSystemExtentions = appLayerFactory.getExtensions().getSystemWideExtensions();
 		this.withUsers = withUsers;
 		this.locale = locale;
+		this.currentUser = currentUser;
 	}
 
 	public AdministrativeUnitReportModel build() {
@@ -76,9 +77,7 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 			model.setDetailed(false);
 		}
 
-		User user = getCurrentUser();
-
-		List<TaxonomySearchRecord> taxonomySearchRecords = searchService.getLinkableRootConcept(user, collection,
+		List<TaxonomySearchRecord> taxonomySearchRecords = searchService.getLinkableRootConcept(currentUser, collection,
 				RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
 
 		List<AdministrativeUnitReportModel_AdministrativeUnit> modelAdministrativeUnits = getUnits(taxonomySearchRecords);
@@ -86,14 +85,6 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 		model.setAdministrativeUnits(modelAdministrativeUnits);
 
 		return model;
-	}
-
-	private User getCurrentUser() {
-		if (currentUser == null) {
-			currentUser = modelLayerFactory.newUserServices().getUserInCollection(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername(), collection);
-		}
-
-		return currentUser;
 	}
 
 	private List<AdministrativeUnitReportModel_AdministrativeUnit> getUnits(
@@ -137,7 +128,7 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 
 		if (parentRecord != null) {
 
-			List<TaxonomySearchRecord> childTaxonomySearchRecords = searchService.getLinkableChildConcept(getCurrentUser(),
+			List<TaxonomySearchRecord> childTaxonomySearchRecords = searchService.getLinkableChildConcept(currentUser,
 					parentRecord, RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
 
 			if (childTaxonomySearchRecords != null) {

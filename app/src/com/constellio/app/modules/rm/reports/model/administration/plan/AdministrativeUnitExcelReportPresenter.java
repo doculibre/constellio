@@ -7,7 +7,6 @@ import com.constellio.app.modules.rm.reports.model.excel.BaseExcelReportPresente
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
@@ -50,8 +49,10 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 	private User currentUser = null;
 
 	public AdministrativeUnitExcelReportPresenter(String collection, AppLayerFactory appLayerFactory,
-												  Locale locale, List<String> administrativeUnitToIncludes) {
+												  Locale locale, List<String> administrativeUnitToIncludes,
+												  User currentUser) {
 		super(appLayerFactory, locale, collection);
+		this.currentUser = currentUser;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appCollectionExtentions = appLayerFactory.getExtensions().forCollection(collection);
 		this.appSystemExtentions = appLayerFactory.getExtensions().getSystemWideExtensions();
@@ -100,7 +101,7 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 
 			List<AdministrativeUnit> rootAmdinistrativeUnit = new ArrayList<>();
 			List<TaxonomySearchRecord> taxonomySearchRecords = taxonomiesSearchServices
-					.getLinkableRootConcept(getCurrentUser(), collection,
+					.getLinkableRootConcept(currentUser, collection,
 							RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
 
 			if (taxonomySearchRecords != null) {
@@ -138,13 +139,6 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 		return recordLine;
 	}
 
-	private User getCurrentUser() {
-		if (currentUser == null) {
-			currentUser = modelLayerFactory.newUserServices().getUserInCollection(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername(), collection);
-		}
-
-		return currentUser;
-	}
 
 	private void updateAcces(String user, Map<String, List<String>> accessList, List<String> newAcessList) {
 		List<String> currentAcces = accessList.get(user);
@@ -164,7 +158,7 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all())
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 
-		List<TaxonomySearchRecord> children = taxonomiesSearchServices.getLinkableChildConcept(getCurrentUser(), record,
+		List<TaxonomySearchRecord> children = taxonomiesSearchServices.getLinkableChildConcept(currentUser, record,
 				RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
 
 		if (children != null) {
