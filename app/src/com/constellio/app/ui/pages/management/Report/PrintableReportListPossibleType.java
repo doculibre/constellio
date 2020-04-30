@@ -1,8 +1,12 @@
 package com.constellio.app.ui.pages.management.Report;
 
+import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
+import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 
 //TODO KILL ME Gabriel Delete class and replace with simple Folder.schemaType, etc.

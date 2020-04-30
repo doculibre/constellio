@@ -9,11 +9,13 @@ import com.constellio.app.modules.rm.extensions.api.CartExtensions.CartExtension
 import com.constellio.app.modules.rm.extensions.api.ContainerRecordExtension.ContainerRecordExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
+import com.constellio.app.modules.rm.extensions.api.StorageSpaceExtension.StorageSpaceExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.extensions.TaskAddEditTaskPresenterExtension;
 import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.extensions.TaskPreCompletionExtention;
@@ -42,6 +44,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<DocumentExtension> documentExtensions;
 	private VaultBehaviorsList<FolderExtension> folderExtensions;
 	private VaultBehaviorsList<ContainerRecordExtension> containerRecordExtensions;
+	private VaultBehaviorsList<StorageSpaceExtension> storageSpaceExtensions;
 	private VaultBehaviorsList<AdvancedSearchPresenterExtension> advancedSearchPresenterExtensions;
 	private VaultBehaviorsList<DocumentFolderBreadCrumbExtention> documentBreadcrumExtentions;
 	private VaultBehaviorsList<NavigateToFromAPageImportExtension> navigateToFromAPageExtensions;
@@ -67,6 +70,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		cartExtensions = new VaultBehaviorsList<>();
 		modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
 		containerRecordExtensions = new VaultBehaviorsList<>();
+		storageSpaceExtensions = new VaultBehaviorsList<>();
 		filteredActionsExtension = new VaultBehaviorsList<>();
 		agentExtensions = new AgentExtension();
 	}
@@ -571,6 +575,42 @@ public class RMModuleExtensions implements ModuleExtensions {
 	public boolean isConsultLinkActionPossibleOnContainerRecord(ContainerRecord containerRecord, User user) {
 		return containerRecordExtensions.getBooleanValue(true,
 				(behavior -> behavior.isConsultLinkActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
+	}
+
+	public boolean isAddRemoveToSelectionActionPossibleOnContainerRecord(final ContainerRecord containerRecord,
+																		 final User user) {
+		return containerRecordExtensions.getBooleanValue(true,
+				behavior -> behavior.isAddSelectionActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user)));
+	}
+
+	public boolean isGenerateReportActionPossibleOnContainer(final ContainerRecord containerRecord, final User user) {
+		return containerRecordExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isGenerateReportActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user)));
+	}
+
+	public boolean isGenerateReportActionPossibleOnStorageSpace(final StorageSpace storageSpace, final User user) {
+		return storageSpaceExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isGenerateReportActionPossible(new StorageSpaceExtensionActionPossibleParams(storageSpace, user)));
+	}
+
+	public boolean isConsultActionPossibleOnStorageSpace(final StorageSpace storageSpace, final User user) {
+		return storageSpaceExtensions.getBooleanValue(true, (behavior ->
+				behavior.isConsultActionPossible(new StorageSpaceExtensionActionPossibleParams(storageSpace, user))));
+	}
+
+	public boolean isEditActionPossibleOnStorageSpace(final StorageSpace storageSpace, final User user) {
+		return storageSpaceExtensions.getBooleanValue(true,
+				(behavior -> behavior.isEditActionPossible(new StorageSpaceExtensionActionPossibleParams(storageSpace, user))));
+	}
+
+	public boolean isDeleteActionPossibleOnStorageSpace(final StorageSpace storageSpace, final User user) {
+		return storageSpaceExtensions.getBooleanValue(true,
+				(behavior -> behavior.isDeleteActionPossible(new StorageSpaceExtensionActionPossibleParams(storageSpace, user))));
+	}
+
+	public boolean isConsultLinkActionPossibleOnStorageSpace(StorageSpace storageSpace, User user) {
+		return storageSpaceExtensions.getBooleanValue(true,
+				(behavior -> behavior.isConsultLinkActionPossible(new StorageSpaceExtensionActionPossibleParams(storageSpace, user))));
 	}
 
 	public BaseBreadcrumbTrail getBreadCrumbtrail(DocumentFolderBreadCrumbParams documentBreadcrumParams) {
