@@ -119,7 +119,7 @@ public class LogicalSearchQueryExecutorInCache {
 		Stream<Record> stream = newBaseRecordStream(query, schemaType, recordFilter);
 
 		if (!query.getSortFields().isEmpty()) {
-			List<Record> records = consummeAndSort(stream, query, schemaType);
+			List<Record> records = consummeForSorting(stream, query, schemaType);
 			if (query.getSkipSortingOverRecordSize() == -1 || records.size() <= query.getSkipSortingOverRecordSize()) {
 				records.sort(newQuerySortFieldsComparator(query, schemaType));
 			}
@@ -131,7 +131,8 @@ public class LogicalSearchQueryExecutorInCache {
 		}
 	}
 
-	private List<Record> consummeAndSort(Stream<Record> stream, LogicalSearchQuery query, MetadataSchemaType schemaType)
+	private List<Record> consummeForSorting(Stream<Record> stream, LogicalSearchQuery query,
+											MetadataSchemaType schemaType)
 			throws LogicalSearchQueryExecutionCancelledException {
 		Iterator<Record> iterator = stream.iterator();
 
@@ -334,9 +335,6 @@ public class LogicalSearchQueryExecutorInCache {
 								recordsCaches.getMetadataIndexCacheDataStore()))
 						.collect(Collectors.toList());
 				if (schemaType.getCacheType().isSummaryCache()) {
-					if (query.getReturnedMetadatas() == null || !query.getReturnedMetadatas().isOnlySummary()) {
-						throw new IllegalArgumentException("Query is not executable");
-					}
 					stream = new UnionSortedIdsStreamer(streamers).stream()
 							.map(recordId -> recordsCaches.getRecordSummary(recordId));
 				} else {
@@ -451,6 +449,15 @@ public class LogicalSearchQueryExecutorInCache {
 			if (value2 == null) {
 				value2 = 0.0;
 			}
+
+		} else if (metadata.getType() == DATE || metadata.getType() == DATE_TIME) {
+			if (value1 == null && value2 != null) {
+				return ascending ? -1 : 1;
+			}
+			if (value1 != null && value2 == null) {
+				return ascending ? 1 : -1;
+			}
+
 		}
 
 		if (metadata.getLocalCode().equals(Schemas.IDENTIFIER.getLocalCode())) {
@@ -634,7 +641,7 @@ public class LogicalSearchQueryExecutorInCache {
 		}
 
 		boolean requiringCacheExecution = queryExecutionMethod == USE_CACHE;
-		if (schemaType == null || !Toggle.USE_CACHE_FOR_QUERY_EXECUTION.isEnabled()) {
+		if (!Toggle.USE_CACHE_FOR_QUERY_EXECUTION.isEnabled()) {
 			return false;
 
 		} else if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {

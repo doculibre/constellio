@@ -33,15 +33,15 @@ public class AsyncTaskRegrouperAcceptanceTest extends ConstellioTest {
 			regrouper.addAsync(3, null);
 			regrouper.addAsync(4, null);
 			regrouper.addAsync(5, null);
+			Thread.sleep(10);
+
 			regrouper.addAsync(6, null);
 			regrouper.addAsync(7, null);
-			Thread.sleep(10);
-
 			regrouper.addAsync(8, null);
-			Thread.sleep(10);
-
 			regrouper.addAsync(9, null);
 			regrouper.addAsync(10, null);
+			Thread.sleep(10);
+
 			regrouper.addAsync(11, null);
 			regrouper.addAsync(12, null);
 			regrouper.addAsync(13, null);
@@ -53,8 +53,9 @@ public class AsyncTaskRegrouperAcceptanceTest extends ConstellioTest {
 			Thread.sleep(10);
 
 			assertThat(callArgs).containsOnly(
-					Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8),
-					Arrays.asList(9, 10, 11, 12, 13, 14, 15, 16)
+					Arrays.asList(1, 2, 3, 4, 5),
+					Arrays.asList(6, 7, 8, 9, 10),
+					Arrays.asList(11, 12, 13, 14, 15)
 			);
 		}
 	}
@@ -80,15 +81,8 @@ public class AsyncTaskRegrouperAcceptanceTest extends ConstellioTest {
 			regrouper.addAsync(1, () -> {
 				callbacksArgs.add("A");
 			});
-			regrouper.addAsync(2, null);
-			regrouper.addAsync(3, null);
-			regrouper.addAsync(4, () -> {
+			regrouper.addAsync(2, () -> {
 				callbacksArgs.add("B");
-			});
-			regrouper.addAsync(5, null);
-			regrouper.addAsync(6, null);
-			regrouper.addAsync(7, () -> {
-				callbacksArgs.add("C");
 			});
 			Thread.sleep(10);
 			assertThat(callArgs).isEmpty();
@@ -96,11 +90,17 @@ public class AsyncTaskRegrouperAcceptanceTest extends ConstellioTest {
 			Thread.sleep(10);
 			assertThat(callArgs).isEmpty();
 			assertThat(callbacksArgs).isEmpty();
+			regrouper.addAsync(3, null);
+			regrouper.addAsync(4, null);
+			regrouper.addAsync(5, () -> {
+				callbacksArgs.add("C");
+			});
+
 
 			givenTimeIs(now.plusSeconds(2));
 			Thread.sleep(10);
 			assertThat(callArgs).containsOnly(
-					Arrays.asList(1, 2, 3, 4, 5, 6, 7)
+					Arrays.asList(1, 2, 3, 4, 5)
 			);
 			assertThat(callbacksArgs).containsOnly(
 					"A", "B", "C"

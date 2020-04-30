@@ -97,6 +97,8 @@ public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 
 		Record unit10 = record("unitId_10");
 
+		getModelLayerFactory().getSecurityModelCache().invalidate(zeCollection);
+
 		List<String> usersWithReadAccess = new ArrayList<>();
 		User gandalfUser = rm.getModelLayerFactory().newUserServices().getUserInCollection("gandalf", zeCollection);
 		assertThat(gandalfUser.hasReadAccess().on(unit10)).isTrue();

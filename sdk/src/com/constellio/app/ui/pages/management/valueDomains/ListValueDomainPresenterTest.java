@@ -145,7 +145,7 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 		when(metadataBuilder.setUniqueValue(anyBoolean())).thenReturn(metadataBuilder);
 		when(metadataBuilder.setDefaultRequirement(anyBoolean())).thenReturn(metadataBuilder);
 		when(metadataBuilder.setMultiLingual(anyBoolean())).thenReturn(metadataBuilder);
-		when(metadataSchemaBuilder.create(anyString())).thenReturn(metadataBuilder);
+		when(metadataSchemaBuilder.create(anyString())).thenReturn(metadataBuilder).thenReturn(metadataBuilder);
 		when(metadataBuilder.setType((MetadataValueType) anyObject())).thenReturn(metadataBuilder);
 		when(metadataBuilder.setSearchable(anyBoolean())).thenReturn(metadataBuilder);
 		when(metadataBuilder.setUndeletable(anyBoolean())).thenReturn(metadataBuilder);
