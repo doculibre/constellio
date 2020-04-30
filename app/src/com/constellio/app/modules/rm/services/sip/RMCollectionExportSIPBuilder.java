@@ -11,6 +11,7 @@ import com.constellio.app.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.services.sip.record.RecordSIPWriter;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter.AutoSplittedSIPZipWriterListener;
+import com.constellio.app.services.sip.zip.BackedUpAutoSplittedSIPZipWriter;
 import com.constellio.app.services.sip.zip.DefaultSIPFileNameProvider;
 import com.constellio.app.services.sip.zip.FileSIPZipWriter;
 import com.constellio.app.services.sip.zip.SIPFileNameProvider;
@@ -75,6 +76,8 @@ public class RMCollectionExportSIPBuilder {
 	private boolean includeContents;
 	private IOServices ioServices;
 
+	private File backupFolder;
+
 	private KeySetMap<String, String> exportedRecords = new KeySetMap<>();
 
 	public RMCollectionExportSIPBuilder(String collection, AppLayerFactory appLayerFactory, File exportFolder) {
@@ -97,6 +100,11 @@ public class RMCollectionExportSIPBuilder {
 
 	public RMCollectionExportSIPBuilder setCompressionLevel(int compressionLevel) {
 		this.compressionLevel = compressionLevel;
+		return this;
+	}
+
+	public RMCollectionExportSIPBuilder setBackupFolder(File backupFolder) {
+		this.backupFolder = backupFolder;
 		return this;
 	}
 
@@ -396,8 +404,15 @@ public class RMCollectionExportSIPBuilder {
 	protected SIPZipWriter newSplittedSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
 												   final ProgressInfo progressInfo) {
 		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, sipName);
-		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(appLayerFactory, sipFileNameProvider,
-				sipBytesLimit, new DefaultSIPZipBagInfoFactory(appLayerFactory, locale));
+		AutoSplittedSIPZipWriter writer;
+
+		if (backupFolder == null) {
+			writer = new AutoSplittedSIPZipWriter(appLayerFactory, sipFileNameProvider,
+					sipBytesLimit, new DefaultSIPZipBagInfoFactory(appLayerFactory, locale));
+		} else {
+			writer = new BackedUpAutoSplittedSIPZipWriter(appLayerFactory, sipFileNameProvider,
+					sipBytesLimit, new DefaultSIPZipBagInfoFactory(appLayerFactory, locale), backupFolder);
+		}
 		writer.setCompressionLevel(compressionLevel);
 		writer.register(new AutoSplittedSIPZipWriterListener() {
 			@Override
