@@ -2,7 +2,6 @@ package com.constellio.app.modules.tasks.services.menu.behaviors;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -35,7 +34,6 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -158,7 +156,7 @@ public class TaskMenuItemActionBehaviors {
 				new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
 					@Override
 					public String getSelectedSchemaType() {
-						return Folder.SCHEMA_TYPE;
+						return Task.SCHEMA_TYPE;
 					}
 
 					@Override
