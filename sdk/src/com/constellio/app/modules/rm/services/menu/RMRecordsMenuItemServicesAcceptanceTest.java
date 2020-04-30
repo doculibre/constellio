@@ -102,4 +102,47 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenRecordsContainsDocumentFolderAndContainersThenReturnCorrectActionStates() {
+		List<Record> currentRecords = asList(records.getFolder_A01().getWrappedRecord(),
+				records.getDocumentWithContent_A19().getWrappedRecord(),
+				records.getContainerBac01().getWrappedRecord());
+
+		List<MenuItemAction> actions = menuItemServices.getActionsForRecords(currentRecords, params);
+
+		assertThat(actions.stream().map(MenuItemAction::getType).collect(Collectors.toList()))
+				.containsAll(Arrays.stream(RMRecordsMenuItemActionType.values())
+						.map(RMRecordsMenuItemActionType::name).collect(Collectors.toList()));
+
+		assertThat(actions).extracting("type", "state.status").isEqualTo(asList(
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK, MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_PRINT_LABEL.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_REMOVE_SELECTION.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.DISABLED)
+		));
+
+	}
+
+	@Test
+	public void givenRecordsContainsStorageSpacesThenReturnCorrectActionStates() {
+		List<Record> currentRecords = asList(records.getStorageSpaceS01().getWrappedRecord(),
+				records.getStorageSpaceS01_02().getWrappedRecord());
+
+		List<MenuItemAction> actions = menuItemServices.getActionsForRecords(currentRecords, params);
+
+		assertThat(actions.stream().map(MenuItemAction::getType).collect(Collectors.toList()))
+				.containsAll(Arrays.stream(RMRecordsMenuItemActionType.values())
+						.map(RMRecordsMenuItemActionType::name).collect(Collectors.toList()));
+
+		assertThat(actions).extracting("type", "state.status").isEqualTo(asList(
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK, MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.VISIBLE)
+		));
+
+	}
+
 }

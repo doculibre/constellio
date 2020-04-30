@@ -4,16 +4,20 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.ContainerRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
+import com.constellio.app.modules.rm.services.actions.StorageSpaceRecordActionsServices;
 import com.constellio.app.modules.rm.services.menu.behaviors.RMRecordsMenuItemBehaviors;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.actions.TaskRecordActionsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -45,6 +49,7 @@ import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServi
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_MOVE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_PRINT_LABEL;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_REMOVE_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.DISABLED;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
@@ -64,6 +69,7 @@ public class RMRecordsMenuItemServices {
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private ContainerRecordActionsServices containerRecordActionsServices;
 	private TaskRecordActionsServices taskRecordActionsServices;
+	private StorageSpaceRecordActionsServices storageSpaceRecordActionsServices;
 	private RMSchemasRecordsServices rm;
 
 	//public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
@@ -77,6 +83,7 @@ public class RMRecordsMenuItemServices {
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		containerRecordActionsServices = new ContainerRecordActionsServices(collection, appLayerFactory);
 		taskRecordActionsServices = new TaskRecordActionsServices(collection, appLayerFactory);
+		storageSpaceRecordActionsServices = new StorageSpaceRecordActionsServices(collection, appLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
@@ -213,6 +220,8 @@ public class RMRecordsMenuItemServices {
 					} else if (record.isOfSchemaType(RMTask.SCHEMA_TYPE)) {
 						actionPossible = taskRecordActionsServices.isConsultLinkActionPossible(record, user);
 						numberOfTaskRecord++;
+					} else if (record.isOfSchemaType(StorageSpace.SCHEMA_TYPE)) {
+						actionPossible = storageSpaceRecordActionsServices.isConsultLinkActionPossible(record, user);
 					}
 					possibleCount += actionPossible ? 1 : 0;
 				}
@@ -331,10 +340,22 @@ public class RMRecordsMenuItemServices {
 			case RMRECORDS_GENERATE_REPORT:
 				for (Record record : records) {
 					boolean actionPossible = false;
-					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
-						actionPossible = documentRecordActionsServices.isGenerateReportActionPossible(record, user);
-					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
-						actionPossible = folderRecordActionsServices.isGenerateReportActionPossible(record, user);
+					switch (record.getSchemaCode().split("_")[0]) {
+						case Document.SCHEMA_TYPE:
+							actionPossible = documentRecordActionsServices.isGenerateReportActionPossible(record, user);
+							break;
+						case Folder.SCHEMA_TYPE:
+							actionPossible = folderRecordActionsServices.isGenerateReportActionPossible(record, user);
+							break;
+						case Task.SCHEMA_TYPE:
+							actionPossible = taskRecordActionsServices.isGenerateReportActionPossible(record, user);
+							break;
+						case ContainerRecord.SCHEMA_TYPE:
+							actionPossible = containerRecordActionsServices.isGenerateReportActionPossible(record, user);
+							break;
+						case StorageSpace.SCHEMA_TYPE:
+							actionPossible = storageSpaceRecordActionsServices.isGenerateReportActionPossible(record, user);
+							break;
 					}
 					possibleCount += actionPossible ? 1 : 0;
 				}
@@ -521,13 +542,15 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_ADD_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_BATCH_DELETE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
-		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 10000, true),
+		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE,
+				ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE), 10000, true),
 		RMRECORDS_CHECKOUT(asList(Document.SCHEMA_TYPE), 25, false),
 		RMRECORDS_CHECKIN(asList(Document.SCHEMA_TYPE), 25, false),
 		RMRECORDS_CREATE_TASK(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, true),
 		RMRECORDS_BATCH_UNSHARE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, true),
 		RMRECORDS_BATCH_UNPUBLISH(asList(Document.SCHEMA_TYPE), 10000, false),
-		RMRECORDS_GENERATE_REPORT(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, false);
+		RMRECORDS_GENERATE_REPORT(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE,
+				ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE), 10000, false);
 
 		private final List<String> schemaTypes;
 		private final int recordsLimit;

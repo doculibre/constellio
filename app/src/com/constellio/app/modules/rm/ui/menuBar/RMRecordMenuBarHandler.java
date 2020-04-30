@@ -60,13 +60,11 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 	@Override
 	public MenuBar get(RecordVO recordVO) {
 		String schemaTypeCode = recordVO == null ? null : recordVO.getSchema().getTypeCode();
-		if (recordVO != null &&
-			(Document.SCHEMA_TYPE.equals(schemaTypeCode)
-			 || Folder.SCHEMA_TYPE.equals(schemaTypeCode)
-			 || ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode))) {
+		if (recordVO != null && isSchemaTypeSupported(schemaTypeCode)) {
 			RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions()
 					.forCollection(recordVO.getRecord().getCollection())
 					.forModule(ConstellioRMModule.ID);
+
 			List<String> filteredActions = new ArrayList<String>() {{
 				addAll(rmModuleExtensions.getFilteredActionsForContainers());
 				addAll(rmModuleExtensions.getFilteredActionsForFolders());
@@ -75,6 +73,13 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 		} else {
 			return null;
 		}
+	}
+
+	private boolean isSchemaTypeSupported(String schemaTypeCode) {
+		return Document.SCHEMA_TYPE.equals(schemaTypeCode)
+			   || Folder.SCHEMA_TYPE.equals(schemaTypeCode)
+			   || ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)
+			   || StorageSpace.SCHEMA_TYPE.equals(schemaTypeCode);
 	}
 
 	public RecordVO getDocumentVO(RecordVO recordVO) {

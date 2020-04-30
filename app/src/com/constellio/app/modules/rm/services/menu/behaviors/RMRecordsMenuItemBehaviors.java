@@ -503,6 +503,9 @@ public class RMRecordsMenuItemBehaviors {
 			} else if (currentRecord.getSchemaCode().startsWith(RMTask.SCHEMA_TYPE)) {
 				linkList.add(new ConsultLinkParams(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(currentRecord.getId()),
 						currentRecord.getTitle()));
+			} else if (currentRecord.getSchemaCode().startsWith(StorageSpace.SCHEMA_TYPE)) {
+				linkList.add(new ConsultLinkParams(constellioURL + RMUrlUtil.getPathToConsultLinkForStorageSpace(currentRecord.getId()),
+						currentRecord.getTitle()));
 			}
 		}
 

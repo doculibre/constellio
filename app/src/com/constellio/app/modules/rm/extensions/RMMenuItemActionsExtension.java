@@ -8,10 +8,12 @@ import com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices;
 import com.constellio.app.modules.rm.services.menu.FolderMenuItemServices;
 import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices;
 import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType;
+import com.constellio.app.modules.rm.services.menu.StorageSpaceMenuItemServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
@@ -29,6 +31,7 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 	private FolderMenuItemServices folderMenuItemServices;
 	private ContainerMenuItemServices containerMenuItemServices;
 	private CartMenuItemServices cartMenuItemServices;
+	private StorageSpaceMenuItemServices storageSpaceMenuItemServices;
 	private RMRecordsMenuItemServices rmRecordsMenuItemServices;
 
 	public RMMenuItemActionsExtension(String collection, AppLayerFactory appLayerFactory) {
@@ -38,6 +41,7 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 		folderMenuItemServices = new FolderMenuItemServices(collection, appLayerFactory);
 		containerMenuItemServices = new ContainerMenuItemServices(collection, appLayerFactory);
 		cartMenuItemServices = new CartMenuItemServices(collection, appLayerFactory);
+		storageSpaceMenuItemServices = new StorageSpaceMenuItemServices(collection, appLayerFactory);
 		rmRecordsMenuItemServices = new RMRecordsMenuItemServices(collection, appLayerFactory);
 	}
 
@@ -61,6 +65,9 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 						excludedActionTypes, behaviorParams));
 			} else if (record.isOfSchemaType(Cart.SCHEMA_TYPE)) {
 				menuItemActions.addAll(cartMenuItemServices.getActionsForRecord(rm.wrapCart(record), user, excludedActionTypes, behaviorParams));
+			} else if (record.isOfSchemaType(StorageSpace.SCHEMA_TYPE)) {
+				menuItemActions.addAll(storageSpaceMenuItemServices.getActionsForRecord(rm.wrapStorageSpace(record), user,
+						excludedActionTypes, behaviorParams));
 			}
 		}
 	}
@@ -93,7 +100,11 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 			return toState(containerMenuItemServices.isMenuItemActionPossible(actionType,
 					rm.wrapContainerRecord(record), user, behaviorParams));
+		} else if (record.isOfSchemaType(StorageSpace.SCHEMA_TYPE)) {
+			return toState(storageSpaceMenuItemServices.isMenuItemActionPossible(actionType,
+					rm.wrapStorageSpace(record), user, behaviorParams));
 		}
+
 		return null;
 	}
 
