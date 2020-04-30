@@ -145,6 +145,7 @@ public class RMRecordsMenuItemServices {
 			}
 		}
 
+		SessionContext sessionContext;
 		int possibleCount = 0;
 		switch (menuItemActionType) {
 			case RMRECORDS_ADD_CART:
@@ -256,7 +257,25 @@ public class RMRecordsMenuItemServices {
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_ADD_SELECTION:
-				return new MenuItemActionState(VISIBLE);
+				sessionContext = params.getView() != null ? params.getView().getSessionContext() : null;
+				if (sessionContext != null &&
+					(sessionContext.getSelectedRecordIds() == null ||
+					 !sessionContext.getSelectedRecordIds()
+							 .containsAll(records.stream().map(Record::getId).collect(Collectors.toList())))) {
+					return new MenuItemActionState(VISIBLE);
+				} else {
+					return new MenuItemActionState(HIDDEN);
+				}
+			case RMRECORDS_REMOVE_SELECTION:
+				sessionContext = params.getView() != null ? params.getView().getSessionContext() : null;
+				if (sessionContext != null &&
+					sessionContext.getSelectedRecordIds() != null &&
+					sessionContext.getSelectedRecordIds()
+							.containsAll(records.stream().map(Record::getId).collect(Collectors.toList()))) {
+					return new MenuItemActionState(VISIBLE);
+				} else {
+					return new MenuItemActionState(HIDDEN);
+				}
 			case RMRECORDS_DOWNLOAD_ZIP:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -438,6 +457,12 @@ public class RMRecordsMenuItemServices {
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).addToSelection(ids, params));
 				break;
+			case RMRECORDS_REMOVE_SELECTION:
+				menuItemAction = buildMenuItemAction(RMRECORDS_REMOVE_SELECTION, state,
+						$("SearchView.removeFromSelection"), SELECTION_ICON_RESOURCE, -1, 850,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).removeFromSelection(ids, params));
+				break;
 			case RMRECORDS_DOWNLOAD_ZIP:
 				menuItemAction = buildMenuItemAction(RMRECORDS_DOWNLOAD_ZIP, state,
 						$("ReportViewer.download", "(zip)"), FontAwesome.FILE_ARCHIVE_O, -1, 900,
@@ -540,6 +565,7 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_CREATE_PDF(singletonList(Document.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_PRINT_LABEL(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_ADD_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_REMOVE_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_BATCH_DELETE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE,

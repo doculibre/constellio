@@ -438,6 +438,26 @@ public class RMRecordsMenuItemBehaviors {
 		}
 	}
 
+	public void removeFromSelection(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		BaseView view = params.getView();
+
+		SessionContext sessionContext = view.getSessionContext();
+		boolean someElementsNotRemoved = false;
+		for (String selectedRecordId : recordIds) {
+			Record record = recordServices.getDocumentById(selectedRecordId);
+
+			if (asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE).contains(record.getTypeCode())) {
+				sessionContext.removeSelectedRecordId(selectedRecordId, record.getTypeCode());
+			} else {
+				someElementsNotRemoved = true;
+			}
+		}
+
+		if (someElementsNotRemoved) {
+			view.showErrorMessage($("ConstellioHeader.selection.cannotRemoveRecords"));
+		}
+	}
+
 	public void downloadZip(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		BaseView view = params.getView();
 
