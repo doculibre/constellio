@@ -3,7 +3,11 @@ package com.constellio.app.modules.rm.extensions;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.params.CanConsultTaxonomyParams;
 import com.constellio.app.api.extensions.params.CanManageTaxonomyParams;
-import com.constellio.app.api.extensions.taxonomies.*;
+import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
+import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
+import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -241,16 +245,16 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 
 	private RecordVODataProvider newFolderDataProvider(final Factory<LogicalSearchQuery> logicalSearchQueryFactory,
 													   SessionContextProvider sessionContextProvider) {
-
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		SessionContext sessionContext = sessionContextProvider.getSessionContext();
 		FolderToVOBuilder voBuilder = new FolderToVOBuilder();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
 		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(rm.folder.schema(), VIEW_MODE.TABLE, sessionContext);
+		User currentUser = rm.getUser(sessionContext.getCurrentUser().getId());
 		return new RecordVODataProvider(foldersSchemaVO, voBuilder, sessionContextProvider) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				return logicalSearchQueryFactory.get();
+				return logicalSearchQueryFactory.get().filteredWithUser(currentUser);
 			}
 		};
 	}
