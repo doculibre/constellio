@@ -6,6 +6,8 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.pages.base.ConstellioMenuImpl;
+import com.constellio.app.ui.pages.base.MainLayoutImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
@@ -31,6 +33,8 @@ import static org.mockito.Mockito.when;
 public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
 	@Mock TaskManagementView view;
+	@Mock ConstellioMenuImpl menu;
+	@Mock MainLayoutImpl mainLayout;
 	MockedNavigation navigator;
 	SessionContext sessionContext;
 	private RecordServices recordServices;
@@ -60,6 +64,8 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.navigate()).thenReturn(navigator);
 		when(view.getTimestamp()).thenReturn(TaskManagementViewImpl.Timestamp.ALL);
+		when(view.getMainLayout()).thenReturn(mainLayout);
+		when(mainLayout.getMenu()).thenReturn(menu);
 
 		bobHasReadAccessOnTask = users.bobIn(zeCollection);
 		aliceHasWriteAccessOnZeTask = users.aliceIn(zeCollection);
