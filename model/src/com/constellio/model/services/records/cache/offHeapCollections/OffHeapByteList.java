@@ -11,7 +11,6 @@ import static com.constellio.model.services.records.cache.offHeapCollections.Off
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.allocateMemory;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.freeMemory;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.getByte;
-import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.getUnsafe;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.putByte;
 
 public class OffHeapByteList {
@@ -55,7 +54,9 @@ public class OffHeapByteList {
 	}
 
 	public void set(int index, byte value) {
-
+		if (index < 0) {
+			throw new IllegalArgumentException("index must be >=0");
+		}
 		long address = getAdressOfIndex(index);
 		putByte(address, value);
 		lastIndex = Math.max(index, lastIndex);
@@ -75,7 +76,7 @@ public class OffHeapByteList {
 		for (int i = 0; i <= lastIndex; i++) {
 			byte v = get(i);
 			long newAddress = readAddressOfIndex(newAddressesOfBatches, i < index ? i : (i + 1));
-			getUnsafe().putByte(newAddress, v);
+			OffHeapMemoryAllocator.putByte(newAddress, v);
 		}
 		clear();
 		adressesOfBatches = newAddressesOfBatches;
@@ -84,6 +85,9 @@ public class OffHeapByteList {
 	}
 
 	public byte get(int index) {
+		if (index < 0) {
+			throw new IllegalArgumentException("index must be >=0");
+		}
 		long address = getAdressOfIndex(index);
 		return getByte(address);
 	}

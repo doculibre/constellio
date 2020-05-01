@@ -50,9 +50,11 @@ public class OffHeapLongList {
 	}
 
 	public void set(int index, long value) {
-
+		if (index < 0) {
+			throw new IllegalArgumentException("index must be >=0");
+		}
 		long address = getAdressOfIndex(index);
-		OffHeapMemoryAllocator.getUnsafe().putLong(address, value);
+		OffHeapMemoryAllocator.putLong(address, value);
 		lastIndex = Math.max(index, lastIndex);
 	}
 
@@ -70,7 +72,7 @@ public class OffHeapLongList {
 		for (int i = 0; i <= lastIndex; i++) {
 			long v = get(i);
 			long newAddress = readAddressOfIndex(newAddressesOfBatches, i < index ? i : (i + 1));
-			OffHeapMemoryAllocator.getUnsafe().putLong(newAddress, v);
+			OffHeapMemoryAllocator.putLong(newAddress, v);
 		}
 
 		clear();
@@ -81,6 +83,9 @@ public class OffHeapLongList {
 	}
 
 	public long get(int index) {
+		if (index < 0) {
+			throw new IllegalArgumentException("index must be >=0");
+		}
 		long address = getAdressOfIndex(index);
 		return OffHeapMemoryAllocator.getLong(address);
 	}

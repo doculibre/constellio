@@ -74,6 +74,26 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		this.tenantId = modelLayerFactory.getInstanceId();
 	}
 
+	public ModelLayerFactory getModelLayerFactory() {
+		return modelLayerFactory;
+	}
+
+	public CollectionsListManager getCollectionsListManager() {
+		return collectionsListManager;
+	}
+
+	public MetadataSchemasManager getSchemasManager() {
+		return schemasManager;
+	}
+
+	public SimpleReadLockMechanism getMechanism() {
+		return mechanism;
+	}
+
+	public short getTenantId() {
+		return tenantId;
+	}
+
 	private byte collectionId(String collectionCode) {
 		return collectionsListManager.getCollectionInfo(collectionCode).getCollectionId();
 	}
@@ -324,14 +344,13 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			type.insertValueShiftingAllFollowingValues(insertAtIndex, (short) 0);
 			collection.insertValueShiftingAllFollowingValues(insertAtIndex, (byte) 0);
 
-			if (fullyCached) {
-				while (fullyCachedData.size() < insertAtIndex) {
-					fullyCachedData.add(null);
-				}
-				fullyCachedData.add(insertAtIndex, null);
-			} else {
-				summaryCachedData.insertValueShiftingAllFollowingValues(insertAtIndex, new byte[0]);
+			while (fullyCachedData.size() < insertAtIndex) {
+				fullyCachedData.add(null);
 			}
+			fullyCachedData.add(insertAtIndex, null);
+			//if (!fullyCached) {
+			summaryCachedData.insertValueShiftingAllFollowingValues(insertAtIndex, null);
+			//}
 
 			for (int i = 0; i < 256; i++) {
 				if (typesIndexes[i] != null) {
@@ -901,7 +920,9 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 					RecordId recordId = (o instanceof RecordId) ? (RecordId) o : ((Supplier<RecordId>) o).get();
 					if (recordId.isInteger()) {
 						int index = ids.binarySearch(recordId.intValue());
-						mainSortValues.set(index, i * 2 + 1);
+						if (index != -1) {
+							mainSortValues.set(index, i * 2 + 1);
+						}
 					}
 				}
 			}
