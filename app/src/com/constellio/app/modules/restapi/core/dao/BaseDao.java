@@ -1,6 +1,7 @@
 package com.constellio.app.modules.restapi.core.dao;
 
 import com.constellio.app.modules.restapi.RestApiConfigs;
+import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -11,6 +12,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -183,14 +185,26 @@ public abstract class BaseDao {
 		return getUrl().split("/")[2].split(":")[0];
 	}
 
-	public Record getUserByUsername(String username, String collection) {
+	public User getUserByUsername(String username, String collection) {
+		return userServices.getUserInCollection(username, collection);
+	}
+
+	public Record getUserRecordByUsername(String username, String collection) {
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.user.username(), username);
 	}
 
-	public Record getGroupByCode(String groupCode, String collection) {
+	public Record getGroupRecordByCode(String groupCode, String collection) {
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.group.code(), groupCode);
 	}
 
+	public MetadataSchemaType getMetadataSchemaType(String collection, String schemaTypeCode) {
+		try {
+			return metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
+		} catch (MetadataSchemasRuntimeException.NoSuchSchemaType e) {
+			throw new RecordNotFoundException(schemaTypeCode);
+		}
+
+	}
 }

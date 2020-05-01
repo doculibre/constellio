@@ -64,14 +64,14 @@ public class BaseServiceTest {
 
 	@Test
 	public void testGetUser() {
-		User user = baseService.getUser("serviceKey", "collection");
+		User user = baseService.getUserByServiceKey("serviceKey", "collection");
 		assertThat(user).isNotNull().isEqualTo(user);
 	}
 
 	@Test(expected = UnauthenticatedUserException.class)
 	public void testGetUserWithInvalidId() {
 		when(documentDao.getUser("fakeServiceKey", "collection")).thenReturn(null);
-		baseService.getUser("fakeServiceKey", "collection");
+		baseService.getUserByServiceKey("fakeServiceKey", "collection");
 	}
 
 }

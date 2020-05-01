@@ -21,7 +21,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomySearchServicesQuery;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -39,7 +38,7 @@ public class GetChildrenContext {
 	private boolean hasPermanentCache;
 	ModelLayerFactory modelLayerFactory;
 	boolean principalTaxonomy;
-	List<MetadataSchemaType> classifiedSchemaTypes = Collections.emptyList();
+	List<MetadataSchemaType> classifiedSchemaTypes;
 
 	public GetChildrenContext(TaxonomySearchServicesQuery query, ModelLayerFactory modelLayerFactory) {
 		this(query.getUser(), query.getRecord(), query.getOptions(), query.getForSelectionOfType(), query.getTaxonomy(), modelLayerFactory);
@@ -47,40 +46,7 @@ public class GetChildrenContext {
 
 	public GetChildrenContext(User user, Record record, TaxonomiesSearchOptions options,
 							  MetadataSchemaType forSelectionOfSchemaType, ModelLayerFactory modelLayerFactory) {
-		this.user = user;
-		this.record = record;
-		this.options = options;
-		this.forSelectionOfSchemaType = forSelectionOfSchemaType;
-		this.modelLayerFactory = modelLayerFactory;
-		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
-		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-
-		this.taxonomy = taxonomiesManager.getTaxonomyOf(record);
-		if (taxonomy == null) {
-			taxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
-		}
-
-		if (taxonomy != null) {
-			if (taxonomy.getSchemaTypes().size() == 1) {
-				CacheConfig cacheConfig = modelLayerFactory.getRecordsCaches().getCache(getCollection()).getCacheConfigOf(taxonomy.getSchemaTypes().get(0));
-				hasPermanentCache = cacheConfig != null && cacheConfig.isPermanent();
-			}
-			principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(getCollection()).hasSameCode(taxonomy);
-
-		}
-
-		fromType = schemasManager.getSchemaTypeOf(record);
-		classifiedSchemaTypes = schemasManager.getSchemaTypes(taxonomy.getCollection())
-				.getClassifiedSchemaTypesIn(fromType.getCode());
-
-	}
-
-	public TaxonomyRecordsHookRetriever getTaxonomyHookRetriever() {
-		return getModelLayerFactory().getTaxonomyRecordsHookRetriever(getCollection());
-	}
-
-	public MetadataSchemaType getFromType() {
-		return fromType;
+		this(user, record, options, forSelectionOfSchemaType, null, modelLayerFactory);
 	}
 
 	public GetChildrenContext(User user, Record record, TaxonomiesSearchOptions options,
@@ -90,8 +56,17 @@ public class GetChildrenContext {
 		this.record = record;
 		this.options = options;
 		this.forSelectionOfSchemaType = forSelectionOfSchemaType;
-		this.taxonomy = taxonomy;
 		this.modelLayerFactory = modelLayerFactory;
+
+		if (taxonomy == null) {
+			TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+			this.taxonomy = taxonomiesManager.getTaxonomyOf(record);
+			if (this.taxonomy == null) {
+				this.taxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
+			}
+		} else {
+			this.taxonomy = taxonomy;
+		}
 
 		if (taxonomy != null) {
 			if (taxonomy.getSchemaTypes().size() == 1) {
@@ -110,6 +85,14 @@ public class GetChildrenContext {
 		classifiedSchemaTypes = schemasManager.getSchemaTypes(fromType.getCollection())
 				.getClassifiedSchemaTypesIn(fromType.getCode());
 
+	}
+
+	public TaxonomyRecordsHookRetriever getTaxonomyHookRetriever() {
+		return getModelLayerFactory().getTaxonomyRecordsHookRetriever(getCollection());
+	}
+
+	public MetadataSchemaType getFromType() {
+		return fromType;
 	}
 
 	public boolean hasUserAccessToSomethingInConcept(Record record) {

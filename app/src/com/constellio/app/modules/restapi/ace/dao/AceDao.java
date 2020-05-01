@@ -123,9 +123,9 @@ public class AceDao extends BaseDao {
 		List<String> principalIds = new ArrayList<>(principals.size());
 
 		for (String principal : principals) {
-			Record record = getUserByUsername(principal, collection);
+			Record record = getUserRecordByUsername(principal, collection);
 			if (record == null) {
-				record = getGroupByCode(principal, collection);
+				record = getGroupRecordByCode(principal, collection);
 			}
 			principalIds.add(record.getId());
 		}

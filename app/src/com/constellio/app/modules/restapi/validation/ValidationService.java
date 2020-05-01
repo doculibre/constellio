@@ -15,6 +15,7 @@ import com.constellio.app.modules.restapi.resource.dto.AceDto;
 import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
+import com.constellio.app.modules.restapi.validation.exception.ExpiredTokenException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
@@ -28,6 +29,7 @@ import org.joda.time.LocalDateTime;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.modules.restapi.core.util.HttpMethods.DELETE;
@@ -118,9 +120,9 @@ public class ValidationService extends BaseService {
 			for (String principal : ace.getPrincipals()) {
 				boolean added = principals.add(principal);
 				if (added) {
-					Record record = validationDao.getUserByUsername(principal, collection);
+					Record record = validationDao.getUserRecordByUsername(principal, collection);
 					if (record == null) {
-						record = validationDao.getGroupByCode(principal, collection);
+						record = validationDao.getGroupRecordByCode(principal, collection);
 					}
 					if (record == null) {
 						throw new RecordNotFoundException(principal);
@@ -154,6 +156,23 @@ public class ValidationService extends BaseService {
 	public void validateHost(String host) {
 		if (!validationDao.getAllowedHosts().contains(host)) {
 			throw new UnallowedHostException(host);
+		}
+	}
+
+	public void validateToken(String token, String serviceKey) {
+		Map<String, LocalDateTime> tokens = validationDao.getUserAccessTokens(serviceKey);
+		if (!tokens.containsKey(token)) {
+			throw new UnauthenticatedUserException();
+		}
+
+		if (tokens.get(token).isBefore(TimeProvider.getLocalDateTime())) {
+			throw new ExpiredTokenException();
+		}
+	}
+
+	public void validateCollection(String collection) {
+		if (validationDao.getRecordById(collection) == null) {
+			throw new RecordNotFoundException(collection);
 		}
 	}
 
