@@ -580,12 +580,16 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			startDate = new JodaDateField();
 			startDate.setCaption($("AuthorizationsView.startDate"));
 			startDate.setId("startDate");
-			startDate.setValue(authorization.getStartDate().toDate());
+			if (authorization.getStartDate() != null) {
+				startDate.setValue(authorization.getStartDate().toDate());
+			}
 
 			endDate = new JodaDateField();
 			endDate.setCaption($("AuthorizationsView.endDate"));
 			endDate.setId("endDate");
-			endDate.setValue(authorization.getEndDate().toDate());
+			if (authorization.getEndDate() != null) {
+				endDate.setValue(authorization.getEndDate().toDate());
+			}
 		}
 	}
 
