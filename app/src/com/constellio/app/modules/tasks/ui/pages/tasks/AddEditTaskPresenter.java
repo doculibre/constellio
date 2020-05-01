@@ -373,7 +373,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 
 		if (task.isModel()) {
-			recordUpdateOptions = RecordUpdateOptions.userModificationsSafeOptions();
+			recordUpdateOptions = RecordUpdateOptions.userModificationsSafeOptions().setSkipUserAccessValidation(true);
 		}
 
 		if (withRequiredValidation) {

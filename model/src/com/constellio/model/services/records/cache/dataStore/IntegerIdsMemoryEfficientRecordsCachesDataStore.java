@@ -74,6 +74,26 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		this.tenantId = modelLayerFactory.getInstanceId();
 	}
 
+	public ModelLayerFactory getModelLayerFactory() {
+		return modelLayerFactory;
+	}
+
+	public CollectionsListManager getCollectionsListManager() {
+		return collectionsListManager;
+	}
+
+	public MetadataSchemasManager getSchemasManager() {
+		return schemasManager;
+	}
+
+	public SimpleReadLockMechanism getMechanism() {
+		return mechanism;
+	}
+
+	public short getTenantId() {
+		return tenantId;
+	}
+
 	private byte collectionId(String collectionCode) {
 		return collectionsListManager.getCollectionInfo(collectionCode).getCollectionId();
 	}

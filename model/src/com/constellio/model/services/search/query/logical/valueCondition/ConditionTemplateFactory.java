@@ -19,6 +19,7 @@ import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.any;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.not;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.whereAny;
@@ -92,7 +93,8 @@ public class ConditionTemplateFactory {
 			if (cleanedText.endsWith(" ")) {
 				condition = whereAny(metadatas).isEqualTo(cleanedText.trim());
 			} else {
-				condition = whereAny(metadatas).isStartingWithText(cleanedText.trim());
+				condition = whereAny(metadatas).isStartingWithText(cleanedText.trim())
+						.orWhereAny(metadatas).isEqualTo(cleanedText.trim());
 			}
 		} else {
 			List<LogicalSearchCondition> conditions = new ArrayList<>();
