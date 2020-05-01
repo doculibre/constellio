@@ -74,9 +74,6 @@ public class ApplicationStarter {
 		handler.setClassLoader(Thread.currentThread().getContextClassLoader());
 
 		handler.getSessionHandler().getSessionCookieConfig().setHttpOnly(true);
-		if(params.isSSL() || params.isForceSecuredCookies()) {
-			handler.getSessionHandler().getSessionCookieConfig().setSecure(true);
-		}
 
 		server.setHandler(handler);
 
