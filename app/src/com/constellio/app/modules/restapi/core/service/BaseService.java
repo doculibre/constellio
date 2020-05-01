@@ -7,6 +7,8 @@ import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUs
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 
 public abstract class BaseService {
 
@@ -35,13 +37,25 @@ public abstract class BaseService {
 		return record;
 	}
 
-	protected User getUser(String serviceKey, String collection) {
+	protected User getUserByServiceKey(String serviceKey, String collection) {
 		User user = getDao().getUser(serviceKey, collection);
 		if (user == null) {
 			throw new UnauthenticatedUserException();
 		}
 
 		return user;
+	}
+
+	protected User getUserByUsername(String username, String collection) {
+		try {
+			User user = getDao().getUserByUsername(username, collection);
+			if (user == null) {
+				throw new UnauthenticatedUserException();
+			}
+			return user;
+		} catch (UserServicesRuntimeException_NoSuchUser | UserServicesRuntimeException_UserIsNotInCollection e) {
+			throw new RecordNotFoundException(username);
+		}
 	}
 
 	protected boolean isLogicallyDeleted(Record record) {

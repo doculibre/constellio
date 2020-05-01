@@ -73,7 +73,7 @@ public class ValidationServiceTest {
 		when(validationDao.getUserTokens(anyString(), anyBoolean(), anyBoolean())).thenReturn(singletonList(token));
 		when(validationDao.isUserAuthenticated(anyString(), anyString())).thenReturn(true);
 		when(validationDao.getDateFormat()).thenReturn("yyyy-MM-dd");
-		when(validationDao.getUserByUsername(anyString(), anyString())).thenReturn(record);
+		when(validationDao.getUserRecordByUsername(anyString(), anyString())).thenReturn(record);
 
 		when(user.hasReadAccess()).thenReturn(userPermissionsChecker);
 		when(userPermissionsChecker.on(record)).thenReturn(true);

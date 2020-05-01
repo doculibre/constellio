@@ -40,7 +40,7 @@ public class DocumentService extends ResourceService {
 
 		Record folder = getRecord(folderId, true);
 		String collection = folder.getCollection();
-		User user = getUser(serviceKey, collection);
+		User user = getUserByServiceKey(serviceKey, collection);
 		MetadataSchema documentSchema = documentDao.getLinkedMetadataSchema(document.getType(), collection);
 
 		validateDocument(host, folderId, serviceKey, method, date, expiration, signature, document, collection, folder,
@@ -62,7 +62,7 @@ public class DocumentService extends ResourceService {
 
 		Record folder = getRecord(folderId, true);
 		String collection = folder.getCollection();
-		User user = getUser(serviceKey, collection);
+		User user = getUserByServiceKey(serviceKey, collection);
 		MetadataSchema documentSchema = documentDao.getLinkedMetadataSchema(document.getType(), collection);
 
 		validateDocument(host, folderId, serviceKey, method, date, expiration, signature, document, collection, folder,
@@ -112,7 +112,7 @@ public class DocumentService extends ResourceService {
 		validateParameters(host, id, serviceKey, method, date, expiration, null, physical, null, signature);
 
 		Record document = getRecord(id, false);
-		User user = getUser(serviceKey, document.getCollection());
+		User user = getUserByServiceKey(serviceKey, document.getCollection());
 		validateUserAccess(user, document, method);
 
 		documentDao.deleteDocument(user, document, Boolean.TRUE.equals(physical));
@@ -123,7 +123,7 @@ public class DocumentService extends ResourceService {
 		validateParameters(host, id, serviceKey, method, date, expiration, version, null, null, signature);
 
 		Record document = getRecord(id, false);
-		User user = getUser(serviceKey, document.getCollection());
+		User user = getUserByServiceKey(serviceKey, document.getCollection());
 		validateUserAccess(user, document, method);
 
 		return documentDao.getContent(document, version);
@@ -145,7 +145,7 @@ public class DocumentService extends ResourceService {
 			validateETag(id, document.getETag(), documentRecord.getVersion());
 		}
 
-		User user = getUser(serviceKey, documentRecord.getCollection());
+		User user = getUserByServiceKey(serviceKey, documentRecord.getCollection());
 		validateUserAccess(user, documentRecord, method);
 
 		// make sure that folderId is valid

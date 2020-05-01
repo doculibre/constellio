@@ -1,7 +1,7 @@
 package com.constellio.app.modules.restapi.resource.service;
 
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
-import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
+import com.constellio.app.modules.restapi.core.service.BaseRestfulService;
 import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.restapi.core.util.Permissions;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-public abstract class ResourceRestfulService {
+public abstract class ResourceRestfulService extends BaseRestfulService {
 
 	private static Pattern FLUSH_WITHIN_PATTERN = Pattern.compile("^WITHIN_\\d+_SECONDS$");
 
@@ -65,12 +65,6 @@ public abstract class ResourceRestfulService {
 			} catch (NoSuchFieldException e) {
 				throw new InvalidParameterException("filter", value);
 			}
-		}
-	}
-
-	protected void validateRequiredParameter(Object parameter, String parameterName) {
-		if (parameter == null) {
-			throw new RequiredParameterException(parameterName);
 		}
 	}
 
