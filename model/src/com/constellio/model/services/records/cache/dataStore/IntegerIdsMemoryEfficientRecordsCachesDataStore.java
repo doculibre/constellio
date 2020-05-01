@@ -315,14 +315,13 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			type.insertValueShiftingAllFollowingValues(insertAtIndex, (short) 0);
 			collection.insertValueShiftingAllFollowingValues(insertAtIndex, (byte) 0);
 
-			if (fullyCached) {
-				while (fullyCachedData.size() < insertAtIndex) {
-					fullyCachedData.add(null);
-				}
-				fullyCachedData.add(insertAtIndex, null);
-			} else {
-				summaryCachedData.insertValueShiftingAllFollowingValues(insertAtIndex, new byte[0]);
+			while (fullyCachedData.size() < insertAtIndex) {
+				fullyCachedData.add(null);
 			}
+			fullyCachedData.add(insertAtIndex, null);
+			//if (!fullyCached) {
+			summaryCachedData.insertValueShiftingAllFollowingValues(insertAtIndex, null);
+			//}
 
 			for (int i = 0; i < 256; i++) {
 				if (typesIndexes[i] != null) {
