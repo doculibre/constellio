@@ -222,7 +222,7 @@ public class LogicalSearchQueryExecutorInCache {
 			}
 
 			Object value = ((IsEqualCriterion) requiredFieldEqualCondition.getValueCondition()).getMemoryQueryValue();
-			if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()) {
+			if (schemaType.getCacheType().isSummaryCache()) {
 				stream = recordsCaches.getRecordsSummaryByIndexedMetadata(schemaType, metadata, (String) value);
 			} else {
 				stream = recordsCaches.getRecordsByIndexedMetadata(schemaType, metadata, (String) value);
