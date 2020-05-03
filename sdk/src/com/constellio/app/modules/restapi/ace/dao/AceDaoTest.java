@@ -50,7 +50,7 @@ public class AceDaoTest {
 
 		when(authorizationsServices.getAuthorization(anyString(), anyString())).thenReturn(authorization);
 
-		doReturn(record).when(aceDao).getUserByUsername(anyString(), anyString());
+		doReturn(record).when(aceDao).getUserRecordByUsername(anyString(), anyString());
 	}
 
 	@Test(expected = UnresolvableOptimisticLockException.class)
