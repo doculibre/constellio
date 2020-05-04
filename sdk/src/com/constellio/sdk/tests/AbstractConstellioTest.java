@@ -52,6 +52,7 @@ import com.constellio.model.services.collections.exceptions.NoMoreCollectionAval
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleRuntimeException;
 import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
@@ -1251,8 +1252,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		if (mode.isEnabled() && stateFolder.exists()) {
 			getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(stateFolder);
 
+			getModelLayerFactory().getSystemConfigurationsManager().setValue(
+					ConstellioEIMConfigs.LEGACY_IDENTIFIER_INDEXED_IN_MEMORY, true);
 			for (CollectionPreparator preparator : preparators) {
-				//getModelLayerFactory().getRecordsCaches().rebuildCacheForCollection(preparator.collection);
+
 				for (Class<? extends InstallableModule> pluginClass : preparator.preexistingPlugins) {
 					givenInstalledModule(pluginClass);
 				}
@@ -1275,6 +1278,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		} else {
 
 			stateFolder.mkdirs();
+			getModelLayerFactory().getSystemConfigurationsManager().setValue(
+					ConstellioEIMConfigs.LEGACY_IDENTIFIER_INDEXED_IN_MEMORY, true);
 			for (CollectionPreparator preparator : preparators) {
 				ModulesAndMigrationsTestFeatures modulesAndMigrationsTestFeatures = givenCollection(preparator.collection,
 						preparator.languages);
