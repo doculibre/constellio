@@ -68,17 +68,17 @@ public class GetChildrenContext {
 			this.taxonomy = taxonomy;
 		}
 
-		if (taxonomy != null) {
-			if (taxonomy.getSchemaTypes().size() == 1) {
-				CacheConfig cacheConfig = modelLayerFactory.getRecordsCaches().getCache(getCollection()).getCacheConfigOf(taxonomy.getSchemaTypes().get(0));
+		if (this.taxonomy != null) {
+			if (this.taxonomy.getSchemaTypes().size() == 1) {
+				CacheConfig cacheConfig = modelLayerFactory.getRecordsCaches().getCache(getCollection()).getCacheConfigOf(this.taxonomy.getSchemaTypes().get(0));
 				hasPermanentCache = cacheConfig != null && cacheConfig.isPermanent();
 			}
-			principalTaxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(getCollection()).hasSameCode(taxonomy);
+			principalTaxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(getCollection()).hasSameCode(this.taxonomy);
 		}
 
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		if (record == null) {
-			fromType = schemasManager.getSchemaTypes(taxonomy.getCollection()).getSchemaType(taxonomy.getSchemaTypes().get(0));
+			fromType = schemasManager.getSchemaTypes(this.taxonomy.getCollection()).getSchemaType(this.taxonomy.getSchemaTypes().get(0));
 		} else {
 			fromType = schemasManager.getSchemaTypeOf(record);
 		}

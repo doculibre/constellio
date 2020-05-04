@@ -549,7 +549,7 @@ public class LogicalSearchQueryExecutorInCache {
 				if (query.getQueryExecutionMethod().requiringCacheExecution()) {
 					throw new IllegalArgumentException("Query is using a feature which is not supported with execution in cache. Requirement at index '" + i + "' failed.");
 				} else {
-					return false;
+						return false;
 				}
 			}
 		}

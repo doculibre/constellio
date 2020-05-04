@@ -624,7 +624,7 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_BATCH_DELETE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 10000, true),
-		RMRECORDS_CHECKOUT(asList(Document.SCHEMA_TYPE), 25, false),
+		//RMRECORDS_CHECKOUT(asList(Document.SCHEMA_TYPE), 25, false),
 		RMRECORDS_CHECKIN(asList(Document.SCHEMA_TYPE), 25, false),
 		RMRECORDS_CREATE_TASK(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, false),
 		RMRECORDS_BATCH_UNSHARE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, false),

@@ -12,7 +12,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -89,7 +88,6 @@ public class RobotsServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	@IntermittentFailureTest
 	public void whenLoadingTheLineageThenReturnParentsFromRootDownAndItself() {
 		assertThat(robotsService.loadAncestors("child11")).extracting("id").containsExactly(rootRobotId, child1Id, "child11");
 	}

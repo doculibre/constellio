@@ -79,7 +79,7 @@ public class RecordTextInputDataProviderAcceptanceTest extends ConstellioTest {
 		);
 
 		assertThat(dataProvider.getData("Ze", 0, 20)).containsOnly("categoryId_ZE42", "categoryId_Z");
-		assertThat(dataProvider.getData("Ze-", 0, 20)).containsOnly("categoryId_ZE42");
+		assertThat(dataProvider.getData("Ze-", 0, 20)).containsOnly("categoryId_ZE42", "categoryId_Z");
 		assertThat(dataProvider.getData("Ze-4", 0, 20)).containsOnly("categoryId_ZE42");
 		assertThat(dataProvider.getData("Ze-42", 0, 20)).containsOnly("categoryId_ZE42");
 		assertThat(dataProvider.getData("Ze-42.", 0, 20)).containsOnly("categoryId_ZE42");

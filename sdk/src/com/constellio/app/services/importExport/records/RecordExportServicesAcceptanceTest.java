@@ -1639,7 +1639,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		final String ANOTHER_COLLECTION = "anotherCollection";
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent(),
 				withCollection(ANOTHER_COLLECTION).withConstellioRMModule().withAllTest(users));
 		RMSchemasRecordsServices rmSchemasRecordsServicesSourceCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		RMSchemasRecordsServices rmOfTargetCollection = new RMSchemasRecordsServices(ANOTHER_COLLECTION, getAppLayerFactory());
@@ -1681,10 +1681,10 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				tuple(asList("READ", "WRITE", "DELETE"), asList("Gandalf Leblanc"), "unitId_30"),
 				tuple(asList("M"), asList("Gandalf Leblanc"), "unitId_30"),
 				tuple(asList("M"), asList("Big Foot"), "C03"),
+				tuple(asList("M"), asList("Bob 'Elvis' Gratton"), "docB30"),
 				tuple(asList("READ"), asList("Big Foot"), "C02"),
 				tuple(asList("READ", "WRITE"), asList("Big Foot"), "C01"),
-				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c"),
-				tuple(asList("READ"), asList("Bob 'Elvis' Gratton"), "docA19")
+				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c")
 
 		);
 
@@ -1708,8 +1708,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				tuple(asList("M"), asList("Big Foot"), "C03"),
 				tuple(asList("READ"), asList("Big Foot"), "C02"),
 				tuple(asList("READ", "WRITE"), asList("Big Foot"), "C01"),
-				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c"),
-				tuple(asList("READ"), asList("Bob 'Elvis' Gratton"), "docA19")
+				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c")
 		);
 
 		for (Authorization authorization : targetAuthorizationsListsAfterImport) {
@@ -1733,7 +1732,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent(),
 				withCollection(ANOTHER_COLLECTION).withConstellioRMModule().withAllTest(users));
 		RMSchemasRecordsServices rmSchemasRecordsServicesSourceCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		RMSchemasRecordsServices rmOfTargetCollection = new RMSchemasRecordsServices(ANOTHER_COLLECTION, getAppLayerFactory());
@@ -1778,6 +1777,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				tuple(asList("READ", "WRITE", "DELETE"), asList("Gandalf Leblanc"), "unitId_30"),
 				tuple(asList("M"), asList("Gandalf Leblanc"), "unitId_30"),
 				tuple(asList("M"), asList("Big Foot"), "C03"),
+				tuple(asList("M"), asList("Big Foot"), "docB30"),
 				tuple(asList("READ"), asList("Big Foot"), "C02"),
 				tuple(asList("READ", "WRITE"), asList("Big Foot"), "C01"),
 				tuple(asList("READ", "WRITE"), asList("Edouard Lechat"), "unitId_30c")

@@ -305,8 +305,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 	@Test
 	public void givenReturnRequestCompletedAndApprovedThenReturnContainer()
 			throws RecordServicesException {
-		recordServices.update(records.getContainerBac13().setBorrowed(true).setBorrower(records.getChuckNorris().getId()));
-		RMTask task = rm.wrapRMTask(taskSchemas.newReturnContainerRequestTask(records.getChuckNorris().getId(),
+		recordServices.update(records.getContainerBac13().setBorrowed(true).setBorrower(records.getAdmin().getId()));
+		RMTask task = rm.wrapRMTask(taskSchemas.newReturnContainerRequestTask(records.getAdmin().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13,
 				records.getContainerBac13().getTitle()).getWrappedRecord());
 		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
@@ -318,7 +318,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		container = records.getContainerBac13();
 		assertThat(container.getBorrowed()).isNull();
 
-		EmailAddress adresseReceiver = new EmailAddress("Chuck Norris", "chuck@doculibre.com");
+		EmailAddress adresseReceiver = new EmailAddress("System Admin", "admin@organization.com");
 		EmailToSend emailToSend = getEmailToSend(ALERT_RETURNED_ACCEPTED);
 		assertThat(emailToSend).isNotNull();
 		assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_RETURNED_ACCEPTED);

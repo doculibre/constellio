@@ -20,7 +20,6 @@ import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -852,56 +851,6 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		//TODO Valider que autorisation 1 pas ajoutée!
 	}
-
-
-	@Test    //todo
-	public void givenAnImportedAuthorizationRecordWithInvalidUserPrincipalThenValidationErrorThrown() throws Exception {
-		String INVALID_USER_PRINCIPAL = "invalidUserPrincipal";
-		String VALID_USER_PRINCIPAL = users.chuckNorris().getId();
-
-		TestRecord target = new TestRecord(Group.SCHEMA_TYPE, zeCollection);
-		recordServices.add(target);
-
-		defineSchemasManager().using(schemas
-				.withAStringMetadata(whichIsUnique)
-				.withAParentReferenceFromZeSchemaToZeSchema()
-				.withAParentReferenceFromAnotherSchemaToZeSchema());
-
-		String VALID_TARGET_ID = target.getId();//records.unitId_20d;
-
-
-		ImportDataBuilder targetRecord = defaultSchemaData().setId(VALID_TARGET_ID);
-
-		ImportDataBuilder validTargetAuthorization = defaultSchemaData().setId("1")
-				.addField("roles", Arrays.asList("U"))
-				.addField("principals", Arrays.asList(VALID_USER_PRINCIPAL));
-		//.addField("target",VALID_TARGET_ID);
-
-		ImportDataBuilder invalidTargetAuthorization = defaultSchemaData().setId("2")
-				.addField("roles", Arrays.asList("U"))
-				.addField("principals", Arrays.asList(INVALID_USER_PRINCIPAL));
-		//.addField("target",VALID_TARGET_ID);
-
-		//importDataProvider.add(AdministrativeUnit.SCHEMA_TYPE,targetRecord);
-		importDataProvider.add(Authorization.SCHEMA_TYPE, validTargetAuthorization);
-		importDataProvider.add(Authorization.SCHEMA_TYPE, invalidTargetAuthorization);
-
-		try {
-			bulkImport(importDataProvider, progressionListener, admin);
-			fail("An exception was expected");
-		} catch (ValidationException e) {
-			assertThat(frenchMessages(e))
-					.containsOnly("Autorisation 1 : La cible «invalid_target_id» de l'autorisation «1» n'existe pas.");
-		}
-
-	}
-
-	@Test    //todo même chose que l'autre mais avec group au leu de user
-	public void givenAnImportedAuthorizationRecordWithInvalidGroupPrincipalThenValidationErrorThrown()
-			throws Exception {
-
-	}
-
 
 	@Test
 	public void givenPermisiveModeWhenImportRecordWithMissingValuesThenOnlyWarningsForUSR()

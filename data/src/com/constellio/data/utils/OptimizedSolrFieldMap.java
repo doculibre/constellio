@@ -20,23 +20,6 @@ public class OptimizedSolrFieldMap implements Map<String, Object> {
 	IntArrayList ids;
 	Object[] elementData;
 
-	public OptimizedSolrFieldMap(Map<String, Object> map) {
-		if (map instanceof OptimizedSolrFieldMap) {
-			this.ids = ((OptimizedSolrFieldMap) map).ids;
-			this.elementData = ((OptimizedSolrFieldMap) map).elementData;
-		} else {
-			ids = new IntArrayList(map.size());
-			elementData = new Object[map.size()];
-
-			for (String code : map.keySet()) {
-				ids.add(mapping.index(code));
-			}
-			ids.sortThis();
-			for (int i = 0; i < ids.size(); i++) {
-				elementData[i] = map.get(mapping.code(ids.get(i)));
-			}
-		}
-	}
 
 	public OptimizedSolrFieldMap(List<String> keys, List<Object> values) {
 		ids = new IntArrayList(keys.size());

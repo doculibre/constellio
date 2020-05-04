@@ -246,13 +246,6 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenApprovedButtonClickedThenApproveTheListAndRefreshWithMessage() throws Exception {
-		presenter.approvalButtonClicked();
-		verify(service, times(1)).approveList(list, user);
-		verify(view, times(1)).showMessage(anyString());
-	}
-
-	@Test
 	public void whenShouldAllowContainerEditingThenAskTheDecommissioningService() {
 		when(service.canEditContainers(list, user)).thenReturn(true);
 		assertThat(presenter.shouldAllowContainerEditing()).isTrue();
