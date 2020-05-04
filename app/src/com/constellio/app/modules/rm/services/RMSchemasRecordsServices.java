@@ -948,6 +948,9 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				from(printable_report.schemaType()).where(SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME))));
 	}
 
+	public Folder getFolderByLegacyId(String id) {
+		return wrapFolder(getByLegacyId(Folder.SCHEMA_TYPE, id));
+	}
 
 	public List<Folder> getFolderByUnicity(String uniqueKey) {
 		if (uniqueKey == null) {

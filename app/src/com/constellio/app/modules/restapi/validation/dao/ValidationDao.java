@@ -44,6 +44,20 @@ public class ValidationDao extends BaseDao {
 		return new ArrayList<>(userCredential.getAccessTokens().keySet());
 	}
 
+	public Map<String, LocalDateTime> getUserAccessTokens(String serviceKey) {
+		String username = getUsernameByServiceKey(serviceKey);
+		if (username == null) {
+			return Collections.emptyMap();
+		}
+
+		UserCredential userCredential = userServices.getUser(username);
+		if (userCredential == null) {
+			return Collections.emptyMap();
+		}
+
+		return userCredential.getAccessTokens();
+	}
+
 	public boolean isUserAuthenticated(String token, String serviceKey) {
 		if (getUserTokens(serviceKey).contains(token)) {
 			return true;
