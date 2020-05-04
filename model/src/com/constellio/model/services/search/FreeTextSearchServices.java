@@ -91,11 +91,14 @@ public class FreeTextSearchServices {
 		String q = params.get("q");
 		if (q != null && q.startsWith("schema_s:")) {
 			schemaType = q.substring("schema_s:".length());
-			schemaType = StringUtils.substringBefore(schemaType, "_");
-			schemaType = StringUtils.substringBefore(schemaType, "*");
 		}
 		if (q != null && q.startsWith("collection_s:")) {
 			collection = StringUtils.substringBefore(q.substring("collection_s:".length()), "_");
+		}
+
+		if (schemaType != null) {
+			schemaType = StringUtils.substringBefore(schemaType, "_");
+			schemaType = StringUtils.substringBefore(schemaType, "*");
 		}
 
 		boolean security = true;
