@@ -369,7 +369,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 			fail("Exception expected");
 		} catch (RuntimeException e) {
 			assertThat(e.getMessage())
-					.contains("Invalid serviceKey/token");
+					.contains("invalid authentification information");
 		}
 	}
 
@@ -389,7 +389,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 			fail("Exception expected");
 		} catch (RuntimeException e) {
 			assertThat(e.getMessage())
-					.contains("Invalid serviceKey/token");
+					.contains("invalid authentification information");
 		}
 	}
 
@@ -407,7 +407,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 			fail("Exception expected");
 		} catch (RuntimeException e) {
 			assertThat(e.getMessage())
-					.contains("Invalid serviceKey/token");
+					.contains("invalid authentification information");
 		}
 	}
 
@@ -424,7 +424,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 			fail("Exception expected");
 		} catch (RuntimeException e) {
 			assertThat(e.getMessage())
-					.contains("Invalid serviceKey/token");
+					.contains("invalid authentification information");
 		}
 	}
 

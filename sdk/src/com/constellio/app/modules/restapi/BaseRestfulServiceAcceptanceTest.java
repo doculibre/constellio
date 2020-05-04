@@ -50,8 +50,9 @@ import static java.util.Arrays.asList;
 
 public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 
-	protected String host;
-	protected String serviceKey = "bobKey", token = "bobToken";
+	protected String host, fakeHost = "fakedns.com";
+	protected String serviceKey = "bobKey", fakeServiceKey = "fakeServiceKey";
+	protected String token = "bobToken", expiredToken = "expiredToken", fakeToken = "fakeToken";
 	protected String dateFormat, dateTimeFormat;
 	protected String sasquatchServiceKey = "sasquatchKey", sasquatchToken = "sasquatchToken";
 	protected LocalDateTime fakeDate = new LocalDateTime();
@@ -79,11 +80,13 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected static final String OPEN_BRACE = "{";
 	protected static final String CLOSE_BRACE = "}";
 
-	abstract protected SchemaTypes getSchemaType();
+	protected SchemaTypes getSchemaType() {
+		return null;
+	}
 
 	protected void setUpTest() {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioRestApiModule().withAllTest(users)
-				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
+				.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 
 		dateFormat = getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
@@ -102,7 +105,8 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		userServices.addUpdateUserCredential(users.bob().setServiceKey(serviceKey)
-				.addAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
+				.addAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1))
+				.addAccessToken(expiredToken, TimeProvider.getLocalDateTime().minusDays(1)));
 		userServices.addUpdateUserCredential(users.sasquatch().setServiceKey(sasquatchServiceKey)
 				.addAccessToken(sasquatchToken, TimeProvider.getLocalDateTime().plusYears(1)));
 
@@ -254,8 +258,11 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		return byteArray.toByteArray();
 	}
 
-	protected String calculateSignature(Class clazz, String... params)
-			throws Exception {
+	protected String calculateSignature(Class clazz, String... params) throws Exception {
+		if (getSchemaType() == null) {
+			throw new RuntimeException("Impossible to calculate signature when getSchemaType() return null");
+		}
+
 		String data = host;
 		for (String param : params) {
 			if (param.equals("signature")) {

@@ -51,6 +51,6 @@ public class ConversionManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	private String[] getSupportedExtentionByPdfTronMinusExtentionThatAreNotConverted() {
-		return ArrayUtils.removeElements(PdfTronViewer.SUPPORTED_EXTENTION, new String[]{"pdf", "pdf/a", "xfdf", "fdf"});
+		return ArrayUtils.removeElements(PdfTronViewer.SUPPORTED_EXTENTION, new String[]{"pdf", "pdf/a", "xfdf", "fdf", "mp4"});
 	}
 }

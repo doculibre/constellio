@@ -49,9 +49,24 @@ public class RobotsService {
 		String path = robot.getPaths().get(0);
 		List<String> lineage = Arrays.asList(path.substring(1).split("/"));
 		// TODO: The sort is just a quick workaround
-		LogicalSearchQuery query = new LogicalSearchQuery(from(robots.robot.schemaType()).where(Schemas.IDENTIFIER).isIn(lineage))
-				.sortAsc(Schemas.CREATED_ON);
-		return robots.searchRobots(query);
+		LogicalSearchQuery query = new LogicalSearchQuery(from(robots.robot.schemaType()).where(Schemas.IDENTIFIER).isIn(lineage));
+		List<Robot> returnedRobots = robots.searchRobots(query);
+
+		returnedRobots.sort((r1, r2) -> {
+			if (r1.getPaths() == null || r1.getPaths().isEmpty() || r2.getPaths() == null || r2.getPaths().isEmpty()) {
+				return 0;
+			}
+			if (r1.getPaths().get(0).contains(r2.getId())) {
+				return 1;
+			}
+
+			if (r2.getPaths().get(0).contains(r1.getId())) {
+				return -1;
+			}
+			return 0;
+		});
+
+		return returnedRobots;
 	}
 
 	public List<Robot> loadAncestors(String robotId) {
