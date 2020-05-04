@@ -1,6 +1,7 @@
 package com.constellio.data.utils;
 
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -8,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@InDevelopmentTest
+//Was developped to support mapping of huge records, but unused
 public class OptimizedSolrFieldMapTest extends ConstellioTest {
 
 	@Test
