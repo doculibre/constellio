@@ -50,7 +50,7 @@ public class RobotsService {
 		List<String> lineage = Arrays.asList(path.substring(1).split("/"));
 		// TODO: The sort is just a quick workaround
 		LogicalSearchQuery query = new LogicalSearchQuery(from(robots.robot.schemaType()).where(Schemas.IDENTIFIER).isIn(lineage))
-				.sortAsc(Schemas.CREATED_ON);
+				.sortAsc(Schemas.CREATED_ON).sortAsc(Schemas.IDENTIFIER);
 		return robots.searchRobots(query);
 	}
 

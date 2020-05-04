@@ -151,7 +151,7 @@ public class ValidationServiceTest {
 
 	@Test(expected = RecordNotFoundException.class)
 	public void testValidateAuthorizationsWithInvalidPrincipal() {
-		when(validationDao.getUserByUsername(anyString(), anyString())).thenReturn(null);
+		when(validationDao.getUserRecordByUsername(anyString(), anyString())).thenReturn(null);
 
 		validationService.validateAuthorizations(aces, collection);
 	}
