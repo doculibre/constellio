@@ -30,8 +30,8 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 	private RecordVO record;
 	private boolean deleteButtonVisible;
 
-	@PropertyId("publishStartDate") private JodaDateField publishStartDate;
-	@PropertyId("publishEndDate") private JodaDateField publishEndDate;
+	@PropertyId("publishingStartDate") private JodaDateField publishStartDate;
+	@PropertyId("publishingExpirationDate") private JodaDateField publishEndDate;
 
 	public PublishDocumentViewImpl() {
 		presenter = new PublishDocumentPresenter(this);
@@ -115,13 +115,17 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 	}
 
 	private void buildDateFields() {
+		boolean isDateFieldsRequired = presenter.isDateFieldValuesRequired();
+
 		publishStartDate = new JodaDateField();
 		publishStartDate.setCaption($("AuthorizationsView.startDate"));
 		publishStartDate.setId("startDate");
+		publishStartDate.setRequired(isDateFieldsRequired);
 
 		publishEndDate = new JodaDateField();
 		publishEndDate.setCaption($("AuthorizationsView.endDate"));
 		publishEndDate.setId("endDate");
+		publishEndDate.setRequired(isDateFieldsRequired);
 	}
 
 	public void linkToDocument(Document document) {
