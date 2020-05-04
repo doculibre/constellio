@@ -33,7 +33,7 @@ public class SchemaFilters extends CollectionFilters implements DataStoreFilters
 		if (schemaType != null) {
 			filters.add("schema_s:" + schemaType.getCode() + "_*");
 		} else {
-			filters.add("schema_s:" + schema.getCode());
+			filters.add("schema_s:" + "\"" + schema.getCode() + "\"");
 		}
 		return filters;
 	}
