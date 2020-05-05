@@ -9,11 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@InDevelopmentTest
 //Was developped to support mapping of huge records, but unused
 public class OptimizedSolrFieldMapTest extends ConstellioTest {
 
 	@Test
+	@InDevelopmentTest
 	public void test_construction_with_HashMap_25elements() {
 
 		for (int i = 0; i < 10_000_000; i++) {
@@ -33,6 +33,7 @@ public class OptimizedSolrFieldMapTest extends ConstellioTest {
 
 
 	@Test
+	@InDevelopmentTest
 	public void test_construction_with_OptimizedMap_25elements() {
 
 		for (int i = 0; i < 10_000_000; i++) {
@@ -54,6 +55,7 @@ public class OptimizedSolrFieldMapTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void test_construction_with_HashMap_50elements() {
 
 		for (int i = 0; i < 10_000_000; i++) {
@@ -73,6 +75,7 @@ public class OptimizedSolrFieldMapTest extends ConstellioTest {
 
 
 	@Test
+	@InDevelopmentTest
 	public void test_construction_with_OptimizedMap_50elements() {
 
 		for (int i = 0; i < 10_000_000; i++) {
@@ -94,6 +97,7 @@ public class OptimizedSolrFieldMapTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void test_construction_with_HashMap_100elements() {
 
 		for (int i = 0; i < 10_000_000; i++) {
@@ -113,6 +117,7 @@ public class OptimizedSolrFieldMapTest extends ConstellioTest {
 
 
 	@Test
+	@InDevelopmentTest
 	public void test_construction_with_OptimizedMap_100elements() {
 
 		for (int i = 0; i < 10_000_000; i++) {
@@ -137,6 +142,7 @@ public class OptimizedSolrFieldMapTest extends ConstellioTest {
 
 
 	@Test
+	@InDevelopmentTest
 	public void test_get_with_HashMap_25elements() {
 
 		Map<String, Object> map = new HashMap<>();
@@ -161,6 +167,7 @@ public class OptimizedSolrFieldMapTest extends ConstellioTest {
 
 
 	@Test
+	@InDevelopmentTest
 	public void test_get_with_OptimizedMap_25elements() {
 
 		List<String> keys = new ArrayList<>();
@@ -186,6 +193,7 @@ public class OptimizedSolrFieldMapTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void test_get_with_HashMap_50elements() {
 
 		Map<String, Object> map = new HashMap<>();
@@ -210,6 +218,7 @@ public class OptimizedSolrFieldMapTest extends ConstellioTest {
 
 
 	@Test
+	@InDevelopmentTest
 	public void test_get_with_OptimizedMap_50elements() {
 
 		List<String> keys = new ArrayList<>();
@@ -236,6 +245,7 @@ public class OptimizedSolrFieldMapTest extends ConstellioTest {
 
 
 	@Test
+	@InDevelopmentTest
 	public void test_get_with_HashMap_100elements() {
 
 		Map<String, Object> map = new HashMap<>();
@@ -260,6 +270,7 @@ public class OptimizedSolrFieldMapTest extends ConstellioTest {
 
 
 	@Test
+	@InDevelopmentTest
 	public void test_get_with_OptimizedMap_100elements() {
 
 		List<String> keys = new ArrayList<>();
