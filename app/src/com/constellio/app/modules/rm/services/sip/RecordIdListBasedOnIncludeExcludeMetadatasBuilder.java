@@ -38,9 +38,11 @@ public class RecordIdListBasedOnIncludeExcludeMetadatasBuilder {
 									   String excludeFromExportDocumentMetadataCode) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		LogicalSearchQuery includedFoldersQuery = new LogicalSearchQuery(from(rm.folder.schemaType())
-				.where(rm.folder.schemaType().getMetadata(Folder.DEFAULT_SCHEMA + "_" + includeInExportFolderMetadataCode)).isTrue());
+				.where(rm.folder.schemaType().getMetadata(Folder.DEFAULT_SCHEMA + "_" + includeInExportFolderMetadataCode)).isTrue()
+				.andWhere(rm.folder.schemaType().getMetadata(Folder.DEFAULT_SCHEMA + "_" + excludeFromExportFolderMetadataCode)).isFalseOrNull());
 		LogicalSearchQuery includedDocumentsQuery = new LogicalSearchQuery(from(rm.document.schemaType())
-				.where(rm.document.schemaType().getMetadata(Document.DEFAULT_SCHEMA + "_" + includeInExportDocumentMetadataCode)).isTrue());
+				.where(rm.document.schemaType().getMetadata(Document.DEFAULT_SCHEMA + "_" + includeInExportDocumentMetadataCode)).isTrue()
+				.andWhere(rm.document.schemaType().getMetadata(Document.DEFAULT_SCHEMA + "_" + excludeFromExportDocumentMetadataCode)).isFalseOrNull());
 
 		includedRecordIds = new ArrayList<>();
 		idsWithIncludedMetadataToTrue = new ArrayList<>();
