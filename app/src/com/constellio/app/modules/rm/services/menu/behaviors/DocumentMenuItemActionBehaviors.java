@@ -32,16 +32,19 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
+import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -58,6 +61,7 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -75,7 +79,9 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.FilenameUtils;
@@ -163,6 +169,63 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
+	public void renameContent(final Document document, final MenuItemActionBehaviorParams params) {
+		//		BaseView view = params.getView();
+		//		Map<String, String> formParams = params.getFormParams();
+		//		String documentId = document.getId();
+		//
+		//		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(formParams);
+		//		if (areSearchTypeAndSearchIdPresent) {
+		//			view.navigate().to(RMViews.class).addDocumentWithContentFromDecommission(documentId,
+		//					DecommissionNavUtil.getSearchId(formParams), DecommissionNavUtil.getSearchType(formParams));
+		//		} else if (formParams != null && formParams.get(RMViews.FAV_GROUP_ID_KEY) != null) {
+		//			view.navigate().to(RMViews.class)
+		//					.addDocumentWithContentFromFavorites(documentId, formParams.get(RMViews.FAV_GROUP_ID_KEY));
+		//		} else if (rmModuleExtensions.navigateToAddDocumentWhileKeepingTraceOfPreviousView(
+		//				new NavigateToFromAPageParams(formParams, documentId))) {
+		//		} else {
+		//			view.navigate().to(RMViews.class).addDocumentWithContent(documentId);
+		//		}
+		WindowButton renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),
+				WindowConfiguration.modalDialog("40%", "100px")) {
+			@Override
+			protected Component buildWindowContent() {
+				final TextField title = new BaseTextField();
+				String contentTitle = document.getContent().getCurrentVersion().getFilename();
+				title.setValue(contentTitle);
+				title.setWidth("100%");
+
+				Button save = new BaseButton($("DisplayDocumentView.renameContentConfirm")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						renameContentButtonClicked(document, params, title.getValue());
+						getWindow().close();
+					}
+				};
+				save.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				save.addStyleName(BaseForm.SAVE_BUTTON);
+
+				Button cancel = new BaseButton($("DisplayDocumentView.renameContentCancel")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				};
+
+				HorizontalLayout form = new HorizontalLayout(title, save, cancel);
+				form.setExpandRatio(title, 1);
+				form.setSpacing(true);
+				form.setWidth("95%");
+
+				VerticalLayout layout = new VerticalLayout(form);
+				layout.setSizeFull();
+
+				return layout;
+			}
+		};
+		renameContentButton.click();
+	}
+
 	public void edit(Document document, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to(RMViews.class).editDocument(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
@@ -199,6 +262,36 @@ public class DocumentMenuItemActionBehaviors {
 
 	}
 
+	private void renameContentButtonClicked(Document document, MenuItemActionBehaviorParams params,
+											String newContentTitle) {
+		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
+				params.getView().getConstellioFactories(), params.getView().getSessionContext());
+		if (document != null) {
+			document = renameContentButtonClicked(document, newContentTitle);
+			presenterUtils.addOrUpdate(document.getWrappedRecord());
+			params.getView().updateUI();
+			//			navigateToDisplayDocument(document.getId(), params.getFormParams());
+		}
+	}
+
+	private Document renameContentButtonClicked(Document document, String newName) {
+		boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
+		if (document.getContent().getCurrentVersion().getFilename().equals(document.getTitle())) {
+			if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
+					.getPopulateConfigs().isAddOnly()) {
+				document.setTitle(newName);
+			}
+		} else if (FilenameUtils.removeExtension(document.getContent().getCurrentVersion().getFilename())
+				.equals(document.getTitle())) {
+			if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
+					.getPopulateConfigs().isAddOnly()) {
+				document.setTitle(FilenameUtils.removeExtension(newName));
+			}
+		}
+
+		document.getContent().renameCurrentVersion(newName);
+		return document;
+	}
 
 	private void deleteConfirmationDocumentButtonClicked(Document document, MenuItemActionBehaviorParams params) {
 		if (validateDeleteDocumentPossibleExtensively(document.getWrappedRecord(), params.getUser()).isEmpty()) {
