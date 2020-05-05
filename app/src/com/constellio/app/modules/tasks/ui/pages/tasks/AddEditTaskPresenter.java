@@ -71,7 +71,6 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -311,12 +310,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			}
 			boolean isPromptUser = false;
 
-			// this is in case of special validation that would only occur when saving the task.
 			Transaction transaction = new Transaction();
 			RecordUpdateOptions taskUpdateOptions = getTaskUpdateOptions(task, true);
 			transaction.setOptions(taskUpdateOptions);
 			transaction.addUpdate(task.getWrappedRecord());
-			recordServices().prepareRecords(transaction);
 
 			if (!isCompletedOrClosedOnInitialization && isCompleted(recordVO)) {
 				isPromptUser = rmModuleExtensions.isPromptUser(new PromptUserParam(task, new Action() {
@@ -334,8 +331,6 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			view.showErrorMessage(e.getMessage());
 		} catch (ValidationException e) {
 			ErrorDisplayUtil.showBackendValidationException(e.getValidationErrors());
-		} catch (RecordServicesException.ValidationException e) {
-			ErrorDisplayUtil.showBackendValidationException(e.getErrors());
 		}
 	}
 
