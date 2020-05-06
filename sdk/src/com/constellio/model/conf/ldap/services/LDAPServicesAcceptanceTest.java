@@ -5,6 +5,7 @@ import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import org.junit.Test;
 
@@ -20,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LDAPServicesAcceptanceTest extends ConstellioTest {
 
 	@Test
+	@InDevelopmentTest
 	public void givenValidLdapConnexionInfoThenConnectToServer() {
 		LdapContext ldapContext = getValidContext();
 		assertThat(ldapContext).isNotNull();
@@ -32,6 +34,7 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void whenSearchingGroupThenReturnValidGroupAttributes()
 			throws Exception {
 		LdapContext ldapContext = getValidContext();
@@ -48,6 +51,7 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void whenGetRootContextsGetValidRootContext()
 			throws Exception {
 		LdapContext ldapContext = getValidContext();
@@ -56,6 +60,7 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 
 
 	@Test
+	@InDevelopmentTest
 	public void whenSearchingMoreThan1000GroupsThenReturnAllGroups()
 			throws Exception {
 		LdapContext ldapContext = getValidContext();
@@ -65,6 +70,7 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void whenSearchingMoreThan1000UsersThenReturnAllUsers()
 			throws Exception {
 		LdapContext ldapContext = getValidContext();
@@ -75,6 +81,7 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void whenSearchingGroupsFromTwoContextsThenReturnAllGroupsFromBothContexts()
 			throws Exception {
 		LdapContext ldapContext = getValidContext();
@@ -102,6 +109,7 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void whenDnForUserThenOk()
 			throws Exception {
 		LdapContext ldapContext = getValidContext();

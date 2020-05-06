@@ -56,6 +56,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchab
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.junit.Assume.assumeTrue;
 
 public class SqlServerTransactionLogManagerAcceptTest extends ConstellioTest {
 
@@ -88,6 +89,8 @@ public class SqlServerTransactionLogManagerAcceptTest extends ConstellioTest {
 		// givenHashingEncodingIs(BASE64_URL_ENCODED);
 		givenBackgroundThreadsEnabled();
 		//withSpiedServices(SecondTransactionLogManager.class);
+
+		assumeSQLConnectionConfigured();
 
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
@@ -434,6 +437,10 @@ public class SqlServerTransactionLogManagerAcceptTest extends ConstellioTest {
 		getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).resetVersion();
 		getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll();
 		getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).deleteAll();
+	}
+
+	private void assumeSQLConnectionConfigured() {
+		assumeTrue("SQL connection required", getCurrentTestSession().getProperty("sql.server.url") != null);
 	}
 }
 
