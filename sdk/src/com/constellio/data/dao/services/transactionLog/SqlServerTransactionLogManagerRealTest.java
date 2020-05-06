@@ -57,6 +57,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.notNull;
@@ -131,6 +132,8 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+
+		assumeSQLConnectionConfigured();
 
 		when(systemExtensions.isDocumentFieldLoggedInTransactionLog(anyString(), anyString(), anyString(), eq(true)))
 				.thenReturn(true);
@@ -615,4 +618,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 				.map(x -> x.getContent()).collect(Collectors.toList()));
 	}
 
+	private void assumeSQLConnectionConfigured() {
+		assumeTrue("SQL connection required", getCurrentTestSession().getProperty("sql.server.url") != null);
+	}
 }

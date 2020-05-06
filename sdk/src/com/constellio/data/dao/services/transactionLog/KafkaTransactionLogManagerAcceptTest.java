@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static org.junit.Assume.assumeTrue;
 
 public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 
@@ -172,5 +173,9 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 		// }
 		//
 		// verify(log, never()).prepare(anyString(), any(BigVaultServerTransaction.class));
+	}
+
+	private void assumeKafkaConfigured() {
+		assumeTrue("Kafka", false);
 	}
 }

@@ -15,6 +15,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
 import com.constellio.sdk.tests.SolrSDKToolsServices;
 import com.constellio.sdk.tests.SolrSDKToolsServices.VaultSnapshot;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -32,12 +33,14 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+
 public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 
 	@Rule
 	public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
 	// Step 1
+	@InDevelopmentTest
 	@Test
 	public void validateCoreMigrationHighway()
 			throws Exception {
@@ -55,6 +58,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 	}
 
 	// Step 2
+	@InDevelopmentTest
 	@Test
 	public void validateCoreTasksMigrationHighway()
 			throws Exception {
@@ -73,6 +77,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 	}
 
 	// Step 3
+	@InDevelopmentTest
 	@Test
 	public void validateCoreRMMigrationHighway()
 			throws Exception {
@@ -94,6 +99,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 	}
 
 	// Step 4
+	@InDevelopmentTest
 	@Test
 	public void validateCoreRobotsMigrationHighway()
 			throws Exception {
@@ -112,6 +118,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 	}
 
 	// Step 5
+	@InDevelopmentTest
 	@Test
 	public void validateCoreESMigrationHighway()
 			throws Exception {
@@ -129,6 +136,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void validateCoreESRMMigrationHighway()
 			throws Exception {
 
@@ -155,6 +163,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void validateCoreRMESMigrationHighway()
 			throws Exception {
 
@@ -189,6 +198,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void validateCoreESRMRobotsMigrationHighway()
 			throws Exception {
 
