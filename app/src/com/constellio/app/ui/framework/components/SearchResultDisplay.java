@@ -41,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -294,34 +295,45 @@ public class SearchResultDisplay extends VerticalLayout {
 	public void addLayoutClickListener(LayoutClickListener layoutListener) {
 		super.addLayoutClickListener(layoutListener);
 
-		List<Button> nestedButtons = ComponentTreeUtils.getChildren(this, Button.class);
-		for (Button nestedButton : nestedButtons) {
-			if (!(nestedButton instanceof ElevationButton)) {
-				addClickListener(layoutListener, nestedButton);
-			}
+		Button button = ComponentTreeUtils.getFirstChild(titleLink, Button.class);
+		if (button != null) {
+			button.addClickListener(new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					MouseEventDetails mouseEventDetails = new MouseEventDetails();
+					mouseEventDetails.setButton(MouseButton.LEFT);
+					mouseEventDetails.setClientX(event.getClientX());
+					mouseEventDetails.setClientY(event.getClientY());
+					mouseEventDetails.setRelativeX(event.getRelativeX());
+					mouseEventDetails.setRelativeY(event.getRelativeY());
+					LayoutClickEvent layoutClickEvent = new LayoutClickEvent(event.getComponent(), mouseEventDetails, SearchResultDisplay.this, event.getComponent());
+					layoutListener.layoutClick(layoutClickEvent);
+				}
+			});
 		}
 	}
 
-	private void addClickListener(final LayoutClickListener layoutListener, Button button) {
-		button.addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				MouseEventDetails mouseEventDetails = new MouseEventDetails();
-				mouseEventDetails.setButton(MouseButton.LEFT);
-				mouseEventDetails.setClientX(event.getClientX());
-				mouseEventDetails.setClientY(event.getClientY());
-				mouseEventDetails.setRelativeX(event.getRelativeX());
-				mouseEventDetails.setRelativeY(event.getRelativeY());
-				LayoutClickEvent layoutClickEvent = new LayoutClickEvent(event.getComponent(), mouseEventDetails, SearchResultDisplay.this, event.getComponent());
-				layoutListener.layoutClick(layoutClickEvent);
-			}
-		});
+	@SuppressWarnings("unchecked")
+	public List<ClickListener> getClickListeners() {
+		List<ClickListener> result = new ArrayList<>();
+		Button nestedButton = ComponentTreeUtils.getFirstChild(titleLink, Button.class);
+		if (nestedButton != null) {
+			result.addAll((Collection<ClickListener>) nestedButton.getListeners(ClickEvent.class));
+		}
+		return result;
 	}
 
 	public void addClickListener(final ClickListener listener) {
 		Button nestedButton = ComponentTreeUtils.getFirstChild(titleLink, Button.class);
 		if (nestedButton != null) {
 			nestedButton.addClickListener(listener);
+		}
+	}
+
+	public void removeClickListener(final ClickListener listener) {
+		Button nestedButton = ComponentTreeUtils.getFirstChild(titleLink, Button.class);
+		if (nestedButton != null) {
+			nestedButton.removeClickListener(listener);
 		}
 	}
 
