@@ -79,6 +79,7 @@ import com.constellio.model.services.schemas.validators.MaskedMetadataValidator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -971,7 +972,12 @@ public class RecordsImportServicesExecutor {
 
 				Comment comment = new Comment();
 				comment.setMessage(hashMap.get(COMMENT_MESSAGE));
-				comment.setUser(userName == null ? null : userService.getUserInCollection(userName, collection));
+				try {
+					comment.setUser(userName == null ? null : userService.getUserInCollection(userName, collection));
+
+				} catch (UserServicesRuntimeException_UserIsNotInCollection ignored) {
+					//Seems to be already supporting nulls
+				}
 
 				if (hashMap.get(COMMENT_DATE_TIME) != null) {
 					comment.setDateTime(LocalDateTime.parse(hashMap.get(COMMENT_DATE_TIME)));
