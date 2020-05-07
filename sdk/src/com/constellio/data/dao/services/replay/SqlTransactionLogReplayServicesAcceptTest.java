@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 public class SqlTransactionLogReplayServicesAcceptTest extends ConstellioTest {
 
@@ -64,6 +65,8 @@ public class SqlTransactionLogReplayServicesAcceptTest extends ConstellioTest {
 		// givenHashingEncodingIs(BASE64_URL_ENCODED);
 		givenBackgroundThreadsEnabled();
 		//withSpiedServices(SecondTransactionLogManager.class);
+
+		assumeSQLConnectionConfigured();
 
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
@@ -166,5 +169,8 @@ public class SqlTransactionLogReplayServicesAcceptTest extends ConstellioTest {
 		assertThat(content).isEqualTo("Guide d'architecture logiciel");
 	}
 
+	private void assumeSQLConnectionConfigured() {
+		assumeTrue("SQL connection required", getCurrentTestSession().getProperty("sql.server.url") != null);
+	}
 
 }
