@@ -78,6 +78,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.validators.MaskedMetadataValidator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -895,14 +896,14 @@ public class RecordsImportServicesExecutor {
 					String principalValue = StringUtils.substringAfter(principal, ":");
 
 					if (User.SCHEMA_TYPE.equals(principalSchemaType)) {
-						User principalUser = userServices.getUserInCollection(principalValue, collection);
-						if (principalUser == null) {
+						try {
+							User principalUser = userServices.getUserInCollection(principalValue, collection);
+							convertedPrincipals.add(principalUser.getId());
+						} catch (UserServicesRuntimeException e) {
 							Map<String, Object> parameters = new HashMap<>();
 							parameters.put("principal", principal);
 							errors.add(RecordsImportServices.class, PRINCIPALS_USER_CANNOT_BE_NULL, parameters);
-							//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
-						} else {
-							convertedPrincipals.add(principalUser.getId());
+							throw new SkippedBecauseOfFailedDependency();
 						}
 					}
 
@@ -912,10 +913,10 @@ public class RecordsImportServicesExecutor {
 							Map<String, Object> parameters = new HashMap<>();
 							parameters.put("principal", principal);
 							errors.add(RecordsImportServices.class, PRINCIPALS_GROUP_CANNOT_BE_NULL, parameters);
-							//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
-						} else {
-							convertedPrincipals.add(principalGroup.getId());
+							throw new SkippedBecauseOfFailedDependency();
 						}
+						convertedPrincipals.add(principalGroup.getId());
+
 					}
 
 				}
