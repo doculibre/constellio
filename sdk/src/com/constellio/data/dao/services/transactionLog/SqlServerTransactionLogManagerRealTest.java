@@ -132,102 +132,101 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		if (isSQLConnectionConfigured()) {
+			when(systemExtensions.isDocumentFieldLoggedInTransactionLog(anyString(), anyString(), anyString(), eq(true)))
+					.thenReturn(true);
+			when(systemExtensions.isDocumentFieldLoggedInTransactionLog(anyString(), anyString(), anyString(), eq(false)))
+					.thenReturn(false);
 
-		assumeSQLConnectionConfigured();
+			givenDisabledAfterTestValidations();
+			withSpiedServices(ContentDao.class);
+			electionManager = new ObservableLeaderElectionManager(new LeaderElectionManager() {
+				@Override
+				public boolean isCurrentNodeLeader() {
+					return true;
+				}
 
-		when(systemExtensions.isDocumentFieldLoggedInTransactionLog(anyString(), anyString(), anyString(), eq(true)))
-				.thenReturn(true);
-		when(systemExtensions.isDocumentFieldLoggedInTransactionLog(anyString(), anyString(), anyString(), eq(false)))
-				.thenReturn(false);
+				@Override
+				public void initialize() {
 
-		givenDisabledAfterTestValidations();
-		withSpiedServices(ContentDao.class);
-		electionManager = new ObservableLeaderElectionManager(new LeaderElectionManager() {
-			@Override
-			public boolean isCurrentNodeLeader() {
-				return true;
-			}
+				}
 
-			@Override
-			public void initialize() {
+				@Override
+				public void close() {
 
-			}
+				}
+			});
 
-			@Override
-			public void close() {
+			baseFolder = newTempFolder();
+			when(dataLayerConfiguration.getSecondTransactionLogBaseFolder()).thenReturn(baseFolder);
+			flushed = new File(baseFolder, "flushed");
+			unflushed = new File(baseFolder, "unflushed");
+			ioServices = getIOLayerFactory().newIOServices();
+			contentDao = getDataLayerFactory().getContentsDao();
+			sqlRecordDaoFactory = getDataLayerFactory().getSqlRecordDao();
+			when(recordDao.getBigVaultServer()).thenReturn(bigVaultServer);
+			when(bigVaultServer.countDocuments()).thenReturn(42L);
+			transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
+					backgroundThreadsManager, dataLayerLogger, systemExtensions,
+					getDataLayerFactory().getTransactionLogXmlRecoveryManager(), electionManager));
+			transactionLog.initialize();
 
-			}
-		});
+			record1 = newSolrInputDocument("record1", -1L);
+			record1.setField("text_s", "aValue");
+			record1.setField("date_dt", shishOclock);
+			record1.setField("content_txt_fr", "ze french parsed content");
+			record1.setField("content_txt_en", "ze english parsed content");
 
-		baseFolder = newTempFolder();
-		when(dataLayerConfiguration.getSecondTransactionLogBaseFolder()).thenReturn(baseFolder);
-		flushed = new File(baseFolder, "flushed");
-		unflushed = new File(baseFolder, "unflushed");
-		ioServices = getIOLayerFactory().newIOServices();
-		contentDao = getDataLayerFactory().getContentsDao();
-		sqlRecordDaoFactory = getDataLayerFactory().getSqlRecordDao();
-		when(recordDao.getBigVaultServer()).thenReturn(bigVaultServer);
-		when(bigVaultServer.countDocuments()).thenReturn(42L);
-		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
-				backgroundThreadsManager, dataLayerLogger, systemExtensions,
-				getDataLayerFactory().getTransactionLogXmlRecoveryManager(), electionManager));
-		transactionLog.initialize();
+			record2 = newSolrInputDocument("record2", -1L);
+			record2.setField("text_s", "anotherValue");
+			record2.setField("otherfield_ss", asList(true, false));
 
-		record1 = newSolrInputDocument("record1", -1L);
-		record1.setField("text_s", "aValue");
-		record1.setField("date_dt", shishOclock);
-		record1.setField("content_txt_fr", "ze french parsed content");
-		record1.setField("content_txt_en", "ze english parsed content");
+			record3 = newSolrInputDocument("record3", 34L);
+			record3.setField("text_s", "line1\nline2");
 
-		record2 = newSolrInputDocument("record2", -1L);
-		record2.setField("text_s", "anotherValue");
-		record2.setField("otherfield_ss", asList(true, false));
+			record4 = newSolrInputDocument("record4", 45L);
+			record4.setField("text_s", "value3");
+			record4.setField("otherfield_ss", asList(false, true));
 
-		record3 = newSolrInputDocument("record3", 34L);
-		record3.setField("text_s", "line1\nline2");
+			record5 = newSolrInputDocument("record5", 56L);
+			record5.setField("text_s", "aValue");
+			record5.setField("date_dt", tockOClock);
 
-		record4 = newSolrInputDocument("record4", 45L);
-		record4.setField("text_s", "value3");
-		record4.setField("otherfield_ss", asList(false, true));
+			record6 = newSolrInputDocument("record6ZZ", 56L);
+			record6.setField("text_s", "aValue");
+			record6.setField("date_dt", tockOClock);
 
-		record5 = newSolrInputDocument("record5", 56L);
-		record5.setField("text_s", "aValue");
-		record5.setField("date_dt", tockOClock);
+			record1Mod = newSolrInputDocument("record1", 56L);
+			record1Mod.setField("text_s", "bValue");
+			record1Mod.setField("date_dt", tockOClock);
 
-		record6 = newSolrInputDocument("record6ZZ", 56L);
-		record6.setField("text_s", "aValue");
-		record6.setField("date_dt", tockOClock);
+			firstTransactionNewRecords.add(record1);
+			firstTransactionNewRecords.add(record2);
+			firstTransactionModifiedRecords.add(record3);
+			firstTransactionModifiedRecords.add(record4);
+			firstTransactionModifiedRecords.add(record6);
+			firstTransactionDeletedByQueries.add(deleteByQueryParams = SolrUtils.toDeleteQueries(new ModifiableSolrParams()
+					.set("q", "zeQuery").add("fq", "firstFilter").add("fq", "secondFilter")));
+			firstTransactionDeletedByQueries.add(SolrUtils.toDeleteQueries(new ModifiableSolrParams()
+					.set("q", "anotherQuery").add("fq", "firstFilter").add("fq", "secondFilter").add("fq", "thirdFilter")));
 
-		record1Mod = newSolrInputDocument("record1", 56L);
-		record1Mod.setField("text_s", "bValue");
-		record1Mod.setField("date_dt", tockOClock);
+			secondTransactionNewRecords.add(record5);
+			secondTransactionModifiedRecords.add(record3);
+			secondTransactionModifiedRecords.add(record1Mod);
+			secondTransactionDeletedRecords.add(deletedRecord6);
+			secondTransactionDeletedRecords.add(deletedRecord7);
 
-		firstTransactionNewRecords.add(record1);
-		firstTransactionNewRecords.add(record2);
-		firstTransactionModifiedRecords.add(record3);
-		firstTransactionModifiedRecords.add(record4);
-		firstTransactionModifiedRecords.add(record6);
-		firstTransactionDeletedByQueries.add(deleteByQueryParams = SolrUtils.toDeleteQueries(new ModifiableSolrParams()
-				.set("q", "zeQuery").add("fq", "firstFilter").add("fq", "secondFilter")));
-		firstTransactionDeletedByQueries.add(SolrUtils.toDeleteQueries(new ModifiableSolrParams()
-				.set("q", "anotherQuery").add("fq", "firstFilter").add("fq", "secondFilter").add("fq", "thirdFilter")));
+			expectedLogOfFirstTransaction = buildTransactionExampleString();
 
-		secondTransactionNewRecords.add(record5);
-		secondTransactionModifiedRecords.add(record3);
-		secondTransactionModifiedRecords.add(record1Mod);
-		secondTransactionDeletedRecords.add(deletedRecord6);
-		secondTransactionDeletedRecords.add(deletedRecord7);
+			expectedLogOfSecondTransaction = buildSecondTransactionExampleString();
 
-		expectedLogOfFirstTransaction = buildTransactionExampleString();
+			expectedLogOfFirstTransactionUnflushed = buildFirstTransactionUnflushedExampleString();
 
-		expectedLogOfSecondTransaction = buildSecondTransactionExampleString();
+			firstTransactionTempFile = new File(unflushed, firstTransactionId);
+			secondTransactionTempFile = new File(unflushed, secondTransactionId);
 
-		expectedLogOfFirstTransactionUnflushed = buildFirstTransactionUnflushedExampleString();
-
-		firstTransactionTempFile = new File(unflushed, firstTransactionId);
-		secondTransactionTempFile = new File(unflushed, secondTransactionId);
-
-		contentDao = getDataLayerFactory().getContentsDao();
+			contentDao = getDataLayerFactory().getContentsDao();
+		}
 	}
 
 	private SolrInputDocument newSolrInputDocument(String id, long version) {
@@ -240,7 +239,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Test
 	public void whenPrepareLogThenCreateFileWithTransactionModifications()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 
 		File firstTransactionTempFile = new File(unflushed, firstTransactionId);
@@ -252,7 +251,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Test
 	public void givenZZRecordsAreWrittenWhenWriteTransactionWithZZRecordsThenWrote()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		when(dataLayerConfiguration.isWriteZZRecords()).thenReturn(true);
 
 		transactionLog.prepare(firstTransactionId, firstTransaction);
@@ -266,7 +265,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Test
 	public void givenUnflushedTransactionFileIsEmptyThenDeleted()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		when(recordDao.getCurrentVersion("zeRecord")).thenReturn(-1L);
 
 		File file = new File(transactionLog.getUnflushedFolder(), UUIDV1Generator.newRandomId());
@@ -279,7 +278,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Test
 	public void givenAnExceptionOccurWhenFlushingThenThrowExceptionAndBlockFutureTransactions()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 		File firstTransactionTempFile = new File(unflushed, firstTransactionId);
 		doThrow(RuntimeException.class).when(transactionLog).doFlush(firstTransactionId, null);
@@ -305,7 +304,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Test
 	public void givenAnSqlExceptionOccuredOnlyOnceWhenFlushingThenSucceeds()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		doThrow(new SQLException()).doNothing().when(sqlTransactionDao).insert("");
 
 		transactionLog.tryThreeTimes(() -> {
@@ -319,7 +318,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Test
 	public void givenAnSqlExceptionOccuredOnlyTwiceWhenFlushingThenSucceeds()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		doThrow(new SQLException()).doThrow(new SQLException()).doNothing().when(sqlTransactionDao).insert("");
 
 		transactionLog.tryThreeTimes(() -> {
@@ -333,7 +332,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Test(expected = RuntimeException.class)
 	public void givenAnSqlExceptionOccuredThreeTimeWhenFlushingThenThrowRuntimeException()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		doThrow(new SQLException()).doThrow(new SQLException()).doThrow(new SQLException()).when(sqlTransactionDao).insert("");
 
 		transactionLog.tryThreeTimes(() -> {
@@ -346,7 +345,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 	@Test(expected = SecondTransactionLogRuntimeException_TransactionLogIsNotInitialized.class)
 	public void givenPreparedIsCalledBeforeInitializingTheTransactionLogThenException() {
-
+		assumeSQLConnectionConfigured();
 		transactionLog = spy(new SqlServerTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, sqlRecordDaoFactory, contentDao,
 				backgroundThreadsManager, dataLayerLogger, systemExtensions,
 				getDataLayerFactory().getTransactionLogXmlRecoveryManager(), electionManager));
@@ -356,7 +355,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 	@Test(expected = SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized.class)
 	public void givenInitializedTransactionLogWhenStartASecondTimeThenException() {
-
+		assumeSQLConnectionConfigured();
 		transactionLog.initialize();
 
 	}
@@ -364,7 +363,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Test
 	public void whenRecordDaoThrowsBatchUpdateExceptionThenVictimizeAndDoNotRemove()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		givenTimeIs(new LocalDateTime(2345, 6, 7, 8, 9, 10, 11));
 
 		doThrow(new SQLException()).doNothing().when(sqlRecordDaoMock).deleteAll((List<String>) notNull());
@@ -394,7 +393,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Test
 	public void whenFlushingContentIsCreated()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		givenTimeIs(new LocalDateTime(2345, 6, 7, 8, 9, 10, 11));
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 		transactionLog.flush(firstTransactionId, null);
@@ -417,7 +416,7 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 	@Test
 	public void whenFlushingContentIsCreatedContentIsSameWhenDeserialized()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		givenTimeIs(new LocalDateTime(2345, 6, 7, 8, 9, 10, 11));
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 		transactionLog.flush(firstTransactionId, null);
@@ -478,8 +477,9 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 
 	@After
 	public void tearDown() throws Exception {
-
-		transactionLog.deleteAllTransactionsAndRecords();
+		if (isSQLConnectionConfigured()) {
+			transactionLog.deleteAllTransactionsAndRecords();
+		}
 	}
 
 	private String buildTransactionExampleString() {
@@ -618,7 +618,12 @@ public class SqlServerTransactionLogManagerRealTest extends ConstellioTest {
 				.map(x -> x.getContent()).collect(Collectors.toList()));
 	}
 
+	private boolean isSQLConnectionConfigured() {
+		return getCurrentTestSession().getProperty("sql.server.url") != null;
+	}
+
 	private void assumeSQLConnectionConfigured() {
-		assumeTrue("SQL connection required", getCurrentTestSession().getProperty("sql.server.url") != null);
+		System.out.println(getCurrentTestSession().getProperty("sql.server.url"));
+		assumeTrue("SQL connection required", isSQLConnectionConfigured());
 	}
 }

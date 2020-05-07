@@ -16,7 +16,6 @@ import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
-import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +80,7 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 	}
 
 	// @LoadTest
-	@Test
+	//@Test
 	public void whenMultipleThreadsAreAdding5000RecordsThenAllRecordsAreLogged()
 			throws Exception {
 		runAdding(2000000);
