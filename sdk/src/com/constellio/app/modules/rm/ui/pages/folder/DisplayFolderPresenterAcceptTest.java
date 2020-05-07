@@ -583,9 +583,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams(rmRecords.folder_A51);
 		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id").contains(
 				"documentInA51").hasSize(3);
-
 	}
-
 
 	private MetadataSchemaTypes getSchemaTypes() {
 		return getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
