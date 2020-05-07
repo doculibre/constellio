@@ -1214,7 +1214,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private Set<String> getOrFetchAllRecordIds() {
 		if (allRecordIds == null) {
-			List<String> allRecordIdsList = searchServices().searchRecordIds(getFolderContentQuery());
+			List<String> allRecordIdsList = searchServices().searchRecordIds(getFolderContentQuery(folderVO.getId(), false));
 			allRecordIds = new HashSet<>(allRecordIdsList);
 		}
 
