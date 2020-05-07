@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 //Was developped to support mapping of huge records, but unused
-public class OptimizedSolrFieldMapTest extends ConstellioTest {
+public class OptimizedSolrFieldMapAcceptanceTest extends ConstellioTest {
 
 	@Test
 	@InDevelopmentTest
