@@ -53,6 +53,7 @@ import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.jetbrains.annotations.NotNull;
 
@@ -82,12 +83,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	private transient ModelLayerCollectionExtensions modelLayerExtensions;
 	private transient RMModuleExtensions rmModuleExtensions;
 
-	public CartPresenter(CartView view) {
+	public CartPresenter(String cartId, CartView view) {
 		super(view, Cart.DEFAULT_SCHEMA);
 
 		modelLayerExtensions = modelLayerFactory.getExtensions().forCollection(view.getCollection());
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
 		recordServices = modelLayerFactory.newRecordServices();
+		if (StringUtils.isNotBlank(cartId)) {
+			forParams(cartId);
+		}
 	}
 
 	public MetadataSchema getCartMetadataSchema() {

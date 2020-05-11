@@ -3,29 +3,50 @@ package com.constellio.app.modules.rm.extensions;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeOptionGroup;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.profile.ModifyProfileView;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import com.vaadin.data.util.converter.Converter.ConversionException;
+import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
 public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
@@ -45,8 +66,9 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 			AdditionnalRecordField defaultAdministrativeUnitField = buildDefaultAdministrativeUnitField(params);
 			AdditionnalRecordField hideNotActiveField = buildHideNotActiveField(params);
 			AdditionnalRecordField agentManuallyDisabledField = buildAgentManuallyDisabledField(params);
+			AdditionnalRecordField favoritesOrderField = buildFavoritesDisplayOrderField(params);
 
-			additionnalFields.addAll(asList(defaultTabInFolderDisplayField, defaultAdministrativeUnitField, hideNotActiveField, agentManuallyDisabledField));
+			additionnalFields.addAll(asList(defaultTabInFolderDisplayField, defaultAdministrativeUnitField, hideNotActiveField, agentManuallyDisabledField, favoritesOrderField));
 		}
 		return additionnalFields;
 	}
@@ -96,6 +118,16 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		agentManuallyDisabledField.setValue(agentStatus == AgentStatus.MANUALLY_DISABLED);
 
 		return agentManuallyDisabledField;
+	}
+
+	private AdditionnalRecordField buildFavoritesDisplayOrderField(RecordFieldsExtensionParams params) {
+		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
+
+		RecordVODataProvider sharedCartsDataProvider = getFavoritesDataProvider(user, params.getMainComponent().getSessionContext());
+
+		FavoritesDisplayOrderFieldImpl favoritesDisplayOrderField = new FavoritesDisplayOrderFieldImpl(sharedCartsDataProvider.getIterator(), user);
+		favoritesDisplayOrderField.setValue((List<String>) user.get(RMUser.FAVORITES_DISPLAY_ORDER));
+		return favoritesDisplayOrderField;
 	}
 
 	private boolean isAgentManuallyDisabledVisible(RecordFieldsExtensionParams params) {
@@ -210,5 +242,97 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 				return previousAgentStatus;
 			}
 		}
+	}
+
+	private class FavoritesDisplayOrderFieldImpl extends ListAddRemoveField<String, AbstractField<String>>
+			implements AdditionnalRecordField<List<String>> {
+		private List<Record> favorites;
+		private Map<String, String> favoritesTitle;
+		private User currentUser;
+		private boolean showDefaultFavorite;
+
+		public FavoritesDisplayOrderFieldImpl(SearchResponseIterator<Record> favorites, User currentUser) {
+			super();
+			setCaption($("ModifyProfileView.favoritesDisplayOrder"));
+			addStyleName("favoritesDisplayOrder");
+			setId("favoritesDisplayOrder");
+			setRequired(false);
+			this.currentUser = currentUser;
+			this.showDefaultFavorite = currentUser.has(RMPermissionsTo.USE_MY_CART).globally();
+			this.favorites = favorites.stream().collect(Collectors.toList());
+			this.favoritesTitle = new HashMap<>();
+			this.favorites.stream().forEach(record -> favoritesTitle.put(record.getId(), record.getTitle()));
+
+			if (showDefaultFavorite) {
+				this.favoritesTitle.put(currentUser.getId(), $("CartView.defaultFavorites"));
+			}
+		}
+
+		@Override
+		public String getMetadataLocalCode() {
+			return RMUser.FAVORITES_DISPLAY_ORDER;
+		}
+
+		@Override
+		public Object getCommittableValue() {
+			return getValue();
+		}
+
+		@Override
+		public Class getType() {
+			return List.class;
+		}
+
+		@Override
+		public List<String> getValue() {
+			return super.getValue();
+		}
+
+		@Override
+		protected AbstractField newAddEditField() {
+			ComboBox comboBox = new ComboBox();
+			if (showDefaultFavorite) {
+				comboBox.addItem(currentUser.getId());
+				comboBox.setItemCaption(currentUser.getId(), $("CartView.defaultFavorites"));
+			}
+			for (Record favorite : favorites) {
+				comboBox.addItem(favorite.getId());
+				comboBox.setItemCaption(favorite.getId(), favorite.getTitle());
+			}
+			return comboBox;
+		}
+
+		@Override
+		protected String getItemCaption(Object itemId) {
+			if (favoritesTitle.containsKey(itemId)) {
+				return favoritesTitle.get(itemId);
+			}
+			return super.getItemCaption(itemId);
+		}
+
+		@Override
+		public void setValue(List<String> favorites) throws ReadOnlyException, ConversionException {
+			if (favorites != null) {
+				List<String> filteredList = favorites.stream().filter(favoriteId -> favoritesTitle.containsKey(favoriteId)).collect(Collectors.toList());
+				super.setValue(filteredList);
+			} else {
+				super.setValue(favorites);
+			}
+		}
+	}
+
+	private RecordVODataProvider getFavoritesDataProvider(User user, SessionContext sessionContext) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
+		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, sessionContext);
+		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
+			@Override
+			public LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(rm.cartSchema()).whereAnyCondition(
+						where(rm.cartSharedWithUsers()).isContaining(asList(user.getId())),
+						where(rm.cart.owner()).isEqualTo(user.getId()))
+				).sortAsc(Schemas.TITLE);
+			}
+		};
 	}
 }

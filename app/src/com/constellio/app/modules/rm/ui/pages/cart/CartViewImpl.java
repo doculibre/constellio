@@ -70,6 +70,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
 public class CartViewImpl extends BaseViewImpl implements CartView {
+
+	private boolean isNested;
 	private final CartPresenter presenter;
 	private CartTabLayout folderLayout;
 	private CartTabLayout documentLayout;
@@ -84,13 +86,20 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	private VerticalLayout mainLayout;
 
 	public CartViewImpl() {
-		presenter = new CartPresenter(this);
+		this(null, false);
+	}
+
+	public CartViewImpl(String cartId, boolean isNested) {
+		this.isNested = isNested;
+		presenter = new CartPresenter(cartId, this);
 	}
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		super.initBeforeCreateComponents(event);
-		presenter.forParams(event.getParameters());
+		if (event != null) {
+			presenter.forParams(event.getParameters());
+		}
 		currentSchemaType = Folder.SCHEMA_TYPE;
 	}
 
@@ -521,5 +530,10 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		public String getSchemaType() {
 			return schemaType;
 		}
+	}
+
+	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return !isNested;
 	}
 }
