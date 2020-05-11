@@ -77,6 +77,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	private String cartId;
 	private String batchProcessSchemaType;
 	private RecordServices recordServices;
+	private List<Record> selectedRecords;
 
 	private transient BatchProcessingPresenterService batchProcessingPresenterService;
 	private transient ModelLayerCollectionExtensions modelLayerExtensions;
@@ -88,6 +89,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		modelLayerExtensions = modelLayerFactory.getExtensions().forCollection(view.getCollection());
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
 		recordServices = modelLayerFactory.newRecordServices();
+		selectedRecords = new ArrayList<>();
 	}
 
 	public MetadataSchema getCartMetadataSchema() {
@@ -641,4 +643,21 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		result.addAll(getCartContainersRecords());
 		return result;
 	}
+
+	public void addToSelectedRecords(String recordId) {
+		selectedRecords.add(getRecord(recordId));
+	}
+
+	public void removeFromSelectedRecords(String recordId) {
+		selectedRecords.remove(getRecord(recordId));
+	}
+
+	public List<Record> getSelectedRecords() {
+		return selectedRecords;
+	}
+
+	public void emptySelectedRecords() {
+		selectedRecords = new ArrayList<>();
+	}
+
 }
