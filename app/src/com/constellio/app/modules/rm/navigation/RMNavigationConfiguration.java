@@ -122,6 +122,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String CHECKED_OUT_DOCUMENTS = "checkedOutDocuments";
 	public static final String SHARED_ITEMS = "sharedDocuments";
 	public static final String TAXONOMIES = "taxonomies";
+	public static final String FAVORITES_HOME_TAB = "favorites";
 
 	public static final String UNIFORM_SUBDIVISIONS = "uniformSubdivisions";
 	public static final String UNIFORM_SUBDIVISIONS_ICON = "images/icons/config/uniform-subdivision.png";
@@ -399,7 +400,7 @@ public class RMNavigationConfiguration implements Serializable {
 				return new SharedDocumentsAndFoldersProvider(appLayerFactory, sessionContext).getDataProviders();
 			}
 		});
-		config.add(HomeView.TABS, new CustomItem("favorites") {
+		config.add(HomeView.TABS, new CustomItem(FAVORITES_HOME_TAB) {
 			@Override
 			public Component buildCustomComponent(ConstellioFactories factories, SessionContext context,
 												  ItemClickListener itemClickListener) {
