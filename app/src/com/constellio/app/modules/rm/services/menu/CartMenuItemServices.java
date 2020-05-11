@@ -18,8 +18,11 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_BATCH_DELETE;
+import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_CONTAINER_RECORD_BATCH_PROCESSING;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_DECOMMISSIONING_LIST;
+import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_DOCUMENT_BATCH_PROCESSING;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_EMPTY;
+import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_FOLDER_BATCH_PROCESSING;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_SHARE;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
@@ -41,6 +44,30 @@ public class CartMenuItemServices {
 													List<String> excludedActionTypes,
 													MenuItemActionBehaviorParams params) {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
+
+		if (!excludedActionTypes.contains(CART_DOCUMENT_BATCH_PROCESSING.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(CART_DOCUMENT_BATCH_PROCESSING.name(),
+					isMenuItemActionPossible(CART_DOCUMENT_BATCH_PROCESSING.name(), cart, user, params),
+					$("CartView.documentsBatchProcessingButton"), FontAwesome.LIST, -1, 400,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).documentBatchProcessing(cart, params));
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!excludedActionTypes.contains(CART_FOLDER_BATCH_PROCESSING.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(CART_FOLDER_BATCH_PROCESSING.name(),
+					isMenuItemActionPossible(CART_FOLDER_BATCH_PROCESSING.name(), cart, user, params),
+					$("CartView.foldersBatchProcessingButton"), FontAwesome.LIST, -1, 500,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).folderBatchProcessing(cart, params));
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!excludedActionTypes.contains(CART_CONTAINER_RECORD_BATCH_PROCESSING.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(CART_CONTAINER_RECORD_BATCH_PROCESSING.name(),
+					isMenuItemActionPossible(CART_CONTAINER_RECORD_BATCH_PROCESSING.name(), cart, user, params),
+					$("CartView.containersBatchProcessingButton"), FontAwesome.LIST, -1, 600,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).containerRecordBatchProcessing(cart, params));
+			menuItemActions.add(menuItemAction);
+		}
 
 		if (!excludedActionTypes.contains(CART_BATCH_DELETE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_BATCH_DELETE.name(),
@@ -83,12 +110,6 @@ public class CartMenuItemServices {
 		Record record = cart.getWrappedRecord();
 
 		switch (CartMenuItemActionType.valueOf(menuItemActionType)) {
-			case CART_RENAME:
-				return cartActionsServices.isRenameActionPossible(record, user);
-			case CART_PREPARE_EMAIL:
-				return cartActionsServices.isPrepareEmailActionPossible(record, user);
-			case CART_BATCH_DUPLICATE:
-				return cartActionsServices.isBatchDuplicateActionPossible(record, user);
 			case CART_BATCH_DELETE:
 				return cartActionsServices.isBatchDeleteActionPossible(record, user);
 			case CART_DOCUMENT_BATCH_PROCESSING:
@@ -97,26 +118,12 @@ public class CartMenuItemServices {
 				return cartActionsServices.isFolderBatchProcessingActionPossible(record, user);
 			case CART_CONTAINER_RECORD_BATCH_PROCESSING:
 				return cartActionsServices.isContainerBatchProcessingActionPossible(record, user);
-			case CART_DOCUMENT_LABEL:
-				return cartActionsServices.isDocumentLabelsActionPossible(record, user);
-			case CART_FOLDER_LABEL:
-				return cartActionsServices.isFoldersLabelsActionPossible(record, user);
-			case CART_CONTAINER_RECORD_LABEL:
-				return cartActionsServices.isContainersLabelsActionPossible(record, user);
 			case CART_EMPTY:
 				return cartActionsServices.isEmptyActionPossible(record, user);
 			case CART_SHARE:
 				return cartActionsServices.isShareActionPossible(record, user);
 			case CART_DECOMMISSIONING_LIST:
 				return cartActionsServices.isDecommissionActionPossible(record, user);
-			case CART_PRINT_METADATA_REPORT:
-				return cartActionsServices.isPrintMetadataReportActionPossible(record, user);
-			case CART_CREATE_SIP_ARCHIVE:
-				return cartActionsServices.isCreateSIPArchvesActionPossible(record, user);
-			case CART_PRINT_CONSOLIDATED_PDF:
-				return cartActionsServices.isPrntConsolidatedPdfActionPossible(record, user);
-			case CART_BATCH_BORROW:
-				return cartActionsServices.isBorrowActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -137,26 +144,15 @@ public class CartMenuItemServices {
 	}
 
 	enum CartMenuItemActionType {
-		CART_RENAME,
-		CART_PREPARE_EMAIL,
-		CART_BATCH_DUPLICATE,
-
 		CART_DOCUMENT_BATCH_PROCESSING,
 		CART_FOLDER_BATCH_PROCESSING,
 		CART_CONTAINER_RECORD_BATCH_PROCESSING,
-		CART_DOCUMENT_LABEL,
-		CART_FOLDER_LABEL,
-		CART_CONTAINER_RECORD_LABEL,
 
 		CART_BATCH_DELETE,
 
 		CART_EMPTY,
 		CART_SHARE,
 		CART_DECOMMISSIONING_LIST,
-		CART_PRINT_METADATA_REPORT,
-		CART_CREATE_SIP_ARCHIVE,
-		CART_PRINT_CONSOLIDATED_PDF,
-		CART_BATCH_BORROW
 	}
 
 }
