@@ -120,9 +120,6 @@ public class FolderRestfulService extends ResourceRestfulService {
 			if (folder.getCategory() == null) {
 				throw new RequiredParameterException("folder.category");
 			}
-			if (folder.getAdministrativeUnit() == null) {
-				throw new RequiredParameterException("folder.administrativeUnit");
-			}
 			if (folder.getOpeningDate() == null) {
 				throw new RequiredParameterException("folder.openingDate");
 			}

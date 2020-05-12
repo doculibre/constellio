@@ -2,13 +2,16 @@ package com.constellio.app.modules.restapi.folder;
 
 import com.constellio.app.modules.restapi.ace.AceService;
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
+import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
 import com.constellio.app.modules.restapi.folder.adaptor.FolderAdaptor;
 import com.constellio.app.modules.restapi.folder.dao.FolderDao;
+import com.constellio.app.modules.restapi.folder.dto.AdministrativeUnitDto;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
 import com.constellio.app.modules.restapi.resource.adaptor.ResourceAdaptor;
 import com.constellio.app.modules.restapi.resource.service.ResourceService;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -80,11 +83,28 @@ public class FolderService extends ResourceService {
 							Set<String> filters) throws Exception {
 		validateParameters(host, parentFolderId, serviceKey, method, date, expiration, null, null, null, signature);
 
-		String id = parentFolderId != null ? parentFolderId : folderDto.getAdministrativeUnit().getId();
-		Record record = getRecord(id, true);
+		Record record;
+		if (parentFolderId != null) {
+			record = getRecord(parentFolderId, true);
+		} else if (folderDto.getAdministrativeUnit() != null) {
+			record = getRecord(folderDto.getAdministrativeUnit().getId(), true);
+		} else {
+			record = getRecord(folderDto.getCategory().getId(), true);
+		}
 
 		String collection = record.getCollection();
 		User user = getUserByServiceKey(serviceKey, collection);
+
+		if (folderDto.getAdministrativeUnit() == null) {
+			String defaultAdministrativeUnit = user.get(RMUser.DEFAULT_ADMINISTRATIVE_UNIT);
+			if (defaultAdministrativeUnit != null) {
+				folderDto.setAdministrativeUnit(AdministrativeUnitDto.builder().id(defaultAdministrativeUnit).build());
+				record = getRecord(defaultAdministrativeUnit, true);
+			} else {
+				throw new RequiredParameterException("folder.administrativeUnit");
+			}
+		}
+
 		validateUserAccess(user, record, method);
 
 		MetadataSchema folderSchema = folderDao.getLinkedMetadataSchema(folderDto.getType(), collection);

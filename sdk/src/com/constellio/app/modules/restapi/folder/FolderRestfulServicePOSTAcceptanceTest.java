@@ -39,6 +39,7 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.schemas.bulkImport.DummyCalculator;
 import com.constellio.app.ui.i18n.i18n;
@@ -194,6 +195,49 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 						folderDto.getRetentionRule().getId(), toCopyType(folderDto.getCopyStatus()), folderDto.getOpeningDate());
 
 		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + record.getVersion() + "\"");
+	}
+
+	@Test
+	public void testCreateMinimalFolderWithoutParentFolderIdAndWithoutAdminUnitAndNoDefaultUserAdminUnit()
+			throws Exception {
+		folderId = null;
+		minFolderToAdd.setParentFolderId(null);
+		minFolderToAdd.setAdministrativeUnit(null);
+
+		Response response = doPostQuery(minFolderToAdd);
+		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE)
+				.doesNotContain(CLOSE_BRACE).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "folder.administrativeUnit"));
+	}
+
+	@Test
+	public void testCreateMinimalFolderWithoutParentFolderIdAndWithoutAdminUnitAndDefaultUserAdminUnit()
+			throws Exception {
+		recordServices.update(userServices.getUserInCollection(bob, zeCollection)
+				.set(RMUser.DEFAULT_ADMINISTRATIVE_UNIT, records.unitId_10a));
+		queryCounter.reset();
+		commitCounter.reset();
+
+		folderId = null;
+		minFolderToAdd.setParentFolderId(null);
+		minFolderToAdd.setAdministrativeUnit(null);
+
+		Response response = doPostQuery(minFolderToAdd);
+		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
+		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(commitCounter.newCommitsCall()).isEmpty();
+
+		FolderDto folderDto = response.readEntity(FolderDto.class);
+		assertThat(folderDto.getId()).isNotNull().isNotEmpty();
+		assertThat(folderDto.getTitle()).isEqualTo(minFolderToAdd.getTitle());
+		assertThat(folderDto.getParentFolderId()).isNull();
+		assertThat(folderDto.getAdministrativeUnit().getId()).isEqualTo(records.unitId_10a);
+		assertThat(folderDto.getAdministrativeUnit().getCode()).isNotNull();
+		assertThat(folderDto.getAdministrativeUnit().getTitle()).isNotNull();
 	}
 
 	@Test
