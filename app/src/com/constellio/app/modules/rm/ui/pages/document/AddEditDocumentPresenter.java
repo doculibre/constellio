@@ -638,7 +638,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
 					} else if (voMetadataValue == null && defaultValue == null) {
 						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
-					} else if (voMetadataValue != null && !voMetadataValue.equals(voDefaultValue)) {
+					} else if ((voMetadataValue != null || (voDefaultValue instanceof List && !((List) voDefaultValue).isEmpty()))
+							   && !voMetadataValue.equals(voDefaultValue)) {
 						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
 					}
 				}
