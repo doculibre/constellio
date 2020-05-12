@@ -6,6 +6,8 @@ import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.annotations.InternetTest;
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +18,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@InternetTest
 public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 
 	private LDAPConfigurationManager ldapConfigManager;
@@ -52,6 +55,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void givenConfigWithDurationWhenSaveConfigurationThenDurationIsSavedAsNull()
 			throws Exception {
 		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
@@ -67,6 +71,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test(expected = TooShortDurationRuntimeException.class)
+	@InDevelopmentTest
 	public void givenConfigWithAShortDurationWhenSaveConfigurationThenException()
 			throws Exception {
 		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
@@ -76,6 +81,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void givenConfigWithANonShortDurationWhenSaveConfigurationSavedCorrectly()
 			throws Exception {
 		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
@@ -91,6 +97,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void givenLDAPSavedAfterAzurWhenGetLDAPServerConfigurationThenItIsCreatedWithConfigInformation()
 			throws Exception {
 		saveValidAzurConfig();
@@ -107,6 +114,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void givenLDAPSavedAfterAzurWhenGetLDAPSyncConfigurationThenItIsCreatedWithConfigInformation()
 			throws Exception {
 		saveValidAzurConfig();
@@ -140,6 +148,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void givenAzurSavedAfterLDAPWhenGetLDAPServerConfigurationThenItIsCreatedWithConfigInformation()
 			throws Exception {
 		saveValidLDAPConfig();
@@ -158,6 +167,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void givenAzurSavedAfterLDAPWhenGetLDAPSyncConfigurationThenItIsCreatedWithConfigInformation()
 			throws Exception {
 		saveValidLDAPConfig();

@@ -1547,6 +1547,14 @@ $popup-view-z-index: 3;
     	}
     }
 
+    .list-add-remove-table-sortable, .metadata-groups {
+    	.v-table-table {
+    		.v-table-row, .v-table-row-odd {
+    			cursor: all-scroll;
+    		}
+    	}
+    }
+
     .list-add-remove-error {
     	border-color: #ed473b !important;
 		background: #fffbfb;
@@ -2820,6 +2828,10 @@ $popup-view-z-index: 3;
 					font-size: 14px;
 					font-weight: 700;
 				}
+			}
+
+			.v-button {
+				white-space: initial;
 			}
 
 			.v-button {

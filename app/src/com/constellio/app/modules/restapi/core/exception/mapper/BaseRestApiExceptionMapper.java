@@ -8,6 +8,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.util.List;
 import java.util.Locale;
 
@@ -31,10 +32,16 @@ abstract class BaseRestApiExceptionMapper {
 	}
 
 	Response buildResponse(RestApiErrorResponse errorResponse) {
-		return Response.status(errorResponse.getCode())
+		Response response = Response.status(errorResponse.getCode())
 				.entity(errorResponse)
 				.type(MediaType.APPLICATION_JSON)
 				.build();
+
+		if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+			response.getHeaders().add(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
+		}
+
+		return response;
 	}
 
 }

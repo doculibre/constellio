@@ -23,6 +23,8 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -32,6 +34,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.entities.structures.EmailAddressFactory;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
@@ -42,6 +45,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,6 +178,9 @@ public class RecordExportServices {
 					id, metadataSchema.getLocalCode());
 
 			writeRecord(record, modifiableImportRecord, options, contentPaths);
+			if (options.isIncludeAuthorizations()) {
+				writeRecordAuthorizations(record.getId(), collection, options, contentPaths, writer);
+			}
 
 			appLayerFactory.getExtensions().forCollection(collection)
 					.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord, options.isForSameSystem()));
@@ -186,6 +193,39 @@ public class RecordExportServices {
 		}
 	}
 
+	private void writeRecordAuthorizations(String recordId, String collection, RecordExportOptions options,
+										   StringBuilder contentPaths, ImportRecordOfSameCollectionWriter writer) {
+		List<SecurityModelAuthorization> authorizationsList = recordServices.getSecurityModel(collection).getAuthorizationsOnTarget(recordId);
+
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		for (SecurityModelAuthorization authorization : authorizationsList) {
+			Record authorizationRecord = authorization.getDetails().get();
+			ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, Authorization.SCHEMA_TYPE, authorization.getDetails().getId());
+			writeRecord(authorizationRecord, modifiableImportRecord, options, contentPaths);
+
+			List<String> principals = new ArrayList<>();
+
+			for (String userId : authorization.getUserIds()) {
+				User user = schemas.getUser(userId);
+				if (user != null) {
+					principals.add("user:" + user.getUsername());
+				}
+			}
+
+			for (String groupId : authorization.getGroupIds()) {
+				Group group = schemas.getGroup(groupId);
+				if (group != null) {
+					principals.add("group:" + group.getCode());
+				}
+			}
+
+			modifiableImportRecord.with(Authorization.PRINCIPALS, principals);
+
+			writer.write(modifiableImportRecord);
+
+		}
+
+	}
 
 	private static List<String> preferedMetadatas = asList(Schemas.CODE.getLocalCode(), User.USERNAME);
 
@@ -260,6 +300,7 @@ public class RecordExportServices {
 				}
 			}
 		}
+
 	}
 
 	private boolean isMetadataExported(Metadata metadata, Record record, MetadataSchemaTypes metadataSchemaTypes) {

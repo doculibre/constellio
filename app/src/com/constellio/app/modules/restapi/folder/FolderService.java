@@ -48,7 +48,7 @@ public class FolderService extends ResourceService {
 			parentRecord = getRecord(folder.getParentFolderId(), true);
 		}
 
-		User user = getUser(serviceKey, folderRecord.getCollection());
+		User user = getUserByServiceKey(serviceKey, folderRecord.getCollection());
 		validateUserAccess(user, folderRecord, method);
 		if (parentRecord != null) {
 			validateUserAccess(user, parentRecord, method);
@@ -84,7 +84,7 @@ public class FolderService extends ResourceService {
 		Record record = getRecord(id, true);
 
 		String collection = record.getCollection();
-		User user = getUser(serviceKey, collection);
+		User user = getUserByServiceKey(serviceKey, collection);
 		validateUserAccess(user, record, method);
 
 		MetadataSchema folderSchema = folderDao.getLinkedMetadataSchema(folderDto.getType(), collection);
@@ -107,7 +107,7 @@ public class FolderService extends ResourceService {
 
 		Record sourceFolder = getRecord(copySourceId, true);
 		String collection = sourceFolder.getCollection();
-		User user = getUser(serviceKey, collection);
+		User user = getUserByServiceKey(serviceKey, collection);
 		validateUserAccess(user, sourceFolder, method);
 
 		if (parentFolderId != null) {
@@ -136,7 +136,7 @@ public class FolderService extends ResourceService {
 		validateParameters(host, id, serviceKey, method, date, expiration, null, physical, null, signature);
 
 		Record folder = getRecord(id, false);
-		User user = getUser(serviceKey, folder.getCollection());
+		User user = getUserByServiceKey(serviceKey, folder.getCollection());
 		validateUserAccess(user, folder, method);
 		validateUserDeleteAccessOnHierarchy(user, folder);
 

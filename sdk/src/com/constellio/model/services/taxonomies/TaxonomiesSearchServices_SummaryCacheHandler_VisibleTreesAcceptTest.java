@@ -32,6 +32,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.Condition;
@@ -1295,7 +1296,8 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 	}
 
 	@Test
-	//TODO Francis, test créé par Tristan a compléter
+	@InDevelopmentTest
+	//TODO Francis - pour permettre d'afficher les documents liés dans les arbres
 	public void whenUserIsNavigatingDocumentLinkedFoldersThenOnlySeesAccessibleFolders()
 			throws Exception {
 		MetadataSchema schema = rm.schemaType("document").getDefaultSchema();

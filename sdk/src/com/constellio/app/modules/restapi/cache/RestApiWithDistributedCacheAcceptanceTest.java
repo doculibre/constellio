@@ -111,9 +111,9 @@ public class RestApiWithDistributedCacheAcceptanceTest extends BaseDocumentRestf
 						.addAccessToken(token2, TimeProvider.getLocalDateTime().plusYears(1)));
 
 		UserCredential user = userServices.getUser(users.bob().getUsername());
-		assertThat(user.getAccessTokens().size()).isEqualTo(1);
+		assertThat(user.getAccessTokens().size()).isEqualTo(2);
 		UserCredential user2 = userServices2.getUser(users.bob().getUsername());
-		assertThat(user2.getAccessTokens().size()).isEqualTo(2);
+		assertThat(user2.getAccessTokens().size()).isEqualTo(3);
 
 		Response response = doGetUrlQuery();
 		assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());

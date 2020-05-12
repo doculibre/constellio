@@ -56,6 +56,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchab
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.junit.Assume.assumeTrue;
 
 public class SqlServerTransactionLogManagerAcceptTest extends ConstellioTest {
 
@@ -88,51 +89,54 @@ public class SqlServerTransactionLogManagerAcceptTest extends ConstellioTest {
 		// givenHashingEncodingIs(BASE64_URL_ENCODED);
 		givenBackgroundThreadsEnabled();
 		//withSpiedServices(SecondTransactionLogManager.class);
+		if (isSQLConnectionConfigured()) {
+			configure(new DataLayerConfigurationAlteration() {
+				@Override
+				public void alter(InMemoryDataLayerConfiguration configuration) {
+					configuration.setSecondTransactionLogEnabled(true);
+					configuration.setSecondTransactionLogMode(SecondTransactionLogType.SQL_SERVER);
+					configuration.setSecondTransactionLogMergeFrequency(Duration.standardSeconds(5));
+					configuration.setSecondTransactionLogBackupCount(3);
+					configuration.setReplayTransactionStartVersion(0L);
+					configuration.setMicrosoftSqlServerUrl("jdbc:sqlserver://localhost:1433");
+					configuration.setMicrosoftSqlServerDatabase("constellio");
+					configuration.setMicrosoftSqlServeruser("sa");
+					configuration.setMicrosoftSqlServerpassword("ncix123$");
+					configuration.setMicrosoftSqlServerencrypt(false);
+					configuration.setMicrosoftSqlServertrustServerCertificate(false);
+					configuration.setMicrosoftSqlServerloginTimeout(15);
+				}
+			});
 
-		configure(new DataLayerConfigurationAlteration() {
-			@Override
-			public void alter(InMemoryDataLayerConfiguration configuration) {
-				configuration.setSecondTransactionLogEnabled(true);
-				configuration.setSecondTransactionLogMode(SecondTransactionLogType.SQL_SERVER);
-				configuration.setSecondTransactionLogMergeFrequency(Duration.standardSeconds(5));
-				configuration.setSecondTransactionLogBackupCount(3);
-				configuration.setReplayTransactionStartVersion(0L);
-				configuration.setMicrosoftSqlServerUrl("jdbc:sqlserver://localhost:1433");
-				configuration.setMicrosoftSqlServerDatabase("constellio");
-				configuration.setMicrosoftSqlServeruser("sa");
-				configuration.setMicrosoftSqlServerpassword("ncix123$");
-				configuration.setMicrosoftSqlServerencrypt(false);
-				configuration.setMicrosoftSqlServertrustServerCertificate(false);
-				configuration.setMicrosoftSqlServerloginTimeout(15);
-			}
-		});
+			prepareSystem(withZeCollection().withAllTestUsers());
 
-		givenCollection(zeCollection).withAllTestUsers();
+			defineSchemasManager().using(schemas.withAStringMetadata().withAContentMetadata(whichIsSearchable));
 
-		defineSchemasManager().using(schemas.withAStringMetadata().withAContentMetadata(whichIsSearchable));
-
-		reindexServices = getModelLayerFactory().newReindexingServices();
-		recordServices = getModelLayerFactory().newRecordServices();
-		log = (SqlServerTransactionLogManager) getDataLayerFactory().getSecondTransactionLogManager();
+			reindexServices = getModelLayerFactory().newReindexingServices();
+			recordServices = getModelLayerFactory().newRecordServices();
+			log = (SqlServerTransactionLogManager) getDataLayerFactory().getSecondTransactionLogManager();
+		}
 	}
 
 	// @LoadTest
 	@Test
 	public void whenMultipleThreadsAreAdding500RecordsThenAllRecordsAreLogged()
 			throws Exception {
+		assumeSQLConnectionConfigured();
 		runAdding(500);
 	}
 
 	@Test
 	public void whenMultipleThreadsAreAdding5000RecordsThenAllRecordsAreLogged()
 			throws Exception {
+		assumeSQLConnectionConfigured();
 		runAdding(5000);
 	}
 
 	@Test
 	public void givenSchemaTypeRecordsAreNotSavedInTransactionLogThenNotInTLog()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
@@ -170,7 +174,7 @@ public class SqlServerTransactionLogManagerAcceptTest extends ConstellioTest {
 	@Test
 	public void givenRecordWithParsedContentWithMultipleTypesOfLinebreakThenCanReplayWithoutProblems()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
 		ContentVersionDataSummary data = contentManager
@@ -191,7 +195,7 @@ public class SqlServerTransactionLogManagerAcceptTest extends ConstellioTest {
 	@Test
 	public void givenSequencesWhenReindexReplayLoggedThenSetToGoodValues()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		for (int i = 0; i < 6; i++) {
 			getDataLayerFactory().getSequencesManager().next("zeSequence");
 		}
@@ -213,7 +217,7 @@ public class SqlServerTransactionLogManagerAcceptTest extends ConstellioTest {
 	@Test
 	public void whenReindexingAllCollectionsWithRewriteThenBackupTLOGAndStartNewOne()
 			throws Exception {
-
+		assumeSQLConnectionConfigured();
 		givenTimeIs(shishOClock);
 		Record record1 = new TestRecord(zeSchema, "ze42");
 		record1.set(zeSchema.stringMetadata(), "Darth Vador");
@@ -431,9 +435,20 @@ public class SqlServerTransactionLogManagerAcceptTest extends ConstellioTest {
 
 	@After
 	public void tearDown() throws SQLException {
-		getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).resetVersion();
-		getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll();
-		getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).deleteAll();
+		if (isSQLConnectionConfigured()) {
+			getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).resetVersion();
+			getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.TRANSACTIONS).deleteAll();
+			getDataLayerFactory().getSqlRecordDao().getRecordDao(SqlRecordDaoType.RECORDS).deleteAll();
+		}
+	}
+
+	private boolean isSQLConnectionConfigured() {
+		return getCurrentTestSession().getProperty("sql.server.url") != null;
+	}
+
+	private void assumeSQLConnectionConfigured() {
+		System.out.println(getCurrentTestSession().getProperty("sql.server.url"));
+		assumeTrue("SQL connection required", isSQLConnectionConfigured());
 	}
 }
 

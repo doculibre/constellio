@@ -145,7 +145,7 @@ public class Folder extends RMObject {
 	}
 
 	public boolean isModel() {
-		return get(IS_MODEL);
+		return getBooleanWithDefaultValue(IS_MODEL, false);
 	}
 
 	public Folder setModel(boolean isModel) {

@@ -180,7 +180,6 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 
 	@Test
-	//TODO Francis : Failing test
 	public void whenSearchingUsingCacheAndLegacyIdThenOK() throws Exception {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 
@@ -195,15 +194,23 @@ public class FolderAcceptanceTest extends ConstellioTest {
 				LogicalSearchCondition condition = from(rm.folderSchemaType())
 						.where(rm.folder.category()).isEqualTo(records.categoryId_X110)
 						.andWhere(metadata).isNotNull();
-				assertThat(recordServices.realtimeGetRecordSummaryById(folder.getId()).<String>get(metadata)).isNull();
 				assertThat(rm.searchFolders(new LogicalSearchQuery(condition))).extracting("title").containsOnly("iamZeFolder");
 				assertThat(rm.wrapFolder(searchServices.searchSingleResult(condition))).isNotNull();
 			});
 		};
 
 		assertThat(recordServices.getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(rm.folder.legacyId())).isFalse();
+		validation.run();
+		assertThat(recordServices.realtimeGetRecordSummaryById(folder.getId()).<String>get(rm.folder.legacyId())).isNotNull();
+
+		givenConfig(ConstellioEIMConfigs.LEGACY_IDENTIFIER_INDEXED_IN_MEMORY, false);
+		getModelLayerFactory().getRecordsCaches().rebuild(rm.folder.schemaType());
+
+		assertThat(recordServices.getRecordsCaches().getLocalCacheConfigs()
 				.excludedDuringLastCacheRebuild(rm.folder.legacyId())).isTrue();
 		validation.run();
+		//assertThat(recordServices.realtimeGetRecordSummaryById(folder.getId()).<String>get(rm.folder.legacyId())).isNull();
 
 		givenConfig(ConstellioEIMConfigs.LEGACY_IDENTIFIER_INDEXED_IN_MEMORY, true);
 		getModelLayerFactory().getRecordsCaches().rebuild(rm.folder.schemaType());
@@ -211,6 +218,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(recordServices.getRecordsCaches().getLocalCacheConfigs()
 				.excludedDuringLastCacheRebuild(rm.folder.legacyId())).isFalse();
 		validation.run();
+		assertThat(recordServices.realtimeGetRecordSummaryById(folder.getId()).<String>get(rm.folder.legacyId())).isNotNull();
 	}
 
 

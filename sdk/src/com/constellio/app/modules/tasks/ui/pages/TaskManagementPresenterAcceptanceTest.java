@@ -8,6 +8,8 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.ConstellioMenu;
 import com.constellio.app.ui.pages.base.MainLayout;
+import com.constellio.app.ui.pages.base.ConstellioMenuImpl;
+import com.constellio.app.ui.pages.base.MainLayoutImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;

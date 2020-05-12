@@ -74,14 +74,14 @@ public class AlertOverdueTasksBackgroundAction implements Runnable {
 					if (userIdToSendEmailTo != null) {
 						sendEmail(task, userIdToSendEmailTo);
 						try {
-							recordServices.update(task.setLastReminder(getCurrentDateTime()));
+							recordServices.update(task.setLastReminder(getCurrentDateTime()).setNumberOfReminders(numberOfRemindersAlreadySent));
 						} catch (RecordServicesException e) {
 							e.printStackTrace();
 						}
 
 					} else {
 						try {
-							recordServices.update(task.setLastReminder(getCurrentDateTime()).setNumberOfReminders(numberOfRemindersAlreadySent++));
+							recordServices.update(task.setLastReminder(getCurrentDateTime()).setNumberOfReminders(numberOfRemindersAlreadySent));
 						} catch (RecordServicesException e) {
 							e.printStackTrace();
 						}

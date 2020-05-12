@@ -108,7 +108,9 @@ subprojects {
         compile 'com.ithit.webdav.integration:servlet-integration:4.2.2812'
         compile 'de.jollyday:jollyday:0.5.10'
         compile "msgraph-sdk-java:msgraph-sdk-java"
-        
+        compile 'com.auth0:java-jwt:3.9.0'
+
+
         testCompile 'nl.jqno.equalsverifier:equalsverifier:1.4.1'
     }
 

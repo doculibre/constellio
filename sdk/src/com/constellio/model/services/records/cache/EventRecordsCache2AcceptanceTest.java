@@ -3,10 +3,12 @@ package com.constellio.model.services.records.cache;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.test.RandomWordsIterator;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -15,6 +17,7 @@ import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.NewVolatileRecordCacheAcceptanceTest.TestHook;
+import com.constellio.model.services.records.cache.eventBus.EventsBusRecordsCachesImpl;
 import com.constellio.model.services.records.cache.hooks.DeterminedHookCacheInsertion;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -42,7 +45,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import static com.constellio.data.test.RandomWordsIterator.createFor;
 import static com.constellio.data.utils.Octets.megaoctets;
@@ -80,8 +82,8 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 	ZeSchemaMetadatas anotherCollectionSchemaWithoutCache = anotherCollectionSchemas.new ZeSchemaMetadatas();
 	ThirdSchemaMetadatas anotherCollectionSchemaWithVolatileCache = anotherCollectionSchemas.new ThirdSchemaMetadatas();
 
-	RecordsCaches recordsCaches;
-	RecordsCaches otherInstanceRecordsCaches;
+	EventsBusRecordsCachesImpl recordsCaches;
+	EventsBusRecordsCachesImpl otherInstanceRecordsCaches;
 	RecordsCache zeCollectionRecordsCache;
 	RecordsCache otherInstanceZeCollectionRecordsCache;
 	RecordsCache anotherCollectionRecordsCache;
@@ -98,11 +100,11 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 
 	BiFunction<RecordsCaches, String, List<String>> getIdByTitle = (RecordsCaches aCache, String title) -> aCache.getRecordsByIndexedMetadata(
 			zeCollectionSchemaWithVolatileCache.type(), zeCollectionSchemaWithVolatileCache.metadata("title"), title)
-			.map(Record::getId).collect(Collectors.toList());
+			.map(Record::getId).collect(toList());
 
 	BiFunction<RecordsCaches, String, List<String>> getIdSummaryByTitle = (RecordsCaches aCache, String title) -> aCache.getRecordsSummaryByIndexedMetadata(
 			zeCollectionSchemaWithVolatileCache.type(), zeCollectionSchemaWithVolatileCache.metadata("title"), title)
-			.map(Record::getId).collect(Collectors.toList());
+			.map(Record::getId).collect(toList());
 
 	boolean useZeroPaddedIds;
 
@@ -148,11 +150,11 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 		otherInstanceRecordServices = otherModelLayerFactory.newRecordServices();
 		otherInstanceSearchServices = otherModelLayerFactory.newSearchServices();
 
-		recordsCaches = getModelLayerFactory().getRecordsCaches();
+		recordsCaches = (EventsBusRecordsCachesImpl) getModelLayerFactory().getRecordsCaches();
 		zeCollectionRecordsCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
 		anotherCollectionRecordsCache = getModelLayerFactory().getRecordsCaches().getCache(anotherCollection);
 
-		otherInstanceRecordsCaches = otherModelLayerFactory.getRecordsCaches();
+		otherInstanceRecordsCaches = (EventsBusRecordsCachesImpl) otherModelLayerFactory.getRecordsCaches();
 		otherInstanceZeCollectionRecordsCache = otherModelLayerFactory.getRecordsCaches().getCache(zeCollection);
 
 		instanceGetByIdCounter = new GetByIdCounter(getClass()).listening(getModelLayerFactory());
@@ -229,6 +231,100 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 				.getDefaultSchema(zeCollectionSchemaWithVolatileCache.typeCode()).get("title").isCacheIndex()).isTrue();
 	}
 
+
+	@Test
+	public void test() throws Exception {
+
+		//Équivalent de 2 unités administratives
+		recordServices.add(newRecordOf(idOf(1001), zeCollectionSchemaWithPermanentCache).withTitle("1001"));
+		recordServices.add(newRecordOf(idOf(100002), zeCollectionSchemaWithPermanentCache).withTitle("100002"));
+
+		//Équivalent de 2 dossiers
+		recordServices.add(newRecordOf(idOf(100003), zeCollectionSchemaWithSummaryPermanentCache).withTitle("100003"));
+		recordServices.add(newRecordOf(idOf(100004), zeCollectionSchemaWithSummaryPermanentCache).withTitle("100004"));
+
+		validateAvailableEverywhere(zeCollectionSchemaWithPermanentCache.type(), idOf(1001), idOf(100002));
+		validateAvailableEverywhere(zeCollectionSchemaWithSummaryPermanentCache.type(), idOf(100003), idOf(100004));
+
+		//On repart le système en compactant la cache
+		Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS.enable();
+		Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS_ON_DEV_STATION.enable();
+		restartLayers();
+		validateAvailableEverywhere(zeCollectionSchemaWithPermanentCache.type(), idOf(1001), idOf(100002));
+		//validateAvailableEverywhere(zeCollectionSchemaWithSummaryPermanentCache.type(), idOf(100003), idOf(100004));
+
+		//	assertThat(recordsCaches.getRecordsCachesDataStore().getIntIdsDataStore().getIds().size()).isEqualTo(56);
+		//	assertThat(recordsCaches.getRecordsCachesDataStore().getIntIdsDataStore().getFullyCachedData()).hasSize(56);
+
+		//Sauf qu'aucune place n'a été gardée pour 100001, car il n'était pas dans la liste
+		getModelLayerFactory().newRecordServices().add(newRecordOf(idOf(100001), zeCollectionSchemaWithPermanentCache).withTitle("100001"));
+
+		validateAvailableEverywhere(zeCollectionSchemaWithPermanentCache.type(), idOf(1001), idOf(100001), idOf(100002));
+		//java.lang.IndexOutOfBoundsException: Index: 60, Size: 59
+
+	}
+
+	@Test
+	public void test2() throws Exception {
+
+
+		recordServices.add(newRecordOf(idOf(100003), zeCollectionSchemaWithSummaryPermanentCache).withTitle("100003"));
+		recordServices.add(newRecordOf(idOf(100004), zeCollectionSchemaWithSummaryPermanentCache).withTitle("100004"));
+		validateAvailableEverywhere(zeCollectionSchemaWithSummaryPermanentCache.type(), idOf(100003), idOf(100004));
+
+		Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS.enable();
+		Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS_ON_DEV_STATION.enable();
+		restartLayers();
+
+		validateAvailableEverywhere(zeCollectionSchemaWithSummaryPermanentCache.type(), idOf(100003), idOf(100004));
+		getModelLayerFactory().newRecordServices().add(permanentRecord1 = newRecordOf(idOf(1009), zeCollectionSchemaWithPermanentCache).withTitle("1009"));
+
+		validateAvailableEverywhere(zeCollectionSchemaWithPermanentCache.type(), idOf(1009));
+		validateAvailableEverywhere(zeCollectionSchemaWithSummaryPermanentCache.type(), idOf(100003), idOf(100004));
+
+
+	}
+
+	public void restartLayers() {
+		super.restartLayers();
+		ModelLayerFactory otherModelLayerFactory = getModelLayerFactory("other");
+
+		recordServices = getModelLayerFactory().newRecordServices();
+		searchServices = getModelLayerFactory().newSearchServices();
+		cachelessRecordServices = getModelLayerFactory().newCachelessRecordServices();
+
+		otherInstanceRecordServices = otherModelLayerFactory.newRecordServices();
+		otherInstanceSearchServices = otherModelLayerFactory.newSearchServices();
+
+		recordsCaches = (EventsBusRecordsCachesImpl) getModelLayerFactory().getRecordsCaches();
+		zeCollectionRecordsCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
+		anotherCollectionRecordsCache = getModelLayerFactory().getRecordsCaches().getCache(anotherCollection);
+
+		otherInstanceRecordsCaches = (EventsBusRecordsCachesImpl) otherModelLayerFactory.getRecordsCaches();
+		otherInstanceZeCollectionRecordsCache = otherModelLayerFactory.getRecordsCaches().getCache(zeCollection);
+
+		instanceGetByIdCounter = new GetByIdCounter(getClass()).listening(getModelLayerFactory());
+		otherInstanceGetByIdCounter = new GetByIdCounter(getClass()).listening(otherModelLayerFactory);
+
+		linkEventBus(getDataLayerFactory(), otherModelLayerFactory.getDataLayerFactory());
+	}
+
+	private void validateAvailableEverywhere(MetadataSchemaType schemaType, String... ids) {
+		for (RecordsCaches cache : asList(recordsCaches, otherInstanceRecordsCaches)) {
+
+			if (schemaType.getCacheType().hasPermanentCache()) {
+				assertThat(cache.stream(schemaType).collect(toList())).extracting("id").containsOnly(ids);
+				assertThat(cache.stream(zeCollection)
+						.filter((r) -> r.getSchemaCode().startsWith(schemaType.getCode() + "_"))
+						.collect(toList())).extracting("id").containsOnly(ids);
+				for (String id : ids) {
+					assertThat(cache.getRecordSummary(id)).isNotNull();
+				}
+			}
+
+		}
+	}
+
 	@Test
 	public void whenInsertingRecordsThenInsertedInLocalVolatileCacheAndInAllPermanentCache() throws Exception {
 
@@ -276,17 +372,17 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 		assertThat(recordsCaches.getRecordSummary(idOf(1))
 				.<String>get(zeCollectionSchemaWithVolatileCache.stringMetadata())).isEqualTo("code18");
 		assertThat(recordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithPermanentCache.type(), TITLE, "b")
-				.map(Record::getId).collect(Collectors.toList())).containsOnly(idOf(101));
+				.map(Record::getId).collect(toList())).containsOnly(idOf(101));
 		assertThat(recordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithPermanentCache.type(), TITLE, "e")
-				.map(Record::getId).collect(Collectors.toList())).isEmpty();
+				.map(Record::getId).collect(toList())).isEmpty();
 		assertThat(recordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithSummaryPermanentCache.type(), TITLE, "c")
-				.map(Record::getId).collect(Collectors.toList())).containsOnly(idOf(102));
+				.map(Record::getId).collect(toList())).containsOnly(idOf(102));
 		assertThat(recordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithSummaryPermanentCache.type(), TITLE, "f")
-				.map(Record::getId).collect(Collectors.toList())).isEmpty();
+				.map(Record::getId).collect(toList())).isEmpty();
 		assertThat(recordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithVolatileCache.type(), TITLE, "d")
-				.map(Record::getId).collect(Collectors.toList())).containsOnly(idOf(1));
+				.map(Record::getId).collect(toList())).containsOnly(idOf(1));
 		assertThat(recordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithVolatileCache.type(), TITLE, "g")
-				.map(Record::getId).collect(Collectors.toList())).isEmpty();
+				.map(Record::getId).collect(toList())).isEmpty();
 
 		assertThat(otherInstanceRecordsCaches.getRecord(idOf(101)).isSummary()).isFalse();
 		assertThat(otherInstanceRecordsCaches.getRecord(idOf(101)).getTitle()).isEqualTo("b");
@@ -307,17 +403,17 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 
 
 		assertThat(otherInstanceRecordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithPermanentCache.type(), TITLE, "b")
-				.map(Record::getId).collect(Collectors.toList())).containsOnly(idOf(101));
+				.map(Record::getId).collect(toList())).containsOnly(idOf(101));
 		assertThat(otherInstanceRecordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithPermanentCache.type(), TITLE, "e")
-				.map(Record::getId).collect(Collectors.toList())).isEmpty();
+				.map(Record::getId).collect(toList())).isEmpty();
 		assertThat(otherInstanceRecordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithSummaryPermanentCache.type(), TITLE, "c")
-				.map(Record::getId).collect(Collectors.toList())).containsOnly(idOf(102));
+				.map(Record::getId).collect(toList())).containsOnly(idOf(102));
 		assertThat(otherInstanceRecordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithSummaryPermanentCache.type(), TITLE, "f")
-				.map(Record::getId).collect(Collectors.toList())).isEmpty();
+				.map(Record::getId).collect(toList())).isEmpty();
 		assertThat(otherInstanceRecordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithVolatileCache.type(), TITLE, "d")
-				.map(Record::getId).collect(Collectors.toList())).containsOnly(idOf(1));
+				.map(Record::getId).collect(toList())).containsOnly(idOf(1));
 		assertThat(otherInstanceRecordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithVolatileCache.type(), TITLE, "g")
-				.map(Record::getId).collect(Collectors.toList())).isEmpty();
+				.map(Record::getId).collect(toList())).isEmpty();
 
 		//Update with new values
 		tx = new Transaction();
@@ -353,17 +449,17 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 		assertThat(recordsCaches.getRecordSummary(idOf(1))
 				.<String>get(zeCollectionSchemaWithVolatileCache.stringMetadata())).isEqualTo("code12");
 		assertThat(recordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithPermanentCache.type(), TITLE, "b")
-				.map(Record::getId).collect(Collectors.toList())).isEmpty();
+				.map(Record::getId).collect(toList())).isEmpty();
 		assertThat(recordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithPermanentCache.type(), TITLE, "e")
-				.map(Record::getId).collect(Collectors.toList())).containsOnly(idOf(101));
+				.map(Record::getId).collect(toList())).containsOnly(idOf(101));
 		assertThat(recordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithSummaryPermanentCache.type(), TITLE, "c")
-				.map(Record::getId).collect(Collectors.toList())).isEmpty();
+				.map(Record::getId).collect(toList())).isEmpty();
 		assertThat(recordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithSummaryPermanentCache.type(), TITLE, "f")
-				.map(Record::getId).collect(Collectors.toList())).containsOnly(idOf(102));
+				.map(Record::getId).collect(toList())).containsOnly(idOf(102));
 		assertThat(recordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithVolatileCache.type(), TITLE, "d")
-				.map(Record::getId).collect(Collectors.toList())).isEmpty();
+				.map(Record::getId).collect(toList())).isEmpty();
 		assertThat(recordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithVolatileCache.type(), TITLE, "g")
-				.map(Record::getId).collect(Collectors.toList())).containsOnly(idOf(1));
+				.map(Record::getId).collect(toList())).containsOnly(idOf(1));
 
 		assertThat(otherInstanceRecordsCaches.getRecord(idOf(101)).isSummary()).isFalse();
 		assertThat(otherInstanceRecordsCaches.getRecord(idOf(101)).getTitle()).isEqualTo("e");
@@ -381,17 +477,17 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 				.<String>get(zeCollectionSchemaWithVolatileCache.stringMetadata())).isEqualTo("code12");
 
 		assertThat(otherInstanceRecordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithPermanentCache.type(), TITLE, "b")
-				.map(Record::getId).collect(Collectors.toList())).isEmpty();
+				.map(Record::getId).collect(toList())).isEmpty();
 		assertThat(otherInstanceRecordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithPermanentCache.type(), TITLE, "e")
-				.map(Record::getId).collect(Collectors.toList())).containsOnly(idOf(101));
+				.map(Record::getId).collect(toList())).containsOnly(idOf(101));
 		assertThat(otherInstanceRecordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithSummaryPermanentCache.type(), TITLE, "c")
-				.map(Record::getId).collect(Collectors.toList())).isEmpty();
+				.map(Record::getId).collect(toList())).isEmpty();
 		assertThat(otherInstanceRecordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithSummaryPermanentCache.type(), TITLE, "f")
-				.map(Record::getId).collect(Collectors.toList())).containsOnly(idOf(102));
+				.map(Record::getId).collect(toList())).containsOnly(idOf(102));
 		assertThat(otherInstanceRecordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithVolatileCache.type(), TITLE, "d")
-				.map(Record::getId).collect(Collectors.toList())).isEmpty();
+				.map(Record::getId).collect(toList())).isEmpty();
 		assertThat(otherInstanceRecordsCaches.getRecordsSummaryByIndexedMetadata(zeCollectionSchemaWithVolatileCache.type(), TITLE, "g")
-				.map(Record::getId).collect(Collectors.toList())).containsOnly(idOf(1));
+				.map(Record::getId).collect(toList())).containsOnly(idOf(1));
 
 	}
 

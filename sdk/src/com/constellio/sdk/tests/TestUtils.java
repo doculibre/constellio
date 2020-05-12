@@ -47,6 +47,7 @@ import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.ObjectAssert;
 import org.assertj.core.api.ThrowableAssert;
+import org.assertj.core.data.MapEntry;
 import org.assertj.core.groups.Tuple;
 import org.jdom2.Document;
 import org.jdom2.output.Format;
@@ -87,6 +88,7 @@ import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.MapEntry.entry;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -1348,6 +1350,17 @@ public class TestUtils {
 		return ((double) (1000 * loopCount)) / elapsedMs;
 	}
 
+	public static <K, V> List<MapEntry> flattened(Map<K, List<V>> map) {
+		List<MapEntry> tuples = new ArrayList<>();
+
+		for (Map.Entry<K, List<V>> entry : map.entrySet()) {
+			for (V value : entry.getValue()) {
+				tuples.add(entry(entry.getKey(), value));
+			}
+		}
+
+		return tuples;
+	}
 
 	public static ThrowableAssert assertThatException(ThrowingRunnable r) {
 

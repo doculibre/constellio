@@ -134,8 +134,10 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 	}
 
 	@Test
-	public void whenSearchingActiveToDestructionThenObtainsValidResults()
+	public void givenDestructionDecommissioningListIncludeSortWhenSearchingActiveToDestructionThenObtainsValidResults()
 			throws Exception {
+
+		givenConfig(RMConfigs.DESTRUCTION_DECOMMISSIONING_LIST_INCLUDES_SORT, true);
 
 		givenActualTime();
 		assertThatResultsOf(factory.activeToDestroy(records.unitId_10a))
@@ -158,6 +160,36 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 		givenActualTime();
 		assertThatResultsOf(factory.activeToDestroy(records.unitId_30c)).containsOnlyOnce(
 				records.folder_C04, records.folder_C05, records.folder_C06, records.folder_C07, records.folder_C08);
+	}
+
+
+	@Test
+	public void givenDestructionDecommissioningListDoesNotIncludeSortWhenSearchingActiveToDestructionThenObtainsValidResults()
+			throws Exception {
+
+		givenConfig(RMConfigs.DESTRUCTION_DECOMMISSIONING_LIST_INCLUDES_SORT, false);
+
+		givenActualTime();
+		assertThatResultsOf(factory.activeToDestroy(records.unitId_10a))
+				.contains(records.folder_A(14, 15)).contains(records.folder_A(22, 24)).contains(records.folder_A(45, 47))
+				.hasSize(9);
+
+		givenTimeIs(new LocalDate(2009, 10, 31));
+		assertThatResultsOf(factory.activeToDestroy(records.unitId_10a))
+				.contains(records.folder_A(14, 15)).contains(records.folder_A(22, 24)).contains(records.folder_A(45, 47))
+				.hasSize(9);
+
+		givenTimeIs(new LocalDate(2004, 10, 31));
+		assertThatResultsOf(factory.activeToDestroy(records.unitId_10a))
+				.containsOnlyOnce(records.folder_A(14, 15));
+
+		//		givenTimeIs(new LocalDate(2004, 10, 30));
+		//		assertThatResultsOf(factory.activeToDestroy(records.unitId_10a))
+		//				.containsOnlyOnce(records.folder_A(13, 14));
+
+		givenActualTime();
+		assertThatResultsOf(factory.activeToDestroy(records.unitId_30c)).containsOnlyOnce(
+				records.folder_C05, records.folder_C06, records.folder_C08);
 	}
 
 	@Test
@@ -218,8 +250,10 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 	}
 
 	@Test
-	public void whenSearchingSemiActiveToDestructionThenObtainsValidResults()
+	public void givenDestructionDecommissioningListDoesIncludeSortWhenSearchingSemiActiveToDestructionThenObtainsValidResults()
 			throws Exception {
+
+		givenConfig(RMConfigs.DESTRUCTION_DECOMMISSIONING_LIST_INCLUDES_SORT, true);
 
 		givenActualTime();
 		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_10a))
@@ -239,6 +273,32 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 		givenActualTime();
 		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_30c))
 				.containsOnlyOnce(records.folder_C30, records.folder_C33, records.folder_C34);
+	}
+
+	@Test
+	public void givenDestructionDecommissioningListDoesNotIncludeSortWhenSearchingSemiActiveToDestructionThenObtainsValidResults()
+			throws Exception {
+
+		givenConfig(RMConfigs.DESTRUCTION_DECOMMISSIONING_LIST_INCLUDES_SORT, false);
+
+		givenActualTime();
+		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_10a))
+				.contains(records.folder_A(54, 56)).hasSize(3);
+
+		givenTimeIs(new LocalDate(2010, 11, 5));
+		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_10a))
+				.contains(records.folder_A(54, 56)).hasSize(3);
+
+		givenTimeIs(new LocalDate(2007, 10, 31));
+		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_10a))
+				.contains(records.folder_A(54, 55)).hasSize(2);
+
+		givenTimeIs(new LocalDate(2007, 10, 30));
+		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_10a)).isEmpty();
+
+		givenActualTime();
+		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_30c))
+				.containsOnlyOnce(records.folder_C34);
 	}
 
 	@Test

@@ -8,6 +8,7 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -31,7 +32,10 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 		assertThat(authenticated).isFalse();
 	}
 
+
 	@Test
+	@InDevelopmentTest
+
 	public void givenActiveDirectoryAuthenticationManagerWhenAuthenticatingValidLdapUsersWithValidCredentialsThenSuccess()
 			throws Exception {
 		givenCollectionWithUsers("administrator");
@@ -42,6 +46,7 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void givenActiveDirectoryAuthenticationManagerWhenAuthenticatingValidLdapUsersWithBlankPasswordThenFailure()
 			throws Exception {
 		//givenConfiguredToConnectOnTestActiveDirectory();

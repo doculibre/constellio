@@ -65,21 +65,38 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 		}
 
 		if (folderId != null) {
-			List<String> newDocumentTypes = Collections.EMPTY_LIST;
+			List<String> folderRestrictedDocumentTypes = Collections.EMPTY_LIST;
+			List<String> retentionRuleRestrictedDocumentTypes = Collections.EMPTY_LIST;
+
 			if (rmConfigs.isTypeRestrictionEnabledInFolder()) {
-				newDocumentTypes = rm.getFolder(folderId).getAllowedDocumentTypes();
+				folderRestrictedDocumentTypes = rm.getFolder(folderId).getAllowedDocumentTypes();
 			}
 
-			if (newDocumentTypes.isEmpty()) {
-				newDocumentTypes = getDocumentTypesFilteredByRetentionRule();
-			}
+			retentionRuleRestrictedDocumentTypes = getDocumentTypesFilteredByRetentionRule();
 
-			if (!newDocumentTypes.isEmpty()
-				|| rmConfigs.getDocumentsTypesChoice()
-				   == DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
-				|| rmConfigs.getDocumentsTypesChoice()
-				   == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
-				condition = condition.andWhere(Schemas.IDENTIFIER).isIn(newDocumentTypes);
+			boolean forceLimitToSameDocuments = rmConfigs.getDocumentsTypesChoice()
+												== DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES;
+			boolean limitToSameDocuments = rmConfigs.getDocumentsTypesChoice()
+										   == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
+										   && !retentionRuleRestrictedDocumentTypes.isEmpty();
+
+			if (!folderRestrictedDocumentTypes.isEmpty() || forceLimitToSameDocuments || limitToSameDocuments) {
+
+				List<String> commonFilteredTypes = new ArrayList<>();
+				if (!folderRestrictedDocumentTypes.isEmpty() && (forceLimitToSameDocuments || limitToSameDocuments)) {
+					commonFilteredTypes.addAll(folderRestrictedDocumentTypes);
+					commonFilteredTypes.retainAll(retentionRuleRestrictedDocumentTypes);
+				} else if (!folderRestrictedDocumentTypes.isEmpty()) {
+					commonFilteredTypes.addAll(folderRestrictedDocumentTypes);
+				} else {
+					commonFilteredTypes.addAll(retentionRuleRestrictedDocumentTypes);
+				}
+
+				if (currentType != null && !commonFilteredTypes.contains(currentType)) {
+					commonFilteredTypes.add(currentType);
+				}
+
+				condition = condition.andWhere(Schemas.IDENTIFIER).isIn(commonFilteredTypes);
 			}
 		}
 		if (onlyLinkables) {
@@ -108,9 +125,6 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 			   == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
 			RetentionRule retentionRule = rm.getRetentionRule(rm.getFolder(folderId).getRetentionRule());
 			List<String> documentTypes = retentionRule.getDocumentTypes();
-			if (currentType != null && !documentTypes.contains(currentType)) {
-				newDocumentTypes.add(currentType);
-			}
 			newDocumentTypes.addAll(documentTypes);
 		}
 		return newDocumentTypes;

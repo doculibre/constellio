@@ -21,7 +21,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomySearchServicesQuery;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -39,7 +38,7 @@ public class GetChildrenContext {
 	private boolean hasPermanentCache;
 	ModelLayerFactory modelLayerFactory;
 	boolean principalTaxonomy;
-	List<MetadataSchemaType> classifiedSchemaTypes = Collections.emptyList();
+	List<MetadataSchemaType> classifiedSchemaTypes;
 
 	public GetChildrenContext(TaxonomySearchServicesQuery query, ModelLayerFactory modelLayerFactory) {
 		this(query.getUser(), query.getRecord(), query.getOptions(), query.getForSelectionOfType(), query.getTaxonomy(), modelLayerFactory);
@@ -47,30 +46,43 @@ public class GetChildrenContext {
 
 	public GetChildrenContext(User user, Record record, TaxonomiesSearchOptions options,
 							  MetadataSchemaType forSelectionOfSchemaType, ModelLayerFactory modelLayerFactory) {
+		this(user, record, options, forSelectionOfSchemaType, null, modelLayerFactory);
+	}
+
+	public GetChildrenContext(User user, Record record, TaxonomiesSearchOptions options,
+							  MetadataSchemaType forSelectionOfSchemaType, Taxonomy taxonomy,
+							  ModelLayerFactory modelLayerFactory) {
 		this.user = user;
 		this.record = record;
 		this.options = options;
 		this.forSelectionOfSchemaType = forSelectionOfSchemaType;
 		this.modelLayerFactory = modelLayerFactory;
-		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
-		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 
-		this.taxonomy = taxonomiesManager.getTaxonomyOf(record);
 		if (taxonomy == null) {
-			taxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
+			TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+			this.taxonomy = taxonomiesManager.getTaxonomyOf(record);
+			if (this.taxonomy == null) {
+				this.taxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
+			}
+		} else {
+			this.taxonomy = taxonomy;
 		}
 
-		if (taxonomy != null) {
-			if (taxonomy.getSchemaTypes().size() == 1) {
-				CacheConfig cacheConfig = modelLayerFactory.getRecordsCaches().getCache(getCollection()).getCacheConfigOf(taxonomy.getSchemaTypes().get(0));
+		if (this.taxonomy != null) {
+			if (this.taxonomy.getSchemaTypes().size() == 1) {
+				CacheConfig cacheConfig = modelLayerFactory.getRecordsCaches().getCache(getCollection()).getCacheConfigOf(this.taxonomy.getSchemaTypes().get(0));
 				hasPermanentCache = cacheConfig != null && cacheConfig.isPermanent();
 			}
-			principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(getCollection()).hasSameCode(taxonomy);
-
+			principalTaxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(getCollection()).hasSameCode(this.taxonomy);
 		}
 
-		fromType = schemasManager.getSchemaTypeOf(record);
-		classifiedSchemaTypes = schemasManager.getSchemaTypes(taxonomy.getCollection())
+		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		if (record == null) {
+			fromType = schemasManager.getSchemaTypes(this.taxonomy.getCollection()).getSchemaType(this.taxonomy.getSchemaTypes().get(0));
+		} else {
+			fromType = schemasManager.getSchemaTypeOf(record);
+		}
+		classifiedSchemaTypes = schemasManager.getSchemaTypes(fromType.getCollection())
 				.getClassifiedSchemaTypesIn(fromType.getCode());
 
 	}
@@ -81,35 +93,6 @@ public class GetChildrenContext {
 
 	public MetadataSchemaType getFromType() {
 		return fromType;
-	}
-
-	public GetChildrenContext(User user, Record record, TaxonomiesSearchOptions options,
-							  MetadataSchemaType forSelectionOfSchemaType, Taxonomy taxonomy,
-							  ModelLayerFactory modelLayerFactory) {
-		this.user = user;
-		this.record = record;
-		this.options = options;
-		this.forSelectionOfSchemaType = forSelectionOfSchemaType;
-		this.taxonomy = taxonomy;
-		this.modelLayerFactory = modelLayerFactory;
-
-		if (taxonomy != null) {
-			if (taxonomy.getSchemaTypes().size() == 1) {
-				CacheConfig cacheConfig = modelLayerFactory.getRecordsCaches().getCache(getCollection()).getCacheConfigOf(taxonomy.getSchemaTypes().get(0));
-				hasPermanentCache = cacheConfig != null && cacheConfig.isPermanent();
-			}
-			principalTaxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(getCollection()).hasSameCode(taxonomy);
-		}
-
-		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		if (record == null) {
-			fromType = schemasManager.getSchemaTypes(taxonomy.getCollection()).getSchemaType(taxonomy.getSchemaTypes().get(0));
-		} else {
-			fromType = schemasManager.getSchemaTypeOf(record);
-		}
-		classifiedSchemaTypes = schemasManager.getSchemaTypes(fromType.getCollection())
-				.getClassifiedSchemaTypesIn(fromType.getCode());
-
 	}
 
 	public boolean hasUserAccessToSomethingInConcept(Record record) {
