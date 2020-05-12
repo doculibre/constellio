@@ -234,9 +234,17 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		};
 	}
 
-	private HorizontalLayout buildFolderFilterComponent() {
-		HorizontalLayout filterComponent = new HorizontalLayout();
-		filterComponent.setSpacing(true);
+	@Override
+	protected Component buildActionMenu(ViewChangeEvent event) {
+		if (isNested) {
+			return null;
+		}
+		return super.buildActionMenu(event);
+	}
+
+	private HorizontalLayout buildFolderFilterAndMenuBarComponent() {
+		HorizontalLayout filterAndMenuBarComponent = new HorizontalLayout();
+		filterAndMenuBarComponent.setSpacing(true);
 		folderFilterField = new BaseTextField();
 		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
 			@Override
@@ -244,13 +252,17 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.folderFilterButtonClicked();
 			}
 		};
-		filterComponent.addComponents(folderFilterField, filterButton);
-		return filterComponent;
+		folderListMenuBar = buildSelectionPanelMenuBar();
+		folderListMenuBar.setVisible(true);
+		folderListMenuBar.buildMenuItems();
+		filterAndMenuBarComponent.addComponents(folderFilterField, filterButton, folderListMenuBar);
+
+		return filterAndMenuBarComponent;
 	}
 
-	private HorizontalLayout buildDocumentFilterComponent() {
-		HorizontalLayout filterComponent = new HorizontalLayout();
-		filterComponent.setSpacing(true);
+	private HorizontalLayout buildDocumentFilterAndMenuBarComponent() {
+		HorizontalLayout filterAndMenuBarComponent = new HorizontalLayout();
+		filterAndMenuBarComponent.setSpacing(true);
 		documentFilterField = new BaseTextField();
 		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
 			@Override
@@ -258,13 +270,16 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.documentFilterButtonClicked();
 			}
 		};
-		filterComponent.addComponents(documentFilterField, filterButton);
-		return filterComponent;
+		documentListMenuBar = buildSelectionPanelMenuBar();
+		documentListMenuBar.setVisible(true);
+		documentListMenuBar.buildMenuItems();
+		filterAndMenuBarComponent.addComponents(documentFilterField, filterButton, documentListMenuBar);
+		return filterAndMenuBarComponent;
 	}
 
-	private HorizontalLayout buildContainerFilterComponent() {
-		HorizontalLayout filterComponent = new HorizontalLayout();
-		filterComponent.setSpacing(true);
+	private HorizontalLayout buildContainerFilterAndMenuBarComponent() {
+		HorizontalLayout filterAndMenuBarComponent = new HorizontalLayout();
+		filterAndMenuBarComponent.setSpacing(true);
 		containerFilterField = new BaseTextField();
 		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
 			@Override
@@ -272,8 +287,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.containerFilterButtonClicked();
 			}
 		};
-		filterComponent.addComponents(containerFilterField, filterButton);
-		return filterComponent;
+		containerListMenuBar = buildSelectionPanelMenuBar();
+		containerListMenuBar.setVisible(true);
+		containerListMenuBar.buildMenuItems();
+		filterAndMenuBarComponent.addComponents(containerFilterField, filterButton, containerListMenuBar);
+		return filterAndMenuBarComponent;
 	}
 
 	@Override
@@ -282,27 +300,22 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		folderTable = buildFolderTable("CartView.folders", presenter.getFolderRecords());
 		documentTable = buildTable("CartView.documents", presenter.getDocumentRecords());
 		containerTable = buildTable("CartView.containers", presenter.getContainerRecords());
-		folderListMenuBar = buildSelectionPanelMenuBar();
-		folderListMenuBar.setVisible(true);
-		folderListMenuBar.buildMenuItems();
-		TabSheet.Tab folderTab = tabSheet.addTab(folderLayout = new CartTabLayout(buildFolderFilterComponent(), folderListMenuBar, folderTable));
+
+		TabSheet.Tab folderTab = tabSheet.addTab(folderLayout = new CartTabLayout(buildFolderFilterAndMenuBarComponent(), folderTable));
 		folderTab.setCaption($("CartView.foldersTab"));
 		folderLayout.setSchemaType(Folder.SCHEMA_TYPE);
 		folderTab.setVisible(!folderTable.getContainerDataSource().getItemIds().isEmpty());
-		documentListMenuBar = buildSelectionPanelMenuBar();
-		documentListMenuBar.setVisible(true);
-		documentListMenuBar.buildMenuItems();
-		TabSheet.Tab documentTab = tabSheet.addTab(documentLayout = new CartTabLayout(buildDocumentFilterComponent(), documentListMenuBar, documentTable));
+
+		TabSheet.Tab documentTab = tabSheet.addTab(documentLayout = new CartTabLayout(buildDocumentFilterAndMenuBarComponent(), documentTable));
 		documentTab.setCaption($("CartView.documentsTab"));
 		documentLayout.setSchemaType(Document.SCHEMA_TYPE);
 		documentTab.setVisible(!documentTable.getContainerDataSource().getItemIds().isEmpty());
-		containerListMenuBar = buildSelectionPanelMenuBar();
-		containerListMenuBar.setVisible(true);
-		containerListMenuBar.buildMenuItems();
-		TabSheet.Tab containerTab = tabSheet.addTab(containerLayout = new CartTabLayout(buildContainerFilterComponent(), containerListMenuBar, containerTable));
+
+		TabSheet.Tab containerTab = tabSheet.addTab(containerLayout = new CartTabLayout(buildContainerFilterAndMenuBarComponent(), containerTable));
 		containerTab.setCaption($("CartView.containersTab"));
 		containerLayout.setSchemaType(ContainerRecord.SCHEMA_TYPE);
 		containerTab.setVisible(!containerTable.getContainerDataSource().getItemIds().isEmpty());
+
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
@@ -338,7 +351,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 		};
 
-		List<String> excludedActionTypes = Arrays.asList(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name());
+		List<String> excludedActionTypes = Arrays.asList(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name(), RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name());
 		RecordListMenuBar recordListMenuBar = new RecordListMenuBar(recordProvider, $("ConstellioHeader.selectionActions"), excludedActionTypes);
 		return recordListMenuBar;
 	}
