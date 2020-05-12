@@ -15,8 +15,6 @@ import com.constellio.app.services.importExport.systemStateExport.SystemStateExp
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.dao.dto.records.RecordId;
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.utils.LazyIterator;
@@ -162,6 +160,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				}
 			};
 			StreamResource resource = new StreamResource(streamSource, filename);
+			resource.setCacheTime(0);
 			resource.setMIMEType("application/xml");
 			Resource downloadedResource = DownloadLink.wrapForDownload(resource);
 			Page.getCurrent().open(downloadedResource, null, false);
@@ -173,7 +172,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 	void exportCompleteClicked() {
 		try {
-			String filename = "exportedComplete-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+			String filename = "exportedComplete-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()) + ".zip";
 			StreamResource.StreamSource streamSource = new StreamResource.StreamSource() {
 				@Override
 				public InputStream getStream() {
@@ -186,6 +185,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				}
 			};
 			StreamResource resource = new StreamResource(streamSource, filename);
+			resource.setCacheTime(0);
 			resource.setMIMEType("application/zip");
 			Resource downloadedResource = DownloadLink.wrapForDownload(resource);
 			Page.getCurrent().open(downloadedResource, null, false);
@@ -208,8 +208,6 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				.buildOptionsForExportingTools(isSameCollection, includeAuthorizations, appCollectionExtentions);
 		exportToXML(options);
 	}
-
-
 
 
 	private void exportToXML(RecordExportOptions options) {
