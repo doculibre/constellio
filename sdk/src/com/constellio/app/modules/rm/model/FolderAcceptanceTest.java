@@ -37,6 +37,9 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.GetByIdCounter;
 import com.constellio.sdk.tests.QueryCounter;
@@ -63,6 +66,7 @@ import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE
 import static com.constellio.app.modules.rm.model.validators.FolderValidator.CATEGORY_CODE;
 import static com.constellio.app.modules.rm.model.validators.FolderValidator.RULE_CODE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.TestUtils.frenchMessages;
@@ -156,6 +160,32 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		MD = records.MD;
 
 	}
+
+
+	@Test
+	public void whenSearchingUsingCacheAndLegacyIdThenOK() throws Exception {
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+
+		Folder folder = rm.newFolder().setAdministrativeUnitEntered(records.unitId_10a).setTitle("iamZeFolder")
+				.setCategoryEntered(records.categoryId_X110).setRetentionRuleEntered(records.ruleId_1)
+				.setCopyStatusEntered(PRINCIPAL).setOpenDate(LocalDate.now());
+		folder.setLegacyId("iamZeFolder");
+		recordServices.add(folder);
+
+
+		assertThat(recordServices.getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(rm.folder.legacyId())).isTrue();
+		asList(rm.folder.legacyId(), Schemas.LEGACY_ID).forEach((metadata) -> {
+			LogicalSearchCondition condition = from(rm.folderSchemaType())
+					.where(rm.folder.category()).isEqualTo(records.categoryId_X110)
+					.andWhere(metadata).isNotNull();
+			assertThat(rm.searchFolders(new LogicalSearchQuery(condition))).extracting("title").containsOnly("iamZeFolder");
+			assertThat(rm.wrapFolder(searchServices.searchSingleResult(condition))).isNotNull();
+		});
+		assertThat(recordServices.realtimeGetRecordSummaryById(folder.getId()).<String>get(rm.folder.legacyId())).isNull();
+
+	}
+
 
 	@Test
 	public void givenEnforcedWhenCreateFolderWithIncompatibleRuleAndCategoryThenValidationException()

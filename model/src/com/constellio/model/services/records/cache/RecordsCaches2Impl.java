@@ -99,6 +99,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	private CacheLoadingProgression cacheLoadingProgression;
 
+	private Version9_0LocalCacheConfigs cacheConfigs;
+
 	public RecordsCaches2Impl(ModelLayerFactory modelLayerFactory,
 							  FileSystemRecordsValuesCacheDataStore fileSystemDataStore,
 							  RecordsCachesDataStore memoryDataStore) {
@@ -118,6 +120,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		this.memoryDiskDatabase = DBMaker.memoryDB().make();
 		this.hooks = new RecordsCachesHooks(modelLayerFactory);
 		this.metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(modelLayerFactory);
+
+		cacheConfigs = new Version9_0LocalCacheConfigs(false);
 
 		ScheduledExecutorService executor =
 				Executors.newScheduledThreadPool(2);
@@ -157,6 +161,11 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	public RecordsCachesDataStore getRecordsCachesDataStore() {
 		return memoryDataStore;
+	}
+
+	@Override
+	public Version9_0LocalCacheConfigs getLocalCacheConfigs() {
+		return cacheConfigs;
 	}
 
 	public void register(RecordsCachesHook hook) {
@@ -624,6 +633,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			loadFullyPermanentCache(collection);
 		}
 		fullyPermanentInitialized = true;
+
 	}
 
 	public void onPostLayerInitialization() {
@@ -649,6 +659,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 					if (Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.isEnabled() && !Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.isEnabled()) {
 						fileSystemDataStore.closeThenReopenWithoutMmap();
 					}
+					cacheConfigs = new Version9_0LocalCacheConfigs(
+							modelLayerFactory.getSystemConfigs().isLegacyIdentifierIndexedInMemory());
 				}).start();
 
 			} else {
@@ -656,6 +668,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				CacheRecordDTOUtils.stopCompilingDTOsStats();
 				LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
 				cacheLoadingProgression = null;
+				cacheConfigs = new Version9_0LocalCacheConfigs(
+						modelLayerFactory.getSystemConfigs().isLegacyIdentifierIndexedInMemory());
 			}
 		}
 

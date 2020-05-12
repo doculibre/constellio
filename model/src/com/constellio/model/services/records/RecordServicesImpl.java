@@ -103,6 +103,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -636,72 +637,118 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return recordDao.documentsCount();
 	}
 
+
 	@Override
 	public Record getRecordByMetadata(Metadata metadata, String value) {
-		if (!metadata.isUniqueValue()) {
-			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");
-		}
-		if (metadata.getCode().startsWith("global_")) {
-			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
-		}
-		if (value == null) {
-			return null;
-		}
-
-		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(metadata.getCollection());
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(metadata);
-		MetadataSchemaType schemaType = types.getSchemaType(schemaTypeCode);
-
-		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			return getRecordsCaches().getCache(metadata.getCollection()).getByMetadata(metadata, value);
-		} else if (schemaType.getCacheType().isSummaryCache()) {
-			Record record = getRecordsCaches().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
-
-			if (record != null) {
-				return getDocumentById(record.getId());
-			} else {
-				return null;
-			}
-		}
-
-
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		LogicalSearchCondition condition = from(schemaType).where(metadata).isEqualTo(value);
-
-		return searchServices.searchSingleResult(condition);
+		return getRecordByMetadata(metadata, value, false);
+		//		if (!metadata.isUniqueValue()) {
+		//			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");
+		//		}
+		//		if (metadata.getCode().startsWith("global_")) {
+		//			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
+		//		}
+		//		if (value == null) {
+		//			return null;
+		//		}
+		//
+		//		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(metadata.getCollection());
+		//		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(metadata);
+		//		MetadataSchemaType schemaType = types.getSchemaType(schemaTypeCode);
+		//
+		//		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+		//			return getRecordsCaches().getCache(metadata.getCollection()).getByMetadata(metadata, value);
+		//		} else if (schemaType.getCacheType().isSummaryCache()) {
+		//			Record record = getRecordsCaches().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+		//
+		//			if (record != null) {
+		//				return getDocumentById(record.getId());
+		//			} else {
+		//				return null;
+		//			}
+		//		}
+		//
+		//
+		//		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		//		LogicalSearchCondition condition = from(schemaType).where(metadata).isEqualTo(value);
+		//
+		//		return searchServices.searchSingleResult(condition);
 	}
 
 
 	@Override
 	public Record getRecordSummaryByMetadata(Metadata metadata, String value) {
+		return getRecordByMetadata(metadata, value, true);
+		//		if (!metadata.isUniqueValue()) {
+		//			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");
+		//		}
+		//		if (metadata.getCode().startsWith("global_")) {
+		//			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
+		//		}
+		//		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		//		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(metadata.getCollection());
+		//		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(metadata);
+		//		MetadataSchemaType schemaType = types.getSchemaType(schemaTypeCode);
+		//
+		//		if (!schemaType.getCacheType().hasPermanentCache()) {
+		//			throw new IllegalArgumentException("Schema type '" + schemaTypeCode + "' has no permanent cache");
+		//		}
+		//
+		//		Record returnedRecord = getRecordsCaches().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+		//		if (returnedRecord == null && getRecordsCaches().isCacheInitialized(schemaType)) {
+		//			LogicalSearchCondition condition = from(schemaType).where(metadata).isEqualTo(value);
+		//
+		//			Record record = searchServices.searchSingleResult(condition);
+		//			if (record != null) {
+		//				RecordDTO recordDTO = toPersistedSummaryRecordDTO(record, schemaType.getSchema(record.getSchemaCode()));
+		//				returnedRecord = new RecordImpl(recordDTO, schemaType.getCollectionInfo(), schemaType.getId());
+		//			}
+		//		}
+		//
+		//		return returnedRecord;
+	}
+
+
+	public Record getRecordByMetadata(Metadata metadata, String value, boolean summary) {
 		if (!metadata.isUniqueValue()) {
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");
 		}
 		if (metadata.getCode().startsWith("global_")) {
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
 		}
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(metadata.getCollection());
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(metadata);
-		MetadataSchemaType schemaType = types.getSchemaType(schemaTypeCode);
 
-		if (!schemaType.getCacheType().hasPermanentCache()) {
-			throw new IllegalArgumentException("Schema type '" + schemaTypeCode + "' has no permanent cache");
+		if (StringUtils.isBlank(value)) {
+			return null;
 		}
 
-		Record returnedRecord = getRecordsCaches().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
-		if (returnedRecord == null && getRecordsCaches().isCacheInitialized(schemaType)) {
-			LogicalSearchCondition condition = from(schemaType).where(metadata).isEqualTo(value);
+		MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
+				.getSchemaTypes(metadata.getCollection()).getSchemaType(metadata.getSchemaTypeCode());
 
-			Record record = searchServices.searchSingleResult(condition);
-			if (record != null) {
-				RecordDTO recordDTO = toPersistedSummaryRecordDTO(record, schemaType.getSchema(record.getSchemaCode()));
-				returnedRecord = new RecordImpl(recordDTO, schemaType.getCollectionInfo());
+		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+			return recordsCaches.getCache(metadata.getCollection()).getByMetadata(metadata, value);
+
+		} else if (schemaType.getCacheType().hasPermanentCache()
+				   && recordsCaches.areSummaryCachesInitialized()
+				   && !recordsCaches.getLocalCacheConfigs().excludedDuringLastCacheRebuild(metadata)) {
+			Record record = recordsCaches.getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+			if (record != null && !summary) {
+				record = getDocumentById(record.getId());
 			}
+			return record;
+
+		} else {
+			LogicalSearchCondition condition = from(schemaType).where(metadata).isEqualTo(value);
+			SearchServices searchServices = modelLayerFactory.newSearchServices();
+			Record record = searchServices.searchSingleResult(condition);
+			if (record != null && summary) {
+				RecordDTO recordDTO = toPersistedSummaryRecordDTO(record, schemaType.getSchema(record.getSchemaCode()));
+				record = new RecordImpl(recordDTO, schemaType.getCollectionInfo());
+			}
+			return record;
 		}
 
-		return returnedRecord;
+
 	}
+
 
 	public Record getById(String dataStore, String id, boolean callExtensions) {
 		try {

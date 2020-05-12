@@ -115,4 +115,5 @@ public interface RecordsCaches {
 
 	RecordsCachesDataStore getRecordsCachesDataStore();
 
+	Version9_0LocalCacheConfigs getLocalCacheConfigs();
 }
