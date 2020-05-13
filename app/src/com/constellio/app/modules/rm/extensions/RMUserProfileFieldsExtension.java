@@ -329,8 +329,8 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 			@Override
 			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).whereAnyCondition(
-						where(rm.cartSharedWithUsers()).isContaining(asList(user.getId())),
-						where(rm.cart.owner()).isEqualTo(user.getId()))
+						where(rm.cartSharedWithUsers()).isEqualTo(user),
+						where(rm.cart.owner()).isEqualTo(user))
 				).sortAsc(Schemas.TITLE);
 			}
 		};
