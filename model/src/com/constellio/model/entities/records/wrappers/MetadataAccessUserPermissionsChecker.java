@@ -2,7 +2,10 @@ package com.constellio.model.entities.records.wrappers;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.services.security.roles.Roles;
+
+import java.util.function.Predicate;
 
 public class MetadataAccessUserPermissionsChecker extends UserPermissionsChecker {
 
@@ -38,6 +41,11 @@ public class MetadataAccessUserPermissionsChecker extends UserPermissionsChecker
 	@Override
 	public boolean onSomething() {
 		throw new UnsupportedOperationException("onSomething() is not yet supported for this checker");
+	}
+
+	@Override
+	public boolean onAnyRecord(Predicate<SecurityModelAuthorization> predicate, boolean includingGlobal) {
+		throw new UnsupportedOperationException("onAnyRecord(Predicate<Record>, boolean) is not yet supported for this checker");
 	}
 
 }
