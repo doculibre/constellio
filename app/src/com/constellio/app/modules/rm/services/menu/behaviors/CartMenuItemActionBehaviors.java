@@ -188,34 +188,6 @@ public class CartMenuItemActionBehaviors {
 		Page.getCurrent().open(resource, null, false);
 	}
 
-	public void batchDuplicate(Cart cart, MenuItemActionBehaviorParams params) {
-		if (!cartActionsServices.isBatchDuplicateActionPossible(cart.getWrappedRecord(), params.getUser())) {
-			params.getView().showErrorMessage($("CartView.cannotDuplicate"));
-			return;
-		}
-		List<Folder> folders = cartUtil.getCartFolders(cart.getId());
-		for (Folder folder : folders) {
-			if (!rmModuleExtensions.isCopyActionPossibleOnFolder(folder, params.getUser())) {
-				params.getView().showErrorMessage($("CartView.actionBlockedByExtension"));
-				return;
-			}
-		}
-
-		try {
-			DecommissioningService service = new DecommissioningService(params.getView().getCollection(), appLayerFactory);
-			for (Folder folder : folders) {
-				if (!folder.isLogicallyDeletedStatus()) {
-					service.duplicateStructureAndSave(folder, params.getUser());
-				}
-			}
-			params.getView().showMessage($("CartView.duplicated"));
-		} catch (RecordServicesException.ValidationException e) {
-			params.getView().showErrorMessage($(e.getErrors()));
-		} catch (Exception e) {
-			params.getView().showErrorMessage(e.getMessage());
-		}
-	}
-
 	public void documentBatchProcessing(Cart cart, MenuItemActionBehaviorParams params) {
 		Button button = buildBatchProcessingButton(Document.SCHEMA_TYPE, cart.getId(), params);
 

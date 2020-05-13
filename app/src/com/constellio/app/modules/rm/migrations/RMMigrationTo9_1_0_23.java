@@ -1,0 +1,40 @@
+package com.constellio.app.modules.rm.migrations;
+
+import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.wrappers.RMUser;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+public class RMMigrationTo9_1_0_23 implements MigrationScript {
+	@Override
+	public String getVersion() {
+		return "9.1.0.23";
+	}
+
+	@Override
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory) {
+		new SchemaAlterationFor9_1_0_23(collection, migrationResourcesProvider, appLayerFactory).migrate();
+	}
+
+	class SchemaAlterationFor9_1_0_23 extends MetadataSchemasAlterationHelper {
+
+		protected SchemaAlterationFor9_1_0_23(String collection, MigrationResourcesProvider migrationResourcesProvider,
+											  AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
+
+		public String getVersion() {
+			return "9.1.0.23";
+		}
+
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			typesBuilder.getDefaultSchema(RMUser.SCHEMA_TYPE).createUndeletable(RMUser.FAVORITES_DISPLAY_ORDER)
+					.setType(MetadataValueType.STRING).setMultivalue(true).setSystemReserved(true);
+		}
+	}
+}

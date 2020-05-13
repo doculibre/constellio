@@ -23,6 +23,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -42,6 +43,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.google.common.base.Strings;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -51,11 +54,14 @@ import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.Align;
+import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.collections4.MapUtils;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -70,6 +76,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
 public class CartViewImpl extends BaseViewImpl implements CartView {
+
+	private boolean isNested;
 	private final CartPresenter presenter;
 	private CartTabLayout folderLayout;
 	private CartTabLayout documentLayout;
@@ -82,15 +90,25 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	private BaseTextField containerFilterField;
 	private String currentSchemaType;
 	private VerticalLayout mainLayout;
+	private RecordListMenuBar folderListMenuBar;
+	private RecordListMenuBar documentListMenuBar;
+	private RecordListMenuBar containerListMenuBar;
 
 	public CartViewImpl() {
-		presenter = new CartPresenter(this);
+		this(null, false);
+	}
+
+	public CartViewImpl(String cartId, boolean isNested) {
+		this.isNested = isNested;
+		presenter = new CartPresenter(cartId, this);
 	}
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		super.initBeforeCreateComponents(event);
-		presenter.forParams(event.getParameters());
+		if (event != null) {
+			presenter.forParams(event.getParameters());
+		}
 		currentSchemaType = Folder.SCHEMA_TYPE;
 	}
 
@@ -109,7 +127,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	@Override
 	protected String getActionMenuBarCaption() {
-		return $("CartView.recordsActions");
+		return $("CartView.cartActions");
 	}
 
 	@Override
@@ -216,9 +234,17 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		};
 	}
 
-	private HorizontalLayout buildFolderFilterComponent() {
-		HorizontalLayout filterComponent = new HorizontalLayout();
-		filterComponent.setSpacing(true);
+	@Override
+	protected Component buildActionMenu(ViewChangeEvent event) {
+		if (isNested) {
+			return null;
+		}
+		return super.buildActionMenu(event);
+	}
+
+	private HorizontalLayout buildFolderFilterAndMenuBarComponent() {
+		HorizontalLayout filterAndMenuBarComponent = new HorizontalLayout();
+		filterAndMenuBarComponent.setSpacing(true);
 		folderFilterField = new BaseTextField();
 		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
 			@Override
@@ -226,13 +252,17 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.folderFilterButtonClicked();
 			}
 		};
-		filterComponent.addComponents(folderFilterField, filterButton);
-		return filterComponent;
+		folderListMenuBar = buildSelectionPanelMenuBar();
+		folderListMenuBar.setVisible(true);
+		folderListMenuBar.buildMenuItems();
+		filterAndMenuBarComponent.addComponents(folderFilterField, filterButton, folderListMenuBar);
+
+		return filterAndMenuBarComponent;
 	}
 
-	private HorizontalLayout buildDocumentFilterComponent() {
-		HorizontalLayout filterComponent = new HorizontalLayout();
-		filterComponent.setSpacing(true);
+	private HorizontalLayout buildDocumentFilterAndMenuBarComponent() {
+		HorizontalLayout filterAndMenuBarComponent = new HorizontalLayout();
+		filterAndMenuBarComponent.setSpacing(true);
 		documentFilterField = new BaseTextField();
 		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
 			@Override
@@ -240,13 +270,16 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.documentFilterButtonClicked();
 			}
 		};
-		filterComponent.addComponents(documentFilterField, filterButton);
-		return filterComponent;
+		documentListMenuBar = buildSelectionPanelMenuBar();
+		documentListMenuBar.setVisible(true);
+		documentListMenuBar.buildMenuItems();
+		filterAndMenuBarComponent.addComponents(documentFilterField, filterButton, documentListMenuBar);
+		return filterAndMenuBarComponent;
 	}
 
-	private HorizontalLayout buildContainerFilterComponent() {
-		HorizontalLayout filterComponent = new HorizontalLayout();
-		filterComponent.setSpacing(true);
+	private HorizontalLayout buildContainerFilterAndMenuBarComponent() {
+		HorizontalLayout filterAndMenuBarComponent = new HorizontalLayout();
+		filterAndMenuBarComponent.setSpacing(true);
 		containerFilterField = new BaseTextField();
 		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
 			@Override
@@ -254,8 +287,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.containerFilterButtonClicked();
 			}
 		};
-		filterComponent.addComponents(containerFilterField, filterButton);
-		return filterComponent;
+		containerListMenuBar = buildSelectionPanelMenuBar();
+		containerListMenuBar.setVisible(true);
+		containerListMenuBar.buildMenuItems();
+		filterAndMenuBarComponent.addComponents(containerFilterField, filterButton, containerListMenuBar);
+		return filterAndMenuBarComponent;
 	}
 
 	@Override
@@ -264,18 +300,22 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		folderTable = buildFolderTable("CartView.folders", presenter.getFolderRecords());
 		documentTable = buildTable("CartView.documents", presenter.getDocumentRecords());
 		containerTable = buildTable("CartView.containers", presenter.getContainerRecords());
-		TabSheet.Tab folderTab = tabSheet.addTab(folderLayout = new CartTabLayout(buildFolderFilterComponent(), folderTable));
+
+		TabSheet.Tab folderTab = tabSheet.addTab(folderLayout = new CartTabLayout(buildFolderFilterAndMenuBarComponent(), folderTable));
 		folderTab.setCaption($("CartView.foldersTab"));
 		folderLayout.setSchemaType(Folder.SCHEMA_TYPE);
 		folderTab.setVisible(!folderTable.getContainerDataSource().getItemIds().isEmpty());
-		TabSheet.Tab documentTab = tabSheet.addTab(documentLayout = new CartTabLayout(buildDocumentFilterComponent(), documentTable));
+
+		TabSheet.Tab documentTab = tabSheet.addTab(documentLayout = new CartTabLayout(buildDocumentFilterAndMenuBarComponent(), documentTable));
 		documentTab.setCaption($("CartView.documentsTab"));
 		documentLayout.setSchemaType(Document.SCHEMA_TYPE);
 		documentTab.setVisible(!documentTable.getContainerDataSource().getItemIds().isEmpty());
-		TabSheet.Tab containerTab = tabSheet.addTab(containerLayout = new CartTabLayout(buildContainerFilterComponent(), containerTable));
+
+		TabSheet.Tab containerTab = tabSheet.addTab(containerLayout = new CartTabLayout(buildContainerFilterAndMenuBarComponent(), containerTable));
 		containerTab.setCaption($("CartView.containersTab"));
 		containerLayout.setSchemaType(ContainerRecord.SCHEMA_TYPE);
 		containerTab.setVisible(!containerTable.getContainerDataSource().getItemIds().isEmpty());
+
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
@@ -283,8 +323,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
 				Component selectedTab = event.getTabSheet().getSelectedTab();
 				if (selectedTab instanceof CartTabLayout) {
-
 					currentSchemaType = ((CartTabLayout) selectedTab).getSchemaType();
+					presenter.emptySelectedRecords();
+					refreshSelectionActionMenuBar();
 				}
 			}
 		});
@@ -295,6 +336,24 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			tabSheet.fireTabSelectionChanged();
 		}
 		return mainLayout;
+	}
+
+	private RecordListMenuBar buildSelectionPanelMenuBar() {
+		final MenuItemRecordProvider recordProvider = new MenuItemRecordProvider() {
+			@Override
+			public List<Record> getRecords() {
+				return presenter.getSelectedRecords();
+			}
+
+			@Override
+			public LogicalSearchQuery getQuery() {
+				return null;
+			}
+		};
+
+		List<String> excludedActionTypes = Arrays.asList(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name(), RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name());
+		RecordListMenuBar recordListMenuBar = new RecordListMenuBar(recordProvider, $("ConstellioHeader.selectionActions"), excludedActionTypes);
+		return recordListMenuBar;
 	}
 
 	private Table buildFolderTable(final String tableId, final RecordVOWithDistinctSchemasDataProvider dataProvider) {
@@ -343,11 +402,16 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.displayRecordRequested(dataProvider.getRecordVO(itemId));
 			}
 		});
-		table.setColumnHeader(CommonMetadataBuilder.SUMMARY, $("CartViewImpl.title"));
+		table.setColumnHeader(CommonMetadataBuilder.SUMMARY, $("CartViewImpl.summary"));
+		table.setColumnHeader(CommonMetadataBuilder.TITLE, $("title"));
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 50);
 		table.setPageLength(Math.min(15, container.size()));
 		table.setSizeFull();
+
+		SelectionCheckBoxGenerator selectionCheckBoxGenerator = new SelectionCheckBoxGenerator(dataProvider);
+		table = selectionCheckBoxGenerator.attachTo(table);
+
 		return table;
 	}
 
@@ -388,8 +452,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		table.setColumnHeader(CommonMetadataBuilder.SUMMARY, $("CartViewImpl.title"));
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 50);
+		table.setColumnHeader(CommonMetadataBuilder.TITLE, $("title"));
 		table.setPageLength(Math.min(15, container.size()));
 		table.setSizeFull();
+		SelectionCheckBoxGenerator selectionCheckBoxGenerator = new SelectionCheckBoxGenerator(dataProvider);
+		table = selectionCheckBoxGenerator.attachTo(table);
 		return table;
 	}
 
@@ -522,4 +589,69 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			return schemaType;
 		}
 	}
+
+	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return !isNested;
+	}
+
+	public void refreshSelectionActionMenuBar() {
+		folderListMenuBar.buildMenuItems();
+		documentListMenuBar.buildMenuItems();
+		containerListMenuBar.buildMenuItems();
+	}
+
+	private class SelectionCheckBoxGenerator implements ColumnGenerator {
+		public static final String CHECKBOX = "checkbox";
+
+		private RecordVOWithDistinctSchemasDataProvider dataProvider;
+
+		public SelectionCheckBoxGenerator(RecordVOWithDistinctSchemasDataProvider dataProvider) {
+			this.dataProvider = dataProvider;
+		}
+
+		@Override
+		public Object generateCell(Table source, Object itemId, Object columnId) {
+			if (CHECKBOX.equals(columnId)) {
+				if (itemId instanceof Integer) {
+					RecordVO recordVO = dataProvider.getRecordVO((int) itemId);
+					return buildCheckBox(recordVO);
+				}
+			}
+			return null;
+		}
+
+		public Table attachTo(Table table) {
+			List<Object> visibleColumns = new ArrayList<>(Arrays.asList(table.getVisibleColumns()));
+
+			table.addGeneratedColumn(CHECKBOX, this);
+			table.setColumnHeader(CHECKBOX, "");
+			table.setColumnAlignment(CHECKBOX, Align.CENTER);
+			table.setColumnWidth(CHECKBOX, 50);
+
+			visibleColumns.add(0, SelectionCheckBoxGenerator.CHECKBOX);
+			table.setVisibleColumns(visibleColumns.toArray());
+
+			return table;
+		}
+
+		private Object buildCheckBox(RecordVO recordVO) {
+			final CheckBox checkBox = new CheckBox();
+			checkBox.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					if (checkBox.getValue()) {
+						presenter.addToSelectedRecords(recordVO.getId());
+						refreshSelectionActionMenuBar();
+					} else {
+						presenter.removeFromSelectedRecords(recordVO.getId());
+						refreshSelectionActionMenuBar();
+					}
+				}
+			});
+
+			return checkBox;
+		}
+	}
+
 }
