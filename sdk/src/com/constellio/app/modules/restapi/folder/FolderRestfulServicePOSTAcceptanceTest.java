@@ -241,6 +241,18 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 	}
 
 	@Test
+	public void testCreateMinimalFolderWithParentFolderIdAndWithoutAdminUnit() throws Exception {
+		minFolderToAdd.setAdministrativeUnit(null);
+		minFolderToAdd.setCategory(null);
+
+		Response response = doPostQuery(minFolderToAdd);
+		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
+		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(commitCounter.newCommitsCall()).isEmpty();
+	}
+
+	@Test
 	public void testCreateFullFolder() throws Exception {
 		addUsrMetadata(MetadataValueType.STRING, null, null);
 

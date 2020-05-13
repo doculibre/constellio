@@ -95,7 +95,7 @@ public class FolderService extends ResourceService {
 		String collection = record.getCollection();
 		User user = getUserByServiceKey(serviceKey, collection);
 
-		if (folderDto.getAdministrativeUnit() == null) {
+		if (parentFolderId == null && folderDto.getAdministrativeUnit() == null) {
 			String defaultAdministrativeUnit = user.get(RMUser.DEFAULT_ADMINISTRATIVE_UNIT);
 			if (defaultAdministrativeUnit != null) {
 				folderDto.setAdministrativeUnit(AdministrativeUnitDto.builder().id(defaultAdministrativeUnit).build());
