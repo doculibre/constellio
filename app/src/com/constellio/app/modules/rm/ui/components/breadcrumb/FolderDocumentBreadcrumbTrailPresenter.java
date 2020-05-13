@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.FavoritesBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.GroupFavoritesBreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.ListContentAccessAndRoleAuthorizationsBreadCrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -61,12 +62,14 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 
 	public FolderDocumentBreadcrumbTrailPresenter(String recordId, String taxonomyCode,
-			FolderDocumentContainerBreadcrumbTrail breadcrumbTrail, String containerId) {
+												  FolderDocumentContainerBreadcrumbTrail breadcrumbTrail,
+												  String containerId) {
 		this(recordId, taxonomyCode, breadcrumbTrail, containerId, null);
 	}
 
 	public FolderDocumentBreadcrumbTrailPresenter(String recordId, String taxonomyCode,
-												  FolderDocumentContainerBreadcrumbTrail breadcrumbTrail, String containerId, String favoritesId) {
+												  FolderDocumentContainerBreadcrumbTrail breadcrumbTrail,
+												  String containerId, String favoritesId) {
 		this.recordId = recordId;
 		this.taxonomyCode = taxonomyCode;
 		this.breadcrumbTrail = breadcrumbTrail;
@@ -97,7 +100,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 	private void addBreadcrumbItems() {
 		List<BreadcrumbItem> breadcrumbItems = new ArrayList<>();
 		int folderOffSet = 0;
-		if(containerId != null) {
+		if (containerId != null) {
 			breadcrumbItems.add(new ContainerBreadcrumbItem(containerId));
 			folderOffSet = 1;
 		}
@@ -108,6 +111,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		UIContext uiContext = breadcrumbTrail.getUIContext();
 		String searchId = uiContext.getAttribute(BaseBreadcrumbTrail.SEARCH_ID);
 		Boolean advancedSearch = uiContext.getAttribute(BaseBreadcrumbTrail.ADVANCED_SEARCH);
+		String recordAuthorisationsSchemaType = uiContext.getAttribute(BaseBreadcrumbTrail.RECORD_AUTHORIZATIONS_TYPE);
 		if (taxonomyCode == null) {
 			taxonomyCode = uiContext.getAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE);
 		}
@@ -144,12 +148,12 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 					final String finalCurrentCategoryId = currentCategoryId;
 					Category currentCategory = rmSchemasRecordsServices.getCategory(currentCategoryId);
 					breadcrumbItems.add(0, new TaxonomyElementBreadcrumbItem(currentCategoryId) {
-//						@Override
-//						public boolean isEnabled() {
-//							Record record = schemaPresenterUtils.getRecord(finalCurrentCategoryId);
-//							User user = schemaPresenterUtils.getCurrentUser();
-//							return user.hasAny(RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN, RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).on(record);
-//						}
+						//						@Override
+						//						public boolean isEnabled() {
+						//							Record record = schemaPresenterUtils.getRecord(finalCurrentCategoryId);
+						//							User user = schemaPresenterUtils.getCurrentUser();
+						//							return user.hasAny(RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN, RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).on(record);
+						//						}
 					});
 					currentCategoryId = currentCategory.getParent();
 				}
@@ -192,9 +196,20 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 
 			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId, title));
-		}
-		else if (searchId != null) {
+		} else if (searchId != null) {
 			breadcrumbItems.add(0, new SearchResultsBreadcrumbItem(searchId, advancedSearch));
+		}
+
+		if (recordAuthorisationsSchemaType != null) {
+			if (!breadcrumbItems.isEmpty()) {
+				BreadcrumbItem breadcrumbItem = breadcrumbItems.get(breadcrumbItems.size() - 1);
+				if (breadcrumbItem instanceof FolderBreadCrumbItem) {
+					((FolderBreadCrumbItem) breadcrumbItem).setForcedEnabled(true);
+				} else if (breadcrumbItem instanceof DocumentBreadCrumbItem) {
+					((DocumentBreadCrumbItem) breadcrumbItem).setForcedEnabled(true);
+				}
+			}
+			breadcrumbItems.add(new ListContentAccessAndRoleAuthorizationsBreadCrumbItem(recordId, recordAuthorisationsSchemaType, rmSchemasRecordsServices));
 		}
 
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
@@ -203,7 +218,8 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 	}
 
 	public static List<BreadcrumbItem> getGetFolderDocumentBreadCrumbItems(String currentRecordId,
-			SchemaPresenterUtils schemaPresenterUtils, RMSchemasRecordsServices rmSchemasRecordsServices) {
+																		   SchemaPresenterUtils schemaPresenterUtils,
+																		   RMSchemasRecordsServices rmSchemasRecordsServices) {
 
 		String baseRecordId = currentRecordId;
 
@@ -220,7 +236,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 				Folder folder = rmSchemasRecordsServices.wrapFolder(currentRecord);
 				currentRecordId = folder.getParentFolder();
 			} else if (Document.SCHEMA_TYPE.equals(currentSchemaTypeCode)) {
-				breadcrumbItems.add(new DocumentBreadCrumbItem(currentRecordId));
+				breadcrumbItems.add(new DocumentBreadCrumbItem(currentRecordId, schemaPresenterUtils));
 
 				Document document = rmSchemasRecordsServices.wrapDocument(currentRecord);
 				currentRecordId = document.getFolder();
@@ -238,7 +254,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		if (item instanceof FolderBreadCrumbItem) {
 			handled = true;
 			String folderId = ((FolderBreadCrumbItem) item).getFolderId();
-			if(favoritesId != null) {
+			if (favoritesId != null) {
 				breadcrumbTrail.navigate().to(RMViews.class).displayFolderFromFavorites(folderId, favoritesId);
 			} else {
 				breadcrumbTrail.navigate().to(RMViews.class).displayFolder(folderId);
@@ -246,7 +262,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		} else if (item instanceof DocumentBreadCrumbItem) {
 			handled = true;
 			String documentId = ((DocumentBreadCrumbItem) item).getDocumentId();
-			if(favoritesId != null) {
+			if (favoritesId != null) {
 				breadcrumbTrail.navigate().to(RMViews.class).displayDocumentFromFavorites(documentId, favoritesId);
 			} else {
 				breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
@@ -272,7 +288,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		} else if (item instanceof ContainerBreadcrumbItem) {
 			handled = true;
 			ContainerBreadcrumbItem containerBreadcrumbItem = (ContainerBreadcrumbItem) item;
-			if(favoritesId != null) {
+			if (favoritesId != null) {
 				breadcrumbTrail.navigate().to(RMViews.class).displayDocumentFromFavorites(containerBreadcrumbItem.getContainerId(),
 						favoritesId);
 			} else {
@@ -285,6 +301,18 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		} else if (item instanceof FavoritesBreadcrumbItem) {
 			handled = true;
 			breadcrumbTrail.navigate().to(RMViews.class).listCarts();
+		} else if (item instanceof ListContentAccessAndRoleAuthorizationsBreadCrumbItem) {
+			handled = true;
+			String recordAuthorisationsSchemaType =
+					((ListContentAccessAndRoleAuthorizationsBreadCrumbItem) item).getRecordAuthorizationsSchemaType();
+			String recordId = ((ListContentAccessAndRoleAuthorizationsBreadCrumbItem) item).getRecordId();
+			if (Document.SCHEMA_TYPE == recordAuthorisationsSchemaType) {
+				breadcrumbTrail.navigate().to(RMViews.class).displayDocument(recordId);
+			} else if (Folder.SCHEMA_TYPE == recordAuthorisationsSchemaType) {
+				breadcrumbTrail.navigate().to(RMViews.class).displayFolder(recordId);
+			} else {
+				handled = false;
+			}
 		} else {
 			handled = false;
 		}

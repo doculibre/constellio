@@ -23,6 +23,10 @@ public abstract class BaseBreadcrumbTrail extends CustomComponent implements Bre
 
 	public static final String ADVANCED_SEARCH = "advancedSearch";
 
+	public static final String RECORD_AUTHORIZATIONS_TYPE = "recordAuthorizationsSchemaType";
+
+	public static final String FAV_GROUP_ID = "favGroupId";
+
 	private Breadcrumb breadcrumb;
 	private List<BreadcrumbItem> items = new ArrayList<>();
 

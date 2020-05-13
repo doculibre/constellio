@@ -40,6 +40,7 @@ import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -485,6 +486,10 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void manageAuthorizations(Document document, MenuItemActionBehaviorParams params) {
+		Map<String, String> paramsMap = ParamUtils.getParamsMap();
+		String favGroupId = paramsMap.get(RMViews.FAV_GROUP_ID_KEY);
+		params.getView().getUIContext().setAttribute(BaseBreadcrumbTrail.FAV_GROUP_ID, favGroupId);
+		params.getView().getUIContext().setAttribute(BaseBreadcrumbTrail.RECORD_AUTHORIZATIONS_TYPE, Document.SCHEMA_TYPE);
 		params.getView().navigate().to().listObjectAccessAndRoleAuthorizations(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
 	}
