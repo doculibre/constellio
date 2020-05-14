@@ -664,7 +664,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 				presenter.clearSelectionButtonClicked();
 			}
 		};
-		clearSelectionButton.setCaptionVisibleOnMobile(false);
+		clearSelectionButton.setCaptionVisibleOnPhone(false);
+		clearSelectionButton.setCaptionVisibleOnTablet(true);
 		clearSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
 
 		Component selectDeselectAllToggleButton = selectionTable.newSelectDeselectAllToggleButton();
