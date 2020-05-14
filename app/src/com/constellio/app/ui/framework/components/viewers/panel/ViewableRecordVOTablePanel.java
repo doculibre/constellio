@@ -750,7 +750,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	public boolean isMenuBarColumn() {
-		return false;
+		return true;
 	}
 
 	public TableMode getTableMode() {
