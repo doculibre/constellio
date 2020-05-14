@@ -57,11 +57,6 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 	}
 
 	@Override
-	public boolean isMenuBarColumn() {
-		return true;
-	}
-
-	@Override
 	protected boolean isSelectColumn() {
 		return true;
 	}

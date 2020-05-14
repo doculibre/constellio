@@ -452,11 +452,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 			viewerPanel = new ViewableRecordVOTablePanel(recordVOContainer) {
 				@Override
-				public boolean isMenuBarColumn() {
-					return true;
-				}
-
-				@Override
 				protected boolean isSelectColumn() {
 					return !nestedView;
 				}
