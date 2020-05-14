@@ -65,7 +65,6 @@ public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail
 		} else if (item instanceof FavoritesBreadcrumbItem) {
 			recordId = null;
 		} else if (item instanceof LastViewedFoldersDocumentsBreadcrumbItem) {
-		} else if (item instanceof FavoritesBreadcrumbItem) {
 			recordId = null;
 		} else if (item instanceof ListContentAccessAndRoleAuthorizationsBreadCrumbItem) {
 			recordId = null;
