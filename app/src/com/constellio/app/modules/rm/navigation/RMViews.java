@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListPresenter;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.Navigator;
 
 import java.util.HashMap;
@@ -122,6 +123,14 @@ public class RMViews extends CoreViews {
 		params.put("decommissioningType", decommissioningType);
 
 		navigator.navigateTo(addParams(RMNavigationConfiguration.DUPLICATE_FOLDER, params));
+	}
+
+	public void recentFolders() {
+		clearBreadcrumbTrail();
+		Map<String, String> params = new HashMap<>();
+		params.put("tab", RMNavigationConfiguration.LAST_VIEWED_FOLDERS);
+		String fragment = ParamUtils.addParams(NavigatorConfigurationService.HOME, params);
+		navigator.navigateTo("/" + fragment);
 	}
 
 
@@ -247,6 +256,14 @@ public class RMViews extends CoreViews {
 		params.put("decommissioningType", decommissioningType);
 
 		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_DOCUMENT, params));
+	}
+
+	public void recentDocuments() {
+		clearBreadcrumbTrail();
+		Map<String, String> params = new HashMap<>();
+		params.put("tab", RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS);
+		String fragment = ParamUtils.addParams(NavigatorConfigurationService.HOME, params);
+		navigator.navigateTo("/" + fragment);
 	}
 
 	// RETENTION RULES

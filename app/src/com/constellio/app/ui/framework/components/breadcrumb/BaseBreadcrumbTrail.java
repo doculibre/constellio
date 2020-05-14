@@ -23,6 +23,8 @@ public abstract class BaseBreadcrumbTrail extends CustomComponent implements Bre
 
 	public static final String ADVANCED_SEARCH = "advancedSearch";
 
+	public static final String RECENT_ITEMS = "recentItems";
+
 	private Breadcrumb breadcrumb;
 	private List<BreadcrumbItem> items = new ArrayList<>();
 
