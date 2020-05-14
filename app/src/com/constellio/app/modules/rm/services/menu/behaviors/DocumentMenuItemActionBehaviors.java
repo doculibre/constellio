@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentView;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
@@ -225,10 +226,11 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void finalize(Document document, MenuItemActionBehaviorParams params) {
+		document = rm.getDocument(document.getId());
 		Content content = document.getContent();
 		content.finalizeVersion();
 		try {
-			recordServices.update(document.getWrappedRecord());
+			recordServices.update(document.getWrappedRecord(), params.getUser());
 
 			String newMajorVersion = content.getCurrentVersion().getVersion();
 			loggingServices.finalizeDocument(document.getWrappedRecord(), params.getUser());
@@ -352,11 +354,23 @@ public class DocumentMenuItemActionBehaviors {
 		labels.click();
 	}
 
-	public void checkIn(Document document, MenuItemActionBehaviorParams params) {
+	public void checkIn(Document document, final MenuItemActionBehaviorParams params) {
+		document = rm.getDocument(document.getId());
 		DocumentVO documentVO = getDocumentVO(params, document);
 		if (documentRecordActionsServices.isCheckInActionPossible(document.getWrappedRecord(), params.getUser())) {
 			UpdateContentVersionWindowImpl uploadWindow =
-					createUpdateContentVersionWindow(documentVO, params.getView());
+					createUpdateContentVersionWindow(documentVO, params.getView(), new UpdateWindowCloseCallback() {
+						@Override
+						public void windowClosed() {
+							BaseView view = params.getView();
+							if (view instanceof DisplayDocumentView) {
+								view.refreshActionMenu();
+								view.partialRefresh();
+							} else {
+								view.updateUI();
+							}
+						}
+					});
 			if (!isSameVersion(document)) {
 				uploadWindow.open(false);
 			} else {
@@ -513,9 +527,20 @@ public class DocumentMenuItemActionBehaviors {
 		reportGeneratorButton.click();
 	}
 
-	public void upload(Document document, MenuItemActionBehaviorParams params) {
+	public void upload(Document document, final MenuItemActionBehaviorParams params) {
 		DocumentVO documentVO = getDocumentVO(params, document);
-		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(documentVO, params.getView());
+		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(documentVO, params.getView(), new UpdateWindowCloseCallback() {
+			@Override
+			public void windowClosed() {
+				BaseView view = params.getView();
+				if (view instanceof DisplayDocumentView) {
+					view.refreshActionMenu();
+					view.partialRefresh();
+				} else {
+					view.updateUI();
+				}
+			}
+		});
 
 		uploadWindow.open(false);
 	}
@@ -552,7 +577,8 @@ public class DocumentMenuItemActionBehaviors {
 				VIEW_MODE.DISPLAY, params.getView().getSessionContext());
 	}
 
-	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(RecordVO recordVO, BaseView view) {
+	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(RecordVO recordVO, BaseView view,
+																			final UpdateWindowCloseCallback callback) {
 		final Map<RecordVO, MetadataVO> recordMap = new HashMap<>();
 		recordMap.put(recordVO, recordVO.getMetadata(Document.CONTENT));
 
@@ -560,7 +586,7 @@ public class DocumentMenuItemActionBehaviors {
 			@Override
 			public void close() {
 				super.close();
-				view.updateUI();
+				callback.windowClosed();
 			}
 		};
 	}
@@ -612,5 +638,11 @@ public class DocumentMenuItemActionBehaviors {
 
 	private void navigateToDisplayFolder(String folderId, Map<String, String> params) {
 		RMNavigationUtils.navigateToDisplayFolder(folderId, params, appLayerFactory, collection);
+	}
+
+	private static interface UpdateWindowCloseCallback {
+
+		void windowClosed();
+
 	}
 }
