@@ -225,7 +225,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void refreshContentViewer() {
 		ContentViewer newContentViewer = newContentViewer();
 		if (newContentViewer.isViewerComponentVisible()) {
-
 			if (!isInSeparateTab && !isContentViewerInSplitPanel) {
 				if (isViewerInSeparateTab()) {
 					tabSheet.addTab(newContentViewer, 0);
@@ -244,8 +243,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			} else {
 				tabSheet.replaceComponent(contentViewer, newContentViewer);
 				contentViewer = newContentViewer;
-				waitForContentViewerToBecomeVisible = false;
 			}
+			waitForContentViewerToBecomeVisible = false;
 		} else if (contentViewerInitiallyVisible && !newContentViewer.isViewerComponentVisible()) {
 			if (contentViewer.isVisible()) {
 				contentViewer.setVisible(false);
