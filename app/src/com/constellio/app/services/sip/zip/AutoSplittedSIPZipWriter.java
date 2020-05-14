@@ -19,16 +19,16 @@ import java.util.zip.Deflater;
 
 public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 
-	private AppLayerFactory appLayerFactory;
-	private IOServices ioServices;
-	private SIPFileHasher sipFileHasher;
-	private FileSIPZipWriter currentWriter;
-	private Map<String, MetsDivisionInfo> divisionsInfoMap = new HashMap<>();
-	private SIPZipBagInfoFactory bagInfoFactory;
-	private long sipBytesLimit;
-	private int compressionLevel = Deflater.DEFAULT_COMPRESSION;
+	protected AppLayerFactory appLayerFactory;
+	protected IOServices ioServices;
+	protected SIPFileHasher sipFileHasher;
+	protected FileSIPZipWriter currentWriter;
+	protected Map<String, MetsDivisionInfo> divisionsInfoMap = new HashMap<>();
+	protected SIPZipBagInfoFactory bagInfoFactory;
+	protected long sipBytesLimit;
+	protected int compressionLevel = Deflater.DEFAULT_COMPRESSION;
 
-	private List<AutoSplittedSIPZipWriterListener> listeners = new ArrayList<>();
+	protected List<AutoSplittedSIPZipWriterListener> listeners = new ArrayList<>();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoSplittedSIPZipWriter.class);
 
@@ -36,9 +36,9 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 	 * Too much files in a SIP archive will create a large METS file. Since it is writen using DOM, it could require too much memory.
 	 * This limit will create METS file of 250mb
 	 */
-	private long metsFilesEntriesLimit;
-	private int index = 0;
-	private SIPFileNameProvider sipFileProvider;
+	protected long metsFilesEntriesLimit;
+	protected int index = 0;
+	protected SIPFileNameProvider sipFileProvider;
 
 	public AutoSplittedSIPZipWriter(AppLayerFactory appLayerFactory, SIPFileNameProvider sipFileProvider,
 									long sipBytesLimit, SIPZipBagInfoFactory bagInfoFactory) {
@@ -168,13 +168,18 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 		}
 	}
 
+	protected FileSIPZipWriter newFileSIPZipWriter(int newWriterIndex)
+			throws IOException {
+
+		return new FileSIPZipWriter(appLayerFactory,
+				sipFileProvider.newSIPFile(newWriterIndex),
+				sipFileProvider.newSIPName(newWriterIndex), bagInfoFactory);
+	}
 
 	private void newCurrentWriter()
 			throws IOException {
 		int newWriterIndex = ++index;
-		currentWriter = new FileSIPZipWriter(appLayerFactory,
-				sipFileProvider.newSIPFile(newWriterIndex),
-				sipFileProvider.newSIPName(newWriterIndex), bagInfoFactory);
+		currentWriter = newFileSIPZipWriter(newWriterIndex);
 		LOGGER.info("Creating zip '" + currentWriter.getZipFile().getAbsolutePath() + "'");
 		currentWriter.divisionsInfoMap = divisionsInfoMap;
 		currentWriter.setSipFileHasher(sipFileHasher);
