@@ -23,6 +23,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TO_CART;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_AVAILABLE_ALERT;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_BORROWED_MESSAGE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CHECK_IN;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CHECK_OUT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CONSULT_LINK;
@@ -66,6 +67,15 @@ public class DocumentMenuItemServices {
 	public List<MenuItemAction> getActionsForRecord(Document document, User user, List<String> filteredActionTypes,
 													MenuItemActionBehaviorParams params) {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
+
+		if (!filteredActionTypes.contains(DOCUMENT_BORROWED_MESSAGE.name())) {
+			String borrowedMessage = documentRecordActionsServices.getBorrowedMessage(document.getWrappedRecord(), user);
+			if (borrowedMessage != null) {
+				menuItemActions.add(buildMenuItemAction(DOCUMENT_BORROWED_MESSAGE.name(),
+						isMenuItemActionPossible(DOCUMENT_BORROWED_MESSAGE.name(), document, user, params),
+						borrowedMessage, null, -1, 100, null));
+			}
+		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_DISPLAY.name())) {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_DISPLAY.name(),
@@ -299,6 +309,8 @@ public class DocumentMenuItemServices {
 		Record record = document.getWrappedRecord();
 
 		switch (DocumentMenuItemActionType.valueOf(menuItemActionType)) {
+			case DOCUMENT_BORROWED_MESSAGE:
+				return documentRecordActionsServices.getBorrowedMessage(record, user) != null;
 			case DOCUMENT_EDIT:
 				return documentRecordActionsServices.isEditActionPossible(record, user);
 			case DOCUMENT_DISPLAY:
@@ -373,6 +385,7 @@ public class DocumentMenuItemServices {
 	}
 
 	public enum DocumentMenuItemActionType {
+		DOCUMENT_BORROWED_MESSAGE,
 		DOCUMENT_DISPLAY,
 		DOCUMENT_OPEN,
 		DOCUMENT_EDIT,
