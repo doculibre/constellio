@@ -58,6 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -451,8 +452,8 @@ public class UserServices {
 	private void removeChildren(String group, List<String> collections) {
 		for (String collection : collections) {
 			for (Group child : getChildrenOfGroupInCollection(group, collection)) {
-				removeFromBigVault(child.getCode(), collections);
-				removeChildren(child.getCode(), collections);
+				removeFromBigVault(child.getCode(), Arrays.asList(collection));
+				removeChildren(child.getCode(), Arrays.asList(collection));
 			}
 		}
 	}
@@ -881,12 +882,14 @@ public class UserServices {
 	public List<Group> getChildrenOfGroupInCollection(String groupParentCode, String collection) {
 		List<Group> groups = new ArrayList<>();
 		String parentId = getGroupIdInCollection(groupParentCode, collection);
-		LogicalSearchCondition condition = from(groupSchema(collection))
-				.where(groupParentMetadata(collection))
-				.is(parentId).andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull();
-		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(condition);
-		for (Record record : searchServices.search(query)) {
-			groups.add(wrapNullable(record, schemaTypes(collection)));
+		if (parentId != null) {
+			LogicalSearchCondition condition = from(groupSchema(collection))
+					.where(groupParentMetadata(collection))
+					.is(parentId).andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull();
+			LogicalSearchQuery query = new LogicalSearchQuery().setCondition(condition);
+			for (Record record : searchServices.search(query)) {
+				groups.add(wrapNullable(record, schemaTypes(collection)));
+			}
 		}
 		return groups;
 	}
