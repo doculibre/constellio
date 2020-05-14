@@ -479,7 +479,6 @@ public class SearchServices {
 			} else {
 				params.add(CommonParams.QT, "/spell");
 				params.add(ShardParams.SHARDS_QT, "/spell");
-
 			}
 		}
 		if (query.getFreeTextQuery() != null) {

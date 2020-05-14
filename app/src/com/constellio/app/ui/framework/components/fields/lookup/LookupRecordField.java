@@ -109,10 +109,10 @@ public class LookupRecordField extends LookupField<String> {
 		List<RecordLookupTreeDataProvider> dataProviders = new ArrayList<>();
 		for (Taxonomy taxonomy : taxonomies) {
 			String taxonomyCode = taxonomy.getCode();
-			//			boolean filterWithWriteAccess = taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(collection))
-			//											&& !taxonomy.getSchemaTypes().contains(schemaTypeCode);
+			boolean filterWithWriteAccess = taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(collection))
+											&& !taxonomy.getSchemaTypes().contains(schemaTypeCode);
 			if (StringUtils.isNotBlank(taxonomyCode)) {
-				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess, isShowAllIfHasAccessToManageSecurity));
+				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, filterWithWriteAccess, isShowAllIfHasAccessToManageSecurity));
 			}
 		}
 
