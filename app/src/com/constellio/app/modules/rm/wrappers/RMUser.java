@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -11,6 +10,7 @@ import com.constellio.model.services.security.roles.Roles;
  */
 public class RMUser extends User {
 	public static final String DEFAULT_ADMINISTRATIVE_UNIT = "defaultAdministrativeUnit";
+	public static final String FAVORITES_DISPLAY_ORDER = "favoritesDisplayOrder";
 	public static final String HIDE_NOT_ACTIVE = "hideNotActive";
 
 	public RMUser(Record record, MetadataSchemaTypes types, Roles roles) {

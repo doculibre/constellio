@@ -17,22 +17,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_BATCH_BORROW;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_BATCH_DELETE;
-import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_BATCH_DUPLICATE;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_CONTAINER_RECORD_BATCH_PROCESSING;
-import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_CONTAINER_RECORD_LABEL;
-import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_CREATE_SIP_ARCHIVE;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_DECOMMISSIONING_LIST;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_DOCUMENT_BATCH_PROCESSING;
-import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_DOCUMENT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_EMPTY;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_FOLDER_BATCH_PROCESSING;
-import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_FOLDER_LABEL;
-import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_PREPARE_EMAIL;
-import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_PRINT_CONSOLIDATED_PDF;
-import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_PRINT_METADATA_REPORT;
-import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_RENAME;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_SHARE;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
@@ -54,30 +44,6 @@ public class CartMenuItemServices {
 													List<String> excludedActionTypes,
 													MenuItemActionBehaviorParams params) {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
-
-		if (!excludedActionTypes.contains(CART_RENAME.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CART_RENAME.name(),
-					isMenuItemActionPossible(CART_RENAME.name(), cart, user, params),
-					$("CartView.reNameCartGroup"), FontAwesome.EDIT, -1, 100,
-					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).rename(cart, params));
-			menuItemActions.add(menuItemAction);
-		}
-
-		if (!excludedActionTypes.contains(CART_PREPARE_EMAIL.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CART_PREPARE_EMAIL.name(),
-					isMenuItemActionPossible(CART_PREPARE_EMAIL.name(), cart, user, params),
-					$("CartView.prepareEmail"), FontAwesome.ENVELOPE_SQUARE, -1, 200,
-					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).prepareEmail(cart, params));
-			menuItemActions.add(menuItemAction);
-		}
-
-		if (!excludedActionTypes.contains(CART_BATCH_DUPLICATE.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CART_BATCH_DUPLICATE.name(),
-					isMenuItemActionPossible(CART_BATCH_DUPLICATE.name(), cart, user, params),
-					$("CartView.batchDuplicate"), FontAwesome.CLONE, -1, 300,
-					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).batchDuplicate(cart, params));
-			menuItemActions.add(menuItemAction);
-		}
 
 		if (!excludedActionTypes.contains(CART_DOCUMENT_BATCH_PROCESSING.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_DOCUMENT_BATCH_PROCESSING.name(),
@@ -102,31 +68,6 @@ public class CartMenuItemServices {
 					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).containerRecordBatchProcessing(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
-
-		if (!excludedActionTypes.contains(CART_DOCUMENT_LABEL.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CART_DOCUMENT_LABEL.name(),
-					isMenuItemActionPossible(CART_DOCUMENT_LABEL.name(), cart, user, params),
-					$("CartView.documentLabelsButton"), FontAwesome.TAGS, -1, 700,
-					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).documentLabels(cart, params));
-			menuItemActions.add(menuItemAction);
-		}
-
-		if (!excludedActionTypes.contains(CART_FOLDER_LABEL.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CART_FOLDER_LABEL.name(),
-					isMenuItemActionPossible(CART_FOLDER_LABEL.name(), cart, user, params),
-					$("CartView.foldersLabelsButton"), FontAwesome.TAGS, -1, 800,
-					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).foldersLabels(cart, params));
-			menuItemActions.add(menuItemAction);
-		}
-
-		if (!excludedActionTypes.contains(CART_CONTAINER_RECORD_LABEL.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CART_CONTAINER_RECORD_LABEL.name(),
-					isMenuItemActionPossible(CART_CONTAINER_RECORD_LABEL.name(), cart, user, params),
-					$("CartView.containersLabelsButton"), FontAwesome.TAGS, -1, 900,
-					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).containerRecordLabels(cart, params));
-			menuItemActions.add(menuItemAction);
-		}
-
 
 		if (!excludedActionTypes.contains(CART_BATCH_DELETE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_BATCH_DELETE.name(),
@@ -161,38 +102,6 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!excludedActionTypes.contains(CART_PRINT_METADATA_REPORT.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CART_PRINT_METADATA_REPORT.name(),
-					isMenuItemActionPossible(CART_PRINT_METADATA_REPORT.name(), cart, user, params),
-					$("ReportGeneratorButton.buttonText"), FontAwesome.LIST_ALT, -1, 1400,
-					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).printMetadataReportAction(cart, params));
-			menuItemActions.add(menuItemAction);
-		}
-
-		if (!excludedActionTypes.contains(CART_CREATE_SIP_ARCHIVE.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CART_CREATE_SIP_ARCHIVE.name(),
-					isMenuItemActionPossible(CART_CREATE_SIP_ARCHIVE.name(), cart, user, params),
-					$("SIPButton.caption"), FontAwesome.FILE_ARCHIVE_O, -1, 1500,
-					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).createSIPArchvesAction(cart, params));
-			menuItemActions.add(menuItemAction);
-		}
-
-		if (!excludedActionTypes.contains(CART_PRINT_CONSOLIDATED_PDF.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CART_PRINT_CONSOLIDATED_PDF.name(),
-					isMenuItemActionPossible(CART_PRINT_CONSOLIDATED_PDF.name(), cart, user, params),
-					$("ConsolidatedPDFWindow.caption"), FontAwesome.FILE_PDF_O, -1, 1600,
-					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).consolidatedPdfAction(cart, params));
-			menuItemActions.add(menuItemAction);
-		}
-
-		if (!excludedActionTypes.contains(CART_BATCH_BORROW.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CART_BATCH_BORROW.name(),
-					isMenuItemActionPossible(CART_BATCH_BORROW.name(), cart, user, params),
-					$("CartView.documentLabelsButton"), FontAwesome.TAGS, -1, 700,
-					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).borrow(cart, params));
-			menuItemActions.add(menuItemAction);
-		}
-
 		return menuItemActions;
 	}
 
@@ -201,12 +110,6 @@ public class CartMenuItemServices {
 		Record record = cart.getWrappedRecord();
 
 		switch (CartMenuItemActionType.valueOf(menuItemActionType)) {
-			case CART_RENAME:
-				return cartActionsServices.isRenameActionPossible(record, user);
-			case CART_PREPARE_EMAIL:
-				return cartActionsServices.isPrepareEmailActionPossible(record, user);
-			case CART_BATCH_DUPLICATE:
-				return cartActionsServices.isBatchDuplicateActionPossible(record, user);
 			case CART_BATCH_DELETE:
 				return cartActionsServices.isBatchDeleteActionPossible(record, user);
 			case CART_DOCUMENT_BATCH_PROCESSING:
@@ -215,26 +118,12 @@ public class CartMenuItemServices {
 				return cartActionsServices.isFolderBatchProcessingActionPossible(record, user);
 			case CART_CONTAINER_RECORD_BATCH_PROCESSING:
 				return cartActionsServices.isContainerBatchProcessingActionPossible(record, user);
-			case CART_DOCUMENT_LABEL:
-				return cartActionsServices.isDocumentLabelsActionPossible(record, user);
-			case CART_FOLDER_LABEL:
-				return cartActionsServices.isFoldersLabelsActionPossible(record, user);
-			case CART_CONTAINER_RECORD_LABEL:
-				return cartActionsServices.isContainersLabelsActionPossible(record, user);
 			case CART_EMPTY:
 				return cartActionsServices.isEmptyActionPossible(record, user);
 			case CART_SHARE:
 				return cartActionsServices.isShareActionPossible(record, user);
 			case CART_DECOMMISSIONING_LIST:
 				return cartActionsServices.isDecommissionActionPossible(record, user);
-			case CART_PRINT_METADATA_REPORT:
-				return cartActionsServices.isPrintMetadataReportActionPossible(record, user);
-			case CART_CREATE_SIP_ARCHIVE:
-				return cartActionsServices.isCreateSIPArchvesActionPossible(record, user);
-			case CART_PRINT_CONSOLIDATED_PDF:
-				return cartActionsServices.isPrntConsolidatedPdfActionPossible(record, user);
-			case CART_BATCH_BORROW:
-				return cartActionsServices.isBorrowActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -255,26 +144,15 @@ public class CartMenuItemServices {
 	}
 
 	enum CartMenuItemActionType {
-		CART_RENAME,
-		CART_PREPARE_EMAIL,
-		CART_BATCH_DUPLICATE,
-
 		CART_DOCUMENT_BATCH_PROCESSING,
 		CART_FOLDER_BATCH_PROCESSING,
 		CART_CONTAINER_RECORD_BATCH_PROCESSING,
-		CART_DOCUMENT_LABEL,
-		CART_FOLDER_LABEL,
-		CART_CONTAINER_RECORD_LABEL,
 
 		CART_BATCH_DELETE,
 
 		CART_EMPTY,
 		CART_SHARE,
 		CART_DECOMMISSIONING_LIST,
-		CART_PRINT_METADATA_REPORT,
-		CART_CREATE_SIP_ARCHIVE,
-		CART_PRINT_CONSOLIDATED_PDF,
-		CART_BATCH_BORROW
 	}
 
 }

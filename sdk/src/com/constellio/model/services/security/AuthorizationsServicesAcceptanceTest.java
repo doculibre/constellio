@@ -896,6 +896,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER1, FOLDER2, FOLDER2_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, dakota, gandalf, chuck, edouard);
 			verifyRecord.usersWithRole(ROLE1).containsOnly(sasquatch, dakota, gandalf, edouard);
+			verifyRecord.usersWithRole(ROLE1).containsOnly(sasquatch, dakota, gandalf, edouard);
 		}
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
@@ -903,6 +904,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 			verifyRecord.usersWithRole(ROLE2).containsOnly(sasquatch, dakota, gandalf, edouard);
 		}
+
 
 	}
 
@@ -1831,16 +1833,22 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).on(records.taxo1_category2_1())).isTrue();
 		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).on(records.folder3())).isTrue();
 		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).onSomething()).isTrue();
+		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).onAnyTaxonomyConcept(true)).isTrue();
+		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).onAnyTaxonomyConcept(false)).isTrue();
 
 		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).on(records.taxo1_category2())).isFalse();
 		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).on(records.taxo1_category2_1())).isTrue();
 		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).on(records.folder3())).isTrue();
 		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).onSomething()).isTrue();
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).onAnyTaxonomyConcept(true)).isTrue();
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).onAnyTaxonomyConcept(false)).isTrue();
 
 		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).on(records.taxo1_category2())).isFalse();
 		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).on(records.taxo1_category2_1())).isFalse();
 		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).on(records.folder3())).isTrue();
 		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).onSomething()).isTrue();
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).onAnyTaxonomyConcept(true)).isTrue();
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).onAnyTaxonomyConcept(false)).isTrue();
 
 		for (String permission : asList(PERMISSION_OF_ROLE1, PERMISSION_OF_ROLE2, PERMISSION_OF_ROLE3)) {
 			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).on(records.taxo1_category2())).isTrue();
@@ -1848,6 +1856,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).on(records.folder3())).isTrue();
 			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).onSomething()).isTrue();
 		}
+
+		assertThat(users.dakotaLIndienIn(zeCollection).has(PERMISSION_OF_ROLE1).onAnyTaxonomyConcept(true)).isTrue();
+		assertThat(users.dakotaLIndienIn(zeCollection).has(PERMISSION_OF_ROLE2).onAnyTaxonomyConcept(true)).isTrue();
+		assertThat(users.dakotaLIndienIn(zeCollection).has(PERMISSION_OF_ROLE3).onAnyTaxonomyConcept(true)).isTrue();
+		assertThat(users.dakotaLIndienIn(zeCollection).has(PERMISSION_OF_ROLE1).onAnyTaxonomyConcept(false)).isFalse();
+		assertThat(users.dakotaLIndienIn(zeCollection).has(PERMISSION_OF_ROLE2).onAnyTaxonomyConcept(false)).isFalse();
+		assertThat(users.dakotaLIndienIn(zeCollection).has(PERMISSION_OF_ROLE3).onAnyTaxonomyConcept(false)).isFalse();
 
 		/*****
 		 * Excluding global

@@ -1,6 +1,10 @@
 package com.constellio.model.entities.records.wrappers;
 
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.security.SecurityModelAuthorization;
+
+import java.util.function.Predicate;
 
 public abstract class UserPermissionsChecker {
 
@@ -17,6 +21,24 @@ public abstract class UserPermissionsChecker {
 	public abstract boolean specificallyOn(Record record);
 
 	public abstract boolean onSomething();
+
+	public boolean onAnyTaxonomyConcept(boolean includingGlobal) {
+
+		if (user == null) {
+			return false;
+		}
+
+		Taxonomy taxonomy = user.getRolesDetails().getSchemasRecordsServices()
+				.getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(user.getCollection());
+
+		if (taxonomy == null) {
+			return false;
+		}
+
+		return onAnyRecord((a) -> taxonomy.getSchemaTypes().contains(a.getDetails().getTargetSchemaType()), includingGlobal);
+	}
+
+	public abstract boolean onAnyRecord(Predicate<SecurityModelAuthorization> predicate, boolean includingGlobal);
 
 	public boolean specificallyOn(RecordWrapper recordWrapper) {
 		return specificallyOn(recordWrapper.getWrappedRecord());

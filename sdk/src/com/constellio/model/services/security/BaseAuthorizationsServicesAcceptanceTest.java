@@ -358,6 +358,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 					.describedAs("users with role '" + role + "' on record '" + recordId + "'").extracting("username");
 		}
 
+
 		public ListAssert<Object> assertThatUsersWithPermission(String permission) {
 			return assertThat(services.getUsersWithPermissionOnRecord(permission, get(recordId)))
 					.describedAs("users with permission '" + permission + "' on record '" + recordId + "'")

@@ -85,7 +85,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
 	public Response create(@Parameter(description = "Parent Folder Id") @QueryParam("folderId") String folderId,
 						   @Parameter(required = true, description = "Service Key") @QueryParam("serviceKey") String serviceKey,
-						   @Parameter(required = true, description = "HTTP Method", schema = @Schema(allowableValues = {"PUT"})) @QueryParam("method") String method,
+						   @Parameter(required = true, description = "HTTP Method", schema = @Schema(allowableValues = {"POST"})) @QueryParam("method") String method,
 						   @Parameter(required = true, description = "Date") @QueryParam("date") String date,
 						   @Parameter(required = true, description = "Expiration") @QueryParam("expiration") Integer expiration,
 						   @Parameter(required = true, description = "Signature") @QueryParam("signature") String signature,
@@ -117,11 +117,8 @@ public class FolderRestfulService extends ResourceRestfulService {
 			if (Strings.isNullOrEmpty(folder.getTitle())) {
 				throw new RequiredParameterException("folder.title");
 			}
-			if (folder.getCategory() == null) {
+			if (folderId == null && folder.getCategory() == null) {
 				throw new RequiredParameterException("folder.category");
-			}
-			if (folder.getAdministrativeUnit() == null) {
-				throw new RequiredParameterException("folder.administrativeUnit");
 			}
 			if (folder.getOpeningDate() == null) {
 				throw new RequiredParameterException("folder.openingDate");
