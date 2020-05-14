@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.FavoritesBreadcrumb
 import com.constellio.app.ui.framework.components.breadcrumb.GroupFavoritesBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.LastViewedFoldersDocumentsBreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.ListContentAccessAndRoleAuthorizationsBreadCrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -64,6 +65,9 @@ public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail
 		} else if (item instanceof FavoritesBreadcrumbItem) {
 			recordId = null;
 		} else if (item instanceof LastViewedFoldersDocumentsBreadcrumbItem) {
+		} else if (item instanceof FavoritesBreadcrumbItem) {
+			recordId = null;
+		} else if (item instanceof ListContentAccessAndRoleAuthorizationsBreadCrumbItem) {
 			recordId = null;
 		} else {
 			throw new RuntimeException("Unrecognized breadcrumb item type : " + item.getClass());

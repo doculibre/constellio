@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
@@ -51,5 +52,10 @@ public class ListContentAccessAndRoleAuthorizationsViewImpl extends ListContentA
 		});
 
 		mainLayout.addComponent(tabSheet, 0);
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return ((ListContentAccessAndRoleAuthorizationsPresenter) presenter).getBreadCrumbTrail();
 	}
 }
