@@ -667,6 +667,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
+	public void refreshActionMenu() {
+		presenter.refreshActionMenuRequested();
+		super.refreshActionMenu();
+	}
+
+	@Override
 	protected Component buildActionMenu(ViewChangeEvent event) {
 		Component actionMenu = super.buildActionMenu(event);
 		if (!nestedView && actionMenuBarLayout != null) {
