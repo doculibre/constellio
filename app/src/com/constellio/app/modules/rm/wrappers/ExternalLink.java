@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.model.ExternalLinkType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDateTime;
 
 import java.util.Locale;
 
@@ -40,6 +41,11 @@ public class ExternalLink extends RecordWrapper {
 
 	public ExternalLink setType(String type) {
 		set(TYPE, type);
+		return this;
+	}
+
+	public ExternalLink setImportedOn(LocalDateTime importedOn) {
+		set(IMPORTED_ON, importedOn);
 		return this;
 	}
 }
