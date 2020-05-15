@@ -30,7 +30,7 @@ public class CollectionService extends BaseService {
 		return collectionDao.getCollections().stream()
 				.map(collection -> CollectionDto.builder()
 						.code(collection.getCode())
-						.name(collection.getName())
+						.name(collection.getTitle())
 						.languages(collection.getLanguages())
 						.build())
 				.collect(Collectors.toList());
