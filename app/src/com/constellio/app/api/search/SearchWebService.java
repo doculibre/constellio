@@ -1,11 +1,14 @@
 package com.constellio.app.api.search;
 
+import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
 import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -26,6 +29,7 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.shaded.com.google.common.base.Objects;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -75,6 +79,7 @@ public class SearchWebService extends AbstractSearchServlet {
 		for (String param : strings) {
 			if (param.startsWith("collection_s")) {
 				collection = param.replace("collection_s:", "");
+				collection = collection.replace("\"", "");
 				break;
 			}
 		}
@@ -199,9 +204,11 @@ public class SearchWebService extends AbstractSearchServlet {
 	}
 
 	private NamedList getFacetLabels(QueryResponse queryResponse, List<String> collections) {
+		List<Metadata> specialMetadatas = asList(Schemas.COLLECTION);
 		RecordServices recordServices = modelLayerFactory().newRecordServices();
 		List<MetadataSchemaTypes> allCollectionsSchemaTypes = modelLayerFactory().getMetadataSchemasManager().getAllCollectionsSchemaTypes();
 		List<Metadata> allMetadatas = new ArrayList<>();
+		allMetadatas.addAll(specialMetadatas);
 		allCollectionsSchemaTypes.stream().forEach(schemaTypes -> allMetadatas.addAll(schemaTypes.getAllMetadatas()));
 		Map<String, Metadata> uniqueMetadatas = allMetadatas.stream()
 				.collect(Collectors.toMap(Metadata::getDataStoreCode, Function.identity(), (meta1, meta2) -> meta1));
@@ -215,6 +222,10 @@ public class SearchWebService extends AbstractSearchServlet {
 			if (facetMetadata != null) {
 				Map<String, String> facetLabels = facetMetadata.getLabelsByLanguageCodes();
 				NamedList valuesName = new NamedList();
+				if (specialMetadatas.contains(facetMetadata)) {
+					facetLabels = getFacetLabelsForSpecialMetadata(facetMetadata, facetField.getValues());
+				}
+
 				for (String languageCode : facetLabels.keySet()) {
 					Locale locale = Language.withCode(languageCode).getLocale();
 					Map<String, String> valueLabels = new HashMap<>();
@@ -233,6 +244,10 @@ public class SearchWebService extends AbstractSearchServlet {
 							break;
 					}
 
+					if (specialMetadatas.contains(facetMetadata)) {
+						valueLabels = getValueLabelsForSpecialMetadata(facetMetadata, facetField.getValues());
+					}
+
 					if (!valueLabels.isEmpty()) {
 						valuesName.add(languageCode, valueLabels);
 					}
@@ -249,6 +264,29 @@ public class SearchWebService extends AbstractSearchServlet {
 		}
 
 		return facetLabelsNL;
+	}
+
+	private Map<String, String> getFacetLabelsForSpecialMetadata(Metadata facetMetadata, List<Count> values) {
+		CollectionsManager collectionsManager = appLayerFactory().getCollectionsManager();
+		List<String> collectionCodes = collectionsManager.getCollectionCodes();
+		if (facetMetadata.getLocalCode().equals(Schemas.COLLECTION.getLocalCode())) {
+			Map<Language, String> labels = modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collectionCodes.get(0)).getSchemaType(Collection.SCHEMA_TYPE).getLabels();
+			Map<String, String> labelsByCode = new HashMap<>();
+			labels.keySet().stream().forEach(language -> labelsByCode.put(language.getCode(), labels.get(language)));
+			return labelsByCode;
+		} else {
+			return new HashMap<>();
+		}
+	}
+
+	private Map<String, String> getValueLabelsForSpecialMetadata(Metadata facetMetadata, List<Count> values) {
+		if (facetMetadata.getLocalCode().equals(Schemas.COLLECTION.getLocalCode())) {
+			CollectionCodeToLabelConverter labelConverter = new CollectionCodeToLabelConverter();
+			return values.stream().collect(Collectors.toMap(Count::getName,
+					value -> labelConverter.getCollectionCaption(value.getName())));
+		} else {
+			return new HashMap<>();
+		}
 	}
 
 	private void adjustForFreeText(List<String> collections, String freeText, ModifiableSolrParams solrParams) {

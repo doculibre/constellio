@@ -7,12 +7,14 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.ExternalLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
@@ -313,6 +315,59 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams(folder5.getId());
 		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(2)))
 				.containsExactly(doc3.getId());
+
+		assertThat(queryCounter.newQueryCalls()).isZero();
+	}
+
+	@Test
+	public void whenExternalLinksLinkedToFolderThenAllExternalLinksProvidedWithoutQuery()
+			throws Exception {
+		givenConfig(ConstellioEIMConfigs.DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES, true);
+
+		AdministrativeUnit au1 = rmSchemasRecordsServices.getAdministrativeUnit(rmRecords.unitId_10);
+
+		Folder folder1 = newFolderInUnit(au1, "folder1");
+		Folder folder2 = newFolderInUnit(au1, "folder2");
+		Folder folder3 = newFolderInUnit(au1, "folder3");
+		Folder folder4 = newFolderInUnit(au1, "folder4");
+
+		ExternalLink link1 = rmSchemasRecordsServices.newExternalLinkWithId("link1").setTitle("link1").setImportedOn(TimeProvider.getLocalDateTime());
+		ExternalLink link2 = rmSchemasRecordsServices.newExternalLinkWithId("link2").setTitle("link2").setImportedOn(TimeProvider.getLocalDateTime());
+		ExternalLink link3 = rmSchemasRecordsServices.newExternalLinkWithId("link3").setTitle("link3").setImportedOn(null);
+		ExternalLink link4 = rmSchemasRecordsServices.newExternalLinkWithId("link4").setTitle("link4").setImportedOn(null);
+
+		folder1.setExternalLinks(null);
+		folder2.setExternalLinks(asList(link1.getId(), link2.getId()));
+		folder3.setExternalLinks(asList(link3.getId(), link4.getId()));
+		folder4.setExternalLinks(asList(link1.getId(), link2.getId(), link3.getId(), link4.getId()));
+
+		recordServices.execute(new Transaction(
+				folder1,
+				folder2,
+				folder3,
+				folder4,
+				link1,
+				link2,
+				link3,
+				link4
+		));
+		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), DisplayFolderPresenterAcceptTest.class);
+
+		presenter.forParams(folder1.getId());
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(3)))
+				.isEmpty();
+
+		presenter.forParams(folder2.getId());
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(3)))
+				.isEmpty();
+
+		presenter.forParams(folder3.getId());
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(3)))
+				.containsExactly(link3.getId(), link4.getId());
+
+		presenter.forParams(folder4.getId());
+		assertThat(searchServices.searchRecordIds(presenter.folderContentDataProvider.getQuery().getCacheableQueries().get(3)))
+				.containsExactly(link3.getId(), link4.getId()); // Alphabetically sorted
 
 		assertThat(queryCounter.newQueryCalls()).isZero();
 	}

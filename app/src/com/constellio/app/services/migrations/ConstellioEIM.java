@@ -102,6 +102,8 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -209,6 +211,13 @@ public class ConstellioEIM {
 
 	static public void start(AppLayerFactory appLayerFactory) {
 		ApplicationStarter.registerServlet("/cachedSelect", new CachedSearchWebService());
+		FilterHolder filterHolder = new FilterHolder(new CrossOriginFilter());
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,GET");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "content-type,access-control-allow-origin,token,serviceKey");
+		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+		ApplicationStarter.registerFilter("/cachedSelect", filterHolder);
+
 		ApplicationStarter.registerServlet("/getRecordContent", new GetRecordContentServlet());
 	}
 

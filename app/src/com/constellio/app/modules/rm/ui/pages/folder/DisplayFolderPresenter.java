@@ -469,12 +469,17 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					.filteredWithUser(getCurrentUser())
 					.filteredByStatus(StatusFilter.ACTIVES)
 					.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
+			LogicalSearchQuery externalLinksCacheableQuery = new LogicalSearchQuery(from(externalLinkSchemaType)
+					.where(Schemas.IDENTIFIER).isIn(referencedRecordIds).andWhere(rm.externalLink.importedOn()).isNull())
+					.filteredByStatus(StatusFilter.ACTIVES)
+					.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
 
 			addSortCriteriaForFolderContentQuery(folderCacheableQuery);
 			addSortCriteriaForFolderContentQuery(documentCacheableQuery);
 			addSortCriteriaForFolderContentQuery(linkedDocumentsCacheableQuery);
+			addSortCriteriaForFolderContentQuery(externalLinksCacheableQuery);
 
-			query.setCacheableQueries(asList(folderCacheableQuery, documentCacheableQuery, linkedDocumentsCacheableQuery));
+			query.setCacheableQueries(asList(folderCacheableQuery, documentCacheableQuery, linkedDocumentsCacheableQuery, externalLinksCacheableQuery));
 		}
 
 		return query;
