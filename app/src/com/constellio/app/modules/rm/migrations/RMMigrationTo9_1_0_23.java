@@ -3,16 +3,13 @@ package com.constellio.app.modules.rm.migrations;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-<<<<<<< HEAD
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-=======
 import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataValueType;
->>>>>>> origin/9.1-earlyAprilMerge
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
 
 public class RMMigrationTo9_1_0_23 implements MigrationScript {
 	@Override
