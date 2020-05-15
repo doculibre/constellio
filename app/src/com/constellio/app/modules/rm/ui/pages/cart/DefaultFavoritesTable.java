@@ -11,6 +11,7 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.ui.Table;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -166,7 +167,25 @@ public class DefaultFavoritesTable extends BaseTable {
 				visibleColumnIds.addAll(asList(CartItem.TITLE, CartItem.MODIFIED_ON, CartItem.DISPLAY_BUTTON));
 				return visibleColumnIds;
 			}
+
+			@Override
+			public void manage(Table table, String tableId) {
+				super.manage(table, tableId);
+				Object[] visibleColumns = table.getVisibleColumns();
+				List<Object> visibleColumnsList = new ArrayList<>(Arrays.asList(visibleColumns));
+				if (visibleColumnsList.contains(CartItem.DISPLAY_BUTTON)) {
+					moveElementToTheEndOfList(visibleColumnsList, CartItem.DISPLAY_BUTTON);
+				}
+				table.setVisibleColumns(visibleColumnsList.toArray());
+
+			}
 		};
 	}
+
+	private void moveElementToTheEndOfList(List<Object> list, Object element) {
+		list.remove(element);
+		list.add(element);
+	}
+
 
 }

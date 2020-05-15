@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.navigation;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.NavigationItem.Active;
+import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
@@ -56,8 +57,10 @@ import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewG
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
@@ -87,8 +90,10 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.ui.Component;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TableListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
@@ -117,6 +122,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String CHECKED_OUT_DOCUMENTS = "checkedOutDocuments";
 	public static final String SHARED_ITEMS = "sharedDocuments";
 	public static final String TAXONOMIES = "taxonomies";
+	public static final String FAVORITES_HOME_TAB = "favorites";
 
 	public static final String UNIFORM_SUBDIVISIONS = "uniformSubdivisions";
 	public static final String UNIFORM_SUBDIVISIONS_ICON = "images/icons/config/uniform-subdivision.png";
@@ -392,6 +398,18 @@ public class RMNavigationConfiguration implements Serializable {
 			public Map<String, RecordVODataProvider> getDataProvider(AppLayerFactory appLayerFactory,
 																	 SessionContext sessionContext) {
 				return new SharedDocumentsAndFoldersProvider(appLayerFactory, sessionContext).getDataProviders();
+			}
+		});
+		config.add(HomeView.TABS, new CustomItem(FAVORITES_HOME_TAB) {
+			@Override
+			public Component buildCustomComponent(ConstellioFactories factories, SessionContext context,
+												  ItemClickListener itemClickListener) {
+				return new RMFavoritesTabSheet(factories.getAppLayerFactory(), context);
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory modelLayerFactory) {
+				return ComponentState.visibleIf(!user.getList(RMUser.FAVORITES_DISPLAY_ORDER).isEmpty());
 			}
 		});
 	}

@@ -53,8 +53,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 		when(cartView.getSessionContext()).thenReturn(sessionContext);
 		when(cartView.getConstellioFactories()).thenReturn(getConstellioFactories());
 
-		cartPresenter = new CartPresenter(cartView);
-
+		cartPresenter = new CartPresenter(null, cartView);
 	}
 
 	@Test

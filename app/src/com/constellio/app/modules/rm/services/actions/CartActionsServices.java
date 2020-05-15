@@ -33,61 +33,6 @@ public class CartActionsServices {
 		this.cartUtil = new CartUtil(collection, appLayerFactory);
 	}
 
-	public boolean isRenameActionPossible(Record record, User user) {
-		Cart cart = rm.wrapCart(record);
-
-		return user.has(RMPermissionsTo.USE_GROUP_CART).globally()
-			   && rmModuleExtensions.isRenameActionPossibleOnCart(cart, user)
-			   && canRenameFavoriteGroup(cart, user);
-	}
-
-	public boolean isPrepareEmailActionPossible(Record record, User user) {
-		Cart cart = rm.wrapCart(record);
-
-		return cartUtil.cartHasRecords(cart.getId()) && cartUtil.cartContainerIsEmpty(cart.getId())
-			   && hasCartPermission(cart.getId(), user)
-			   && rmModuleExtensions.isPrepareEmailActionPossibleOnCart(cart, user);
-	}
-
-	public boolean isBatchDuplicateActionPossible(Record record, User user) {
-		Cart cart = rm.wrapCart(record);
-
-		return cartHasOnlyFolders(cart.getId()) && canDuplicateFolders(user, cart.getId())
-			   && hasCartPermission(cart.getId(), user)
-			   && rmModuleExtensions.isBatchDuplicateActionPossibleOnCart(cart, user);
-	}
-
-	private boolean cartHasOnlyFolders(String cartId) {
-		return !cartUtil.cartFoldersIsEmpty(cartId)
-			   && cartUtil.cartDocumentsIsEmpty(cartId)
-			   && cartUtil.cartContainerIsEmpty(cartId);
-	}
-
-	private boolean canDuplicateFolders(User user, String cartId) {
-		for (Folder folder : cartUtil.getCartFolders(cartId)) {
-			RecordWrapper parent = folder.getParentFolder() != null ?
-								   rm.getFolder(folder.getParentFolder()) :
-								   rm.getAdministrativeUnit(folder.getAdministrativeUnitEntered());
-			if (!user.hasWriteAccess().on(parent)) {
-				return false;
-			}
-			switch (folder.getPermissionStatus()) {
-				case SEMI_ACTIVE:
-					if (!user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder)) {
-						return false;
-					}
-					break;
-				case INACTIVE_DEPOSITED:
-				case INACTIVE_DESTROYED:
-					if (!user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder)) {
-						return false;
-					}
-					break;
-			}
-		}
-		return true;
-	}
-
 	public boolean isDocumentBatchProcessingActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
 		String schemaTypeCode = Document.SCHEMA_TYPE;
@@ -124,30 +69,6 @@ public class CartActionsServices {
 		}	
 	}
 
-	public boolean isFoldersLabelsActionPossible(Record record, User user) {
-		Cart cart = rm.wrapCart(record);
-		String schemaTypeCode = Folder.SCHEMA_TYPE;
-		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
-			return hasCartPermission(cart.getId(), user)
-				   && isLabelsButtonVisible(schemaTypeCode, cart.getId())
-				   && rmModuleExtensions.isFoldersLabelsActionPossibleOnCart(cart, user);
-		} else {
-			return false;
-		}	
-	}
-
-	public boolean isDocumentLabelsActionPossible(Record record, User user) {
-		Cart cart = rm.wrapCart(record);
-		String schemaTypeCode = Document.SCHEMA_TYPE;
-		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
-			return hasCartPermission(cart.getId(), user)
-				   && isLabelsButtonVisible(schemaTypeCode, cart.getId())
-				   && rmModuleExtensions.isDocumentLabelsActionPossibleOnCart(cart, user);
-		} else {
-			return false;
-		}
-	}
-
 	@NotNull
 	private boolean areSchemaTypeRecordPresent(Record record, String schemaType, User user) {
 		List<? extends RecordWrapper> recordWithPossibleDeleted;
@@ -163,32 +84,6 @@ public class CartActionsServices {
 		}
 
 		return getNonDeletedRecordsIds(recordWithPossibleDeleted, user).size() > 0;
-	}
-
-	public boolean isContainersLabelsActionPossible(Record record, User user) {
-		Cart cart = rm.wrapCart(record);
-		String schemaTypeCode = ContainerRecord.SCHEMA_TYPE;
-		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
-			return hasCartPermission(cart.getId(), user)
-				   && isLabelsButtonVisible(schemaTypeCode, cart.getId())
-				   && rmModuleExtensions.isContainerLabelsActionPossibleOnCart(cart, user);
-		} else {
-			return false;
-		}	
-	}
-
-	public boolean isLabelsButtonVisible(String schemaType, String cartId) {
-		switch (schemaType) {
-			case Folder.SCHEMA_TYPE:
-				return !cartUtil.cartFoldersIsEmpty(cartId);
-			case ContainerRecord.SCHEMA_TYPE:
-				return !cartUtil.cartContainerIsEmpty(cartId);
-			case Document.SCHEMA_TYPE:
-				return !cartUtil.cartDocumentsIsEmpty(cartId);
-
-			default:
-				throw new RuntimeException("No labels for type : " + schemaType);
-		}
 	}
 
 	public boolean isBatchDeleteActionPossible(Record record, User user) {
@@ -301,30 +196,6 @@ public class CartActionsServices {
 			   user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 	}
 
-	public boolean isPrintMetadataReportActionPossible(Record record, User user) {
-		Cart cart = rm.wrapCart(record);
-
-		return hasCartPermission(cart.getId(), user)
-			   && cartUtil.cartHasRecords(cart.getId())
-			   && rmModuleExtensions.isPrintMetadataReportActionPossibleOnCart(cart, user);
-	}
-
-	public boolean isCreateSIPArchvesActionPossible(Record record, User user) {
-		Cart cart = rm.wrapCart(record);
-
-		return hasCartPermission(cart.getId(), user)
-			   && cartUtil.cartHasRecords(cart.getId())
-			   && rmModuleExtensions.isCreateSIPArchvesActionPossibleOnCart(cart, user);
-	}
-
-	public boolean isPrntConsolidatedPdfActionPossible(Record record, User user) {
-		Cart cart = rm.wrapCart(record);
-
-		return hasCartPermission(cart.getId(), user)
-			   && cartUtil.cartHasRecords(cart.getId())
-			   && rmModuleExtensions.isConsolidatedPdfActionPossibleOnCart(cart, user);
-	}
-
 	private boolean isBatchProcessingButtonVisible(String schemaType, User user, Cart cart) {
 		if (ContainerRecord.SCHEMA_TYPE.equals(schemaType) && !user.has(RMPermissionsTo.MANAGE_CONTAINERS)
 				.onSomething()) {
@@ -373,42 +244,7 @@ public class CartActionsServices {
 		}
 	}
 
-
-	public boolean canRenameFavoriteGroup(Cart cart, User user) {
-		if (isDefaultCart(cart.getId(), user)) {
-			return false;
-		}
-
-		List<String> sharedWithUsers = cart.getSharedWithUsers();
-		return (sharedWithUsers == null || sharedWithUsers.size() <= 0);
-	}
-
-
 	private boolean isDefaultCart(String cartId, User user) {
 		return user.getId().equals(cartId);
-	}
-
-	public boolean isBorrowActionPossible(Record record, User user) {
-		Cart cart = rm.wrapCart(record);
-		String schemaTypeCode = Folder.SCHEMA_TYPE;
-		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
-			return hasCartPermission(cart.getId(), user)
-				   && isCartNotEmpty(schemaTypeCode, cart.getId())
-				   && rmModuleExtensions.isRecordBorrowActionPossibleOnCart(cart, user);
-		} else {
-			return false;
-		}
-	}
-
-	public boolean isCartNotEmpty(String schemaType, String cartId) {
-		switch (schemaType) {
-			case Folder.SCHEMA_TYPE:
-				return !cartUtil.cartFoldersIsEmpty(cartId);
-			case ContainerRecord.SCHEMA_TYPE:
-				return !cartUtil.cartContainerIsEmpty(cartId);
-
-			default:
-				throw new RuntimeException("Cannot borrow type : " + schemaType);
-		}
 	}
 }
