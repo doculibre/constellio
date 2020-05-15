@@ -461,8 +461,8 @@ public class RecordExportServices {
 
 		commentHasMap.put(RecordsImportServicesExecutor.COMMENT_MESSAGE, comment.getMessage());
 		commentHasMap.put(RecordsImportServicesExecutor.COMMENT_USER_NAME, comment.getUsername());
-		if (comment.getDateTime() != null) {
-			commentHasMap.put(RecordsImportServicesExecutor.COMMENT_DATE_TIME, comment.getDateTime().toString("yyyy-MM-dd"));
+		if (comment.getCreationDateTime() != null) {
+			commentHasMap.put(RecordsImportServicesExecutor.COMMENT_DATE_TIME, comment.getCreationDateTime().toString("yyyy-MM-dd"));
 		}
 
 		return commentHasMap;

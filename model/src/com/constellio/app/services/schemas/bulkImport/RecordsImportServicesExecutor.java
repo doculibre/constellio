@@ -1002,7 +1002,7 @@ public class RecordsImportServicesExecutor {
 				comment.setUser(userName == null ? null : userService.getUserInCollection(userName, collection));
 
 				if (hashMap.get(COMMENT_DATE_TIME) != null) {
-					comment.setDateTime(LocalDateTime.parse(hashMap.get(COMMENT_DATE_TIME)));
+					comment.setCreationDateTime(LocalDateTime.parse(hashMap.get(COMMENT_DATE_TIME)));
 				}
 
 				commentList.add(comment);
@@ -1017,7 +1017,7 @@ public class RecordsImportServicesExecutor {
 			comment.setMessage(hashMap.get(COMMENT_MESSAGE));
 			comment.setUser(userService.getUserInCollection(userName, collection));
 
-			if (comment.getDateTime() != null) {
+			if (comment.getCreationDateTime() != null) {
 				LocalDate.parse(hashMap.get(COMMENT_DATE_TIME));
 			}
 

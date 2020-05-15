@@ -91,7 +91,7 @@ public class RecordCommentsDisplayPresenter implements Serializable {
 
 		User user = presenterUtils.getCurrentUser();
 		newComment.setUser(user);
-		newComment.setDateTime(new LocalDateTime());
+		newComment.setCreationDateTime(new LocalDateTime());
 
 		List<Comment> newComments = new ArrayList<>(comments);
 		newComments.add(0, newComment);
@@ -103,6 +103,16 @@ public class RecordCommentsDisplayPresenter implements Serializable {
 	public void commentDeleted(Comment comment) {
 		List<Comment> newComments = new ArrayList<>(comments);
 		newComments.remove(comment);
+		updateComments(newComments);
+	}
+
+	public void commentModified(Comment commentToModify, String newValue) {
+		List<Comment> newComments = new ArrayList<>(comments);
+		newComments.remove(commentToModify);
+		commentToModify.setModificationDateTime(new LocalDateTime());
+		commentToModify.setMessage(newValue);
+
+		newComments.add(commentToModify);
 		updateComments(newComments);
 	}
 

@@ -141,7 +141,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		List<Comment> decomListComments = decomList.getComments();
 		assertThat(decomList.getTitle()).isEqualTo("test42");
 		assertThat(decomListComments.get(0).getMessage()).isEqualTo("message test");
-		assertThat(decomListComments.get(0).getDateTime()).isInstanceOf(LocalDateTime.class);
+		assertThat(decomListComments.get(0).getCreationDateTime()).isInstanceOf(LocalDateTime.class);
 		assertThat(decomListComments.get(0).getUsername()).isEqualTo("admin");
 
 		assertThat(decomListComments.get(1).getMessage()).isEqualTo("super message");

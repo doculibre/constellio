@@ -39,7 +39,7 @@ public class CommentTest extends ConstellioTest {
 		assertThat(comment.isDirty()).isTrue();
 
 		comment = new Comment();
-		comment.setDateTime(nowDateTime);
+		comment.setCreationDateTime(nowDateTime);
 		assertThat(comment.isDirty()).isTrue();
 
 		comment = new Comment();
@@ -53,7 +53,7 @@ public class CommentTest extends ConstellioTest {
 
 		Comment comment = new Comment();
 		comment.setUser(bob);
-		comment.setDateTime(nowDateTime);
+		comment.setCreationDateTime(nowDateTime);
 
 		comment.setMessage("Message");
 
@@ -73,7 +73,7 @@ public class CommentTest extends ConstellioTest {
 
 		Comment comment = new Comment();
 		comment.setUser(null);
-		comment.setDateTime(null);
+		comment.setCreationDateTime(null);
 		comment.setMessage(null);
 
 		String stringValue = factory.toString(comment);
@@ -113,6 +113,22 @@ public class CommentTest extends ConstellioTest {
 
 		assertThat(builtComment).isEqualTo(comment);
 		assertThat(stringValue2).isEqualTo(stringValue);
+		assertThat(builtComment.isDirty()).isFalse();
+	}
+
+	@Test
+	public void ensureBuilderWorksWithOldCommentStructure() {
+		Comment comment = new Comment();
+		comment.setMessage("Message");
+		comment.setCreationDateTime(new LocalDateTime().withDate(2020, 4, 23).withTime(15, 34, 25, 619));
+		comment.setUser(bob);
+
+		String stringValueWithoutModificationDate = "bobId:bob:2020-04-23T15~~~34~~~25.619:Message";
+		Comment builtComment = (Comment) factory.build(stringValueWithoutModificationDate);
+		String stringValueWithoutModificationDate2 = factory.toString(builtComment);
+
+		assertThat(builtComment).isEqualTo(comment);
+		assertThat(stringValueWithoutModificationDate).isNotEqualTo(stringValueWithoutModificationDate2);
 		assertThat(builtComment.isDirty()).isFalse();
 	}
 }
