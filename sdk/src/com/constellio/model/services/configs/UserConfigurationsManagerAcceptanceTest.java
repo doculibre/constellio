@@ -20,7 +20,7 @@ import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class UserConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 	private String anotherCollection = "anotherCollection";

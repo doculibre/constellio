@@ -23,7 +23,7 @@ import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
-//@SlowTest
+//// Confirm @SlowTest
 public class FileParserAcceptanceTest extends ConstellioTest {
 
 	StreamFactory<InputStream> inputStreamFactory;

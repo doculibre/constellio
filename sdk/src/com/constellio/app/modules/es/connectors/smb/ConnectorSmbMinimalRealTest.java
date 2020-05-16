@@ -94,7 +94,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareWhenCrawlingThenGetAllDocumentsAndFolders()
 			throws RecordServicesException {
 
@@ -123,7 +123,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareWithNewDocumentWhenCrawlingThenCrawlNewDocument()
 			throws RecordServicesException {
 		String newFileName = "newFile.txt";
@@ -155,7 +155,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareWithNewEmptyFolderWhenCrawlingThenCrawlNewEmptyFolder()
 			throws RecordServicesException {
 		String newFolderName = "newFolder/";
@@ -223,7 +223,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareWithDeletedDocumentWhenCrawlingThenRemoveDocument()
 			throws RecordServicesException {
 
@@ -251,7 +251,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareWithDeleteEmptyFolderWhenCrawlingThenRemoveFolder()
 			throws RecordServicesException, IOException {
 		String newFolder = "newFolder/";
@@ -283,7 +283,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareDeleteFolderWithContentWhenCrawlingThenRemoveFolderAndContent()
 			throws RecordServicesException {
 
@@ -311,7 +311,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareWithModifiedDocumentWhenCrawlingThenUpdateDocument()
 			throws RecordServicesException {
 		String modifiedContent = "Modified Content";

@@ -6,7 +6,7 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 
 import java.io.File;
 
-@SlowTest
+// Confirm @SlowTest
 public class RMMigrationTo5_1_3_AcceptanceTest extends ConstellioTest {
 
 	//	@Test

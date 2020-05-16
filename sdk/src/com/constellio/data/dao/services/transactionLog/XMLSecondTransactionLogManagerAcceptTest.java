@@ -61,7 +61,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-@SlowTest
+// Confirm @SlowTest
 public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 
 	private LocalDateTime shishOClock = new LocalDateTime();

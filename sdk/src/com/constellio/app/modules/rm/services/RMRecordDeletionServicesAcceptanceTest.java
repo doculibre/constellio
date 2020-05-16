@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Created by Constelio on 2016-11-01.
  */
-@SlowTest
+// Confirm @SlowTest
 public class RMRecordDeletionServicesAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	SearchServices searchServices;

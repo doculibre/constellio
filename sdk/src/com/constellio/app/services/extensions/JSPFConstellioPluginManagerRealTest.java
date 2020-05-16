@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-@SlowTest
+// Confirm @SlowTest
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JSPFConstellioPluginManagerRealTest extends ConstellioTestWithGlobalContext {
 

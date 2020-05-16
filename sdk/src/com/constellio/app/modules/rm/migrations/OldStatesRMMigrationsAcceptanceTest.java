@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-@SlowTest
+// Confirm @SlowTest
 @RunWith(value = Parameterized.class)
 public class OldStatesRMMigrationsAcceptanceTest extends RMMigrationsAcceptanceTest {
 

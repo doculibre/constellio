@@ -24,7 +24,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-@SlowTest
+// Confirm @SlowTest
 @InDevelopmentTest
 @UiTest
 public class ReindexingServicesPerformanceAcceptanceTest extends ConstellioTest {

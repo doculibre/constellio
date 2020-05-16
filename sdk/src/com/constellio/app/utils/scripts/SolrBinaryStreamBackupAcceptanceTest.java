@@ -29,7 +29,7 @@ import java.util.zip.GZIPInputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class SolrBinaryStreamBackupAcceptanceTest extends ConstellioTest {
 
 	private String solrUrl;

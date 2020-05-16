@@ -52,7 +52,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenTestRecordsWithoutFoldersThenNoFolders()
 			throws Exception {
 

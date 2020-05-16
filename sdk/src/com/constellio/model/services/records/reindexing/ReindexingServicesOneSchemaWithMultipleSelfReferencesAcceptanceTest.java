@@ -40,7 +40,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest extends ConstellioTest {
 
 	LocalDateTime shishOClock = new LocalDateTime();

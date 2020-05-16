@@ -97,7 +97,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void given2000FoldersWhenMovingCategoryThenAllFoldersAreReindexed()
 			throws Exception {
@@ -172,7 +172,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void givenAPrincipalTaxonomyIsLogicallyDeletedWhileABatchProcessIsBeingExecutedThenAllLogicallyDeletedAndAllCorrectlyMoved()
 			throws Exception {

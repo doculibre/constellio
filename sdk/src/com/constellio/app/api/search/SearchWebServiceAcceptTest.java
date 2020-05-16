@@ -46,7 +46,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchab
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class SearchWebServiceAcceptTest extends ConstellioTest {
 
 	String englishSearchField = "search_txt_en";

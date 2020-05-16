@@ -250,7 +250,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenListToTransferWhenCreatePDFaOnTransferThenPDFaCreated() throws Exception {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
@@ -265,7 +265,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenListToDepositWhenCreatePDFaOnTransferThenPDFaCreated() throws Exception {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
@@ -280,7 +280,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenListToDepositWhenCreatePDFaOnDepositThenPDFaCreated() throws Exception {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_DEPOSIT);
 		givenDisabledAfterTestValidations();

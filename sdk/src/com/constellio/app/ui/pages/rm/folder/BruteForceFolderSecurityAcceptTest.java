@@ -59,7 +59,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void validateUserCanClickOnAllEnabledButtonsOfEveryFolders()
 			throws Exception {
 		if (!isEnabled()) {
@@ -112,7 +112,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void validateUserCanClickOnAllEnabledButtonsOfEveryDocuments()
 			throws Exception {
 		if (!isEnabled()) {

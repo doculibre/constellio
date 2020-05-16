@@ -137,7 +137,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.verify;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@SlowTest
+// Confirm @SlowTest
 public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 	TaxonomiesManager taxonomiesManager;

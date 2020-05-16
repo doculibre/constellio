@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @PerformanceTest
-@SlowTest
+// Confirm @SlowTest
 public class EncodingServicePerformanceTest extends ConstellioTestWithGlobalContext {
 
 	static byte[] bytes1ko;

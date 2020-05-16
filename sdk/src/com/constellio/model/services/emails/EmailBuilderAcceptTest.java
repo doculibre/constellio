@@ -188,7 +188,7 @@ public class EmailBuilderAcceptTest extends ConstellioTest {
 	}
 
 	@InternetTest
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void realSendTest()
 			throws Exception {

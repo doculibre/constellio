@@ -36,7 +36,7 @@ import static com.constellio.model.services.records.reindexing.ReindexationMode.
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
 
-@SlowTest
+// Confirm @SlowTest
 public class ReindexingServicesTwoSchemasAcceptanceTest extends ConstellioTest {
 
 	LocalDateTime shishOClock = new LocalDateTime();

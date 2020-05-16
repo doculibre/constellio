@@ -2383,7 +2383,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenAGroupHasALotOfUsersThenNoBAtchProcessRequired()
 			throws Exception {
 

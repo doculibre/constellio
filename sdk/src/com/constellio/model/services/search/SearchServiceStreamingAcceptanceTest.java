@@ -24,7 +24,7 @@ import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-@SlowTest
+// Confirm @SlowTest
 public class SearchServiceStreamingAcceptanceTest extends ConstellioTest {
 
 	SearchServiceAcceptanceTestSchemas schema = new SearchServiceAcceptanceTestSchemas(zeCollection);

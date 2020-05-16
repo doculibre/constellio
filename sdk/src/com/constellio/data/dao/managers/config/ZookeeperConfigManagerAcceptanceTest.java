@@ -51,7 +51,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 @CloudTest
-@SlowTest
+// Confirm @SlowTest
 public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 
 	private String TEST_FOLDER = "/test-tmp";
@@ -563,7 +563,7 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 		assertThat(propertiesConfiguration.getProperties().get("property3")).isEqualTo("value3 added");
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void givenXMLDocumentModifiedConcurrentlyByMultipleThreadsThenNoUpdateLost()
 			throws InterruptedException {

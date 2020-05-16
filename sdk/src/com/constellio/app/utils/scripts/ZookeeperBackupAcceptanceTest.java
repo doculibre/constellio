@@ -19,7 +19,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @CloudTest
-@SlowTest
+// Confirm @SlowTest
 public class ZookeeperBackupAcceptanceTest extends ConstellioTest {
 	private String zkHost;
 	private PropertiesDataLayerConfiguration props;

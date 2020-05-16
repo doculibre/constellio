@@ -44,6 +44,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.utils.RecordCodeComparator;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -776,6 +777,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 
 	@Test
+	@SlowTest
 	public void whenExportingAllFoldersAndDocumentsSplittedBySizeThen()
 			throws Exception {
 

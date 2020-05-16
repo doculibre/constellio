@@ -49,7 +49,7 @@ import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 
 	String anotherCollection = "otherCollection";

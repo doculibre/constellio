@@ -77,7 +77,7 @@ public class SmbJobFactoryImplRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	@InDevelopmentTest
 	public void givenWorstCaseOfSlowRetrievalOfModificationIndicatorsWhenUsingFactoryThenAverageFactoryLockTimeIsLessThan1Second()
 			throws RecordServicesException, IOException, InterruptedException {

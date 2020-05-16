@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 @CloudTest
-@SlowTest
+// Confirm @SlowTest
 public class SolrCollectionsBackupRestoreManagementToolAcceptanceTest extends ConstellioTest {
 
 	private static final int OK = 0;

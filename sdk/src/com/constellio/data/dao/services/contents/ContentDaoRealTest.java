@@ -281,7 +281,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 		assertEquals(theContent, theOutputContent);
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void whenAddingContentsWithMultipleThreadsThenSurvive()
 			throws Exception {

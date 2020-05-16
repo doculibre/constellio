@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class ConstellioEIMSystemConfigurationsAcceptanceTest extends ConstellioTest {
 
 	String anotherCollection = "anotherCollection";

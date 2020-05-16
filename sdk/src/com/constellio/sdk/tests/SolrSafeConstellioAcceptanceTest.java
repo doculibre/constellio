@@ -20,7 +20,7 @@ import java.util.Arrays;
 
 import static org.mockito.Mockito.spy;
 
-@SlowTest
+// Confirm @SlowTest
 public class SolrSafeConstellioAcceptanceTest extends ConstellioTest {
 	private static Logger LOGGER = LoggerFactory.getLogger(SolrSafeConstellioAcceptanceTest.class);
 	protected SearchServiceAcceptanceTestSchemas schema = new SearchServiceAcceptanceTestSchemas(zeCollection);

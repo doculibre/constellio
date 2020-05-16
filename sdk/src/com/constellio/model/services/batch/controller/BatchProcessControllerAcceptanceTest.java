@@ -39,7 +39,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-//@SlowTest
+//// Confirm @SlowTest
 public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 
 	String anotherSchemaRecordText = "this is a text";

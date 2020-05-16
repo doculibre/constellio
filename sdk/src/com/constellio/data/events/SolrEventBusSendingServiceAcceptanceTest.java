@@ -5,6 +5,7 @@ import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManage
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -146,6 +147,7 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@SlowTest
 	public void whenBothServersAreSendingEventsThenAllReceivedAndExtensionsCalled()
 			throws Exception {
 

@@ -12,7 +12,7 @@ import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class RandomWordsIteratorRealTest extends ConstellioTest {
 
 	RandomWordsIterator randomFrenchWordsIterators, randomEnglishWordsIterators;

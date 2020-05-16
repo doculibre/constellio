@@ -17,7 +17,7 @@ import static com.constellio.model.entities.security.Role.READ;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizationsServicesAcceptanceTest {
 
 	@After

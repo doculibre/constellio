@@ -2215,7 +2215,6 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 	}
 
 	@Test
-	//TODO FixMe or KillMe!
 	public void givenPlethoraOfFoldersInARubricThenValidGetChildrenResponse()
 			throws Exception {
 

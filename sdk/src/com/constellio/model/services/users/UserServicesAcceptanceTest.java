@@ -714,7 +714,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenTokenIsGivenToUserThenExpiresAutomatically()
 			throws Exception {
 		givenBackgroundThreadsEnabled();

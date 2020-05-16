@@ -29,7 +29,7 @@ import static java.util.Arrays.asList;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends ConstellioTest {
 
 	RecordServices recordServices;

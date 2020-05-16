@@ -28,7 +28,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAu
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class ReindexingServicesOneSchemaWithPopulatedFieldsAcceptanceTest extends ConstellioTest {
 
 	LocalDateTime shishOClock = new LocalDateTime();

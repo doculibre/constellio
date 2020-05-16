@@ -27,7 +27,7 @@ import static java.io.File.separator;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 
 	RMTestRecords rmTestRecords = new RMTestRecords(zeCollection);

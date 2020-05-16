@@ -358,7 +358,7 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 		assertThat(getVersionOf(dakota)).isNotEqualTo(dakotaVersion);
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void givenAThreadCausingOptimisticLockingAndAnotherAddingWithoutProblemsThenOnlySecondRecordIsModified()
 			throws Exception {
@@ -429,14 +429,14 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 		assertThat(getValueOf(dakota)).isEqualTo("" + numberOfIterations);
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void givenFlushIsNowWhenTwoThreadsAreModifyingTheSameDocumentThenNoConflict()
 			throws Exception {
 		givenTwoThreadsAreModifyingTheSameDocumentThenNoConflict(NOW());
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void givenFlushIsWithin2SecWhenTwoThreadsAreModifyingTheSameDocumentThenNoConflict()
 			throws Exception {

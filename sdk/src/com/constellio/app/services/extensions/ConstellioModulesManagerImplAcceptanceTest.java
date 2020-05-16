@@ -35,7 +35,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SlowTest
+// Confirm @SlowTest
 public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	CollectionsManager collectionsManager;
 	ConstellioPluginManager pluginManager, pluginManagerOfAnotherInstance;

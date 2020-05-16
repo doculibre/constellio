@@ -78,7 +78,7 @@ public class DeleteConnectorSmbRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenConnectorSmbHierarchyWhenDeleteThenOk()
 			throws Exception {
 

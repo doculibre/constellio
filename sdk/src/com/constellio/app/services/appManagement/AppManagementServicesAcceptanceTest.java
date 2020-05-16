@@ -40,7 +40,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 //TODO Maxime : Vérifier pourquoi ce test est extrêmement lent
-@SlowTest
+// Confirm @SlowTest
 public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 
 	@Mock ConstellioPluginManager pluginManager;

@@ -30,7 +30,7 @@ public class TriLevelLockMechanismTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenSystemWideWriting() throws InterruptedException {
 		for (int i = 0; i < 5; i++) {
 			doTest();

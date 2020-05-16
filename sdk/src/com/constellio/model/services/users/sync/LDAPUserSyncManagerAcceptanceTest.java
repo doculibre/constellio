@@ -101,7 +101,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMsExchDelegateListBLAndUserSyncConfiguredWhenResyncronizeThenGoodInfosForUserIndexer()
 			throws Exception {
 
@@ -345,7 +345,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		assertThat(currentGroups).containsOnly(groupB, groupC);
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void whenSearchingMoreThan1000UsersThenReturnAllUsers()
 			throws Exception {

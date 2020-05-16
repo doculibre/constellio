@@ -16,7 +16,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTest {
 	Record papa, television;
 
