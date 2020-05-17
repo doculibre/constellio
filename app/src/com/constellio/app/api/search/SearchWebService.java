@@ -138,6 +138,10 @@ public class SearchWebService extends AbstractSearchServlet {
 				}
 			}
 
+			if (StringUtils.isBlank(solrParams.get(CommonParams.DF))) {
+				solrParams.add(CommonParams.DF, Schemas.TITLE.getDataStoreCode());
+			}
+
 			queryResponse = getQueryResponse(core, solrParams, user);
 
 			if (schemasRecordsServices != null) {
