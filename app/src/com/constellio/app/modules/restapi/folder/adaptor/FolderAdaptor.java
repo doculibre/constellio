@@ -18,6 +18,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.google.common.base.Strings;
@@ -200,4 +201,7 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 		return null;
 	}
 
+	public void addDefaultMetadatas(FolderDto folder, User user, String collection) {
+		folderDao.addDefaultMetadatas(folder, user, collection);
+	}
 }
