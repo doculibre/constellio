@@ -217,18 +217,7 @@ public class FolderDao extends ResourceDao {
 		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		if (rmConfigs.isFolderAdministrativeUnitEnteredAutomatically()) {
 			if (StringUtils.isNotBlank(defaultAdministrativeUnit)) {
-				try {
-					Record defaultAdministrativeUnitRecord = modelLayerFactory.newRecordServices().getDocumentById(defaultAdministrativeUnit);
-					if (user.hasWriteAccess().on(defaultAdministrativeUnitRecord)) {
-						return defaultAdministrativeUnitRecord.getId();
-					} else {
-						LOGGER.error("User " + user.getUsername()
-									 + " has no longer write access to default administrative unit " + defaultAdministrativeUnit);
-					}
-				} catch (Exception e) {
-					LOGGER.error("Default administrative unit for user " + user.getUsername() + " is invalid: "
-								 + defaultAdministrativeUnit);
-				}
+				return defaultAdministrativeUnit;
 			} else {
 				MetadataSchemaTypes schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 				List<Record> records = new ArrayList<>(modelLayerFactory.newSearchServices().getAllRecords(schemaTypes.getSchemaType(AdministrativeUnit.SCHEMA_TYPE)));
@@ -255,7 +244,7 @@ public class FolderDao extends ResourceDao {
 				folder.getCategory().getId(), null, StatusFilter.ACTIVES);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		RetentionRule retentionRule = rm.getRetentionRule(retentionRules.get(0));
-		folder.setRetentionRule(RetentionRuleDto.builder().id(retentionRule.getId()).title(retentionRule.getTitle()).code(retentionRule.getCode()).build());
+		folder.setRetentionRule(RetentionRuleDto.builder().id(retentionRule.getId()).build());
 		String defaultAdministrativeUnit = findUserDefaultAdministrativeUnit(user, collection);
 		folder.setAdministrativeUnit(AdministrativeUnitDto.builder().id(defaultAdministrativeUnit).build());
 

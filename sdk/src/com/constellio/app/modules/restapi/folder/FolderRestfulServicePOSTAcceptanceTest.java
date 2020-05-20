@@ -203,14 +203,24 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		folderId = null;
 		minFolderToAdd.setParentFolderId(null);
 		minFolderToAdd.setAdministrativeUnit(null);
+		minFolderToAdd.setCopyStatus(null);
+		minFolderToAdd.setRetentionRule(null);
 
 		Response response = doPostQuery(minFolderToAdd);
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
-		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(commitCounter.newCommitsCall()).isEmpty();
 
-		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
-		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE)
-				.doesNotContain(CLOSE_BRACE).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "folder.administrativeUnit"));
+		FolderDto folderDto = response.readEntity(FolderDto.class);
+		assertThat(folderDto.getId()).isNotNull().isNotEmpty();
+		assertThat(folderDto.getTitle()).isEqualTo(minFolderToAdd.getTitle());
+		assertThat(folderDto.getParentFolderId()).isNull();
+		assertThat(folderDto.getAdministrativeUnit().getId()).isNotNull();
+		assertThat(folderDto.getAdministrativeUnit().getCode()).isNotNull();
+		assertThat(folderDto.getAdministrativeUnit().getTitle()).isNotNull();
+		assertThat(folderDto.getRetentionRule()).isNotNull();
+		assertThat(folderDto.getCopyStatus()).isNotNull();
 	}
 
 	@Test
@@ -224,6 +234,8 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		folderId = null;
 		minFolderToAdd.setParentFolderId(null);
 		minFolderToAdd.setAdministrativeUnit(null);
+		minFolderToAdd.setCopyStatus(null);
+		minFolderToAdd.setRetentionRule(null);
 
 		Response response = doPostQuery(minFolderToAdd);
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
@@ -238,6 +250,8 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		assertThat(folderDto.getAdministrativeUnit().getId()).isEqualTo(records.unitId_10a);
 		assertThat(folderDto.getAdministrativeUnit().getCode()).isNotNull();
 		assertThat(folderDto.getAdministrativeUnit().getTitle()).isNotNull();
+		assertThat(folderDto.getRetentionRule()).isNotNull();
+		assertThat(folderDto.getCopyStatus()).isNotNull();
 	}
 
 	@Test

@@ -2,6 +2,7 @@ package com.constellio.app.modules.restapi.folder;
 
 import com.constellio.app.modules.restapi.ace.AceService;
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
+import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
 import com.constellio.app.modules.restapi.folder.adaptor.FolderAdaptor;
 import com.constellio.app.modules.restapi.folder.dao.FolderDao;
@@ -93,7 +94,13 @@ public class FolderService extends ResourceService {
 		User user = getUserByServiceKey(serviceKey, collection);
 
 		if (parentFolderId == null && folderDto.getAdministrativeUnit() == null) {
-			folderAdaptor.addDefaultMetadatas(folderDto, user, collection);
+			folderDao.addDefaultMetadatas(folderDto, user, collection);
+
+			if (folderDto.getAdministrativeUnit() == null) {
+				throw new RequiredParameterException("folder.administrativeUnit");
+			}
+
+			record = getRecord(folderDto.getAdministrativeUnit().getId(), true);
 		}
 
 		validateUserAccess(user, record, method);
