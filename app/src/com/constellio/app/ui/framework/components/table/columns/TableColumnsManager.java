@@ -140,7 +140,7 @@ public class TableColumnsManager implements Serializable {
 
 				String columnId = toColumnId(propertyId);
 				boolean collapsed = !visibleColumnIdsForUser.contains(columnId);
-				if (!collapsed && table.isColumnCollapsible(columnId)) {
+				if (table.isColumnCollapsible(columnId) && table.isColumnCollapsed(propertyId) != collapsed) {
 					table.setColumnCollapsed(propertyId, collapsed);
 				}
 
