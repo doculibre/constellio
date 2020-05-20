@@ -288,7 +288,8 @@ public class FolderMenuItemServices {
 					   (params.getView().getSessionContext().getSelectedRecordIds() != null &&
 						params.getView().getSessionContext().getSelectedRecordIds().contains(record.getId()));
 			case FOLDER_TRIGGER_MANAGEMENT:
-				return folderRecordActionsServices.isEditRecordTriggerPossible(record, user);
+				return false;
+			//return folderRecordActionsServices.isEditRecordTriggerPossible(record, user);
 			case FOLDER_LIST_EXTERNAL_LINKS:
 				return folderRecordActionsServices.isListExternalLinksActionPossible(record, user);
 			case FOLDER_CREATE_TASK:
