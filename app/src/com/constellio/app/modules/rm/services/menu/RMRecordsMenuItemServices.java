@@ -1,35 +1,5 @@
 package com.constellio.app.modules.rm.services.menu;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.actions.ContainerRecordActionsServices;
-import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
-import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
-import com.constellio.app.modules.rm.services.menu.behaviors.RMRecordsMenuItemBehaviors;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.tasks.services.actions.TaskRecordActionsServices;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.menu.ActionDisplayOption;
-import com.constellio.app.services.menu.MenuItemAction;
-import com.constellio.app.services.menu.MenuItemActionState;
-import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.vaadin.server.FontAwesome;
-import com.vaadin.server.Resource;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_CART;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE;
@@ -60,6 +30,40 @@ import static com.constellio.app.ui.i18n.i18n.getLanguage;
 import static com.vaadin.server.FontAwesome.STAR;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.actions.ContainerRecordActionsServices;
+import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
+import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
+import com.constellio.app.modules.rm.services.menu.behaviors.RMRecordsMenuItemBehaviors;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.tasks.services.actions.TaskRecordActionsServices;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.menu.ActionDisplayOption;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionState;
+import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.server.Resource;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 public class RMRecordsMenuItemServices {
 
@@ -395,6 +399,8 @@ public class RMRecordsMenuItemServices {
 						actionPossible = documentRecordActionsServices.isGenerateReportActionPossible(record, user);
 					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
 						actionPossible = folderRecordActionsServices.isGenerateReportActionPossible(record, user);
+					} else if (record.isOfSchemaType(RetentionRule.SCHEMA_TYPE) || record.isOfSchemaType(Category.SCHEMA_TYPE)) {
+						actionPossible = true;
 					}
 					possibleCount += actionPossible ? 1 : 0;
 				}
@@ -629,7 +635,7 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_CREATE_TASK(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, false),
 		RMRECORDS_BATCH_UNSHARE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, false),
 		RMRECORDS_BATCH_UNPUBLISH(asList(Document.SCHEMA_TYPE), 10000, false),
-		RMRECORDS_GENERATE_REPORT(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, false);
+		RMRECORDS_GENERATE_REPORT(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE), 10000, false);
 
 		private final List<String> schemaTypes;
 		private final int recordsLimit;
