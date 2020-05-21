@@ -67,6 +67,7 @@ import java.util.Set;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
+import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_ON;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -636,6 +637,8 @@ public class UserServices {
 		String parentId = getGroupParentId(group, collection);
 		groupInCollection.set(Group.PARENT, parentId);
 		groupInCollection.set(Group.IS_GLOBAL, true);
+		groupInCollection.set(LOGICALLY_DELETED_STATUS, group.getLogicallyDeletedStatus());
+		groupInCollection.set(LOGICALLY_DELETED_ON, group.get(LOGICALLY_DELETED_ON));
 		groupInCollection.setTitle(group.getName());
 		if (groupInCollection.isDirty()) {
 			transaction.add(groupInCollection.getWrappedRecord());
