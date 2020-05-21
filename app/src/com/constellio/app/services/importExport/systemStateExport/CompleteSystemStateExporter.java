@@ -14,7 +14,13 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.CursorMarkParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,6 +52,7 @@ public class CompleteSystemStateExporter {
 
 	public InputStream exportCompleteSaveState() throws Exception {
 		File tempFolder = ioServices.newTemporaryFolder(CLOUD_SYSTEM_STATE_EXPORT_TEMP_FOLDER);
+		File zipFile = new File(tempFolder, "completeSavestate.zip");
 
 		try {
 			List<File> filesToZip = new ArrayList<>();
@@ -98,12 +105,15 @@ public class CompleteSystemStateExporter {
 			new PartialVaultExporter(contentsFolder, appLayerFactory).export(Collections.<String>emptyList());
 			filesToZip.add(contentsFolder);
 
-			File zipFile = new File(tempFolder, "completeSavestate.zip");
 			zipService.zip(zipFile, filesToZip);
 
 			return new FileInputStream(zipFile);
 		} finally {
-			ioServices.deleteQuietly(tempFolder);
+			for (File tempFolderFile : tempFolder.listFiles()) {
+				if (!tempFolderFile.getAbsolutePath().equals(zipFile.getAbsolutePath())) {
+					ioServices.deleteQuietly(tempFolderFile);
+				}
+			}
 		}
 	}
 
