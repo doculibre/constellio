@@ -47,8 +47,9 @@ public class DocumentRecordActionsServices {
 		Content content = document.getContent();
 		if (content != null && content.getCheckoutUserId() != null) {
 			String borrowDate = DateFormatUtils.format(content.getCheckoutDateTime());
-			if (!user.getId().equals(content.getCheckoutUserId())) {
-				String borrowerCaption = user.getTitle();
+			String checkoutUserId = content.getCheckoutUserId();
+			if (!user.getId().equals(checkoutUserId)) {
+				String borrowerCaption = rm.getUser(checkoutUserId).getTitle();
 				String borrowedMessageKey = "DocumentActionsComponent.borrowedByOtherUser";
 				borrowedMessage = $(borrowedMessageKey, borrowerCaption, borrowDate);
 			} else {
