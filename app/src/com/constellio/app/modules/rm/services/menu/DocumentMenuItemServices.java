@@ -42,6 +42,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PRINT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PUBLISH;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_REMOVE_TO_SELECTION;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RENAME_CONTENT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNPUBLISH;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNSHARE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UPLOAD;
@@ -133,6 +134,13 @@ public class DocumentMenuItemServices {
 					isMenuItemActionPossible(DOCUMENT_COPY.name(), document, user, params),
 					$("DocumentContextMenu.copyContent"), FontAwesome.PASTE, -1, 600,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).copy(document, params)));
+		}
+
+		if (!filteredActionTypes.contains(DOCUMENT_RENAME_CONTENT.name())) {
+			menuItemActions.add(buildMenuItemAction(DOCUMENT_RENAME_CONTENT.name(),
+					isMenuItemActionPossible(DOCUMENT_RENAME_CONTENT.name(), document, user, params),
+					$("DocumentContextMenu.renameContent"), FontAwesome.EDIT, -1, 650,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).renameContent(document, params)));
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_FINALIZE.name())) {
@@ -314,6 +322,8 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.getBorrowedMessage(record, user) != null;
 			case DOCUMENT_EDIT:
 				return documentRecordActionsServices.isEditActionPossible(record, user);
+			case DOCUMENT_RENAME_CONTENT:
+				return documentRecordActionsServices.isRenameContentActionPossible(record, user);
 			case DOCUMENT_DISPLAY:
 				return documentRecordActionsServices.isDisplayActionPossible(record, user);
 			case DOCUMENT_CONSULT_LINK:
@@ -391,6 +401,7 @@ public class DocumentMenuItemServices {
 		DOCUMENT_DISPLAY,
 		DOCUMENT_OPEN,
 		DOCUMENT_EDIT,
+		DOCUMENT_RENAME_CONTENT,
 		DOCUMENT_CONSULT_LINK,
 		DOCUMENT_DOWNLOAD,
 		DOCUMENT_DELETE,

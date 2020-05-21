@@ -400,6 +400,12 @@ public class RMModuleExtensions implements ModuleExtensions {
 						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
 	}
 
+	public boolean isRenameContentActionPossibleOnDocument(final Document document, final User user) {
+		return user.hasWriteAccess().on(document) && document.hasContent() && documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isRenameContentActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+	}
+
 	public boolean isCreateSipActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isCreateSipActionPossible(

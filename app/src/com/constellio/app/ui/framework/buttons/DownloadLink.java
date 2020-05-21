@@ -6,6 +6,7 @@ import com.vaadin.server.DownloadStream;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 
 public class DownloadLink extends BaseLink {
 
@@ -57,13 +58,19 @@ public class DownloadLink extends BaseLink {
 
 				@Override
 				public String getFilename() {
-					return adaptee.getFilename();
+					return normalizeFileName(adaptee.getFilename());
 				}
 			};
 		} else {
 			resourceOrWrapper = downloadedResource;
 		}
 		return resourceOrWrapper;
+	}
+
+	private static String normalizeFileName(String filename) {
+		filename = StringUtils.replace(filename, "%", "_");
+		filename = StringUtils.replace(filename, "#", "_");
+		return filename;
 	}
 
 }
