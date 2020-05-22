@@ -48,6 +48,7 @@ import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresente
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -64,8 +65,10 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUrl;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUrlStatus;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
@@ -98,6 +101,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
 import org.simplejavamail.converter.EmailConverter;
 import org.simplejavamail.email.AttachmentResource;
 import org.simplejavamail.email.Email;
@@ -111,6 +115,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.constellio.app.ui.framework.components.ErrorDisplayUtil.showErrorMessage;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -749,6 +754,68 @@ public class DocumentMenuItemActionBehaviors {
 			ioServices.closeQuietly(inputStream);
 		}
 
+	}
+
+	public void generateExternalSignatureUrl(Document document, MenuItemActionBehaviorParams params) {
+		Button generateWindow = new WindowButton($("DocumentMenuItemActionBehaviors.generateSignatureAccess"),
+				$("DocumentMenuItemActionBehaviors.generateSignatureAccess"),
+				WindowButton.WindowConfiguration.modalDialog("570px", "160px")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout mainLayout = new VerticalLayout();
+				mainLayout.setSpacing(true);
+
+				JodaDateField field = new JodaDateField();
+				field.setCaption($("DocumentMenuItemActionBehaviors.expirationDate"));
+				field.setRequired(true);
+				mainLayout.addComponent(field);
+
+				BaseButton generateButton = new BaseButton($("LabelsButton.generate")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						if (field.getConvertedValue() == null) {
+							field.setRequiredError($("requiredField"));
+						} else {
+							ExternalAccessUrl accessUrl = rm.newSignatureExternalAccessUrl()
+									.setToken(UUID.randomUUID().toString())
+									.setAccessRecord(document.getId())
+									.setStatus(ExternalAccessUrlStatus.OPEN)
+									.setExpirationDate((LocalDate) field.getConvertedValue());
+
+							Transaction transaction = new Transaction();
+							transaction.add(accessUrl);
+
+							try {
+								recordServices.execute(transaction);
+								CopyToClipBoard.copyToClipBoard(getUrlFromExternalAccess(accessUrl));
+							} catch (RecordServicesException e) {
+								params.getView().showErrorMessage($("DocumentMenuItemActionBehaviors.errorGeneratingAccess"));
+							}
+
+							getWindow().close();
+						}
+					}
+				};
+				generateButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				mainLayout.addComponent(generateButton);
+				mainLayout.setComponentAlignment(generateButton, Alignment.BOTTOM_CENTER);
+
+				return mainLayout;
+			}
+		};
+		generateWindow.click();
+	}
+
+	private String getUrlFromExternalAccess(ExternalAccessUrl externalAccess) {
+		String url = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
+
+		StringBuilder sb = new StringBuilder();
+		sb.append(url);
+		sb.append("externalAccess?id=");
+		sb.append(externalAccess.getId());
+		sb.append("&token=");
+		sb.append(externalAccess.getToken());
+		return sb.toString();
 	}
 
 	public void createNewDocument(String folderId, User user, String newFileName, InputStream documentInputStream,

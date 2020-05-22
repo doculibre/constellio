@@ -44,7 +44,7 @@ public class CoreMigrationTo_9_1_10 extends MigrationHelper implements Migration
 				externalAccessUrlSchema.createUndeletable(ExternalAccessUrl.TOKEN)
 						.setType(MetadataValueType.STRING);
 				externalAccessUrlSchema.createUndeletable(ExternalAccessUrl.EXPIRATION_DATE)
-						.setType(MetadataValueType.DATE_TIME);
+						.setType(MetadataValueType.DATE);
 				externalAccessUrlSchema.createUndeletable(ExternalAccessUrl.STATUS)
 						.setType(MetadataValueType.ENUM)
 						.defineAsEnum(ExternalAccessUrlStatus.class);

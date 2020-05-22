@@ -4,7 +4,7 @@ import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUr
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.joda.time.LocalDateTime;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,7 +28,7 @@ public class ExternalAccessUrlAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		ExternalAccessUrl access = recordsServices.newExternalAccessUrlWithId("zeAccessId")
-				.setExpirationDate(LocalDateTime.now())
+				.setExpirationDate(LocalDate.now())
 				.setStatus(ExternalAccessUrlStatus.OPEN)
 				.setToken("zeToken")
 				.setAccessRecord("zeRecordId");
@@ -45,7 +45,7 @@ public class ExternalAccessUrlAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		ExternalAccessUrl access = recordsServices.newSignatureExternalAccessUrlWithId("zeAccessId")
-				.setExpirationDate(LocalDateTime.now())
+				.setExpirationDate(LocalDate.now())
 				.setStatus(ExternalAccessUrlStatus.OPEN)
 				.setToken("zeToken")
 				.setAccessRecord("zeRecordId");

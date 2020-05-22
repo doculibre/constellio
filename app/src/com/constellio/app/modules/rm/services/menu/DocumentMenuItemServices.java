@@ -36,6 +36,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_EXTRACT_ATTACHEMENTS;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_FINALIZE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GENERATE_REPORT;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GENERATE_SIGNATURE_URL;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GET_PUBLIC_LINK;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_MANAGE_AUTHORIZATIONS;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_MOVE;
@@ -324,6 +325,15 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
+		if (!filteredActionTypes.contains(DOCUMENT_GENERATE_SIGNATURE_URL.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_GENERATE_SIGNATURE_URL.name(),
+					isMenuItemActionPossible(DOCUMENT_GENERATE_SIGNATURE_URL.name(), document, user, params),
+					$("DocumentContextMenu.generateExternalSignatureUrl"), FontAwesome.PENCIL_SQUARE, -1, 2700,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).generateExternalSignatureUrl(document, params));
+
+			menuItemActions.add(menuItemAction);
+		}
+
 		return menuItemActions;
 	}
 
@@ -395,6 +405,8 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.isCreateTaskActionPossible(record, user);
 			case DOCUMENT_EXTRACT_ATTACHEMENTS:
 				return documentRecordActionsServices.isExtractingÀttachementsActionPossible(record);
+			case DOCUMENT_GENERATE_SIGNATURE_URL:
+				return documentRecordActionsServices.isGenerateExternalSignatureUrlActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -443,6 +455,7 @@ public class DocumentMenuItemServices {
 		DOCUMENT_GENERATE_REPORT,
 		DOCUMENT_RETURN_REMAINDER,
 		DOCUMENT_ADD_TASK,
-		DOCUMENT_EXTRACT_ATTACHEMENTS;
+		DOCUMENT_EXTRACT_ATTACHEMENTS,
+		DOCUMENT_GENERATE_SIGNATURE_URL
 	}
 }
