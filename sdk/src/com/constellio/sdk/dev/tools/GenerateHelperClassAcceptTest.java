@@ -54,13 +54,14 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.ExportAudit;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUrl;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.records.wrappers.SignatureExternalAccessUrl;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.User;
@@ -134,7 +135,9 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(SearchEvent.DEFAULT_SCHEMA, SearchEvent.class);
 		wrappers.put(ThesaurusConfig.DEFAULT_SCHEMA, ThesaurusConfig.class);
 		wrappers.put(CapsuleLanguage.DEFAULT_SCHEMA, CapsuleLanguage.class);
-		wrappers.put(SavedSearch.DEFAULT_SCHEMA, SavedSearch.class);
+		//wrappers.put(SavedSearch.DEFAULT_SCHEMA, SavedSearch.class);
+		wrappers.put(ExternalAccessUrl.DEFAULT_SCHEMA, ExternalAccessUrl.class);
+		wrappers.put(SignatureExternalAccessUrl.FULL_SCHEMA, SignatureExternalAccessUrl.class);
 
 		System.out.println(header());
 
