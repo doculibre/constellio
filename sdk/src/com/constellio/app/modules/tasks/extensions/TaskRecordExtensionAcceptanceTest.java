@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.extensions;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -505,6 +506,150 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		givenTimeIs(now.plusDays(1));
 		recordServices.add(zeTask.setStatus((STB())));
 		assertThat(tasksSchemas.getTask(zeTask.getId()).getStartDate()).isEqualTo(null);
+	}
+
+	@Test
+	public void givenTaskAssignedToBobWhenBobDelegateTaskToAliceThenAliceIsAssignee() throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssignee(bob.getId());
+
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		recordServices.add(bob);
+		recordServices.add(newTask);
+
+		assertThat(newTask.getAssignee()).isEqualTo(alice.getId());
+	}
+
+	@Test
+	public void givenTaskAssignedToBobWhenBobDelegateTaskToAliceAndAliceDelegateToCharlesThenCharlesIsAssignee()
+			throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		User charles = users.charlesIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssignee(bob.getId());
+
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		alice.set(TaskUser.DELEGATION_TASK_USER, charles);
+		recordServices.add(bob);
+		recordServices.add(alice);
+		recordServices.add(newTask);
+
+		assertThat(newTask.getAssignee()).isEqualTo(charles.getId());
+	}
+
+	@Test
+	public void givenTaskWhenAssignToBobAndBobDelegateTaskToAliceAndAliceDelegateToCharlesThenCharlesIsAssignee()
+			throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		User charles = users.charlesIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title");
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		alice.set(TaskUser.DELEGATION_TASK_USER, charles);
+		recordServices.add(bob);
+		recordServices.add(alice);
+		recordServices.add(newTask);
+
+		newTask.setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssignee(bob.getId());
+		recordServices.add(newTask);
+
+		assertThat(newTask.getAssignee()).isEqualTo(charles.getId());
+	}
+
+	@Test
+	public void givenTaskWithBobInAssigneeCandidatesWhenBobDelegateTaskToAliceThenAliceIsInAssigneeCandidatesInsteadOfBob()
+			throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		User charles = users.charlesIn(zeCollection);
+		User dakota = users.dakotaIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssigneeUsersCandidates(asList(bob, charles, dakota));
+
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		recordServices.add(bob);
+		recordServices.add(newTask);
+
+		assertThat(newTask.getAssigneeUsersCandidates()).containsAll(asList(alice.getId(), charles.getId(), dakota.getId()));
+	}
+
+	@Test
+	public void givenTaskWithBobInAssigneeCandidatesWhenBobDelegateTaskToAliceAndAliceToChuckThenChuckIsInAssigneeCandidatesInsteadOfBob()
+			throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		User charles = users.charlesIn(zeCollection);
+		User dakota = users.dakotaIn(zeCollection);
+		User chuck = users.chuckNorrisIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssigneeUsersCandidates(asList(bob, charles, dakota));
+
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		alice.set(TaskUser.DELEGATION_TASK_USER, chuck);
+		recordServices.add(bob);
+		recordServices.add(alice);
+		recordServices.add(newTask);
+
+		assertThat(newTask.getAssigneeUsersCandidates()).containsAll(asList(chuck.getId(), charles.getId(), dakota.getId()));
+	}
+
+
+	@Test
+	public void givenTaskWithBobAndAliceInAssigneeCandidatesWhenBobDelegateTaskToAliceThenBobIsRemovedFromAssigneeCandidates()
+			throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		User charles = users.charlesIn(zeCollection);
+		User dakota = users.dakotaIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssigneeUsersCandidates(asList(bob, charles, dakota, alice));
+
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		recordServices.add(bob);
+		recordServices.add(newTask);
+
+		assertThat(newTask.getAssigneeUsersCandidates()).containsAll(asList(charles.getId(), dakota.getId(), alice.getId()));
+		assertThat(newTask.getAssigneeUsersCandidates()).doesNotContain(bob.getId());
+	}
+
+	@Test
+	public void givenTaskbWhenBobDelegateTaskToAliceAndModifyTaskToAssignToBobThenAliceIsAssignee()
+			throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title");
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		recordServices.add(bob);
+		recordServices.add(newTask);
+
+		newTask.setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssignee(bob.getId());
+		recordServices.add(newTask);
+
+		assertThat(newTask.getAssignee()).isEqualTo(alice.getId());
+	}
+
+	@Test
+	public void givenTaskWhenBobInAssigneeCandidatesAndBobDelegateTaskToAliceThenAliceIsInAssigneeCandidatesInsteadOfBob()
+			throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		User charles = users.charlesIn(zeCollection);
+		User dakota = users.dakotaIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title");
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		recordServices.add(bob);
+		recordServices.add(newTask);
+
+		newTask.setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssigneeUsersCandidates(asList(bob, charles, dakota));
+		recordServices.add(newTask);
+
+		assertThat(newTask.getAssigneeUsersCandidates()).containsAll(asList(alice.getId(), charles.getId(), dakota.getId()));
 	}
 
 	private Task reloadTask(String id) {

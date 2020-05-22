@@ -6,6 +6,7 @@ import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -320,6 +321,7 @@ public class TaskRecordExtension extends RecordExtension {
 	}
 
 	public void taskInCreation(Task task, RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+		delegateTask(task);
 		if (StringUtils.isBlank(task.getLegacyId())) {
 			sendEmailToAssignee(task);
 		}
@@ -491,10 +493,14 @@ public class TaskRecordExtension extends RecordExtension {
 	void taskInModification(Task task, RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
 		if (event.hasModifiedMetadata(Task.STATUS)) {
 			TaskStatus currentStatus = (task.getStatus() == null) ? null : tasksSchema.getTaskStatus(task.getStatus());
-
 			updateEndDateAndStartDateIfNecessary(task, currentStatus);
 		}
-
+		if (event.hasModifiedMetadata(Task.ASSIGNEE)) {
+			delegateTaskFromAssignee(task);
+		}
+		if (event.hasModifiedMetadata(Task.ASSIGNEE_USERS_CANDIDATES)) {
+			delegateTaskFromAssigneeUserCandidates(task);
+		}
 		boolean startDateModified = event.hasModifiedMetadata(Task.START_DATE);
 		boolean dueDateModified = event.hasModifiedMetadata(Task.DUE_DATE);
 		if (startDateModified || dueDateModified) {
@@ -796,6 +802,38 @@ public class TaskRecordExtension extends RecordExtension {
 				newFollowersList.add(assignerAsCompletionEventFollower);
 				task.setTaskFollowers(Collections.unmodifiableList(newFollowersList));
 			}
+		}
+	}
+
+	private void delegateTask(Task task) {
+		delegateTaskFromAssignee(task);
+		delegateTaskFromAssigneeUserCandidates(task);
+	}
+
+	private void delegateTaskFromAssignee(Task task) {
+		if (task.getAssignee() != null) {
+			User assignee = rm.getUser(task.getAssignee());
+			task.setAssignee(getDelegatedAssignee(assignee));
+		}
+	}
+
+	private void delegateTaskFromAssigneeUserCandidates(Task task) {
+		if (task.getAssigneeUsersCandidates() != null) {
+			Set<String> assigneeCandidates = new HashSet<>();
+			for (String assigneeCandidateUserId : task.getAssigneeUsersCandidates()) {
+				User assigneeCandidate = rm.getUser(assigneeCandidateUserId);
+				assigneeCandidates.add(getDelegatedAssignee(assigneeCandidate));
+			}
+			task.setAssigneeUsersCandidates(new ArrayList<>(assigneeCandidates));
+		}
+	}
+
+	private String getDelegatedAssignee(User taskAssignee) {
+		String delegatedUser = taskAssignee.get(TaskUser.DELEGATION_TASK_USER);
+		if (!StringUtils.isBlank(delegatedUser)) {
+			return getDelegatedAssignee(rm.getUser(delegatedUser));
+		} else {
+			return taskAssignee.getId();
 		}
 	}
 }
