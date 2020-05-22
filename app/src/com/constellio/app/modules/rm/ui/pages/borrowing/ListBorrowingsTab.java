@@ -20,6 +20,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.enums.TableMode;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -210,7 +211,7 @@ public abstract class ListBorrowingsTab {
 		protected Set<Object> selectedItemIds;
 
 		protected SelectionTable(RecordVOContainer container) {
-			super(container, TableMode.LIST, null, false);
+			super(container, null, TableMode.TABLE, false);
 			setAllItemsVisible(true);
 		}
 

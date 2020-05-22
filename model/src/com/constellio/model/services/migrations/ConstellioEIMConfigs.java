@@ -13,6 +13,7 @@ import com.constellio.model.entities.enums.MemoryConsumptionLevel;
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.enums.TableMode;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.EnableThumbnailsScript;
@@ -179,6 +180,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ASK_FOR_CONFIRMATION_BEFORE_EDIT_OR_DELETE;
 	public static final SystemConfiguration ENABLE_ILLEGAL_CHARACTERS_VALIDATION;
 	public static final SystemConfiguration CALENDAR_COUNTRY;
+
+	public static final SystemConfiguration DEFAULT_TABLE_MODE;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -361,6 +364,8 @@ public class ConstellioEIMConfigs {
 
 		add(ALWAYS_SEARCH_USING_EDISMAX = search.createBooleanFalseByDefault("alwaysSearchUsingEDismax").whichIsHidden());
 		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanTrueByDefault("searchUsingBQ").whichIsHidden());
+
+		add(DEFAULT_TABLE_MODE = others.createEnum("defaultTableMode", TableMode.class).withDefaultValue(TableMode.LIST));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -715,5 +720,9 @@ public class ConstellioEIMConfigs {
 
 	public CalendarCountry getCalendarCountry() {
 		return manager.getValue(CALENDAR_COUNTRY);
+	}
+
+	public TableMode getDefaultTableMode() {
+		return manager.getValue(DEFAULT_TABLE_MODE);
 	}
 }

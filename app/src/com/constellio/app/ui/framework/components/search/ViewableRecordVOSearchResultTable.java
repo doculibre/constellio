@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.RecordSelectionObserver;
+import com.constellio.model.entities.enums.TableMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
@@ -46,7 +47,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 											 RecordSelectionObserver recordSelectionObserver,
 											 RecordListMenuBar recordListMenuBar, boolean canChangeTableMode,
 											 BaseViewImpl baseView) {
-		super(container, tableMode, recordListMenuBar, canChangeTableMode);
+		super(container, recordListMenuBar, tableMode, canChangeTableMode);
 		this.searchView = baseView;
 		this.recordSelectionObserver = recordSelectionObserver;
 		addStyleName(TABLE_STYLE);

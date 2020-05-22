@@ -6,6 +6,7 @@ import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension.View
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -39,7 +40,9 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.schemaRecords.DisplaySchemaRecordWindow;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
+import com.constellio.model.entities.enums.TableMode;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -98,10 +101,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	public static final int MAX_SELECTION_SIZE = 10000;
 
-	public static enum TableMode {
-		LIST, TABLE;
-	}
-
 	private VerticalLayout tableLayout;
 
 	private I18NCssLayout tableButtonsLayout;
@@ -152,7 +151,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	private List<TableModeChangeListener> tableModeChangeListeners = new ArrayList<>();
 
-	private TableMode tableMode = TableMode.LIST;
+	private TableMode tableMode;
 
 	private PagingControls pagingControls;
 
@@ -174,24 +173,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	private String searchTerm = null;
 
 	public ViewableRecordVOTablePanel(RecordVOContainer container) {
-		this(container, TableMode.LIST, null);
+		this(container, null, null, true);
 	}
 
-	public ViewableRecordVOTablePanel(RecordVOContainer container, TableMode tableMode) {
-		this(container, tableMode, null);
-	}
-
-	public ViewableRecordVOTablePanel(RecordVOContainer container, TableMode tableMode,
-									  RecordListMenuBar recordListMenuBar) {
-		this(container, tableMode, recordListMenuBar, true);
-	}
-
-	public ViewableRecordVOTablePanel(RecordVOContainer container, TableMode tableMode,
-									  RecordListMenuBar recordListMenuBar, boolean canChangeTableMode) {
+	public ViewableRecordVOTablePanel(RecordVOContainer container, RecordListMenuBar recordListMenuBar,
+									  TableMode tableMode, boolean canChangeTableMode) {
 		this.recordVOContainer = container;
-		this.tableMode = tableMode != null ? tableMode : TableMode.LIST;
 		this.initialSelectionActionsMenuBar = recordListMenuBar;
 		this.canChangeTableMode = canChangeTableMode;
+		this.tableMode = tableMode != null ? tableMode : getDefaultTableMode();
 		buildUI();
 	}
 
@@ -1339,6 +1329,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	@Override
 	public AcceptCriterion getAcceptCriterion() {
 		return AcceptAll.get();
+	}
+
+	private TableMode getDefaultTableMode() {
+		ConstellioEIMConfigs configs = ConstellioFactories.getInstance().getModelLayerFactory().getSystemConfigs();
+		return configs.getDefaultTableMode();
 	}
 
 	private class ViewerMetadataPanel extends VerticalLayout {
