@@ -64,6 +64,7 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.event.Transferable;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
@@ -74,6 +75,8 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
+import com.vaadin.shared.ui.dd.VerticalDropLocation;
+import com.vaadin.ui.AbstractSelect.AbstractSelectTargetDetails;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
@@ -823,6 +826,22 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void drop(DragAndDropEvent event) {
+		BaseTable table = viewerPanel.getActualTable();
+		Transferable t = event.getTransferable();
+
+		AbstractSelectTargetDetails target = (AbstractSelectTargetDetails) event.getTargetDetails();
+		Object sourceItemId = t.getData("itemId");
+		Object targetItemId = target.getItemIdOver();
+
+		Boolean above;
+		if (target.getDropLocation().equals(VerticalDropLocation.TOP)) {
+			above = true;
+		} else if (target.getDropLocation().equals(VerticalDropLocation.MIDDLE) && targetItemId.equals(table.firstItemId())) {
+			above = true;
+		} else {
+			above = false;
+		}
+
 		boolean handledByViewer;
 		if (viewerPanel != null && viewerPanel.isDropSupported()) {
 			viewerPanel.drop(event);

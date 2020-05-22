@@ -71,6 +71,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
+import com.vaadin.ui.Table.TableDragMode;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
@@ -819,6 +820,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 		//resultsTable.setAlwaysRecalculateColumnWidths(true);
 
+		resultsTable.setDragMode(TableDragMode.ROW);
+
 		return resultsTable;
 	}
 
@@ -1325,7 +1328,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	public boolean isDropSupported() {
-		return selectedItemId != null && viewerMetadataPanel.getPanelContent() instanceof DropHandler;
+		return true;
+		//return selectedItemId != null && viewerMetadataPanel.getPanelContent() instanceof DropHandler;
 	}
 
 	@Override
