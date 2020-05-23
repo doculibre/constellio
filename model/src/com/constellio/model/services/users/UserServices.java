@@ -1053,6 +1053,18 @@ public class UserServices {
 		return nonDeletedUsers;
 	}
 
+	public void physicallyRemoveUserCredentialAndUsers(UserCredential userCredential) {
+		List<User> users = getUserForEachCollection(userCredential);
+		for (User user : users) {
+			String collection = user.getCollection();
+			physicallyRemoveUser(user, collection);
+		}
+
+		LOGGER.info("physicallyRemoveUserCredential : " + userCredential.getUsername());
+		recordServices.logicallyDelete(userCredential.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(userCredential.getWrappedRecord(), User.GOD);
+	}
+
 	public void physicallyRemoveUser(User user, String collection) {
 		LOGGER.info("physicallyRemoveUser : " + user.getUsername());
 
