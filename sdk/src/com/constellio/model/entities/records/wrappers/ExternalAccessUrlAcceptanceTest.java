@@ -1,5 +1,6 @@
 package com.constellio.model.entities.records.wrappers;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUrlStatus;
 import com.constellio.model.services.records.RecordServices;
@@ -68,7 +69,7 @@ public class ExternalAccessUrlAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		assertThat(recordsServices.externalAccessUrl.schemaType().getCacheType()).isEqualTo(FULLY_CACHED);
-
+		assertThat(recordsServices.externalAccessUrl.schemaType().getLabel(Language.French)).isEqualTo("Url d'accès externe");
 		LocalDateTime now = LocalDateTime.now();
 
 		givenTimeIs(now);
