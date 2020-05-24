@@ -776,18 +776,9 @@ public class DocumentMenuItemActionBehaviors {
 						if (field.getConvertedValue() == null) {
 							field.setRequiredError($("requiredField"));
 						} else {
-							ExternalAccessUrl accessUrl = rm.newSignatureExternalAccessUrl()
-									.setToken(UUID.randomUUID().toString())
-									.setAccessRecord(document.getId())
-									.setStatus(ExternalAccessUrlStatus.OPEN)
-									.setExpirationDate((LocalDate) field.getConvertedValue());
-
-							Transaction transaction = new Transaction();
-							transaction.add(accessUrl);
-
 							try {
-								recordServices.execute(transaction);
-								CopyToClipBoard.copyToClipBoard(getUrlFromExternalAccess(accessUrl));
+								String url = createExternalSignatureUrl(document.getId(), (LocalDate) field.getConvertedValue());
+								CopyToClipBoard.copyToClipBoard(url);
 							} catch (RecordServicesException e) {
 								params.getView().showErrorMessage($("DocumentMenuItemActionBehaviors.errorGeneratingAccess"));
 							}
@@ -806,12 +797,27 @@ public class DocumentMenuItemActionBehaviors {
 		generateWindow.click();
 	}
 
+	public String createExternalSignatureUrl(String documentId, LocalDate expirationDate)
+			throws RecordServicesException {
+		ExternalAccessUrl accessUrl = rm.newSignatureExternalAccessUrl()
+				.setToken(UUID.randomUUID().toString())
+				.setAccessRecord(documentId)
+				.setStatus(ExternalAccessUrlStatus.OPEN)
+				.setExpirationDate(expirationDate);
+
+		Transaction transaction = new Transaction();
+		transaction.add(accessUrl);
+
+		recordServices.execute(transaction);
+		return getUrlFromExternalAccess(accessUrl);
+	}
+
 	private String getUrlFromExternalAccess(ExternalAccessUrl externalAccess) {
 		String url = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(url);
-		sb.append("externalAccess?id=");
+		sb.append("signatureExternalAccess?id=");
 		sb.append(externalAccess.getId());
 		sb.append("&token=");
 		sb.append(externalAccess.getToken());
