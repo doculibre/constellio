@@ -15651,6 +15651,10 @@ div.v-layout.v-horizontal.v-widget {
 	vertical-align: middle;
 }
 
+.constellio .viewable-record-table-panel-with-index .viewable-record-table .v-slot-search-result-index {
+	display: block;
+}
+
 .constellio .collapsible-horizontal-splitpanel {
 	padding-bottom: 2px;
 }
@@ -16220,10 +16224,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .search-view .viewable-record-table-panel .viewable-record-table .search-result-with-elevation-buttons .search-result-title {
 	padding-right: 30px;
-}
-
-.constellio .search-view .viewable-record-table-panel-with-index .viewable-record-table .v-slot-search-result-index {
-	display: block;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .v-menubar-user-menu {
