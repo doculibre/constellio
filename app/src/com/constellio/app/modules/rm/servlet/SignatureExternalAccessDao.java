@@ -17,12 +17,13 @@ import org.joda.time.LocalDate;
 import javax.servlet.http.HttpServletResponse;
 
 public class SignatureExternalAccessDao {
-	private static final String UNAUTHORIZED = "Unauthorized";
-	private static final String MISSING_DOCUMENT_PARAM = "Missing document param.";
-	private static final String INVALID_DOCUMENT_PARAM = "The document does not exist.";
-	private static final String MISSING_DATE_PARAM = "Missing expiration date param.";
-	private static final String INVALID_DATE_PARAM = "The expiration date is not valid.";
-	private static final String ACTION_IMPOSSIBLE = "The url generation is not possible for this type of document.";
+	public static final String UNAUTHORIZED = "Unauthorized";
+	public static final String MISSING_DOCUMENT_PARAM = "Missing document param.";
+	public static final String INVALID_DOCUMENT_PARAM = "The document does not exist.";
+	public static final String MISSING_EXTERNAL_USER_FULLNAME_PARAM = "Missing external user fullname param.";
+	public static final String MISSING_DATE_PARAM = "Missing expiration date param.";
+	public static final String INVALID_DATE_PARAM = "The expiration date is not valid.";
+	public static final String ACTION_IMPOSSIBLE = "The url generation is not possible for this type of document.";
 	private static final String CANNOT_SAVE_RECORD = "Impossible to save record.";
 
 	private AppLayerFactory appLayerFactory;
@@ -46,14 +47,21 @@ public class SignatureExternalAccessDao {
 		documentMenuItemActionBehaviors = new DocumentMenuItemActionBehaviors(collection, appLayerFactory);
 	}
 
-	public String createExternalSignatureUrl(String username, String documentId, String expirationDate)
+	public String createExternalSignatureUrl(String username, String documentId, String externalUserFullname,
+											 String expirationDate)
 			throws SignatureExternalAccessServiceException {
 
 		if (StringUtils.isBlank(documentId)) {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, MISSING_DOCUMENT_PARAM);
 		}
 
-		Record documentRecord = recordServices.getDocumentById(documentId);
+		Record documentRecord;
+		try {
+			documentRecord = recordServices.getDocumentById(documentId);
+		} catch (Exception e) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, INVALID_DOCUMENT_PARAM);
+		}
+
 		if (documentRecord == null) {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, INVALID_DOCUMENT_PARAM);
 		}
@@ -66,13 +74,23 @@ public class SignatureExternalAccessDao {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
 		}
 
-		Document document = rm.wrapDocument(documentRecord);
+		Document document;
+		try {
+			document = rm.wrapDocument(documentRecord);
+		} catch (Exception e) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, INVALID_DOCUMENT_PARAM);
+		}
+
 		if (document == null) {
-			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, INVALID_DOCUMENT_PARAM);
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, INVALID_DOCUMENT_PARAM);
 		}
 
 		if (!documentRecordActionsServices.isGenerateExternalSignatureUrlActionPossible(documentRecord, user)) {
-			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, ACTION_IMPOSSIBLE);
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, ACTION_IMPOSSIBLE);
+		}
+
+		if (StringUtils.isBlank(externalUserFullname)) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, MISSING_EXTERNAL_USER_FULLNAME_PARAM);
 		}
 
 		if (StringUtils.isBlank(expirationDate)) {
@@ -83,13 +101,13 @@ public class SignatureExternalAccessDao {
 		try {
 			convertedDate = new LocalDate(expirationDate);
 		} catch (Exception e) {
-			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, INVALID_DATE_PARAM);
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, INVALID_DATE_PARAM);
 		}
 
 		try {
-			return documentMenuItemActionBehaviors.createExternalSignatureUrl(documentId, convertedDate);
+			return documentMenuItemActionBehaviors.createExternalSignatureUrl(documentId, externalUserFullname, convertedDate);
 		} catch (RecordServicesException e) {
-			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, CANNOT_SAVE_RECORD);
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, CANNOT_SAVE_RECORD);
 		}
 	}
 }

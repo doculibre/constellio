@@ -48,6 +48,7 @@ import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresente
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -759,25 +760,33 @@ public class DocumentMenuItemActionBehaviors {
 	public void generateExternalSignatureUrl(Document document, MenuItemActionBehaviorParams params) {
 		Button generateWindow = new WindowButton($("DocumentMenuItemActionBehaviors.generateSignatureAccess"),
 				$("DocumentMenuItemActionBehaviors.generateSignatureAccess"),
-				WindowButton.WindowConfiguration.modalDialog("570px", "160px")) {
+				WindowButton.WindowConfiguration.modalDialog("570px", "240px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
 				mainLayout.setSpacing(true);
 
-				JodaDateField field = new JodaDateField();
-				field.setCaption($("DocumentMenuItemActionBehaviors.expirationDate"));
-				field.setRequired(true);
-				mainLayout.addComponent(field);
+				BaseTextField nameField = new BaseTextField();
+				nameField.setCaption($("DocumentMenuItemActionBehaviors.externalUserFullnam"));
+				nameField.setRequired(true);
+				nameField.setWidth("100%");
+				mainLayout.addComponent(nameField);
+
+				JodaDateField dateField = new JodaDateField();
+				dateField.setCaption($("DocumentMenuItemActionBehaviors.expirationDate"));
+				dateField.setRequired(true);
+				mainLayout.addComponent(dateField);
 
 				BaseButton generateButton = new BaseButton($("LabelsButton.generate")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						if (field.getConvertedValue() == null) {
-							field.setRequiredError($("requiredField"));
+						if (nameField.getValue() == null) {
+							nameField.setRequiredError($("requiredField"));
+						} else if (dateField.getConvertedValue() == null) {
+							dateField.setRequiredError($("requiredField"));
 						} else {
 							try {
-								String url = createExternalSignatureUrl(document.getId(), (LocalDate) field.getConvertedValue());
+								String url = createExternalSignatureUrl(document.getId(), nameField.getValue(), (LocalDate) dateField.getConvertedValue());
 								CopyToClipBoard.copyToClipBoard(url);
 							} catch (RecordServicesException e) {
 								params.getView().showErrorMessage($("DocumentMenuItemActionBehaviors.errorGeneratingAccess"));
@@ -797,12 +806,13 @@ public class DocumentMenuItemActionBehaviors {
 		generateWindow.click();
 	}
 
-	public String createExternalSignatureUrl(String documentId, LocalDate expirationDate)
+	public String createExternalSignatureUrl(String documentId, String externalUserFullname, LocalDate expirationDate)
 			throws RecordServicesException {
 		ExternalAccessUrl accessUrl = rm.newSignatureExternalAccessUrl()
 				.setToken(UUID.randomUUID().toString())
 				.setAccessRecord(documentId)
 				.setStatus(ExternalAccessUrlStatus.OPEN)
+				.setFullname(externalUserFullname)
 				.setExpirationDate(expirationDate);
 
 		Transaction transaction = new Transaction();

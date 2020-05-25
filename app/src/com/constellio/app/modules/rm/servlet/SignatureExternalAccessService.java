@@ -39,20 +39,24 @@ public class SignatureExternalAccessService {
 	}
 
 	public String createExternalSignatureUrl(String authorization, String serviceKey, String documentId,
-											 String expirationDate)
+											 String externalUserFullname, String expirationDate)
 			throws SignatureExternalAccessServiceException {
 
 		validateAuth(authorization, serviceKey);
 
 		SignatureExternalAccessDao dao = new SignatureExternalAccessDao(appLayerFactory);
-		return dao.createExternalSignatureUrl(getUsernameByServiceKey(serviceKey), documentId, expirationDate);
+		return dao.createExternalSignatureUrl(getUsernameByServiceKey(serviceKey), documentId, externalUserFullname, expirationDate);
 	}
 
 	private void validateAuth(String authorization, String serviceKey)
 			throws SignatureExternalAccessServiceException {
 
+		if (StringUtils.isBlank(authorization)) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		}
+
 		String[] autorizationStrings = authorization.split(" ", 2);
-		if (autorizationStrings.length != 2 && !autorizationStrings[0].equals("Bearer")) {
+		if (autorizationStrings.length != 2 || !autorizationStrings[0].equals("Bearer")) {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
 		}
 
