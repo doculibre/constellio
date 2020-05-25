@@ -24,7 +24,7 @@ public class HealthService extends BaseService {
 	private ScheduledExecutorService executorService;
 
 	private static final String CONSTELLIO_KEY = "Constellio";
-	private static final long PERIOD = 10000L;
+	private static final long DELAY = 10000L;
 
 	@PostConstruct
 	public void init() {
@@ -34,14 +34,13 @@ public class HealthService extends BaseService {
 			try {
 				boolean healthy = healthDao.isConstellioHealthy();
 				cache.put(CONSTELLIO_KEY, healthy);
-				log.info("Updated constellio health status : " + healthy);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		};
 
 		executorService = Executors.newSingleThreadScheduledExecutor();
-		executorService.scheduleAtFixedRate(runnableTask, 0, PERIOD, TimeUnit.MILLISECONDS);
+		executorService.scheduleWithFixedDelay(runnableTask, 0, DELAY, TimeUnit.MILLISECONDS);
 	}
 
 	@PreDestroy
