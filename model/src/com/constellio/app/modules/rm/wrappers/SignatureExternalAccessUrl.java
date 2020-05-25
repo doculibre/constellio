@@ -1,6 +1,7 @@
-package com.constellio.model.entities.records.wrappers;
+package com.constellio.app.modules.rm.wrappers;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUrl;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class SignatureExternalAccessUrl extends ExternalAccessUrl {

@@ -31,28 +31,12 @@ public class ExternalAccessUrlAcceptanceTest extends ConstellioTest {
 				.setExpirationDate(LocalDate.now())
 				.setStatus(ExternalAccessUrlStatus.OPEN)
 				.setToken("zeToken")
+				.setFullname("Mister X")
 				.setAccessRecord("zeRecordId");
 
 		recordServices.add(access);
 
 		ExternalAccessUrl newAccess = recordsServices.getExternalAccessUrl("zeAccessId");
-
-		assertThat(newAccess).isEqualToComparingFieldByField(access);
-	}
-
-	@Test
-	public void whenCreatingSignatureAccessThenCreated()
-			throws Exception {
-
-		ExternalAccessUrl access = recordsServices.newSignatureExternalAccessUrlWithId("zeAccessId")
-				.setExpirationDate(LocalDate.now())
-				.setStatus(ExternalAccessUrlStatus.OPEN)
-				.setToken("zeToken")
-				.setAccessRecord("zeRecordId");
-
-		recordServices.add(access);
-
-		ExternalAccessUrl newAccess = recordsServices.getSignatureExternalAccessUrl("zeAccessId");
 
 		assertThat(newAccess).isEqualToComparingFieldByField(access);
 	}
