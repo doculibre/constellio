@@ -1,11 +1,13 @@
 package com.constellio.app.modules.tasks.extensions;
 
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
@@ -520,6 +522,8 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(newTask);
 
 		assertThat(newTask.getAssignee()).isEqualTo(alice.getId());
+		assertThat(newTask.getComments().size()).isEqualTo(1);
+		assertThat(newTask.getComments().get(0).getMessage()).isEqualTo(i18n.$("TaskManagementView.taskDelegationAssigneeComment", bob.getUsername(), alice.getUsername()));
 	}
 
 	@Test
@@ -538,6 +542,13 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(newTask);
 
 		assertThat(newTask.getAssignee()).isEqualTo(charles.getId());
+		assertThat(newTask.getComments().size()).isEqualTo(2);
+		List<Comment> comments = newTask.getComments();
+		assertThat(comments.size()).isEqualTo(2);
+		for (Comment comment : comments) {
+			assertThat(comment.getMessage()).isIn(i18n.$("TaskManagementView.taskDelegationAssigneeComment", bob.getUsername(), alice.getUsername()),
+					i18n.$("TaskManagementView.taskDelegationAssigneeComment", alice.getUsername(), charles.getUsername()));
+		}
 	}
 
 	@Test
@@ -558,6 +569,13 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(newTask);
 
 		assertThat(newTask.getAssignee()).isEqualTo(charles.getId());
+		assertThat(newTask.getComments().size()).isEqualTo(2);
+		List<Comment> comments = newTask.getComments();
+		assertThat(comments.size()).isEqualTo(2);
+		for (Comment comment : comments) {
+			assertThat(comment.getMessage()).isIn(i18n.$("TaskManagementView.taskDelegationAssigneeComment", bob.getUsername(), alice.getUsername()),
+					i18n.$("TaskManagementView.taskDelegationAssigneeComment", alice.getUsername(), charles.getUsername()));
+		}
 	}
 
 	@Test
@@ -565,16 +583,17 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		User alice = users.aliceIn(zeCollection);
 		User bob = users.bobIn(zeCollection);
-		User admin = users.adminIn(zeCollection);
 		User charles = users.charlesIn(zeCollection);
 		User dakota = users.dakotaIn(zeCollection);
-		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssigneeUsersCandidates(asList(bob, charles, dakota));
+		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigneeUsersCandidates(asList(bob, charles, dakota));
 
 		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
 		recordServices.add(bob);
 		recordServices.add(newTask);
 
 		assertThat(newTask.getAssigneeUsersCandidates()).containsAll(asList(alice.getId(), charles.getId(), dakota.getId()));
+		assertThat(newTask.getComments().size()).isEqualTo(1);
+		assertThat(newTask.getComments().get(0).getMessage()).isEqualTo(i18n.$("TaskManagementView.taskDelegationAssigneeCandidatComment", bob.getUsername(), alice.getUsername()));
 	}
 
 	@Test
@@ -582,11 +601,10 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		User alice = users.aliceIn(zeCollection);
 		User bob = users.bobIn(zeCollection);
-		User admin = users.adminIn(zeCollection);
 		User charles = users.charlesIn(zeCollection);
 		User dakota = users.dakotaIn(zeCollection);
 		User chuck = users.chuckNorrisIn(zeCollection);
-		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssigneeUsersCandidates(asList(bob, charles, dakota));
+		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigneeUsersCandidates(asList(bob, charles, dakota));
 
 		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
 		alice.set(TaskUser.DELEGATION_TASK_USER, chuck);
@@ -595,6 +613,12 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(newTask);
 
 		assertThat(newTask.getAssigneeUsersCandidates()).containsAll(asList(chuck.getId(), charles.getId(), dakota.getId()));
+		List<Comment> comments = newTask.getComments();
+		assertThat(comments.size()).isEqualTo(2);
+		for (Comment comment : comments) {
+			assertThat(comment.getMessage()).isIn(i18n.$("TaskManagementView.taskDelegationAssigneeCandidatComment", bob.getUsername(), alice.getUsername()),
+					i18n.$("TaskManagementView.taskDelegationAssigneeCandidatComment", alice.getUsername(), chuck.getUsername()));
+		}
 	}
 
 
@@ -606,7 +630,7 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		User admin = users.adminIn(zeCollection);
 		User charles = users.charlesIn(zeCollection);
 		User dakota = users.dakotaIn(zeCollection);
-		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssigneeUsersCandidates(asList(bob, charles, dakota, alice));
+		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigneeUsersCandidates(asList(bob, charles, dakota, alice));
 
 		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
 		recordServices.add(bob);
@@ -614,6 +638,8 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 
 		assertThat(newTask.getAssigneeUsersCandidates()).containsAll(asList(charles.getId(), dakota.getId(), alice.getId()));
 		assertThat(newTask.getAssigneeUsersCandidates()).doesNotContain(bob.getId());
+		assertThat(newTask.getComments().size()).isEqualTo(1);
+		assertThat(newTask.getComments().get(0).getMessage()).isEqualTo(i18n.$("TaskManagementView.taskDelegationAssigneeCandidatComment", bob.getUsername(), alice.getUsername()));
 	}
 
 	@Test
@@ -631,10 +657,12 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(newTask);
 
 		assertThat(newTask.getAssignee()).isEqualTo(alice.getId());
+		assertThat(newTask.getComments().size()).isEqualTo(1);
+		assertThat(newTask.getComments().get(0).getMessage()).isEqualTo(i18n.$("TaskManagementView.taskDelegationAssigneeComment", bob.getUsername(), alice.getUsername()));
 	}
 
 	@Test
-	public void givenTaskWhenBobInAssigneeCandidatesAndBobDelegateTaskToAliceThenAliceIsInAssigneeCandidatesInsteadOfBob()
+	public void givenTaskWhenBobInAssigneeCandidatesWhenBobDelegateTaskToAliceThenAliceIsInAssigneeCandidatesInsteadOfBob()
 			throws RecordServicesException {
 		User alice = users.aliceIn(zeCollection);
 		User bob = users.bobIn(zeCollection);
@@ -646,10 +674,12 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(bob);
 		recordServices.add(newTask);
 
-		newTask.setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssigneeUsersCandidates(asList(bob, charles, dakota));
+		newTask.setAssigneeUsersCandidates(asList(bob, charles, dakota));
 		recordServices.add(newTask);
 
 		assertThat(newTask.getAssigneeUsersCandidates()).containsAll(asList(alice.getId(), charles.getId(), dakota.getId()));
+		assertThat(newTask.getComments().size()).isEqualTo(1);
+		assertThat(newTask.getComments().get(0).getMessage()).isEqualTo(i18n.$("TaskManagementView.taskDelegationAssigneeCandidatComment", bob.getUsername(), alice.getUsername()));
 	}
 
 	private Task reloadTask(String id) {

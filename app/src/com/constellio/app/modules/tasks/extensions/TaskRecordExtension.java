@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.extensions;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
@@ -13,6 +14,7 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -44,6 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -811,29 +814,50 @@ public class TaskRecordExtension extends RecordExtension {
 	}
 
 	private void delegateTaskFromAssignee(Task task) {
-		if (task.getAssignee() != null) {
-			User assignee = rm.getUser(task.getAssignee());
-			task.setAssignee(getDelegatedAssignee(assignee));
+		String taskAssignee = task.getAssignee();
+		if (taskAssignee != null) {
+			User assignee = rm.getUser(taskAssignee);
+			task.setAssignee(getDelegatedAssignee(assignee, task, false).getId());
 		}
 	}
 
 	private void delegateTaskFromAssigneeUserCandidates(Task task) {
-		if (task.getAssigneeUsersCandidates() != null) {
+		List<String> assigneeUsersCandidates = task.getAssigneeUsersCandidates();
+		if (assigneeUsersCandidates != null) {
 			Set<String> assigneeCandidates = new HashSet<>();
-			for (String assigneeCandidateUserId : task.getAssigneeUsersCandidates()) {
+			for (String assigneeCandidateUserId : assigneeUsersCandidates) {
 				User assigneeCandidate = rm.getUser(assigneeCandidateUserId);
-				assigneeCandidates.add(getDelegatedAssignee(assigneeCandidate));
+				assigneeCandidates.add(getDelegatedAssignee(assigneeCandidate, task, true).getId());
 			}
 			task.setAssigneeUsersCandidates(new ArrayList<>(assigneeCandidates));
 		}
 	}
 
-	private String getDelegatedAssignee(User taskAssignee) {
-		String delegatedUser = taskAssignee.get(TaskUser.DELEGATION_TASK_USER);
-		if (!StringUtils.isBlank(delegatedUser)) {
-			return getDelegatedAssignee(rm.getUser(delegatedUser));
+	private User getDelegatedAssignee(User taskAssignee, Task task, Boolean assigneeCandidateDelegation) {
+		String delegatedUserId = taskAssignee.get(TaskUser.DELEGATION_TASK_USER);
+		if (!StringUtils.isBlank(delegatedUserId)) {
+			User delegatedUser = rm.getUser(delegatedUserId);
+			addDelegationComment(task, taskAssignee, delegatedUser, assigneeCandidateDelegation);
+			User delegatedAssignee = getDelegatedAssignee(delegatedUser, task, assigneeCandidateDelegation);
+			return delegatedAssignee;
 		} else {
-			return taskAssignee.getId();
+			return taskAssignee;
 		}
+	}
+
+	private void addDelegationComment(Task task, User taskAssignee, User delegatedAssignee,
+									  Boolean assigneeCandidateDelegation) {
+		Comment delegationComment = new Comment();
+		delegationComment.setUser(taskAssignee);
+		delegationComment.setCreationDateTime(LocalDateTime.now());
+		if (assigneeCandidateDelegation) {
+			delegationComment.setMessage(i18n.$("TaskManagementView.taskDelegationAssigneeCandidatComment", taskAssignee.getUsername(), delegatedAssignee.getUsername()));
+		} else {
+			delegationComment.setMessage(i18n.$("TaskManagementView.taskDelegationAssigneeComment", taskAssignee.getUsername(), delegatedAssignee.getUsername()));
+		}
+
+		List<Comment> comments = new ArrayList<>(task.getComments());
+		comments.add(delegationComment);
+		task.setComments(comments);
 	}
 }
