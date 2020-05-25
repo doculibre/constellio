@@ -14,9 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.constellio.app.ui.framework.components.viewers.pdftron.signature;
+package com.constellio.model.services.pdf.signature;
 
-import com.constellio.model.services.pdftron.PdfTronSignatureAnnotation;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -346,7 +345,7 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 	 */
 	public static File signDocument(String keystorePath, String keystorePin, String docToSignPath,
 									String visualSignaturePath,
-									PdfTronSignatureAnnotation signature)
+									PdfSignatureAnnotation signature)
 			throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
 		// TODO::JOLA (P3) --> Visually add "Certified by Constellio" and "username"
 

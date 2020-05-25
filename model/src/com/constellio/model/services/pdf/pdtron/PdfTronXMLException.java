@@ -1,4 +1,4 @@
-package com.constellio.model.services.pdftron;
+package com.constellio.model.services.pdf.pdtron;
 
 import java.io.IOException;
 

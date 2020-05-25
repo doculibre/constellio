@@ -1,6 +1,7 @@
 package com.constellio.model.services.pdftron;
 
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLService;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.IOUtils;
 import org.jdom2.Element;
@@ -15,8 +16,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.model.services.pdftron.PdfTronXMLService.areElementEqual;
-import static com.constellio.model.services.pdftron.PdfTronXMLService.getDocumentFromStr;
+import static com.constellio.model.services.pdf.pdtron.PdfTronXMLService.areElementEqual;
+import static com.constellio.model.services.pdf.pdtron.PdfTronXMLService.getDocumentFromStr;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PdfTronXMLServiceAcceptanceTest extends ConstellioTest {

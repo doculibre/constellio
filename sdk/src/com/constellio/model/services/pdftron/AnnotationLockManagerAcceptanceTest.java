@@ -7,6 +7,7 @@ import com.constellio.data.dao.services.cache.serialization.SerializationCheckCa
 import com.constellio.data.events.EventBus;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.hashing.HashingService;
+import com.constellio.model.services.pdf.pdtron.AnnotationLockManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
