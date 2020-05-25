@@ -53,7 +53,7 @@ import static com.constellio.model.entities.security.global.AuthorizationAddRequ
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SignatureExternalAccessWebServletAcceptanceTest extends ConstellioTest {
+public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends ConstellioTest {
 
 	private String bobAuth = "bobAuth";
 	private String expiredAuth = "expiredAuth";
@@ -350,6 +350,6 @@ public class SignatureExternalAccessWebServletAcceptanceTest extends ConstellioT
 	}
 
 	private String getTomorrow() {
-		return new LocalDate().plusDays(1).toString();
+		return LocalDate.now().plusDays(1).toString();
 	}
 }

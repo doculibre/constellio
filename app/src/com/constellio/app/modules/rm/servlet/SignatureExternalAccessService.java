@@ -38,6 +38,13 @@ public class SignatureExternalAccessService {
 		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, appLayerFactory.getModelLayerFactory());
 	}
 
+	public void accessExternalSignature(String accessId, String token)
+			throws SignatureExternalAccessServiceException {
+
+		SignatureExternalAccessDao dao = new SignatureExternalAccessDao(appLayerFactory);
+		dao.accessExternalSignature(accessId, token);
+	}
+
 	public String createExternalSignatureUrl(String authorization, String serviceKey, String documentId,
 											 String externalUserFullname, String expirationDate)
 			throws SignatureExternalAccessServiceException {

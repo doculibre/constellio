@@ -5,9 +5,11 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.menu.behaviors.DocumentMenuItemActionBehaviors;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.SignatureExternalAccessUrl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUrlStatus;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
@@ -45,6 +47,54 @@ public class SignatureExternalAccessDao {
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 		documentMenuItemActionBehaviors = new DocumentMenuItemActionBehaviors(collection, appLayerFactory);
+	}
+
+	public void accessExternalSignature(String accessId, String token)
+			throws SignatureExternalAccessServiceException {
+
+		if (StringUtils.isBlank(accessId)) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		}
+
+		Record accessRecord;
+		try {
+			accessRecord = recordServices.getDocumentById(accessId);
+		} catch (Exception e) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		}
+
+		if (accessRecord == null) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		}
+
+		initWithCollection(accessRecord.getCollection());
+
+		SignatureExternalAccessUrl access;
+		try {
+			access = rm.wrapSignatureExternalAccessUrl(accessRecord);
+		} catch (Exception e) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		}
+
+		if (access == null) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		}
+
+		if (StringUtils.isBlank(token)) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		}
+
+		if (!access.getToken().equals(token)) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		}
+
+		if (access.getStatus() != ExternalAccessUrlStatus.OPEN) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		}
+
+		if (access.getExpirationDate().isBefore(LocalDate.now())) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		}
 	}
 
 	public String createExternalSignatureUrl(String username, String documentId, String externalUserFullname,

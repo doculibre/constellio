@@ -8,10 +8,28 @@ import java.io.IOException;
 public class SignatureExternalAccessWebServlet extends HttpServlet {
 	public static final String HEADER_PARAM_AUTH = "Authorization";
 
+	public static final String PARAM_ID = "id";
+	public static final String PARAM_TOKEN = "token";
 	public static final String PARAM_SERVICE_KEY = "serviceKey";
 	public static final String PARAM_DOCUMENT = "document";
 	public static final String PARAM_EXTERNAL_USER_FULLNAME = "externalUserFullname";
 	public static final String PARAM_EXPIRATION_DATE = "expirationDate";
+
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+			throws IOException {
+		SignatureExternalAccessService service = new SignatureExternalAccessService();
+
+		try {
+			service.accessExternalSignature(req.getParameter(PARAM_ID), req.getParameter(PARAM_TOKEN));
+
+			resp.setStatus(HttpServletResponse.SC_OK);
+			// TODO::JOLA --> Redirect to pdf.js viewer for requested document
+			resp.sendRedirect("");
+		} catch (SignatureExternalAccessServiceException e) {
+			resp.sendError(e.getStatus(), e.getMessage());
+		}
+	}
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
