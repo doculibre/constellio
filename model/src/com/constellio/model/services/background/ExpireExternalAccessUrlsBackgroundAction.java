@@ -24,7 +24,7 @@ public class ExpireExternalAccessUrlsBackgroundAction implements Runnable {
 			SchemasRecordsServices records = new SchemasRecordsServices(collection, modelLayerFactory);
 
 			LocalDateTime now = TimeProvider.getLocalDateTime();
-			for (ExternalAccessUrl url : records.searchSignatureExternalAccessUrls(
+			for (ExternalAccessUrl url : records.searchExternalAccessUrls(
 					where(records.externalAccessUrl.status()).isEqualTo(ExternalAccessUrlStatus.OPEN))) {
 
 				//TODO replace with andWhere once supported in cache

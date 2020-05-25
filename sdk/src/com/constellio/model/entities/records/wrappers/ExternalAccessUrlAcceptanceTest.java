@@ -8,7 +8,6 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.QueryCounter;
 import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
