@@ -1,12 +1,11 @@
-package com.constellio.app.ui.framework.components.viewers.pdftron;
+package com.constellio.app.services.signature;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException;
 import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotCreateTempFileException;
 import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotReadKeystoreFileException;
 import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotReadSignatureFileException;
@@ -16,7 +15,6 @@ import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatu
 import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotSignDocumentException;
 import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_NotingToSignException;
 import com.constellio.app.ui.framework.components.viewers.pdftron.signature.CreateVisibleSignature;
-import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
@@ -29,13 +27,12 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.pdftron.AnnotationLockManager;
 import com.constellio.model.services.pdftron.PdfSignatureAnnotation;
-import com.constellio.model.services.pdftron.PdfTronXMLException;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
 import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
@@ -45,12 +42,9 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.users.UserServices;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -63,16 +57,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-@Slf4j
-public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter {
+public class PdfDocumentCertifyService {
 
 	private String collection;
 	private AppLayerFactory appLayerFactory;
+	private ModelLayerFactory modelLayerFactory;
 	private ContentManager contentManager;
 	private ContentDao contentDao;
 	private String recordId;
-	private ContentVersionVO contentVersionVO;
-	private PdfTronViewer pdfTronViewer;
+	private ContentVersion contentVersion;
 	private SchemasRecordsServices schemasRecordsServices;
 	private boolean doesCurrentUserHaveAnnotationLock = false;
 	private Record record;
@@ -87,14 +80,15 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	private User currentUser;
 	private RMSchemasRecordsServices rm;
 
-	public PdfTronPresenter(PdfTronViewer pdfTronViewer, String recordId, String metadataCode,
-							ContentVersionVO contentVersion) {
-		this.appLayerFactory = pdfTronViewer.getAppLayerFactory();
-		this.collection = pdfTronViewer.getCurrentSessionContext().getCurrentCollection();
+	public PdfDocumentCertifyService(AppLayerFactory appLayerFactory, String collection, String recordId,
+									 String metadataCode,
+									 ContentVersion contentVersion, User user) {
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		this.collection = collection;
 		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 		this.contentDao = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getContentsDao();
-		this.contentVersionVO = contentVersion;
-		this.pdfTronViewer = pdfTronViewer;
+		this.contentVersion = contentVersion;
 		this.recordId = recordId;
 		this.schemasRecordsServices = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		this.record = this.schemasRecordsServices.get(recordId);
@@ -105,7 +99,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		this.pageRandomId = UUID.randomUUID().toString();
 		this.annotationLockManager = appLayerFactory.getModelLayerFactory().getAnnotationLockManager();
 		this.currentUser = appLayerFactory.getModelLayerFactory().newUserServices()
-				.getUserInCollection(getUserVO().getUsername(), collection);
+				.getUserInCollection(user.getUsername(), collection);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
 		initialize();
@@ -126,16 +120,12 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		}
 	}
 
-	public boolean doesCurrentPageHaveLock() {
-		return doesCurrentPageHaveLock;
-	}
-
 	private boolean hasContentAnnotation() {
-		return this.contentManager.hasContentAnnotation(contentVersionVO.getHash(), recordId, contentVersionVO.getVersion());
+		return this.contentManager.hasContentAnnotation(contentVersion.getHash(), recordId, contentVersion.getVersion());
 	}
 
 	public String getUserIdThatHaveAnnotationLock() {
-		return this.annotationLockManager.getUserIdOfLock(this.contentVersionVO.getHash(), recordId, contentVersionVO.getVersion());
+		return this.annotationLockManager.getUserIdOfLock(this.contentVersion.getHash(), recordId, contentVersion.getVersion());
 	}
 
 	public User getCurrentUser() {
@@ -143,7 +133,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	public String getHash() {
-		return contentVersionVO.getHash();
+		return contentVersion.getHash();
 	}
 
 	public String getRecordId() {
@@ -151,11 +141,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	public String getVersion() {
-		return contentVersionVO.getVersion();
-	}
-
-	private UserVO getUserVO() {
-		return pdfTronViewer.getCurrentSessionContext().getCurrentUser();
+		return contentVersion.getVersion();
 	}
 
 	public void saveAnnotation(String annotation) throws PdfTronXMLException_IOExeption {
@@ -163,8 +149,8 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 
 		try {
 			inputStreamForVault = IOUtils.toInputStream(annotation, (String) null);
-			contentDao.add(contentVersionVO.getHash() + ".annotation."
-						   + recordId + "." + contentVersionVO.getVersion(),
+			contentDao.add(contentVersion.getHash() + ".annotation."
+						   + recordId + "." + contentVersion.getVersion(),
 					inputStreamForVault);
 		} catch (IOException e) {
 			throw new PdfTronXMLException_IOExeption(e);
@@ -188,12 +174,12 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	public boolean doesUserHaveLock() {
-		String userIdOfLock = annotationLockManager.getUserIdOfLock(contentVersionVO.getHash(), recordId, contentVersionVO.getVersion());
-		return userIdOfLock != null && userIdOfLock.equals(getUserVO().getId());
+		String userIdOfLock = annotationLockManager.getUserIdOfLock(contentVersion.getHash(), recordId, contentVersion.getVersion());
+		return userIdOfLock != null && userIdOfLock.equals(this.currentUser.getId());
 	}
 
 	public boolean obtainAnnotationLock() {
-		boolean isLockObtained = annotationLockManager.obtainLock(contentVersionVO.getHash(), recordId, contentVersionVO.getVersion(), getUserVO().getId(), pageRandomId);
+		boolean isLockObtained = annotationLockManager.obtainLock(contentVersion.getHash(), recordId, contentVersion.getVersion(), this.currentUser.getId(), pageRandomId);
 		this.doesCurrentUserHaveAnnotationLock = isLockObtained;
 		this.doesCurrentPageHaveLock = isLockObtained;
 		return doesCurrentPageHaveLock;
@@ -204,7 +190,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 			return;
 		}
 
-		annotationLockManager.releaseLock(contentVersionVO.getHash(), recordId, contentVersionVO.getVersion(), getCurrentUser().getId(), this.pageRandomId);
+		annotationLockManager.releaseLock(contentVersion.getHash(), recordId, contentVersion.getVersion(), getCurrentUser().getId(), this.pageRandomId);
 		doesCurrentUserHaveAnnotationLock = false;
 		doesCurrentPageHaveLock = false;
 	}
@@ -213,8 +199,8 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	public String getContentAnnotationFromVault() throws IOException {
 		InputStream contentAnnotationInputStream = null;
 		try {
-			contentAnnotationInputStream = contentManager.getContentAnnotationInputStream(contentVersionVO.getHash(),
-					recordId, contentVersionVO.getVersion(), PdfTronPresenter.class.getSimpleName() + "getAnnotationsFromVault");
+			contentAnnotationInputStream = contentManager.getContentAnnotationInputStream(contentVersion.getHash(),
+					recordId, contentVersion.getVersion(), PdfDocumentCertifyService.class.getSimpleName() + "getAnnotationsFromVault");
 
 			return IOUtils.toString(contentAnnotationInputStream, "UTF-8");
 		} finally {
@@ -239,7 +225,6 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		}
 	}
 
-	@Override
 	public List<ContentVersionVO> getAvailableVersion() {
 		record = schemasRecordsServices.get(recordId);
 
@@ -255,7 +240,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 			throw new ImpossibleRuntimeException("Not implemented because no use case for now. (multi val)");
 		}
 
-		String currentVersion = contentVersionVO.getVersion();
+		String currentVersion = contentVersion.getVersion();
 
 		List<ContentVersionVO> listContentVersionVO = new ArrayList<>();
 
@@ -274,45 +259,6 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		return listContentVersionVO;
 	}
 
-	@Override
-	public void addAnnotation(ContentVersionVO contentVersionOfAnnotationToCopy)
-			throws PdfTronXMLException_IOExeption, PdfTronXMLException_XMLParsingException {
-		InputStream annotationInputStream = contentManager.getContentAnnotationInputStream(contentVersionOfAnnotationToCopy.getHash(), recordId, contentVersionOfAnnotationToCopy.getVersion(), PdfTronPresenter.class.getSimpleName() + "addAnnotationToVersion");
-
-		try {
-			if (doesCurrentPageHaveLock) {
-				if (!contentManager.hasContentAnnotation(contentVersionVO.getHash(), recordId, contentVersionVO.getVersion())) {
-					contentDao.add(contentVersionVO.getHash() + ".annotation."
-								   + recordId + "." + contentVersionVO.getVersion(),
-							annotationInputStream);
-					try {
-						xmlCurrentAnnotations = getContentAnnotationFromVault();
-					} catch (IOException e) {
-						throw new PdfTronXMLException_IOExeption(e);
-					}
-				} else {
-					String xmlToSave;
-					try {
-						xmlToSave = pdfTronParser.mergeTwoAnnotationFile(xmlCurrentAnnotations, IOUtils.toString(annotationInputStream, "UTF-8"));
-					} catch (IOException e) {
-						throw new PdfTronXMLException_IOExeption(e);
-					}
-
-					if (xmlToSave != null) {
-						saveAnnotation(xmlToSave);
-						xmlCurrentAnnotations = xmlToSave;
-					}
-				}
-			}
-		} finally {
-			ioServices.closeQuietly(annotationInputStream);
-		}
-	}
-
-	public boolean canSignDocument() {
-		return hasWriteAccessToDocument() && canEditContent();
-	}
-
 	private boolean canEditContent() {
 		Document document = rm.getDocument(recordId);
 		Content content = document.getContent();
@@ -320,44 +266,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 			   (content.getCheckoutUserId() == null || content.getCheckoutUserId().equals(getCurrentUser().getId()));
 	}
 
-	public String getSignatureImageData() {
-		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-		UserCredential userCredentials = userServices.getUser(currentUser.getUsername());
-		return getImageData(userCredentials.getElectronicSignature());
-	}
-
-	public String getInitialsImageData() {
-		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-		UserCredential userCredentials = userServices.getUser(currentUser.getUsername());
-		return getImageData(userCredentials.getElectronicInitials());
-	}
-
-	private String getImageData(Content content) {
-		if (content != null) {
-			ContentVersion version = content.getCurrentVersion();
-			InputStream inputStream =
-					contentManager.getContentInputStream(version.getHash(), "getImageData");
-			try {
-				byte[] data = new byte[inputStream.available()];
-				inputStream.read(data);
-				String base64str = DatatypeConverter.printBase64Binary(data);
-
-				StringBuilder sb = new StringBuilder();
-				sb.append("data:");
-				sb.append(version.getMimetype());
-				sb.append(";base64,");
-				sb.append(base64str);
-				return sb.toString();
-			} catch (IOException e) {
-				log.warn(MessageUtils.toMessage(e));
-			} finally {
-				ioServices.closeQuietly(inputStream);
-			}
-		}
-		return "";
-	}
-
-	public void handleFinalDocument(String fileAsStr)
+	public void certifyAndSign(String fileAsStr, List<PdfSignatureAnnotation> signatures)
 			throws PdfTronSignatureException {
 
 		String filePath = createTempFileFromBase64("docToSign.pdf", fileAsStr);
@@ -366,15 +275,8 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		}
 
 		String keystorePath = createTempKeystoreFile("keystore");
-		String keystorePass = appLayerFactory.getModelLayerFactory()
+		String keystorePass = modelLayerFactory
 				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE_PASSWORD);
-
-		List<PdfSignatureAnnotation> signatures = new ArrayList<>();
-		try {
-			signatures = pdfTronParser.getSignatureAnnotations(xmlCurrentAnnotations);
-		} catch (PdfTronXMLException e) {
-			throw new PdfTronSignatureException_CannotReadSourceFileException();
-		}
 
 		if (signatures.size() < 1) {
 			throw new PdfTronSignatureException_NotingToSignException();
@@ -397,10 +299,11 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		}
 
 		uploadNewVersion(signedDocument);
+
 	}
 
 	private void uploadNewVersion(File signedPdf) throws PdfTronSignatureException {
-		String oldFilename = contentVersionVO.getFileName();
+		String oldFilename = contentVersion.getFilename();
 		String substring = oldFilename.substring(0, oldFilename.lastIndexOf('.'));
 		String newFilename = substring + ".pdf";
 
@@ -417,13 +320,11 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		document.getContent().updateContentWithName(getCurrentUser(), version, true, newFilename);
 
 		try {
-			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+			RecordServices recordServices = modelLayerFactory.newRecordServices();
 			recordServices.update(document);
 		} catch (RecordServicesException e) {
 			throw new PdfTronSignatureException_CannotSaveNewVersionException(e);
 		}
-
-		ConstellioUI.getCurrent().updateContent();
 	}
 
 	private String createTempKeystoreFile(String filename) throws PdfTronSignatureException {
@@ -475,9 +376,10 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 			outputStream.write(data);
 			outputStream.close();
 		} catch (IOException e) {
-			throw new PdfTronSignatureException_CannotCreateTempFileException(e);
+			throw new PdfTronSignatureException.PdfTronSignatureException_CannotCreateTempFileException(e);
 		}
 
 		return tempFile.getPath();
 	}
+
 }
