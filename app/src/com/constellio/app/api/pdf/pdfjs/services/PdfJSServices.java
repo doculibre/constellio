@@ -117,7 +117,7 @@ public class PdfJSServices {
 			} catch (UnsupportedEncodingException e) {
 				throw new RuntimeException(e);
 			}
-			viewerParams.append("&config=" + configPath);
+			viewerParams.append("&annotationsConfig=" + configPath);
 		}
 		viewerParams.append("&serviceKey=" + serviceKey);
 		viewerParams.append("&token=" + token);

@@ -5,13 +5,19 @@ import com.constellio.app.api.pdf.pdfjs.services.PdfJSServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUrl;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUser;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.pdf.pdfjs.signature.PdfJSAnnotations;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.security.roles.Roles;
+import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
@@ -70,8 +76,6 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 			}
 		}
 
-		UserCredential userCredentials = authenticator.authenticate(request);
-
 		String recordId = request.getParameter("recordId");
 		String metadataCode = request.getParameter("metadataCode");
 		String localeCode = request.getParameter("locale");
@@ -83,9 +87,32 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 		Metadata metadata = schema.get(metadataCode);
 		String collection = record.getCollection();
 
-		User user = getUser(userCredentials, collection);
+		UserCredential userCredentials = authenticator.authenticate(request);
+		User user;
+		if (userCredentials != null) {
+			user = getUser(userCredentials, collection);
+		} else {
+			// FIXME based on SignatureExternalAccessWebServlet
+			String token = request.getParameter("token");
+			if (token != null) {
+				MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+				RolesManager rolesManager = modelLayerFactory.getRolesManager();
 
-		doService(record, metadata, user, localeCode, request, response);
+				MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
+				MetadataSchema userSchema = types.getDefaultSchema(User.SCHEMA_TYPE);
+				Record tempUserRecord = recordServices.newRecordWithSchema(userSchema);
+				Roles roles = rolesManager.getCollectionRoles(collection);
+				ExternalAccessUrl externalAccessUrl = null;
+				user = new ExternalAccessUser(tempUserRecord, types, roles, externalAccessUrl);
+			} else {
+				user = null;
+			}
+		}
+		if (user != null) {
+			doService(record, metadata, user, localeCode, request, response);
+		} else {
+			throw new ServletException("Null user");
+		}
 	}
 
 	/**

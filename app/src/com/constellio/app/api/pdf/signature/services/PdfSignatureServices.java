@@ -27,6 +27,7 @@ import com.constellio.model.services.pdf.signature.CreateVisibleSignature;
 import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -59,6 +60,7 @@ public class PdfSignatureServices {
 	public void signAndCertify(Record record, Metadata metadata, User user, List<PdfSignatureAnnotation> signatures,
 							   String base64PdfContent)
 			throws PdfSignatureException {
+		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 
 		String tempFilename = "docToSign.pdf";
 		String docToSignFilePath;
@@ -67,13 +69,22 @@ public class PdfSignatureServices {
 		} else {
 			Content content = record.get(metadata);
 			if (content != null) {
-				String hash = content.getCurrentVersion().getHash();
-				try (InputStream inputStream = contentManager.getContentInputStream(hash, getClass().getSimpleName() + ".signAndCertify")) {
-					docToSignFilePath = createTempFileFromInputStream(tempFilename, inputStream);
+				ContentVersion contentVersion = content.getCurrentVersion();
+				String extension = FilenameUtils.getExtension(contentVersion.getFilename()).toLowerCase();
+				String hash = contentVersion.getHash();
+
+				InputStream pdfInputStream;
+				if ("pdf".equals(extension)) {
+					pdfInputStream = contentManager.getContentInputStream(hash, getClass().getSimpleName() + ".signAndCertify");
+				} else {
+					pdfInputStream = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + ".signAndCertify");
+				}
+				try {
+					docToSignFilePath = createTempFileFromInputStream(tempFilename, pdfInputStream);
 				} catch (ContentManagerRuntimeException_NoSuchContent e) {
 					throw new PdfSignatureException_CannotReadSourceFileException();
-				} catch (IOException e) {
-					throw new PdfSignatureException_CannotReadSourceFileException();
+				} finally {
+					ioServices.closeQuietly(pdfInputStream);
 				}
 			} else {
 				throw new PdfSignatureException_CannotReadSourceFileException();
