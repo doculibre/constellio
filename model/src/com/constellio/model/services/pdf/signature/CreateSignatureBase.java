@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.constellio.app.ui.framework.components.viewers.pdftron.signature;
+package com.constellio.model.services.pdf.signature;
 
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;

@@ -1,8 +1,8 @@
 package com.constellio.app.ui.framework.components.viewers.pdftron;
 
 import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_IOExeption;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
 
 import java.util.List;
 

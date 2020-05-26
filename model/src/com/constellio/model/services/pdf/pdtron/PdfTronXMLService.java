@@ -1,8 +1,9 @@
-package com.constellio.model.services.pdftron;
+package com.constellio.model.services.pdf.pdtron;
 
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_IOExeption;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
+import com.constellio.model.services.pdf.pdtron.signature.PdfTronSignatureAnnotation;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;

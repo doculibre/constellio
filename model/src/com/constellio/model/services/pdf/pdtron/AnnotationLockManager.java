@@ -1,9 +1,9 @@
-package com.constellio.model.services.pdftron;
+package com.constellio.model.services.pdf.pdtron;
 
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
-import com.constellio.model.services.pdftron.PdfTronLockRuntimeException.PdfTronLockRuntimeException_LockIsAlreadyTaken;
+import com.constellio.model.services.pdf.pdtron.PdfTronLockRuntimeException.PdfTronLockRuntimeException_LockIsAlreadyTaken;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
