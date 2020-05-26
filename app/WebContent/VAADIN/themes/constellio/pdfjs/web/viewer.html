@@ -36,12 +36,41 @@ See https://github.com/adobe-type-tools/cmap-resources
 
 <!-- This snippet is used in production (included from viewer.html) -->
 <link rel="resource" type="application/l10n" href="locale/locale.properties">
+      <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="l10n.js"></script>
 <script src="../lib/pdf.js"></script>
+      <script src="viewer.js"></script>
+      <script>
+	(function() {
+		var getUrlParameter = function getUrlParameter(sParam) {
+		    var sPageURL = window.location.search.substring(1),
+		        sURLVariables = sPageURL.split('&'),
+		        sParameterName,
+		        i;
 
+		    for (i = 0; i < sURLVariables.length; i++) {
+		        sParameterName = sURLVariables[i].split('=');
 
-    <script src="viewer.js"></script>
+		        if (sParameterName[0] === sParam) {
+		            return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+		        }
+		    }
+		};
+		
+		var file = getUrlParameter("file");
+		$.ajax({
+			url: file
+		})
+		.done(function(data, textStatus, jqXHR) {
+			console.info("Was able to get content with Ajax");		
+		})
+		.fail(function(jqXHR, textStatus, errorThrown) {
+			console.error("Could not get content with Ajax: " + textStatus);
+			console.error(errorThrown);
+		});  
+	})();
 
+      </script>
   </head>
 
   <body tabindex="1" class="loadingInProgress">
