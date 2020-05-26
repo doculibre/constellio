@@ -31,6 +31,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	RefreshSortValuesBackgroundAction refreshSortValuesBackgroundAction;
 	IOServiceTemporaryFolderCleanerBackgroundAction ioServiceTemporaryFolderCleanerBackgroundAction;
 	FlushOldEmailToSend flushOldEmailToSend;
+	ExpireExternalAccessUrlsBackgroundAction expireExternalAccessUrls;
 
 	public ModelLayerBackgroundThreadsManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -94,6 +95,10 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		backgroundThreadsManager.configure(repeatingAction("refreshSortValues", refreshSortValuesBackgroundAction)
 				.executedEvery(standardHours(1)).runningOnAllInstances().handlingExceptionWith(CONTINUE));
 
+		expireExternalAccessUrls = new ExpireExternalAccessUrlsBackgroundAction(modelLayerFactory);
+		backgroundThreadsManager.configure(repeatingAction("expireExternalAccessUrls", expireExternalAccessUrls)
+				.executedEvery(standardHours(1)).handlingExceptionWith(CONTINUE));
+
 		//Disabled for the moment
 		//		eventService = new EventService(modelLayerFactory);
 		//		backgroundThreadsManager.configure(repeatingAction("eventServiceArchiveEventsAndDeleteFromSolr", eventService
@@ -119,5 +124,9 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
 	public AuthorizationWithTimeRangeTokenUpdateBackgroundAction getAuthorizationWithTimeRangeTokenUpdateBackgroundAction() {
 		return authorizationWithTimeRangeTokenUpdateBackgroundAction;
+	}
+
+	public ExpireExternalAccessUrlsBackgroundAction getExpireExternalAccessUrls() {
+		return expireExternalAccessUrls;
 	}
 }
