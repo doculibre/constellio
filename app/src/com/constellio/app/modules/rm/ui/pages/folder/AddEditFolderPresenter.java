@@ -40,6 +40,7 @@ import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
@@ -1239,5 +1240,19 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	private boolean isSubfolderDecommissioningSeparatelyEnabled() {
 		return modelLayerFactory.getSystemConfigurationsManager().getValue(RMConfigs.SUB_FOLDER_DECOMMISSIONING);
+	}
+
+	void recordDroppedOn(RecordVO droppedRecordVO, String targetFolderId) {
+		if (droppedRecordVO.getRecord().isOfSchemaType(Folder.SCHEMA_TYPE)) {
+			Folder folder = rmSchemas().getFolder(droppedRecordVO.getId());
+			folder.setParentFolder(targetFolderId);
+			addOrUpdate(folder.getWrappedRecord());
+		} else if (droppedRecordVO.getRecord().isOfSchemaType(Document.SCHEMA_TYPE)) {
+			Document document = rmSchemas().getDocument(droppedRecordVO.getId());
+			document.setFolder(targetFolderId);
+			addOrUpdate(document.getWrappedRecord());
+		}
+
+		// TODO support external link?
 	}
 }

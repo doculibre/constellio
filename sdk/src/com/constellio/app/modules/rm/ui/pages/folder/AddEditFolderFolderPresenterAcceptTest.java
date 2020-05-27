@@ -3,12 +3,19 @@ package com.constellio.app.modules.rm.ui.pages.folder;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -271,6 +278,40 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 		queriesWithResults = getQueriesWithResults(asList("2019-03-12", "12-03-2019", "2019-03", "2019-12", "2019", "03", "12", "3", "1", "asdf",
 				"2020-04-13", "13-04-2020", "2020-04", "2020-13", "2020", "04", "13", "4", "2018-02-11"));
 		assertThat(queriesWithResults).containsOnly("12-03-2019", "2019", "13-04-2020", "2020");
+	}
+
+	@Test
+	public void givenSubDocumentDraggedAndDroppedInSubFolderThenParentUpdated() throws Exception {
+		Document subDocument = rmSchemasRecordsServices.newDocumentWithId("abeilleDoc")
+				.setFolder(records.folder_A01).setTitle("AbeilleDoc");
+		Folder subFolder = rmSchemasRecordsServices.newFolderWithId("abeille2")
+				.setParentFolder(records.folder_A01).setTitle("Abeille2").setOpenDate(TimeProvider.getLocalDate());
+		recordServices.execute(new Transaction().addAll(subFolder, subDocument));
+
+		Record record = recordServices.getDocumentById(subDocument.getId());
+		DocumentVO documentVO = new DocumentToVOBuilder(getModelLayerFactory()).build(record, VIEW_MODE.TABLE, view.getSessionContext());
+		presenter.recordDroppedOn(documentVO, subFolder.getId());
+		waitForBatchProcess();
+
+		record = recordServices.getDocumentById(subDocument.getId());
+		assertThat(record.getParentId()).isEqualTo(subFolder.getId());
+	}
+
+	@Test
+	public void givenSubFolderDraggedAndDroppedInAnotherSubFolderThenParentUpdated() throws Exception {
+		Folder subFolder1 = rmSchemasRecordsServices.newFolderWithId("abeille1")
+				.setParentFolder(records.folder_A01).setTitle("Abeille1").setOpenDate(TimeProvider.getLocalDate());
+		Folder subFolder2 = rmSchemasRecordsServices.newFolderWithId("abeille2")
+				.setParentFolder(records.folder_A01).setTitle("Abeille2").setOpenDate(TimeProvider.getLocalDate());
+		recordServices.execute(new Transaction().addAll(subFolder1, subFolder2));
+
+		Record record = recordServices.getDocumentById(subFolder1.getId());
+		FolderVO folderVO = new FolderToVOBuilder().build(record, VIEW_MODE.TABLE, view.getSessionContext());
+		presenter.recordDroppedOn(folderVO, subFolder2.getId());
+		waitForBatchProcess();
+
+		record = recordServices.getDocumentById(subFolder1.getId());
+		assertThat(record.getParentId()).isEqualTo(subFolder2.getId());
 	}
 
 	private List<String> getQueriesWithResults(List<String> possibleQueries) {
