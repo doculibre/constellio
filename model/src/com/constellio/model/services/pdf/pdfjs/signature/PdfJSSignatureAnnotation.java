@@ -31,9 +31,8 @@ public class PdfJSSignatureAnnotation extends PdfSignatureAnnotation {
 		float pageHeight = pageRectangle.getHeight();
 
 		float xRectangle = (xPercent / 100) * pageWidth;
-		float yRectangle = (yPercent / 100) * pageHeight;
 		// PDF rectangle y starts from the bottom 
-		// float yRectangle = (100 - (yPercent / 100)) * pageHeight; 
+		float yRectangle = (1 - yPercent / 100) * pageHeight; 
 		float widthRectangle = (widthPercent / 100) * pageWidth;
 		float heightRectangle = (heightPercent / 100) * pageHeight;
 
@@ -41,11 +40,11 @@ public class PdfJSSignatureAnnotation extends PdfSignatureAnnotation {
 	}
 
 	private static String getUserId(JSONObject annotationJson) {
-		return annotationJson.getString("userId");
+		return annotationJson.has("userId") ? annotationJson.getString("userId") : null;
 	}
 
 	private static String getUsername(JSONObject annotationJson) {
-		return annotationJson.getString("lastModificationUser");
+		return annotationJson.has("lastModificationUser") ? annotationJson.getString("lastModificationUser") : null;
 	}
 
 	private static String fetchImageData(JSONObject annotationJson) {

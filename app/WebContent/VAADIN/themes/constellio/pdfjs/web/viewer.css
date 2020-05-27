@@ -81,7 +81,6 @@
   top: 0px;
 }
 
-
 .annotationLayer section {
   position: absolute;
 }
@@ -215,6 +214,15 @@
 .annotationLayer .lineAnnotation svg line,
 .annotationLayer .fileAttachmentAnnotation {
   cursor: pointer;
+}
+
+.customAnnotationLayer {
+  position: absolute;
+  left:0;
+  right:0;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
 }
 
 .pdfViewer .canvasWrapper {
@@ -1158,6 +1166,16 @@ html[dir='rtl'] .toolbarButton.pageDown::before {
 .toolbarButton.print::before,
 .secondaryToolbarButton.print::before {
   content: url(images/toolbarButton-print.png);
+}
+
+.toolbarButton.sign::before,
+.secondaryToolbarButton.sign::before {
+  content: url(images/toolbarButton-sign.png);
+}
+
+.toolbarButton.certify::before,
+.secondaryToolbarButton.certify::before {
+  content: url(images/toolbarButton-certify.png);
 }
 
 .toolbarButton.openFile::before,

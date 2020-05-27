@@ -19,7 +19,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import javax.servlet.ServletConfig;
@@ -28,7 +28,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 
 public abstract class BasePdfJSServlet extends HttpServlet {
@@ -137,16 +136,24 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 		return new PdfJSServices(getAppLayerFactory());
 	}
 
-	protected String getRequestContentAsString(HttpServletRequest request) throws IOException {
-		String result;
-		try (InputStream in = request.getInputStream()) {
-			result = IOUtils.toString(in, "UTF-8");
+	protected String getJSONFromRequest(HttpServletRequest request) throws IOException {
+		String result = null;
+		for (String paramName : request.getParameterMap().keySet()) {
+			String paramValue = request.getParameter(paramName);
+			if (paramName.startsWith("{")) {
+				if (StringUtils.isEmpty(paramValue)) {
+					result = paramName;
+				} else if (paramValue.endsWith("}")) {
+					result = paramName + paramValue;
+				}
+				break;
+			}
 		}
 		return result;
 	}
 
 	protected PdfJSAnnotations getAnnotationsFromRequest(HttpServletRequest request) throws IOException {
-		String jsonString = getRequestContentAsString(request);
+		String jsonString = getJSONFromRequest(request);
 		JSONObject jsonObject = new JSONObject(jsonString);
 		return new PdfJSAnnotations(jsonObject);
 	}

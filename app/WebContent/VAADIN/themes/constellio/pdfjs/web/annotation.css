@@ -1,0 +1,174 @@
+@font-face {
+  font-family: 'Jannet';
+  src: url('fonts/jannet-webfont.woff2') format('woff2'),
+	   url('fonts/jannet-webfont.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.annotation {
+	position: absolute;
+	border-color: #197de1;
+	border-width: 1px;
+	border-style: solid;
+	z-index: 2;
+}
+
+.annotation::after {
+	content: "\0025E2";
+	font-size: 10px;
+	height: 10px;
+	position: absolute;
+	bottom: 2px;
+	right: 2px;
+	color: #197de1;
+}
+
+.image-annotation, .signature-pad-annotation {
+    background-size: 100% 100%; /* background-size: 100% auto; */
+    background-position: center top;
+    background-repeat: no-repeat;
+}
+
+.text-annotation {
+	display: table;
+	text-align: center;
+}	
+
+.text-annotation span {
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.redact-annotation {
+	background-color: rgb(0, 0, 0);
+}
+
+.sign-here-annotation {
+	background-color: #FFFF00;
+	display: table;
+	text-align: center;
+}
+
+.sign-here-annotation span {
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.signature-text-annotation {
+	font-family: Jannet;
+	font-weight: bold;
+	font-size: 16pt;
+}
+
+.annotation-delete-link {
+	z-index: 4;
+	cursor: pointer;
+	position: absolute;
+	top: 0px;
+	right: 2px;
+	font-size: 10px;
+	font-family: Verdana;
+	color: #197de1;
+}
+
+.annotation-defining, 
+.annotation-resizing,
+.annotation-moving {
+	z-index: 4;
+}
+
+.annotation-defining {
+	cursor: crosshair;
+}
+
+.annotation-resizing {
+	cursor: se-resize;
+}	
+
+.annotation-moving,
+.annotation-moving .annotation {
+	cursor: all-scroll;
+}	
+
+.annotation-defining, .annotation-moving, .annotation-resizing {	
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Opera and Firefox */
+}
+
+.annotation-editor-window * {
+	padding: initial;
+	outline: initial;
+	margin: initial;
+}
+
+.annotation-editor-window, .signature-picker-window {
+	position: fixed; /* Stay in place */
+	z-index: 3; /* Sit on top */
+	left: 0px;
+	top: 0px;
+	width: 100%; /* Full width */
+	height: 100%; /* Full height */
+	overflow: auto; /* Enable scroll if needed */
+	background-color: rgb(0,0,0); /* Fallback color */
+	background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+	vertical-align: middle;
+	text-align: center;
+}
+
+.annotation-editor-window-content {
+	background-color: #fefefe;
+	margin: 15% auto; /* 15% from the top and centered */
+	padding: 20px;
+	border: 1px solid #888;	
+	width: 80%; /* Could be more or less, depending on screen size */
+	width: -moz-fit-content;
+	width: -webkit-fit-content;
+	width: -o-fit-content;
+	/* width: -ms-fit-content;*/
+}	
+
+.annotation-editor-window button {
+	background-color: #474747;
+	background-image: url(images/buttons/texture.png), linear-gradient(hsla(0,0%,32%,.99), hsla(0,0%,27%,.95));
+	color: white;
+	padding: 5px 10px 5px 10px;
+	cursor: pointer;
+}
+
+.annotation-editor-window-close-button {
+	color: #aaa;
+	float: right;
+	font-size: 20px;
+	font-weight: bold;
+	position: relative;
+	top: -10px;
+	right: -10px;
+}
+
+.annotation-editor-window-close-button:hover,
+.annotation-editor-window-close-button:focus {
+	color: black;
+	text-decoration: none;
+	cursor: pointer;
+}  
+
+.annotation-editor-window-save-button {
+	margin: 20px 10px 10px 10px;
+}
+
+.text-annotation-editor-input {
+	width: 100%;
+}
+
+.signature-pad-annotation-editor-container canvas {
+	border-color: #197de1;
+	border-width: 1px;
+	border-style: solid;
+	cursor: crosshair;
+}

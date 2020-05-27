@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -352,7 +353,9 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 		File ksFile = new File(keystorePath);
 		KeyStore keystore = KeyStore.getInstance("JKS");
 		char[] pin = keystorePin.toCharArray();
-		keystore.load(new FileInputStream(ksFile), pin);
+		try (InputStream keystoreIn = new FileInputStream(ksFile)) {
+			keystore.load(keystoreIn, pin);
+		}
 
 		File documentFile = new File(docToSignPath);
 

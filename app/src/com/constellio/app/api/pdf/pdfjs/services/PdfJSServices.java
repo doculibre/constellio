@@ -9,10 +9,12 @@ import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSSignatureServlet;
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException;
 import com.constellio.app.api.pdf.signature.services.PdfSignatureServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUser;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -49,12 +51,14 @@ public class PdfJSServices {
 	private AppLayerFactory appLayerFactory;
 	private ModelLayerFactory modelLayerFactory;
 	private ContentManager contentManager;
+	private ContentDao contentDao;
 	private PdfSignatureServices pdfSignatureServices;
 
 	public PdfJSServices(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.contentManager = modelLayerFactory.getContentManager();
+		this.contentDao = modelLayerFactory.getDataLayerFactory().getContentsDao();
 		this.pdfSignatureServices = new PdfSignatureServices(this.appLayerFactory);
 	}
 
@@ -119,8 +123,8 @@ public class PdfJSServices {
 			}
 			viewerParams.append("&annotationsConfig=" + configPath);
 		}
-		viewerParams.append("&serviceKey=" + serviceKey);
-		viewerParams.append("&token=" + token);
+		//		viewerParams.append("&serviceKey=" + serviceKey);
+		//		viewerParams.append("&token=" + token);
 		viewerParams.append("&file=" + contentPreviewPath);
 		String pdfJSViewerUrl = constellioUrl + "VAADIN/themes/constellio/pdfjs/web/viewer.html?" + viewerParams;
 		return pdfJSViewerUrl;
@@ -197,7 +201,19 @@ public class PdfJSServices {
 			}
 			recordServices.update(userCredential, user);
 		}
+	}
 
+	public void removeSignature(User user, boolean initials)
+			throws IOException, RecordServicesException {
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		UserServices userServices = modelLayerFactory.newUserServices();
+		UserCredential userCredential = userServices.getUserCredential(user.getUsername());
+		if (initials) {
+			userCredential.setElectronicInitials(null);
+		} else {
+			userCredential.setElectronicSignature(null);
+		}
+		recordServices.update(userCredential, user);
 	}
 
 	public PdfJSAnnotations getAnnotations(Record record, Metadata metadata, User user) throws IOException {
@@ -248,7 +264,7 @@ public class PdfJSServices {
 		String jsonString = annotations.getJSONObject().toString(4);
 		try (InputStream jsonInputStream = IOUtils.toInputStream(jsonString, "UTF-8")) {
 			String filename = hash + ".annotation.pdfjs." + id + "." + version;
-			contentManager.upload(jsonInputStream, filename);
+			contentDao.add(filename, jsonInputStream);
 		}
 	}
 
@@ -267,8 +283,9 @@ public class PdfJSServices {
 		} else {
 			pdfInputStream = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + ".signAndCertifyPdf");
 		}
+		PDDocument pdDocument = null;
 		try {
-			PDDocument pdDocument = PDDocument.load(pdfInputStream);
+			pdDocument = PDDocument.load(pdfInputStream);
 			List<PdfSignatureAnnotation> signatureAnnotations = annotations.getSignatureAnnotations(pdDocument);
 			pdfSignatureServices.signAndCertify(record, metadata, user, signatureAnnotations);
 
@@ -278,6 +295,7 @@ public class PdfJSServices {
 			saveAnnotations(record, metadata, user, annotations);
 		} finally {
 			ioServices.closeQuietly(pdfInputStream);
+			ioServices.closeQuietly(pdDocument);
 		}
 	}
 
@@ -297,8 +315,10 @@ public class PdfJSServices {
 		jsonObject.put("certifyServiceUrl", prefix + CertifyPdfJSSignaturesServlet.PATH + "?" + params);
 		jsonObject.put("getAnnotationsServiceUrl", prefix + GetPdfJSAnnotationsServlet.PATH + "?" + params);
 		jsonObject.put("saveAnnotationsServiceUrl", prefix + SavePdfJSAnnotationsServlet.PATH + "?" + params);
-		jsonObject.put("getSignatureServiceUrl", prefix + GetPdfJSSignatureServlet.PATH + "?" + params);
-		jsonObject.put("saveSignatureServiceUrl", prefix + SavePdfJSSignatureServlet.PATH + "?" + params);
+		if (!(user instanceof ExternalAccessUser)) {
+			jsonObject.put("getSignatureServiceUrl", prefix + GetPdfJSSignatureServlet.PATH + "?" + params);
+			jsonObject.put("saveSignatureServiceUrl", prefix + SavePdfJSSignatureServlet.PATH + "?" + params);
+		}
 		return jsonObject.toString(4);
 	}
 
