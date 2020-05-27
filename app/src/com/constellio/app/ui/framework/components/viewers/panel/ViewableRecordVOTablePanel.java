@@ -6,7 +6,6 @@ import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension.View
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -32,6 +31,7 @@ import com.constellio.app.ui.framework.components.table.BaseTable.DeselectAllBut
 import com.constellio.app.ui.framework.components.table.BaseTable.PagingControls;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable.RecordVOSelectionManager;
+import com.constellio.app.ui.framework.components.table.TableModeManager;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.PreLoader;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
@@ -42,7 +42,6 @@ import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.enums.TableMode;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -172,6 +171,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	private String searchTerm = null;
 
+	private TableModeManager tableModeManager;
+
+	private String panelId = null;
+
 	public ViewableRecordVOTablePanel(RecordVOContainer container) {
 		this(container, null, null, true);
 	}
@@ -181,7 +184,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		this.recordVOContainer = container;
 		this.initialSelectionActionsMenuBar = recordListMenuBar;
 		this.canChangeTableMode = canChangeTableMode;
-		this.tableMode = tableMode != null ? tableMode : getDefaultTableMode();
+
+		tableModeManager = new TableModeManager();
+		panelId = getPanelId();
+		this.tableMode = tableMode != null ? tableMode : tableModeManager.getTableModeForCurrentUser(panelId);
+
 		buildUI();
 	}
 
@@ -714,7 +721,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		} else {
 			resultsTable = new RecordVOTable(recordVOContainer) {
 				@Override
-				protected String getTableId() {
+				public String getTableId() {
 					String tableId = super.getTableId();
 					if (tableId == null) {
 						tableId = getClass().getName() + ".tableMode";
@@ -1331,11 +1338,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return AcceptAll.get();
 	}
 
-	private TableMode getDefaultTableMode() {
-		ConstellioEIMConfigs configs = ConstellioFactories.getInstance().getModelLayerFactory().getSystemConfigs();
-		return configs.getDefaultTableMode();
-	}
-
 	private class ViewerMetadataPanel extends VerticalLayout {
 
 		private VerticalLayout mainLayout;
@@ -1406,6 +1408,26 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	}
 
+	private String getPanelId() {
+		List<MetadataSchemaVO> schemaVOs = recordVOContainer.getSchemas();
+
+		StringBuilder schemaVOSuffix = new StringBuilder();
+		for (MetadataSchemaVO schemaVO : schemaVOs) {
+			if (schemaVOSuffix.length() > 0) {
+				schemaVOSuffix.append("_");
+			}
+			schemaVOSuffix.append(schemaVO.getCode());
+		}
+		String navigatorState = ConstellioUI.getCurrent().getNavigator().getState();
+		String navigatorStateWithoutParams;
+		if (navigatorState.contains("/")) {
+			navigatorStateWithoutParams = StringUtils.substringBefore(navigatorState, "/");
+		} else {
+			navigatorStateWithoutParams = navigatorState;
+		}
+		return navigatorStateWithoutParams + "." + schemaVOSuffix;
+	}
+
 	public Button getCloseViewerButton() {
 		return closeViewerButton;
 	}
@@ -1470,6 +1492,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			addStyleName(ValoTheme.BUTTON_LINK);
 			addStyleName("list-mode-button");
 			updateState();
+			if (!isEnabled()) {
+				saveTableMode();
+			}
 			addTableModeChangeListener(new TableModeChangeListener() {
 				@Override
 				public void tableModeChanged(TableModeChangeEvent event) {
@@ -1482,9 +1507,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			setEnabled(tableMode == TableMode.TABLE);
 		}
 
+		private void saveTableMode() {
+			tableModeManager.saveTableModeForCurrentUser(panelId, tableMode);
+		}
+
 		@Override
 		protected void buttonClick(ClickEvent event) {
 			setTableMode(TableMode.LIST);
+			saveTableMode();
 		}
 
 	}
@@ -1496,6 +1526,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			addStyleName(ValoTheme.BUTTON_LINK);
 			addStyleName("table-mode-button");
 			updateState();
+			if (!isEnabled()) {
+				saveTableMode();
+			}
 			addTableModeChangeListener(new TableModeChangeListener() {
 				@Override
 				public void tableModeChanged(TableModeChangeEvent event) {
@@ -1508,9 +1541,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			setEnabled(tableMode == TableMode.LIST);
 		}
 
+		private void saveTableMode() {
+			tableModeManager.saveTableModeForCurrentUser(panelId, tableMode);
+		}
+
 		@Override
 		protected void buttonClick(ClickEvent event) {
 			setTableMode(TableMode.TABLE);
+			saveTableMode();
 		}
 
 	}

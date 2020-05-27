@@ -16,4 +16,13 @@ public enum TableMode implements EnumWithSmallCode {
 	public String getCode() {
 		return code;
 	}
+
+	public static TableMode byCode(String code) {
+		for (TableMode tableMode : values()) {
+			if (tableMode.getCode().equals(code)) {
+				return tableMode;
+			}
+		}
+		throw new IllegalArgumentException(code);
+	}
 }
