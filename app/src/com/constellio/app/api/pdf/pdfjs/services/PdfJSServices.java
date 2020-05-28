@@ -78,17 +78,17 @@ public class PdfJSServices {
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 
 		String username = user.getUsername();
-		if (serviceKey == null) {
+		if (serviceKey == null && !(user instanceof ExternalAccessUser)) {
 			UserCredential userCredentials = userServices.getUserCredential(username);
 			serviceKey = userServices.giveNewServiceToken(userCredentials);
 		}
-		if (token == null) {
+		if (token == null && !(user instanceof ExternalAccessUser)) {
 			token = userServices.generateToken(username);
 		}
 
 		String constellioUrl = systemConfigurationsManager.getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
-		if (!StringUtils.endsWith(constellioUrl, "/")) {
-			constellioUrl += "/";
+		if (StringUtils.endsWith(constellioUrl, "/")) {
+			constellioUrl = StringUtils.substringBeforeLast(constellioUrl, "/");
 		}
 		boolean disableSignature = !isSignaturePossible(record, metadata, user);
 
@@ -125,7 +125,13 @@ public class PdfJSServices {
 		viewerParams.append("&disableSignature=" + disableSignature);
 		if (!disableSignature) {
 			String configParams = getCallbackParams(record, metadata, user, locale.getLanguage(), serviceKey, token);
-			String configPath = contentPathPrefix + GetPdfJSAnnotationsConfigServlet.PATH + "?" + configParams;
+			String configPath;
+			if (includeConstellioUrl) {
+				configPath = constellioUrl;
+			} else {
+				configPath = contentPathPrefix;
+			}
+			configPath += GetPdfJSAnnotationsConfigServlet.PATH + "?" + configParams;
 			try {
 				configPath = URLEncoder.encode(configPath, "UTF-8");
 			} catch (UnsupportedEncodingException e) {
@@ -135,10 +141,14 @@ public class PdfJSServices {
 		}
 		//		viewerParams.append("&serviceKey=" + serviceKey);
 		//		viewerParams.append("&token=" + token);
-		viewerParams.append("&file=" + contentPreviewPath);
+		try {
+			viewerParams.append("&file=" + URLEncoder.encode(contentPreviewPath, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
 		StringBuilder pdfJSViewerUrl = new StringBuilder();
 		if (includeConstellioUrl) {
-			pdfJSViewerUrl.append(constellioUrl);
+			pdfJSViewerUrl.append(constellioUrl + "/");
 		}
 		pdfJSViewerUrl.append("VAADIN/themes/constellio/pdfjs/web/viewer.html?");
 		pdfJSViewerUrl.append(viewerParams);

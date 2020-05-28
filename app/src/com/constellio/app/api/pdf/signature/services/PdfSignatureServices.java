@@ -16,6 +16,7 @@ import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUser;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.contents.ContentManager;
@@ -143,7 +144,8 @@ public class PdfSignatureServices {
 
 		try {
 			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-			recordServices.update(record, user);
+			User updateUser = user instanceof ExternalAccessUser ? null : user;
+			recordServices.update(record, updateUser);
 		} catch (RecordServicesException e) {
 			throw new PdfSignatureException_CannotSaveNewVersionException(e);
 		}

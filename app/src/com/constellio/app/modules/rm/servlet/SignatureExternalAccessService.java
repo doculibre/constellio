@@ -17,6 +17,7 @@ import org.joda.time.LocalDateTime;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
 
 public class SignatureExternalAccessService {
@@ -38,11 +39,11 @@ public class SignatureExternalAccessService {
 		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, appLayerFactory.getModelLayerFactory());
 	}
 
-	public void accessExternalSignature(String accessId, String token)
+	public String accessExternalSignature(String accessId, String token, Locale locale)
 			throws SignatureExternalAccessServiceException {
 
 		SignatureExternalAccessDao dao = new SignatureExternalAccessDao(appLayerFactory);
-		dao.accessExternalSignature(accessId, token);
+		return dao.accessExternalSignature(accessId, token, locale);
 	}
 
 	public String createExternalSignatureUrl(String authorization, String serviceKey, String documentId,

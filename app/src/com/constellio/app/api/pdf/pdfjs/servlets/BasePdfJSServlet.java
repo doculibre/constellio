@@ -1,20 +1,5 @@
 package com.constellio.app.api.pdf.pdfjs.servlets;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.util.UUID;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.json.JSONObject;
-
 import com.constellio.app.api.HttpServletRequestAuthenticator;
 import com.constellio.app.api.pdf.pdfjs.services.PdfJSServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -34,6 +19,18 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.io.IOUtils;
+import org.json.JSONObject;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.UUID;
 
 public abstract class BasePdfJSServlet extends HttpServlet {
 
@@ -99,7 +96,7 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 		} else {
 			// FIXME based on SignatureExternalAccessWebServlet
 			String token = request.getParameter("token");
-			if (token != null) {
+			if (accessId != null) {
 				MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 				RolesManager rolesManager = modelLayerFactory.getRolesManager();
 
