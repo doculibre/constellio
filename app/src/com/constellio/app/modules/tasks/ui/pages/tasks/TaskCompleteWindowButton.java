@@ -103,7 +103,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.setSpacing(true);
-		buttonsLayout.addComponents(buildCancelButton(),
+		buttonsLayout.addComponents(buildCancelButton(),buildSlowCompleteButton(),
 				buildQuickCompleteButton(mainLayout, decisionField, acceptedField, reasonField, descriptionField, commentField, uncompletedRequiredFields));
 
 		mainLayout.addComponent(buttonsLayout);
@@ -163,6 +163,18 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			}
 		});
 		return cancelButton;
+	}
+
+	private Button buildSlowCompleteButton() {
+		Button slowCompleteButton = new Button(getSlowCompleteCaption());
+		slowCompleteButton.addClickListener(new Button.ClickListener() {
+			@Override
+			public void buttonClick(Button.ClickEvent event) {
+				getWindow().close();
+				completeSlowlyButtonClicked();
+			}
+		});
+		return slowCompleteButton;
 	}
 
 	private Button buildQuickCompleteButton(final VerticalLayout fieldLayout,
@@ -247,6 +259,10 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 
 		return !exception;
+	}
+
+	private void completeSlowlyButtonClicked() {
+		view.navigate().to().editTask(task.getId(), true);
 	}
 
 	private boolean quickCompleteTask(Task task, Object decision, String decisionCode, Boolean accepted,

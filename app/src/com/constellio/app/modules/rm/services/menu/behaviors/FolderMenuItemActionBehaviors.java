@@ -46,6 +46,7 @@ import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.i18n.i18n;
@@ -451,6 +452,10 @@ public class FolderMenuItemActionBehaviors {
 		Button addAuthorizationButton = new LinkButton($("DisplayFolderView.addAuthorization")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				Map<String, String> paramsMap = ParamUtils.getParamsMap();
+				String favGroupId = paramsMap.get(RMViews.FAV_GROUP_ID_KEY);
+				params.getView().getUIContext().setAttribute(BaseBreadcrumbTrail.FAV_GROUP_ID, favGroupId);
+				params.getView().getUIContext().setAttribute(BaseBreadcrumbTrail.RECORD_AUTHORIZATIONS_TYPE, Folder.SCHEMA_TYPE);
 				params.getView().navigate().to().listObjectAccessAndRoleAuthorizations(folder.getId());
 			}
 		};

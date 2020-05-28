@@ -127,6 +127,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	private CacheLoadingProgression cacheLoadingProgression;
 
+	private Version9_0LocalCacheConfigs cacheConfigs;
+
 	public RecordsCaches2Impl(ModelLayerFactory modelLayerFactory,
 							  FileSystemRecordsValuesCacheDataStore fileSystemDataStore,
 							  RecordsCachesDataStore memoryDataStore) {
@@ -920,6 +922,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		});
 
 		fullyPermanentInitialized = true;
+
 	}
 
 	public void updateRecordsMainSortValue(boolean forceLoadingFromSolr) {
@@ -1042,6 +1045,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				CacheRecordDTOUtils.stopCompilingDTOsStats();
 				LOGGER.info("\n" + RecordsCachesUtils.buildCacheDTOStatsReport(modelLayerFactory));
 				cacheLoadingProgression = null;
+				cacheConfigs = new Version9_0LocalCacheConfigs(
+						modelLayerFactory.getSystemConfigs().isLegacyIdentifierIndexedInMemory());
 			}
 		}
 	}

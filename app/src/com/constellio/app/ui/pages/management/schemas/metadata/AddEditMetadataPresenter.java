@@ -567,26 +567,16 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 
 		if (displayConfig == null) {
-			displayConfig = new MetadataDisplayConfig(collection, code,
-					!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch(),
+			displayConfig = new MetadataDisplayConfig(collection, code, formMetadataVO.isAdvancedSearch(),
 					inputType, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup(), displayType, metadataHelpMessages, sortingType);
 		} else {
 			displayConfig = displayConfig.withHighlightStatus(formMetadataVO.isHighlight())
-					.withVisibleInAdvancedSearchStatus(!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch())
+					.withVisibleInAdvancedSearchStatus(formMetadataVO.isAdvancedSearch())
 					.withInputType(inputType)
 					.withDisplayType(displayType).withSortingType(sortingType).withMetadataGroup(formMetadataVO.getMetadataGroup())
 					.withHelpMessages(metadataHelpMessages);
 		}
-
 		displayManager.saveMetadata(displayConfig);
-
-		if (formMetadataVO.isInheritance()) {
-			String codeInDefaultSchema = schemaTypeCode + "_default_" + new SchemaUtils().getLocalCodeFromMetadataCode(code);
-			displayConfig = displayManager.getMetadata(collection, codeInDefaultSchema)
-					.withVisibleInAdvancedSearchStatus(formMetadataVO.isAdvancedSearch())
-					.withHelpMessages(metadataHelpMessages);
-			displayManager.saveMetadata(displayConfig);
-		}
 
 		this.saveFacetDisplay(schemasManager, displayManager, code, formMetadataVO.isFacet());
 		if (!editMode) {
