@@ -6,7 +6,6 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.ExternalAccessUrl;
-import com.constellio.model.entities.records.wrappers.SignatureExternalAccessUrl;
 import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUrlStatus;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -43,6 +42,8 @@ public class CoreMigrationTo_9_1_10 extends MigrationHelper implements Migration
 
 				externalAccessUrlSchema.createUndeletable(ExternalAccessUrl.TOKEN)
 						.setType(MetadataValueType.STRING);
+				externalAccessUrlSchema.createUndeletable(ExternalAccessUrl.FULLNAME)
+						.setType(MetadataValueType.STRING);
 				externalAccessUrlSchema.createUndeletable(ExternalAccessUrl.EXPIRATION_DATE)
 						.setType(MetadataValueType.DATE);
 				externalAccessUrlSchema.createUndeletable(ExternalAccessUrl.STATUS)
@@ -50,11 +51,6 @@ public class CoreMigrationTo_9_1_10 extends MigrationHelper implements Migration
 						.defineAsEnum(ExternalAccessUrlStatus.class);
 				externalAccessUrlSchema.createUndeletable(ExternalAccessUrl.ACCESS_RECORD)
 						.setType(MetadataValueType.STRING);
-
-
-				MetadataSchemaBuilder externalSignatureUrlSchema =
-						typesBuilder.getSchemaType(SignatureExternalAccessUrl.SCHEMA_TYPE)
-								.createCustomSchema(SignatureExternalAccessUrl.SCHEMA);
 			}
 		}
 	}

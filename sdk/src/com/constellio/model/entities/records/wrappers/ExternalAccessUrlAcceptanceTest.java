@@ -37,28 +37,12 @@ public class ExternalAccessUrlAcceptanceTest extends ConstellioTest {
 				.setExpirationDate(LocalDate.now())
 				.setStatus(ExternalAccessUrlStatus.OPEN)
 				.setToken("zeToken")
+				.setFullname("Mister X")
 				.setAccessRecord("zeRecordId");
 
 		recordServices.add(access);
 
 		ExternalAccessUrl newAccess = recordsServices.getExternalAccessUrl("zeAccessId");
-
-		assertThat(newAccess).isEqualToComparingFieldByField(access);
-	}
-
-	@Test
-	public void whenCreatingSignatureAccessThenCreated()
-			throws Exception {
-
-		ExternalAccessUrl access = recordsServices.newSignatureExternalAccessUrlWithId("zeAccessId")
-				.setExpirationDate(LocalDate.now())
-				.setStatus(ExternalAccessUrlStatus.OPEN)
-				.setToken("zeToken")
-				.setAccessRecord("zeRecordId");
-
-		recordServices.add(access);
-
-		ExternalAccessUrl newAccess = recordsServices.getSignatureExternalAccessUrl("zeAccessId");
 
 		assertThat(newAccess).isEqualToComparingFieldByField(access);
 	}
@@ -74,19 +58,19 @@ public class ExternalAccessUrlAcceptanceTest extends ConstellioTest {
 
 		givenTimeIs(now);
 
-		ExternalAccessUrl access1 = recordsServices.newSignatureExternalAccessUrlWithId("access1")
+		ExternalAccessUrl access1 = recordsServices.newExternalAccessUrlWithId("access1")
 				.setExpirationDate(now.minusDays(1))
 				.setStatus(ExternalAccessUrlStatus.OPEN)
 				.setToken("token1")
 				.setAccessRecord("zeRecordId");
 
-		ExternalAccessUrl access2 = recordsServices.newSignatureExternalAccessUrlWithId("access2")
+		ExternalAccessUrl access2 = recordsServices.newExternalAccessUrlWithId("access2")
 				.setExpirationDate(now)
 				.setStatus(ExternalAccessUrlStatus.OPEN)
 				.setToken("token1")
 				.setAccessRecord("zeRecordId");
 
-		ExternalAccessUrl access3 = recordsServices.newSignatureExternalAccessUrlWithId("access3")
+		ExternalAccessUrl access3 = recordsServices.newExternalAccessUrlWithId("access3")
 				.setExpirationDate(now.plusDays(1))
 				.setStatus(ExternalAccessUrlStatus.OPEN)
 				.setToken("token1")
