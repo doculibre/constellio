@@ -1299,6 +1299,25 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return lazyFullFolderVO.get();
 	}
 
+
+	protected boolean isOwnAuthorization(Authorization authorization) {
+		return authorization.getTarget().equals(getFolderId());
+	}
+
+	private boolean isSharedByCurrentUser(Authorization authorization) {
+		return getCurrentUser().getId().equals(authorization.getSharedBy());
+	}
+
+	private List<Authorization> getAllAuthorizations() {
+		Record record = presenterService().getRecord(getFolderId());
+		return authorizationsServices.getRecordAuthorizations(record);
+	}
+
+	private AuthorizationToVOBuilder newAuthorizationToVOBuilder() {
+		return new AuthorizationToVOBuilder(modelLayerFactory);
+	}
+
+
 	public List<AuthorizationVO> getSharedAuthorizations() {
 		AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
 
@@ -1312,22 +1331,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return results;
 	}
 
-	protected boolean isOwnAuthorization(Authorization authorization) {
-		return authorization.getTarget().equals(getFolderId());
-	}
-
-	private boolean isSharedByCurrentUser(Authorization authorization) {
-		return getCurrentUser().getId().equals(authorization.getSharedBy());
-	}
-
-	private List<Authorization> getAllAuthorizations() {
-		Record record = presenterService().getRecord(getFolderId());
-		return authorizationsServices.getRecordAuthorizations(record);
-	}
-
-	private AuthorizationToVOBuilder newAuthorizationToVOBuilder() {
-		return new AuthorizationToVOBuilder(modelLayerFactory);
-	}
 
 	public void onAutorizationModified(AuthorizationVO authorizationVO) {
 		AuthorizationModificationRequest request = toAuthorizationModificationRequest(authorizationVO);
@@ -1360,66 +1363,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.removeAuthorization(authorizationVO);
 	}
 
-	public List<AuthorizationVO> getSharedAuthorizations() {
-		AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
 
-		List<AuthorizationVO> results = new ArrayList<>();
-		for (Authorization authorization : getAllAuthorizations()) {
-			if (isOwnAuthorization(authorization) && authorization.getSharedBy() != null &&
-				(isSharedByCurrentUser(authorization) || user.hasAny(RMPermissionsTo.MANAGE_SHARE, VIEW_FOLDER_AUTHORIZATIONS, MANAGE_FOLDER_AUTHORIZATIONS).on(folderVO.getRecord()))) {
-				results.add(builder.build(authorization));
-			}
-		}
-		return results;
-	}
-
-	protected boolean isOwnAuthorization(Authorization authorization) {
-		return authorization.getTarget().equals(getFolderId());
-	}
-
-	private boolean isSharedByCurrentUser(Authorization authorization) {
-		return getCurrentUser().getId().equals(authorization.getSharedBy());
-	}
-
-	private List<Authorization> getAllAuthorizations() {
-		Record record = presenterService().getRecord(getFolderId());
-		return authorizationsServices.getRecordAuthorizations(record);
-	}
-
-	private AuthorizationToVOBuilder newAuthorizationToVOBuilder() {
-		return new AuthorizationToVOBuilder(modelLayerFactory);
-	}
-
-	public void onAutorizationModified(AuthorizationVO authorizationVO) {
-		AuthorizationModificationRequest request = toAuthorizationModificationRequest(authorizationVO);
-		authorizationsServices.execute(request);
-		sharesTabSelected();
-	}
-
-	private AuthorizationModificationRequest toAuthorizationModificationRequest(AuthorizationVO authorizationVO) {
-		String authId = authorizationVO.getAuthId();
-
-		AuthorizationModificationRequest request = modifyAuthorizationOnRecord(authId, collection, getFolderId());
-		request = request.withNewAccessAndRoles(authorizationVO.getAccessRoles());
-		request = request.withNewStartDate(authorizationVO.getStartDate());
-		request = request.withNewEndDate(authorizationVO.getEndDate());
-
-		List<String> principals = new ArrayList<>();
-		principals.addAll(authorizationVO.getUsers());
-		principals.addAll(authorizationVO.getGroups());
-		request = request.withNewPrincipalIds(principals);
-		request = request.setExecutedBy(getCurrentUser());
-
-		return request;
-
-	}
-
-	public void deleteAutorizationButtonClicked(AuthorizationVO authorizationVO) {
-		Authorization authorization = authorizationsServices.getAuthorization(
-				view.getCollection(), authorizationVO.getAuthId());
-		authorizationsServices.execute(authorizationDeleteRequest(authorization).setExecutedBy(getCurrentUser()));
-		view.removeAuthorization(authorizationVO);
-	}
 	public void changeFolderContentDataProvider(String value, Boolean includeTree) {
 		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		MetadataSchema documentsSchema = getDocumentsSchema();

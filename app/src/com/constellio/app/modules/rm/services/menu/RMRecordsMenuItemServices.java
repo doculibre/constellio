@@ -389,24 +389,24 @@ public class RMRecordsMenuItemServices {
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
-			case RMRECORDS_CHECKOUT:
-				int ignoredCount = 0;
-				for (Record record : records) {
-					boolean actionPossible = false;
-					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
-						actionPossible = documentRecordActionsServices.isCheckOutActionPossible(record, user);
-						if (!actionPossible) {
-							actionPossible = documentRecordActionsServices.isCurrentBorrower(record, user);
-							if (actionPossible) {
-								ignoredCount++;
-							}
-						}
-					}
-					possibleCount += actionPossible ? 1 : 0;
-				}
-				return calculateCorrectActionState(possibleCount - ignoredCount,
-						ignoredCount == possibleCount && ignoredCount != 0 ? ignoredCount : (records.size() - possibleCount),
-						$("RMRecordsMenuItemServices.actionImpossible"));
+//			case RMRECORDS_CHECKOUT:
+//				int ignoredCount = 0;
+//				for (Record record : records) {
+//					boolean actionPossible = false;
+//					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+//						actionPossible = documentRecordActionsServices.isCheckOutActionPossible(record, user);
+//						if (!actionPossible) {
+//							actionPossible = documentRecordActionsServices.isCurrentBorrower(record, user);
+//							if (actionPossible) {
+//								ignoredCount++;
+//							}
+//						}
+//					}
+//					possibleCount += actionPossible ? 1 : 0;
+//				}
+//				return calculateCorrectActionState(possibleCount - ignoredCount,
+//						ignoredCount == possibleCount && ignoredCount != 0 ? ignoredCount : (records.size() - possibleCount),
+//						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_CHECKIN:
 				for (Record record : records) {
 					boolean actionPossible = false;

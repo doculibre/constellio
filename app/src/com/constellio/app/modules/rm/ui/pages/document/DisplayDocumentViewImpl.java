@@ -470,11 +470,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		return tabLayout;
 	}
 
-	@Override
-	public void refreshActionMenu() {
-		super.refreshActionMenu();
-		com.vaadin.ui.JavaScript.eval("setTimeout(function () { if(typeof resetToCurrentValues  === \"function\") { resetToCurrentValues(); }}, 650)");
-	}
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
@@ -692,6 +687,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void refreshActionMenu() {
 		presenter.refreshActionMenuRequested();
 		super.refreshActionMenu();
+		com.vaadin.ui.JavaScript.eval("setTimeout(function () { if(typeof resetToCurrentValues  === \"function\") { resetToCurrentValues(); }}, 650)");
 	}
 
 	@Override
