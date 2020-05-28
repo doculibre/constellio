@@ -41,6 +41,7 @@ import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.ExternalLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
@@ -56,6 +57,7 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.Metadata;
@@ -1242,17 +1244,32 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		return modelLayerFactory.getSystemConfigurationsManager().getValue(RMConfigs.SUB_FOLDER_DECOMMISSIONING);
 	}
 
-	void recordDroppedOn(RecordVO droppedRecordVO, String targetFolderId) {
+	void recordDroppedOn(RecordVO droppedRecordVO, RecordVO targetFolderRecordVO) {
+		if (!getCurrentUser().hasWriteAccess().on(droppedRecordVO.getRecord()) ||
+			!getCurrentUser().hasWriteAccess().on(targetFolderRecordVO.getRecord())) {
+			return;
+		}
+
 		if (droppedRecordVO.getRecord().isOfSchemaType(Folder.SCHEMA_TYPE)) {
 			Folder folder = rmSchemas().getFolder(droppedRecordVO.getId());
-			folder.setParentFolder(targetFolderId);
+			folder.setParentFolder(targetFolderRecordVO.getId());
 			addOrUpdate(folder.getWrappedRecord());
 		} else if (droppedRecordVO.getRecord().isOfSchemaType(Document.SCHEMA_TYPE)) {
 			Document document = rmSchemas().getDocument(droppedRecordVO.getId());
-			document.setFolder(targetFolderId);
+			document.setFolder(targetFolderRecordVO.getId());
 			addOrUpdate(document.getWrappedRecord());
-		}
+		} else if (droppedRecordVO.getRecord().isOfSchemaType(ExternalLink.SCHEMA_TYPE)) {
+			Folder currentFolder = rmSchemas().wrapFolder(getFolderVO().getRecord());
+			currentFolder.removeExternalLink(droppedRecordVO.getId());
 
-		// TODO support external link?
+			Folder targetFolder = rmSchemas().getFolder(targetFolderRecordVO.getId());
+			targetFolder.addExternalLink(droppedRecordVO.getId());
+
+			try {
+				recordServices().execute(new Transaction(getCurrentUser()).addAll(currentFolder, targetFolder));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
