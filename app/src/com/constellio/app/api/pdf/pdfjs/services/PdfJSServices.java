@@ -14,8 +14,10 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUrl;
 import com.constellio.model.entities.records.wrappers.ExternalAccessUser;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUrlStatus;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -340,6 +342,17 @@ public class PdfJSServices {
 			String newAnnotationsVersion = getNextVersionNumber(annotationsVersion, true);
 			annotations.setVersion(newAnnotationsVersion);
 			saveAnnotations(record, metadata, user, annotations);
+
+			if (user instanceof ExternalAccessUser) {
+				ExternalAccessUser externalUser = (ExternalAccessUser) user;
+				ExternalAccessUrl externalAccess = externalUser.getExternalAccessUrl();
+				externalAccess.setStatus(ExternalAccessUrlStatus.CLOSED);
+
+				RecordServices recordServices = modelLayerFactory.newRecordServices();
+				recordServices.update(externalAccess);
+			}
+		} catch (RecordServicesException e) {
+			log.error("Unable to close external access for " + user.getUsername(), e);
 		} finally {
 			ioServices.closeQuietly(pdfInputStream);
 			ioServices.closeQuietly(pdDocument);
