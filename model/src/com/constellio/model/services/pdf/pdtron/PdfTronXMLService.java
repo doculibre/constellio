@@ -4,6 +4,7 @@ import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLEx
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_IOExeption;
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
 import com.constellio.model.services.pdf.pdtron.signature.PdfTronSignatureAnnotation;
+import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -43,7 +44,7 @@ public class PdfTronXMLService {
 		List<PdfSignatureAnnotation> signatures = new ArrayList<>();
 		for (Element element : currentAnnotationsById.values()) {
 			if (element.getAttributeValue(SUBJECT).equals(SIGNATURE_TYPE)) {
-				signatures.add(new PdfSignatureAnnotation(element));
+				signatures.add(new PdfTronSignatureAnnotation(element));
 			}
 		}
 

@@ -10,7 +10,7 @@ import com.constellio.app.modules.restapi.resource.service.ResourceService;
 import com.constellio.app.modules.restapi.validation.ValidationService;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.pdftron.PdfSignatureAnnotation;
+import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
 
 import javax.inject.Inject;
 
