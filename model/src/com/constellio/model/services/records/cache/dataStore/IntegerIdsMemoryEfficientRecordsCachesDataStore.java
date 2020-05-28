@@ -936,31 +936,37 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 		List<RecordId> unchangedRecordIds = new ArrayList<>(sortValues.size());
 
-		mechanism.obtainSystemWideReadingPermit();
-		try {
-			for (int i = 0; i < sortValues.size(); i++) {
-				SortValue sortValue = sortValues.get(i);
-				RecordId recordId = sortValue.recordId();
+		for (int i = 0; i < sortValues.size(); i++) {
 
-				if (recordId.isInteger()) {
+			SortValue sortValue = sortValues.get(i);
+			RecordId recordId = sortValue.recordId();
+			if (i % 10000 == 0) {
+				LOGGER.info("Updating records sort values while comparing with current values : " + i + " / " + mainSortValues.size());
+			}
+			if (recordId.isInteger()) {
+
+				RecordDTO recordDTO = null;
+				try {
+					mechanism.obtainSystemWideReadingPermit();
 					int index = ids.binarySearch(recordId.intValue());
 
-					RecordDTO recordDTO = null;
 					if (index != -1) {
 						recordDTO = get(recordId.intValue(), index);
 					}
+				} finally {
+					mechanism.releaseSystemWideReadingPermit();
+				}
 
-					if (recordDTO != null) {
-						if (sortValue.valueHash() == valueHascodeFunction.applyAsInt(recordDTO)) {
-							unchangedRecordIds.add(recordId);
-						}
+				if (recordDTO != null) {
+					if (sortValue.valueHash() == valueHascodeFunction.applyAsInt(recordDTO)) {
+						unchangedRecordIds.add(recordId);
 					}
 				}
 			}
 
-		} finally {
-			mechanism.releaseSystemWideReadingPermit();
 		}
+		LOGGER.info("Updating records sort values while comparing : finished");
+
 		setRecordsMainSortValue(unchangedRecordIds);
 	}
 

@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +32,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.sdk.tests.TestUtils.frenchPangram;
 import static java.io.File.separator;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertEquals;
@@ -44,6 +44,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 	static String givenContentDaoIsTheConfiguredOne = "givenContentDaoIsTheConfiguredOne";
 	static String givenContentDaoIsTheFileSystemImpl = "givenContentDaoIsTheFileSystemImpl";
 	static String givenContentDaoWithReplication = "givenContentDaoWithReplication";
+	static String givenContentDaoWithSubvaults = "givenContentDaoWithSubvaults";
 
 	String theContent = aString();
 
@@ -61,7 +62,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 
 	@Parameterized.Parameters(name = "{0}")
 	public static Collection<Object[]> testCases() {
-		return Arrays.asList(new Object[][]{{givenContentDaoIsTheConfiguredOne}, {givenContentDaoIsTheFileSystemImpl}, {givenContentDaoWithReplication}});
+		return asList(new Object[][]{{givenContentDaoIsTheConfiguredOne}, {givenContentDaoIsTheFileSystemImpl}, {givenContentDaoWithReplication}, {givenContentDaoWithSubvaults}});
 	}
 
 	@Before
@@ -73,9 +74,14 @@ public class ContentDaoRealTest extends ConstellioTest {
 		} else if (testCase.equals(givenContentDaoIsTheFileSystemImpl)) {
 			getDataLayerFactory().getDataLayerConfiguration().setContentDaoFileSystemFolder(newTempFolder());
 			vaultDao = new FileSystemContentDao(getDataLayerFactory());
+
 		} else if (testCase.equals(givenContentDaoWithReplication)) {
 			getDataLayerFactory().getDataLayerConfiguration().setContentDaoReplicatedVaultMountPoint(newTempFolder().getAbsolutePath());
 			vaultDao = new FileSystemContentDao(getDataLayerFactory());
+
+		} else if (testCase.equals(givenContentDaoWithSubvaults)) {
+			vaultDao = new FileSystemContentDao(getDataLayerFactory(), asList("subvault1", "subvault2"));
+
 		}
 	}
 
@@ -288,7 +294,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 		vaultDao = getDataLayerFactory().getContentsDao();
 		File tempFolder = createRandomTextFilesInTempFolder(100, 30 * 1024);
 		final LinkedBlockingQueue<File> queue = new LinkedBlockingQueue<File>(tempFolder.list().length);
-		queue.addAll(Arrays.asList(tempFolder.listFiles()));
+		queue.addAll(asList(tempFolder.listFiles()));
 
 		final Map<File, String> synchronizedMap = java.util.Collections.synchronizedMap(new HashMap<File, String>());
 
@@ -502,9 +508,50 @@ public class ContentDaoRealTest extends ConstellioTest {
 		vaultDao.add(theId, newInputStreamOfTextContent(theContent));
 
 		// When
-		vaultDao.delete(Arrays.asList(theId));
+		vaultDao.delete(asList(theId));
 		assertVaultAndReplicationVaultAreEmpty();
 
+
+	}
+
+	@Test
+	public void testGetFromSubvault() throws Exception {
+
+		File vaultFile1WhichDoesNotExist = vaultDao.getFileOf("ABCDEFILE0001");
+		File vaultFile2WhichDoesNotExist = vaultDao.getFileOf("ABCDEFILE0002");
+		assertThat(vaultFile1WhichDoesNotExist.exists()).isFalse();
+		assertThat(vaultFile2WhichDoesNotExist.exists()).isFalse();
+
+		File vault = getDataLayerFactory().getDataLayerConfiguration().getContentDaoFileSystemFolder();
+		File subvault1 = new File(vault, "subvault1");
+		File subvault2 = new File(vault, "subvault2");
+
+		FileUtils.write(new File(subvault1, "A/AB/ABC/ABCDEFILE0001".replace("/", separator)), "thisIsTheFile1");
+		FileUtils.write(new File(subvault2, "A/AB/ABC/ABCDEFILE0002".replace("/", separator)), "thisIsTheFile2");
+
+		File subvaultFile1 = vaultDao.getFileOf("ABCDEFILE0001");
+		File subvaultFile2 = vaultDao.getFileOf("ABCDEFILE0002");
+		if (testCase.equals(givenContentDaoWithSubvaults)) {
+
+			assertThat(subvaultFile1.exists()).isTrue();
+			assertThat(subvaultFile2.exists()).isTrue();
+			assertThat(subvaultFile1.getAbsolutePath()).isNotEqualTo(vaultFile1WhichDoesNotExist.getAbsolutePath());
+			assertThat(subvaultFile2.getAbsolutePath()).isNotEqualTo(vaultFile2WhichDoesNotExist.getAbsolutePath());
+
+
+		} else {
+			assertThat(subvaultFile1.exists()).isFalse();
+			assertThat(subvaultFile2.exists()).isFalse();
+			assertThat(subvaultFile1.getAbsolutePath()).isEqualTo(vaultFile1WhichDoesNotExist.getAbsolutePath());
+			assertThat(subvaultFile2.getAbsolutePath()).isEqualTo(vaultFile2WhichDoesNotExist.getAbsolutePath());
+
+		}
+
+
+	}
+
+	@Test
+	public void testDeleteFromSubvault() {
 
 	}
 
