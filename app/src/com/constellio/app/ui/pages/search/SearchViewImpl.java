@@ -40,6 +40,7 @@ import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.enums.TableMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -618,7 +619,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
 
-		ViewableRecordVOSearchResultTable.TableMode tableMode;
+		TableMode tableMode;
 		if (this.resultsTable != null) {
 			tableMode = ((ViewableRecordVOSearchResultTable) this.resultsTable).getTableMode();
 		} else {
