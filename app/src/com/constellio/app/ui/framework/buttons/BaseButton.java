@@ -24,6 +24,10 @@ public abstract class BaseButton extends Button implements Clickable, BrowserWin
 	private boolean badgeVisibleWhenZero = true;
 
 	private NiceTitle responsiveNiceTitle;
+
+	private Boolean captionVisibleOnPhone;
+
+	private Boolean captionVisibleOnTablet;
 	
 	public BaseButton() {
 		this(null, null);
@@ -93,7 +97,7 @@ public abstract class BaseButton extends Button implements Clickable, BrowserWin
 		adjustCaption();
 	}
 
-	public boolean isCaptionVisibleOnMobile() {
+	private boolean isResponsiveButtonStyle() {
 		return !getStyleName().contains(RESPONSIVE_BUTTON_STYLE);
 	}
 
@@ -106,17 +110,25 @@ public abstract class BaseButton extends Button implements Clickable, BrowserWin
 		}
 	}
 
+	public void setCaptionVisibleOnPhone(boolean captionVisibleOnPhone) {
+		this.captionVisibleOnPhone = captionVisibleOnPhone;
+	}
+
+	public void setCaptionVisibleOnTablet(boolean captionVisibleOnTablet) {
+		this.captionVisibleOnTablet = captionVisibleOnTablet;
+	}
+
 	private void adjustCaption() {
 		if (badgeVisible && (badgeCount > 0 || badgeVisibleWhenZero)) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("<span class=\"button-badge\" data-badge=\"" + badgeCount + "\">");
-			if (isCaptionVisibleOnMobile() || getIcon() == null || ResponsiveUtils.isDesktop()) {
+			if (isResponsiveButtonStyle() || getIcon() == null || ResponsiveUtils.isDesktop()) {
 				sb.append(textCaption);
 			}
 			sb.append("</span>");
 			super.setCaption(sb.toString());
 		} else {
-			if (isCaptionVisibleOnMobile() || getIcon() == null || ResponsiveUtils.isDesktop()) {
+			if (isResponsiveButtonStyle() || getIcon() == null || ResponsiveUtils.isDesktop()) {
 				super.setCaption(textCaption);
 			}
 		}
@@ -138,7 +150,41 @@ public abstract class BaseButton extends Button implements Clickable, BrowserWin
 		super.addExtension(extension);
 	}
 
+	private boolean isCaptionVisibleOnMobile() {
+		boolean captionVisibleOnMobile;
+		boolean responsiveButtonStyle = isResponsiveButtonStyle();
+		if (ResponsiveUtils.isPhone()) {
+			if (captionVisibleOnPhone != null) {
+				captionVisibleOnMobile = captionVisibleOnPhone;
+			} else {
+				captionVisibleOnMobile = responsiveButtonStyle;
+			}
+		} else if (ResponsiveUtils.isTablet()) {
+			if (captionVisibleOnTablet != null) {
+				captionVisibleOnMobile = captionVisibleOnTablet;
+			} else {
+				captionVisibleOnMobile = responsiveButtonStyle;
+			}
+		} else {
+			captionVisibleOnMobile = !responsiveButtonStyle;
+		}
+		return captionVisibleOnMobile;
+	}
+
 	private void computeResponsive() {
+		if (ResponsiveUtils.isPhone() && captionVisibleOnPhone != null) {
+			if (captionVisibleOnPhone) {
+				removeStyleName(RESPONSIVE_BUTTON_STYLE);
+			} else {
+				addStyleName(RESPONSIVE_BUTTON_STYLE);
+			}
+		} else if (ResponsiveUtils.isTablet() && captionVisibleOnTablet != null) {
+			if (captionVisibleOnTablet) {
+				removeStyleName(RESPONSIVE_BUTTON_STYLE);
+			} else {
+				addStyleName(RESPONSIVE_BUTTON_STYLE);
+			}
+		}
 		if (getIcon() != null && textCaption != null && !isCaptionVisibleOnMobile()) {
 			if (!ResponsiveUtils.isDesktop() && responsiveNiceTitle != null && !getExtensions().contains(responsiveNiceTitle)) {
 				addExtension(responsiveNiceTitle);

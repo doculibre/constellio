@@ -1341,6 +1341,11 @@ public class BaseTable extends Table implements SelectionComponent {
 			return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
 		}
 
+		private boolean isAlwaysSelectIntervals() {
+			ModelLayerFactory modelLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory();
+			return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.ALWAYS_SELECT_INTERVALS);
+		}
+
 		@SuppressWarnings({"rawtypes", "unchecked"})
 		@Override
 		protected void buttonClick(ClickEvent event) {
@@ -1351,7 +1356,7 @@ public class BaseTable extends Table implements SelectionComponent {
 				realSize = size();
 			}
 			int maxSelectableResults = getMaxSelectableResults();
-			if (realSize <= maxSelectableResults) {
+			if (realSize <= maxSelectableResults && (!BaseTable.this.isPaged() || !isAlwaysSelectIntervals())) {
 				super.buttonClick(event);
 			} else {
 				if (rangeStart == -1) {

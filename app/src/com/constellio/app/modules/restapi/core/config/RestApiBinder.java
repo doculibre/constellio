@@ -10,6 +10,8 @@ import com.constellio.app.modules.restapi.document.dao.DocumentDao;
 import com.constellio.app.modules.restapi.folder.FolderService;
 import com.constellio.app.modules.restapi.folder.adaptor.FolderAdaptor;
 import com.constellio.app.modules.restapi.folder.dao.FolderDao;
+import com.constellio.app.modules.restapi.health.HealthService;
+import com.constellio.app.modules.restapi.health.dao.HealthDao;
 import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.taxonomy.TaxonomyService;
 import com.constellio.app.modules.restapi.taxonomy.dao.TaxonomyDao;
@@ -33,6 +35,7 @@ public class RestApiBinder extends AbstractBinder {
 		bind(FolderService.class).to(FolderService.class).in(Singleton.class);
 		bind(CollectionService.class).to(CollectionService.class).in(Singleton.class);
 		bind(TaxonomyService.class).to(TaxonomyService.class).in(Singleton.class);
+		bind(HealthService.class).to(HealthService.class).in(Singleton.class);
 
 		bind(DocumentAdaptor.class).to(DocumentAdaptor.class).in(Singleton.class);
 		bind(FolderAdaptor.class).to(FolderAdaptor.class).in(Singleton.class);
@@ -44,6 +47,7 @@ public class RestApiBinder extends AbstractBinder {
 		bind(UrlDao.class).to(UrlDao.class).in(Singleton.class);
 		bind(CollectionDao.class).to(CollectionDao.class).in(Singleton.class);
 		bind(TaxonomyDao.class).to(TaxonomyDao.class).in(Singleton.class);
+		bind(HealthDao.class).to(HealthDao.class).in(Singleton.class);
 	}
 
 }

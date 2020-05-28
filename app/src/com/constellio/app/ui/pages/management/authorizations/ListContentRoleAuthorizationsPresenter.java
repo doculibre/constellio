@@ -95,7 +95,7 @@ public class ListContentRoleAuthorizationsPresenter extends ListAuthorizationsPr
 
 	@Override
 	public boolean seeSharedBy() {
-		return true;
+		return false;
 	}
 
 	@Override

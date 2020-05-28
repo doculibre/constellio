@@ -47,6 +47,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,6 +128,7 @@ public class RecordExportServices {
 
 	public File exportRecordsAndZip(String resourceKey, RecordExportOptions options) {
 		File tempZipFile = ioServices.newTemporaryFile(resourceKey, "zip");
+		FileUtils.deleteQuietly(tempZipFile);
 		exportRecordsAndZip(tempZipFile, options);
 		return tempZipFile;
 	}
@@ -216,6 +218,18 @@ public class RecordExportServices {
 				Group group = schemas.getGroup(groupId);
 				if (group != null) {
 					principals.add("group:" + group.getCode());
+				}
+			}
+
+			if (!options.isForSameSystem) {
+				String targetSchemaType = authorization.getDetails().getTargetSchemaType();
+				Record record = recordServices.getDocumentById(authorization.getTargetRecordId().stringValue());
+				if (metadataSchemasManager.getSchemaTypes(collection).getSchemaType(targetSchemaType).hasMetadataWithCode("code")) {
+
+					modifiableImportRecord.with(Authorization.TARGET, "code:" + record.get(Schemas.CODE));
+				} else if (record.get(Schemas.LEGACY_ID) != null) {
+					modifiableImportRecord.with(Authorization.TARGET, record.get(Schemas.LEGACY_ID));
+
 				}
 			}
 

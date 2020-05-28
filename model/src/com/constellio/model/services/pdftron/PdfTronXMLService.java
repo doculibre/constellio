@@ -31,7 +31,7 @@ public class PdfTronXMLService {
 
 	}
 
-	public List<PdfTronSignatureAnnotation> getSignatureAnnotations(String currentAnnotationAsStr)
+	public List<PdfSignatureAnnotation> getSignatureAnnotations(String currentAnnotationAsStr)
 			throws PdfTronXMLException_XMLParsingException, PdfTronXMLException_IOExeption {
 		Document currentAnnotationDocument = getDocumentFromStr(currentAnnotationAsStr);
 		Element currentAnnotsElement = getAnnotationElementList(currentAnnotationDocument);
@@ -39,10 +39,10 @@ public class PdfTronXMLService {
 		Map<String, Element> currentAnnotationsById = currentAnnotsElement != null
 													  ? getElementInMapById(currentAnnotsElement.getChildren()) : new HashMap<>();
 
-		List<PdfTronSignatureAnnotation> signatures = new ArrayList<>();
+		List<PdfSignatureAnnotation> signatures = new ArrayList<>();
 		for (Element element : currentAnnotationsById.values()) {
 			if (element.getAttributeValue(SUBJECT).equals(SIGNATURE_TYPE)) {
-				signatures.add(new PdfTronSignatureAnnotation(element));
+				signatures.add(new PdfSignatureAnnotation(element));
 			}
 		}
 
