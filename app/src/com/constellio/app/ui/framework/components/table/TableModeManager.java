@@ -34,7 +34,7 @@ public class TableModeManager {
 			collection = sessionContext.getCurrentCollection();
 		}
 
-		if (currentUserVO != null && username != null) {
+		if (collection != null && username != null) {
 			UserServices userServices = modelLayerFactory.newUserServices();
 			currentUser = userServices.getUserInCollection(username, collection);
 		}

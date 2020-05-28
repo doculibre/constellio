@@ -211,7 +211,7 @@ public abstract class ListBorrowingsTab {
 		protected Set<Object> selectedItemIds;
 
 		protected SelectionTable(RecordVOContainer container) {
-			super(container, null, TableMode.TABLE, false);
+			super(container, null, TableMode.LIST, false);
 			setAllItemsVisible(true);
 		}
 
