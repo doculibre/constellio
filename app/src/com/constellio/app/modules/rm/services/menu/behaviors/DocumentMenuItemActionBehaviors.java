@@ -503,7 +503,7 @@ public class DocumentMenuItemActionBehaviors {
 				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "30%", "300px")) {
 			@Override
 			protected Component buildWindowContent() {
-				return new PublishDocumentViewImpl(params.getRecordVO()) {
+				return new PublishDocumentViewImpl(params) {
 					@Override
 					protected boolean isBreadcrumbsVisible() {
 						return false;

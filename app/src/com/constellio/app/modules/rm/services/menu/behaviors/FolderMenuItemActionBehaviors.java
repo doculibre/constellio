@@ -583,7 +583,7 @@ public class FolderMenuItemActionBehaviors {
 			protected void buttonClick(ClickEvent event) {
 				try {
 					List<String> usersToAlert = folder.getAlertUsersWhenAvailable();
-					String currentUserId = folder.getId();
+					String currentUserId = params.getUser().getId();
 					if (!currentUserId.equals(folder.getBorrowUser()) && !currentUserId.equals(folder.getBorrowUserEntered())) {
 						List<String> newUsersToAlert = new ArrayList<>();
 						newUsersToAlert.addAll(usersToAlert);

@@ -517,6 +517,9 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 		@PropertyId("users") private ListAddRemoveRecordLookupField users;
 		@PropertyId("groups") private ListAddRemoveRecordLookupField groups;
+		@PropertyId("accessRoles") private ListOptionGroup accessRoles;
+		@PropertyId("startDate") protected JodaDateField startDate;
+		@PropertyId("endDate") protected JodaDateField endDate;
 
 		public EditAuthorizationButton(AuthorizationVO authorization) {
 			super(EditButton.ICON_RESOURCE, $("ListAuthorizationsView.edit"), true,
@@ -528,7 +531,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		@Override
 		protected Component buildWindowContent() {
 			buildUsersAndGroupsField();
-			return new BaseForm<AuthorizationVO>(authorization, this, users, groups) {
+			return new BaseForm<AuthorizationVO>(authorization, this, users, groups, accessRoles, startDate, endDate) {
 				@Override
 				protected void saveButtonClick(AuthorizationVO viewObject)
 						throws ValidationException {
@@ -559,6 +562,33 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			groups.setVisible(!authorization.getGroups().isEmpty());
 			groups.setCaption($("AuthorizationsView.groups"));
 			groups.setId("groups");
+
+			accessRoles = new ListOptionGroup($("AuthorizationsView.access"));
+			accessRoles.addItem(Role.READ);
+			accessRoles.setItemCaption(Role.READ, $("AuthorizationsView.READ"));
+			accessRoles.addItem(Role.WRITE);
+			accessRoles.setItemCaption(Role.WRITE, $("AuthorizationsView.WRITE"));
+			accessRoles.addItem(Role.DELETE);
+			accessRoles.setItemCaption(Role.DELETE, $("AuthorizationsView.DELETE"));
+			accessRoles.setMultiSelect(true);
+			for (String authorization : authorization.getAccessRoles()) {
+				accessRoles.setValue(authorization);
+			}
+			accessRoles.setId("accessRoles");
+
+			startDate = new JodaDateField();
+			startDate.setCaption($("AuthorizationsView.startDate"));
+			startDate.setId("startDate");
+			if (authorization.getStartDate() != null) {
+				startDate.setValue(authorization.getStartDate().toDate());
+			}
+
+			endDate = new JodaDateField();
+			endDate.setCaption($("AuthorizationsView.endDate"));
+			endDate.setId("endDate");
+			if (authorization.getEndDate() != null) {
+				endDate.setValue(authorization.getEndDate().toDate());
+			}
 		}
 	}
 
