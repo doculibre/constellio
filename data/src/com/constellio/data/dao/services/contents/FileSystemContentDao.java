@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -60,7 +61,13 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	DataLayerSystemExtensions extensions;
 
+	List<String> subvaults;
+
 	public FileSystemContentDao(DataLayerFactory dataLayerFactory) {
+		this(dataLayerFactory, Collections.emptyList());
+	}
+
+	public FileSystemContentDao(DataLayerFactory dataLayerFactory, List<String> subVaults) {
 		this.ioServices = dataLayerFactory.getIOServicesFactory().newIOServices();
 		this.configuration = dataLayerFactory.getDataLayerConfiguration();
 		this.extensions = dataLayerFactory.getExtensions().getSystemWideExtensions();
@@ -76,6 +83,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			replicatedRootRecoveryFolder = new File(replicatedRootFolder, RECOVERY_FOLDER);
 			createRootRecoveryDirectory();
 		}
+		this.subvaults = subVaults;
 	}
 
 	public File getRootFolder() {
@@ -595,7 +603,18 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 				}
 
 				name.append(toCaseInsensitive(contentId));
-				return new File(rootFolder, name.toString());
+				File file = new File(rootFolder, name.toString());
+
+				if (!subvaults.isEmpty() && !file.exists()) {
+					for (String subvault : subvaults) {
+						File subVaultFile = new File(rootFolder, subvault + File.separator + name.toString());
+						if (subVaultFile.exists()) {
+							file = subVaultFile;
+						}
+					}
+				}
+
+				return file;
 
 			} else {
 				String folderName = contentId.substring(0, 2);

@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.services.menu;
 
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.menu.behaviors.DocumentMenuItemActionBehaviors;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemAction;
@@ -23,6 +24,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TO_CART;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_AVAILABLE_ALERT;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_BORROWED_MESSAGE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CHECK_IN;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CHECK_OUT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CONSULT_LINK;
@@ -44,6 +46,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PUBLISH;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_REMOVE_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RETURN_REMAINDER;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RENAME_CONTENT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNPUBLISH;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNSHARE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UPLOAD;
@@ -70,6 +73,15 @@ public class DocumentMenuItemServices {
 	public List<MenuItemAction> getActionsForRecord(Document document, User user, List<String> filteredActionTypes,
 													MenuItemActionBehaviorParams params) {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
+
+		if (!filteredActionTypes.contains(DOCUMENT_BORROWED_MESSAGE.name())) {
+			String borrowedMessage = documentRecordActionsServices.getBorrowedMessage(document.getWrappedRecord(), user);
+			if (borrowedMessage != null) {
+				menuItemActions.add(buildMenuItemAction(DOCUMENT_BORROWED_MESSAGE.name(),
+						isMenuItemActionPossible(DOCUMENT_BORROWED_MESSAGE.name(), document, user, params),
+						borrowedMessage, null, -1, 100, null));
+			}
+		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_DISPLAY.name())) {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_DISPLAY.name(),
@@ -140,6 +152,13 @@ public class DocumentMenuItemServices {
 					isMenuItemActionPossible(DOCUMENT_COPY.name(), document, user, params),
 					$("DocumentContextMenu.copyContent"), FontAwesome.PASTE, -1, 600,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).copy(document, params)));
+		}
+
+		if (!filteredActionTypes.contains(DOCUMENT_RENAME_CONTENT.name())) {
+			menuItemActions.add(buildMenuItemAction(DOCUMENT_RENAME_CONTENT.name(),
+					isMenuItemActionPossible(DOCUMENT_RENAME_CONTENT.name(), document, user, params),
+					$("DocumentContextMenu.renameContent"), FontAwesome.EDIT, -1, 650,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).renameContent(document, params)));
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_FINALIZE.name())) {
@@ -333,16 +352,21 @@ public class DocumentMenuItemServices {
 		Record record = document.getWrappedRecord();
 
 		switch (DocumentMenuItemActionType.valueOf(menuItemActionType)) {
+			case DOCUMENT_BORROWED_MESSAGE:
+				return documentRecordActionsServices.getBorrowedMessage(record, user) != null;
 			case DOCUMENT_EDIT:
 				return documentRecordActionsServices.isEditActionPossible(record, user);
 			case DOCUMENT_CONTENT_RENAME:
 				return documentRecordActionsServices.isRenameActionPossible(record, user);
+			case DOCUMENT_RENAME_CONTENT:
+				return documentRecordActionsServices.isRenameContentActionPossible(record, user);
 			case DOCUMENT_DISPLAY:
 				return documentRecordActionsServices.isDisplayActionPossible(record, user);
 			case DOCUMENT_CONSULT_LINK:
 				return documentRecordActionsServices.isConsultLinkActionPossible(record, user);
 			case DOCUMENT_OPEN:
-				return documentRecordActionsServices.isOpenActionPossible(record, user);
+				return documentRecordActionsServices.isOpenActionPossible(record, user)
+					   && ConstellioAgentUtils.getAgentURL(params.getRecordVO(), params.getContentVersionVO()) != null;
 			case DOCUMENT_DOWNLOAD:
 				return documentRecordActionsServices.isDownloadActionPossible(record, user);
 			case DOCUMENT_DELETE:
@@ -415,9 +439,11 @@ public class DocumentMenuItemServices {
 	}
 
 	public enum DocumentMenuItemActionType {
+		DOCUMENT_BORROWED_MESSAGE,
 		DOCUMENT_DISPLAY,
 		DOCUMENT_OPEN,
 		DOCUMENT_EDIT,
+		DOCUMENT_RENAME_CONTENT,
 		DOCUMENT_CONTENT_RENAME,
 		DOCUMENT_CONSULT_LINK,
 		DOCUMENT_DOWNLOAD,

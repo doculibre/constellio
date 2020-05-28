@@ -1299,18 +1299,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return lazyFullFolderVO.get();
 	}
 
-	public List<AuthorizationVO> getSharedAuthorizations() {
-		AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
-
-		List<AuthorizationVO> results = new ArrayList<>();
-		for (Authorization authorization : getAllAuthorizations()) {
-			if (isOwnAuthorization(authorization) && authorization.getSharedBy() != null &&
-				(isSharedByCurrentUser(authorization) || user.hasAny(RMPermissionsTo.MANAGE_SHARE, VIEW_FOLDER_AUTHORIZATIONS, MANAGE_FOLDER_AUTHORIZATIONS).on(summaryFolderVO.getRecord()))) {
-				results.add(builder.build(authorization));
-			}
-		}
-		return results;
-	}
 
 	protected boolean isOwnAuthorization(Authorization authorization) {
 		return authorization.getTarget().equals(getFolderId());
@@ -1328,6 +1316,21 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private AuthorizationToVOBuilder newAuthorizationToVOBuilder() {
 		return new AuthorizationToVOBuilder(modelLayerFactory);
 	}
+
+
+	public List<AuthorizationVO> getSharedAuthorizations() {
+		AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
+
+		List<AuthorizationVO> results = new ArrayList<>();
+		for (Authorization authorization : getAllAuthorizations()) {
+			if (isOwnAuthorization(authorization) && authorization.getSharedBy() != null &&
+				(isSharedByCurrentUser(authorization) || user.hasAny(RMPermissionsTo.MANAGE_SHARE, VIEW_FOLDER_AUTHORIZATIONS, MANAGE_FOLDER_AUTHORIZATIONS).on(summaryFolderVO.getRecord()))) {
+				results.add(builder.build(authorization));
+			}
+		}
+		return results;
+	}
+
 
 	public void onAutorizationModified(AuthorizationVO authorizationVO) {
 		AuthorizationModificationRequest request = toAuthorizationModificationRequest(authorizationVO);
@@ -1359,6 +1362,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		authorizationsServices.execute(authorizationDeleteRequest(authorization).setExecutedBy(getCurrentUser()));
 		view.removeAuthorization(authorizationVO);
 	}
+
 
 	public void changeFolderContentDataProvider(String value, Boolean includeTree) {
 		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());

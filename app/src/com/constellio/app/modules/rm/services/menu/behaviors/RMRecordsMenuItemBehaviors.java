@@ -29,6 +29,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
@@ -717,6 +718,26 @@ public class RMRecordsMenuItemBehaviors {
 		}
 	}
 
+	public void removeFromSelection(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		BaseView view = params.getView();
+
+		SessionContext sessionContext = view.getSessionContext();
+		boolean someElementsNotRemoved = false;
+		for (String selectedRecordId : recordIds) {
+			Record record = recordServices.getDocumentById(selectedRecordId);
+
+			if (asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE).contains(record.getTypeCode())) {
+				sessionContext.removeSelectedRecordId(selectedRecordId, record.getTypeCode());
+			} else {
+				someElementsNotRemoved = true;
+			}
+		}
+
+		if (someElementsNotRemoved) {
+			view.showErrorMessage($("ConstellioHeader.selection.cannotRemoveRecords"));
+		}
+	}
+
 	public void downloadZip(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		BaseView view = params.getView();
 
@@ -782,6 +803,9 @@ public class RMRecordsMenuItemBehaviors {
 						currentRecord.getTitle()));
 			} else if (currentRecord.getSchemaCode().startsWith(RMTask.SCHEMA_TYPE)) {
 				linkList.add(new ConsultLinkParams(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(currentRecord.getId()),
+						currentRecord.getTitle()));
+			} else if (currentRecord.getSchemaCode().startsWith(StorageSpace.SCHEMA_TYPE)) {
+				linkList.add(new ConsultLinkParams(constellioURL + RMUrlUtil.getPathToConsultLinkForStorageSpace(currentRecord.getId()),
 						currentRecord.getTitle()));
 			}
 		}

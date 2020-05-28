@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 import static java.util.Arrays.asList;
 
 public class DefaultFavoritesTable extends BaseTable {
@@ -174,18 +175,13 @@ public class DefaultFavoritesTable extends BaseTable {
 				Object[] visibleColumns = table.getVisibleColumns();
 				List<Object> visibleColumnsList = new ArrayList<>(Arrays.asList(visibleColumns));
 				if (visibleColumnsList.contains(CartItem.DISPLAY_BUTTON)) {
-					moveElementToTheEndOfList(visibleColumnsList, CartItem.DISPLAY_BUTTON);
+					int columnIndex = isRightToLeft() ? 0 : visibleColumnsList.size() - 1;
+					visibleColumnsList.remove(CartItem.DISPLAY_BUTTON);
+					visibleColumnsList.add(columnIndex, CartItem.DISPLAY_BUTTON);
 				}
 				table.setVisibleColumns(visibleColumnsList.toArray());
-
 			}
 		};
 	}
-
-	private void moveElementToTheEndOfList(List<Object> list, Object element) {
-		list.remove(element);
-		list.add(element);
-	}
-
 
 }

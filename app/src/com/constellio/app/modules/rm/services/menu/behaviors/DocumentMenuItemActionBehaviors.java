@@ -22,6 +22,7 @@ import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPrese
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentView;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
@@ -44,10 +45,13 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
+import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -92,6 +96,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
@@ -201,6 +206,63 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
+	public void renameContent(final Document document, final MenuItemActionBehaviorParams params) {
+		//		BaseView view = params.getView();
+		//		Map<String, String> formParams = params.getFormParams();
+		//		String documentId = document.getId();
+		//
+		//		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(formParams);
+		//		if (areSearchTypeAndSearchIdPresent) {
+		//			view.navigate().to(RMViews.class).addDocumentWithContentFromDecommission(documentId,
+		//					DecommissionNavUtil.getSearchId(formParams), DecommissionNavUtil.getSearchType(formParams));
+		//		} else if (formParams != null && formParams.get(RMViews.FAV_GROUP_ID_KEY) != null) {
+		//			view.navigate().to(RMViews.class)
+		//					.addDocumentWithContentFromFavorites(documentId, formParams.get(RMViews.FAV_GROUP_ID_KEY));
+		//		} else if (rmModuleExtensions.navigateToAddDocumentWhileKeepingTraceOfPreviousView(
+		//				new NavigateToFromAPageParams(formParams, documentId))) {
+		//		} else {
+		//			view.navigate().to(RMViews.class).addDocumentWithContent(documentId);
+		//		}
+		WindowButton renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),
+				WindowConfiguration.modalDialog("40%", "100px")) {
+			@Override
+			protected Component buildWindowContent() {
+				final TextField title = new BaseTextField();
+				String contentTitle = document.getContent().getCurrentVersion().getFilename();
+				title.setValue(contentTitle);
+				title.setWidth("100%");
+
+				Button save = new BaseButton($("DisplayDocumentView.renameContentConfirm")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						renameContentButtonClicked(document, params, title.getValue());
+						getWindow().close();
+					}
+				};
+				save.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				save.addStyleName(BaseForm.SAVE_BUTTON);
+
+				Button cancel = new BaseButton($("DisplayDocumentView.renameContentCancel")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				};
+
+				HorizontalLayout form = new HorizontalLayout(title, save, cancel);
+				form.setExpandRatio(title, 1);
+				form.setSpacing(true);
+				form.setWidth("95%");
+
+				VerticalLayout layout = new VerticalLayout(form);
+				layout.setSizeFull();
+
+				return layout;
+			}
+		};
+		renameContentButton.click();
+	}
+
 	public void edit(Document document, MenuItemActionBehaviorParams params) {
 		document = loadingFullRecordIfSummary(document);
 		params.getView().navigate().to(RMViews.class).editDocument(document.getId());
@@ -291,6 +353,36 @@ public class DocumentMenuItemActionBehaviors {
 
 	}
 
+	private void renameContentButtonClicked(Document document, MenuItemActionBehaviorParams params,
+											String newContentTitle) {
+		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
+				params.getView().getConstellioFactories(), params.getView().getSessionContext());
+		if (document != null) {
+			document = renameContentButtonClicked(document, newContentTitle);
+			presenterUtils.addOrUpdate(document.getWrappedRecord());
+			params.getView().updateUI();
+			//			navigateToDisplayDocument(document.getId(), params.getFormParams());
+		}
+	}
+
+	private Document renameContentButtonClicked(Document document, String newName) {
+		boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
+		if (document.getContent().getCurrentVersion().getFilename().equals(document.getTitle())) {
+			if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
+					.getPopulateConfigs().isAddOnly()) {
+				document.setTitle(newName);
+			}
+		} else if (FilenameUtils.removeExtension(document.getContent().getCurrentVersion().getFilename())
+				.equals(document.getTitle())) {
+			if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
+					.getPopulateConfigs().isAddOnly()) {
+				document.setTitle(FilenameUtils.removeExtension(newName));
+			}
+		}
+
+		document.getContent().renameCurrentVersion(newName);
+		return document;
+	}
 
 	private void deleteConfirmationDocumentButtonClicked(Document document, MenuItemActionBehaviorParams params) {
 		document = loadingFullRecordIfSummary(document);
@@ -322,7 +414,7 @@ public class DocumentMenuItemActionBehaviors {
 		Content content = document.getContent();
 		content.finalizeVersion();
 		try {
-			recordServices.update(document.getWrappedRecord());
+			recordServices.update(document.getWrappedRecord(), params.getUser());
 
 			String newMajorVersion = content.getCurrentVersion().getVersion();
 			loggingServices.finalizeDocument(document.getWrappedRecord(), params.getUser());
@@ -411,7 +503,7 @@ public class DocumentMenuItemActionBehaviors {
 				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "30%", "300px")) {
 			@Override
 			protected Component buildWindowContent() {
-				return new PublishDocumentViewImpl(params.getRecordVO()) {
+				return new PublishDocumentViewImpl(params) {
 					@Override
 					protected boolean isBreadcrumbsVisible() {
 						return false;
@@ -505,13 +597,23 @@ public class DocumentMenuItemActionBehaviors {
 		DocumentVO documentVO = getDocumentVO(params, document);
 		if (documentRecordActionsServices.isCheckInActionPossible(document.getWrappedRecord(), params.getUser())) {
 			UpdateContentVersionWindowImpl uploadWindow =
-					createUpdateContentVersionWindow(documentVO, params.getView());
+					createUpdateContentVersionWindow(documentVO, params.getView(), new UpdateWindowCloseCallback() {
+						@Override
+						public void windowClosed() {
+							BaseView view = params.getView();
+							if (view instanceof DisplayDocumentView) {
+								view.refreshActionMenu();
+								view.partialRefresh();
+							} else {
+								view.updateUI();
+							}
+						}
+					});
 			if (!isSameVersion(document)) {
 				uploadWindow.open(false);
 			} else {
 				uploadWindow.saveWithSameVersion();
 			}
-
 			params.getView().refreshActionMenu();
 			params.getView().partialRefresh();
 		} else if (documentRecordActionsServices.isCancelCheckOutPossible(document)) {
@@ -668,6 +770,10 @@ public class DocumentMenuItemActionBehaviors {
 
 	public void manageAuthorizations(Document document, MenuItemActionBehaviorParams params) {
 		document = loadingFullRecordIfSummary(document);
+		Map<String, String> paramsMap = ParamUtils.getParamsMap();
+		String favGroupId = paramsMap.get(RMViews.FAV_GROUP_ID_KEY);
+		params.getView().getUIContext().setAttribute(BaseBreadcrumbTrail.FAV_GROUP_ID, favGroupId);
+		params.getView().getUIContext().setAttribute(BaseBreadcrumbTrail.RECORD_AUTHORIZATIONS_TYPE, Document.SCHEMA_TYPE);
 		params.getView().navigate().to().listObjectAccessAndRoleAuthorizations(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
 	}
@@ -782,7 +888,18 @@ public class DocumentMenuItemActionBehaviors {
 	public void upload(Document document, MenuItemActionBehaviorParams params) {
 		document = loadingFullRecordIfSummary(document);
 		DocumentVO documentVO = getDocumentVO(params, document);
-		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(documentVO, params.getView());
+		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(documentVO, params.getView(), new UpdateWindowCloseCallback() {
+			@Override
+			public void windowClosed() {
+				BaseView view = params.getView();
+				if (view instanceof DisplayDocumentView) {
+					view.refreshActionMenu();
+					view.partialRefresh();
+				} else {
+					view.updateUI();
+				}
+			}
+		});
 
 		uploadWindow.open(false);
 	}
@@ -820,7 +937,8 @@ public class DocumentMenuItemActionBehaviors {
 				VIEW_MODE.DISPLAY, params.getView().getSessionContext());
 	}
 
-	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(RecordVO recordVO, BaseView view) {
+	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(RecordVO recordVO, BaseView view,
+																			final UpdateWindowCloseCallback callback) {
 		final Map<RecordVO, MetadataVO> recordMap = new HashMap<>();
 		recordMap.put(recordVO, recordVO.getMetadata(Document.CONTENT));
 
@@ -828,7 +946,7 @@ public class DocumentMenuItemActionBehaviors {
 			@Override
 			public void close() {
 				super.close();
-				view.updateUI();
+				callback.windowClosed();
 			}
 		};
 	}
@@ -888,6 +1006,12 @@ public class DocumentMenuItemActionBehaviors {
 		} else {
 			return document;
 		}
+
+	}
+
+	private static interface UpdateWindowCloseCallback {
+
+		void windowClosed();
 
 	}
 }

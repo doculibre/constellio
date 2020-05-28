@@ -52,6 +52,7 @@ public class CompleteSystemStateExporter {
 
 	public InputStream exportCompleteSaveState() throws Exception {
 		File tempFolder = ioServices.newTemporaryFolder(CLOUD_SYSTEM_STATE_EXPORT_TEMP_FOLDER);
+		File zipFile = new File(tempFolder, "completeSavestate.zip");
 
 		try {
 			List<File> filesToZip = new ArrayList<>();
@@ -104,12 +105,15 @@ public class CompleteSystemStateExporter {
 			new PartialVaultExporter(contentsFolder, appLayerFactory).export(Collections.<String>emptyList());
 			filesToZip.add(contentsFolder);
 
-			File zipFile = new File(tempFolder, "completeSavestate.zip");
 			zipService.zip(zipFile, filesToZip);
 
 			return new FileInputStream(zipFile);
 		} finally {
-			ioServices.deleteQuietly(tempFolder);
+			for (File tempFolderFile : tempFolder.listFiles()) {
+				if (!tempFolderFile.getAbsolutePath().equals(zipFile.getAbsolutePath())) {
+					ioServices.deleteQuietly(tempFolderFile);
+				}
+			}
 		}
 	}
 

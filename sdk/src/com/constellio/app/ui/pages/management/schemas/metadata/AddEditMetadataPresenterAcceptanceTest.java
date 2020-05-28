@@ -125,7 +125,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenAddEditingMetadataWithInheritanceThenAdvancedSearchFlagSavedInInheritedMetadata()
+	public void whenAddEditingMetadataWithInheritanceThenAdvancedSearchFlagNotSavedInInheritedMetadata()
 			throws Exception {
 		presenter.setSchemaCode(zeCustomSchema.code());
 		presenter.setMetadataCode(zeCustomSchema.stringMetadata().getCode());
@@ -137,8 +137,8 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		formMetadataVO.setAdvancedSearch(true);
 		presenter.preSaveButtonClicked(formMetadataVO, true);
 
-		assertThat(displayConfigOf("zeSchemaType_default_stringMetadata").isVisibleInAdvancedSearch()).isTrue();
-		assertThat(displayConfigOf("zeSchemaType_custom_stringMetadata").isVisibleInAdvancedSearch()).isFalse();
+		assertThat(displayConfigOf("zeSchemaType_default_stringMetadata").isVisibleInAdvancedSearch()).isFalse();
+		assertThat(displayConfigOf("zeSchemaType_custom_stringMetadata").isVisibleInAdvancedSearch()).isTrue();
 		formMetadataVO = presenter.getFormMetadataVO();
 		assertThat(formMetadataVO.isAdvancedSearch()).isTrue();
 
