@@ -1269,8 +1269,8 @@ public class BaseTable extends Table implements SelectionComponent {
 				}
 				if (rangeEnd == -1 || rangeEnd > (rangeStart + (maxSelectableResults - 1))) {
 					rangeEnd = rangeStart + (maxSelectableResults - 1);
-					if (rangeEnd > size() - 1) {
-						rangeEnd = size() - 1;
+					if (rangeEnd > size()) {
+						rangeEnd = size();
 					}
 				}
 
@@ -1291,8 +1291,8 @@ public class BaseTable extends Table implements SelectionComponent {
 						try {
 							Integer newRangeStart = (Integer) rangeStartField.getConvertedValue();
 							Integer newRangeEnd = newRangeStart + (maxSelectableResults - 1);
-							if (newRangeEnd > size() - 1) {
-								newRangeEnd = size() - 1;
+							if (newRangeEnd > size()) {
+								newRangeEnd = size();
 							}
 							rangeEndField.setValue("" + newRangeEnd);
 						} catch (ConversionException e) {
