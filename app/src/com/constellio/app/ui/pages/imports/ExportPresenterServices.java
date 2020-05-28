@@ -6,9 +6,11 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.records.RecordExportOptions;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -67,7 +69,22 @@ public class ExportPresenterServices {
 						.orWhere(decommissioningListSchemaType.getDefaultSchema().get(DecommissioningList.ADMINISTRATIVE_UNIT)).isIn(unitIds)
 		);
 
-		options.setRecordsToExportIterator(recordsIterator);
+
+		options.setRecordsToExportIterator(new LazyIterator<Record>() {
+			@Override
+			protected Record getNextOrNull() {
+
+				while (recordsIterator.hasNext()) {
+					Record next = recordsIterator.next();
+					if (!next.getSchemaCode().startsWith(Task.SCHEMA_TYPE + "_") &&
+						!next.getSchemaCode().startsWith("workflowModel_")) {
+						return next;
+					}
+				}
+
+				return null;
+			}
+		});
 		options.setIncludeAuthorizations(includeAuthorizations);
 		return options;
 	}

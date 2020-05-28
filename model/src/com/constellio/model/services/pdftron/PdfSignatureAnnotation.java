@@ -7,7 +7,7 @@ import org.jdom2.Element;
 import java.awt.*;
 import java.util.List;
 
-public class PdfTronSignatureAnnotation implements Comparable<PdfTronSignatureAnnotation> {
+public class PdfSignatureAnnotation implements Comparable<PdfSignatureAnnotation> {
 
 	private static final String PAGE_ELEMENT_NAME = "page";
 	private static final String POSITION_ELEMENT_NAME = "rect";
@@ -21,12 +21,20 @@ public class PdfTronSignatureAnnotation implements Comparable<PdfTronSignatureAn
 	private String username;
 	private String imageData;
 
-	public PdfTronSignatureAnnotation(Element annotation) throws PdfTronXMLException_XMLParsingException {
+	public PdfSignatureAnnotation(Element annotation) throws PdfTronXMLException_XMLParsingException {
 		page = Integer.parseInt(annotation.getAttributeValue(PAGE_ELEMENT_NAME));
 		position = createPositionRectangle(annotation.getAttributeValue(POSITION_ELEMENT_NAME));
 		userId = annotation.getAttributeValue(USER_ELEMENT_NAME);
 		username = annotation.getAttributeValue(USERNAME_ELEMENT_NAME);
 		imageData = fetchImageData(annotation);
+	}
+
+	public PdfSignatureAnnotation(int page, Rectangle position, String userId, String username, String imageData) {
+		this.page = page;
+		this.position = position;
+		this.userId = userId;
+		this.username = username;
+		this.imageData = imageData;
 	}
 
 	private Rectangle createPositionRectangle(String position) {
@@ -70,7 +78,7 @@ public class PdfTronSignatureAnnotation implements Comparable<PdfTronSignatureAn
 	}
 
 	@Override
-	public int compareTo(PdfTronSignatureAnnotation other) {
+	public int compareTo(PdfSignatureAnnotation other) {
 		int result;
 
 		result = compare(page, other.getPage());

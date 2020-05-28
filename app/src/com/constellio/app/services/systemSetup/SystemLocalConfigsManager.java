@@ -53,7 +53,7 @@ public class SystemLocalConfigsManager implements StatefulService {
 	}
 
 	public boolean isCacheRebuildRequired() {
-		return systemGlobalConfigsManager.getExpectedLocalCacheVersion() != null
+		return !"110e8400-e29b-11d4-a716-446655440000".equals(systemGlobalConfigsManager.getExpectedLocalCacheVersion())
 			   && !systemGlobalConfigsManager.getExpectedLocalCacheVersion().equals(properties.get(LOCAL_CACHE_VERSION));
 	}
 

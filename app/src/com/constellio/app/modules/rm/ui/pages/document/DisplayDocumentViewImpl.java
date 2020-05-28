@@ -238,7 +238,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void refreshContentViewer() {
 		ContentViewer newContentViewer = newContentViewer();
 		if (newContentViewer.isViewerComponentVisible()) {
-
 			if (!isInSeparateTab && !isContentViewerInSplitPanel) {
 				if (isViewerInSeparateTab()) {
 					tabSheet.addTab(newContentViewer, 0);
@@ -258,8 +257,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			} else {
 				tabSheet.replaceComponent(contentViewer, newContentViewer);
 				contentViewer = newContentViewer;
-				waitForContentViewerToBecomeVisible = false;
 			}
+			waitForContentViewerToBecomeVisible = false;
 		} else if (contentViewerInitiallyVisible && !newContentViewer.isViewerComponentVisible()) {
 			if (contentViewer.isVisible()) {
 				contentViewer.setVisible(false);
@@ -471,11 +470,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		return tabLayout;
 	}
 
-	@Override
-	public void refreshActionMenu() {
-		super.refreshActionMenu();
-		com.vaadin.ui.JavaScript.eval("setTimeout(function () { if(typeof resetToCurrentValues  === \"function\") { resetToCurrentValues(); }}, 650)");
-	}
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
@@ -682,10 +676,18 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		editDocumentButton.setCaptionVisibleOnMobile(false);
 
 		List<String> excludedActionTypes = Arrays.asList(
+				DocumentMenuItemActionType.DOCUMENT_BORROWED_MESSAGE.name(),
 				DocumentMenuItemActionType.DOCUMENT_DISPLAY.name(),
 				DocumentMenuItemActionType.DOCUMENT_OPEN.name(),
 				DocumentMenuItemActionType.DOCUMENT_EDIT.name());
 		return new RecordVOActionButtonFactory(documentVO, this, excludedActionTypes).build();
+	}
+
+	@Override
+	public void refreshActionMenu() {
+		presenter.refreshActionMenuRequested();
+		super.refreshActionMenu();
+		com.vaadin.ui.JavaScript.eval("setTimeout(function () { if(typeof resetToCurrentValues  === \"function\") { resetToCurrentValues(); }}, 650)");
 	}
 
 	@Override

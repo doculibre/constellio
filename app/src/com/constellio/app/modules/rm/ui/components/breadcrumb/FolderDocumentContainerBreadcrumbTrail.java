@@ -11,6 +11,8 @@ import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrum
 import com.constellio.app.ui.framework.components.breadcrumb.FavoritesBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.GroupFavoritesBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.LastViewedFoldersDocumentsBreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.ListContentAccessAndRoleAuthorizationsBreadCrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.UIContext;
@@ -58,7 +60,11 @@ public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail
 			recordId = null;
 		} else if (item instanceof GroupFavoritesBreadcrumbItem) {
 			recordId = ((GroupFavoritesBreadcrumbItem)item).getFavoriteGroupId();
-		} else if (item instanceof FavoritesBreadcrumbItem) {
+		} else if (item instanceof FavoritesBreadcrumbItem){
+			recordId = null;
+		} else if (item instanceof LastViewedFoldersDocumentsBreadcrumbItem) {
+			recordId = null;
+		} else if (item instanceof ListContentAccessAndRoleAuthorizationsBreadCrumbItem) {
 			recordId = null;
 		} else if (item instanceof TriggerManagerBreadcrumbItem) {
 			recordId = null;

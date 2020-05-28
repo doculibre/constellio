@@ -411,10 +411,15 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public UpdateRecoveryImpossibleCause isUpdateWithRecoveryPossible() {
-		if (isDiskUsageProblematic(getDiskUsage("/opt")) || isDiskUsageProblematic(getDiskUsage("/var/solr"))) {
+		if (isDiskUsageProblematic(getDiskUsage("/opt")) ||
+			(isSolrDiskUsageValidationEnabled() && isDiskUsageProblematic(getDiskUsage("/var/solr")))) {
 			return TOO_SHORT_SPACE;
 		}
 		return appLayerFactory.newUpgradeAppRecoveryService().isUpdateWithRecoveryPossible();
+	}
+
+	private boolean isSolrDiskUsageValidationEnabled() {
+		return appLayerFactory.getModelLayerFactory().getSystemConfigs().isSystemStateSolrDiskUsageValidationEnabled();
 	}
 
 	public String getExceptionDuringLastUpdate() {
