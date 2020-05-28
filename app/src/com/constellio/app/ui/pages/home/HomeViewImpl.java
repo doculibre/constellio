@@ -15,6 +15,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.components.PlaceHolder;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
@@ -207,6 +208,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 	private Component buildRecentItemTable(RecentItemTable tabSource) {
 		String tableId = "HomeView." + tabSource.getCode();
 		String schemaTypeCode = tabSource.getSchemaType();
+		getUIContext().setAttribute(BaseBreadcrumbTrail.RECENT_ITEMS, schemaTypeCode);
 		List<RecentItem> recentItems = tabSource.getItems(getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		return new ViewableRecentItemTablePanel(schemaTypeCode, tableId, recentItems);
 	}

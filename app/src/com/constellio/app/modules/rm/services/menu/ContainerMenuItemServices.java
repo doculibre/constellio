@@ -7,6 +7,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.server.FontAwesome;
@@ -19,12 +20,15 @@ import java.util.function.Consumer;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_ADD_TO_CART;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_BORROW;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CHECK_IN;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_ADD_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CONSULT;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_DELETE;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_EDIT;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_EMPTY_THE_BOX;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_GENERATE_REPORT;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_LABELS;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_REMOVE_FROM_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_RETURN_REMAINDER;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_SLIP;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
@@ -142,11 +146,38 @@ public class ContainerMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
+		if (!filteredActionTypes.contains(CONTAINER_GENERATE_REPORT.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_GENERATE_REPORT.name(),
+					isMenuItemActionPossible(CONTAINER_GENERATE_REPORT.name(), container, user, params),
+					$("SearchView.metadataReportTitle"), null, -1, 700,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).generateReport(container, params));
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!filteredActionTypes.contains(CONTAINER_ADD_TO_SELECTION.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_ADD_TO_SELECTION.name(),
+					isMenuItemActionPossible(CONTAINER_ADD_TO_SELECTION.name(), container, user, params),
+					$("addToOrRemoveFromSelection.add"), FontAwesome.SHOPPING_BASKET, -1, 1200,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(container, params));
+
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!filteredActionTypes.contains(CONTAINER_REMOVE_FROM_SELECTION.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_REMOVE_FROM_SELECTION.name(),
+					isMenuItemActionPossible(CONTAINER_REMOVE_FROM_SELECTION.name(), container, user, params),
+					$("addToOrRemoveFromSelection.remove"), FontAwesome.SHOPPING_BASKET, -1, 1300,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).removeToSelection(container, params));
+
+			menuItemActions.add(menuItemAction);
+		}
+
 		return menuItemActions;
 	}
 
 	public boolean isMenuItemActionPossible(String menuItemActionType, ContainerRecord container, User user,
 											MenuItemActionBehaviorParams params) {
+		SessionContext sessionContext = params.getView().getSessionContext();
 		Record record = container.getWrappedRecord();
 
 		switch (ContainerRecordMenuItemActionType.valueOf(menuItemActionType)) {
@@ -170,6 +201,16 @@ public class ContainerMenuItemServices {
 				return containerRecordActionsServices.isDeleteActionPossible(record, user);
 			case CONTAINER_EMPTY_THE_BOX:
 				return containerRecordActionsServices.isEmptyTheBoxActionPossible(record, user);
+			case CONTAINER_GENERATE_REPORT:
+				return containerRecordActionsServices.isGenerateReportActionPossible(record, user);
+			case CONTAINER_ADD_TO_SELECTION:
+				return containerRecordActionsServices.isAddToSelectionActionPossible(record, user) &&
+					   (sessionContext.getSelectedRecordIds() == null ||
+						!sessionContext.getSelectedRecordIds().contains(record.getId()));
+			case CONTAINER_REMOVE_FROM_SELECTION:
+				return containerRecordActionsServices.isRemoveToSelectionActionPossible(record, user) &&
+					   sessionContext.getSelectedRecordIds() != null &&
+					   sessionContext.getSelectedRecordIds().contains(record.getId());
 			case CONTAINER_BORROW:
 				return containerRecordActionsServices.isBorrowActionPossible(record, user);
 			default:
@@ -200,6 +241,9 @@ public class ContainerMenuItemServices {
 		CONTAINER_ADD_TO_CART,
 		CONTAINER_DELETE,
 		CONTAINER_EMPTY_THE_BOX,
+		CONTAINER_GENERATE_REPORT,
+		CONTAINER_ADD_TO_SELECTION,
+		CONTAINER_REMOVE_FROM_SELECTION,
 		CONTAINER_BORROW,
 		CONTAINER_RETURN_REMAINDER,
 		CONTAINER_CHECK_IN

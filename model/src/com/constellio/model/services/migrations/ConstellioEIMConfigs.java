@@ -71,6 +71,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration TRASH_PURGE_DELAI;
 
 	public static final SystemConfiguration MAX_SELECTABLE_SEARCH_RESULTS;
+	public static final SystemConfiguration ALWAYS_SELECT_INTERVALS;
 	public static final SystemConfiguration WRITE_ZZRECORDS_IN_TLOG;
 
 	public static final SystemConfiguration SEARCH_SORT_TYPE;
@@ -253,6 +254,7 @@ public class ConstellioEIMConfigs {
 				.withDefaultValue(AutocompleteSplitCriteria.SPACE).withReIndexationRequired());
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(1000));
+		add(ALWAYS_SELECT_INTERVALS = advanced.createBooleanFalseByDefault("alwaysSelectIntervals"));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
 				.scriptedBy(WriteZZRecordsScript.class).whichIsHidden());
 		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));

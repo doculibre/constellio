@@ -1,14 +1,5 @@
 package com.constellio.app.modules.tasks.data.trees;
 
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -32,6 +23,15 @@ import com.constellio.model.services.taxonomies.FastContinueInfos;
 import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.model.services.users.UserServices;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class TaskFoldersTreeNodesDataProvider implements RecordTreeNodesDataProvider {
 	
@@ -87,7 +87,8 @@ public class TaskFoldersTreeNodesDataProvider implements RecordTreeNodesDataProv
 			FastContinueInfos infos) {
 		LogicalSearchCondition condition = from(Arrays.asList(rm.folderSchemaType(), rm.documentSchemaType()))
 				.where(rm.defaultFolderSchema().get(Folder.PARENT_FOLDER)).isEqualTo(recordId)
-				.orWhere(rm.defaultDocumentSchema().get(Document.FOLDER)).isEqualTo(recordId);
+				.orWhere(rm.defaultDocumentSchema().get(Document.FOLDER)).isEqualTo(recordId)
+				.orWhere(rm.defaultDocumentSchema().get(Document.LINKED_TO)).isContaining(Arrays.asList(recordId));
 
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(condition);
 

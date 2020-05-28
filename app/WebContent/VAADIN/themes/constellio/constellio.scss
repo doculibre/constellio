@@ -2986,6 +2986,14 @@ $popup-view-z-index: 3;
 
     }
 
+	.viewable-record-table-panel-with-index {
+		.viewable-record-table {
+	  		.v-slot-search-result-index {
+	  			display: block;
+	  		}
+		}
+	}
+
 	.collapsible-horizontal-splitpanel {
 		padding-bottom: 2px;
 		.v-panel {

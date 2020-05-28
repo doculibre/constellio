@@ -373,7 +373,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		String keystorePass = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE_PASSWORD);
 
-		List<PdfTronSignatureAnnotation> signatures = new ArrayList<>();
+		List<PdfSignatureAnnotation> signatures = new ArrayList<>();
 		try {
 			signatures = pdfTronParser.getSignatureAnnotations(xmlCurrentAnnotations);
 		} catch (PdfTronXMLException e) {
@@ -386,7 +386,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		Collections.sort(signatures);
 
 		File signedDocument = null;
-		for (PdfTronSignatureAnnotation signature : signatures) {
+		for (PdfSignatureAnnotation signature : signatures) {
 			String signaturePath = createTempFileFromBase64("signature", signature.getImageData());
 			if (StringUtils.isBlank(signaturePath)) {
 				throw new PdfSignatureException_CannotReadSignatureFileException();
