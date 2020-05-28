@@ -1,15 +1,19 @@
 package com.constellio.data.conf;
 
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.Duration;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import static com.constellio.data.conf.SolrServerType.HTTP;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 public class PropertiesDataLayerConfiguration extends PropertiesConfiguration implements DataLayerConfiguration {
 
@@ -289,6 +293,12 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	@Override
 	public CacheType getCacheType() {
 		return (CacheType) getEnum("dao.cache", CacheType.MEMORY);
+	}
+
+	@Override
+	public List<String> getSubvaults() {
+		String commaSeparatedSubvaults = getString("dao.contents.filesystem.subvaults", null);
+		return StringUtils.isBlank(commaSeparatedSubvaults) ? emptyList() : asList(commaSeparatedSubvaults.split(","));
 	}
 
 	@Override

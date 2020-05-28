@@ -208,10 +208,8 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	}
 
 
-
-
 	private void exportToXML(RecordExportOptions options) {
-		String filename = "exportedData-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+		String filename = "exportedData-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()) + ".zip";
 
 		ExportAudit newExportAudit = createNewExportAudit();
 		File zip = null;

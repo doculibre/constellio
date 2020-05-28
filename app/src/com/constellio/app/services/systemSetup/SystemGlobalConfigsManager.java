@@ -74,7 +74,9 @@ public class SystemGlobalConfigsManager implements StatefulService {
 	}
 
 	public String getExpectedLocalCacheVersion() {
-		return getGlobalProperties().get(EXPECTED_LOCAL_CACHE_VERSION);
+		String expectedLocalCacheVersion = getGlobalProperties().get(EXPECTED_LOCAL_CACHE_VERSION);
+
+		return expectedLocalCacheVersion == null ? "110e8400-e29b-11d4-a716-446655440000" : expectedLocalCacheVersion;
 	}
 
 	private Map<String, String> getGlobalProperties() {

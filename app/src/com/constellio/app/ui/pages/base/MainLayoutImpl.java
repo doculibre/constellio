@@ -9,12 +9,12 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.GuideButton;
 import com.constellio.app.ui.framework.buttons.GuideConfigButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
-import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.pages.base.ConstellioMenuImpl.ConstellioMenuButton;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
@@ -22,7 +22,6 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
@@ -77,7 +76,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private I18NHorizontalLayout staticFooterExtraComponentsLayout;
 	private Component staticFooterContent;
 	private BaseButton guideButton;
-	private WindowButton guideButtonConfig;
+	private WindowButton guideConfigButton;
 
 
 	public MainLayoutImpl(final AppLayerFactory appLayerFactory) {
@@ -137,27 +136,21 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		dragAndDropWrapper.setSizeFull();
 		dragAndDropWrapper.setDropHandler(userDocumentsWindow);
 
-		guideButton = new BaseButton($("guide"), new ThemeResource("images/icons/about.png")) {
+		guideButton = new GuideButton() {
 			@Override
-			protected void buttonClick(ClickEvent event) {
-				BaseViewImpl view = (BaseViewImpl) ConstellioUI.getCurrent().getViewChangeEvent().getNewView();
-				String guideUrl = presenter.getGuideUrl();
-				Page.getCurrent().open(guideUrl, "_blank", false);
+			protected String getGuideUrl() {
+				return presenter.getGuideUrl();
 			}
 		};
-		guideButton.addStyleName(ValoTheme.BUTTON_LINK);
-		guideButton.addStyleName("guide-button");
 		guideButton.setVisible(false);
-		guideButton.addExtension(new NiceTitle($("guide.details")));
 
-		guideButtonConfig = new GuideConfigButton($("MainLayout.guideConfigButton.caption"),
+		guideConfigButton = new GuideConfigButton($("MainLayout.guideConfigButton.caption"),
 				$("MainLayout.guideConfigButton.title", UI.getCurrent().getPage().getUriFragment()),
 				WindowConfiguration.modalDialog("600px",
 						null), appLayerFactory);
-		guideButtonConfig.addStyleName(ValoTheme.BUTTON_BORDERLESS_COLORED);
-		I18NHorizontalLayout guideLayout = new I18NHorizontalLayout();
-		guideLayout.addComponents(guideButton, guideButtonConfig);
 
+		I18NHorizontalLayout guideLayout = new I18NHorizontalLayout();
+		guideLayout.addComponents(guideButton, guideConfigButton);
 
 		addComponent(header);
 		addComponent(dragAndDropWrapper);
@@ -289,7 +282,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		String guideUrl = presenter.getGuideUrl((BaseView) newView);
 		boolean guideButtonVisible = StringUtils.isNotBlank(guideUrl);
 		guideButton.setVisible(guideButtonVisible);
-		guideButtonConfig.setVisible(presenter.hasGuideConfigurationPermission()); //  userHasCorrectRole()
+		guideConfigButton.setVisible(presenter.hasGuideConfigurationPermission()); //  userHasCorrectRole()
 	}
 
 	private void updateStaticFooterState() {
