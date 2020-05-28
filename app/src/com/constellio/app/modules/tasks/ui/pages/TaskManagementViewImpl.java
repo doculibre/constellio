@@ -17,6 +17,7 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.VerticalLayout;
@@ -62,6 +63,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	private String previousSelectedTab;
 	private FilterGenerator filterGenerator;
 	private TaskDetailsComponentFactory taskDetailsComponentFactory;
+	private Label delegatedTasksAlert;
 
 	enum Timestamp {
 		ALL, TODAY, WEEK, MONTH
@@ -146,8 +148,12 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 				presenter.tabSelected(primaryTabSheet.getSelectedTab().getId());
 			}
 		});
+		delegatedTasksAlert = presenter.getDelegatedTaskAlertState();
+		delegatedTasksAlert.addStyleName(ValoTheme.LABEL_COLORED);
+		delegatedTasksAlert.addStyleName(ValoTheme.LABEL_BOLD);
 
 		mainLayout.addComponent(actionButtonsLayout);
+		mainLayout.addComponent(delegatedTasksAlert);
 		mainLayout.setComponentAlignment(actionButtonsLayout, Alignment.TOP_RIGHT);
 		mainLayout.addComponents(primaryTabSheet);
 
