@@ -348,10 +348,9 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 									String visualSignaturePath,
 									PdfSignatureAnnotation signature)
 			throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
-		// TODO::JOLA (P3) --> Visually add "Certified by Constellio" and "username"
 
 		File ksFile = new File(keystorePath);
-		KeyStore keystore = KeyStore.getInstance("JKS");
+		KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
 		char[] pin = keystorePin.toCharArray();
 		keystore.load(new FileInputStream(ksFile), pin);
 
