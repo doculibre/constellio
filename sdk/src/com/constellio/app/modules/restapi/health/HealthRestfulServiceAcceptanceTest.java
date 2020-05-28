@@ -99,10 +99,19 @@ public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void testHeadHealthy() {
+	public void testHeadHealth() {
 		prepareSystemWithoutHyperTurbo(withZeCollection().withConstellioRMModule().withConstellioRestApiModule());
 
 		Response response = newWebTarget("v1/health").request().head();
+		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
+		assertThat(response.getHeaderString("Access-Control-Expose-Headers")).isNull();
+	}
+
+	@Test
+	public void testGetHealth() {
+		prepareSystemWithoutHyperTurbo(withZeCollection().withConstellioRMModule().withConstellioRestApiModule());
+
+		Response response = newWebTarget("v1/health").request().get();
 		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
 		assertThat(response.getHeaderString("Access-Control-Expose-Headers")).isNull();
 	}
