@@ -37,7 +37,6 @@ public class UserDao extends BaseDao {
 	}
 
 	public void setContent(String username, String metadataCode, String filename, InputStream fileStream) {
-
 		ContentVersionDataSummaryResponse response = contentManager.upload(fileStream, filename);
 		if (response == null) {
 			throw new SignatureInvalidContentException();
@@ -48,9 +47,19 @@ public class UserDao extends BaseDao {
 			throw new SignatureInvalidContentException();
 		}
 
+		if (!versionDataSummary.getMimetype().contains("image")) {
+			throw new SignatureInvalidContentException();
+		}
+
 		Content content = contentManager.createSystemContent(filename, versionDataSummary);
 		UserCredential userCredentials = userServices.getUser(username);
 		userCredentials.set(metadataCode, content);
+		userServices.addUpdateUserCredential(userCredentials);
+	}
+
+	public void deleteContent(String username, String metadataCode) {
+		UserCredential userCredentials = userServices.getUser(username);
+		userCredentials.set(metadataCode, null);
 		userServices.addUpdateUserCredential(userCredentials);
 	}
 }

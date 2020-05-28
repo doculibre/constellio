@@ -7,7 +7,6 @@ import com.constellio.app.modules.restapi.user.dto.UserSignatureContentDto;
 import com.constellio.app.modules.restapi.user.dto.UserSignatureDto;
 import com.constellio.app.modules.restapi.validation.ValidationService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
-import com.constellio.model.entities.security.global.UserCredential;
 
 import javax.inject.Inject;
 import java.io.InputStream;
@@ -28,41 +27,28 @@ public class UserService extends BaseService {
 		return userDao;
 	}
 
-	public UserSignatureContentDto getSignature(String host, String token, String serviceKey) {
-
+	public UserSignatureContentDto getContent(String host, String token, String serviceKey, String metadataCode) {
 		validationService.validateHost(host);
 		validationService.validateToken(token, serviceKey);
 
 		String username = validationDao.getUsernameByServiceKey(serviceKey);
-		return userDao.getContent(username, UserCredential.ELECTRONIC_SIGNATURE);
+		return userDao.getContent(username, metadataCode);
 	}
 
-	public void setSignature(String host, String token, String serviceKey, UserSignatureDto userSignature,
-							 InputStream fileStream) {
-
+	public void setContent(String host, String token, String serviceKey, String metadataCode,
+						   UserSignatureDto userSignature, InputStream fileStream) {
 		validationService.validateHost(host);
 		validationService.validateToken(token, serviceKey);
 
 		String username = validationDao.getUsernameByServiceKey(serviceKey);
-		userDao.setContent(username, UserCredential.ELECTRONIC_SIGNATURE, userSignature.getFilename(), fileStream);
+		userDao.setContent(username, metadataCode, userSignature.getFilename(), fileStream);
 	}
 
-	public UserSignatureContentDto getInitials(String host, String token, String serviceKey) {
-
+	public void deleteContent(String host, String token, String serviceKey, String metadataCode) {
 		validationService.validateHost(host);
 		validationService.validateToken(token, serviceKey);
 
 		String username = validationDao.getUsernameByServiceKey(serviceKey);
-		return userDao.getContent(username, UserCredential.ELECTRONIC_INITIALS);
-	}
-
-	public void setInitials(String host, String token, String serviceKey, UserSignatureDto userInitials,
-							InputStream fileStream) {
-
-		validationService.validateHost(host);
-		validationService.validateToken(token, serviceKey);
-
-		String username = validationDao.getUsernameByServiceKey(serviceKey);
-		userDao.setContent(username, UserCredential.ELECTRONIC_INITIALS, userInitials.getFilename(), fileStream);
+		userDao.deleteContent(username, metadataCode);
 	}
 }

@@ -3,7 +3,6 @@ package com.constellio.app.modules.restapi.user;
 import com.constellio.app.modules.restapi.BaseRestfulServiceAcceptanceTest;
 import com.constellio.app.modules.restapi.core.exception.InvalidAuthenticationException;
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
-import com.constellio.app.modules.restapi.core.util.HashingUtils;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredTokenException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
@@ -20,16 +19,11 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
-import java.io.FileInputStream;
 
-import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
-
-	private String expectedFilename;
-	private String expectedMimeType;
-	private String expectedChecksum;
+public class UserRestfulServiceDELETEInitialsAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
 
 	private ContentManager contentManager;
 
@@ -51,60 +45,28 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 
 		queryCounter.reset();
 		commitCounter.reset();
-
-		FileInputStream fileStream = new FileInputStream(file);
-		byte[] fileData = new byte[fileStream.available()];
-		fileStream.read(fileData);
-		fileStream.close();
-
-		expectedFilename = file.getName();
-		expectedMimeType = versionDataSummary.getMimetype();
-		expectedChecksum = HashingUtils.md5(fileData);
 	}
 
 	@Test
-	public void validateService()
-			throws Exception {
-
+	public void validateService() {
 		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
 		assertThat(userCredentials.getElectronicInitials()).isNotNull();
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).delete();
 
-		assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
-		assertThat(response.getMediaType().toString()).contains(expectedMimeType);
-		assertThat(response.getHeaderString("Content-Disposition")).isEqualTo("attachment; filename=\"" + expectedFilename + "\"");
+		assertThat(response.getStatus()).isEqualTo(NO_CONTENT.getStatusCode());
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
-		String checksum = HashingUtils.md5(readStreamEntity(response));
-		assertThat(checksum).isEqualTo(expectedChecksum);
-	}
-
-	@Test
-	public void validateServiceWithEmptyData() {
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
-		userCredentials.setElectronicInitials(null);
-		userServices.addUpdateUserCredential(userCredentials);
-
-		queryCounter.reset();
-		commitCounter.reset();
-
+		userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
 		assertThat(userCredentials.getElectronicInitials()).isNull();
-
-		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
-		assertThat(commitCounter.newCommitsCall().isEmpty());
-
-		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
 	}
 
 	@Test
 	public void whenCallingServiceWithoutAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
-				.header(HttpHeaders.HOST, host).get();
+				.header(HttpHeaders.HOST, host).delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -118,7 +80,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 	@Test
 	public void whenCallingServiceWithEmptyAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "").get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "").delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -132,7 +94,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 	@Test
 	public void whenCallingServiceWithInvalidSchemeInAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Basic ".concat(token)).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Basic ".concat(token)).delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -146,7 +108,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 	@Test
 	public void whenCallingServiceWithoutSchemeInAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, token).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, token).delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -160,7 +122,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 	@Test
 	public void whenCallingServiceWithExpiredToken() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(expiredToken)).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(expiredToken)).delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -173,7 +135,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 	@Test
 	public void whenCallingServiceWithInvalidToken() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(fakeToken)).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(fakeToken)).delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -186,7 +148,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 	@Test
 	public void whenCallingServiceWithoutServiceKeyParam() {
 		Response response = webTarget.request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -199,7 +161,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 	@Test
 	public void whenCallingServiceWithInvalidServiceKeyParam() {
 		Response response = webTarget.queryParam("serviceKey", fakeServiceKey).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -212,7 +174,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 	@Test
 	public void whenCallingServiceWithUnallowedHostHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
-				.header(HttpHeaders.HOST, fakeHost).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
+				.header(HttpHeaders.HOST, fakeHost).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 

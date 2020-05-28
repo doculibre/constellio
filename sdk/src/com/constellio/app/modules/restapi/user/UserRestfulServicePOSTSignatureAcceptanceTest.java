@@ -5,6 +5,7 @@ import com.constellio.app.modules.restapi.core.exception.InvalidAuthenticationEx
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
 import com.constellio.app.modules.restapi.core.util.HashingUtils;
 import com.constellio.app.modules.restapi.user.dto.UserSignatureDto;
+import com.constellio.app.modules.restapi.user.exception.SignatureInvalidContentException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredTokenException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
@@ -37,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class UserRestfulServicePOSTSignatureAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
 
 	private UserSignatureDto signatureToAdd;
-	private File fileToAdd;
+	private File fileToAdd, invalidFileToAdd;
 	private String expectedFilename;
 	private String expectedMimeType;
 	private String expectedChecksum;
@@ -53,6 +54,7 @@ public class UserRestfulServicePOSTSignatureAcceptanceTest extends BaseRestfulSe
 		webTarget = newWebTarget("v1/user/signature", new ObjectMapper());
 
 		fileToAdd = getTestResourceFile("imageTestFile.png");
+		invalidFileToAdd = getTestResourceFile("docTestFile.docx");
 		signatureToAdd = UserSignatureDto.builder().filename(fileToAdd.getName()).build();
 
 		FileInputStream fileStream = new FileInputStream(fileToAdd);
@@ -73,7 +75,7 @@ public class UserRestfulServicePOSTSignatureAcceptanceTest extends BaseRestfulSe
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
 				.post(entity(buildMultiPart(signatureToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
 
-		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall()).hasSize(1);
 
@@ -220,13 +222,61 @@ public class UserRestfulServicePOSTSignatureAcceptanceTest extends BaseRestfulSe
 		assertThat(error.getMessage()).isEqualTo(i18n.$(new UnallowedHostException(fakeHost).getValidationError()));
 	}
 
-	private MultiPart buildMultiPart(UserSignatureDto userSignature) {
-		return buildMultiPart(userSignature, null);
+	@Test
+	public void whenCallingServiceWithMissingSignaturePart() {
+		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(buildMultiPart(null, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "userSignature"));
+	}
+
+	@Test
+	public void whenCallingServiceWithMissingFilename() {
+		UserSignatureDto emptySignatureToAdd = UserSignatureDto.builder().build();
+
+		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(buildMultiPart(emptySignatureToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "userSignature.filename"));
+	}
+
+	@Test
+	public void whenCallingServiceWithMissingFile() {
+		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(buildMultiPart(signatureToAdd, null), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "file"));
+	}
+
+	@Test
+	public void whenCallingServiceWithInvalidFile() {
+		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(buildMultiPart(signatureToAdd, invalidFileToAdd), MULTIPART_FORM_DATA_TYPE));
+
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).isEqualTo(i18n.$(new SignatureInvalidContentException().getValidationError()));
 	}
 
 	private MultiPart buildMultiPart(UserSignatureDto userSignature, File file) {
 		FormDataMultiPart multiPart = new FormDataMultiPart();
-		multiPart.bodyPart(new FormDataBodyPart("userSignature", userSignature, APPLICATION_JSON_TYPE));
+		if (userSignature != null) {
+			multiPart.bodyPart(new FormDataBodyPart("userSignature", userSignature, APPLICATION_JSON_TYPE));
+		}
 		if (file != null) {
 			multiPart.bodyPart(new FileDataBodyPart("file", file, MediaType.APPLICATION_OCTET_STREAM_TYPE));
 		}
