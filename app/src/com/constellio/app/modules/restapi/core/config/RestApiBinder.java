@@ -15,6 +15,8 @@ import com.constellio.app.modules.restapi.taxonomy.TaxonomyService;
 import com.constellio.app.modules.restapi.taxonomy.dao.TaxonomyDao;
 import com.constellio.app.modules.restapi.url.UrlService;
 import com.constellio.app.modules.restapi.url.dao.UrlDao;
+import com.constellio.app.modules.restapi.user.UserService;
+import com.constellio.app.modules.restapi.user.dao.UserDao;
 import com.constellio.app.modules.restapi.validation.ValidationService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
@@ -33,6 +35,7 @@ public class RestApiBinder extends AbstractBinder {
 		bind(FolderService.class).to(FolderService.class).in(Singleton.class);
 		bind(CollectionService.class).to(CollectionService.class).in(Singleton.class);
 		bind(TaxonomyService.class).to(TaxonomyService.class).in(Singleton.class);
+		bind(UserService.class).to(UserService.class).in(Singleton.class);
 
 		bind(DocumentAdaptor.class).to(DocumentAdaptor.class).in(Singleton.class);
 		bind(FolderAdaptor.class).to(FolderAdaptor.class).in(Singleton.class);
@@ -44,6 +47,7 @@ public class RestApiBinder extends AbstractBinder {
 		bind(UrlDao.class).to(UrlDao.class).in(Singleton.class);
 		bind(CollectionDao.class).to(CollectionDao.class).in(Singleton.class);
 		bind(TaxonomyDao.class).to(TaxonomyDao.class).in(Singleton.class);
+		bind(UserDao.class).to(UserDao.class).in(Singleton.class);
 	}
 
 }
