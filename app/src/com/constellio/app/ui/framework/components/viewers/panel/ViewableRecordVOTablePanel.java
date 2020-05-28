@@ -40,6 +40,8 @@ import com.constellio.app.ui.pages.management.schemaRecords.DisplaySchemaRecordW
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -828,11 +830,30 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	public boolean isIndexVisible() {
-		return false;
+		boolean indexVisible;
+		if (recordVOContainer != null) {
+			ModelLayerFactory modelLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory();
+			int size = recordVOContainer.size();
+			int maxSelectableResults = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
+			if (getTableMode() == TableMode.LIST) {
+				boolean showResultsNumberingInListView = modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView();
+				if (isPagedInListMode()) {
+					boolean alwaysSelectIntervals = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.ALWAYS_SELECT_INTERVALS);
+					indexVisible = showResultsNumberingInListView || alwaysSelectIntervals || size > maxSelectableResults;
+				} else {
+					indexVisible = showResultsNumberingInListView || size > maxSelectableResults;
+				}
+			} else {
+				indexVisible = size > maxSelectableResults;
+			}
+		} else {
+			indexVisible = false;
+		}
+		return indexVisible;
 	}
 
 	public boolean isMenuBarColumn() {
-		return false;
+		return true;
 	}
 
 	public TableMode getTableMode() {

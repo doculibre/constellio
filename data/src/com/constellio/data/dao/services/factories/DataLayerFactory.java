@@ -482,7 +482,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	public void updateContentDao() {
 		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
-			contentDao = add(new FileSystemContentDao(this));
+			contentDao = add(new FileSystemContentDao(this, dataLayerConfiguration.getSubvaults()));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ContentDaoType");

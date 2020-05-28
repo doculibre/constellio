@@ -36,7 +36,14 @@ import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class LDAPUserSyncManager implements StatefulService {
 	private final static Logger LOGGER = LoggerFactory.getLogger(LDAPUserSyncManager.class);
@@ -231,8 +238,26 @@ public class LDAPUserSyncManager implements StatefulService {
 					try {
 						// Keep locally created groups of existing users
 						final List<String> newUserGlobalGroups = new ArrayList<>(userCredential.getGlobalGroups());
-						final UserCredential previousUserCredential = userServices
+						UserCredential previousUserCredential = userServices
 								.getUserCredential(userCredential.getUsername());
+						UserCredential userCredentialByDn = userServices.getUserCredentialByDN(ldapUser.getId());
+						if (previousUserCredential == null) {
+							previousUserCredential = userServices.getUserCredentialByDN(ldapUser.getId());
+						}
+						if (previousUserCredential != null && userCredentialByDn != null
+							&& !previousUserCredential.getId().equals(userCredentialByDn.getId())) {
+							LOGGER.info("Two users with same DN but different username. Id: " + ldapUser.getId() + ", Usernames : " + previousUserCredential.getUsername() + " and " + userCredentialByDn.getUsername());
+							try {
+								LOGGER.info(
+										"Attempting to delete username " + userCredentialByDn.getUsername());
+								userServices.physicallyRemoveUserCredentialAndUsers(userCredentialByDn);
+							} catch (Throwable t) {
+								LOGGER.info(
+										"Could not delete username " + userCredentialByDn.getUsername() + ", attempting to delete " + previousUserCredential.getUsername() + " instead");
+								userServices.physicallyRemoveUserCredentialAndUsers(previousUserCredential);
+								previousUserCredential = userCredentialByDn;
+							}
+						}
 						if (previousUserCredential != null) {
 							userCredential.setServiceKey(previousUserCredential.getServiceKey());
 							userCredential.setAccessTokens(previousUserCredential.getAccessTokens());
@@ -342,9 +367,15 @@ public class LDAPUserSyncManager implements StatefulService {
 	private void removeUsersExceptAdmins(List<String> removedUsersIds) {
 		for (String userId : removedUsersIds) {
 			if (!userId.equals(LDAPAuthenticationService.ADMIN_USERNAME)) {
-				if (!userServices.isAdminInAnyCollection(userId)) {
-					UserCredential userCredential = userServices.getUser(userId);
-					userServices.removeUserCredentialAndUser(userCredential);
+				try {
+					userServices.getUser(userId);
+
+					if (!userServices.isAdminInAnyCollection(userId)) {
+						UserCredential userCredential = userServices.getUser(userId);
+						userServices.removeUserCredentialAndUser(userCredential);
+					}
+				} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser e) {
+					// User no longer exists
 				}
 			}
 		}

@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.extensions.api;
 
+import com.constellio.app.modules.rm.extensions.api.StorageSpaceExtension.StorageSpaceExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
@@ -40,6 +41,21 @@ public class ContainerRecordExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+	public ExtensionBooleanResult isGenerateReportActionPossible(
+			ContainerRecordExtensionActionPossibleParams containerRecordExtensionActionPossibleParams) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ExtensionBooleanResult isGenerateReportActionPossible(
+			StorageSpaceExtensionActionPossibleParams storageSpaceExtensionActionPossibleParams) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ExtensionBooleanResult isAddSelectionActionPossible(
+			ContainerRecordExtensionActionPossibleParams containerRecordExtensionActionPossibleParams) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public static class ContainerRecordExtensionActionPossibleParams {
 		private ContainerRecord containerRecord;
 		private User user;
@@ -53,7 +69,7 @@ public class ContainerRecordExtension {
 			return containerRecord.getWrappedRecord();
 		}
 
-		public ContainerRecord getFolder() {
+		public ContainerRecord getContainerRecord() {
 			return containerRecord;
 		}
 

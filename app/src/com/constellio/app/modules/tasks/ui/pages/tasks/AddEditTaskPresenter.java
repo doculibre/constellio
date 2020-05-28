@@ -317,12 +317,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			}
 			boolean isPromptUser = false;
 
-			// this is in case of special validation that would only occur when saving the task.
 			Transaction transaction = new Transaction();
 			RecordUpdateOptions taskUpdateOptions = getTaskUpdateOptions(task, true);
 			transaction.setOptions(taskUpdateOptions);
 			transaction.addUpdate(task.getWrappedRecord());
-			recordServices().prepareRecords(transaction);
 
 			if (!isCompletedOrClosedOnInitialization && isCompleted(recordVO)) {
 				isPromptUser = rmModuleExtensions.isPromptUser(new PromptUserParam(task, new Action() {
@@ -340,8 +338,6 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			view.showErrorMessage(e.getMessage());
 		} catch (ValidationException e) {
 			ErrorDisplayUtil.showBackendValidationException(e.getValidationErrors());
-		} catch (RecordServicesException.ValidationException e) {
-			ErrorDisplayUtil.showBackendValidationException(e.getErrors());
 		}
 	}
 
