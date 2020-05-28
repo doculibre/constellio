@@ -113,11 +113,13 @@ $(function () {
             licenseKey: license,
             path: '/constellio/VAADIN/themes/constellio/pdftron/lib',
             initialDoc: documentContent,
+            filename: fileName,
         }
     } else {
         mapParams = {
             path: '/constellio/VAADIN/themes/constellio/pdftron/lib',
             initialDoc: documentContent,
+            filename: fileName,
         }
     }
 
@@ -128,6 +130,7 @@ $(function () {
 
         instance.setAnnotationUser(name);
         instance.setAdminUser(admin);
+
         instance.setReadOnly(isReadOnly);
         instance.setLanguage(language);
         annotationEnabled = true;

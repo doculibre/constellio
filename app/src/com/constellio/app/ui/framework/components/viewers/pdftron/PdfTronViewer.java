@@ -462,6 +462,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		toExecute.append("license=" + pdfTronLicense + ";");
 		toExecute.append("isReadOnly=" + isViewerInReadOnly + ";");
 		toExecute.append("language='" + getPdfTronLanguageCode() + "';");
+		toExecute.append("fileName='" + pdfTronPresenter.getContentName() + "';");
 
 		if (searchTerm != null) {
 			toExecute.append("searchTerm='" + searchTerm + "';");

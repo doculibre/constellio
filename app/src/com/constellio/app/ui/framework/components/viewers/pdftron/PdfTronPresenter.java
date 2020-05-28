@@ -114,6 +114,10 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		return recordId;
 	}
 
+	public String getContentName() {
+		return contentVersionVO.getFileName();
+	}
+
 	public String getVersion() {
 		return contentVersionVO.getVersion();
 	}
