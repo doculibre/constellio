@@ -11,11 +11,11 @@ function SignatureDataStore(config) {
 	if (this.getSignatureServiceUrl) {
 		this.callGetSignatureImageUrlService(false, function(signatureImageUrl) {
 			if (signatureImageUrl) {
-				self.setSignatureImageUrl(signatureImageUrl);
+				self.setSignatureImageUrl(signatureImageUrl, true);
 			}
 			self.callGetSignatureImageUrlService(true, function(initialsImageUrl) {
 				if (initialsImageUrl) {
-					self.setInitialsImageUrl(initialsImageUrl);
+					self.setInitialsImageUrl(initialsImageUrl, true);
 				}
 			});
 		});
@@ -32,17 +32,22 @@ SignatureDataStore.prototype.callGetSignatureImageUrlService = function(initials
 	.fail(function(jqXHR, textStatus, errorThrown) {
 		if (fail) {
 			fail(textStatus, errorThrown);
+		} else {
+			console.error("Error while getting user signature: " + textStatus);
+			console.error(errorThrown);
 		}
 	});  
 };	
 
-SignatureDataStore.prototype.callSaveSignatureImageUrlService = function(imageUrl, initials, success) {
+SignatureDataStore.prototype.callSaveSignatureImageUrlService = function(imageUrl, initials, success, fail) {
 	var adjustedUrl = this.addInitialsParam(this.saveSignatureServiceUrl, initials);
 	var imageUrlParam = imageUrl;
 	$.ajaxQueue({
-		method: "POST",
 		url: adjustedUrl,
-		data: imageUrlParam
+		data: imageUrlParam,
+		method: "POST",
+		contentType: "application/json; charset=utf-8",
+		dataType: "json"
 	})
 	.done(function(data, textStatus, jqXHR) {
 		if (success) {
@@ -52,6 +57,9 @@ SignatureDataStore.prototype.callSaveSignatureImageUrlService = function(imageUr
 	.fail(function(jqXHR, textStatus, errorThrown) {
 		if (fail) {
 			fail(textStatus, errorThrown);
+		} else {
+			console.error("Error while saving user signature: " + textStatus);
+			console.error(errorThrown);
 		}
 	});  
 };	
@@ -63,7 +71,8 @@ SignatureDataStore.prototype.addInitialsParam = function(serviceUrl, initials) {
 	} else {
 		result += "?";
 	}
-	result += "intials=" + initials;
+	result += "initials=" + initials;
+	return result;
 };
 
 SignatureDataStore.prototype.clear = function() {
@@ -75,9 +84,9 @@ SignatureDataStore.prototype.getSignatureImageUrl = function() {
 	return this.getStorage().getItem("signatureImageUrl");
 };
 
-SignatureDataStore.prototype.setSignatureImageUrl = function(signatureImageUrl) {
+SignatureDataStore.prototype.setSignatureImageUrl = function(signatureImageUrl, noServiceCall) {
 	this.getStorage().setItem("signatureImageUrl", signatureImageUrl);
-	if (this.saveSignatureServiceUrl) {
+	if (this.saveSignatureServiceUrl && !noServiceCall) {
 		this.callSaveSignatureImageUrlService(signatureImageUrl, false);
 	}
 };
@@ -93,9 +102,9 @@ SignatureDataStore.prototype.getInitialsImageUrl = function() {
 	return this.getStorage().getItem("initialsImageUrl");
 };
 
-SignatureDataStore.prototype.setInitialsImageUrl = function(initialsImageUrl) {
+SignatureDataStore.prototype.setInitialsImageUrl = function(initialsImageUrl, noServiceCall) {
 	this.getStorage().setItem("initialsImageUrl", initialsImageUrl);	
-	if (this.saveSignatureServiceUrl) {
+	if (this.saveSignatureServiceUrl && !noServiceCall) {
 		this.callSaveSignatureImageUrlService(initialsImageUrl, true);
 	}
 };

@@ -13,10 +13,13 @@ function PDFAnnotationsManager(config, pdfViewerElement) {
     }
     
     var self = this;
-    // pagechange, pagerendered
-	window.addEventListener("fullscreenchange", function(e) {
-        console.info("fullscreenchange");
-        //self.refreshDropZones();
+	window.addEventListener("pagerendered", function(e) {
+        // Necessary because a pagechange event will not be sent when the first page is loaded with the document
+        if (self.currentPage == 1) {
+            if (!self.isDropZoneManager(self.currentPage)) {
+                self.newDropZoneManager(self.currentPage);
+            }
+        }
     });    
 	document.addEventListener("pagechange", function(e) {
         var pageNumber = e.pageNumber;
@@ -33,7 +36,7 @@ PDFAnnotationsManager.prototype.getCurrentPage = function() {
 PDFAnnotationsManager.prototype.setCurrentPage = function(currentPage) {
     this.currentPage = currentPage;
     if (!this.isDropZoneManager(currentPage)) {
-        this.newDropZoneManager(pageNumber);
+        this.newDropZoneManager(currentPage);
     }
 };
 
@@ -128,7 +131,8 @@ PDFAnnotationsManager.prototype.certifyPDFSignatures = function() {
     console.info("Pre PDF signatures certified!");
     this.pdfAnnotationsServices.certifyPDFSignatures(this.pdfAnnotations, 
         function() {
-            console.info("PDF signatures certified!");
+            // TODO i10n
+            alert("PDF successfully signed.");
             location.reload();
         },
         function(textStatus, errorThrown) {

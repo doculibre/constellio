@@ -24,6 +24,7 @@ public class CertifyPdfJSSignaturesServlet extends BasePdfJSServlet {
 		PdfJSAnnotations annotations = getAnnotationsFromRequest(request);
 		try {
 			pdfJSServices.signAndCertifyPdf(record, metadata, user, annotations);
+			response.setStatus(HttpServletResponse.SC_OK);
 		} catch (PdfSignatureException e) {
 			throw new ServletException(e);
 		}

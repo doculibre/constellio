@@ -1,5 +1,20 @@
 package com.constellio.app.api.pdf.pdfjs.servlets;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.UUID;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.json.JSONObject;
+
 import com.constellio.app.api.HttpServletRequestAuthenticator;
 import com.constellio.app.api.pdf.pdfjs.services.PdfJSServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -19,16 +34,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
-import org.apache.commons.lang3.StringUtils;
-import org.json.JSONObject;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
 
 public abstract class BasePdfJSServlet extends HttpServlet {
 
@@ -78,6 +83,7 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 		String recordId = request.getParameter("recordId");
 		String metadataCode = request.getParameter("metadataCode");
 		String localeCode = request.getParameter("locale");
+		String accessId = request.getParameter("accessId");
 
 		ModelLayerFactory modelLayerFactory = getAppLayerFactory().getModelLayerFactory();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
@@ -99,9 +105,9 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 
 				MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
 				MetadataSchema userSchema = types.getDefaultSchema(User.SCHEMA_TYPE);
-				Record tempUserRecord = recordServices.newRecordWithSchema(userSchema);
+				Record tempUserRecord = recordServices.newRecordWithSchema(userSchema, UUID.randomUUID().toString());
 				Roles roles = rolesManager.getCollectionRoles(collection);
-				ExternalAccessUrl externalAccessUrl = null;
+				ExternalAccessUrl externalAccessUrl = new ExternalAccessUrl(recordServices.getDocumentById(accessId), types);
 				user = new ExternalAccessUser(tempUserRecord, types, roles, externalAccessUrl);
 			} else {
 				user = null;
@@ -137,17 +143,9 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 	}
 
 	protected String getJSONFromRequest(HttpServletRequest request) throws IOException {
-		String result = null;
-		for (String paramName : request.getParameterMap().keySet()) {
-			String paramValue = request.getParameter(paramName);
-			if (paramName.startsWith("{")) {
-				if (StringUtils.isEmpty(paramValue)) {
-					result = paramName;
-				} else if (paramValue.endsWith("}")) {
-					result = paramName + paramValue;
-				}
-				break;
-			}
+		String result;
+		try (InputStream in = request.getInputStream()) {
+			result = IOUtils.toString(in, "UTF-8");
 		}
 		return result;
 	}
@@ -160,6 +158,7 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 
 	protected void writeResponse(String content, HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
+		response.setStatus(HttpServletResponse.SC_OK);
 		PrintWriter writer = response.getWriter();
 		writer.write(content);
 		writer.flush();

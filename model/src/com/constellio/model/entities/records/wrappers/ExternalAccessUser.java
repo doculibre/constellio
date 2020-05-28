@@ -14,6 +14,10 @@ public class ExternalAccessUser extends User {
 		this.externalAccessUrl = externalAccessUrl;
 	}
 
+	public ExternalAccessUrl getExternalAccessUrl() {
+		return externalAccessUrl;
+	}
+
 	@Override
 	public String getUsername() {
 		return externalAccessUrl.getFullname();

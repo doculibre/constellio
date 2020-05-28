@@ -24,7 +24,8 @@ public class SavePdfJSSignatureServlet extends BasePdfJSServlet {
 
 		String signatureBase64 = getJSONFromRequest(request);
 		try {
-			pdfJSServices.saveSignatureBase64(user, signatureBase64, initials);
+			pdfJSServices.saveSignatureBase64Url(user, signatureBase64, initials);
+			response.setStatus(HttpServletResponse.SC_OK);
 		} catch (RecordServicesException e) {
 			throw new ServletException(e);
 		}

@@ -62,13 +62,18 @@ public class PdfJSServices {
 		this.pdfSignatureServices = new PdfSignatureServices(this.appLayerFactory);
 	}
 
-	public String getViewerUrl(Record record, Metadata metadata, User user, Locale locale, String serviceKey,
-							   String token) {
-		return getViewerUrl(record, metadata, user, locale, null, null, serviceKey, token);
+	public String getExternalViewerUrl(Record record, Metadata metadata, User user, Locale locale, String serviceKey,
+							   String token, boolean includeConstellioUrl) {
+		return getViewerUrl(record, metadata, user, locale, null, null, serviceKey, token, includeConstellioUrl);
 	}
 
-	public String getViewerUrl(Record record, Metadata metadata, User user, Locale locale, String contentPathPrefix,
+	public String getInternalViewerUrl(Record record, Metadata metadata, User user, Locale locale, String contentPathPrefix,
 							   String contentPreviewPath, String serviceKey, String token) {
+		return getViewerUrl(record, metadata, user, locale, contentPathPrefix, contentPreviewPath, serviceKey, token, false);
+	}
+
+	private String getViewerUrl(Record record, Metadata metadata, User user, Locale locale, String contentPathPrefix,
+							   String contentPreviewPath, String serviceKey, String token, boolean includeConstellioUrl) {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 
@@ -101,6 +106,11 @@ public class PdfJSServices {
 			contentPreviewParams.append("&preview=true");
 			contentPreviewParams.append("&serviceKey=" + serviceKey);
 			contentPreviewParams.append("&token=" + token);
+			if (user instanceof ExternalAccessUser) {
+				ExternalAccessUser externalAccessUser = (ExternalAccessUser) user;
+				contentPreviewParams.append("&accessId=" + externalAccessUser.getExternalAccessUrl().getId());
+			}
+			
 			Content content = record.get(metadata);
 			String filename = content.getCurrentVersion().getFilename();
 			if (!StringUtils.endsWith(filename, ".pdf")) {
@@ -126,8 +136,13 @@ public class PdfJSServices {
 		//		viewerParams.append("&serviceKey=" + serviceKey);
 		//		viewerParams.append("&token=" + token);
 		viewerParams.append("&file=" + contentPreviewPath);
-		String pdfJSViewerUrl = constellioUrl + "VAADIN/themes/constellio/pdfjs/web/viewer.html?" + viewerParams;
-		return pdfJSViewerUrl;
+		StringBuilder pdfJSViewerUrl = new StringBuilder();
+		if (includeConstellioUrl) {
+			pdfJSViewerUrl.append(constellioUrl);
+		}
+		pdfJSViewerUrl.append("VAADIN/themes/constellio/pdfjs/web/viewer.html?");
+		pdfJSViewerUrl.append(viewerParams);
+		return pdfJSViewerUrl.toString();
 	}
 
 	private String getCallbackParams(Record record, Metadata metadata, User user, String localeCode, String serviceKey,
@@ -144,6 +159,10 @@ public class PdfJSServices {
 			params.append("&recordId=" + record.getId());
 			params.append("&metadataCode=" + metadata.getCode());
 		}
+		if (user instanceof ExternalAccessUser) {
+			ExternalAccessUser externalAccessUser = (ExternalAccessUser) user;
+			params.append("&accessId=" + externalAccessUser.getExternalAccessUrl().getId());
+		}
 		return params.toString();
 	}
 
@@ -151,8 +170,8 @@ public class PdfJSServices {
 		return record != null && user.hasWriteAccess().on(record);
 	}
 
-	public String getSignatureBase64(User user, boolean initials) {
-		String signatureBase64;
+	public String getSignatureBase64Url(User user, boolean initials) {
+		String signatureBase64Url;
 
 		UserServices userServices = modelLayerFactory.newUserServices();
 		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
@@ -162,44 +181,62 @@ public class PdfJSServices {
 		if (signatureContent != null) {
 			ContentVersion signatureContentVersion = signatureContent.getCurrentVersion();
 			String hash = signatureContentVersion.getHash();
+			String signatureExtension = FilenameUtils.getExtension(signatureContentVersion.getFilename()).toLowerCase();
 			try (InputStream in = contentManager.getContentInputStream(hash, getClass().getSimpleName() + ".getSignatureBase64")) {
 				byte[] imageBytes = ioServices.readBytes(in);
-				signatureBase64 = new String(Base64.getEncoder().encodeToString(imageBytes));
+				String urlFirstPart = "data:image/" + signatureExtension +";base64,";
+				signatureBase64Url = urlFirstPart + new String(Base64.getEncoder().encodeToString(imageBytes));
 			} catch (ContentManagerRuntimeException_NoSuchContent e) {
 				log.warn("No signature for user " + user.getUsername(), e);
-				signatureBase64 = null;
+				signatureBase64Url = null;
 			} catch (IOException e) {
 				log.warn("Problem getting signature for user " + user.getUsername(), e);
-				signatureBase64 = null;
+				signatureBase64Url = null;
 			}
 		} else {
-			signatureBase64 = null;
+			signatureBase64Url = null;
 		}
-		return signatureBase64;
+		return signatureBase64Url;
 	}
 
-	public void saveSignatureBase64(User user, String signatureBase64, boolean initials)
+	public void saveSignatureBase64Url(User user, String signatureBase64Url, boolean initials)
 			throws IOException, RecordServicesException {
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		UserServices userServices = modelLayerFactory.newUserServices();
-		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
+		if (StringUtils.isNotBlank(signatureBase64Url)) {
+			RecordServices recordServices = modelLayerFactory.newRecordServices();
+			UserServices userServices = modelLayerFactory.newUserServices();
+			IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 
-		String filename = initials ? "initials.png" : "signature.png";
-		byte[] data = Base64.getDecoder().decode(signatureBase64);
-		try (InputStream in = ioServices.newBufferedByteArrayInputStream(data, getClass().getSimpleName() + ".saveSignatureBase64")) {
-			ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(in, filename);
+			String filename = initials ? "initials.png" : "signature.png";
 
-			UserCredential userCredential = userServices.getUserCredential(user.getUsername());
-			Content signatureContent = initials ? userCredential.getElectronicInitials() : userCredential.getElectronicSignature();
-			if (signatureContent == null) {
-				signatureContent = contentManager.createMajor(user, filename, uploadResponse.getContentVersionDataSummary());
-				if (initials) {
-					userCredential.setElectronicInitials(signatureContent);
-				} else {
-					userCredential.setElectronicSignature(signatureContent);
-				}
+			String[] parts = signatureBase64Url.split(",");
+			if (parts.length != 2) {
+				throw new RuntimeException("Invalid Base64: " + signatureBase64Url);
 			}
-			recordServices.update(userCredential, user);
+
+			String encodedText;
+			try {
+				encodedText = new String(parts[1].getBytes("UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
+			}
+			byte[] data = Base64.getDecoder().decode(encodedText);
+			try (InputStream in = ioServices.newBufferedByteArrayInputStream(data, getClass().getSimpleName() + ".saveSignatureBase64")) {
+				ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(in, filename);
+
+				UserCredential userCredential = userServices.getUserCredential(user.getUsername());
+				Content signatureContent = initials ? userCredential.getElectronicInitials() : userCredential.getElectronicSignature();
+				if (signatureContent == null) {
+					signatureContent = contentManager.createMajor(user, filename, uploadResponse.getContentVersionDataSummary());
+					if (initials) {
+						userCredential.setElectronicInitials(signatureContent);
+					} else {
+						userCredential.setElectronicSignature(signatureContent);
+					}
+				}
+				recordServices.update(userCredential, user);
+			}
+		} else {
+			removeSignature(user, initials);
 		}
 	}
 

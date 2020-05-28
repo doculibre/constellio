@@ -2111,17 +2111,24 @@ function webViewerInitialized() {
       .done(function(data, textStatus, jqXHR) {
         var customAnnotationsConfig = JSON.parse(data);
         PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager(customAnnotationsConfig, null);
+
+        var signatureDataStore = new SignatureDataStore(customAnnotationsConfig);
+        PDFViewerApplication.signatureDataStore = signatureDataStore;
       })
       .fail(function(jqXHR, textStatus, errorThrown) {
         console.error("Error while trying to get pdf annotations config");
         console.error(errorThrown);
         PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager();
+
+        var signatureDataStore = new SignatureDataStore();
+        PDFViewerApplication.signatureDataStore = signatureDataStore;
       });  
     } else {
       PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager();
+
+      var signatureDataStore = new SignatureDataStore();
+      PDFViewerApplication.signatureDataStore = signatureDataStore;
     }
-    var signatureDataStore = new SignatureDataStore(appConfig.annotationsConfig);
-    PDFViewerApplication.signatureDataStore = signatureDataStore;
   }
   
   if (PDFViewerApplication.viewerPrefs['pdfBugEnabled']) {

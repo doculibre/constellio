@@ -199,9 +199,9 @@ public class DocumentViewer extends CustomComponent {
 					Record record = presenterService.getRecord(recordVO.getId());
 					MetadataSchema metadataSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
 					Metadata metadata = metadataSchema.get(metadataCode);
-					viewerUrl = pdfJSServices.getViewerUrl(record, metadata, user, locale, contentPathPrefix, contentPathPrefix + contentURL, null, null);
+					viewerUrl = pdfJSServices.getInternalViewerUrl(record, metadata, user, locale, contentPathPrefix, contentPathPrefix + contentURL, null, null);
 				} else {
-					viewerUrl = pdfJSServices.getViewerUrl(null, null, user, locale, contentPathPrefix, contentPathPrefix + contentURL, null, null);
+					viewerUrl = pdfJSServices.getInternalViewerUrl(null, null, user, locale, contentPathPrefix, contentPathPrefix + contentURL, null, null);
 				}
 
 				String iframeHTML = "<iframe src = \"" + viewerUrl + "\" width=\"100%\" height=\"100%\" allowfullscreen webkitallowfullscreen></iframe>";

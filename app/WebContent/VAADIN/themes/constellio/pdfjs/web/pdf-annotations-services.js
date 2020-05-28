@@ -77,20 +77,48 @@ PDFAnnotationsServices.prototype.getPDFAnnotations = function(success, fail) {
 	}
 };
 
+PDFAnnotationsServices.prototype.getParamsAsJSON = function(url) {
+	var json = {};
+	var indexOfQuestionMark = url.indexOf("?");
+	if (indexOfQuestionMark != -1) {
+		var queryString = url.substring(indexOfQuestionMark + 1, url.length);
+		var paramNamesAndValues = queryString.split('&');
+		for (var i = 0; i < paramNamesAndValues.length; i++) {
+			var paramNameAndValue = paramNamesAndValues[i].split('=');
+			var paramName = paramNameAndValue[0];
+			var paramValue = paramNameAndValue[1];
+			json[paramName] = paramValue;
+		}
+	}
+	return json;
+};
+
+PDFAnnotationsServices.prototype.getUrlWithoutParams = function(url) {
+	var indexOfQuestionMark = url.indexOf("?");
+	if (indexOfQuestionMark != -1) {
+		url = url.substring(0, indexOfQuestionMark);
+	}	
+	return url;
+};	
+
 PDFAnnotationsServices.prototype.savePDFAnnotations = function(pdfAnnotations, success, fail) {
 	var self = this; 
-	var pdfAnnotationsJson = {
-		apiVersion: pdfAnnotations.apiVersion,
-		version: pdfAnnotations.version,
-		pagesAndAnnotations: pdfAnnotations.pagesAndAnnotations
-	};
-	var stringifiedPdfAnnotations = JSON.stringify(pdfAnnotationsJson);
+
 	if (this.saveServiceUrl) {
+		var pdfAnnotationsJson = {
+			apiVersion: "" + pdfAnnotations.apiVersion,
+			version: "" + pdfAnnotations.version,
+			pagesAndAnnotations: pdfAnnotations.pagesAndAnnotations
+		};
+		var stringifiedPdfAnnotations = JSON.stringify(pdfAnnotationsJson);
+
 		$.ajaxQueue({
+			url: this.saveServiceUrl,
+			data: stringifiedPdfAnnotations,
 			method: "POST",
-			contentType: "application/x-www-form-urlencoded;charset=UTF-8",
-			url: self.saveServiceUrl,
-			data: stringifiedPdfAnnotations
+			contentType: "application/json; charset=utf-8",
+			dataType: "json",
+			processData: false
 		})
 		.done(function(data, textStatus, jqXHR) {
 			var newVersion = data;
@@ -123,23 +151,21 @@ PDFAnnotationsServices.prototype.certifyPDFSignatures = function(pdfAnnotations,
 	if (!atLeastOneSignatureAnnotation) {
 		// TODO i10n
 		alert("No signature annotation!");
-	} else {
-		// TODO : Pop window with progress bar
-		alert("Certified!!!");
 	}
 
 	if (this.certifyServiceUrl) {
 		var pdfAnnotationsJson = {
-			apiVersion: pdfAnnotations.apiVersion,
-			version: pdfAnnotations.version,
+			apiVersion: "" + pdfAnnotations.apiVersion,
+			version: "" + pdfAnnotations.version,
 			pagesAndAnnotations: pdfAnnotations.pagesAndAnnotations
 		};
 		var stringifiedPdfAnnotations = JSON.stringify(pdfAnnotationsJson);
 		$.ajaxQueue({
 			url: self.certifyServiceUrl,
+			data: stringifiedPdfAnnotations,
 			method: "POST",
-			contentType: "application/x-www-form-urlencoded;charset=UTF-8",
-			data: stringifiedPdfAnnotations
+			contentType: "application/json; charset=utf-8",
+			dataType: "json"
 		})
 		.done(function(data, textStatus, jqXHR) {
 			success(data);			

@@ -22,11 +22,11 @@ public class GetPdfJSSignatureServlet extends BasePdfJSServlet {
 
 		PdfJSServices pdfJSServices = newPdfJSServices();
 
-		String signatureBase64 = pdfJSServices.getSignatureBase64(user, initials);
-		if (StringUtils.isBlank(signatureBase64)) {
-			signatureBase64 = "";
+		String signatureBase64Url = pdfJSServices.getSignatureBase64Url(user, initials);
+		if (StringUtils.isBlank(signatureBase64Url)) {
+			signatureBase64Url = "";
 		}
-		writeResponse(signatureBase64, request, response);
+		writeResponse(signatureBase64Url, request, response);
 	}
 
 }

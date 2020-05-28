@@ -25,6 +25,7 @@ public class GetPdfJSAnnotationsServlet extends BasePdfJSServlet {
 			String jsonString = annotations.getJSONObject().toString(4);
 			writeResponse(jsonString, request, response);
 		}
+		response.setStatus(HttpServletResponse.SC_OK);
 	}
 
 }
