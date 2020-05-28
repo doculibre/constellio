@@ -97,6 +97,8 @@ public class RMPermissionsTo {
 
 	public static final String VIEW_SYSTEM_FILENAME = permission(DOCUMENT_GROUP, "viewSystemFilename");
 
+	public static final String GENERATE_EXTERNAL_SIGNATURE_URL = permission(DOCUMENT_GROUP, "generateExternalSignatureUrl");
+
 	// Decommissioning
 	private static final String DECOMMISSIONING = "decommissioning";
 

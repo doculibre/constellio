@@ -7,7 +7,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.QueryCounter;
-import org.joda.time.LocalDateTime;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,7 +34,7 @@ public class ExternalAccessUrlAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		ExternalAccessUrl access = recordsServices.newExternalAccessUrlWithId("zeAccessId")
-				.setExpirationDate(LocalDateTime.now())
+				.setExpirationDate(LocalDate.now())
 				.setStatus(ExternalAccessUrlStatus.OPEN)
 				.setToken("zeToken")
 				.setAccessRecord("zeRecordId");
@@ -51,7 +51,7 @@ public class ExternalAccessUrlAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		ExternalAccessUrl access = recordsServices.newSignatureExternalAccessUrlWithId("zeAccessId")
-				.setExpirationDate(LocalDateTime.now())
+				.setExpirationDate(LocalDate.now())
 				.setStatus(ExternalAccessUrlStatus.OPEN)
 				.setToken("zeToken")
 				.setAccessRecord("zeRecordId");
@@ -70,12 +70,12 @@ public class ExternalAccessUrlAcceptanceTest extends ConstellioTest {
 
 		assertThat(recordsServices.externalAccessUrl.schemaType().getCacheType()).isEqualTo(FULLY_CACHED);
 		assertThat(recordsServices.externalAccessUrl.schemaType().getLabel(Language.French)).isEqualTo("Url d'accès externe");
-		LocalDateTime now = LocalDateTime.now();
+		LocalDate now = LocalDate.now();
 
 		givenTimeIs(now);
 
 		ExternalAccessUrl access1 = recordsServices.newSignatureExternalAccessUrlWithId("access1")
-				.setExpirationDate(now.minusSeconds(1))
+				.setExpirationDate(now.minusDays(1))
 				.setStatus(ExternalAccessUrlStatus.OPEN)
 				.setToken("token1")
 				.setAccessRecord("zeRecordId");
@@ -87,7 +87,7 @@ public class ExternalAccessUrlAcceptanceTest extends ConstellioTest {
 				.setAccessRecord("zeRecordId");
 
 		ExternalAccessUrl access3 = recordsServices.newSignatureExternalAccessUrlWithId("access3")
-				.setExpirationDate(now.plusSeconds(1))
+				.setExpirationDate(now.plusDays(1))
 				.setStatus(ExternalAccessUrlStatus.OPEN)
 				.setToken("token1")
 				.setAccessRecord("zeRecordId");

@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.io.ConversionManager;
@@ -17,7 +18,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -32,6 +32,7 @@ public class DocumentRecordActionsServices {
 	private AuthorizationsServices authorizationService;
 	private String collection;
 	private RecordServices recordServices;
+	private ConversionManager conversionManager;
 	private transient ModelLayerCollectionExtensions modelLayerCollectionExtensions;
 
 	public static final String MSG_FILE_EXT = "msg";
@@ -43,6 +44,7 @@ public class DocumentRecordActionsServices {
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.authorizationService = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 		this.modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
+		conversionManager = ConstellioFactories.getInstance().getDataLayerFactory().getConversionManager();
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
 
@@ -316,6 +318,16 @@ public class DocumentRecordActionsServices {
 		} else {
 			return false;
 		}
+	}
+
+	public boolean isGenerateExternalSignatureUrlActionPossible(Record record, User user) {
+		Document document = rm.wrapDocument(record);
+
+		return user.hasWriteAccess().on(record) &&
+			   user.has(RMPermissionsTo.GENERATE_EXTERNAL_SIGNATURE_URL).globally() &&
+			   document.hasContent() &&
+			   FilenameUtils.isExtension(document.getContent().getCurrentVersion().getFilename(),
+					   conversionManager.getAllSupportedExtensions());
 	}
 
 	public boolean isCheckInActionPossible(Record record, User user) {
