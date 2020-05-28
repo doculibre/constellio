@@ -5,7 +5,11 @@ import com.constellio.app.extensions.records.RecordNavigationExtensionUtils;
 import com.constellio.app.extensions.records.params.NavigationParams;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
@@ -152,7 +156,8 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 					public void buttonClick(ClickEvent event) {
 						if (isRecordInTrash) {
 							RecordNavigationExtensionUtils.showMessage(errorMessage);
-						} else if (!isOpenInViewer(referenceDisplay)) {
+							//						} else if (!isOpenInViewer(referenceDisplay)) {
+						} else {	
 							navigateToView(navigationParams.setOpenInNewTab(referenceDisplay.isOpenLinkInNewTab()));
 						}
 					}
