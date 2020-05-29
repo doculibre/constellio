@@ -1,20 +1,19 @@
 package com.constellio.app.services.signature;
 
+import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException;
+import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotCreateTempFileException;
+import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotReadKeystoreFileException;
+import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotReadSignatureFileException;
+import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotReadSignedFileException;
+import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotReadSourceFileException;
+import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotSaveNewVersionException;
+import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotSignDocumentException;
+import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_NothingToSignException;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
-import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException;
-import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotCreateTempFileException;
-import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotReadKeystoreFileException;
-import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotReadSignatureFileException;
-import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotReadSignedFileException;
-import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotReadSourceFileException;
-import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotSaveNewVersionException;
-import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_CannotSignDocumentException;
-import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronSignatureException.PdfTronSignatureException_NotingToSignException;
-import com.constellio.app.ui.framework.components.viewers.pdftron.signature.CreateVisibleSignature;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
@@ -31,13 +30,14 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.pdftron.AnnotationLockManager;
-import com.constellio.model.services.pdftron.PdfSignatureAnnotation;
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
-import com.constellio.model.services.pdftron.PdfTronXMLService;
+import com.constellio.model.services.pdf.pdtron.AnnotationLockManager;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_IOExeption;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLService;
+import com.constellio.model.services.pdf.signature.CreateVisibleSignature;
+import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -267,11 +267,11 @@ public class PdfDocumentCertifyService {
 	}
 
 	public void certifyAndSign(String fileAsStr, List<PdfSignatureAnnotation> signatures)
-			throws PdfTronSignatureException {
+			throws PdfSignatureException {
 
 		String filePath = createTempFileFromBase64("docToSign.pdf", fileAsStr);
 		if (StringUtils.isBlank(filePath)) {
-			throw new PdfTronSignatureException_CannotReadSourceFileException();
+			throw new PdfSignatureException_CannotReadSourceFileException();
 		}
 
 		String keystorePath = createTempKeystoreFile("keystore");
@@ -279,7 +279,7 @@ public class PdfDocumentCertifyService {
 				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE_PASSWORD);
 
 		if (signatures.size() < 1) {
-			throw new PdfTronSignatureException_NotingToSignException();
+			throw new PdfSignatureException_NothingToSignException();
 		}
 		Collections.sort(signatures);
 
@@ -287,14 +287,14 @@ public class PdfDocumentCertifyService {
 		for (PdfSignatureAnnotation signature : signatures) {
 			String signaturePath = createTempFileFromBase64("signature", signature.getImageData());
 			if (StringUtils.isBlank(signaturePath)) {
-				throw new PdfTronSignatureException_CannotReadSignatureFileException();
+				throw new PdfSignatureException_CannotReadSignatureFileException();
 			}
 
 			try {
 				signedDocument = CreateVisibleSignature.signDocument(keystorePath, keystorePass, filePath, signaturePath, signature);
 				filePath = signedDocument.getPath();
 			} catch (Exception e) {
-				throw new PdfTronSignatureException_CannotSignDocumentException(e);
+				throw new PdfSignatureException_CannotSignDocumentException(e);
 			}
 		}
 
@@ -302,7 +302,7 @@ public class PdfDocumentCertifyService {
 
 	}
 
-	private void uploadNewVersion(File signedPdf) throws PdfTronSignatureException {
+	private void uploadNewVersion(File signedPdf) throws PdfSignatureException {
 		String oldFilename = contentVersion.getFilename();
 		String substring = oldFilename.substring(0, oldFilename.lastIndexOf('.'));
 		String newFilename = substring + ".pdf";
@@ -313,7 +313,7 @@ public class PdfDocumentCertifyService {
 			version = contentManager.upload(signedStream, new ContentManager.UploadOptions(newFilename)).getContentVersionDataSummary();
 			contentManager.createMajor(getCurrentUser(), newFilename, version);
 		} catch (IOException e) {
-			throw new PdfTronSignatureException_CannotReadSignedFileException(e);
+			throw new PdfSignatureException_CannotReadSignedFileException(e);
 		}
 
 		Document document = rm.getDocument(recordId);
@@ -323,18 +323,18 @@ public class PdfDocumentCertifyService {
 			RecordServices recordServices = modelLayerFactory.newRecordServices();
 			recordServices.update(document);
 		} catch (RecordServicesException e) {
-			throw new PdfTronSignatureException_CannotSaveNewVersionException(e);
+			throw new PdfSignatureException_CannotSaveNewVersionException(e);
 		}
 	}
 
-	private String createTempKeystoreFile(String filename) throws PdfTronSignatureException {
+	private String createTempKeystoreFile(String filename) throws PdfSignatureException {
 		FileService fileService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService();
 		File tempFile = fileService.newTemporaryFile(filename);
 
 		StreamFactory keystore = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
 		if (keystore == null) {
-			throw new PdfTronSignatureException_CannotReadKeystoreFileException();
+			throw new PdfSignatureException_CannotReadKeystoreFileException();
 		}
 
 		byte[] data;
@@ -343,7 +343,7 @@ public class PdfDocumentCertifyService {
 			data = new byte[inputStream.available()];
 			inputStream.read(data);
 		} catch (IOException e) {
-			throw new PdfTronSignatureException_CannotReadKeystoreFileException(e);
+			throw new PdfSignatureException_CannotReadKeystoreFileException(e);
 		}
 
 		try {
@@ -351,13 +351,13 @@ public class PdfDocumentCertifyService {
 			outputStream.write(data);
 			outputStream.close();
 		} catch (IOException e) {
-			throw new PdfTronSignatureException_CannotCreateTempFileException(e);
+			throw new PdfSignatureException_CannotCreateTempFileException(e);
 		}
 
 		return tempFile.getPath();
 	}
 
-	private String createTempFileFromBase64(String filename, String fileAsBase64Str) throws PdfTronSignatureException {
+	private String createTempFileFromBase64(String filename, String fileAsBase64Str) throws PdfSignatureException {
 		if (StringUtils.isBlank(fileAsBase64Str)) {
 			return null;
 		}
@@ -376,7 +376,7 @@ public class PdfDocumentCertifyService {
 			outputStream.write(data);
 			outputStream.close();
 		} catch (IOException e) {
-			throw new PdfTronSignatureException.PdfTronSignatureException_CannotCreateTempFileException(e);
+			throw new PdfSignatureException_CannotCreateTempFileException(e);
 		}
 
 		return tempFile.getPath();

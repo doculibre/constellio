@@ -1,11 +1,21 @@
 package com.constellio.app.ui.framework.components.viewers.document;
 
+import com.constellio.app.api.pdf.pdfjs.services.PdfJSServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
+import com.constellio.app.ui.pages.base.PresenterService;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.io.ConversionManager;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ResourceReference;
@@ -26,6 +36,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class DocumentViewer extends CustomComponent {
@@ -163,7 +174,7 @@ public class DocumentViewer extends CustomComponent {
 				ResourceReference contentResourceReference = ResourceReference.create(contentResource, this, "DocumentViewer.file");
 				String contentURL = contentResourceReference.getURL();
 
-				String localeStr = getLocale().getLanguage();
+				Locale locale = getLocale();
 				String contentPathPrefix;
 				if (VaadinService.getCurrentRequest() != null) {
 					String contextPath = VaadinService.getCurrentRequest().getContextPath();
@@ -175,7 +186,25 @@ public class DocumentViewer extends CustomComponent {
 					contentPathPrefix = "../../../../../";
 				}
 
-				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/pdfjs/web/viewer.html?locale=" + localeStr + "&file=" + contentPathPrefix + contentURL + "\" width=\"100%\" height=\"100%\" allowfullscreen webkitallowfullscreen></iframe>";
+				ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+				AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+				ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+				PresenterService presenterService = new PresenterService(modelLayerFactory);
+				PdfJSServices pdfJSServices = new PdfJSServices(appLayerFactory);
+				SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+
+				User user = presenterService.getCurrentUser(sessionContext);
+				String viewerUrl;
+				if (recordVO != null) {
+					Record record = presenterService.getRecord(recordVO.getId());
+					MetadataSchema metadataSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
+					Metadata metadata = metadataSchema.get(metadataCode);
+					viewerUrl = pdfJSServices.getInternalViewerUrl(record, metadata, user, locale, contentPathPrefix, contentPathPrefix + contentURL, null, null);
+				} else {
+					viewerUrl = pdfJSServices.getInternalViewerUrl(null, null, user, locale, contentPathPrefix, contentPathPrefix + contentURL, null, null);
+				}
+
+				String iframeHTML = "<iframe src = \"" + viewerUrl + "\" width=\"100%\" height=\"100%\" allowfullscreen webkitallowfullscreen></iframe>";
 				compositionRoot = new Label(iframeHTML, ContentMode.HTML);
 				compositionRoot.setWidth(widthStr);
 				compositionRoot.setHeight(heightStr);

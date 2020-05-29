@@ -5,14 +5,19 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUrl;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUser;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.security.roles.Roles;
+import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 
@@ -24,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.UUID;
 
 public class GetRecordContentServlet extends HttpServlet {
 
@@ -73,6 +79,7 @@ public class GetRecordContentServlet extends HttpServlet {
 		String recordId = request.getParameter("recordId");
 		String metadataCode = request.getParameter("metadataCode");
 		boolean preview = "true".equalsIgnoreCase(request.getParameter("preview"));
+		String accessId = request.getParameter("accessId");
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
@@ -81,6 +88,7 @@ public class GetRecordContentServlet extends HttpServlet {
 		ContentManager contentManager = modelLayerFactory.getContentManager();
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		UserServices userServices = modelLayerFactory.newUserServices();
+		RolesManager rolesManager = modelLayerFactory.getRolesManager();
 
 		Record record = recordServices.getDocumentById(recordId);
 		String collection = record.getCollection();
@@ -89,11 +97,23 @@ public class GetRecordContentServlet extends HttpServlet {
 		Content content = record.get(contentMetadata);
 
 		UserCredential userCredentials = authenticator.authenticate(request);
-		if (userCredentials == null) {
+		if (userCredentials == null && accessId == null) {
 			throw new ServletException("User not authenticated");
 		} else {
-			String username = userCredentials.getUsername();
-			User user = userServices.getUserInCollection(username, collection);
+			String username;
+			User user;
+			if (userCredentials != null) {
+				username = userCredentials.getUsername();
+				user = userServices.getUserInCollection(username, collection);
+			} else {
+				MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
+				MetadataSchema userSchema = types.getDefaultSchema(User.SCHEMA_TYPE);
+				Record tempUserRecord = recordServices.newRecordWithSchema(userSchema, UUID.randomUUID().toString());
+				Roles roles = rolesManager.getCollectionRoles(collection);
+				ExternalAccessUrl externalAccessUrl = new ExternalAccessUrl(recordServices.getDocumentById(accessId), types);
+				user = new ExternalAccessUser(tempUserRecord, types, roles, externalAccessUrl);
+				username = user.getUsername();
+			}
 			if (user != null && user.hasReadAccess().on(record)) {
 				ContentVersion contentVersion = content.getCurrentVersionSeenBy(user);
 				String contentHash = contentVersion.getHash();
@@ -102,11 +122,16 @@ public class GetRecordContentServlet extends HttpServlet {
 				int contentLength;
 				String filename = contentVersion.getFilename();
 				InputStream in;
-				if (preview && contentManager.hasContentPreview(contentHash)) {
-					mimeType = "application/pdf";
-					contentLength = -1;
-					filename += ".pdf";
-					in = contentManager.getContentPreviewInputStream(contentHash, getClass().getName());
+				if (preview) {
+					if (contentManager.hasContentPreview(contentHash)) {
+						mimeType = "application/pdf";
+						contentLength = -1;
+						filename += ".pdf";
+						in = contentManager.getContentPreviewInputStream(contentHash, getClass().getName());
+					} else {
+						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+						return;
+					}
 				} else {
 					// gets MIME type of the file
 					mimeType = contentVersion.getMimetype();

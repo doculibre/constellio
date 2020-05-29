@@ -341,7 +341,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 		ApplicationStarter.registerServlet("/signatureExternalAccess", new SignatureExternalAccessWebServlet());
 		FilterHolder filterHolder = new FilterHolder(new CrossOriginFilter());
-		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,POST");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,POST,GET");
 		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "content-type,access-control-allow-origin,authorization");
 		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
 		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");

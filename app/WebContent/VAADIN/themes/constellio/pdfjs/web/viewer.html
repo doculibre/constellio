@@ -38,13 +38,39 @@ See https://github.com/adobe-type-tools/cmap-resources
 <link rel="resource" type="application/l10n" href="locale/locale.properties">
 <script src="l10n.js"></script>
 <script src="../lib/pdf.js"></script>
+      <script src="viewer.js"></script>
 
 
-    <script src="viewer.js"></script>
+      <link rel="stylesheet" href="./signature-picker.css"/>
+      <link rel="stylesheet" href="./annotation.css"/>
+
+      <script src="./jquery/jquery-1.12.4.min.js"></script>
+      <script src="./jquery/jquery.ajaxQueue.min.js"></script>
+
+      <script src="./annotation-common.js"></script>
+      <script src="./signature-datastore.js"></script>
+      <script src="./annotation-base.js"></script>
+      <script src="./annotation-editor-base.js"></script>
+      <script src="./annotation-editor-text.js"></script>
+      <script src="./annotation-editor-signature-pad.js"></script>
+      <script src="./annotation-text.js"></script>
+      <script src="./annotation-image.js"></script>
+      <script src="./annotation-redact.js"></script>
+      <script src="./annotation-sign-here.js"></script>
+      <script src="./annotation-signature-pad.js"></script>
+      <script src="./annotation-signature-image.js"></script>
+      <script src="./annotation-signature-text.js"></script>
+      <script src="./annotation-dropzone.js"></script>
+      <script src="./signature-picker.js"></script>
+      <script src="./annotation-signature-picker.js"></script>
+      <script src="./pdf-annotations.js"></script>
+      <script src="./pdf-annotations-services.js"></script>
+      <script src="./pdf-annotations-manager.js"></script>
 
   </head>
 
   <body tabindex="1" class="loadingInProgress">
+
     <div id="outerContainer">
 
       <div id="sidebarContainer">
@@ -117,6 +143,16 @@ See https://github.com/adobe-type-tools/cmap-resources
             <button id="secondaryPrint" class="secondaryToolbarButton print visibleMediumView" title="Print" tabindex="53" data-l10n-id="print">
               <span data-l10n-id="print_label">Print</span>
             </button>
+
+              <button id="secondarySign" class="secondaryToolbarButton sign visibleMediumView" title="Sign"
+                      tabindex="53" data-l10n-id="Sign">
+                  <span data-l10n-id="sign_label">Sign</span>
+              </button>
+
+              <button id="secondaryCertify" class="secondaryToolbarButton certify visibleMediumView" title="Certify"
+                      tabindex="53" data-l10n-id="Certify">
+                  <span data-l10n-id="certify_label">Certify</span>
+              </button>
 
 <!--  
             <button id="secondaryDownload" class="secondaryToolbarButton download visibleMediumView" title="Download" tabindex="54" data-l10n-id="download">
@@ -209,11 +245,21 @@ See https://github.com/adobe-type-tools/cmap-resources
                   <span data-l10n-id="print_label">Print</span>
                 </button>
 
-<!-- 
-                <button id="download" class="toolbarButton download hiddenMediumView" title="Download" tabindex="34" data-l10n-id="download">
-                  <span data-l10n-id="download_label">Download</span>
-                </button>
--->
+                  <button id="sign" class="toolbarButton sign hiddenMediumView" title="Sign" tabindex="33"
+                          data-l10n-id="sign">
+                      <span data-l10n-id="sign_label">Sign</span>
+                  </button>
+
+                  <button id="certify" class="toolbarButton certify hiddenMediumView" title="Certify" tabindex="33"
+                          data-l10n-id="certify">
+                      <span data-l10n-id="sign_label">Certify</span>
+                  </button>
+
+                  <!--
+                                  <button id="download" class="toolbarButton download hiddenMediumView" title="Download" tabindex="34" data-l10n-id="download">
+                                    <span data-l10n-id="download_label">Download</span>
+                                  </button>
+                  -->
                 <button id="download" class="toolbarButton download hidden" title="Download" tabindex="34" data-l10n-id="download">
                   <span data-l10n-id="download_label">Download</span>
                 </button>
@@ -379,6 +425,8 @@ See https://github.com/adobe-type-tools/cmap-resources
 
     </div> <!-- outerContainer -->
     <div id="printContainer"></div>
+
+    <script src="./signature_pad.umd.js"></script>
   </body>
 </html>
 

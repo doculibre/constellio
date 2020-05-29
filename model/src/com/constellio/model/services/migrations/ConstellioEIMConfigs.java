@@ -205,7 +205,7 @@ public class ConstellioEIMConfigs {
 		add(TITLE_METADATA_POPULATE_PRIORITY = others
 				.createEnum("titleMetadataPopulatePriority", TitleMetadataPopulatePriority.class)
 				.withDefaultValue(TitleMetadataPopulatePriority.STYLES_FILENAME_PROPERTIES));
-		add(CONSTELLIO_URL = others.createString("constellioUrl", "http://localhost:8080/constellio/"));
+		add(CONSTELLIO_URL = others.createString("constellioUrl", "http://localhost:7070/constellio/"));
 		add(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS = others.createBooleanTrueByDefault("includeFromFieldWhenGeneratingEmails"));
 
 		add(DATE_FORMAT = others.createString("dateFormat").withDefaultValue("yyyy-MM-dd"));

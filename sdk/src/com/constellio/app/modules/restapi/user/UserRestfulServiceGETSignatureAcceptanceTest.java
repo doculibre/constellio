@@ -66,6 +66,9 @@ public class UserRestfulServiceGETSignatureAcceptanceTest extends BaseRestfulSer
 	public void validateService()
 			throws Exception {
 
+		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		assertThat(userCredentials.getElectronicSignature()).isNotNull();
+
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
 
@@ -87,6 +90,8 @@ public class UserRestfulServiceGETSignatureAcceptanceTest extends BaseRestfulSer
 
 		queryCounter.reset();
 		commitCounter.reset();
+
+		assertThat(userCredentials.getElectronicSignature()).isNull();
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();

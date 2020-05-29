@@ -37,25 +37,31 @@ public class HttpServletRequestAuthenticator {
 		this.userServices = modelLayerFactory.newUserServices();
 	}
 
-	public UserCredential authenticate(HttpServletRequest request) {
-
+	public String getUserServiceKey(HttpServletRequest request) {
 		String userServiceKey = request.getHeader(USER_SERVICE_KEY);
-		String userToken = request.getHeader(USER_TOKEN);
-
 		if (userServiceKey == null) {
 			userServiceKey = request.getParameter(USER_SERVICE_KEY);
 		}
-		if (userToken == null) {
-			userToken = request.getParameter(USER_TOKEN);
-		}
-
 		if (userServiceKey != null) {
 			userServiceKey = userServiceKey.trim();
 		}
+		return userServiceKey;
+	}
 
+	public String getUserToken(HttpServletRequest request) {
+		String userToken = request.getHeader(USER_TOKEN);
+		if (userToken == null) {
+			userToken = request.getParameter(USER_TOKEN);
+		}
 		if (userToken != null) {
 			userToken = userToken.trim();
 		}
+		return userToken;
+	}
+
+	public UserCredential authenticate(HttpServletRequest request) {
+		String userServiceKey = getUserServiceKey(request);
+		String userToken = getUserToken(request);
 
 		//Save time when testing on a developer computer
 		if ("SDK".equals(userToken) && !usingAppWrapper()) {

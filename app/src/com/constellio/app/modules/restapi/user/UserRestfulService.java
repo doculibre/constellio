@@ -5,6 +5,7 @@ import com.constellio.app.modules.restapi.core.service.BaseRestfulService;
 import com.constellio.app.modules.restapi.core.util.AuthorizationUtils;
 import com.constellio.app.modules.restapi.user.dto.UserSignatureContentDto;
 import com.constellio.app.modules.restapi.user.dto.UserSignatureDto;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.google.common.base.Strings;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,6 +21,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -45,7 +47,7 @@ public class UserRestfulService extends BaseRestfulService {
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name = "Content-Disposition", description = "Filename used when saving locally"),
 					content = @Content(mediaType = "application/octet-stream", schema = @Schema(type = "string", format = "binary"))),
-			@ApiResponse(responseCode = "204", description = "No Content", content = @Content(mediaType = "application/json", schema = @Schema(ref = "string"))),
+			@ApiResponse(responseCode = "204", description = "No Content"),
 			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
@@ -60,7 +62,7 @@ public class UserRestfulService extends BaseRestfulService {
 
 		String token = AuthorizationUtils.getToken(authentication);
 
-		UserSignatureContentDto contentDto = userService.getSignature(host, token, serviceKey);
+		UserSignatureContentDto contentDto = userService.getContent(host, token, serviceKey, UserCredential.ELECTRONIC_SIGNATURE);
 		return Response.ok(contentDto.getContent(), contentDto.getMimeType())
 				.header("Content-Disposition", "attachment; filename=\"" + contentDto.getFilename() + "\"")
 				.build();
@@ -69,13 +71,12 @@ public class UserRestfulService extends BaseRestfulService {
 	@POST
 	@Path("signature")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@Produces(MediaType.APPLICATION_JSON)
 	@Operation(summary = "Set user signature", description = "Set the content of the user profile signature.<br><br>" +
 															 "This is a multipart/form-data request. The body must contains two parts:<br>" +
 															 "- A metadata part. This part is the metadata of the content in JSON format. Must have a Content-Type header set to 'application/json' and must be named 'userSignature'.<br>" +
 															 "- A file part. This part is the content of the user signature. Must be named 'file'.")
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "string"))),
+			@ApiResponse(responseCode = "204", description = "No Content"),
 			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
@@ -100,8 +101,30 @@ public class UserRestfulService extends BaseRestfulService {
 			throw new RequiredParameterException("userSignature.filename");
 		}
 
-		userService.setSignature(host, token, serviceKey, userSignature, fileStream);
-		return Response.status(Response.Status.OK).build();
+		userService.setContent(host, token, serviceKey, UserCredential.ELECTRONIC_SIGNATURE, userSignature, fileStream);
+		return Response.noContent().build();
+	}
+
+	@DELETE
+	@Path("signature")
+	@Operation(summary = "Delete user signature", description = "Delete the content of the user profile signature")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "204", description = "No Content"),
+			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+	public Response deleteSignature(
+			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
+			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
+			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+
+		validateAuthentication(authentication);
+		validateRequiredParameter(serviceKey, "serviceKey");
+
+		String token = AuthorizationUtils.getToken(authentication);
+
+		userService.deleteContent(host, token, serviceKey, UserCredential.ELECTRONIC_SIGNATURE);
+		return Response.noContent().build();
 	}
 
 	@GET
@@ -111,7 +134,7 @@ public class UserRestfulService extends BaseRestfulService {
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name = "Content-Disposition", description = "Filename used when saving locally"),
 					content = @Content(mediaType = "application/octet-stream", schema = @Schema(type = "string", format = "binary"))),
-			@ApiResponse(responseCode = "204", description = "No Content", content = @Content(mediaType = "application/json", schema = @Schema(ref = "string"))),
+			@ApiResponse(responseCode = "204", description = "No Content"),
 			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
@@ -126,7 +149,7 @@ public class UserRestfulService extends BaseRestfulService {
 
 		String token = AuthorizationUtils.getToken(authentication);
 
-		UserSignatureContentDto contentDto = userService.getInitials(host, token, serviceKey);
+		UserSignatureContentDto contentDto = userService.getContent(host, token, serviceKey, UserCredential.ELECTRONIC_INITIALS);
 		return Response.ok(contentDto.getContent(), contentDto.getMimeType())
 				.header("Content-Disposition", "attachment; filename=\"" + contentDto.getFilename() + "\"")
 				.build();
@@ -135,13 +158,12 @@ public class UserRestfulService extends BaseRestfulService {
 	@POST
 	@Path("initials")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@Produces(MediaType.APPLICATION_JSON)
 	@Operation(summary = "Set user initials", description = "Set the content of the user profile initials.<br><br>" +
 															"This is a multipart/form-data request. The body must contains two parts:<br>" +
 															"- A metadata part. This part is the metadata of the content in JSON format. Must have a Content-Type header set to 'application/json' and must be named 'userInitials'.<br>" +
 															"- A file part. This part is the content of the user signature. Must be named 'file'.")
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "string"))),
+			@ApiResponse(responseCode = "204", description = "No Content"),
 			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
@@ -166,7 +188,29 @@ public class UserRestfulService extends BaseRestfulService {
 			throw new RequiredParameterException("userInitials.filename");
 		}
 
-		userService.setInitials(host, token, serviceKey, userInitials, fileStream);
-		return Response.status(Response.Status.OK).build();
+		userService.setContent(host, token, serviceKey, UserCredential.ELECTRONIC_INITIALS, userInitials, fileStream);
+		return Response.noContent().build();
+	}
+
+	@DELETE
+	@Path("initials")
+	@Operation(summary = "Delete user initials", description = "Delete the content of the user profile initials")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "204", description = "No Content"),
+			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+	public Response deleteInitials(
+			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
+			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
+			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+
+		validateAuthentication(authentication);
+		validateRequiredParameter(serviceKey, "serviceKey");
+
+		String token = AuthorizationUtils.getToken(authentication);
+
+		userService.deleteContent(host, token, serviceKey, UserCredential.ELECTRONIC_INITIALS);
+		return Response.noContent().build();
 	}
 }
