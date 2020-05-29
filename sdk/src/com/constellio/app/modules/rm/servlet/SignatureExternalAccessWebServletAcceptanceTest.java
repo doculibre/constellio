@@ -43,6 +43,7 @@ import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.I
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.INVALID_DOCUMENT_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_DATE_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_DOCUMENT_PARAM;
+import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_EXTERNAL_USER_FULLNAME_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.UNAUTHORIZED;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.HEADER_PARAM_AUTH;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.PARAM_DOCUMENT;
@@ -276,7 +277,7 @@ public class SignatureExternalAccessWebServletAcceptanceTest extends ConstellioT
 			callWebservice(bobAuth, bobKey, records.document_A19, "", getTomorrow());
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
-			assertThat(e.getStatusMessage()).isEqualTo(MISSING_DATE_PARAM);
+			assertThat(e.getStatusMessage()).isEqualTo(MISSING_EXTERNAL_USER_FULLNAME_PARAM);
 		}
 	}
 

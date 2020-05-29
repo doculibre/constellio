@@ -19,7 +19,7 @@ public class SignatureExternalAccessUrlAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		prepareSystem(withZeCollection());
+		prepareSystem(withZeCollection().withConstellioRMModule());
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 	}

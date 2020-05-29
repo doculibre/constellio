@@ -7,7 +7,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import lombok.AllArgsConstructor;
-import org.joda.time.LocalDateTime;
+import org.joda.time.LocalDate;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
@@ -23,7 +23,7 @@ public class ExpireExternalAccessUrlsBackgroundAction implements Runnable {
 
 			SchemasRecordsServices records = new SchemasRecordsServices(collection, modelLayerFactory);
 
-			LocalDateTime now = TimeProvider.getLocalDateTime();
+			LocalDate now = TimeProvider.getLocalDate();
 			for (ExternalAccessUrl url : records.searchExternalAccessUrls(
 					where(records.externalAccessUrl.status()).isEqualTo(ExternalAccessUrlStatus.OPEN))) {
 
