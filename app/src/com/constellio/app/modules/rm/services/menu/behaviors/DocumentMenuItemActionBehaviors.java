@@ -21,8 +21,8 @@ import com.constellio.app.modules.rm.ui.buttons.RenameDialogButton;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
-import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentView;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
@@ -119,6 +119,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -891,7 +892,9 @@ public class DocumentMenuItemActionBehaviors {
 							dateField.setRequiredError($("requiredField"));
 						} else {
 							try {
-								String url = createExternalSignatureUrl(document.getId(), nameField.getValue(), (LocalDate) dateField.getConvertedValue());
+								Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
+								String url = createExternalSignatureUrl(document.getId(), nameField.getValue(),
+										(LocalDate) dateField.getConvertedValue(), locale.getLanguage());
 								CopyToClipBoard.copyToClipBoard(url);
 							} catch (RecordServicesException e) {
 								params.getView().showErrorMessage($("DocumentMenuItemActionBehaviors.errorGeneratingAccess"));
@@ -911,7 +914,8 @@ public class DocumentMenuItemActionBehaviors {
 		generateWindow.click();
 	}
 
-	public String createExternalSignatureUrl(String documentId, String externalUserFullname, LocalDate expirationDate)
+	public String createExternalSignatureUrl(String documentId, String externalUserFullname, LocalDate expirationDate,
+											 String language)
 			throws RecordServicesException {
 		ExternalAccessUrl accessUrl = rm.newSignatureExternalAccessUrl()
 				.setToken(UUID.randomUUID().toString())
@@ -924,10 +928,10 @@ public class DocumentMenuItemActionBehaviors {
 		transaction.add(accessUrl);
 
 		recordServices.execute(transaction);
-		return getUrlFromExternalAccess(accessUrl);
+		return getUrlFromExternalAccess(accessUrl, language);
 	}
 
-	private String getUrlFromExternalAccess(ExternalAccessUrl externalAccess) {
+	private String getUrlFromExternalAccess(ExternalAccessUrl externalAccess, String language) {
 		String url = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
 
 		StringBuilder sb = new StringBuilder();
@@ -936,6 +940,8 @@ public class DocumentMenuItemActionBehaviors {
 		sb.append(externalAccess.getId());
 		sb.append("&token=");
 		sb.append(externalAccess.getToken());
+		sb.append("&language=");
+		sb.append(language);
 		return sb.toString();
 	}
 

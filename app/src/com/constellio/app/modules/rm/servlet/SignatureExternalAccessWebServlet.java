@@ -14,6 +14,7 @@ public class SignatureExternalAccessWebServlet extends HttpServlet {
 	public static final String PARAM_DOCUMENT = "document";
 	public static final String PARAM_EXTERNAL_USER_FULLNAME = "externalUserFullname";
 	public static final String PARAM_EXPIRATION_DATE = "expirationDate";
+	public static final String PARAM_LANGUAGE = "language";
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -22,7 +23,7 @@ public class SignatureExternalAccessWebServlet extends HttpServlet {
 
 		try {
 			String location = service.accessExternalSignature(req.getParameter(PARAM_ID), req.getParameter(PARAM_TOKEN),
-					req.getLocale());
+					req.getParameter(PARAM_LANGUAGE));
 
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.sendRedirect(location);
@@ -39,7 +40,8 @@ public class SignatureExternalAccessWebServlet extends HttpServlet {
 		try {
 			String url = service.createExternalSignatureUrl(req.getHeader(HEADER_PARAM_AUTH),
 					req.getParameter(PARAM_SERVICE_KEY), req.getParameter(PARAM_DOCUMENT),
-					req.getParameter(PARAM_EXTERNAL_USER_FULLNAME), req.getParameter(PARAM_EXPIRATION_DATE));
+					req.getParameter(PARAM_EXTERNAL_USER_FULLNAME), req.getParameter(PARAM_EXPIRATION_DATE),
+					req.getParameter(PARAM_LANGUAGE));
 
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.getOutputStream().print(url);
