@@ -1,6 +1,7 @@
 package com.constellio.model.entities.records.wrappers;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUrlStatus;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.security.roles.Roles;
 
@@ -30,7 +31,8 @@ public class ExternalAccessUser extends User {
 
 	@Override
 	public UserPermissionsChecker hasWriteAccess() {
-		return new ExternalAccessPermissionsChecker(this, false, true, false);
+		boolean hasWriteAccess = externalAccessUrl.getStatus() == ExternalAccessUrlStatus.OPEN;
+		return new ExternalAccessPermissionsChecker(this, false, hasWriteAccess, false);
 	}
 
 	private class ExternalAccessPermissionsChecker extends AccessUserPermissionsChecker {

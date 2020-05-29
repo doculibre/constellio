@@ -39,6 +39,15 @@ public class ExpireExternalAccessUrlsBackgroundAction implements Runnable {
 				}
 			}
 
+			for (ExternalAccessUrl url : records.searchExternalAccessUrls(
+					where(records.externalAccessUrl.status()).isEqualTo(ExternalAccessUrlStatus.TO_CLOSE))) {
+
+				try {
+					modelLayerFactory.newRecordServices().update(url.setStatus(ExternalAccessUrlStatus.CLOSED));
+				} catch (RecordServicesException e) {
+					throw new RuntimeException(e);
+				}
+			}
 		}
 
 	}

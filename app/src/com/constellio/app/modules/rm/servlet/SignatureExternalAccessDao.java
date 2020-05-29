@@ -105,7 +105,8 @@ public class SignatureExternalAccessDao {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
 		}
 
-		if (signatureAccess.getStatus() != ExternalAccessUrlStatus.OPEN) {
+		if (signatureAccess.getStatus() != ExternalAccessUrlStatus.OPEN &&
+			signatureAccess.getStatus() != ExternalAccessUrlStatus.TO_CLOSE) {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
 		}
 

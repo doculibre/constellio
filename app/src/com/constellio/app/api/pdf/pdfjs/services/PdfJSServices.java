@@ -367,7 +367,7 @@ public class PdfJSServices {
 			if (user instanceof ExternalAccessUser) {
 				ExternalAccessUser externalUser = (ExternalAccessUser) user;
 				ExternalAccessUrl externalAccess = externalUser.getExternalAccessUrl();
-				externalAccess.setStatus(ExternalAccessUrlStatus.CLOSED);
+				externalAccess.setStatus(ExternalAccessUrlStatus.TO_CLOSE);
 
 				RecordServices recordServices = modelLayerFactory.newRecordServices();
 				recordServices.update(externalAccess);
