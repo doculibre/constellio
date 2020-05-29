@@ -146,9 +146,21 @@ Annotation.prototype.isReadOnly = function() {
 };
 
 Annotation.prototype.setReadOnly = function(readOnly) {
-	this.readOnly = readOnly;
-	if (this.deleteLink) {
-		this.deleteLink.style.display = this.readOnly ? "none" : "";
+	if (this.readOnly != readOnly) {
+		this.readOnly = readOnly;
+
+		if (this.htmlElement) {
+			if (!this.readOnly) {
+				this.htmlElement.classList.add("annotation-resizable");
+				this.htmlElement.classList.add("annotation-movable");
+			} else {
+				this.htmlElement.classList.remove("annotation-resizable");
+				this.htmlElement.classList.remove("annotation-movable");
+			}
+		}
+		if (this.deleteLink) {
+			this.deleteLink.style.display = this.readOnly ? "none" : "";
+		}
 	}
 };
 
@@ -181,6 +193,10 @@ Annotation.prototype.bind = function(htmlElement) {
 	this.remove();
 	this.htmlElement = htmlElement;
 	this.htmlElement.classList.add("annotation");
+	if (!this.readOnly) {
+		this.htmlElement.classList.add("annotation-resizable");
+		this.htmlElement.classList.add("annotation-movable");
+	}
 	this.htmlElement.id = this.getHtmlElementId();
 	this.htmlElement.style.left = this.getX() + "%";
 	this.htmlElement.style.top = this.getY() + "%";

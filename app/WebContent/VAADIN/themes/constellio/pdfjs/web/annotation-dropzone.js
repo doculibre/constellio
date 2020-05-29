@@ -174,7 +174,7 @@ AnnotationDropZoneManager.prototype.annotationMouseDown = function(annotation, e
 			this.topMouseDrag = e.pageY - annotationOffset.top;
 			
 			var clickedElement = $(e.target);
-			if (annotation.isSameHtmlElement(clickedElement)) {
+			if (!annotation.isReadOnly() && annotation.isSameHtmlElement(clickedElement)) {
 				var dropZone = $(this.dropZoneSelector);
 				if (this.isCursorOverResizeEdge(annotation, e)) {
 					dropZone.addClass("annotation-resizing");
@@ -420,7 +420,7 @@ AnnotationDropZoneManager.prototype.adjustCursor = function(annotation, e) {
 		if (y > h - this.edgeDelta && x > w - this.edgeDelta) {
 			c = "se";
 		}
-		if (c) {                               
+		if (c && !annotation.isReadOnly()) {                               
 			// If we are hovering at the border area (c is not empty), set the according cursor 
 		   annotationElement.style.cursor = c + "-resize";
 		} else if (this.moving) {

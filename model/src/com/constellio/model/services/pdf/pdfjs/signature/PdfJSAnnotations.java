@@ -66,8 +66,14 @@ public class PdfJSAnnotations {
 	}
 
 	private boolean isSignatureAnnotation(JSONObject annotationJson) {
+		boolean signatureAnnotation;
 		String type = annotationJson.getString("type");
-		return "signature-image-annotation".equals(type) || "signature-pad-annotation".equals(type);
+		if ("signature-image-annotation".equals(type) || "signature-pad-annotation".equals(type)) {
+			signatureAnnotation = true;
+		} else {
+			signatureAnnotation = false;
+		}
+		return signatureAnnotation;
 	}
 
 }

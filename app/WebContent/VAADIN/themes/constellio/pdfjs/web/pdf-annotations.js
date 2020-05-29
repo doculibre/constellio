@@ -31,3 +31,17 @@ PDFAnnotations.prototype.getPageAnnotations = function(pageNumber) {
 PDFAnnotations.prototype.setPageAnnotations = function(pageNumber, annotations) {
     this.pagesAndAnnotations[pageNumber] = annotations;
 }; 
+
+PDFAnnotations.prototype.getPageTypeAnnotations = function(pageNumber, type) {
+    var matchingAnnotations = [];
+    var pageAnnotations = this.getPageAnnotations(pageNumber);
+    if (pageAnnotations) {
+        for (var j = 0; j < pageAnnotations.length; j++) {
+            var pageAnnotation = pageAnnotations[j];
+            if (pageAnnotation.getType() == type) {
+                matchingAnnotations.push(pageAnnotation);
+            }
+        }
+    }
+    return matchingAnnotations;
+}; 

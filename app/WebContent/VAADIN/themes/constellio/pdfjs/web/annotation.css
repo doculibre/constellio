@@ -8,13 +8,16 @@
 
 .annotation {
 	position: absolute;
-	border-color: #197de1;
-	border-width: 1px;
-	border-style: solid;
 	z-index: 2;
 }
 
-.annotation::after {
+.annotation-movable, .annotation-resizable {
+	border-color: #197de1;
+	border-width: 1px;
+	border-style: solid;
+}
+
+.annotation-resizable::after {
 	content: "\0025E2";
 	font-size: 10px;
 	height: 10px;
