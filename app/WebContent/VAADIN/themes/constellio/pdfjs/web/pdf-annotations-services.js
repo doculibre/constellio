@@ -131,35 +131,53 @@ PDFAnnotationsServices.prototype.savePDFAnnotations = function(pdfAnnotations, s
 	}
 };
 
-PDFAnnotationsServices.prototype.certifyPDFSignatures = function(pdfAnnotations, success, fail) {
-	var self = this;
-	var atLeastOneSignatureAnnotation = false;
-	var pagesWithAnnotations = pdfAnnotations.getPagesWithAnnotations();
+PDFAnnotationsServices.prototype.getSignatureAnnotations = function(pdfAnnotations) {
 	var signatureAnnotations = [];
+	// Using attributes instead of calling functions because pdfAnnotations may be a copy
+	var pagesWithAnnotations = Object.keys(pdfAnnotations.pagesAndAnnotations);
 	for (var i = 0; i < pagesWithAnnotations.length; i++) {
 		var pageWithAnnotation = pagesWithAnnotations[i];
-		var pageAnnotations = pdfAnnotations.getPageAnnotations(pageWithAnnotation);
+		var pageAnnotations = pdfAnnotations.pagesAndAnnotations[pageWithAnnotation];
 		for (var j = 0; j < pageAnnotations.length; j++) {
 			var pageAnnotation = pageAnnotations[j];
-			var annotationType = pageAnnotation.getType();
-			if (!pageAnnotation.isReadOnly() && 
+			var annotationType = pageAnnotation["type"];
+			if (!pageAnnotation["readOnly"] && 
 				("signature-image-annotation" == annotationType 
 				|| "signature-pad-annotation" == annotationType 
 				|| "signature-text-annotation" == annotationType)) {
-				atLeastOneSignatureAnnotation = true;
 				signatureAnnotations.push(pageAnnotation);
 			} 
 		}
 	}
+	return signatureAnnotations;
+};	
+
+PDFAnnotationsServices.prototype.makeSignatureAnnotationsReadOnly = function(pdfAnnotations) {
+	var signatureAnnotations = this.getSignatureAnnotations(pdfAnnotations);
+	for (var i = 0; i < signatureAnnotations.length; i++) {
+		var signatureAnnotation = signatureAnnotations[i];
+		signatureAnnotation["readOnly"] = true;
+	}
+};
+
+PDFAnnotationsServices.prototype.certifyPDFSignatures = function(pdfAnnotations, success, fail) {
+	var self = this;
+	
+	var signatureAnnotations = this.getSignatureAnnotations(pdfAnnotations);
+	var atLeastOneSignatureAnnotation = signatureAnnotations.length > 0;
 
 	if (!atLeastOneSignatureAnnotation) {
 		var errorMessage = this.i10n("pdf-annotation-services.noSignature",  "The document doesn''t contain a signature.");
 		alert(errorMessage);
 	} else if (this.certifyServiceUrl) {
+		// Work on a copy in case an error gets thrown
+		var pdfAnnotationsCopy = JSON.parse(JSON.stringify(pdfAnnotations));
+		this.makeSignatureAnnotationsReadOnly(pdfAnnotationsCopy);
+
 		var pdfAnnotationsJson = {
-			apiVersion: "" + pdfAnnotations.apiVersion,
-			version: "" + pdfAnnotations.version,
-			pagesAndAnnotations: pdfAnnotations.pagesAndAnnotations
+			apiVersion: "" + pdfAnnotationsCopy.apiVersion,
+			version: "" + pdfAnnotationsCopy.version,
+			pagesAndAnnotations: pdfAnnotationsCopy.pagesAndAnnotations
 		};
 		var stringifiedPdfAnnotations = JSON.stringify(pdfAnnotationsJson);
 		$.ajaxQueue({
@@ -172,7 +190,21 @@ PDFAnnotationsServices.prototype.certifyPDFSignatures = function(pdfAnnotations,
 			timeout: 60000
 		})
 		.done(function(data, textStatus, jqXHR) {
-			success(data);	
+			self.makeSignatureAnnotationsReadOnly(pdfAnnotations);
+			success(data);		
+			/*	
+			for (var i = 0; i < signatureAnnotations.length; i++) {
+				var signatureAnnotation = signatureAnnotations[i];
+				signatureAnnotation.setReadOnly(true);
+			}
+			self.savePDFAnnotations(pdfAnnotations, function(saveData, textStatus, jqXHR) {
+				console.info("finished saving annotations after certification");
+				success(data);			
+			}, function(textStatus, errorThrown) {
+				console.error("Error trying to save annotations after certification (status: " + textStatus + ")");
+				console.error(errorThrown);
+			});
+			*/
 		})
 		.fail(function(jqXHR, textStatus, errorThrown) {
 			fail(textStatus, errorThrown);

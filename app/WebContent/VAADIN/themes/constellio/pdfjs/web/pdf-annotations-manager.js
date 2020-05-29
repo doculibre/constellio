@@ -1,11 +1,13 @@
 "use strict";
 
-function PDFAnnotationsManager(config, pdfViewerElement) {
+function PDFAnnotationsManager(config, signatureDataStore, pdfViewerElement) {
     this.config = config;
+    this.signatureDataStore = signatureDataStore;
     this.pdfViewerElement = pdfViewerElement;
     this.pdfAnnotations = new PDFAnnotations();
     this.currentPage = 1;
     this.dropZoneManagers = [];      
+    this.signatureAnnotationPickers = {};
     this.pdfAnnotationsServices = new PDFAnnotationsServices(config);
 
     if (this.config) {
@@ -16,7 +18,8 @@ function PDFAnnotationsManager(config, pdfViewerElement) {
 	window.addEventListener("pagerendered", function(e) {
         // Necessary because a pagechange event will not be sent when the first page is loaded with the document
         if (self.currentPage == 1) {
-            if (!self.isDropZoneManager(self.currentPage)) {
+            var pageAnnotations = self.pdfAnnotations.getPageAnnotations(self.currentPage);
+            if (pageAnnotations && pageAnnotations.length > 0 && !self.isDropZoneManager(self.currentPage)) {
                 self.newDropZoneManager(self.currentPage);
             }
         }
@@ -35,7 +38,8 @@ PDFAnnotationsManager.prototype.getCurrentPage = function() {
 
 PDFAnnotationsManager.prototype.setCurrentPage = function(currentPage) {
     this.currentPage = currentPage;
-    if (!this.isDropZoneManager(currentPage)) {
+    var pageAnnotations = this.pdfAnnotations.getPageAnnotations(pageNumber);
+    if (pageAnnotations && pageAnnotations.length > 0 && !this.isDropZoneManager(currentPage)) {
         this.newDropZoneManager(currentPage);
     }
 };
@@ -95,9 +99,27 @@ PDFAnnotationsManager.prototype.newDropZoneManager = function(pageNumber) {
     var pageAnnotations = this.pdfAnnotations.getPageAnnotations(pageNumber);
     if (pageAnnotations) {
         dropZoneManager.loadAnnotations(pageAnnotations);
+
+        var signaturePicker = self.getSignaturePicker(pageNumber, dropZoneManager);
+        if (signaturePicker) {
+            var pageSignHereAnnotations = this.pdfAnnotations.getPageTypeAnnotations(pageNumber, "sign-here-annotation");
+            for (var i = 0; i < pageSignHereAnnotations.length; i++) {
+                var signHereAnnotation = pageSignHereAnnotations[i];
+                signaturePicker.manageSignHereAnnotation(signHereAnnotation);
+            }
+        }    
     }
     this.dropZoneManagers[pageNumber] = dropZoneManager;
 };
+
+PDFAnnotationsManager.prototype.getSignaturePicker = function(pageNumber, dropZoneManager) {
+    var pageSignatureAnnotationPicker = this.signatureAnnotationPickers[pageNumber];
+    if (!pageSignatureAnnotationPicker) {
+        pageSignatureAnnotationPicker = new SignatureAnnotationPicker(this.signatureDataStore, dropZoneManager);
+        this.signatureAnnotationPickers[pageNumber] = pageSignatureAnnotationPicker;
+    }
+    return pageSignatureAnnotationPicker;
+};    
 
 PDFAnnotationsManager.prototype.loadPDFAnnotations = function() {
     var self = this;
@@ -130,7 +152,9 @@ PDFAnnotationsManager.prototype.certifyPDFSignatures = function() {
             console.info("certification process successful!");
             var successMessage = self.i10n("pdf-annotations-manager.documentCertified", "The document was successfully signed and certified.");
             alert(successMessage);
-            location.reload();
+            setTimeout(function() {
+                location.reload();
+            }, 5000);
         },
         function(textStatus, errorThrown) {
             console.error("Unable to save PDF annotations (status: " + textStatus + ")");

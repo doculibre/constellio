@@ -9,16 +9,20 @@ SignatureAnnotationPicker.prototype = Object.create(SignaturePicker.prototype);
 SignatureAnnotationPicker.prototype.constructor = SignatureAnnotationPicker;
 
 SignatureAnnotationPicker.prototype.signHereAnnotationPicked = function() {
-    var self = this;
     var signHereAnnotation = new SignHereAnnotation();
+    this.manageSignHereAnnotation(signHereAnnotation);
+    this.dropZoneManager.defineAnnotation(signHereAnnotation);
+};		
+
+SignatureAnnotationPicker.prototype.manageSignHereAnnotation = function(signHereAnnotation) {
+    var self = this;
 
     var signHereAnnotationEditor = new AnnotationEditor(); 
     signHereAnnotationEditor.open = function(annotation, callbackContext, saveCallback, cancelCallback) {
         self.openPicker(signHereAnnotation);
     };
     signHereAnnotation.setEditor(signHereAnnotationEditor);
-    this.dropZoneManager.defineAnnotation(signHereAnnotation);
-};		
+};
 
 SignatureAnnotationPicker.prototype.replaceSignHereAnnotation = function(signHereAnnotation, newAnnotation) {
     var self = this;

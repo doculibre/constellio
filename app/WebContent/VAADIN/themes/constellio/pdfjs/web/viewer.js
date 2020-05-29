@@ -2110,24 +2110,22 @@ function webViewerInitialized() {
       $.ajax(annotationsConfigUrl)
       .done(function(data, textStatus, jqXHR) {
         var customAnnotationsConfig = JSON.parse(data);
-        PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager(customAnnotationsConfig, null);
-
         var signatureDataStore = new SignatureDataStore(customAnnotationsConfig);
         PDFViewerApplication.signatureDataStore = signatureDataStore;
+        PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager(customAnnotationsConfig, signatureDataStore, null);
       })
       .fail(function(jqXHR, textStatus, errorThrown) {
         console.error("Error while trying to get pdf annotations config");
         console.error(errorThrown);
-        PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager();
-
+        
         var signatureDataStore = new SignatureDataStore();
         PDFViewerApplication.signatureDataStore = signatureDataStore;
+        PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager(null, signatureDataStore);
       });  
     } else {
-      PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager();
-
       var signatureDataStore = new SignatureDataStore();
       PDFViewerApplication.signatureDataStore = signatureDataStore;
+      PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager(null, signatureDataStore);
     }
   }
   
