@@ -21,6 +21,8 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -322,12 +324,13 @@ public class DocumentRecordActionsServices {
 
 	public boolean isGenerateExternalSignatureUrlActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
+		List<String> supportedExtensions = new ArrayList<>(Arrays.asList(conversionManager.getAllSupportedExtensions()));
+		supportedExtensions.add("pdf");
 
 		return user.hasWriteAccess().on(record) &&
 			   user.has(RMPermissionsTo.GENERATE_EXTERNAL_SIGNATURE_URL).globally() &&
 			   document.hasContent() &&
-			   FilenameUtils.isExtension(document.getContent().getCurrentVersion().getFilename(),
-					   conversionManager.getAllSupportedExtensions());
+			   FilenameUtils.isExtension(document.getContent().getCurrentVersion().getFilename(), supportedExtensions);
 	}
 
 	public boolean isCheckInActionPossible(Record record, User user) {
